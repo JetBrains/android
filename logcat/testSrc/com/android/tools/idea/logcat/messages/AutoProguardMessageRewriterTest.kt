@@ -23,30 +23,18 @@ import com.android.tools.idea.logcat.LogcatR8MappingsToken.R8Mappings
 import com.android.tools.idea.logcat.util.logcatEvents
 import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.testing.AndroidModuleModelBuilder
-import com.android.tools.idea.testing.AndroidProjectBuilder
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.JavaModuleModelBuilder
+import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.StackRetraceEvent
 import com.intellij.openapi.components.service
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.guessModuleDir
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ExtensionTestUtil
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
-import com.intellij.util.io.createDirectories
-import com.intellij.util.io.createParentDirectories
-import com.intellij.util.io.delete
-import com.intellij.util.io.write
 import java.nio.file.Path
 import kotlin.io.path.fileSize
-import kotlin.io.path.pathString
-import kotlin.io.path.readText
-import kotlin.io.path.writeText
-import kotlin.test.fail
 import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -140,29 +128,25 @@ private val CLEAR_MESSAGE_PRT =
 /** Tests for [AutoProguardMessageRewriter] */
 @RunWith(JUnit4::class)
 class AutoProguardMessageRewriterTest {
-  private val projectRule =
-    AndroidProjectRule.withAndroidModels(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      AndroidModuleModelBuilder(
-        ":app1",
-        "release",
-        AndroidProjectBuilder(applicationIdFor = { "app1" }),
-      ),
-      AndroidModuleModelBuilder(
-        ":app2",
-        "release",
-        AndroidProjectBuilder(applicationIdFor = { "app2" }),
-      ),
-      AndroidModuleModelBuilder(
-        ":app3",
-        "release",
-        AndroidProjectBuilder(applicationIdFor = { "app2" }),
-      ),
-    )
+  private val projectRule = ProjectRule()
+  private val project
+    get() = projectRule.project
 
+  private val disposableRule = DisposableRule()
+  private val disposable
+    get() = disposableRule.disposable
+
+  private val temporaryDirectoryRule = TemporaryDirectoryRule()
   private val usageTrackerRule = UsageTrackerRule()
+  private val mappings = mutableListOf<R8Mappings>()
 
-  @get:Rule val rule = RuleChain(projectRule, usageTrackerRule)
+  @get:Rule
+  val rule = RuleChain(projectRule, usageTrackerRule, temporaryDirectoryRule, disposableRule)
+
+  @Before
+  fun setUp() {
+    registerLogcatR8MappingsTokenExtension()
+  }
 
   @After
   fun tearDown() {
@@ -170,133 +154,65 @@ class AutoProguardMessageRewriterTest {
   }
 
   @Test
-  fun rewrite_success() {
-    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
-    val mapId = "map-id-12345"
+  fun rewrite_text() {
+    val rewriter = project.service<AutoProguardMessageRewriter>()
+    val textMapping = TestResources.getFile("/proguard/text/mapping.txt").toPath()
+    mappings.add(R8Mappings(textMapping, Path.of("missing.prt")))
 
-    val mappings =
-      copyMapToModule(
-        "/proguard/mapping-with-id.txt",
-        findModules("app1").first(),
-        "release",
-        mapId,
-      )
+    val text = rewriter.rewrite(MESSAGE.withMapId("correct-map-id"))
 
-    val text = rewriter.rewrite(MESSAGE.withMapId(mapId), "app1")
-
-    assertThat(rewriter.getMapping()).isEqualTo(mappings.text)
+    assertThat(rewriter.getMapping()).isEqualTo(textMapping)
     assertThat(text).isEqualTo(CLEAR_MESSAGE)
     assertThat(usageTrackerRule.retraceEvents())
-      .containsExactly(stackRetraceEvent(mappings.text.fileSize(), isCached = false))
+      .containsExactly(stackRetraceEvent(textMapping.fileSize(), isCached = false))
   }
 
   @Test
-  fun rewrite_successPartitioned() {
-    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
-    val mapId = "map-id-12345"
+  fun rewrite_partitioned() {
+    val rewriter = project.service<AutoProguardMessageRewriter>()
+    val textMapping = TestResources.getFile("/proguard/partitioned/mapping.txt").toPath()
+    val partitionedMapping = TestResources.getFile("/proguard/partitioned/mapping.prt").toPath()
+    mappings.add(R8Mappings(textMapping, partitionedMapping))
 
-    val mappings =
-      copyMapToModule(
-        "/proguard/partitioned/mapping.txt",
-        findModules("app1").first(),
-        "release",
-        mapId,
-      )
+    val text = rewriter.rewrite(MESSAGE_PRT.withMapId("correct-map-id"))
 
-    val text = rewriter.rewrite(MESSAGE_PRT.withMapId(mapId), "app1")
-
-    assertThat(rewriter.getMapping()).isEqualTo(mappings.partitioned)
+    assertThat(rewriter.getMapping()).isEqualTo(partitionedMapping)
     assertThat(text).isEqualTo(CLEAR_MESSAGE_PRT)
     assertThat(usageTrackerRule.retraceEvents())
-      .containsExactly(stackRetraceEvent(mappings.partitioned!!.fileSize(), isCached = false))
+      .containsExactly(stackRetraceEvent(partitionedMapping.fileSize(), isCached = false))
   }
 
   @Test
   fun rewrite_cachesValue() {
-    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
-    val mapId = "map-id-12345"
-    val mappings =
-      copyMapToModule(
-        "/proguard/mapping-with-id.txt",
-        findModules("app1").first(),
-        "release",
-        mapId,
-      )
-    val mappingFileSize = mappings.text.fileSize()
-    val message = MESSAGE.withMapId(mapId)
-    rewriter.rewrite(message, "app1")
-    mappings.text.delete()
+    val rewriter = project.service<AutoProguardMessageRewriter>()
+    val textMapping = TestResources.getFile("/proguard/text/mapping.txt").toPath()
+    mappings.add(R8Mappings(textMapping, Path.of("missing.prt")))
+    val message = MESSAGE.withMapId("correct-map-id")
 
-    val text = rewriter.rewrite(message, "app1")
+    rewriter.rewrite(message)
+
+    mappings.clear()
+    val text = rewriter.rewrite(message)
 
     assertThat(text).isEqualTo(CLEAR_MESSAGE)
     assertThat(usageTrackerRule.retraceEvents())
       .containsExactly(
-        stackRetraceEvent(mappingFileSize, isCached = false),
-        stackRetraceEvent(mappingFileSize, isCached = true),
+        stackRetraceEvent(textMapping.fileSize(), isCached = false),
+        stackRetraceEvent(textMapping.fileSize(), isCached = true),
       )
       .inOrder()
   }
 
   @Test
-  fun rewrite_multipleVariants() {
-    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
-    val incorrectMapId = "incorrect-map-id"
-    val correctMapId = "correct-map-id"
-    val module = findModules("app1").first()
-    copyMapToModule("/proguard/mapping-with-id.txt", module, "release1", incorrectMapId)
-    val mappings =
-      copyMapToModule("/proguard/mapping-with-id.txt", module, "release2", correctMapId)
-
-    val text = rewriter.rewrite(MESSAGE.withMapId(correctMapId), "app1")
-
-    assertThat(text).isEqualTo(CLEAR_MESSAGE)
-    assertThat(usageTrackerRule.retraceEvents())
-      .containsExactly(stackRetraceEvent(mappings.text.fileSize(), isCached = false))
-  }
-
-  @Test
-  fun rewrite_multipleModules() {
-    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
-    val mapId = "map-id"
-    val module = findModules("app2").first()
-    copyMapToModule("/proguard/mapping-with-id.txt", module, "release", mapId)
-
-    val text = rewriter.rewrite(MESSAGE.withMapId(mapId), "app2")
-
-    assertThat(text).isEqualTo(CLEAR_MESSAGE)
-  }
-
-  @Test
-  fun rewrite_multipleModulesOfSameAppId() {
-    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
-    val incorrectMapId = "incorrect-map-id"
-    val correctMapId = "correct-map-id"
-    val module1 = findModules("app2")[0]
-    val module2 = findModules("app2")[1]
-    copyMapToModule("/proguard/mapping-with-id.txt", module1, "release", incorrectMapId)
-    val mappings =
-      copyMapToModule("/proguard/mapping-with-id.txt", module2, "release", correctMapId)
-
-    val text = rewriter.rewrite(MESSAGE.withMapId(correctMapId), "app2")
-
-    assertThat(text).isEqualTo(CLEAR_MESSAGE)
-    assertThat(usageTrackerRule.retraceEvents())
-      .containsExactly(stackRetraceEvent(mappings.text.fileSize(), isCached = false))
-  }
-
-  @Test
   fun rewrite_noMatchingMapping() {
-    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
-    copyMapToModule(
-      "/proguard/mapping-with-id.txt",
-      findModules("app1").first(),
-      "release",
-      "map-id-12345",
-    )
-    val message = MESSAGE.withMapId("map-id-missing")
+    val rewriter = project.service<AutoProguardMessageRewriter>()
+    val textMapping = TestResources.getFile("/proguard/partitioned/mapping.txt").toPath()
+    val partitionedMapping = TestResources.getFile("/proguard/partitioned/mapping.prt").toPath()
+    mappings.add(R8Mappings(textMapping, partitionedMapping))
 
-    val text = rewriter.rewrite(message, "app1")
+    val message = MESSAGE.withMapId("incorrect-map-id")
+
+    val text = rewriter.rewrite(message)
 
     assertThat(text).isEqualTo(message)
     assertThat(usageTrackerRule.retraceEvents())
@@ -304,61 +220,13 @@ class AutoProguardMessageRewriterTest {
   }
 
   @Test
-  fun rewrite_noBuildDir() {
-    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
-    val message = MESSAGE.withMapId("map-id-missing")
-
-    val text = rewriter.rewrite(message, "app1")
-
-    assertThat(text).isEqualTo(message)
-    assertThat(usageTrackerRule.retraceEvents())
-      .containsExactly(stackRetraceEvent("BUILD_DIR_NOT_FOUND"))
-  }
-
-  @Test
-  fun rewrite_noMappingsDir() {
-    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
-    val message = MESSAGE.withMapId("map-id-missing")
-    val module = findModules("app1").first()
-    val moduleDir = module.guessModuleDir()?.toNioPath() ?: fail("Failed to prepare module dir")
-    val mappingDir = moduleDir.resolve("build")
-    mappingDir.createDirectories()
-
-    val text = rewriter.rewrite(message, "app1")
-
-    assertThat(text).isEqualTo(message)
-    assertThat(usageTrackerRule.retraceEvents())
-      .containsExactly(stackRetraceEvent("MAPPINGS_DIR_NOT_FOUND"))
-  }
-
-  @Test
-  fun rewrite_noMappingsFile() {
-    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
-    val message = MESSAGE.withMapId("map-id-missing")
-    val module = findModules("app1").first()
-    val moduleDir = module.guessModuleDir()?.toNioPath() ?: fail("Failed to prepare module dir")
-    val mappingDir = moduleDir.resolve("build/outputs/mapping")
-    mappingDir.createDirectories()
-
-    val text = rewriter.rewrite(message, "app1")
-
-    assertThat(text).isEqualTo(message)
-    assertThat(usageTrackerRule.retraceEvents())
-      .containsExactly(stackRetraceEvent("MAPPINGS_FILE_NOT_FOUND"))
-  }
-
-  @Test
   fun rewrite_noMappingId() {
-    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
+    val rewriter = project.service<AutoProguardMessageRewriter>()
+    val textMapping = TestResources.getFile("/proguard/mapping-without-id.txt").toPath()
+    mappings.add(R8Mappings(textMapping, Path.of("")))
     val message = MESSAGE.withMapId("map-id-missing")
-    copyMapToModule(
-      "/proguard/mapping-without-id.txt",
-      findModules("app1").first(),
-      "release",
-      mapId = null,
-    )
 
-    val text = rewriter.rewrite(message, "app1")
+    val text = rewriter.rewrite(message)
 
     assertThat(text).isEqualTo(message)
     assertThat(usageTrackerRule.retraceEvents())
@@ -366,101 +234,29 @@ class AutoProguardMessageRewriterTest {
   }
 
   @Test
-  fun rewrite_noApp() {
-    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
-    val mapId = "map-id-12345"
-    copyMapToModule("/proguard/mapping-with-id.txt", findModules("app1").first(), "release", mapId)
-    val message = MESSAGE.withMapId(mapId)
-
-    val text = rewriter.rewrite(message, "unknown-app")
-
-    assertThat(text).isEqualTo(message)
-    assertThat(usageTrackerRule.retraceEvents())
-      .containsExactly(stackRetraceEvent("MODULES_NOT_FOUND"))
-  }
-
-  @Test
   fun cacheIsPurged() {
     StudioFlags.LOGCAT_AUTO_DEOBFUSCATE_CACHE_TIME_MS.override(0)
-    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
-    val mapId = "map-id-12345"
-    copyMapToModule("/proguard/mapping-with-id.txt", findModules("app1").first(), "release", mapId)
-    val text = rewriter.rewrite(MESSAGE.withMapId(mapId), "app1")
+    val rewriter = project.service<AutoProguardMessageRewriter>()
+    val textMapping = TestResources.getFile("/proguard/text/mapping.txt").toPath()
+    mappings.add(R8Mappings(textMapping, Path.of("missing.prt")))
+
+    val text = rewriter.rewrite(MESSAGE.withMapId("correct-map-id"))
     assertThat(text).isEqualTo(CLEAR_MESSAGE)
 
     waitForCondition { rewriter.autoRetracer == null }
   }
 
-  @Test
-  fun rewrite_usingLogcatR8MappingsToken() {
-    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
-    val mapId = "map-id-12345"
-    val path =
-      copyMapToModule(
-        "/proguard/mapping-with-id.txt",
-        findModules("app1").first(),
-        "release",
-        mapId,
-      )
-    registerLogcatR8MappingsTokenExtension(path.text)
-
-    // This would fail if we didn't register the LogcatR8MappingsTokenExtension
-    val text = rewriter.rewrite(MESSAGE.withMapId(mapId), "random-app")
-
-    assertThat(text).isEqualTo(CLEAR_MESSAGE)
-  }
-
-  private fun findModules(applicationId: String): List<Module> {
-    return projectRule.project.getProjectSystem().findModulesWithApplicationId(applicationId).map {
-      it.getModuleSystem().getHolderModule()
-    }
-  }
-
-  private fun registerLogcatR8MappingsTokenExtension(path: Path) {
-    val element: LogcatR8MappingsToken<AndroidProjectSystem> =
-      FakeLogcatR8MappingsToken(
-        listOf(R8Mappings(path, Path.of(path.pathString.replace(".txt", ".prt"))))
-      )
+  private fun registerLogcatR8MappingsTokenExtension() {
+    val element: LogcatR8MappingsToken<AndroidProjectSystem> = FakeLogcatR8MappingsToken()
     val extensionsToAdd: List<LogcatR8MappingsToken<AndroidProjectSystem>> = listOf(element)
-    ExtensionTestUtil.addExtensions(
-      LogcatR8MappingsToken.EP_NAME,
-      extensionsToAdd,
-      projectRule.testRootDisposable,
-    )
+    ExtensionTestUtil.addExtensions(LogcatR8MappingsToken.EP_NAME, extensionsToAdd, disposable)
   }
 
-  private class FakeLogcatR8MappingsToken(private val mappings: List<R8Mappings>) :
-    LogcatR8MappingsToken<AndroidProjectSystem> {
+  private inner class FakeLogcatR8MappingsToken() : LogcatR8MappingsToken<AndroidProjectSystem> {
     override fun getR8Mappings(projectSystem: AndroidProjectSystem): List<R8Mappings> = mappings
 
     override fun isApplicable(projectSystem: AndroidProjectSystem) = true
   }
-}
-
-private fun copyMapToModule(
-  path: String,
-  module: Module?,
-  variant: String,
-  mapId: String?,
-): R8Mappings {
-  val moduleDir = module?.guessModuleDir()?.toNioPath() ?: fail("Failed to prepare module dir")
-  val mappingFile = moduleDir.resolve("build/outputs/mapping/$variant/mapping.txt")
-  mappingFile.createParentDirectories()
-  val text =
-    if (mapId == null) {
-      TestResources.getFile(path).toPath().readText()
-    } else {
-      TestResources.getFile(path).toPath().readText().replace("MAP_ID", mapId)
-    }
-  mappingFile.writeText(text)
-  val prtMappingFile = mappingFile.withExtension("prt")
-  try {
-    val prtContents = TestResources.getFile(path.replaceAfterLast('.', "prt")).readBytes()
-    prtMappingFile.write(prtContents)
-  } catch (_: Throwable) {
-    // No prt file, ignore
-  }
-  return R8Mappings(mappingFile, prtMappingFile)
 }
 
 private fun String.withMapId(mapId: String) = replace("MAP_ID", mapId)

@@ -128,7 +128,7 @@ internal class MessageFormatter(
   ): String {
     if (StudioFlags.LOGCAT_DEOBFUSCATE.get()) {
       if (StudioFlags.LOGCAT_AUTO_DEOBFUSCATE.get()) {
-        val msg = autoProguardMessageRewriter.rewrite(message.message, message.header.applicationId)
+        val msg = autoProguardMessageRewriter.rewrite(message.message)
         if (msg != message.message) {
           onDeobfuscated(autoProguardMessageRewriter.getMapping())
           return msg
