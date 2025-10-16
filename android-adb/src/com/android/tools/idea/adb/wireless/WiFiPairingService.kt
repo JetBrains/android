@@ -16,6 +16,7 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.adblib.MdnsServices
+import com.android.adblib.MdnsTrackServiceInfo
 import com.android.annotations.concurrency.AnyThread
 import com.google.common.util.concurrent.ListenableFuture
 import java.awt.Color
@@ -118,6 +119,11 @@ data class TrackingMdnsService(
     get() {
       return if (deviceName.isNullOrBlank()) "Device at ${ipv4}:${port}" else deviceName
     }
+}
+
+internal fun MdnsTrackServiceInfo.needsUpdate(): Boolean {
+  // minimum mdns version is 2.0 to work with new adb wifi v2 features.
+  return mdnsServiceVersion.isNullOrBlank() || mdnsServiceVersion == "1"
 }
 
 /** Abstraction over an bitmap representation of a QrCode */
