@@ -2528,6 +2528,11 @@ public final class StudioFlags {
                     "Enable agent critic",
                     "Enables the agent to look for and report new warnings added after file changes");
 
+  public static final Flag<Boolean> STUDIOBOT_PERMISSION_MODEL =
+    new BooleanFlag(STUDIOBOT, "permission.model",
+                    "Enable new permission model",
+                    "Enables the permission model which offers granular permission grants and denials");
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
