@@ -216,7 +216,7 @@ private fun ProjectInfo.isKmpAndroidComponent(): Boolean {
   if (isAndroidComponent()) return false
   val platformType = attributes["org.jetbrains.kotlin.platform.type"]
   return (platformType == "jvm" || platformType == "androidJvm") &&
-         attributes[TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE.name] == TargetJvmEnvironment.ANDROID
+              attributes[TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE.name] == TargetJvmEnvironment.ANDROID
 }
 
 private fun Library.getComponent() = libraryInfo?.let {
