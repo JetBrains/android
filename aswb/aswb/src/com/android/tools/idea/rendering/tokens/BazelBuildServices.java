@@ -69,8 +69,9 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
     listeners.remove(listener);
   }
 
+  @NotNull
   @Override
-  public @NotNull BuildStatus getLastCompileStatus(@NotNull BazelBuildTargetReference target) {
+  public BuildStatus getLastCompileStatus(@NotNull BazelBuildTargetReference target) {
     // TODO: b/409383880 - Implement this
     return BuildStatus.UNKNOWN;
   }
@@ -79,7 +80,7 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
    * Executed by an application pool thread
    */
   @Override
-  public void buildArtifacts(@NotNull Collection<? extends @NotNull BazelBuildTargetReference> targets) {
+  public void buildArtifacts(@NotNull Collection<? extends BazelBuildTargetReference> targets) {
     buildArtifactsAsync(Iterables.getOnlyElement(targets));
   }
 
@@ -126,9 +127,7 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
   /**
    * Executed by the Blaze executor
    */
-  private static void buildAndRefresh(@NotNull QuerySyncManager manager,
-                                      @NotNull BlazeContext context,
-                                      @NotNull Set<@NotNull Label> labels) throws BuildException {
+  private static void buildAndRefresh(QuerySyncManager manager, BlazeContext context, Set<Label> labels) throws BuildException {
     var tracker = manager.getDependencyTracker();
     assert tracker != null;
 
