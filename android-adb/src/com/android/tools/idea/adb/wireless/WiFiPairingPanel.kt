@@ -18,11 +18,16 @@ package com.android.tools.idea.adb.wireless
 import com.android.annotations.concurrency.UiThread
 import com.android.utils.HtmlBuilder
 import com.intellij.openapi.Disposable
+import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.JBUI.CurrentTheme.Banner
 import java.awt.BorderLayout
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.RenderingHints
 import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -46,9 +51,18 @@ internal class WiFiPairingPanel(
 
   val rootComponent: JComponent by lazy {
     JPanel(BorderLayout()).apply {
-      val headerPanel = createHeaderPanel()
-      add(headerPanel, BorderLayout.PAGE_START)
-      add(loadingPanel, BorderLayout.CENTER)
+      createWarningBanner()?.let { add(it, BorderLayout.NORTH) }
+
+      val headerContent = createHeaderPanel()
+      val centerContent =
+        JPanel(BorderLayout()).apply {
+          // The dialog has an (8, 12) default padding. Apply the padding to the content below the
+          // warning banner.
+          border = JBUI.Borders.empty(8, 12)
+          add(headerContent, BorderLayout.NORTH)
+          add(loadingPanel, BorderLayout.CENTER)
+        }
+      add(centerContent, BorderLayout.CENTER)
     }
   }
 
@@ -77,6 +91,12 @@ internal class WiFiPairingPanel(
   var pairingCodePairInvoked: (PairingMdnsService) -> Unit = {}
 
   var qrCodeScanAgainInvoked: () -> Unit = {}
+
+  private fun createWarningBanner(): JComponent? {
+    return WarningBanner().takeIf {
+      mdnsServiceUnderPairing != null && mdnsServiceUnderPairing.needsUpdate()
+    }
+  }
 
   private fun createHeaderPanel(): JComponent {
     val topLabel =
@@ -130,4 +150,24 @@ internal class WiFiPairingPanel(
     loadingPanel.stopLoading()
     centerPanel.showError(html)
   }
+}
+
+private class WarningBanner : EditorNotificationPanel(Status.Warning) {
+  init {
+    text = "Check for device software updates to improve Wi-Fi pairing."
+    isOpaque = true
+  }
+
+  override fun paintBorder(g: Graphics) {
+    super.paintBorder(g)
+    with(g as Graphics2D) {
+      setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+      setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
+      g.color = Banner.WARNING_BORDER_COLOR
+      drawRect((-5).scaled, 0, width + 10.scaled, height - 1.scaled)
+    }
+  }
+
+  private val Int.scaled: Int
+    get() = JBUI.scale(this)
 }

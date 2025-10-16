@@ -114,6 +114,7 @@ data class TrackingMdnsService(
   val ipv4: String,
   val port: String,
   val deviceName: String?,
+  val mdnsServiceVersion: String?,
 ) {
   val displayString: String
     get() {
@@ -121,7 +122,15 @@ data class TrackingMdnsService(
     }
 }
 
+internal fun TrackingMdnsService.needsUpdate(): Boolean {
+  return mdnsServiceNeedsUpdate(mdnsServiceVersion)
+}
+
 internal fun MdnsTrackServiceInfo.needsUpdate(): Boolean {
+  return mdnsServiceNeedsUpdate(mdnsServiceVersion)
+}
+
+private fun mdnsServiceNeedsUpdate(mdnsServiceVersion: String?): Boolean {
   // minimum mdns version is 2.0 to work with new adb wifi v2 features.
   return mdnsServiceVersion.isNullOrBlank() || mdnsServiceVersion == "1"
 }
