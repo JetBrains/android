@@ -375,7 +375,7 @@ class WifiAvailableDevicesDialog(
                     serviceName = device.service.serviceInstanceName.instance,
                     ipv4 = device.service.ipv4,
                     port = device.service.port.toString(),
-                    deviceName = device.service.deviceModel,
+                    deviceName = buildDeviceName(device.service),
                   )
                 )
             controller.showDialog()
@@ -405,8 +405,9 @@ class WifiAvailableDevicesDialog(
 }
 
 private fun buildDeviceName(mdnsService: MdnsTrackServiceInfo): String =
-  if (mdnsService.deviceModel.isNullOrBlank()) "Device at ${mdnsService.ipv4}:${mdnsService.port}"
-  else mdnsService.deviceModel!!
+  mdnsService.givenName.takeUnless { it.isNullOrBlank() }
+    ?: mdnsService.deviceModel.takeUnless { it.isNullOrBlank() }
+    ?: "Device"
 
 object WifiPairingLinkHandler {
 
