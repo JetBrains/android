@@ -29,7 +29,6 @@ import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.common.surface.selectComponent
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -354,7 +353,7 @@ class NavigatingInteractionHandler(
     val androidY = Coordinates.getAndroidYDip(sceneView, y)
     val isOptionDown = isOptionDown(modifiersEx)
     val scene = sceneView.scene
-    scope.launch(AndroidDispatchers.workerThread) {
+    scope.launch(Dispatchers.Default) {
       val navigatables =
         navigationHandler.findNavigatablesWithCoordinates(
           sceneView,
@@ -404,7 +403,7 @@ class NavigatingInteractionHandler(
         defaultGroup.addAction(
           object : AnAction(name) {
             override fun actionPerformed(e: AnActionEvent) {
-              scope.launch(AndroidDispatchers.workerThread) {
+              scope.launch(Dispatchers.Default) {
                 navigationHandler.navigateTo(sceneView, it, false)
               }
             }

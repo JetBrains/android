@@ -16,7 +16,6 @@
 package com.android.tools.idea.preview.flow
 
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.res.ResourceNotificationManager.Reason
@@ -26,6 +25,7 @@ import com.android.tools.idea.testing.replaceText
 import com.intellij.openapi.application.readAndWriteAction
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -59,7 +59,7 @@ class ResourceChangedListenerFlowTest {
       )
 
     withTimeout(30.seconds) {
-      val flowScope = createChildScope(context = workerThread)
+      val flowScope = createChildScope(context = Dispatchers.Default)
       val flowConnected = CompletableDeferred<Unit>()
       val resourceChangedFlow =
         resourceChangedFlow(
@@ -98,7 +98,7 @@ class ResourceChangedListenerFlowTest {
       )
 
     withTimeout(30.seconds) {
-      val flowScope = createChildScope(context = workerThread)
+      val flowScope = createChildScope(context = Dispatchers.Default)
       val flowConnected = CompletableDeferred<Unit>()
       val resourceChangedFlow =
         resourceChangedFlow(

@@ -16,7 +16,6 @@
 package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.concurrency.wrapCompletableDeferredCollection
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
@@ -34,6 +33,7 @@ import kotlin.concurrent.withLock
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -212,7 +212,7 @@ private constructor(private val scope: CoroutineScope, private val topic: Render
   val refreshingTypeFlow: StateFlow<RefreshType?> = _refreshingTypeFlow
 
   init {
-    scope.launch(AndroidDispatchers.workerThread) {
+    scope.launch(Dispatchers.Default) {
       requestsFlow.collect {
         val lazyWrapperJob: Job
         var currentRefreshJob: Job? = null
@@ -298,7 +298,7 @@ private constructor(private val scope: CoroutineScope, private val topic: Render
 
   private fun doRequestRefresh(request: PreviewRefreshRequest): Job {
     val enqueueingJob =
-      scope.launch(AndroidDispatchers.workerThread) {
+      scope.launch(Dispatchers.Default) {
         requestsLock.withLock {
           // If the running request is of the same client and has lower than
           // or equal priority to the new one, then it should be cancelled.
