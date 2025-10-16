@@ -144,7 +144,35 @@ class WifiPairableDeviceProvisionerPluginTest {
   }
 
   @Test
-  fun newMdnsService_withNullModel_createsDeviceHandleWithFallbackName() = runTest {
+  fun newMdnsService_withGivenName() = runTest {
+    mdnsFlow.value = createMdnsTlsService("service1", givenName = "Foo Pixel")
+    val plugin =
+      WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
+    advanceTimeBy(6000) // Past initial delay
+
+    assertThat(plugin.devices.value).hasSize(1)
+    val handle =
+      plugin.devices.value.first() as WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceHandle
+    assertThat(handle.serviceName).isEqualTo("service1")
+    assertThat(handle.state.properties.model).isEqualTo("Foo Pixel")
+  }
+
+  @Test
+  fun newMdnsService_withModel() = runTest {
+    mdnsFlow.value = createMdnsTlsService("service1", model = "Pixel")
+    val plugin =
+      WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
+    advanceTimeBy(6000) // Past initial delay
+
+    assertThat(plugin.devices.value).hasSize(1)
+    val handle =
+      plugin.devices.value.first() as WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceHandle
+    assertThat(handle.serviceName).isEqualTo("service1")
+    assertThat(handle.state.properties.model).isEqualTo("Pixel at 192.168.1.100:4321")
+  }
+
+  @Test
+  fun newMdnsService_withNullModelAndNullGivenName_createsDeviceHandleWithFallbackName() = runTest {
     mdnsFlow.value = createMdnsTlsService("service1", model = null)
     val plugin =
       WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
@@ -196,8 +224,8 @@ class WifiPairableDeviceProvisionerPluginTest {
   }
 
   @Test
-  fun pairAction_launchesPairingDialog() = runTest {
-    mdnsFlow.value = createMdnsTlsService("service1", "My Pixel", "1.2.3.4", 1234)
+  fun pairAction_entryWithModel_launchesPairingDialogWithCorrectName() = runTest {
+    mdnsFlow.value = createMdnsTlsService("service1", "Pixel", "1.2.3.4", 1234)
     val plugin =
       WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
     advanceTimeBy(6000) // Past initial delay
@@ -209,7 +237,52 @@ class WifiPairableDeviceProvisionerPluginTest {
       .createPairingDialogController(
         argThat { s: TrackingMdnsService ->
           s.serviceName == "service1" &&
-            s.deviceName == "My Pixel" &&
+            s.deviceName == "Pixel" &&
+            s.ipv4 == "1.2.3.4" &&
+            s.port == "1234"
+        }
+      )
+    verify(pairingController).showDialog()
+  }
+
+  @Test
+  fun pairAction_entryWithGivenName_launchesPairingDialogWithCorrectName() = runTest {
+    mdnsFlow.value =
+      createMdnsTlsService("service1", "Pixel", "1.2.3.4", 1234, givenName = "Foo Pixel")
+    val plugin =
+      WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
+    advanceTimeBy(6000) // Past initial delay
+
+    val handle = plugin.devices.value.first()
+    handle.wifiPairDeviceAction!!.pair()
+
+    verify(pairDevicesService)
+      .createPairingDialogController(
+        argThat { s: TrackingMdnsService ->
+          s.serviceName == "service1" &&
+            s.deviceName == "Foo Pixel" &&
+            s.ipv4 == "1.2.3.4" &&
+            s.port == "1234"
+        }
+      )
+    verify(pairingController).showDialog()
+  }
+
+  @Test
+  fun pairAction_entryWithNoName_launchesPairingDialogWithCorrectName() = runTest {
+    mdnsFlow.value = createMdnsTlsService("service1", null, "1.2.3.4", 1234, givenName = null)
+    val plugin =
+      WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
+    advanceTimeBy(6000) // Past initial delay
+
+    val handle = plugin.devices.value.first()
+    handle.wifiPairDeviceAction!!.pair()
+
+    verify(pairDevicesService)
+      .createPairingDialogController(
+        argThat { s: TrackingMdnsService ->
+          s.serviceName == "service1" &&
+            s.deviceName == "Device" &&
             s.ipv4 == "1.2.3.4" &&
             s.port == "1234"
         }
@@ -333,6 +406,9 @@ class WifiPairableDeviceProvisionerPluginTest {
     port: Int = 4321,
     knownDevice: Boolean = false,
     sdk: String = "34",
+    givenName: String? = null,
+    serial: String? = null,
+    mdnsServiceVersion: String? = null,
   ): MdnsServices {
     val serviceInfo =
       MdnsTrackServiceInfo(
@@ -342,10 +418,9 @@ class WifiPairableDeviceProvisionerPluginTest {
         port = port,
         ipv6 = emptyList(),
         buildVersionSdkFull = sdk,
-        // TODO merge
-        givenName = null,
-        serial = null,
-        mdnsServiceVersion = null,
+        givenName = givenName,
+        serial = serial,
+        mdnsServiceVersion = mdnsServiceVersion,
       )
     val services = listOf(MdnsTlsService(serviceInfo, knownDevice))
     return MdnsServices(emptyList(), services, emptyList())

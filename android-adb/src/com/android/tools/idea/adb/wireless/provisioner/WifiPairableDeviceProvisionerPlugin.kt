@@ -202,7 +202,7 @@ class WifiPairableDeviceProvisionerPlugin(
                   DeviceProperties.build {
                     this.deviceType = DeviceType.HANDHELD
                     icon = StudioDefaultDeviceIcons.iconForDeviceType(this.deviceType)
-                    model = getModelName(trackService.service)
+                    model = buildDeviceNameForDeviceManager(trackService.service)
                     androidVersion =
                       AndroidVersionUtil.androidVersionFromDeviceProperties(
                         mapOf(
@@ -220,7 +220,7 @@ class WifiPairableDeviceProvisionerPlugin(
               project,
               notificationService,
               serviceName,
-              trackService.service.deviceModel,
+              buildDeviceNameForPairingDialog(trackService.service),
               trackService.service.ipv4,
               trackService.service.port,
             )
@@ -242,12 +242,17 @@ class WifiPairableDeviceProvisionerPlugin(
     return handlesToCancel
   }
 
-  private fun getModelName(service: MdnsTrackServiceInfo): String {
-    if (service.deviceModel.isNullOrBlank()) {
-      return "Device at ${service.ipv4}:${service.port}"
-    }
-    return "${service.deviceModel} at ${service.ipv4}:${service.port}"
-  }
+  private fun buildDeviceNameForDeviceManager(service: MdnsTrackServiceInfo): String =
+    service.givenName.takeUnless { it.isNullOrBlank() }
+      ?: service.deviceModel
+        .takeUnless { it.isNullOrBlank() }
+        ?.let { "$it at ${service.ipv4}:${service.port}" }
+      ?: "Device at ${service.ipv4}:${service.port}"
+
+  private fun buildDeviceNameForPairingDialog(service: MdnsTrackServiceInfo): String =
+    service.givenName.takeUnless { it.isNullOrBlank() }
+      ?: service.deviceModel.takeUnless { it.isNullOrBlank() }
+      ?: "Device"
 
   class WifiPairableDeviceHandle
   private constructor(
