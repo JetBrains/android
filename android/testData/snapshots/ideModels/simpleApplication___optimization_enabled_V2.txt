@@ -1308,9 +1308,6 @@ MODULE                        : project.app
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 2
-            minor                         : 2
-            patch                         : 10
             versionString                 : 2.2.10
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties

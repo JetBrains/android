@@ -1762,9 +1762,6 @@ MODULE                        : My_First_App.app
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 23
             versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -2424,9 +2421,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 23
             versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
