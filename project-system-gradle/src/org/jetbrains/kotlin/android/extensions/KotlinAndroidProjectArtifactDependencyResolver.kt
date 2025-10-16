@@ -43,9 +43,13 @@ internal class KotlinAndroidProjectArtifactDependencyResolver(
   private fun ProjectInfo.isAndroidComponent(): Boolean =
     componentInfo.attributesMap.containsKey("com.android.build.api.attributes.AgpVersionAttr")
 
-  private fun ProjectInfo.isKmpAndroidComponent(): Boolean =
-    componentInfo.attributesMap["org.jetbrains.kotlin.platform.type"] == "jvm" &&
-    componentInfo.attributesMap[TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE.name] == TargetJvmEnvironment.ANDROID
+  private fun ProjectInfo.isKmpAndroidComponent(): Boolean {
+    // return false if pure android library or kmp library using com.android.library plugin
+    if (componentInfo.buildType.isNullOrEmpty().not() || componentInfo.productFlavorsMap.isNotEmpty()) return false
+    val platformType = componentInfo.attributesMap["org.jetbrains.kotlin.platform.type"]
+    return (platformType == "jvm" || platformType == "androidJvm") &&
+           componentInfo.attributesMap[TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE.name] == TargetJvmEnvironment.ANDROID
+  }
 
 
   override fun resolve(context: KotlinMppGradleProjectResolver.Context,
