@@ -19,11 +19,11 @@ import com.intellij.ui.classFilter.ClassFilter
 import com.intellij.ui.classFilter.DebuggerClassFilterProvider
 
 private val FILTERS = listOf(
-  "android.*",
-  "com.android.*",
-  "androidx.*",
-  "libcore.*",
-  "dalvik.*",
+  "^android.*",
+  "^com.android.*",
+  "^androidx.*",
+  "^libcore.*",
+  "^dalvik.*",
 ).map { ClassFilter(it) }
 
 
