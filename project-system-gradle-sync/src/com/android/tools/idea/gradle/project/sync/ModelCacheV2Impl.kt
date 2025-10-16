@@ -68,18 +68,19 @@ import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toPrintable
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeBytecodeTransformation
 import com.android.tools.idea.gradle.model.IdeDependencies
+import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_DEFAULT_ENABLED
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_ERROR
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_FATAL
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_IGNORE
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_INFORMATIONAL
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_WARNING
-import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
-import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet.MAIN
-import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet.TEST_FIXTURES
+import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeTestSuiteSource
+import com.android.tools.idea.gradle.model.IdeUnknownLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
@@ -101,11 +102,11 @@ import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeJUnitEngineInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
-import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet.MAIN
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet.TEST_FIXTURES
 import com.android.tools.idea.gradle.model.impl.IdeMultiVariantDataImpl
-import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
-import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.impl.IdePrivacySandboxSdkInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
@@ -119,7 +120,6 @@ import com.android.tools.idea.gradle.model.impl.IdeTestSuiteSourceImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteTargetImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteVariantTargetImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
-import com.android.tools.idea.gradle.model.IdeUnknownLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
@@ -129,7 +129,9 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.android.tools.idea.gradle.model.impl.throwingIdeDependencies
+import com.android.utils.FileUtils
 import com.google.common.collect.Lists
+import com.intellij.util.containers.addIfNotNull
 import java.io.File
 
 const val TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY = "assets (test suite)"
@@ -156,10 +158,16 @@ fun modelCacheV2Impl(
 
   /** If AGP has absolute Gradle build path used in [ProjectInfo.buildId], or it uses the Gradle build name that we need to patch. */
 
-  fun sourceProviderFrom(provider: SourceProvider): IdeSourceProvider {
+  fun sourceProviderFrom(provider: SourceProvider, buildFolder: File): IdeSourceProvider {
     val folder: File? = provider.manifestFile?.let { it.parentFile?.deduplicateFile() }
     fun File.makeRelativeAndDeduplicate(): String = (if (folder != null) relativeToOrSelf(folder) else this).path.deduplicate()
     fun Collection<File>.makeRelativeAndDeduplicate(): List<String> = map { it.makeRelativeAndDeduplicate() }
+    val assetsCollection = if (modelVersions[ModelFeature.HAS_GENERATED_ASSETS]) {
+      provider.assetsDirectories ?: mutableListOf()
+    }
+    else {
+      provider.assetsDirectories?.filter { !FileUtils.isFileInDirectory(it, buildFolder) } ?: mutableListOf()
+    }
     return IdeSourceProvider(
       name = provider.name.deduplicate(),
       folder = folder,
@@ -170,7 +178,7 @@ fun modelCacheV2Impl(
       aidlDirectories = provider.aidlDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
       renderscriptDirectories = provider.renderscriptDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
       resDirectories = provider.resDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
-      assetsDirectories = provider.assetsDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
+      assetsDirectories = assetsCollection.makeRelativeAndDeduplicate(),
       jniLibsDirectories = provider.jniLibsDirectories.makeRelativeAndDeduplicate(),
       shadersDirectories = provider.shadersDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
       mlModelsDirectories = provider.mlModelsDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
@@ -183,6 +191,9 @@ fun modelCacheV2Impl(
         mutableListOf()
     )
   }
+
+  fun sourceProviderFrom(provider: SourceProvider, assetContext: VariantAssetSourceProviderContext): IdeSourceProvider =
+    sourceProviderFrom(provider, assetContext.buildFolder)
 
   fun sourceProviderFrom(name: String, providers: Collection<File>, source: TestSuiteSource): IdeSourceProvider {
     fun File.makeRelativeAndDeduplicate(): String = relativeToOrSelf(providers.first()).path.deduplicate()
@@ -223,13 +234,13 @@ fun modelCacheV2Impl(
     )
   }
 
-  fun sourceProviderFrom(source: TestSuiteSource): IdeSourceProvider {
-    // FIXME merge
+  fun sourceProviderFrom(source: TestSuiteSource, buildFolder: File): IdeSourceProvider {
+    // TODO merge
     TODO("FIXME merge")
     //return if (source.folders?.isNotEmpty() ?: false) {
     //  sourceProviderFrom(source.name, source.folders!!, source)
     //} else {
-    //  sourceProviderFrom(source.sourceProvider!!)
+    //  sourceProviderFrom(source.sourceProvider!!, buildFolder)
     //}
   }
 
@@ -387,7 +398,7 @@ fun modelCacheV2Impl(
     )
   }
 
-  fun sourceProviderContainerFrom(container: SourceProvider): IdeExtraSourceProviderImpl {
+  fun sourceProviderContainerFrom(container: SourceProvider, buildFolder: File): IdeExtraSourceProviderImpl {
     return IdeExtraSourceProviderImpl(
       // As we no longer have ArtifactMetaData, we use hardcoded values for androidTests, unitTests and testFixtures artifacts.
 
@@ -397,44 +408,46 @@ fun modelCacheV2Impl(
         container.name.startsWith("screenshotTest") -> "_screenshot_test_"
         else -> "_unit_test_"
       },
-      sourceProvider = sourceProviderFrom(container)
+      sourceProvider = sourceProviderFrom(container, buildFolder)
     )
   }
 
   fun productFlavorContainerFrom(
     productFlavor: ProductFlavor,
-    container: SourceSetContainer?
+    container: SourceSetContainer?,
+    buildFolder: File
   ): IdeProductFlavorContainerImpl {
     return IdeProductFlavorContainerImpl(
       productFlavor = productFlavorFrom(productFlavor),
-      sourceProvider = container?.sourceProvider?.let { it: SourceProvider -> sourceProviderFrom(it) },
+      sourceProvider = container?.sourceProvider?.let { it: SourceProvider -> sourceProviderFrom(it, buildFolder) },
       extraSourceProviders = mutableListOf<IdeExtraSourceProviderImpl>().apply {
         if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
-          container?.deviceTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
-          container?.hostTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+          container?.deviceTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it, buildFolder)) }
+          container?.hostTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it, buildFolder)) }
         } else {
-          container?.androidTestSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
-          container?.unitTestSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+          container?.androidTestSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it, buildFolder)) }
+          container?.unitTestSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it, buildFolder)) }
         }
-        container?.testFixturesSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+        container?.testFixturesSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it, buildFolder)) }
       }
     )
   }
 
   fun sourceProviderContainerFrom(
-    container: SourceSetContainer?
+    container: SourceSetContainer?,
+    buildFolder: File
   ): IdeSourceProviderContainerImpl {
     return IdeSourceProviderContainerImpl(
-      sourceProvider = container?.sourceProvider?.let { it: SourceProvider -> sourceProviderFrom(it) },
+      sourceProvider = container?.sourceProvider?.let { it: SourceProvider -> sourceProviderFrom(it, buildFolder) },
       extraSourceProviders = mutableListOf<IdeExtraSourceProviderImpl>().apply {
         if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
-          container?.deviceTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
-          container?.hostTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+          container?.deviceTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it, buildFolder)) }
+          container?.hostTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it, buildFolder)) }
         } else {
-          container?.androidTestSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
-          container?.unitTestSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+          container?.androidTestSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it, buildFolder)) }
+          container?.unitTestSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it, buildFolder)) }
         }
-        container?.testFixturesSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+        container?.testFixturesSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it, buildFolder)) }
       }
     )
   }
@@ -468,19 +481,19 @@ fun modelCacheV2Impl(
     )
   }
 
-  fun buildTypeContainerFrom(buildType: BuildType, container: SourceSetContainer?): IdeBuildTypeContainerImpl {
+  fun buildTypeContainerFrom(buildType: BuildType, container: SourceSetContainer?, buildFolder: File): IdeBuildTypeContainerImpl {
     return IdeBuildTypeContainerImpl(
       buildType = buildTypeFrom(buildType),
-      sourceProvider = container?.sourceProvider?.let { sourceProviderFrom(it) },
+      sourceProvider = container?.sourceProvider?.let { sourceProviderFrom(it, buildFolder) },
       extraSourceProviders = mutableListOf<IdeExtraSourceProviderImpl>().apply {
         if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
-          container?.deviceTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
-          container?.hostTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+          container?.deviceTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it, buildFolder)) }
+          container?.hostTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it, buildFolder)) }
         } else {
-          container?.androidTestSourceProvider?.let { this.add(sourceProviderContainerFrom(it)) }
-          container?.unitTestSourceProvider?.let { this.add(sourceProviderContainerFrom(it)) }
+          container?.androidTestSourceProvider?.let { this.add(sourceProviderContainerFrom(it, buildFolder)) }
+          container?.unitTestSourceProvider?.let { this.add(sourceProviderContainerFrom(it, buildFolder)) }
         }
-        container?.testFixturesSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+        container?.testFixturesSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it, buildFolder)) }
       }
     )
   }
@@ -817,13 +830,37 @@ fun modelCacheV2Impl(
       fallback
   }
 
+  fun tryFindGeneratedAssets(provider: SourceProvider?, buildFolder: File): List<File> =
+    provider?.assetsDirectories?.filter {
+      FileUtils.isFileInDirectory(it,buildFolder)
+    } ?: mutableListOf()
+
+  fun tryFindGeneratedAssets(basicArtifact: BasicArtifact, assetContext: VariantAssetSourceProviderContext): List<File> {
+    val list = (tryFindGeneratedAssets(basicArtifact.variantSourceProvider, assetContext.buildFolder) +
+                tryFindGeneratedAssets (basicArtifact.multiFlavorSourceProvider, assetContext.buildFolder)).toMutableList()
+    assetContext.sourceProviders.forEach {
+      list += tryFindGeneratedAssets (it, assetContext.buildFolder)
+    }
+    return list
+  }
+
+  fun getGeneratedAssetsFolders(artifact: AndroidArtifact,
+                                basicArtifact: BasicArtifact,
+                                assetContext: VariantAssetSourceProviderContext): Collection<File> =
+    if (modelVersions[ModelFeature.HAS_GENERATED_ASSETS])
+      artifact.generatedAssetsFolders
+    else
+      tryFindGeneratedAssets(basicArtifact, assetContext)
+
+
   fun androidArtifactFrom(
     name: IdeArtifactName,
     basicArtifact: BasicArtifact,
     mainVariantName: String,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
     fallbackDesugaredMethodsFiles: Collection<File>,
-    artifact: AndroidArtifact
+    artifact: AndroidArtifact,
+    assetContext: VariantAssetSourceProviderContext
   ): IdeAndroidArtifactCoreImpl {
     val testInfo = artifact.testInfo
 
@@ -836,8 +873,8 @@ fun modelCacheV2Impl(
       classesFolder = artifact.classesFolders.toList(),
       ideSetupTaskNames = artifact.ideSetupTaskNames.toList(),
       generatedSourceFolders = artifact.generatedSourceFolders.deduplicateFiles().distinct(),
-      variantSourceProvider = basicArtifact.variantSourceProvider?.let { sourceProviderFrom(it) },
-      multiFlavorSourceProvider = basicArtifact.multiFlavorSourceProvider?.let { sourceProviderFrom(it) },
+      variantSourceProvider = basicArtifact.variantSourceProvider?.let { sourceProviderFrom(it, assetContext) },
+      multiFlavorSourceProvider = basicArtifact.multiFlavorSourceProvider?.let { sourceProviderFrom(it, assetContext) },
       compileClasspathCore = throwingIdeDependencies(),
       runtimeClasspathCore = throwingIdeDependencies(),
       unresolvedDependencies = emptyList(),
@@ -861,7 +898,7 @@ fun modelCacheV2Impl(
       desugaredMethodsFiles = getDesugaredMethodsList(artifact, fallbackDesugaredMethodsFiles).toList(),
       generatedClassPaths = if (modelVersions[ModelFeature.HAS_GENERATED_CLASSPATHS]) artifact.generatedClassPaths else emptyMap(),
       bytecodeTransforms = if (modelVersions[ModelFeature.HAS_BYTECODE_TRANSFORMS]) artifact.bytecodeTransformations.toIdeModels().toList() else null,
-      generatedAssetFolders = if (modelVersions[ModelFeature.HAS_GENERATED_ASSETS]) artifact.generatedAssetsFolders.deduplicateFiles().distinct() else listOf(),
+      generatedAssetFolders = getGeneratedAssetsFolders(artifact, basicArtifact, assetContext).deduplicateFiles().distinct(),
       mappingR8TextFile = if (modelVersions[ModelFeature.HAS_R8_MAPPING_FILE_PATH])
         artifact.mappingR8TextFile
       else
@@ -923,7 +960,8 @@ fun modelCacheV2Impl(
   fun javaArtifactFrom(
     name: IdeArtifactName,
     basicArtifact: BasicArtifact,
-    artifact: JavaArtifact
+    artifact: JavaArtifact,
+    assetContext: VariantAssetSourceProviderContext
   ): IdeJavaArtifactCoreImpl {
     return IdeJavaArtifactCoreImpl(
       name = name,
@@ -932,8 +970,8 @@ fun modelCacheV2Impl(
       classesFolder = artifact.classesFolders.toList(),
       ideSetupTaskNames = artifact.ideSetupTaskNames.deduplicateStrings().toList(),
       generatedSourceFolders = artifact.generatedSourceFolders.deduplicateFiles().distinct(),
-      variantSourceProvider = basicArtifact.variantSourceProvider?.let { sourceProviderFrom(it) },
-      multiFlavorSourceProvider = basicArtifact.multiFlavorSourceProvider?.let { sourceProviderFrom(it) },
+      variantSourceProvider = basicArtifact.variantSourceProvider?.let { sourceProviderFrom(it, assetContext) },
+      multiFlavorSourceProvider = basicArtifact.multiFlavorSourceProvider?.let { sourceProviderFrom(it, assetContext) },
       compileClasspathCore = throwingIdeDependencies(),
       runtimeClasspathCore = throwingIdeDependencies(),
       unresolvedDependencies = emptyList(),
@@ -1007,14 +1045,14 @@ fun modelCacheV2Impl(
     return listOf(ideTestedTargetVariantFrom(variant.testedTargetVariant!!))
   }
 
-  fun hostTestArtifactsFrom(variant: Variant, basicVariant: BasicVariant): List<IdeJavaArtifactCoreImpl> {
+  fun hostTestArtifactsFrom(variant: Variant, basicVariant: BasicVariant, assetContext: VariantAssetSourceProviderContext): List<IdeJavaArtifactCoreImpl> {
     return if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
       variant.hostTestArtifacts.map { (k, v) ->
-        javaArtifactFrom(convertArtifactName(k), basicVariant.hostTestArtifacts[k]!!, v)
+        javaArtifactFrom(convertArtifactName(k), basicVariant.hostTestArtifacts[k]!!, v, assetContext)
       }
     } else {
       variant.unitTestArtifact?.let { it: JavaArtifact ->
-        listOf(javaArtifactFrom(IdeArtifactName.UNIT_TEST, basicVariant.unitTestArtifact!!, it))
+        listOf(javaArtifactFrom(IdeArtifactName.UNIT_TEST, basicVariant.unitTestArtifact!!, it, assetContext))
       } ?: emptyList()
     }
   }
@@ -1029,10 +1067,10 @@ fun modelCacheV2Impl(
     }
   }
 
-  fun testSuiteSourceFrom(source: TestSuiteSource) = IdeTestSuiteSourceImpl(
+  fun testSuiteSourceFrom(source: TestSuiteSource, buildFolder: File) = IdeTestSuiteSourceImpl(
     source.name,
     testSuiteSourceTypeFrom(source.type),
-    sourceProviderFrom(source),
+    sourceProviderFrom(source, buildFolder),
   )
 
   fun testSuiteArtifactsFrom(
@@ -1068,17 +1106,18 @@ fun modelCacheV2Impl(
     variantName: String,
     fallbackDesugaredMethodsFiles: List<File>,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
+    assetContext: VariantAssetSourceProviderContext,
   ): List<IdeAndroidArtifactCoreImpl> {
     return if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
       variant.deviceTestArtifacts.map { (k, v) ->
         androidArtifactFrom(convertArtifactName(k), basicVariant.deviceTestArtifacts[k]!!, variantName, legacyAndroidGradlePluginProperties,
-                            fallbackDesugaredMethodsFiles, v)
+                            fallbackDesugaredMethodsFiles, v, assetContext)
       }
     } else {
       variant.androidTestArtifact?.let { it: AndroidArtifact ->
         listOf(androidArtifactFrom(
           IdeArtifactName.ANDROID_TEST, basicVariant.androidTestArtifact!!, variantName, legacyAndroidGradlePluginProperties,
-          fallbackDesugaredMethodsFiles, it
+          fallbackDesugaredMethodsFiles, it, assetContext
         ))
       } ?: emptyList()
     }
@@ -1091,6 +1130,7 @@ fun modelCacheV2Impl(
     variant: Variant,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
     testSuites: Collection<BasicTestSuite>,
+    assetContext: VariantAssetSourceProviderContext
   ): IdeVariantCoreImpl {
     // To get merged flavors for V2, we merge flavors from default config and all the flavors.
     val mergedFlavor = mergeProductFlavorsFrom(
@@ -1119,22 +1159,23 @@ fun modelCacheV2Impl(
       displayName = variant.displayName.deduplicate(),
       mainArtifact = androidArtifactFrom(
         IdeArtifactName.MAIN, basicVariant.mainArtifact, variantName, legacyAndroidGradlePluginProperties,
-        fallbackDesugaredMethodsFiles, variant.mainArtifact
+        fallbackDesugaredMethodsFiles, variant.mainArtifact, assetContext
       ),
       // If AndroidArtifact isn't null, then same goes for the ArtifactDependencies.
-      hostTestArtifacts  =  hostTestArtifactsFrom(variant, basicVariant),
+      hostTestArtifacts  =  hostTestArtifactsFrom(variant, basicVariant, assetContext),
       deviceTestArtifacts =  deviceTestArtifactsFrom(
         variant,
         basicVariant,
         variantName,
         fallbackDesugaredMethodsFiles,
-        legacyAndroidGradlePluginProperties
+        legacyAndroidGradlePluginProperties,
+        assetContext
       ),
       testSuiteArtifacts = testSuiteArtifactsFrom(variant, testSuites).toList(),
       testFixturesArtifact = variant.testFixturesArtifact?.let { it: AndroidArtifact ->
         androidArtifactFrom(
           IdeArtifactName.TEST_FIXTURES, basicVariant.testFixturesArtifact!!, variantName, legacyAndroidGradlePluginProperties,
-          fallbackDesugaredMethodsFiles, it
+          fallbackDesugaredMethodsFiles, it, assetContext
         )
       },
       buildType = basicVariant.buildType?.deduplicate() ?: "",
@@ -1410,6 +1451,39 @@ fun modelCacheV2Impl(
     ProjectType.FUSED_LIBRARY -> IdeAndroidProjectType.PROJECT_TYPE_FUSED_LIBRARY
   }
 
+
+  fun createAssetContext(basicVariant: BasicVariant,
+                         buildTypesSourceSetsMap: Map<String, SourceSetContainer>,
+                         flavorTypesSourceSetsMap: Map<String, SourceSetContainer>,
+                         buildFolder: File
+  ): VariantAssetSourceProviderContext {
+    val assetSourceProviders = mutableListOf<SourceProvider>()
+    val result = VariantAssetSourceProviderContext(assetSourceProviders, buildFolder)
+    (buildTypesSourceSetsMap.filter { it.key == basicVariant.buildType } +
+     flavorTypesSourceSetsMap.filter { basicVariant.productFlavors.contains(it.key) }).values.forEach { container ->
+      assetSourceProviders.addIfNotNull(container.sourceProvider)
+      if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
+        assetSourceProviders.addIfNotNull(container.testFixturesSourceProvider)
+        assetSourceProviders.addAll(container.hostTestSourceProviders.values)
+      } else {
+        assetSourceProviders.addIfNotNull(container.unitTestSourceProvider)
+        assetSourceProviders.addIfNotNull(container.androidTestSourceProvider)
+      }
+    }
+
+    return result
+  }
+
+  fun createAssetContext(basicVariant: BasicVariant,
+                         androidDsl: AndroidDsl,
+                         basicProject: BasicAndroidProject
+  ): VariantAssetSourceProviderContext =
+    createAssetContext(
+      basicVariant,
+      androidDsl.buildTypes.map { it.name }.zip(basicProject.buildTypeSourceSets).toMap(),
+      androidDsl.productFlavors.map { it.name }.zip(basicProject.productFlavorSourceSets).toMap(),
+      basicProject.buildFolder)
+
   fun androidProjectFrom(
     rootBuildId: BuildId,
     buildId: BuildId,
@@ -1422,12 +1496,14 @@ fun modelCacheV2Impl(
     defaultVariantName: String?
   ): ModelResult<IdeAndroidProjectImpl> {
     val defaultConfigCopy: IdeProductFlavorImpl = productFlavorFrom(androidDsl.defaultConfig)
-    val defaultConfigSourcesCopy: IdeSourceProviderContainerImpl = sourceProviderContainerFrom(basicProject.mainSourceSet)
+    val defaultConfigSourcesCopy: IdeSourceProviderContainerImpl =
+      sourceProviderContainerFrom(basicProject.mainSourceSet, basicProject.buildFolder)
     val buildTypesCopy: Collection<IdeBuildTypeContainerImpl> = zip(
       androidDsl.buildTypes,
       basicProject.buildTypeSourceSets,
       { it.name },
       { it.sourceProvider?.name ?: error("sourceProvider was null.") },
+      basicProject.buildFolder,
       ::buildTypeContainerFrom
     )
     val productFlavorCopy: Collection<IdeProductFlavorContainerImpl> = zip(
@@ -1435,6 +1511,7 @@ fun modelCacheV2Impl(
       basicProject.productFlavorSourceSets,
       { it.name },
       { it.sourceProvider?.name ?: error("sourceProvider was null.") },
+      basicProject.buildFolder,
       ::productFlavorContainerFrom
     )
     val basicVariantsCopy: Collection<IdeBasicVariantImpl> = project.variants.map { variant ->
@@ -1463,8 +1540,8 @@ fun modelCacheV2Impl(
         val testSuite = project.testSuites.first { it.name == basicTestSuite.name }
         IdeTestSuiteImpl(
           name = basicTestSuite.name,
-          // TODO merge
-          sources = TODO(), // basicTestSuite.sources.map(::testSuiteSourceFrom),
+          // TODO
+          sources = TODO(), // basicTestSuite.sources.map { testSuiteSourceFrom(it, basicProject.buildFolder) },
           junitEngineInfo = IdeJUnitEngineInfoImpl(testSuite.junitEngineInfo.includedEngines),
           targetedVariants = basicTestSuite.targetsByVariant.map { it.targetedVariant }
         )
@@ -1476,7 +1553,8 @@ fun modelCacheV2Impl(
     } else emptyList()
 
     val coreVariantsCopy = project.variants.zip(basicProject.variants).map { (variantModel, basicVariant) ->
-      variantCoreFrom(projectTypeCopy, multiVariantData, basicVariant, variantModel, legacyAndroidGradlePluginProperties, basicTestSuites)
+      val assetContext = createAssetContext(basicVariant, androidDsl, basicProject)
+      variantCoreFrom(projectTypeCopy, multiVariantData, basicVariant, variantModel, legacyAndroidGradlePluginProperties, basicTestSuites, assetContext)
     }
     val flavorDimensionCopy: Collection<String> = androidDsl.flavorDimensions.deduplicateStrings()
     val bootClasspathCopy: Collection<String> = basicProject.bootClasspath.map { it.absolutePath }.toList()
@@ -1547,13 +1625,17 @@ fun modelCacheV2Impl(
       basicVariant: BasicVariant,
       variant: Variant,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-      testSuites: Collection<BasicTestSuite>
+      testSuites: Collection<BasicTestSuite>,
+      androidDsl: AndroidDsl,
+      basicProject: BasicAndroidProject
     ): ModelResult<IdeVariantCoreImpl> = ModelResult.create {
+
+      val assetContext = createAssetContext(basicVariant, androidDsl, basicProject)
 
       // Currently, all plugins going through the model cache v2 building will be of multi-variant type
       variantCoreFrom(androidProject.projectType, androidProject.multiVariantData!!, basicVariant, variant,
                       legacyAndroidGradlePluginProperties,
-                      testSuites)
+                      testSuites, assetContext)
     }
 
     override fun variantFrom(
@@ -1620,15 +1702,16 @@ else {
   }
 }
 
-private inline fun <K, V, W, R> zip(
+private inline fun <K, V, W, R, Z> zip(
   original1: Collection<V>,
   original2: Collection<W>,
   key1: (V) -> K,
   key2: (W) -> K,
-  mapper: (V, W?) -> R
+  additionalParameter: Z,
+  mapper: (V, W?, Z) -> R
 ): List<R> {
   val original2Keyed = original2.associateBy { key2(it) }
-  return original1.map { mapper(it, original2Keyed[key1(it)]) }
+  return original1.map { mapper(it, original2Keyed[key1(it)], additionalParameter) }
 }
 
 internal fun Collection<SyncIssue>.toV2SyncIssueData(): List<IdeSyncIssue> {
@@ -1655,6 +1738,8 @@ val ProjectInfo.buildTreePath
 
 val ProjectInfo.displayName
   get() = "$projectPath ($buildTreePath)"
+
+data class VariantAssetSourceProviderContext(val sourceProviders: MutableList<SourceProvider>, val buildFolder: File)
 
 private fun Collection<BytecodeTransformation>.toIdeModels(): Collection<IdeBytecodeTransformationImpl> {
   return this.map { transform ->
