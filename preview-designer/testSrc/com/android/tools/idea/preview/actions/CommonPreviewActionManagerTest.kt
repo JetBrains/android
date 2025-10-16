@@ -20,7 +20,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.sceneview.InteractiveLabelPanel
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
@@ -190,7 +190,7 @@ class CommonPreviewActionManagerTest {
     whenever(model.displaySettings).thenReturn(displaySettings)
 
     val invoked = CompletableDeferred<Boolean>()
-    val scope = AndroidCoroutineScope(projectRule.fixture.testRootDisposable)
+    val scope = projectRule.testRootDisposable.createCoroutineScope()
     whenever(navigationHandler.handleNavigate(eq(sceneView), anyBoolean())).then {
       invoked.complete(true)
     }
@@ -221,7 +221,7 @@ class CommonPreviewActionManagerTest {
       }
     whenever(model.displaySettings).thenReturn(displaySettings)
 
-    val scope = AndroidCoroutineScope(projectRule.fixture.testRootDisposable)
+    val scope = projectRule.testRootDisposable.createCoroutineScope()
 
     val label = actionManager.createSceneViewLabel(sceneView, scope, MutableStateFlow(true))
     assertTrue(label is InteractiveLabelPanel)

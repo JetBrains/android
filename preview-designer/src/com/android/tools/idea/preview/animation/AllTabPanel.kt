@@ -18,8 +18,8 @@ package com.android.tools.idea.preview.animation
 import com.android.annotations.TestOnly
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -82,7 +82,7 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
       setBlindZone { Insets(0, 1, 0, 1) }
     }
 
-  private val scope = AndroidCoroutineScope(parentDisposable)
+  private val scope = parentDisposable.createCoroutineScope()
 
   private val userScaleChangeListener = PropertyChangeListener {
     cardsPanel.border = getCardsBorder()

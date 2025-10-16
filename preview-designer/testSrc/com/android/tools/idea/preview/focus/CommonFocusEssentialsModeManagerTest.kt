@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.preview.focus
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.FlowableCollection
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.preview.TestPreviewElement
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
@@ -54,7 +54,7 @@ class CommonFocusEssentialsModeManagerTest {
 
   @Before
   fun setup() {
-    scope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    scope = projectRule.testRootDisposable.createCoroutineScope()
     lifecycleManager =
       PreviewLifecycleManager(
         project = project,

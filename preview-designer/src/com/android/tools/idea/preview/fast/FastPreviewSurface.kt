@@ -16,8 +16,8 @@
 package com.android.tools.idea.preview.fast
 
 import com.android.tools.compile.fast.CompilationResult
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
@@ -36,7 +36,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 
 /** Interface to be implemented by surfaces (like the Preview) that support FastPreview. */
@@ -73,7 +72,7 @@ class CommonFastPreviewSurface(
 
   init {
     Disposer.register(parentDisposable, this)
-    coroutineScope = AndroidCoroutineScope(this)
+    coroutineScope = this.createCoroutineScope()
   }
 
   /**
