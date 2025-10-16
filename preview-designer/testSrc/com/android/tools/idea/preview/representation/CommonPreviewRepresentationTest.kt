@@ -25,7 +25,6 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.concurrency.createCoroutineScope
@@ -100,6 +99,7 @@ import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -206,7 +206,7 @@ class CommonPreviewRepresentationTest {
 
   @Test
   fun testFullRefreshIsTriggeredOnSuccessfulBuild() =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       // Turn off flag to make sure quality refreshes won't affect the asserts in this test
       StudioFlags.PREVIEW_RENDER_QUALITY.overrideForTest(false, projectRule.testRootDisposable)
       val previewRepresentation = createPreviewRepresentation()
@@ -303,7 +303,7 @@ class CommonPreviewRepresentationTest {
 
   @Test
   fun testDataKeysShouldBeRegistered() {
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val preview = createPreviewRepresentation()
       val surface = preview.previewView.mainSurface
       val context =
@@ -322,7 +322,7 @@ class CommonPreviewRepresentationTest {
 
   @Test
   fun testReactivationWithoutChangesDontFullRefresh(): Unit =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       // Turn off flag to make sure quality refreshes won't affect the asserts in this test
       StudioFlags.PREVIEW_RENDER_QUALITY.overrideForTest(false, projectRule.testRootDisposable)
       val previewRepresentation = createPreviewRepresentation()
@@ -347,7 +347,7 @@ class CommonPreviewRepresentationTest {
 
   @Test
   fun testReactivationWithoutChangesDoesQualityRefresh(): Unit =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val previewRepresentation = createPreviewRepresentation()
       previewRepresentation.compileAndWaitForRefresh()
 
@@ -414,7 +414,7 @@ class CommonPreviewRepresentationTest {
     val previewRepresentation = createPreviewRepresentation()
     try {
       AnalyticsSettings.optedIn = true
-      runBlocking(workerThread) {
+      runBlocking(Dispatchers.Default) {
         PreviewRefreshTracker.setInstanceForTest(
           previewRepresentation.previewView.mainSurface,
           refreshTracker,
@@ -432,7 +432,7 @@ class CommonPreviewRepresentationTest {
 
   @Test
   fun clickingOnThePreviewNavigatesToDefinition() {
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val preview = createPreviewRepresentation()
       preview.compileAndWaitForRefresh()
 
@@ -462,7 +462,7 @@ class CommonPreviewRepresentationTest {
   // Regression test for b/353458840
   @Test
   fun previewsAreOrderedByPositioningThenOffsetThenName() {
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       psiFile =
         fixture.configureByText(
           "Test.kt",
@@ -537,7 +537,7 @@ class CommonPreviewRepresentationTest {
   // Regression test for b/370595516
   @Test
   fun animationPreviewScopeIsCancelledWhenExitingAnimationInspectorMode() {
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val animationPreview =
         mock<AnimationPreview<AnimationManager>>().also {
           whenever(it.component).thenReturn(TooltipLayeredPane(JPanel()))
@@ -570,7 +570,7 @@ class CommonPreviewRepresentationTest {
   // Regression test for: b/344639845
   @Test
   fun flowsAreCanceledOnDeactivate() {
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val previewElementProvider =
         mock<PreviewElementProvider<PsiTestPreviewElement>>().also {
           whenever(it.previewElements()).thenReturn(emptySequence())
@@ -611,7 +611,7 @@ class CommonPreviewRepresentationTest {
   // Regression test for b/373572532
   @Test
   fun layoutOptionIsPersisted(): Unit =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val persistedPreviewRepresentation = createPreviewRepresentation()
       persistedPreviewRepresentation.compileAndWaitForRefresh()
       // We can't use Grid layout option in this test as it's default layout.
@@ -652,7 +652,7 @@ class CommonPreviewRepresentationTest {
   // Regression test for b/373572532
   @Test
   fun focusLayoutOptionIsPersisted(): Unit =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val previewElement = PsiTestPreviewElement("test element")
       val previewElementProvider = TestPreviewElementProvider(sequenceOf(previewElement))
       val persistedPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
@@ -696,7 +696,7 @@ class CommonPreviewRepresentationTest {
   // Regression test for b/373572532
   @Test
   fun groupSelectionIsPersisted(): Unit =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val previewElement =
         PsiTestPreviewElement(displayName = "test element", groupName = "test group")
       val previewElementProvider = TestPreviewElementProvider(sequenceOf(previewElement))

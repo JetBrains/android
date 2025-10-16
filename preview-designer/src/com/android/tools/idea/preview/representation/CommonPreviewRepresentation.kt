@@ -22,7 +22,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.launchWithProgress
@@ -541,7 +540,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     request: CommonPreviewRefreshRequest,
     refreshProgressIndicator: BackgroundableProcessIndicator,
   ) =
-    launchWithProgress(refreshProgressIndicator, workerThread) {
+    launchWithProgress(refreshProgressIndicator, Dispatchers.Default) {
       val requestLogger = LoggerWithFixedInfo(LOG, mapOf("requestId" to request.requestId))
       val invalidateIfCancelled = AtomicBoolean(false)
 
@@ -812,7 +811,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       }
 
       // Launch all the listeners that are bound to the current activation.
-      launch(workerThread) {
+      launch(Dispatchers.Default) {
         smartModeFlow(project, this@CommonPreviewRepresentation, LOG).collectLatest {
           onEnterSmartMode()
         }
@@ -821,7 +820,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   }
 
   init {
-    launch(workerThread) {
+    launch(Dispatchers.Default) {
       // Keep track of the last mode that was set to ensure it is correctly disposed
       var lastMode: PreviewMode? = null
 

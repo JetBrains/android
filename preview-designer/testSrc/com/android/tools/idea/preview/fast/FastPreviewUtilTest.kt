@@ -16,7 +16,6 @@
 package com.android.tools.idea.preview.fast
 
 import com.android.tools.compile.fast.CompilationResult
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.editors.fast.BlockingDaemonClient
 import com.android.tools.idea.editors.fast.FastPreviewManager
@@ -85,7 +84,7 @@ class FastPreviewUtilTest {
   fun `fast compile call`() {
     FakeBuildSystemFilePreviewServices().register(projectRule.testRootDisposable)
     setUpComposeInProjectFixture(projectRule)
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val (result, _) =
         fastCompile(
           projectRule.testRootDisposable,
@@ -109,7 +108,7 @@ class FastPreviewUtilTest {
       // Launch and cancel the 50 calls. Verify that they are cancelled correctly.
       repeat(50) {
         val job =
-          launch(workerThread) {
+          launch(Dispatchers.Default) {
             try {
               val (result, _) =
                 fastCompile(
@@ -122,7 +121,7 @@ class FastPreviewUtilTest {
             } catch (_: CancellationException) {}
             launchedCompileRequests.incrementAndGet()
           }
-        launch(workerThread) {
+        launch(Dispatchers.Default) {
           delay(Random.nextLong(100, 1200))
           job.cancel()
         }
