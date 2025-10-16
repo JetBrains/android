@@ -66,7 +66,7 @@ public abstract class GradleDslBlockModel implements GradleBlockModel, GradleDsl
   }
 
   @Override
-  public @Nullable GradleDslElement getRawElement() {
+  public @NotNull GradleDslElement getRawElement() {
     return myDslElement;
   }
 
