@@ -24,11 +24,11 @@ import com.android.tools.compile.fast.isSuccess
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
@@ -181,7 +181,7 @@ class CommonPreviewRepresentationTest {
     runInEdtAndWait { TestProjectSystem(project).useInTests() }
     buildSystemServices.register(fixture.testRootDisposable)
     previewViewModelMock = mock(CommonPreviewViewModel::class.java)
-    myScope = AndroidCoroutineScope(fixture.testRootDisposable)
+    myScope = fixture.testRootDisposable.createCoroutineScope()
     smartPointerManager = SmartPointerManager.getInstance(project)
     // use the "real" refresh manager and not a "for test" instance to actually test how the common
     // representation uses it
