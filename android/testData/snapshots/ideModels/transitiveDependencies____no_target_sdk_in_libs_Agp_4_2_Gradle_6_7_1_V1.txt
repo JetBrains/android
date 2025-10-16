@@ -1329,7 +1329,7 @@ MODULE                        : project
                     qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :app
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/app/build.gradle
@@ -1350,7 +1350,7 @@ MODULE                        : project.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/app/build
@@ -1955,7 +1955,7 @@ MODULE                        : project.javalib2.main
 MODULE                        : project.javalib2.test
 MODULE                        : project.library1
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :library1
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/library1/build.gradle
@@ -1976,7 +1976,7 @@ MODULE                        : project.library1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :library1
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/library1/build
@@ -2490,7 +2490,7 @@ MODULE                        : project.library1.main
 MODULE                        : project.library1.unitTest
 MODULE                        : project.library2
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :library2
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/library2/build.gradle
@@ -2511,7 +2511,7 @@ MODULE                        : project.library2
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :library2
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/library2/build

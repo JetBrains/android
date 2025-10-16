@@ -568,7 +568,7 @@ LIBRARY_TABLE
         variant                       : debug
 MODULE                        : project
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/build.gradle
@@ -589,7 +589,7 @@ MODULE                        : project
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/build

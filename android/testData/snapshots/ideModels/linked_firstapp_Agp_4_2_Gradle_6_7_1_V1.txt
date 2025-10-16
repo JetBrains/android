@@ -1064,7 +1064,7 @@ MODULE                        : My_First_App
                     qName                         : :app:testReleaseUnitTest
 MODULE                        : My_First_App.app
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :app
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/firstapp/app/build.gradle
@@ -1085,7 +1085,7 @@ MODULE                        : My_First_App.app
     RootBuildId                   : <ROOT>/firstapp
     BuildId                       : <ROOT>/firstapp
     ProjectPath                   : :app
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/firstapp/app/build
@@ -1768,7 +1768,7 @@ MODULE                        : My_First_App.app.androidTest
 MODULE                        : My_First_App.app.main
 MODULE                        : My_First_App.app.mysharedlibrary
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :app:mysharedlibrary
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/shared/mysharedlibrary/build.gradle
@@ -1789,7 +1789,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
     RootBuildId                   : <ROOT>/firstapp
     BuildId                       : <ROOT>/firstapp
     ProjectPath                   : :app:mysharedlibrary
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/shared/mysharedlibrary/build
