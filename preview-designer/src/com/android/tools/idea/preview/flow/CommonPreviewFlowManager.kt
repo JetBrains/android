@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.preview.flow
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.SyntaxErrorUpdate
 import com.android.tools.idea.concurrency.asCollection
@@ -42,6 +41,7 @@ import com.intellij.openapi.vfs.NonPhysicalFileSystem
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -179,7 +179,7 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
   ) {
     with(this@initializeFlows) {
       val project = psiFilePointer.project
-      launch(workerThread) {
+      launch(Dispatchers.Default) {
         // Launch all the listeners that are bound to the current activation.
         val previewElementsFlow =
           previewElementsOnFileChangesFlow(project) { previewElementProvider }
@@ -213,7 +213,7 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
           }
       }
 
-      launch(workerThread) {
+      launch(Dispatchers.Default) {
         val filteredPreviewsFlow = filteredPreviewElementsFlow(allPreviewElementsFlow, filterFlow)
 
         // Flow for Preview changes
@@ -241,14 +241,14 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
           .collectLatest { toPaginatePreviewElementsFlow.value = it }
       }
 
-      launch(workerThread) {
+      launch(Dispatchers.Default) {
         previewFlowPaginator.currentPageFlow.collectLatest {
           toRenderPreviewElementsFlow.value = it
         }
       }
 
       // Trigger refreshes on available previews changes
-      launch(workerThread) {
+      launch(Dispatchers.Default) {
         toRenderPreviewElementsFlow
           .filter {
             return@filter when (it) {
@@ -282,7 +282,7 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
       }
 
       // Flow handling file changes and syntax error changes.
-      launch(workerThread) {
+      launch(Dispatchers.Default) {
         val resourceChangedFlow =
           if (StudioFlags.COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE.get()) {
             readAction { psiFilePointer.element?.module?.findAndroidModule() }
