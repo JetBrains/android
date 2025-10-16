@@ -131,6 +131,7 @@ class WifiPairableDeviceProvisionerPluginTest {
       plugin.devices.value.first() as WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceHandle
     assertThat(handle.serviceName).isEqualTo("service1")
     assertThat(handle.state.properties.model).isEqualTo("Pixel 8 at 192.168.1.100:4321")
+    assertThat(handle.state.error).isNull()
   }
 
   @Test
@@ -155,6 +156,7 @@ class WifiPairableDeviceProvisionerPluginTest {
       plugin.devices.value.first() as WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceHandle
     assertThat(handle.serviceName).isEqualTo("service1")
     assertThat(handle.state.properties.model).isEqualTo("Foo Pixel")
+    assertThat(handle.state.error).isNull()
   }
 
   @Test
@@ -169,6 +171,7 @@ class WifiPairableDeviceProvisionerPluginTest {
       plugin.devices.value.first() as WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceHandle
     assertThat(handle.serviceName).isEqualTo("service1")
     assertThat(handle.state.properties.model).isEqualTo("Pixel at 192.168.1.100:4321")
+    assertThat(handle.state.error).isNull()
   }
 
   @Test
@@ -183,6 +186,22 @@ class WifiPairableDeviceProvisionerPluginTest {
       plugin.devices.value.first() as WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceHandle
     assertThat(handle.serviceName).isEqualTo("service1")
     assertThat(handle.state.properties.model).isEqualTo("Device at 192.168.1.100:4321")
+    assertThat(handle.state.error).isNull()
+  }
+
+  @Test
+  fun newMdnsService_oldMdnsVersion_displayWarning() = runTest {
+    mdnsFlow.value = createMdnsTlsService("service1", mdnsServiceVersion = "1")
+    val plugin =
+      WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
+    advanceTimeBy(6000) // Past initial delay
+
+    assertThat(plugin.devices.value).hasSize(1)
+    val handle =
+      plugin.devices.value.first() as WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceHandle
+    assertThat(handle.serviceName).isEqualTo("service1")
+    assertThat(handle.state.error!!.message)
+      .isEqualTo("Check for device software updates to improve Wi-Fi pairing.")
   }
 
   @Test
@@ -408,7 +427,7 @@ class WifiPairableDeviceProvisionerPluginTest {
     sdk: String = "34",
     givenName: String? = null,
     serial: String? = null,
-    mdnsServiceVersion: String? = null,
+    mdnsServiceVersion: String? = "2",
   ): MdnsServices {
     val serviceInfo =
       MdnsTrackServiceInfo(
