@@ -24,6 +24,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.JBDimension
+import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.event.HyperlinkListener
 
@@ -53,6 +55,18 @@ class WiFiPairingDialog(
     dialog = SimpleDialog(options)
     pairingPanel = WiFiPairingPanel(dialog.disposable, hyperlinkListener, mdnsServiceUnderPairing)
     dialog.init()
+
+    // This logic gives the WifiPairingPanel the control over the border padding of its components.
+    val dialogPanel = dialog.contentPanel
+    val existingBorder = dialogPanel.border
+    dialogPanel.border = JBUI.Borders.empty()
+    if (dialogPanel.layout is BorderLayout) {
+      val layout = dialogPanel.layout as BorderLayout
+      val southComponent = layout.getLayoutComponent(BorderLayout.SOUTH) as? JComponent
+
+      // southComponent has the buttons
+      southComponent?.border = existingBorder
+    }
   }
 
   var pairingCodePairInvoked: (PairingMdnsService) -> Unit = {}

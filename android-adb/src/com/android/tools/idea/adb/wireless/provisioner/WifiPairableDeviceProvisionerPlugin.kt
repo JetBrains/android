@@ -226,6 +226,7 @@ class WifiPairableDeviceProvisionerPlugin(
               buildDeviceNameForPairingDialog(trackService.service),
               trackService.service.ipv4,
               trackService.service.port,
+              trackService.service.mdnsServiceVersion,
             )
           }
       newOrReusedHandles[serviceName] = handle
@@ -272,6 +273,7 @@ class WifiPairableDeviceProvisionerPlugin(
     val deviceName: String?,
     val ipv4: String,
     val port: Int,
+    val mdnsServiceVersion: String?,
   ) : DeviceHandle {
 
     companion object {
@@ -284,6 +286,7 @@ class WifiPairableDeviceProvisionerPlugin(
         deviceName: String?,
         ipv4: String,
         port: Int,
+        mdnsServiceVersion: String?,
       ): WifiPairableDeviceHandle =
         WifiPairableDeviceHandle(
           scope,
@@ -294,6 +297,7 @@ class WifiPairableDeviceProvisionerPlugin(
           deviceName,
           ipv4,
           port,
+          mdnsServiceVersion,
         )
     }
 
@@ -308,6 +312,7 @@ class WifiPairableDeviceProvisionerPlugin(
                   ipv4 = ipv4,
                   port = port.toString(),
                   deviceName = deviceName,
+                  mdnsServiceVersion = mdnsServiceVersion,
                 )
               )
           controller.showDialog()

@@ -258,7 +258,8 @@ class WifiPairableDeviceProvisionerPluginTest {
           s.serviceName == "service1" &&
             s.deviceName == "Pixel" &&
             s.ipv4 == "1.2.3.4" &&
-            s.port == "1234"
+            s.port == "1234" &&
+            s.mdnsServiceVersion == "2.0"
         }
       )
     verify(pairingController).showDialog()
@@ -281,7 +282,8 @@ class WifiPairableDeviceProvisionerPluginTest {
           s.serviceName == "service1" &&
             s.deviceName == "Foo Pixel" &&
             s.ipv4 == "1.2.3.4" &&
-            s.port == "1234"
+            s.port == "1234" &&
+            s.mdnsServiceVersion == "2.0"
         }
       )
     verify(pairingController).showDialog()
@@ -303,7 +305,32 @@ class WifiPairableDeviceProvisionerPluginTest {
           s.serviceName == "service1" &&
             s.deviceName == "Device" &&
             s.ipv4 == "1.2.3.4" &&
-            s.port == "1234"
+            s.port == "1234" &&
+            s.mdnsServiceVersion == "2.0"
+        }
+      )
+    verify(pairingController).showDialog()
+  }
+
+  @Test
+  fun pairAction_entryWithOldMdnsVersion_launchesPairingDialogWithCorrectVersion() = runTest {
+    mdnsFlow.value =
+      createMdnsTlsService("service1", null, "1.2.3.4", 1234, mdnsServiceVersion = "1")
+    val plugin =
+      WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
+    advanceTimeBy(6000) // Past initial delay
+
+    val handle = plugin.devices.value.first()
+    handle.wifiPairDeviceAction!!.pair()
+
+    verify(pairDevicesService)
+      .createPairingDialogController(
+        argThat { s: TrackingMdnsService ->
+          s.serviceName == "service1" &&
+            s.deviceName == "Device" &&
+            s.ipv4 == "1.2.3.4" &&
+            s.port == "1234" &&
+            s.mdnsServiceVersion == "1"
         }
       )
     verify(pairingController).showDialog()
@@ -427,7 +454,7 @@ class WifiPairableDeviceProvisionerPluginTest {
     sdk: String = "34",
     givenName: String? = null,
     serial: String? = null,
-    mdnsServiceVersion: String? = "2",
+    mdnsServiceVersion: String? = "2.0",
   ): MdnsServices {
     val serviceInfo =
       MdnsTrackServiceInfo(

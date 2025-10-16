@@ -376,6 +376,7 @@ class WifiAvailableDevicesDialog(
                     ipv4 = device.service.ipv4,
                     port = device.service.port.toString(),
                     deviceName = buildDeviceName(device.service),
+                    mdnsServiceVersion = device.service.mdnsServiceVersion,
                   )
                 )
             controller.showDialog()

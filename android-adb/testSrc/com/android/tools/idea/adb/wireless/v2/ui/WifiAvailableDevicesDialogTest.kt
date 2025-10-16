@@ -329,7 +329,15 @@ class WifiAvailableDevicesDialogTest {
   fun pairButtonClick_invokesPairingController() = runTest {
     whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
     whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
-    val service1 = createMdnsTlsService("service1", "192.168.1.101", 5555, "Device A", "30")
+    val service1 =
+      createMdnsTlsService(
+        "service1",
+        "192.168.1.101",
+        5555,
+        "Device A",
+        "30",
+        mdnsServiceVersion = "2.0",
+      )
     adblibMdnsServicesFlow.value = MdnsServices(emptyList(), listOf(service1), emptyList())
 
     // Ensure PairDevicesUsingWiFiService is mocked correctly for the dialog instance
@@ -345,6 +353,7 @@ class WifiAvailableDevicesDialogTest {
         ipv4 = "192.168.1.101",
         port = "5555",
         deviceName = "Device A",
+        mdnsServiceVersion = "2.0",
       )
 
     verify(mockPairDevicesUsingWiFiService)
