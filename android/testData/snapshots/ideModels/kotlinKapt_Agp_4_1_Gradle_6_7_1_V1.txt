@@ -2444,9 +2444,6 @@ MODULE                        : MainActivity.app
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 7
-            patch                         : 20
             versionString                 : 1.7.20
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -2576,9 +2573,6 @@ MODULE                        : MainActivity.javaLib
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 7
-            patch                         : 20
             versionString                 : 1.7.20
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
@@ -3216,9 +3210,6 @@ MODULE                        : MainActivity.lib
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 7
-            patch                         : 20
             versionString                 : 1.7.20
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties

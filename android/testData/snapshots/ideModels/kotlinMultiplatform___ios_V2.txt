@@ -2355,9 +2355,6 @@ MODULE                        : kotlinMultiPlatform.app
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 2
-            minor                         : 2
-            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -2778,6 +2775,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBook:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBookUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AlarmKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppClip:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppTrackingTransparency:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AssetsLibrary:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -2788,6 +2786,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:BackgroundTasks:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineCore:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:BrowserKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BusinessChat:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFCGTypes:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFNetwork:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -2841,6 +2840,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:GSS:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameController:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:GameSave:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameplayKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKitUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -2902,6 +2902,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SceneKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ScreenTime:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Security:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:SecurityUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -2915,8 +2916,10 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:Symbols:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SystemConfiguration:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ThreadNetwork:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:TouchController:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Twitter:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UIKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:UIUtilities:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UniformTypeIdentifiers:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotifications:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotificationsUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -2927,6 +2930,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:WatchConnectivity:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:WebKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:_CoreData_CloudKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:_LocationEssentials:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:builtin:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:darwin:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:iAd:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -2955,6 +2959,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBook:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBookUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AlarmKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppClip:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppTrackingTransparency:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AssetsLibrary:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -2965,6 +2970,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:BackgroundTasks:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineCore:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:BrowserKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BusinessChat:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFCGTypes:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFNetwork:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3018,6 +3024,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:GSS:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameController:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:GameSave:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameplayKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKitUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3079,6 +3086,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SceneKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ScreenTime:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Security:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:SecurityUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3092,8 +3100,10 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:Symbols:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SystemConfiguration:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ThreadNetwork:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:TouchController:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Twitter:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UIKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:UIUtilities:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UniformTypeIdentifiers:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotifications:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotificationsUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3104,6 +3114,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:WatchConnectivity:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:WebKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:_CoreData_CloudKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:_LocationEssentials:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:builtin:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:darwin:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:iAd:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3135,6 +3146,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBook:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBookUI:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AlarmKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppClip:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppTrackingTransparency:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AssetsLibrary:ios_arm64:<KOTLIN_VERSION>
@@ -3145,6 +3157,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:BackgroundTasks:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineCore:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineKit:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:BrowserKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BusinessChat:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFCGTypes:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFNetwork:ios_arm64:<KOTLIN_VERSION>
@@ -3198,6 +3211,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:GSS:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameController:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameKit:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:GameSave:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameplayKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKitUI:ios_arm64:<KOTLIN_VERSION>
@@ -3259,6 +3273,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SceneKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ScreenTime:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Security:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:SecurityUI:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:ios_arm64:<KOTLIN_VERSION>
@@ -3272,8 +3287,10 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:Symbols:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SystemConfiguration:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ThreadNetwork:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:TouchController:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Twitter:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UIKit:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:UIUtilities:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UniformTypeIdentifiers:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotifications:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotificationsUI:ios_arm64:<KOTLIN_VERSION>
@@ -3284,6 +3301,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:WatchConnectivity:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:WebKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:_CoreData_CloudKit:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:_LocationEssentials:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:builtin:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:darwin:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:iAd:ios_arm64:<KOTLIN_VERSION>
@@ -3315,6 +3333,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBook:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBookUI:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AlarmKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppClip:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppTrackingTransparency:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AssetsLibrary:ios_arm64:<KOTLIN_VERSION>
@@ -3325,6 +3344,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:BackgroundTasks:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineCore:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineKit:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:BrowserKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BusinessChat:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFCGTypes:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFNetwork:ios_arm64:<KOTLIN_VERSION>
@@ -3378,6 +3398,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:GSS:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameController:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameKit:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:GameSave:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameplayKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKitUI:ios_arm64:<KOTLIN_VERSION>
@@ -3439,6 +3460,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SceneKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ScreenTime:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Security:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:SecurityUI:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:ios_arm64:<KOTLIN_VERSION>
@@ -3452,8 +3474,10 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:Symbols:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SystemConfiguration:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ThreadNetwork:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:TouchController:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Twitter:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UIKit:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:UIUtilities:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UniformTypeIdentifiers:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotifications:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotificationsUI:ios_arm64:<KOTLIN_VERSION>
@@ -3464,6 +3488,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:WatchConnectivity:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:WebKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:_CoreData_CloudKit:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:_LocationEssentials:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:builtin:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:darwin:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:iAd:ios_arm64:<KOTLIN_VERSION>
@@ -3489,6 +3514,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBook:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBookUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AlarmKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppClip:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppTrackingTransparency:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AssetsLibrary:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3499,6 +3525,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:BackgroundTasks:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineCore:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:BrowserKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BusinessChat:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFCGTypes:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFNetwork:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3552,6 +3579,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:GSS:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameController:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:GameSave:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameplayKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKitUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3613,6 +3641,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SceneKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ScreenTime:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Security:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:SecurityUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3626,8 +3655,10 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:Symbols:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SystemConfiguration:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ThreadNetwork:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:TouchController:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Twitter:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UIKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:UIUtilities:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UniformTypeIdentifiers:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotifications:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotificationsUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3638,6 +3669,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:WatchConnectivity:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:WebKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:_CoreData_CloudKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:_LocationEssentials:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:builtin:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:darwin:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:iAd:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3664,6 +3696,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBook:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBookUI:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AlarmKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppClip:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppTrackingTransparency:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AssetsLibrary:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -3674,6 +3707,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:BackgroundTasks:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineCore:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineKit:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:BrowserKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BusinessChat:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFCGTypes:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFNetwork:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -3727,6 +3761,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:GSS:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameController:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameKit:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:GameSave:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameplayKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKitUI:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -3788,6 +3823,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SceneKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ScreenTime:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Security:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:SecurityUI:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -3801,8 +3837,10 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:Symbols:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SystemConfiguration:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ThreadNetwork:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:TouchController:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Twitter:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UIKit:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:UIUtilities:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UniformTypeIdentifiers:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotifications:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotificationsUI:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -3813,6 +3851,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:WatchConnectivity:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:WebKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:_CoreData_CloudKit:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:_LocationEssentials:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:builtin:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:darwin:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:iAd:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -3844,6 +3883,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBook:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBookUI:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AlarmKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppClip:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppTrackingTransparency:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AssetsLibrary:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -3854,6 +3894,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:BackgroundTasks:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineCore:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineKit:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:BrowserKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BusinessChat:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFCGTypes:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFNetwork:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -3907,6 +3948,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:GSS:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameController:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameKit:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:GameSave:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameplayKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKitUI:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -3968,6 +4010,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SceneKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ScreenTime:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Security:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:SecurityUI:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -3981,8 +4024,10 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:Symbols:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SystemConfiguration:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ThreadNetwork:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:TouchController:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Twitter:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UIKit:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:UIUtilities:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UniformTypeIdentifiers:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotifications:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotificationsUI:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -3993,6 +4038,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:WatchConnectivity:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:WebKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:_CoreData_CloudKit:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:_LocationEssentials:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:builtin:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:darwin:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:iAd:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -4022,6 +4068,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBook:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBookUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AlarmKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppClip:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppTrackingTransparency:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AssetsLibrary:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4032,6 +4079,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:BackgroundTasks:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineCore:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:BrowserKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BusinessChat:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFCGTypes:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFNetwork:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4085,6 +4133,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:GSS:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameController:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:GameSave:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameplayKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKitUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4146,6 +4195,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SceneKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ScreenTime:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Security:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:SecurityUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4159,8 +4209,10 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:Symbols:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SystemConfiguration:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ThreadNetwork:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:TouchController:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Twitter:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UIKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:UIUtilities:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UniformTypeIdentifiers:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotifications:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotificationsUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4171,6 +4223,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:WatchConnectivity:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:WebKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:_CoreData_CloudKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:_LocationEssentials:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:builtin:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:darwin:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:iAd:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4197,6 +4250,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBook:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBookUI:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AlarmKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppClip:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppTrackingTransparency:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AssetsLibrary:ios_x64:<KOTLIN_VERSION>
@@ -4207,6 +4261,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:BackgroundTasks:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineCore:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineKit:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:BrowserKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BusinessChat:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFCGTypes:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFNetwork:ios_x64:<KOTLIN_VERSION>
@@ -4260,6 +4315,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:GSS:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameController:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameKit:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:GameSave:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameplayKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKitUI:ios_x64:<KOTLIN_VERSION>
@@ -4321,6 +4377,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SceneKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ScreenTime:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Security:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:SecurityUI:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:ios_x64:<KOTLIN_VERSION>
@@ -4334,8 +4391,10 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:Symbols:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SystemConfiguration:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ThreadNetwork:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:TouchController:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Twitter:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UIKit:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:UIUtilities:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UniformTypeIdentifiers:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotifications:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotificationsUI:ios_x64:<KOTLIN_VERSION>
@@ -4346,6 +4405,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:WatchConnectivity:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:WebKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:_CoreData_CloudKit:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:_LocationEssentials:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:builtin:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:darwin:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:iAd:ios_x64:<KOTLIN_VERSION>
@@ -4377,6 +4437,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBook:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBookUI:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AlarmKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppClip:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppTrackingTransparency:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AssetsLibrary:ios_x64:<KOTLIN_VERSION>
@@ -4387,6 +4448,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:BackgroundTasks:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineCore:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineKit:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:BrowserKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BusinessChat:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFCGTypes:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFNetwork:ios_x64:<KOTLIN_VERSION>
@@ -4440,6 +4502,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:GSS:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameController:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameKit:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:GameSave:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameplayKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKitUI:ios_x64:<KOTLIN_VERSION>
@@ -4501,6 +4564,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SceneKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ScreenTime:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Security:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:SecurityUI:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:ios_x64:<KOTLIN_VERSION>
@@ -4514,8 +4578,10 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:Symbols:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SystemConfiguration:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ThreadNetwork:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:TouchController:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Twitter:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UIKit:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:UIUtilities:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UniformTypeIdentifiers:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotifications:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotificationsUI:ios_x64:<KOTLIN_VERSION>
@@ -4526,6 +4592,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:WatchConnectivity:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:WebKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:_CoreData_CloudKit:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:_LocationEssentials:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:builtin:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:darwin:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:iAd:ios_x64:<KOTLIN_VERSION>
@@ -4549,6 +4616,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBook:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBookUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AlarmKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppClip:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppTrackingTransparency:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AssetsLibrary:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4559,6 +4627,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:BackgroundTasks:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineCore:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:BrowserKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BusinessChat:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFCGTypes:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFNetwork:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4612,6 +4681,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:GSS:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameController:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:GameSave:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameplayKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKitUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4673,6 +4743,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SceneKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ScreenTime:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Security:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:SecurityUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4686,8 +4757,10 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:Symbols:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SystemConfiguration:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ThreadNetwork:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:TouchController:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Twitter:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UIKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:UIUtilities:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UniformTypeIdentifiers:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotifications:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotificationsUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4698,6 +4771,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:WatchConnectivity:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:WebKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:_CoreData_CloudKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:_LocationEssentials:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:builtin:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:darwin:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:iAd:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4725,6 +4799,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBook:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AddressBookUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AlarmKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppClip:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AppTrackingTransparency:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AssetsLibrary:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4735,6 +4810,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:BackgroundTasks:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineCore:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BrowserEngineKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:BrowserKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:BusinessChat:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFCGTypes:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:CFNetwork:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4788,6 +4864,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:GSS:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameController:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:GameSave:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:GameplayKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:HealthKitUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4849,6 +4926,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:SceneKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ScreenTime:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Security:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:SecurityUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensitiveContentAnalysis:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SensorKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SharedWithYou:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4862,8 +4940,10 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:Symbols:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:SystemConfiguration:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:ThreadNetwork:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:TouchController:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Twitter:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UIKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:UIUtilities:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UniformTypeIdentifiers:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotifications:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:UserNotificationsUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4874,6 +4954,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:WatchConnectivity:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:WebKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:_CoreData_CloudKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:_LocationEssentials:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:builtin:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:darwin:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:iAd:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>

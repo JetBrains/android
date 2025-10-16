@@ -220,6 +220,15 @@ private val jbModelDumpers = listOf(
       }
     }
   },
+  SpecializedDumper(property = KotlinGradleModel::kotlinGradlePluginVersion) { _, kotlinGradlePluginVersion ->
+    prop(propertyName, kotlinGradlePluginVersion::class.simpleName)
+    nest {
+      // kotlinGradlePluginVersion also has properties such as `major`, `minor`, `patch`, but we
+      // don't want to print them as it would make updating snapshots difficult (see b/414371674)
+      // and that info is already captured by the `versionString` property below.
+      prop("versionString", kotlinGradlePluginVersion.versionString)
+    }
+  },
   SpecializedDumper(property = K2JVMCompilerArguments::configurator),
   SpecializedDumper<DefaultExternalSourceSet> { externalSourceSet ->
     head(propertyName)
@@ -264,7 +273,7 @@ private val jbModelDumpers = listOf(
  * Note: Other tests in the IDE (e.g., templates, editor, UI tools, deployment) should not use
  * this constant as they don't need to test against the latest preview version of Kotlin.
  */
-const val KOTLIN_VERSION_FOR_TESTS = "2.2.20-RC"
+const val KOTLIN_VERSION_FOR_TESTS = "2.2.21-RC2"
 
 fun String.replaceKotlinVersionForTests(): String = replace(KOTLIN_VERSION_FOR_TESTS, "<KOTLIN_VERSION_FOR_TESTS>")
 

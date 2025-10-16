@@ -3277,9 +3277,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 23
             versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -3564,9 +3561,6 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 23
             versionString                 : 1.9.23
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
@@ -4650,9 +4644,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 23
             versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -5457,9 +5448,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 23
             versionString                 : 1.9.23
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
@@ -6532,9 +6520,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 23
             versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties

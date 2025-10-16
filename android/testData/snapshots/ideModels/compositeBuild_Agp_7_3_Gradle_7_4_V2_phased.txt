@@ -2197,9 +2197,6 @@ MODULE                        : TestCompositeLib1.app
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 23
             versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -3373,9 +3370,6 @@ MODULE                        : TestCompositeLib1.lib
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 23
             versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -4865,9 +4859,6 @@ MODULE                        : TestCompositeLib3.app
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 23
             versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -7897,9 +7888,6 @@ MODULE                        : project.app
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 23
             versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -9040,9 +9028,6 @@ MODULE                        : project.lib
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 23
             versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
