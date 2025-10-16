@@ -21,12 +21,15 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
+import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.options.SearchableConfigurable
-import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.xmlb.XmlSerializerUtil
-import javax.swing.BoxLayout
+import javax.swing.JComponent
 import javax.swing.JPanel
 
 class DatabaseInspectorConfigurableProvider : ConfigurableProvider() {
@@ -36,37 +39,41 @@ class DatabaseInspectorConfigurableProvider : ConfigurableProvider() {
 }
 
 private class DatabaseInspectorConfigurable : SearchableConfigurable {
-  private val component: JPanel = JPanel()
-  private val enableOfflineModeCheckBox =
-    JBCheckBox(message("enable.offline.mode")).apply { name = "enableOfflineMode" }
-  private val forceOpenCheckBox =
-    JBCheckBox(message("force.open.database")).apply { name = "forceOpen" }
 
   private val settings = DatabaseInspectorSettings.getInstance()
 
-  init {
-    component.layout = BoxLayout(component, BoxLayout.Y_AXIS)
-    component.add(enableOfflineModeCheckBox)
-    if (StudioFlags.APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR.get()) {
-      component.add(forceOpenCheckBox)
+  private val propertyGraph = PropertyGraph()
+  private var isOfflineModeEnabled = propertyGraph.property(settings.isOfflineModeEnabled)
+  private var isForceOpen = propertyGraph.property(settings.isForceOpen)
+
+  override fun createComponent(): JPanel {
+    return panel {
+      row {
+        checkBox(message("enable.offline.mode"))
+          .bindSelected(isOfflineModeEnabled)
+          .named("enableOfflineMode")
+      }
+      if (StudioFlags.APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR.get()) {
+        row {
+          checkBox(message("force.open.database")).bindSelected(isForceOpen).named("forceOpen")
+        }
+      }
     }
   }
 
-  override fun createComponent() = component
-
   override fun isModified() =
-    enableOfflineModeCheckBox.isSelected != settings.isOfflineModeEnabled ||
-      forceOpenCheckBox.isSelected != settings.isForceOpen
+    isOfflineModeEnabled.get() != settings.isOfflineModeEnabled ||
+      isForceOpen.get() != settings.isForceOpen
 
   override fun apply() {
-    val isOfflineModeEnabled = enableOfflineModeCheckBox.isSelected
+    val isOfflineModeEnabled = isOfflineModeEnabled.get()
     settings.isOfflineModeEnabled = isOfflineModeEnabled
-    settings.isForceOpen = forceOpenCheckBox.isSelected
+    settings.isForceOpen = isForceOpen.get()
   }
 
   override fun reset() {
-    enableOfflineModeCheckBox.isSelected = settings.isOfflineModeEnabled
-    forceOpenCheckBox.isSelected = settings.isForceOpen
+    isOfflineModeEnabled.set(settings.isOfflineModeEnabled)
+    isForceOpen.set(settings.isForceOpen)
   }
 
   override fun getDisplayName(): String {
@@ -94,3 +101,5 @@ class DatabaseInspectorSettings : PersistentStateComponent<DatabaseInspectorSett
 
   override fun loadState(state: DatabaseInspectorSettings) = XmlSerializerUtil.copyBean(state, this)
 }
+
+private fun <T : JComponent> Cell<T>.named(name: String) = applyToComponent { this.name = name }
