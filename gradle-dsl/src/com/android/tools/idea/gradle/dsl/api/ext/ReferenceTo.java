@@ -88,6 +88,13 @@ public final class ReferenceTo {
 
   @NotNull
   public GradleDslElement getReferredElement() {
+    if (elementModel.getRawElement() == null) {
+      throw new IllegalStateException(
+        "ReferredElement (rawElement of elementModel) is null. Most probably DSL logic has issue like: " +
+        "property was created empty and not yet saved but reference to the property just created. " +
+        "Used elementModel:" + elementModel
+      );
+    }
     return elementModel.getRawElement();
   }
 
