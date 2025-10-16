@@ -103,7 +103,7 @@ class AddProjectGenSrcsTest {
 
     val update =
       ProjectProtoUpdate(original.project)
-    addGensrcs.update(update, original.graph, artifactState, context)
+    addGensrcs.update(update, original.graph, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
 
     val workspace = newProject.modules.single()
@@ -201,7 +201,7 @@ class AddProjectGenSrcsTest {
 
     val update =
       ProjectProtoUpdate(original.project)
-    addGenSrcs.update(update, original.graph, artifactState, context)
+    addGenSrcs.update(update, original.graph, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
 
     val workspace = newProject.modules.single()
@@ -299,7 +299,7 @@ class AddProjectGenSrcsTest {
 
     val update =
       ProjectProtoUpdate(original.project)
-    addGenSrcs.update(update, original.graph, artifactState, context)
+    addGenSrcs.update(update, original.graph, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     Mockito.verify(context, Mockito.never())!!.setHasWarnings()
   }
 
@@ -332,7 +332,7 @@ class AddProjectGenSrcsTest {
 
     val update =
       ProjectProtoUpdate(original.project)
-    addGensrcs.update(update, original.graph, artifactState, context)
+    addGensrcs.update(update, original.graph, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
 
     val workspace = newProject.modules.single()

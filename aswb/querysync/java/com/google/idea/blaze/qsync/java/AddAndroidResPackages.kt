@@ -19,6 +19,7 @@ import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.BuildGraphData
+import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import kotlin.jvm.optionals.getOrNull
@@ -34,6 +35,7 @@ class AddAndroidResPackages : ProjectProtoUpdateOperation {
     buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
     context: Context<*>,
+    externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
     artifactState
       .targets()

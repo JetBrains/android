@@ -49,9 +49,9 @@ import com.google.idea.blaze.qsync.artifacts.DigestMap;
 import com.google.idea.blaze.qsync.artifacts.DigestMapImpl;
 import com.google.idea.blaze.qsync.java.ArtifactTrackerProto;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts;
-import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass;
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcTargetInfo;
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcToolchainInfo;
+import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.common.experiments.FeatureRolloutExperiment;
 import com.google.protobuf.ExtensionRegistry;
 import java.io.IOException;
@@ -96,6 +96,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   public static final FeatureRolloutExperiment enableJdepsDependencyGraph =
       new FeatureRolloutExperiment("qsync.enable.jdeps.dependency.graph.3");
 
+  private final Path workspaceRoot;
   private final BuildArtifactCache artifactCache;
   private final Function<
           TargetBuildInfo,
@@ -117,6 +118,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   private final Map<String, CcToolchain> ccToolchainMap = Maps.newHashMap();
 
   public NewArtifactTracker(
+      Path workspaceRoot,
       Path projectDirectory,
       BuildArtifactCache artifactCache,
       Function<
@@ -125,6 +127,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
           targetToMetadataFn,
       ArtifactMetadata.Factory metadataFactory,
       Executor executor) {
+    this.workspaceRoot = workspaceRoot;
     this.artifactCache = artifactCache;
     this.targetToMetadataFn = targetToMetadataFn;
     this.metadataFactory = metadataFactory;
@@ -158,17 +161,17 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   record MetadataKey(BuildArtifact artifact, Class<? extends ArtifactMetadata> mdClass) {}
 
   private ImmutableCollection<TargetBuildInfo> getTargetBuildInfo(
-      Set<Label> targets, OutputInfo outputInfo, DigestMap digestMap) {
+    Set<Label> targets, OutputInfo outputInfo, DigestMap digestMap, ProjectPath.ExternalRepositoryFinder externalRepositoryFinder) {
 
     ImmutableSet.Builder<TargetBuildInfo> targetBuildInfoSet = ImmutableSet.builder();
     if (enableJdepsDependencyGraph.isEnabled()) {
-      targetBuildInfoSet.addAll(getJavaTargetBuildInfoViaJdeps(targets, outputInfo, digestMap));
+      targetBuildInfoSet.addAll(getJavaTargetBuildInfoViaJdeps(targets, outputInfo, digestMap, externalRepositoryFinder));
     } else {
-      targetBuildInfoSet.addAll(getJavaTargetBuildInfo(outputInfo, digestMap));
+      targetBuildInfoSet.addAll(getJavaTargetBuildInfo(outputInfo, digestMap, externalRepositoryFinder));
     }
 
     for (CcTargetInfo ccTarget : outputInfo.getCcTargets().values()) {
-      CcCompilationInfo artifactInfo = CcCompilationInfo.create(ccTarget, digestMap);
+      CcCompilationInfo artifactInfo = CcCompilationInfo.create(ccTarget, digestMap, externalRepositoryFinder);
       TargetBuildInfo targetInfo =
           TargetBuildInfo.forCcTarget(artifactInfo, outputInfo.getBuildContext());
       targetBuildInfoSet.add(targetInfo);
@@ -177,10 +180,10 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   }
 
   private ImmutableSet<TargetBuildInfo> getJavaTargetBuildInfo(
-      OutputInfo outputInfo, DigestMap digestMap) {
+    OutputInfo outputInfo, DigestMap digestMap, ProjectPath.ExternalRepositoryFinder externalRepositoryFinder) {
     ImmutableSet.Builder<TargetBuildInfo> targetBuildInfoSet = ImmutableSet.builder();
     for (JavaArtifacts javaTarget : outputInfo.getJavaArtifactInfo().values()) {
-      JavaArtifactInfo artifactInfo = JavaArtifactInfo.create(javaTarget, digestMap);
+      JavaArtifactInfo artifactInfo = JavaArtifactInfo.create(javaTarget, digestMap, externalRepositoryFinder);
       TargetBuildInfo targetInfo =
           TargetBuildInfo.forJavaTarget(artifactInfo, outputInfo.getBuildContext());
       targetBuildInfoSet.add(targetInfo);
@@ -189,7 +192,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   }
 
   private ImmutableSet<TargetBuildInfo> getJavaTargetBuildInfoViaJdeps(
-      Set<Label> targets, OutputInfo outputInfo, DigestMap digestMap) {
+    Set<Label> targets, OutputInfo outputInfo, DigestMap digestMap, ProjectPath.ExternalRepositoryFinder externalRepositoryFinder) {
     ImmutableSet.Builder<TargetBuildInfo> targetBuildInfoSet = ImmutableSet.builder();
     Queue<Label> toVisitTargets = new LinkedList<>(targets);
     Set<Label> visitedTargets = new HashSet<>();
@@ -198,7 +201,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
       visitedTargets.add(target);
       JavaArtifacts javaArtifact = outputInfo.getJavaArtifactInfo().get(target);
       if (javaArtifact != null) {
-        JavaArtifactInfo artifactInfo = JavaArtifactInfo.create(javaArtifact, digestMap);
+        JavaArtifactInfo artifactInfo = JavaArtifactInfo.create(javaArtifact, digestMap, externalRepositoryFinder);
         TargetBuildInfo targetInfo =
             TargetBuildInfo.forJavaTarget(artifactInfo, outputInfo.getBuildContext());
         targetBuildInfoSet.add(targetInfo);
@@ -227,7 +230,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
       // stubs.
       // They are necessary for symbol resolving. More details can be found in b/448400351.
       if (javaTarget.getGenSrcsCount() > 0 || javaTarget.getJarsCount() > 0) {
-        JavaArtifactInfo artifactInfo = JavaArtifactInfo.create(javaTarget, digestMap);
+        JavaArtifactInfo artifactInfo = JavaArtifactInfo.create(javaTarget, digestMap, externalRepositoryFinder);
         TargetBuildInfo targetInfo =
             TargetBuildInfo.forJavaTarget(artifactInfo, outputInfo.getBuildContext());
         targetBuildInfoSet.add(targetInfo);
@@ -236,11 +239,11 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
     return targetBuildInfoSet.build();
   }
 
-  private static ImmutableList<CcToolchain> getCcToolchains(OutputInfo outputInfo) {
+  private static ImmutableList<CcToolchain> getCcToolchains(OutputInfo outputInfo, ProjectPath.ExternalRepositoryFinder externalRepositoryFinder) {
     ImmutableList.Builder<CcToolchain> toolchainList = ImmutableList.builder();
 
     for (CcToolchainInfo proto : outputInfo.getCcToolchains().values()) {
-      CcToolchain toolchain = CcToolchain.create(proto);
+      CcToolchain toolchain = CcToolchain.create(proto, externalRepositoryFinder);
       toolchainList.add(toolchain);
     }
     return toolchainList.build();
@@ -412,6 +415,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
 
   @Override
   public void update(Set<Label> targets, OutputInfo outputInfo, C context) throws BuildException {
+    final var externalRepositoryFinder = ProjectPath.ExternalRepositoryFinder.createAndPrepare(workspaceRoot);
     ListenableFuture<?> artifactsCached =
         artifactCache.addAll(outputInfo.getAllJavaArtifacts(), context);
     try {
@@ -430,12 +434,12 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
 
     final var sw = Stopwatch.createStarted();
     Map<Label, TargetBuildInfo> newTargetInfo =
-        getUniqueTargetBuildInfos(getTargetBuildInfo(targets, outputInfo, digestMap));
+        getUniqueTargetBuildInfos(getTargetBuildInfo(targets, outputInfo, digestMap, externalRepositoryFinder));
     context.output(
         PrintOutput.output(
             "Target build info map built in %dms", sw.elapsed(TimeUnit.MILLISECONDS)));
 
-    ImmutableList<CcToolchain> newToolchains = getCcToolchains(outputInfo);
+    ImmutableList<CcToolchain> newToolchains = getCcToolchains(outputInfo, externalRepositoryFinder);
 
     // extract required metadata from the build artifacts
     ImmutableMap<Label, ImmutableSetMultimap<BuildArtifact, ArtifactMetadata>> metadata =

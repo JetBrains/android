@@ -8,6 +8,7 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.OutputStream
 import java.io.Serializable
+import java.nio.file.Path
 import java.time.Instant
 
 class ProjectProto {
@@ -60,7 +61,7 @@ class ProjectProto {
     val name: String,
     val isAndroidModule: Boolean,
     val contentEntries: Map<ProjectPath, ContentEntry>,
-    val androidResourceDirectories: List<ProjectPath.WorkspaceRelativeProjectPath>,
+    val androidResourceDirectories: List<ProjectPath.SourceCodeRepositoryRelativeProjectPath>,
     val androidSourcePackages: List<String>,
     val androidCustomPackages: List<String>,
     val androidExternalLibraries: List<ExternalAndroidLibrary>,
@@ -69,7 +70,7 @@ class ProjectProto {
       var name: String,
       var isAndroidModule: Boolean = false,
       val contentEntries: MutableMap<ProjectPath, ContentEntry> = mutableMapOf(),
-      val androidResourceDirectories: MutableList<ProjectPath.WorkspaceRelativeProjectPath> = mutableListOf(),
+      val androidResourceDirectories: MutableList<ProjectPath.SourceCodeRepositoryRelativeProjectPath> = mutableListOf(),
       val androidSourcePackages: MutableList<String> = mutableListOf(),
       val androidCustomPackages: MutableList<String> = mutableListOf(),
       val androidExternalLibraries: MutableList<ExternalAndroidLibrary> = mutableListOf(),
@@ -112,7 +113,7 @@ class ProjectProto {
     }
   }
 
-  data class ArtifactDirectoryContents(val contents: Map<String, ProjectArtifact>): ProjectProtoModel {
+  data class ArtifactDirectoryContents(val contents: Map<String, ArtifactSource>): ProjectProtoModel {
 
     fun writeTo(output: OutputStream) {
       ObjectOutputStream(output).writeObject(this)
@@ -132,18 +133,26 @@ class ProjectProto {
     }
   }
 
+  sealed interface ArtifactSource: ProjectProtoModel {
+    val fromBuild: Instant
+  }
   data class ProjectArtifact(
     val target: Label,
     val buildArtifact: BuildArtifact,
-    val fromBuild: Instant,
+    override val fromBuild: Instant,
     val transform: ArtifactTransform,
-  ): ProjectProtoModel {
+  ): ArtifactSource {
 
     enum class ArtifactTransform {
       COPY,
       UNZIP
     }
   }
+
+  /**
+   * Represents a Bazel external repository with a path relative to (bazel info output_base).
+   */
+  data class ExternalRepository(val name: String, val bazelRepositoryAbsolutePath: Path, override val fromBuild: Instant): ArtifactSource
 
   data class ExternalAndroidLibrary(
     val name: String,
@@ -170,7 +179,7 @@ class ProjectProto {
 
   data class CcTarget(
     val target: Label,
-    val sources: Map<ProjectPath.WorkspaceRelativeProjectPath, CcSourceFile>,
+    val sources: Map<ProjectPath.SourceCodeRepositoryRelativeProjectPath, CcSourceFile>,
     val contexts: Map<String, CcCompilationContext>,
   ): ProjectProtoModel {
     /**
@@ -201,7 +210,7 @@ class ProjectProto {
   ): ProjectProtoModel
 
   data class CcSourceFile(
-    val workspacePath: ProjectPath.WorkspaceRelativeProjectPath,
+    val workspacePath: ProjectPath.SourceCodeRepositoryRelativeProjectPath,
     val language: CcLanguage,
   ): ProjectProtoModel
 

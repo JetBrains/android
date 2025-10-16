@@ -32,7 +32,8 @@ class AddCompiledJavaDeps(private val emptyJarDigests: Set<String>) : ProjectPro
     update: ProjectProtoUpdate,
     buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
-    context: Context<*>
+    context: Context<*>,
+    externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
     update.artifactDirectory(ArtifactDirectories.JAVADEPS) {
       val skipped: MutableSet<String> = hashSetOf()

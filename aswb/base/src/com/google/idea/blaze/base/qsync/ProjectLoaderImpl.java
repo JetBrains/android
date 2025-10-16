@@ -253,6 +253,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
         QuerySync.ATTACH_DEP_SRCJARS::getValue));
     NewArtifactTracker<BlazeContext> tracker =
         new NewArtifactTracker<>(
+            workspaceRoot.directory().toPath(),
             projectDirectoryConfigurator.configureDirectory(BAZEL_SYSTEM),
             artifactCache,
             // don't pass the composed transform directly as it's not fully constructed yet:

@@ -29,6 +29,7 @@ import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
+import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher
 import java.nio.file.Path
 import java.time.Duration
@@ -93,7 +94,8 @@ class AddProjectGenSrcs(
     update: ProjectProtoUpdate,
     buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
-    context: Context<*>
+    context: Context<*>,
+    externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
     val srcsByJavaPath = mutableMapOf<Path, MutableList<ArtifactWithOrigin>>()
     val missingPackageArtifacts = mutableListOf<BuildArtifact>()

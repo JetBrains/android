@@ -67,16 +67,16 @@ public abstract class CcToolchain {
     return new AutoValue_CcToolchain.Builder();
   }
 
-  public static CcToolchain create(CcToolchainInfo proto) {
+  public static CcToolchain create(CcToolchainInfo proto, ProjectPath.ExternalRepositoryFinder externalRepositoryFinder) {
     return builder()
         .id(proto.getId())
         .compiler(proto.getCompiler())
-        .compilerExecutable(ProjectPath.workspaceRelative(Path.of(proto.getCompilerExecutable())))
+        .compilerExecutable(ProjectPath.workspaceRelative(Path.of(proto.getCompilerExecutable()), externalRepositoryFinder))
         .cpu(proto.getCpu())
         .targetGnuSystemName(proto.getTargetName())
         .builtInIncludeDirectories(
             proto.getBuiltInIncludeDirectoriesList().stream()
-                .map(ArtifactDirectories::forCcInclude)
+                .map(it -> ArtifactDirectories.forCcInclude(it, externalRepositoryFinder))
                 .collect(toImmutableList()))
         .cOptions(ImmutableList.copyOf(proto.getCOptionsList()))
         .cppOptions(ImmutableList.copyOf(proto.getCppOptionsList()))

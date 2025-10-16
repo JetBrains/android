@@ -55,7 +55,8 @@ class AddCompiledJavaDepsTest {
     val original = ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
 
     val update = ProjectProtoUpdate(original)
-    javaDeps.update(update, BuildGraphData.EMPTY, ArtifactTracker.State.EMPTY, NoopContext())
+    javaDeps.update(update, BuildGraphData.EMPTY, ArtifactTracker.State.EMPTY, NoopContext(),
+                    ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries).isEqualTo(original.libraries)
     Truth.assertThat(newProject.modules).isEqualTo(original.modules)
@@ -93,7 +94,7 @@ class AddCompiledJavaDepsTest {
 
     val update =
       ProjectProtoUpdate(original)
-    javaDeps.update(update, BuildGraphData.EMPTY, artifactState, NoopContext())
+    javaDeps.update(update, BuildGraphData.EMPTY, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
     Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys)
@@ -141,7 +142,7 @@ class AddCompiledJavaDepsTest {
 
     val update =
       ProjectProtoUpdate(original)
-    javaDeps.update(update, BuildGraphData.EMPTY, artifactState, NoopContext())
+    javaDeps.update(update, BuildGraphData.EMPTY, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
     Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys)

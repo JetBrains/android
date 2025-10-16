@@ -130,12 +130,11 @@ public class BazelProjectSystem implements AndroidProjectSystem {
           final var data = querySyncManager.getCurrentSnapshot();
           if (data.isEmpty()) return createSourceProvidersForLegacyModule(facet);
           final var androidResourceDirectories = data.get().getProject().getModules().stream().flatMap(it -> it.getAndroidResourceDirectories().stream())
-            .map(it -> it.relativePath().toString())
             .toList();
           var androidResourceDirectoryFiles =
             androidResourceDirectories
               .stream()
-              .flatMap (it -> querySyncProject.map(p -> new File(p.getWorkspaceRoot().directory(), it).getAbsoluteFile()).stream())
+              .flatMap (it -> querySyncProject.map(p -> p.getProjectPathResolver().resolve(it).toFile()).stream())
               .collect(toImmutableSet());
           var mainSourceProvider =
             NamedIdeaSourceProviderBuilder.create(BlazeProjectDataStorage.WORKSPACE_MODULE_NAME, VfsUtilCore.fileToUrl(new File("MissingManifest.xml")))
