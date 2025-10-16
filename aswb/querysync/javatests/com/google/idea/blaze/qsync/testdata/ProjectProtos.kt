@@ -21,6 +21,7 @@ import com.google.idea.blaze.qsync.GraphToProjectConverter
 import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.project.ProjectDefinition
+import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import java.io.IOException
@@ -52,6 +53,6 @@ object ProjectProtos {
           deriveTargetsFromDirectories = false,
         )
       )
-    return converter.createProject(BuildGraphs.forTestProject(project))
+    return converter.createProject(BuildGraphs.forTestProject(project), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
   }
 }

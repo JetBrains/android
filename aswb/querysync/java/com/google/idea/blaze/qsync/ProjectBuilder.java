@@ -23,12 +23,12 @@ import com.google.idea.blaze.qsync.java.PackageReader;
 import com.google.idea.blaze.qsync.java.WorkspaceResolvingPackageReader;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
+import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto.Project;
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation;
 import java.nio.file.Path;
 import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Project refresher creates an appropriate {@link RefreshOperation} based on the project and
@@ -74,9 +74,12 @@ public class ProjectBuilder {
     GraphToProjectConverter graphToProjectConverter =
         new GraphToProjectConverter(
             javaPackagePrefixReader, context, postQuerySyncData.projectDefinition());
-    final var update = new ProjectProtoUpdate(graphToProjectConverter.createProject(graph));
+    ProjectPath.ExternalRepositoryFinder externalRepositoryFinder = ProjectPath.ExternalRepositoryFinder.createAndPrepare(workspaceRoot);
+    final var update =
+      new ProjectProtoUpdate(
+        graphToProjectConverter.createProject(graph, externalRepositoryFinder));
     for (ProjectProtoUpdateOperation updateOperation : projectProtoUpdates) {
-      updateOperation.update(update, graph, artifactTrackerState, context);
+      updateOperation.update(update, graph, artifactTrackerState, context, externalRepositoryFinder);
     }
     return update.build();
   }

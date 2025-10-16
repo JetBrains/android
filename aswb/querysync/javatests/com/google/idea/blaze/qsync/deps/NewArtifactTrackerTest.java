@@ -87,7 +87,8 @@ public class NewArtifactTrackerTest extends BlazeTestCase {
     applicationServices.register(ExperimentService.class, new MockExperimentService());
     artifactTracker =
       new NewArtifactTracker<>(
-        cacheDir.getRoot().toPath(),
+        cacheDir.getRoot().toPath().resolve("w"),
+        cacheDir.getRoot().toPath().resolve("p"),
         cache,
         t -> artifactMetadataMap.getOrDefault(t.label(), ImmutableSetMultimap.of()).asMap(),
         new JavaArtifactMetadata.Factory(),

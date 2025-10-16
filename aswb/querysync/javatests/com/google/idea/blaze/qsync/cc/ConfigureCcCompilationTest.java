@@ -75,6 +75,7 @@ public class ConfigureCcCompilationTest {
   }
 
   private final Context<?> context = new NoopContext();
+  private final ProjectPath.ExternalRepositoryFinder externalRepositoryFinder = ProjectPath.ExternalRepositoryFinder.createEmptyForTests();
   private final TestDataSyncRunner syncRunner =
       new TestDataSyncRunner(
           context,
@@ -84,17 +85,17 @@ public class ConfigureCcCompilationTest {
               QuerySyncTestUtils.SIMPLE_PARALLEL_PACKAGE_READER,
               (p) -> true));
 
-  private static State toArtifactState(CcCompilationInfo proto) {
+  private State toArtifactState(CcCompilationInfo proto) {
     DigestMap digestMap = DigestMap.ofFunction(p -> Integer.toHexString(p.hashCode()));
     return ArtifactTracker.State.create(
         proto.getTargetsList().stream()
-            .map(t -> com.google.idea.blaze.qsync.deps.CcCompilationInfo.create(t, digestMap))
+            .map(t -> com.google.idea.blaze.qsync.deps.CcCompilationInfo.create(t, digestMap, externalRepositoryFinder))
             .collect(
                 toImmutableMap(
                     cc -> cc.target(),
                     cc -> TargetBuildInfo.forCcTarget(cc, DependencyBuildContext.NONE))),
         proto.getToolchainsList().stream()
-            .map(CcToolchain::create)
+            .map(it -> CcToolchain.create(it, externalRepositoryFinder))
             .collect(toImmutableMap(CcToolchain::id, Functions.identity())));
   }
 
@@ -103,7 +104,7 @@ public class ConfigureCcCompilationTest {
     QuerySyncProjectSnapshot original = syncRunner.sync(TestData.CC_LIBRARY_QUERY);
     ProjectProtoUpdate update = new ProjectProtoUpdate(original.getProject());
     ConfigureCcCompilation ccConfig =
-        new ConfigureCcCompilation(ArtifactTracker.State.EMPTY, update);
+        new ConfigureCcCompilation(name ->{ throw new UnsupportedOperationException() ;}, ArtifactTracker.State.EMPTY, update);
     ccConfig.update(original.getGraph(), context);
     ProjectProto.Project project = update.build();
     assertThat(project.getCcWorkspace()).isEqualTo(CcWorkspace.getDefaultInstance());
@@ -152,7 +153,7 @@ public class ConfigureCcCompilationTest {
             .build();
 
     ConfigureCcCompilation ccConfig =
-        new ConfigureCcCompilation(toArtifactState(compilationInfo), update);
+        new ConfigureCcCompilation(name ->{ throw new UnsupportedOperationException() ;}, toArtifactState(compilationInfo), update);
     ccConfig.update(original.getGraph(), context);
 
     ProjectProto.Project project = update.build();
@@ -166,7 +167,7 @@ public class ConfigureCcCompilationTest {
     assertThat(sourceFile.getLanguage()).isEqualTo(CcLanguage.CPP);
     assertThat(sourceFile.getWorkspacePath())
         .isEqualTo(
-          ProjectPath.workspaceRelative(
+          ProjectPath.workspaceRelativeForTests(
             TestData.CC_LIBRARY_QUERY.getOnlySourcePath().resolve("TestClass.cc")));
     FlagResolver resolver =
         new FlagResolver(
@@ -207,7 +208,8 @@ public class ConfigureCcCompilationTest {
         "--sharedopt",
         "--conlyopt");
 
-    assertThat(cppCompilerSettings.getCompilerExecutablePath()).isEqualTo(ProjectPath.workspaceRelative(Path.of("workspace/path/to/clang")));
+    assertThat(cppCompilerSettings.getCompilerExecutablePath())
+      .isEqualTo(ProjectPath.workspaceRelativeForTests(Path.of("workspace/path/to/clang")));
 
     Truth8.assertThat(context.getLanguageToCompilerSettings().keySet().stream())
         .containsExactly(CcLanguage.CPP, CcLanguage.C);
@@ -261,7 +263,9 @@ public class ConfigureCcCompilationTest {
                     .build())
             .build();
 
-    ConfigureCcCompilation ccConfig = new ConfigureCcCompilation(toArtifactState(ccCi), update);
+    ConfigureCcCompilation ccConfig =
+      new ConfigureCcCompilation(
+        name ->{ throw new UnsupportedOperationException() ;}, toArtifactState(ccCi), update);
     ccConfig.update(original.getGraph(), context);
 
     ProjectProto.Project project = update.build();

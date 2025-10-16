@@ -55,7 +55,7 @@ public class ArtifactDirectories {
    * Constructs a project path for a given include dir flag value. This can then be used to ensure
    * that the flag passed to the IDE points to the correct location.
    */
-  public static ProjectPath forCcInclude(String includeDir) {
+  public static ProjectPath forCcInclude(String includeDir, ProjectPath.ExternalRepositoryFinder externalRepositoryFinder) {
     Path includePath = Path.of(includeDir);
     // include paths that refer to generated locations start with the `bazel-out` (or `blaze-out`)
     // component, so paths that start with that are resolved relative to the generated headers dir
@@ -67,7 +67,7 @@ public class ArtifactDirectories {
     } else if (includePath.isAbsolute()) {
       return ProjectPath.absolute(includePath);
     } else {
-      return ProjectPath.workspaceRelative(includePath);
+      return ProjectPath.workspaceRelative(includePath, externalRepositoryFinder);
     }
   }
 }

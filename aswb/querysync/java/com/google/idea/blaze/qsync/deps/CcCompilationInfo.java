@@ -65,26 +65,28 @@ public abstract class CcCompilationInfo {
     return new AutoValue_CcCompilationInfo.Builder();
   }
 
-  public static CcCompilationInfo create(CcTargetInfo targetInfo, DigestMap digestMap) {
+  public static CcCompilationInfo create(CcTargetInfo targetInfo,
+                                         DigestMap digestMap,
+                                         ProjectPath.ExternalRepositoryFinder externalRepositoryFinder) {
     Label target = Label.of(targetInfo.getLabel());
     return builder()
         .target(target)
         .defines(ImmutableList.copyOf(targetInfo.getDefinesList()))
         .includeDirectories(
             targetInfo.getIncludeDirectoriesList().stream()
-                .map(ArtifactDirectories::forCcInclude)
+                .map(it -> ArtifactDirectories.forCcInclude(it, externalRepositoryFinder))
                 .collect(toImmutableList()))
         .quoteIncludeDirectories(
             targetInfo.getQuoteIncludeDirectoriesList().stream()
-                .map(ArtifactDirectories::forCcInclude)
+                .map(it -> ArtifactDirectories.forCcInclude(it, externalRepositoryFinder))
                 .collect(toImmutableList()))
         .systemIncludeDirectories(
             targetInfo.getSystemIncludeDirectoriesList().stream()
-                .map(ArtifactDirectories::forCcInclude)
+                .map(it -> ArtifactDirectories.forCcInclude(it, externalRepositoryFinder))
                 .collect(toImmutableList()))
         .frameworkIncludeDirectories(
             targetInfo.getFrameworkIncludeDirectoriesList().stream()
-                .map(ArtifactDirectories::forCcInclude)
+                .map(it -> ArtifactDirectories.forCcInclude(it, externalRepositoryFinder))
                 .collect(toImmutableList()))
         .genHeaders(
             BuildArtifact.fromProtos(

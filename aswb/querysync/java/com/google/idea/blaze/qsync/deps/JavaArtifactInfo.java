@@ -90,7 +90,9 @@ public abstract class JavaArtifactInfo {
     return new AutoValue_JavaArtifactInfo.Builder();
   }
 
-  public static JavaArtifactInfo create(JavaTargetInfo.JavaArtifacts proto, DigestMap digestMap) {
+  public static JavaArtifactInfo create(JavaTargetInfo.JavaArtifacts proto,
+                                        DigestMap digestMap,
+                                        ProjectPath.ExternalRepositoryFinder externalRepositoryFinder) {
     // Note, the proto contains a list of sources, we take the parent as we want directories instead
     Label target = Label.of(proto.getTarget());
     Builder builder = builder();
@@ -103,9 +105,13 @@ public abstract class JavaArtifactInfo {
         .setJars(BuildArtifact.fromProtos(proto.getJarsList(), digestMap, target))
         .setOutputJars(BuildArtifact.fromProtos(proto.getOutputJarsList(), digestMap, target))
         .setGenSrcs(BuildArtifact.fromProtos(proto.getGenSrcsList(), digestMap, target))
-        .setSources(proto.getSrcsList().stream().map(it -> ProjectPath.workspaceRelative(Interners.pathOf(it))).collect(toImmutableSet()))
+        .setSources(proto.getSrcsList().stream()
+                      .map(it -> ProjectPath.workspaceRelative(Interners.pathOf(it), externalRepositoryFinder))
+                      .collect(toImmutableSet()))
         .setSrcJars(
-            proto.getSrcjarsList().stream().map(it -> ProjectPath.workspaceRelative(Interners.pathOf(it))).collect(toImmutableSet()))
+            proto.getSrcjarsList().stream()
+              .map(it -> ProjectPath.workspaceRelative(Interners.pathOf(it), externalRepositoryFinder))
+              .collect(toImmutableSet()))
         .setAndroidResourcesPackage(proto.getAndroidResourcesPackage())
         .build();
   }

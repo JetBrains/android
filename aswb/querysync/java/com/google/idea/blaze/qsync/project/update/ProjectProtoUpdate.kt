@@ -90,6 +90,12 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
       buildContext: DependencyBuildContext,
       transform: ProjectProto.ProjectArtifact.ArtifactTransform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
     ): ProjectPath.ProjectRelativeProjectPath?
+
+    fun addExternalRepository(
+      repositoryName: String,
+      absolutePath: Path,
+      buildContext: DependencyBuildContext,
+    )
   }
 
   private val project: ProjectProto.Project.Builder = existingProject.toBuilder()
@@ -210,6 +216,25 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
           )
         updated = true
         return path.resolveChild(artifactPath)
+      }
+
+      override fun addExternalRepository(
+        repositoryName: String,
+        absolutePath: Path,
+        buildContext: DependencyBuildContext,
+      ) {
+        val existing = contents[repositoryName]
+        if (existing != null && existing.fromBuild > buildContext.startTime()) {
+          // we already have the same artifact from a more recent build.
+          return
+        }
+        contents[repositoryName] =
+          ProjectProto.ExternalRepository(
+            name = repositoryName,
+            bazelRepositoryAbsolutePath = absolutePath,
+            fromBuild = buildContext.startTime()
+          )
+        updated = true
       }
     }.updater()
     if (updated) {

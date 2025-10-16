@@ -95,9 +95,10 @@ class DependenciesProjectProtoUpdater(
     buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
     context: Context<*>,
+    externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
     for (op in updateOperations) {
-      op.update(update, buildGraph, artifactState, context)
+      op.update(update, buildGraph, artifactState, context, externalRepositoryFinder)
     }
   }
 }

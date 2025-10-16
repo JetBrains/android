@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.qsync.java
 
-import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.Label.Companion.of
@@ -93,7 +92,8 @@ class AddDependencySrcJarsTest {
     val update =
       ProjectProtoUpdate(original.project)
 
-    addSrcJars.update(update, original.graph, ArtifactTracker.State.EMPTY, NoopContext())
+    addSrcJars.update(update, original.graph, ArtifactTracker.State.EMPTY, NoopContext(),
+                      ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
 
     val newProject = update.build()
 
@@ -148,7 +148,7 @@ class AddDependencySrcJarsTest {
     val update =
       ProjectProtoUpdate(original.project)
 
-    addSrcJars.update(update, original.graph, artifactState, NoopContext())
+    addSrcJars.update(update, original.graph, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
 
     val newProject = update.build()
 

@@ -352,7 +352,7 @@ class GraphToProjectConverter(
   }
 
   @Throws(BuildException::class)
-  fun createProject(graph: BuildGraphData): ProjectProto.Project {
+  fun createProject(graph: BuildGraphData, externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder): ProjectProto.Project {
     val javaSourceRoots = calculateJavaRootSources(context, graph.getJavaSourceFiles(), graph.packages())
     val rootToNonJavaSource = nonJavaSourceFolders(graph.getSourceFilesByRuleKindAndType({ t -> !RuleKinds.isJava(t) }, *SourceType.all()))
     // Note: according to:
@@ -376,7 +376,7 @@ class GraphToProjectConverter(
       ProjectProto.Module.Builder(name = BlazeProjectDataStorage.WORKSPACE_MODULE_NAME).also {
         //          .setType(ProjectProto.ModuleType.MODULE_TYPE_DEFAULT)
         it.isAndroidModule = projectDefinition.isAndroidWorkspace
-        it.androidResourceDirectories.addAll(androidResDirs.map { ProjectPath.workspaceRelative(it) })
+        it.androidResourceDirectories.addAll(androidResDirs.map { ProjectPath.workspaceRelative(it, externalRepositoryFinder) })
         it.androidSourcePackages.addAll(androidResPackages)
         it.androidCustomPackages.addAll(graph.getAllCustomPackages())
       }
@@ -389,7 +389,7 @@ class GraphToProjectConverter(
         sourceRootsWithPrefixes.entries.map { entry ->
           val path = dir.resolve(entry.key)
           ProjectProto.SourceFolder(
-            projectPath = ProjectPath.workspaceRelative(path),
+            projectPath = ProjectPath.workspaceRelative(path, externalRepositoryFinder),
             isGenerated = false,
             isTest = testSourceGlobMatcher.matches(path),
             packagePrefix = entry.value
@@ -402,7 +402,7 @@ class GraphToProjectConverter(
             // TODO(b/305743519): make java source properties like package prefix specific to java
             // source folders only.
             ProjectProto.SourceFolder(
-              projectPath = ProjectPath.workspaceRelative(path),
+              projectPath = ProjectPath.workspaceRelative(path, externalRepositoryFinder),
               isGenerated = false,
               isTest = testSourceGlobMatcher.matches(path),
               packagePrefix = ""
@@ -410,9 +410,14 @@ class GraphToProjectConverter(
           }
           else null
         }
-      val excludes = excludesByRootDirectory[dir].orEmpty().map { exclude -> ProjectPath.workspaceRelative(exclude) }
+      val excludes = excludesByRootDirectory[dir].orEmpty()
+        .map { exclude -> ProjectPath.workspaceRelative(exclude, externalRepositoryFinder) }
       val contentEntry =
-        ProjectProto.ContentEntry(root = ProjectPath.workspaceRelative(dir), sourceFolders = sourceFolders, excludes = excludes)
+        ProjectProto.ContentEntry(
+          root = ProjectPath.workspaceRelative(dir, externalRepositoryFinder),
+          sourceFolders = sourceFolders,
+          excludes = excludes
+        )
       workspaceModule.contentEntries[contentEntry.root] = contentEntry
     }
 

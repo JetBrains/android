@@ -27,6 +27,7 @@ import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.AarResPackage
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
+import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
 import java.nio.file.Path
@@ -57,7 +58,8 @@ class AddDependencyAars(
     update: ProjectProtoUpdate,
     buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
-    context: Context<*>
+    context: Context<*>,
+    externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
     update.artifactDirectory(ArtifactDirectories.DEFAULT) {
       for (target in artifactState.targets()) {

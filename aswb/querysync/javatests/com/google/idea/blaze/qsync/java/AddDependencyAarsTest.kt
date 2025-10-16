@@ -80,7 +80,8 @@ class AddDependencyAarsTest {
     val update =
       ProjectProtoUpdate(original.project)
 
-    addAars.update(update, original.graph, ArtifactTracker.State.EMPTY, NoopContext())
+    addAars.update(update, original.graph, ArtifactTracker.State.EMPTY, NoopContext(),
+                   ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
 
     Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
@@ -120,8 +121,8 @@ class AddDependencyAarsTest {
             .build(),
           DependencyBuildContext.create("", buildTimestamp)
         )
-      ), NoopContext()
-    )
+      ), NoopContext(),
+      ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
 
     Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
@@ -185,8 +186,8 @@ class AddDependencyAarsTest {
             )
             .build()
         )
-      ), NoopContext()
-    )
+      ), NoopContext(),
+      ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
 
     Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)

@@ -24,6 +24,7 @@ import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
+import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.testdata.TestData
 import java.io.IOException
 import java.nio.file.Path
@@ -66,13 +67,13 @@ class TestDataSyncRunner(
         context = context,
         projectDefinition = projectDefinition
       )
-    val project = converter.createProject(buildGraphData)
+    val project = converter.createProject(buildGraphData, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     return QuerySyncProjectSnapshot(
       queryData = pqsd,
       graph = BlazeQueryParser(querySummary, context, ImmutableSet.of()).parse(),
       artifactState = ArtifactTracker.State.EMPTY,
       project = project,
-      incompleteTargets = emptySet(),
+      incompleteTargets = emptySet()
     )
   }
 }

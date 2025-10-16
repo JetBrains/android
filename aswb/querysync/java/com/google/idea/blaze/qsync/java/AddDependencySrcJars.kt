@@ -40,7 +40,8 @@ class AddDependencySrcJars(
     update: ProjectProtoUpdate,
     buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
-    context: Context<*>
+    context: Context<*>,
+    externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
     for (target in artifactState.targets()) {
       val javaInfo = target.javaInfo().getOrNull() ?: continue
