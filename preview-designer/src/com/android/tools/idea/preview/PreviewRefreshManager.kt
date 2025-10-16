@@ -16,8 +16,8 @@
 package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.concurrency.wrapCompletableDeferredCollection
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
@@ -343,7 +343,7 @@ private constructor(private val scope: CoroutineScope, private val topic: Render
 
   companion object {
     private val coroutineScope by lazy {
-      AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
+      AndroidPluginDisposable.getApplicationInstance().createCoroutineScope()
     }
     private val managersByTopicLock = ReentrantLock()
     @GuardedBy("managersByTopicLock")

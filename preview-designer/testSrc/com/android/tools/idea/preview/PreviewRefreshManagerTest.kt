@@ -16,33 +16,29 @@
 package com.android.tools.idea.preview
 
 import com.android.testutils.waitForCondition
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.awaitStatus
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.getRandomTopic
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runWriteActionAndWait
-import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.ProjectRule
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -61,9 +57,8 @@ private class TestPreviewRefreshTracker : PreviewRefreshTracker {
 private val testPreviewType = PreviewRefreshEvent.PreviewType.UNKNOWN_TYPE
 
 class PreviewRefreshManagerTest {
-  @JvmField @Rule val projectRule = ProjectRule()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
 
-  private lateinit var myDisposable: Disposable
   private lateinit var myScope: CoroutineScope
   private lateinit var refreshManager: PreviewRefreshManager
   private lateinit var refreshTracker: TestPreviewRefreshTracker
@@ -71,19 +66,12 @@ class PreviewRefreshManagerTest {
 
   @Before
   fun setUp() {
-    myDisposable = Disposer.newDisposable()
-    myScope = AndroidCoroutineScope(myDisposable)
+    myScope = projectRule.testRootDisposable.createCoroutineScope()
     myTopic = getRandomTopic()
     refreshManager = PreviewRefreshManager.getInstanceForTest(myScope, myTopic)
     TestPreviewRefreshRequest.log = StringBuilder()
     refreshTracker = TestPreviewRefreshTracker()
     TestPreviewRefreshTracker.logList = mutableListOf()
-  }
-
-  @After
-  fun tearDown() {
-    Disposer.dispose(myDisposable)
-    myScope.cancel()
   }
 
   @Test

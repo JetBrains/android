@@ -29,9 +29,9 @@ import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.common.surface.selectComponent
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
@@ -64,7 +64,7 @@ class NavigatingInteractionHandler(
   private val isSelectionEnabled: Boolean = false,
 ) : NlInteractionHandler(surface) {
 
-  private val scope = AndroidCoroutineScope(surface)
+  private val scope = surface.createCoroutineScope()
 
   private var popUpComponent: ActionPopupMenu? = null
 
