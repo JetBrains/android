@@ -260,11 +260,16 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     return run(display, env, new String[] {});
   }
 
-  public T run(Display display, Map<String, String> env, AndroidProject project, Path sdkDir) throws IOException, InterruptedException {
+  protected Path setupProject(AndroidProject project, Path sdkDir) throws IOException {
     Path projectPath = project.install(fileSystem.getRoot());
     project.setSdkDir(sdkDir);
     // Mark that project as trusted
     trustPath(projectPath);
+    return projectPath;
+  }
+
+  public T run(Display display, Map<String, String> env, AndroidProject project, Path sdkDir) throws IOException, InterruptedException {
+    Path projectPath = setupProject(project, sdkDir);
     return run(display, env, new String[]{ projectPath.toString() });
   }
 
