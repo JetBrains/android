@@ -156,6 +156,8 @@ jvm_library(
         "//platform/code-style-api:codeStyle_test_lib",
         "//platform/testFramework",
         "//platform/testFramework:testFramework_test_lib",
+        "//platform/util/jdom",
+        "//platform/util/jdom:jdom_test_lib",
         "//platform/core-ui",
         "//platform/core-ui:core-ui_test_lib",
         "//libraries/guava",
