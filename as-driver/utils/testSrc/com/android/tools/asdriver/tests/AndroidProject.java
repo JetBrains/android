@@ -17,10 +17,15 @@ package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
 import com.android.utils.FileUtils;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class AndroidProject {
@@ -28,12 +33,14 @@ public class AndroidProject {
   private final String path;
   private Path distribution;
   private Path targetProject;
+  private final Path gradleProperties;
 
   public AndroidProject(String path) {
     this.path = path;
 
     // For projects created through the test, targetProject is the same as the original path.
     this.targetProject = Paths.get(path);
+    this.gradleProperties = targetProject.resolve("gradle.properties");
 
     // By default, we set the distribution to the version that most integration tests should be
     // using. This version corresponds to `INTEGRATION_TEST_GRADLE_VERSION` in Bazel.
@@ -85,5 +92,13 @@ public class AndroidProject {
   public void inject(Path target, String contents) throws IOException {
     Path targetFile = Files.createFile(targetProject.resolve(target));
     Files.writeString(targetFile, contents);
+  }
+
+  /**
+   * Appends a property to gradle.properties, creating the file if it doesn't exist,
+   * and ensuring the property is always on a newline
+   */
+  public void addGradleProperty(final String property) throws IOException {
+    FileUtils.appendLine(gradleProperties, property);
   }
 }
