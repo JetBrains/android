@@ -22,6 +22,8 @@ import com.android.tools.asdriver.tests.base.IdeInstallation;
 import com.android.tools.asdriver.tests.metric.IndexingMetrics;
 import com.android.tools.asdriver.tests.metric.StudioEvents;
 import com.android.tools.asdriver.tests.metric.Telemetry;
+import com.android.tools.asdriver.tests.profiling.JavaProfiling;
+import com.android.tools.testlib.Display;
 import com.android.tools.testlib.LogFile;
 import com.android.tools.testlib.TestFileSystem;
 import com.android.tools.testlib.TestLogger;
@@ -32,6 +34,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
 
@@ -155,7 +158,26 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
     setConsentGranted(true);
     bundlePlugin(TestUtils.getBinPath("tools/adt/idea/as-driver/asdriver.plugin-studio-sdk.zip"));
 
+    if (shouldCaptureStudioJfr()) {
+      TestLogger.log("Capturing Studio JFR profile");
+      addJfrVmOptions();
+    }
+
     TestLogger.log("AndroidStudioInstallation created with androidStudioFlavor== %s" , androidStudioFlavor);
+  }
+
+  @Override
+  public AndroidStudio run(
+    Display display,
+    Map<String, String> env,
+    AndroidProject project,
+    Path sdkDir) throws IOException, InterruptedException {
+    Path projectPath = setupProject(project, sdkDir);
+    if (shouldCaptureGradleJfr()) {
+      TestLogger.log("Capturing Gradle JFR profile");
+      addJfrArgumentsToGradle(project);
+    }
+    return super.run(display, env, new String[] { projectPath.toString() });
   }
 
   /**
@@ -304,4 +326,25 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
 
   @Override
   public void close() throws Exception {}
+
+  private boolean shouldCaptureStudioJfr() {
+    return Boolean.getBoolean("studio.profiling.capture_jfr");
+  }
+
+  private boolean shouldCaptureGradleJfr() {
+    return Boolean.getBoolean("studio.profiling.gradle.capture_jfr");
+  }
+
+  private void addJfrVmOptions() throws IOException {
+    final Path profilePath = logsDir.resolve("studio-profile.jfr");
+    for (final String opt : JavaProfiling.defaultJfrArguments(profilePath)) {
+      addVmOption(opt);
+    }
+  }
+
+  private void addJfrArgumentsToGradle(AndroidProject project) throws IOException {
+    final Path gradleProfile = logsDir.resolve("gradle-profile.jfr");
+    final String jfrArgs = String.join(" ", JavaProfiling.defaultJfrArguments(gradleProfile));
+    project.addGradleProperty("org.gradle.jvmargs=" + jfrArgs);
+  }
 }

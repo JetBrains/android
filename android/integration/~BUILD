@@ -413,6 +413,35 @@ iml_test(
     test_class = "com.android.tools.idea.LiveEditTest",
 )
 
+iml_test(
+    name = "LiveEditJfrTest",
+    timeout = "long",
+    data = live_edit_test_data + [
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:system_image_android-33_default",
+        INTEGRATION_TEST_GRADLE_VERSION,
+    ],
+    jvm_flags = [
+        "-Dstudio.profiling.capture_jfr=true",
+        "-Dstudio.profiling.gradle.capture_jfr=true",
+    ],
+    module = ":intellij.android.core.integration",
+    tags = [
+        "noci:studio-linux",
+        "noci:studio-win",
+        "studio-e2e-test",
+    ],
+    tags_linux = [
+        "block-network",
+    ],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.LiveEditTest",
+)
+
 apply_changes_data = [
     ":buildproject_deps",
     ":applychangesproject",
