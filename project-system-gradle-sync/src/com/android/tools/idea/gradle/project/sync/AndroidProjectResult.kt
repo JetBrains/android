@@ -154,8 +154,10 @@ sealed class AndroidProjectResult {
               legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
               testSuites = if (modelVersions[ModelFeature.HAS_TEST_SUITES])
                 basicAndroidProject.testSuites
-              else emptyList()
-            )
+              else emptyList(),
+              androidDsl,
+              basicAndroidProject
+              )
           }
         }
 

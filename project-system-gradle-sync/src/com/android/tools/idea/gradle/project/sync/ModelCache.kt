@@ -93,8 +93,10 @@ interface ModelCache {
       basicVariant: BasicVariant,
       variant: com.android.builder.model.v2.ide.Variant,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-      testSuites: Collection<BasicTestSuite>
-    ): ModelResult<IdeVariantCoreImpl>
+      testSuites: Collection<BasicTestSuite>,
+      androidDsl: AndroidDsl,
+      basicProject: BasicAndroidProject
+      ): ModelResult<IdeVariantCoreImpl>
 
     /**
      * Supplements an incomplete instance of [IdeVariantImpl] with dependency information from a [VariantDependencies] model.
