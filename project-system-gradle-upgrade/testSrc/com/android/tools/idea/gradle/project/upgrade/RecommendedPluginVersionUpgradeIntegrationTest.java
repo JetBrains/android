@@ -101,8 +101,8 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends HeavyPlatfor
   public void testInvokeUpgradeAssistantWhenUserAcceptsUpgrade() {
     simulateUpgradeReminderIsDue();
 
-    AgpVersion current = AgpVersion.parse("4.1.0");
-    AgpVersion recommended = AgpVersion.parse("4.2.0");
+    AgpVersion current = AgpVersion.parse("4.2.0");
+    AgpVersion recommended = AgpVersion.parse("7.0.0");
 
     // Simulate user accepted upgrade.
     try (MockedStatic<AndroidPluginInfo> androidPluginInfoMock = mockStatic(AndroidPluginInfo.class)) {
