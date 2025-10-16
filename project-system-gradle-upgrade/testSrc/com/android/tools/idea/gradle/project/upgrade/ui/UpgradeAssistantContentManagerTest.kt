@@ -21,7 +21,6 @@ import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
-import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
@@ -33,7 +32,6 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpVersionRefactoringProcessor
-import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.Severity
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.StatusMessage
@@ -92,7 +90,7 @@ import java.io.File
 
 @RunsInEdt
 class UpgradeAssistantContentManagerTest {
-  val deprecatedAgpVersion = AgpVersion.parse("4.1.0")
+  val deprecatedAgpVersion = AgpVersion.parse("4.2.0")
   val supportedAgpVersion = AgpVersion.parse("7.1.0")
   val latestAgpVersion = AgpVersion.parse("8.12.0")
 
@@ -521,44 +519,6 @@ class UpgradeAssistantContentManagerTest {
   }
 
   @Test
-  fun testToolWindowViewDetailsPanelWithJava8() {
-    // Note that this isn't actually a well-formed build.gradle file, but is constructed to activate both the classpath
-    // and the Java8 refactoring processors without needing a full project.
-    projectRule.fixture.addFileToProject(
-      "build.gradle",
-      """
-        plugins {
-          id 'com.android.application'
-        }
-        buildscript {
-          dependencies {
-            classpath 'com.android.tools.build:gradle:$deprecatedAgpVersion'
-          }
-        }
-        android {
-        }
-      """.trimIndent()
-    )
-    val contentManager = ContentManagerImpl(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
-    val model = UpgradeAssistantWindowModel(project, { deprecatedAgpVersion }, latestKnownVersion = latestAgpVersion)
-    val view = UpgradeAssistantView(model, toolWindow.contentManager)
-    val java8ProcessorPath = view.tree.getPathForRow(1)
-    view.tree.selectionPath = java8ProcessorPath
-    val stepPresentation = (java8ProcessorPath.lastPathComponent as CheckedTreeNode).userObject as UpgradeAssistantWindowModel.StepUiPresentation
-    assertThat(stepPresentation.treeText).isEqualTo("Accept the new default of Java 8")
-    val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
-    assertThat(detailsPanelContent.text).contains("<b>Update default Java language level</b>")
-    assertThat(detailsPanelContent.text).contains("explicit Language Level directives")
-    val label = TreeWalker(view.detailsPanel).descendants().first { it.name == "label" } as JBLabel
-    val comboBox = TreeWalker(view.detailsPanel).descendants().first { it.name == "selection" } as ComboBox<*>
-    assertThat(label.text).contains("Action on no explicit Java language level")
-    assertThat(comboBox.selectedItem).isEqualTo(NoLanguageLevelAction.ACCEPT_NEW_DEFAULT)
-    comboBox.selectedItem = NoLanguageLevelAction.INSERT_OLD_DEFAULT
-    assertThat(stepPresentation.treeText).isEqualTo("Insert directives to continue using Java 7")
-  }
-
-  @Test
   fun testToolWindowViewDetailsPanelWithR8FullMode() {
     projectRule.fixture.addFileToProject(
       "build.gradle",
@@ -806,14 +766,14 @@ class UpgradeAssistantContentManagerTest {
     """.trimIndent())
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
-    val model = UpgradeAssistantWindowModel(project, { deprecatedAgpVersion }, AgpVersion.parse("4.2.0-alpha07"), latestKnownVersion = latestAgpVersion)
+    val model = UpgradeAssistantWindowModel(project, { deprecatedAgpVersion }, AgpVersion.parse("7.0.0-alpha01"), latestKnownVersion = latestAgpVersion)
     val view = UpgradeAssistantView(model, toolWindow.contentManager)
     val mandatoryCodependentNode = view.tree.getPathForRow(0).lastPathComponent as CheckedTreeNode
     assertThat(mandatoryCodependentNode.userObject).isEqualTo(MANDATORY_CODEPENDENT)
     assertThat(mandatoryCodependentNode.isChecked).isTrue()
-    val optionalIndependentNode = view.tree.getPathForRow(3).lastPathComponent as CheckedTreeNode
+    val optionalIndependentNode = view.tree.getPathForRow(2).lastPathComponent as CheckedTreeNode
     assertThat(optionalIndependentNode.userObject).isEqualTo(OPTIONAL_INDEPENDENT)
-    val deprecatedConfigurationsNode = view.tree.getPathForRow(4).lastPathComponent as CheckedTreeNode
+    val deprecatedConfigurationsNode = view.tree.getPathForRow(3).lastPathComponent as CheckedTreeNode
     val deprecatedConfigurationsUIPresentation = deprecatedConfigurationsNode.userObject as UpgradeAssistantWindowModel.StepUiPresentation
     assertThat(deprecatedConfigurationsNode.isChecked).isFalse()
     assertThat(deprecatedConfigurationsUIPresentation.treeText).isEqualTo("Replace deprecated configurations")
