@@ -102,32 +102,33 @@ public class DeviceBinder {
     IDeviceChangeListener deviceChangeListener = new IDeviceChangeListener() {
       @Override
       public void deviceConnected(@NonNull IDevice device) {
-        deviceChanged(device, CHANGE_STATE);
+        if (deviceId.equals(device.getSerialNumber())) {
+          countDownLatch.countDown();
+        }
       }
 
       @Override
       public void deviceDisconnected(@NonNull IDevice device) {
-        deviceChanged(device, CHANGE_STATE);
       }
 
       @Override
       public void deviceChanged(@NonNull IDevice device, int changeMask) {
-        if (deviceId.equals(device.getSerialNumber())) {
-          AndroidDebugBridge.removeDeviceChangeListener(this);
-          countDownLatch.countDown();
-        }
       }
     };
 
-    AndroidDebugBridge.addDeviceChangeListener(deviceChangeListener);
-    while (!AndroidDebugBridge.getBridge().hasInitialDeviceList()) {
-      //noinspection BusyWait
-      Thread.sleep(50); // We'll have to busy wait due to API limitations.
+    try {
+      AndroidDebugBridge.addDeviceChangeListener(deviceChangeListener);
+      for (IDevice device : AndroidDebugBridge.getBridge().getDevices()) {
+        if (deviceId.equals(device.getSerialNumber())) {
+          // Device is already connected
+          return;
+        }
+      }
+      // Wait for device to get connected
+      countDownLatch.await();
+    } finally {
+      AndroidDebugBridge.removeDeviceChangeListener(deviceChangeListener);
     }
-    for (IDevice device : AndroidDebugBridge.getBridge().getDevices()) {
-      deviceChangeListener.deviceConnected(device);
-    }
-    countDownLatch.await();
   }
 
   private void waitUntilDeviceIsInState(@NotNull IDevice.DeviceState state) throws InterruptedException {
