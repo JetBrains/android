@@ -26,11 +26,14 @@ import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.common.artifact.BuildArtifactCache
 import com.google.idea.blaze.common.artifact.CachedArtifact
 import com.google.idea.blaze.exception.BuildException
+import com.google.idea.blaze.qsync.project.ProjectPath
+import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents.Companion.getDefaultInstance
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents.Companion.readFrom
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
+import com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -101,14 +104,28 @@ class ArtifactDirectoryUpdate(
 
       for (destAndArtifact in contents.contents.entries) {
         try {
-          val artifact = destAndArtifact.value
-          if (!updateOneFile(
-              root.resolve(Path.of(destAndArtifact.key)),
-              existingContents.contents[destAndArtifact.key],
-              artifact
-            )
-          ) {
-            incompleteTargets.add(artifact.target)
+          val artifactSource = destAndArtifact.value
+          when (artifactSource) {
+            is ProjectArtifact-> {
+              val existingArtifact = existingContents.contents[destAndArtifact.key] as? ProjectArtifact
+              if (!updateOneFile(
+                  root.resolve(Path.of(destAndArtifact.key)),
+                  existingArtifact,
+                  artifactSource
+                )
+              ) {
+                incompleteTargets.add(artifactSource.target)
+              }
+            }
+            is ProjectProto.ExternalRepository -> {
+              val linkPath = root.resolve(artifactSource.name)
+              if (!Files.isSymbolicLink(linkPath) || Files.readSymbolicLink(linkPath) != artifactSource.bazelRepositoryAbsolutePath) {
+                if (Files.exists(linkPath)) {
+                  MoreFiles.deleteRecursively(linkPath, RecursiveDeleteOption.ALLOW_INSECURE)
+                }
+                Files.createSymbolicLink(linkPath, artifactSource.bazelRepositoryAbsolutePath)
+              }
+            }
           }
         }
         catch (e: BuildException) {

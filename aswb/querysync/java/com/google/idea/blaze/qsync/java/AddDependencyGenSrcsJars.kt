@@ -27,6 +27,7 @@ import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarJavaPackageRoots
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
+import com.google.idea.blaze.qsync.project.ProjectPath
 import java.nio.file.Path
 import kotlin.jvm.optionals.getOrNull
 
@@ -58,6 +59,7 @@ class AddDependencyGenSrcsJars(
     buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
     context: Context<*>,
+    externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
     update
       .artifactDirectory(ArtifactDirectories.DEFAULT) {

@@ -93,7 +93,7 @@ class AddProjectGenSrcJarsTest {
 
     val update =
       ProjectProtoUpdate(original.project)
-    javaDeps.update(update, original.graph, artifactState, NoopContext())
+    javaDeps.update(update, original.graph, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
     Truth.assertThat(newProject.modules).isEqualTo(original.project.modules)
@@ -134,7 +134,7 @@ class AddProjectGenSrcJarsTest {
 
     val update =
       ProjectProtoUpdate(original.project)
-    javaDeps.update(update, original.graph, artifactState, NoopContext())
+    javaDeps.update(update, original.graph, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
     val workspace = newProject.modules[0]
@@ -192,7 +192,7 @@ class AddProjectGenSrcJarsTest {
 
     val update =
       ProjectProtoUpdate(original.project)
-    javaDeps.update(update, original.graph, artifactState, NoopContext())
+    javaDeps.update(update, original.graph, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
     val workspace = newProject.modules[0]
@@ -245,7 +245,7 @@ class AddProjectGenSrcJarsTest {
 
     val update =
       ProjectProtoUpdate(original.project)
-    javaDeps.update(update, original.graph, artifactState, NoopContext())
+    javaDeps.update(update, original.graph, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
     val workspace = newProject.modules[0]
@@ -263,7 +263,7 @@ class AddProjectGenSrcJarsTest {
               isTest = false,
               packagePrefix = "",
             ),
-            ),
+          ),
           excludes = listOf(),
         )
       )

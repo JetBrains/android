@@ -28,6 +28,7 @@ import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarPrefixedJavaP
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.JarPath
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
+import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher
 import kotlin.jvm.optionals.getOrNull
@@ -60,7 +61,8 @@ class AddProjectGenSrcJars(
     update: ProjectProtoUpdate,
     buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
-    context: Context<*>
+    context: Context<*>,
+    externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
     update.artifactDirectory(ArtifactDirectories.JAVA_GEN_SRC) {
       for (target in artifactState.targets()) {
