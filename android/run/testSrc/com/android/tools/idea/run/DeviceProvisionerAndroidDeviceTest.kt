@@ -54,8 +54,7 @@ class DeviceProvisionerAndroidDeviceTest {
     bridge =
       AndroidDebugBridge.createBridge(10, TimeUnit.SECONDS) ?: error("Could not create ADB bridge")
     val startTime = System.currentTimeMillis()
-    while (
-      (!bridge.isConnected || !bridge.hasInitialDeviceList()) &&
+    while (!bridge.isConnected &&
         System.currentTimeMillis() - startTime < TimeUnit.SECONDS.toMillis(10)
     ) {
       Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS)
