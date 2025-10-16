@@ -2834,7 +2834,7 @@ MODULE                        : project
                     qName                         : :dyn_feature:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :app
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/app/build.gradle
@@ -2855,7 +2855,7 @@ MODULE                        : project.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/app/build
@@ -3881,7 +3881,7 @@ MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.dyn_feature
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :dyn_feature
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/dyn_feature/build.gradle
@@ -3902,7 +3902,7 @@ MODULE                        : project.dyn_feature
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :dyn_feature
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/dyn_feature/build
@@ -4207,7 +4207,7 @@ MODULE                        : project.jav.main
 MODULE                        : project.jav.test
 MODULE                        : project.lib
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :lib
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/lib/build.gradle
@@ -4228,7 +4228,7 @@ MODULE                        : project.lib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/lib/build
@@ -4718,7 +4718,7 @@ MODULE                        : project.lib.main
 MODULE                        : project.lib.unitTest
 MODULE                        : project.nested1
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :nested1
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/nested1/build.gradle
@@ -4739,7 +4739,7 @@ MODULE                        : project.nested1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :nested1
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/nested1/build
@@ -5028,7 +5028,7 @@ MODULE                        : project.nested1
 MODULE                        : project.nested1.androidTest
 MODULE                        : project.nested1.deep
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :nested1:deep
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/nested1/deep/build.gradle
@@ -5049,7 +5049,7 @@ MODULE                        : project.nested1.deep
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :nested1:deep
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/nested1/deep/build
@@ -5348,7 +5348,7 @@ MODULE                        : project.nested1.main
 MODULE                        : project.nested1.unitTest
 MODULE                        : project.nested2
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :nested2
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/nested2/build.gradle
@@ -5369,7 +5369,7 @@ MODULE                        : project.nested2
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :nested2
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/nested2/build
@@ -5792,7 +5792,7 @@ MODULE                        : project.nested2
 MODULE                        : project.nested2.androidTest
 MODULE                        : project.nested2.deep
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :nested2:deep
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/nested2/deep/build.gradle
@@ -5813,7 +5813,7 @@ MODULE                        : project.nested2.deep
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :nested2:deep
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/nested2/deep/build
@@ -6114,7 +6114,7 @@ MODULE                        : project.nested2.trans
     externalProject               : :nested2:trans (DefaultExternalProject) (*seen*)
 MODULE                        : project.nested2.trans.deep2
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :nested2:trans:deep2
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/nested2/trans/deep2/build.gradle
@@ -6135,7 +6135,7 @@ MODULE                        : project.nested2.trans.deep2
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :nested2:trans:deep2
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/nested2/trans/deep2/build

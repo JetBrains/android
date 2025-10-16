@@ -254,7 +254,7 @@ tests_list = [
             ":test_deps",
             "//tools/base/build-system:android_gradle_plugin.zip",
             "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-            "//tools/base/build-system/previous-versions:4.2.0",
+            "//tools/base/build-system/previous-versions:4.2.2",
             "//tools/base/build-system/previous-versions:kgp1.3.72",
         ],
         tags = [

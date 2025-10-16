@@ -176,7 +176,7 @@ MODULE                        : project_sm_src
                     qName                         : :app:testReleaseUnitTest
 MODULE                        : project_sm_src.app
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :app
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>_sm_src/app/build.gradle
@@ -197,7 +197,7 @@ MODULE                        : project_sm_src.app
     RootBuildId                   : <ROOT>_sm_src
     BuildId                       : <ROOT>_sm_src
     ProjectPath                   : :app
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>_sm_src/app/build

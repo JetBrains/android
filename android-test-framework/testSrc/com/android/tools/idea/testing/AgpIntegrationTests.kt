@@ -74,7 +74,7 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
 
   AGP_40(agpVersion = "4.0.0", gradleVersion = "6.1.1", jdkVersion = JDK_11, kotlinVersion = "1.5.21", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_41(agpVersion = "4.1.0", gradleVersion = "6.7.1", jdkVersion = JDK_11, kotlinVersion = "1.7.20", modelVersion = ModelVersion.V1, compileSdk = "32"),
-  AGP_42(agpVersion = "4.2.0", gradleVersion = "6.7.1", jdkVersion = JDK_11, kotlinVersion = "1.7.20", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_42(agpVersion = "4.2.2", gradleVersion = "6.7.1", jdkVersion = JDK_11, kotlinVersion = "1.7.20", modelVersion = ModelVersion.V1, compileSdk = "32"),
 
   // Version constraints set by KGP:
   //   - KGP 1.8 only supports Gradle 6.8.3+
