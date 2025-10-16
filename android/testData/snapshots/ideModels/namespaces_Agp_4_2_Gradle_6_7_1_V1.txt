@@ -480,7 +480,7 @@ MODULE                        : project
                     qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :app
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/app/build.gradle
@@ -501,7 +501,7 @@ MODULE                        : project.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/app/build
@@ -831,7 +831,7 @@ MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.lib
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :lib
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/lib/build.gradle
@@ -852,7 +852,7 @@ MODULE                        : project.lib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/lib/build
@@ -1160,7 +1160,7 @@ MODULE                        : project.lib.main
 MODULE                        : project.lib.unitTest
 MODULE                        : project.otherlib
     GradleModuleModel
-        agpVersion                    : 4.2.0
+        agpVersion                    : 4.2.2
         gradlePath                    : :otherlib
         gradleVersion                 : 6.7.1
         buildFile                     : <ROOT>/otherlib/build.gradle
@@ -1181,7 +1181,7 @@ MODULE                        : project.otherlib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :otherlib
-    ModelVersion                  : 4.2.0
+    ModelVersion                  : 4.2.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/otherlib/build

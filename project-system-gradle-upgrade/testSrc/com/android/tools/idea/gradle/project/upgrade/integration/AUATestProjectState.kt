@@ -76,7 +76,7 @@ enum class TestAGPVersion(
 ) {
   V_4_0("4.0.0", jdkVersion = JavaSdkVersion.JDK_11),
   V_4_1("4.1.0", jdkVersion = JavaSdkVersion.JDK_11),
-  V_4_2("4.2.0", jdkVersion = JavaSdkVersion.JDK_11),
+  V_4_2("4.2.2", jdkVersion = JavaSdkVersion.JDK_11),
   V_7_0("7.0.0", jdkVersion = JavaSdkVersion.JDK_11),
   V_7_1("7.1.0", jdkVersion = JavaSdkVersion.JDK_11),
   V_7_2("7.2.0", jdkVersion = JavaSdkVersion.JDK_11),
