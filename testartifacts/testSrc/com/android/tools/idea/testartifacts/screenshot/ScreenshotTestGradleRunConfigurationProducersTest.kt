@@ -92,7 +92,7 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
 
     requireNotNull(runConfiguration) { "Run configuration should not be null for file context" }
 
-    assertEquals("Screenshot Tests in MyFileWithMixedTests.kt", runConfiguration.name)
+    assertEquals("MyFileWithMixedTests.kt", runConfiguration.name)
     assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
     assertEquals(true, runConfiguration.isRunAsTest)
 
