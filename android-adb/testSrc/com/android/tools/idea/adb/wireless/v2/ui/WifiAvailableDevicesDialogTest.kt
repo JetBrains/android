@@ -105,6 +105,9 @@ class WifiAvailableDevicesDialogTest {
     model: String? = "Pixel Test",
     sdk: String? = "33",
     knownDevice: Boolean = false,
+    givenName: String? = null,
+    serial: String? = null,
+    mdnsServiceVersion: String? = null,
   ): MdnsTlsService {
     return MdnsTlsService(
       MdnsTrackServiceInfo(
@@ -114,10 +117,9 @@ class WifiAvailableDevicesDialogTest {
         port,
         model,
         sdk,
-        // TODO merge
-        null,
-        null,
-        null,
+        givenName,
+        serial,
+        mdnsServiceVersion,
       ),
       knownDevice,
     )
@@ -221,6 +223,35 @@ class WifiAvailableDevicesDialogTest {
     composeTestRule.onNodeWithText("Device A").assertIsDisplayed()
     composeTestRule.onNodeWithText("192.168.1.101:5555").assertIsDisplayed()
     composeTestRule.onNodeWithText("30").assertIsDisplayed()
+  }
+
+  @Test
+  fun mdnsSupported_withDevices_usesCorrectDeviceNames() = runTest {
+    whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
+    val service1 = createMdnsTlsService("service1", "192.168.1.101", 5555, model = null)
+    val service2 =
+      createMdnsTlsService("service2", "192.168.1.102", 5556, model = "Device A", givenName = null)
+    val service3 =
+      createMdnsTlsService(
+        "service3",
+        "192.168.1.103",
+        5557,
+        model = "Device B",
+        givenName = "Foo Pixel",
+      )
+    adblibMdnsServicesFlow.value =
+      MdnsServices(emptyList(), listOf(service1, service2, service3), emptyList())
+    composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
+
+    composeTestRule.onNodeWithText("Device").assertIsDisplayed()
+    composeTestRule.onNodeWithText("192.168.1.101:5555").assertIsDisplayed()
+
+    composeTestRule.onNodeWithText("Device A").assertIsDisplayed()
+    composeTestRule.onNodeWithText("192.168.1.102:5556").assertIsDisplayed()
+
+    composeTestRule.onNodeWithText("Foo Pixel").assertIsDisplayed()
+    composeTestRule.onNodeWithText("192.168.1.103:5557").assertIsDisplayed()
   }
 
   @Test
