@@ -18,7 +18,6 @@ package com.google.idea.blaze.android.run.runner;
 import static com.google.idea.blaze.android.run.LaunchMetrics.logBuildTime;
 import static java.util.stream.Collectors.joining;
 
-import com.android.annotations.Nullable;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.google.auto.value.AutoBuilder;
 import com.google.common.base.Stopwatch;
@@ -119,19 +118,16 @@ public class BlazeApkBuildStep implements ApkBuildStep {
     }
     if (nativeDebuggingEnabled) {
       command.addBlazeFlags(
-        NativeSymbolFinder.getInstances().stream()
-          .map(NativeSymbolFinder::getAdditionalBuildFlags)
-          .collect(joining(" ")));
+          NativeSymbolFinder.getInstances().stream()
+              .map(NativeSymbolFinder::getAdditionalBuildFlags)
+              .collect(joining(" ")));
     }
     try (BuildEventStreamProvider streamProvider = buildInvoker.invoke(command, context)) {
       buildOutputs =
           BlazeBuildOutputs.fromParsedBepOutput(
               BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
       logBuildTime(
-          launchId,
-          stopwatch.elapsed(),
-          buildOutputs.buildResult().exitCode,
-          ImmutableMap.of());
+          launchId, stopwatch.elapsed(), buildOutputs.buildResult().exitCode, ImmutableMap.of());
       BazelExitCodeException.throwIfFailed(command, buildOutputs.buildResult());
       logger.info("Finished build, id: " + buildOutputs.idForLogging());
       context.output(new StatusOutput("Build complete."));
@@ -141,19 +137,27 @@ public class BlazeApkBuildStep implements ApkBuildStep {
     }
 
     if (nativeDebuggingEnabled) {
-      List<NativeSymbolFinder> nativeSymbolFinderList = NativeSymbolFinder.EP_NAME.getExtensionList();
+      List<NativeSymbolFinder> nativeSymbolFinderList =
+          NativeSymbolFinder.EP_NAME.getExtensionList();
       for (Label target : targets) {
         nativeSymbols.addAll(
-          nativeSymbolFinderList.stream()
-            .flatMap(
-              finder ->
-                finder.getNativeSymbolsForBuild(project, context, target, buildOutputs).stream())
-            .collect(ImmutableList.toImmutableList()));
+            nativeSymbolFinderList.stream()
+                .flatMap(
+                    finder ->
+                        finder
+                            .getNativeSymbolsForBuild(project, context, target, buildOutputs)
+                            .stream())
+                .collect(ImmutableList.toImmutableList()));
       }
     }
     try {
       blazeAndroidDeployInfo =
-          deployInfoExtractor.extract(buildOutputs, deployOutputGroup, apkOutputGroup, context, ImmutableList.copyOf(nativeSymbols));
+          deployInfoExtractor.extract(
+              buildOutputs,
+              deployOutputGroup,
+              apkOutputGroup,
+              context,
+              ImmutableList.copyOf(nativeSymbols));
     } catch (IOException e) {
       logger.warn("Unexpected error while retrieving deploy info", e);
       String message = "Error retrieving deployment info from build results: " + e.getMessage();
