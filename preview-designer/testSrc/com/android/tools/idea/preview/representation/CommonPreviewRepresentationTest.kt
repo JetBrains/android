@@ -213,9 +213,6 @@ class CommonPreviewRepresentationTest {
       previewRepresentation.compileAndWaitForRefresh()
 
       // block the refresh manager with a high priority refresh that won't finish
-      delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
-        refreshManager.getTotalRequestsInQueueForTest() == 0
-      }
       val blockingRefresh = blockRefreshManager()
 
       // building the project again should invalidate the preview representation
@@ -756,6 +753,10 @@ class CommonPreviewRepresentationTest {
   }
 
   private suspend fun blockRefreshManager(): TestPreviewRefreshRequest {
+    // Wait for refresh queue to be empty
+    delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
+      refreshManager.getTotalRequestsInQueueForTest() == 0
+    }
     // block the refresh manager with a high priority refresh that won't finish
     TestPreviewRefreshRequest.log = StringBuilder()
     TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
