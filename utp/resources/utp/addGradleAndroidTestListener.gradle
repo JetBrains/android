@@ -77,10 +77,15 @@ class SetupUtpTestResultListenerAction implements Action<TaskExecutionGraph> {
         }
       }
 
-      def setListenerMethod = testTaskClass.getMethod(
-        "setUtpTestResultListener", listenerClass)
+      try {
+        def setListenerMethod = testTaskClass.getMethod(
+          "setUtpTestResultListener", listenerClass)
 
-      setListenerMethod.invoke(task, listener)
+        setListenerMethod.invoke(task, listener)
+      } catch (NoSuchMethodException) {
+        // setUtpTestResultListener method is removed in AGP 9.0.
+        return
+      }
     }
   }
 }
