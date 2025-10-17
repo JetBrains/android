@@ -85,11 +85,14 @@ class InsightDisclaimerPanel(
   private val withoutCode =
     disclaimerPanel(
       text =
-        "<html>This insight was generated without code context because your current settings do not allow Gemini to use code context. You can change it via <a href='GeminiContextSettings'>Settings > Gemini > Context Awareness</a>.</html>",
+        "<html>This insight was generated without code context because your current settings do not allow Gemini to use code context. You can change it via <a href='GeminiContextSettings'>Settings</a>.</html>",
       hyperlinkActivated = {
         ShowSettingsUtil.getInstance().showSettingsDialog(
           controller.project,
-          { c: Configurable -> c.displayName == "Gemini" },
+          { c: Configurable ->
+            // aiplugin uses Gemini, others use AI
+            c.displayName == "Gemini" || c.displayName == "AI"
+          },
         ) { configurable ->
           val runnableReference = AtomicReference<Runnable>()
           val component = configurable.createComponent()
