@@ -33,6 +33,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:jetbrains-annotations",
     "//platform/core-api:core",
+    "//java/java-syntax:syntax",
   ]
 )
 
@@ -50,11 +51,14 @@ jvm_library(
     "//platform/core-ui",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
+    "//java/java-syntax:syntax",
+    "//libraries/guava",
     "//android/gradle-dsl",
     "//android/gradle-dsl-android",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/gradle-dsl:gradle-dsl-testutils_test_lib",
     "@lib//:junit4",
+    "//android/project-system-gradle-models:projectSystem-gradle-models",
     "@lib//:truth",
     "//android/gradle-declarative-lang-flags",
     "//android/gradle-dsl-flags",

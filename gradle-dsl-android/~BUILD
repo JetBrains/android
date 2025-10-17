@@ -12,6 +12,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl-android:intellij.android.gradle.dsl.android",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/adt/idea/.idea/libraries:truth",
@@ -21,7 +22,11 @@ iml_module(
     test_srcs = ["testSrc"],
     test_timeout = "long",
     visibility = ["//visibility:public"],
-    deps = ["@intellij//:intellij-sdk"],
+    # do not sort: must match IML order
+    deps = [
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+    ],
 )
 
 # managed by go/iml_to_build
