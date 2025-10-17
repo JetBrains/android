@@ -26,6 +26,9 @@ import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.StackRetraceEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.StackRetraceEvent.MappingType
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.StackRetraceEvent.MappingType.PARTITIONED
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.StackRetraceEvent.MappingType.TEXT
 import com.intellij.openapi.components.service
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ExtensionTestUtil
@@ -164,7 +167,7 @@ class AutoProguardMessageRewriterTest {
     assertThat(rewriter.getMapping()).isEqualTo(textMapping)
     assertThat(text).isEqualTo(CLEAR_MESSAGE)
     assertThat(usageTrackerRule.retraceEvents())
-      .containsExactly(stackRetraceEvent(textMapping.fileSize(), isCached = false))
+      .containsExactly(stackRetraceEvent(textMapping.fileSize(), isCached = false, TEXT))
   }
 
   @Test
@@ -179,7 +182,9 @@ class AutoProguardMessageRewriterTest {
     assertThat(rewriter.getMapping()).isEqualTo(partitionedMapping)
     assertThat(text).isEqualTo(CLEAR_MESSAGE_PRT)
     assertThat(usageTrackerRule.retraceEvents())
-      .containsExactly(stackRetraceEvent(partitionedMapping.fileSize(), isCached = false))
+      .containsExactly(
+        stackRetraceEvent(partitionedMapping.fileSize(), isCached = false, PARTITIONED)
+      )
   }
 
   @Test
@@ -197,8 +202,8 @@ class AutoProguardMessageRewriterTest {
     assertThat(text).isEqualTo(CLEAR_MESSAGE)
     assertThat(usageTrackerRule.retraceEvents())
       .containsExactly(
-        stackRetraceEvent(textMapping.fileSize(), isCached = false),
-        stackRetraceEvent(textMapping.fileSize(), isCached = true),
+        stackRetraceEvent(textMapping.fileSize(), isCached = false, TEXT),
+        stackRetraceEvent(textMapping.fileSize(), isCached = true, TEXT),
       )
       .inOrder()
   }
@@ -266,11 +271,16 @@ private fun UsageTrackerRule.retraceEvents() =
     .mapNotNull { it.stackRetrace }
     .map { it.takeIf { !it.hasRetraceTimeMs() } ?: it.toBuilder().setRetraceTimeMs(0).build() }
 
-private fun stackRetraceEvent(mappingFileSize: Long, isCached: Boolean): StackRetraceEvent {
+private fun stackRetraceEvent(
+  mappingFileSize: Long,
+  isCached: Boolean,
+  mappingType: MappingType,
+): StackRetraceEvent {
   return StackRetraceEvent.newBuilder()
     .setResultString("SUCCESS")
     .setMappingFileSize(mappingFileSize)
     .setIsMappingCached(isCached)
+    .setMappingType(mappingType)
     .setRetraceTimeMs(0) // We override this to zero in `UsageTrackerRule.retraceEvents`
     .build()
 }

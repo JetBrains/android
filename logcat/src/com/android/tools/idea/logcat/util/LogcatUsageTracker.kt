@@ -21,6 +21,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.LO
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.LOGCAT_USAGE
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.StackRetraceEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.StackRetraceEvent.MappingType
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.STACK_RETRACED
 import kotlin.time.Duration
 
@@ -51,7 +52,12 @@ internal object LogcatUsageTracker {
     )
   }
 
-  fun logRetraceException(e: Throwable, mappingFileSize: Long, isCached: Boolean) {
+  fun logRetraceException(
+    e: Throwable,
+    mappingFileSize: Long,
+    isCached: Boolean,
+    mappingType: MappingType,
+  ) {
     log(
       LogcatUsageEvent.newBuilder()
         .setType(STACK_RETRACED)
@@ -60,11 +66,18 @@ internal object LogcatUsageTracker {
             .setMappingFileSize(mappingFileSize)
             .setIsMappingCached(isCached)
             .setResultString(e.javaClass.simpleName)
+            .setMappingType(mappingType)
         )
     )
   }
 
-  fun logRetrace(result: String, duration: Duration, mappingFileSize: Long, isCached: Boolean) {
+  fun logRetrace(
+    result: String,
+    duration: Duration,
+    mappingFileSize: Long,
+    isCached: Boolean,
+    mappingType: MappingType,
+  ) {
     log(
       LogcatUsageEvent.newBuilder()
         .setType(STACK_RETRACED)
@@ -74,6 +87,7 @@ internal object LogcatUsageTracker {
             .setRetraceTimeMs(duration.inWholeMilliseconds)
             .setIsMappingCached(isCached)
             .setMappingFileSize(mappingFileSize)
+            .setMappingType(mappingType)
         )
     )
   }
