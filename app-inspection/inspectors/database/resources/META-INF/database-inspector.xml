@@ -15,30 +15,30 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <fileType name="SQLite" fieldName="INSTANCE" implementationClass="com.android.tools.idea.sqlite.fileType.SqliteFileType"/>
-    <elementDescriptionProvider implementation="com.android.tools.idea.sqlite.sqlLanguage.AndroidSqlFakePsiElementDescriptionProvider"/>
+    <fileType name="SQLite" fieldName="INSTANCE" implementationClass="com.android.tools.idea.sqlite.fileType.SqliteFileType" />
+    <elementDescriptionProvider implementation="com.android.tools.idea.sqlite.sqlLanguage.AndroidSqlFakePsiElementDescriptionProvider" />
 
-    <codeInsight.lineMarkerProvider language="JAVA" implementationClass="com.android.tools.idea.sqlite.annotator.RunSqliteStatementAnnotator"/>
-    <codeInsight.lineMarkerProvider language="kotlin" implementationClass="com.android.tools.idea.sqlite.annotator.RunSqliteStatementAnnotator"/>
+    <codeInsight.lineMarkerProvider language="JAVA"
+        implementationClass="com.android.tools.idea.sqlite.annotator.RunSqliteStatementAnnotator" />
+    <codeInsight.lineMarkerProvider language="kotlin"
+        implementationClass="com.android.tools.idea.sqlite.annotator.RunSqliteStatementAnnotator" />
 
-    <projectService
-        serviceInterface="com.android.tools.idea.sqlite.DatabaseInspectorProjectService"
+    <projectService serviceInterface="com.android.tools.idea.sqlite.DatabaseInspectorProjectService"
         serviceImplementation="com.android.tools.idea.sqlite.DatabaseInspectorProjectServiceImpl" />
 
-    <projectService
-        serviceInterface="com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker"
+    <projectService serviceInterface="com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker"
         serviceImplementation="com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTrackerImpl" />
-    <notificationGroup id="Database Inspector" displayType="BALLOON"/>
+    <notificationGroup id="Database Inspector" displayType="BALLOON" />
 
     <projectService serviceInterface="com.android.tools.idea.device.explorer.files.external.services.DeviceFileDownloaderService"
-                    serviceImplementation="com.android.tools.idea.device.explorer.files.external.services.DeviceFileDownloaderServiceImpl" />
+        serviceImplementation="com.android.tools.idea.device.explorer.files.external.services.DeviceFileDownloaderServiceImpl" />
 
-    <applicationConfigurable groupId="tools.android" id="database.inspector"
-                             bundle="messages.DatabaseInspectorBundle"
-                             provider="com.android.tools.idea.sqlite.settings.DatabaseInspectorConfigurableProvider"
-                             key="database.inspector"/>
+    <projectConfigurable groupId="tools.android" id="database.inspector" bundle="messages.DatabaseInspectorBundle"
+        provider="com.android.tools.idea.sqlite.settings.DatabaseInspectorConfigurableProvider" key="database.inspector" />
 
     <applicationService serviceImplementation="com.android.tools.idea.sqlite.settings.DatabaseInspectorSettings"/>
+
+    <completion.contributor language="TEXT" implementationClass="com.android.tools.idea.sqlite.settings.ClassPickerCompletionContributor" />
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.lang">
@@ -48,4 +48,5 @@
   <extensions defaultExtensionNs="com.android.tools.idea.appinspection">
     <inspector.ide.appInspectorTabProvider implementation="com.android.tools.idea.sqlite.DatabaseInspectorTabProvider" />
   </extensions>
+
 </idea-plugin>

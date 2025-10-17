@@ -19,61 +19,88 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle.message
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.Service.Level.PROJECT
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
+import com.intellij.openapi.components.service
+import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.observable.properties.ObservableMutableProperty
 import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.options.SearchableConfigurable
+import com.intellij.openapi.project.Project
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.xmlb.XmlSerializerUtil
 import javax.swing.JComponent
-import javax.swing.JPanel
 
-class DatabaseInspectorConfigurableProvider : ConfigurableProvider() {
+class DatabaseInspectorConfigurableProvider(private val project: Project) : ConfigurableProvider() {
   override fun createConfigurable(): Configurable {
-    return DatabaseInspectorConfigurable()
+    return DatabaseInspectorConfigurable(project)
   }
 }
 
-private class DatabaseInspectorConfigurable : SearchableConfigurable {
+private const val DRIVER_INTERFACE = "androidx.sqlite.SQLiteDriver"
+private const val CONNECTION_INTERFACE = "androidx.sqlite.SQLiteConnection"
+
+private class DatabaseInspectorConfigurable(private val project: Project) : SearchableConfigurable {
 
   private val settings = DatabaseInspectorSettings.getInstance()
+  private val projectSettings = DatabaseInspectorProjectSettings.getInstance(project)
 
   private val propertyGraph = PropertyGraph()
   private var isOfflineModeEnabled = propertyGraph.property(settings.isOfflineModeEnabled)
   private var isForceOpen = propertyGraph.property(settings.isForceOpen)
+  private var additionDriverClass = propertyGraph.property(projectSettings.additionalDriverClass)
+  private var additionConnectionClass =
+    propertyGraph.property(projectSettings.additionalConnectionClass)
 
-  override fun createComponent(): JPanel {
-    return panel {
-      row {
-        checkBox(message("enable.offline.mode"))
-          .bindSelected(isOfflineModeEnabled)
-          .named("enableOfflineMode")
+  private val panel = panel {
+    row {
+      checkBox(message("enable.offline.mode"))
+        .bindSelected(isOfflineModeEnabled)
+        .named("enableOfflineMode")
+    }
+    if (StudioFlags.APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR.get()) {
+      row { checkBox(message("force.open.database")).bindSelected(isForceOpen).named("forceOpen") }
+    }
+    if (StudioFlags.APP_INSPECTION_ENABLE_ADDITIONAL_SQL_DRIVER.get()) {
+      row(message("additional.driver.class")) {
+        classPicker(DRIVER_INTERFACE).bindText(additionDriverClass).named("driverClass")
       }
-      if (StudioFlags.APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR.get()) {
-        row {
-          checkBox(message("force.open.database")).bindSelected(isForceOpen).named("forceOpen")
-        }
+      row(message("additional.connection.class")) {
+        classPicker(CONNECTION_INTERFACE).bindText(additionConnectionClass).named("connectionClass")
       }
     }
   }
 
+  override fun createComponent() = panel
+
   override fun isModified() =
     isOfflineModeEnabled.get() != settings.isOfflineModeEnabled ||
-      isForceOpen.get() != settings.isForceOpen
+      isForceOpen.get() != settings.isForceOpen ||
+      additionDriverClass.get() != projectSettings.additionalDriverClass ||
+      additionConnectionClass.get() != projectSettings.additionalConnectionClass
 
   override fun apply() {
     val isOfflineModeEnabled = isOfflineModeEnabled.get()
     settings.isOfflineModeEnabled = isOfflineModeEnabled
     settings.isForceOpen = isForceOpen.get()
+    projectSettings.additionalDriverClass = additionDriverClass.get()
+    projectSettings.additionalConnectionClass = additionConnectionClass.get()
   }
 
   override fun reset() {
     isOfflineModeEnabled.set(settings.isOfflineModeEnabled)
     isForceOpen.set(settings.isForceOpen)
+    additionDriverClass.set(projectSettings.additionalDriverClass)
+    additionConnectionClass.set(projectSettings.additionalConnectionClass)
   }
 
   override fun getDisplayName(): String {
@@ -81,6 +108,10 @@ private class DatabaseInspectorConfigurable : SearchableConfigurable {
   }
 
   override fun getId() = "database.inspector"
+
+  private fun Row.classPicker(base: String): Cell<ClassPicker> {
+    return cell(ClassPicker(project, base)).align(AlignX.FILL)
+  }
 }
 
 @State(name = "DatabaseInspectorSettings", storages = [Storage("databaseInspectorSettings.xml")])
@@ -102,4 +133,43 @@ class DatabaseInspectorSettings : PersistentStateComponent<DatabaseInspectorSett
   override fun loadState(state: DatabaseInspectorSettings) = XmlSerializerUtil.copyBean(state, this)
 }
 
+@Service(PROJECT)
+@State(
+  name = "DatabaseInspectorProjectSettings",
+  storages = [Storage("databaseInspectorProjectSettings.xml")],
+)
+class DatabaseInspectorProjectSettings :
+  PersistentStateComponent<DatabaseInspectorProjectSettings> {
+
+  companion object {
+    @JvmStatic
+    fun getInstance(project: Project) = project.service<DatabaseInspectorProjectSettings>()
+  }
+
+  var additionalDriverClass: String = ""
+
+  var additionalConnectionClass: String = ""
+
+  override fun getState() = this
+
+  override fun loadState(state: DatabaseInspectorProjectSettings) =
+    XmlSerializerUtil.copyBean(state, this)
+}
+
 private fun <T : JComponent> Cell<T>.named(name: String) = applyToComponent { this.name = name }
+
+private fun Cell<ClassPicker>.bindText(
+  property: ObservableMutableProperty<String>
+): Cell<ClassPicker> {
+  return applyToComponent {
+    text = property.get()
+    property.afterChange { text = it }
+    addDocumentListener(
+      object : DocumentListener {
+        override fun documentChanged(event: DocumentEvent) {
+          property.set(event.document.text)
+        }
+      }
+    )
+  }
+}

@@ -16,10 +16,17 @@
 package com.android.tools.idea.sqlite.settings
 
 import com.android.flags.junit.FlagRule
-import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.flags.StudioFlags
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.SearchableConfigurable
-import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.TextAccessor
 import java.awt.Component
 import javax.swing.JCheckBox
 import kotlin.test.fail
@@ -29,116 +36,190 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 private val EXPERIMENTAL_FLAG = StudioFlags.APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR
+private val ADDITIONAL_DRIVER_FLAG = StudioFlags.APP_INSPECTION_ENABLE_ADDITIONAL_SQL_DRIVER
 
+@RunsInEdt
 @RunWith(JUnit4::class)
-class DatabaseInspectorConfigurableProviderTest : LightPlatformTestCase() {
-  private lateinit var databaseInspectorSettings: DatabaseInspectorSettings
+class DatabaseInspectorConfigurableProviderTest {
+  private val projectRule = ProjectRule()
+  private val project
+    get() = projectRule.project
 
-  @get:Rule val flagRule = FlagRule(EXPERIMENTAL_FLAG, true)
+  @get:Rule
+  val rule =
+    RuleChain(
+      projectRule,
+      FlagRule(EXPERIMENTAL_FLAG, true),
+      FlagRule(ADDITIONAL_DRIVER_FLAG, true),
+      EdtRule(),
+    )
 
-  override fun setUp() {
-    super.setUp()
-    databaseInspectorSettings = DatabaseInspectorSettings.getInstance()
-  }
+  private val settings by lazy { DatabaseInspectorSettings.getInstance() }
+  private val projectSettings by lazy { DatabaseInspectorProjectSettings.getInstance(project) }
 
   @Test
   fun testConfigurableName() {
-    println("testConfigurableName: ${EXPERIMENTAL_FLAG.get()}")
-    val provider = DatabaseInspectorConfigurableProvider()
+    val provider = DatabaseInspectorConfigurableProvider(project)
     val configurable = provider.createConfigurable()
 
-    assertEquals("Database Inspector", configurable.displayName)
+    assertThat(configurable.displayName).isEqualTo("Database Inspector")
   }
 
   @Test
   fun testConfigurableId() {
-    println("testConfigurableId: ${EXPERIMENTAL_FLAG.get()}")
-    val provider = DatabaseInspectorConfigurableProvider()
+    val provider = DatabaseInspectorConfigurableProvider(project)
     val configurable = provider.createConfigurable() as SearchableConfigurable
 
-    assertEquals("database.inspector", configurable.id)
+    assertThat(configurable.id).isEqualTo("database.inspector")
   }
 
   @Test
-  fun testConfigurableSettingsInteraction_enableOfflineMode() {
-    println("testConfigurableSettingsInteraction_enableOfflineMode: ${EXPERIMENTAL_FLAG.get()}")
-    val provider = DatabaseInspectorConfigurableProvider()
-    val configurable = provider.createConfigurable()
-    val checkbox =
-      configurable.createComponent().getNamedComponent<JCheckBox>("enableOfflineMode")
-        ?: kotlin.test.fail("Can't find enableOfflineMode checkbox")
+  fun initializedFromSettings() {
+    settings.isOfflineModeEnabled = false
+    settings.isForceOpen = true
+    projectSettings.additionalDriverClass = "Driver"
+    projectSettings.additionalConnectionClass = "Connection"
 
-    databaseInspectorSettings.isOfflineModeEnabled = true
-    configurable.reset()
+    val configurable = createConfigurable()
 
-    assertTrue(databaseInspectorSettings.isOfflineModeEnabled)
-    assertTrue(checkbox.isSelected)
-
-    checkbox.isSelected = false
-
-    assertTrue(configurable.isModified)
-    assertTrue(databaseInspectorSettings.isOfflineModeEnabled)
-
-    configurable.apply()
-
-    assertFalse(configurable.isModified)
-    assertFalse(checkbox.isSelected)
-    assertFalse(databaseInspectorSettings.isOfflineModeEnabled)
-
-    configurable.reset()
-
-    assertFalse(databaseInspectorSettings.isOfflineModeEnabled)
-    assertFalse(checkbox.isSelected)
+    assertThat(configurable.getEnableOfflineMode().isSelected).isFalse()
+    assertThat(configurable.getForceOpen().isSelected).isTrue()
+    assertThat(configurable.getDriverClass().text).isEqualTo("Driver")
+    assertThat(configurable.getConnectionClass().text).isEqualTo("Connection")
   }
 
   @Test
-  fun testConfigurableSettingsInteraction_forceOpen() {
-    val provider = DatabaseInspectorConfigurableProvider()
-    val configurable = provider.createConfigurable()
-    println("testConfigurableSettingsInteraction_forceOpen: ${EXPERIMENTAL_FLAG.get()}")
-    val checkbox =
-      configurable.createComponent().getNamedComponent<JCheckBox>("forceOpen")
-        ?: kotlin.test.fail("Can't find forceOpen checkbox")
+  fun apply() {
+    settings.isOfflineModeEnabled = false
+    settings.isForceOpen = true
+    projectSettings.additionalDriverClass = "Driver"
+    projectSettings.additionalConnectionClass = "Connection"
+    val configurable = createConfigurable()
 
-    databaseInspectorSettings.isForceOpen = true
-    configurable.reset()
-
-    assertTrue(databaseInspectorSettings.isForceOpen)
-    assertTrue(checkbox.isSelected)
-
-    checkbox.isSelected = false
-
-    assertTrue(configurable.isModified)
-    assertTrue(databaseInspectorSettings.isForceOpen)
-
+    configurable.getEnableOfflineMode().isSelected = true
+    configurable.getForceOpen().isSelected = false
+    configurable.getDriverClass().text = "Driver1"
+    configurable.getConnectionClass().text = "Connection1"
     configurable.apply()
 
-    assertFalse(configurable.isModified)
-    assertFalse(checkbox.isSelected)
-    assertFalse(databaseInspectorSettings.isForceOpen)
+    assertThat(settings.isOfflineModeEnabled).isTrue()
+    assertThat(settings.isForceOpen).isFalse()
+    assertThat(projectSettings.additionalDriverClass).isEqualTo("Driver1")
+    assertThat(projectSettings.additionalConnectionClass).isEqualTo("Connection1")
+  }
 
+  @Test
+  fun reset() {
+    settings.isOfflineModeEnabled = false
+    settings.isForceOpen = true
+    projectSettings.additionalDriverClass = "Driver"
+    projectSettings.additionalConnectionClass = "Connection"
+    val configurable = createConfigurable()
+
+    configurable.getEnableOfflineMode().isSelected = true
+    configurable.getForceOpen().isSelected = false
+    configurable.getDriverClass().text = "Driver1"
+    configurable.getConnectionClass().text = "Connection1"
     configurable.reset()
 
-    assertFalse(databaseInspectorSettings.isForceOpen)
-    assertFalse(checkbox.isSelected)
+    assertThat(configurable.getEnableOfflineMode().isSelected).isFalse()
+    assertThat(configurable.getForceOpen().isSelected).isTrue()
+    assertThat(configurable.getDriverClass().text).isEqualTo("Driver")
+    assertThat(configurable.getConnectionClass().text).isEqualTo("Connection")
+  }
+
+  @Test
+  fun isModified_offlineMode() {
+    settings.isOfflineModeEnabled = true
+    val configurable = createConfigurable()
+    val offlineMode = configurable.getEnableOfflineMode()
+    assertThat(configurable.isModified).isFalse()
+
+    offlineMode.isSelected = false
+
+    assertThat(configurable.isModified).isTrue()
+  }
+
+  @Test
+  fun isModified_forceOpen() {
+    settings.isForceOpen = false
+    val configurable = createConfigurable()
+    val forceOpen = configurable.getForceOpen()
+    assertThat(configurable.isModified).isFalse()
+
+    forceOpen.isSelected = true
+
+    assertThat(configurable.isModified).isTrue()
+  }
+
+  @Test
+  fun isModified_driverClass() {
+    projectSettings.additionalDriverClass = "Foo"
+    val configurable = createConfigurable()
+    val driverClass = configurable.getDriverClass()
+    assertThat(configurable.isModified).isFalse()
+
+    driverClass.text = "Bar"
+
+    assertThat(configurable.isModified).isTrue()
+  }
+
+  @Test
+  fun isModified_connectionClass() {
+    projectSettings.additionalConnectionClass = "Foo"
+    val configurable = createConfigurable()
+    val connectionClass = configurable.getConnectionClass()
+    assertThat(configurable.isModified).isFalse()
+
+    connectionClass.text = "Bar"
+
+    assertThat(configurable.isModified).isTrue()
   }
 
   @Test
   fun testForceOpenCheckbox_flagDisabled_notShown() {
-    println("testForceOpenCheckbox_flagDisabled_notShown: ${EXPERIMENTAL_FLAG.get()}")
+    val provider = DatabaseInspectorConfigurableProvider(project)
+    assertThat(provider.createConfigurable().hasNamedComponent<JCheckBox>("forceOpen")).isTrue()
+
     EXPERIMENTAL_FLAG.override(false)
-    val provider = DatabaseInspectorConfigurableProvider()
-    val configurable = provider.createConfigurable()
+    assertThat(provider.createConfigurable().hasNamedComponent<JCheckBox>("forceOpen")).isFalse()
+  }
 
-    val checkbox = configurable.createComponent().getNamedComponent<JCheckBox>("forceOpen")
+  @Test
+  fun testAdditionalClasses_flagDisabled_notShown() {
+    val provider = DatabaseInspectorConfigurableProvider(project)
+    assertThat(provider.createConfigurable().hasNamedComponent<TextAccessor>("driverClass"))
+      .isTrue()
+    assertThat(provider.createConfigurable().hasNamedComponent<TextAccessor>("connectionClass"))
+      .isTrue()
 
-    assertNull(checkbox)
+    ADDITIONAL_DRIVER_FLAG.override(false)
+    assertThat(provider.createConfigurable().hasNamedComponent<TextAccessor>("driverClass"))
+      .isFalse()
+    assertThat(provider.createConfigurable().hasNamedComponent<TextAccessor>("connectionClass"))
+      .isFalse()
+  }
+
+  private fun createConfigurable(): Configurable {
+    val provider = DatabaseInspectorConfigurableProvider(project)
+    return provider.createConfigurable()
   }
 }
 
-private inline fun <reified T : Component> Component?.getNamedComponent(name: String): T? {
-  if (this == null) {
-    fail("Unexpected null component")
-  }
-  return TreeWalker(this).descendants().filterIsInstance<T>().find { it.name == name }
+private fun Configurable.getEnableOfflineMode() = getNamedComponent<JCheckBox>("enableOfflineMode")
+
+private fun Configurable.getForceOpen() = getNamedComponent<JCheckBox>("forceOpen")
+
+private fun Configurable.getDriverClass() = getNamedComponent<TextAccessor>("driverClass")
+
+private fun Configurable.getConnectionClass() = getNamedComponent<TextAccessor>("connectionClass")
+
+private inline fun <reified T : Any> Configurable.getNamedComponent(name: String): T {
+  val component = createComponent() ?: fail("Unexpected null component")
+  return component.getDescendant<T> { (it as? Component)?.name == name }
+}
+
+private inline fun <reified T : Any> Configurable.hasNamedComponent(name: String): Boolean {
+  val component = createComponent() ?: fail("Unexpected null component")
+  return component.findDescendant<T> { (it as? Component)?.name == name } != null
 }

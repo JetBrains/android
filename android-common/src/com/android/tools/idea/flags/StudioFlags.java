@@ -1719,6 +1719,13 @@ public final class StudioFlags {
     APP_INSPECTION, "use.experimental.database.inspector", "Use experimental Database Inspector",
     "Use experimental Database Inspector"
   );
+
+  public static final Flag<Boolean> APP_INSPECTION_ENABLE_ADDITIONAL_SQL_DRIVER = new BooleanFlag(
+    APP_INSPECTION,
+    "additional.sql.drivers.enable",
+    "Allow user to provide an additional SQLiteDriver class",
+    "Allow user to provide an additional SQLiteDriver class"
+  );
   // endregion
 
   // region Network Inspector
