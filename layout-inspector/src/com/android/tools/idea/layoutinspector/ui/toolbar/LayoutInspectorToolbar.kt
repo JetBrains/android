@@ -19,13 +19,13 @@ import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RefreshAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RenderSettingsAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleLiveUpdatesAction
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
@@ -38,6 +38,7 @@ import com.intellij.openapi.wm.impl.content.BaseLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.EventQueue.invokeLater
+import java.awt.Font
 import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.BoxLayout
@@ -66,20 +67,27 @@ fun createEmbeddedLayoutInspectorToolbar(
   firstGroupExtraActions: List<AnAction> = emptyList(),
   lastGroupExtraActions: List<AnAction> = emptyList(),
 ): JPanel {
-  val actionToolbar =
-    createStandaloneLayoutInspectorToolbar(
-      parentDisposable = parentDisposable,
-      targetComponent = targetComponent,
+  val actionGroup =
+    LayoutInspectorActionGroup(
       layoutInspector = layoutInspector,
       selectProcessAction = selectProcessAction,
       firstGroupExtraActions = firstGroupExtraActions,
+      middleGroupExtraActions = emptyList(),
       lastGroupExtraActions = lastGroupExtraActions,
+    )
+
+  val actionToolbar =
+    createLayoutInspectorToolbarInternal(
+      parentDisposable = parentDisposable,
+      targetComponent = targetComponent,
+      layoutInspector = layoutInspector,
+      actionGroup = actionGroup,
     )
 
   val toolTitleLabel = JLabel(LayoutInspectorBundle.message("layout.inspector"))
   toolTitleLabel.name = "LayoutInspectorToolbarTitleLabel"
   toolTitleLabel.border = BorderFactory.createEmptyBorder(0, 12, 0, 0)
-  toolTitleLabel.font = BaseLabel.getLabelFont().deriveFont(java.awt.Font.BOLD)
+  toolTitleLabel.font = BaseLabel.getLabelFont().deriveFont(Font.BOLD)
 
   val borderLayoutPanel = BorderLayoutPanel()
   // Add the toolbar to the Border Layout to force it to always show on the far right.
@@ -113,13 +121,37 @@ fun createStandaloneLayoutInspectorToolbar(
   firstGroupExtraActions: List<AnAction> = emptyList(),
   lastGroupExtraActions: List<AnAction> = emptyList(),
 ): ActionToolbar {
+  val middleActions =
+    if (!layoutInspector.isSnapshot) {
+      listOf(ToggleLiveUpdatesAction(layoutInspector), RefreshAction)
+    } else {
+      emptyList()
+    }
+
   val actionGroup =
     LayoutInspectorActionGroup(
-      layoutInspector,
-      selectProcessAction,
-      firstGroupExtraActions,
-      lastGroupExtraActions,
+      layoutInspector = layoutInspector,
+      selectProcessAction = selectProcessAction,
+      firstGroupExtraActions = firstGroupExtraActions,
+      middleGroupExtraActions = middleActions,
+      lastGroupExtraActions = lastGroupExtraActions,
     )
+
+  return createLayoutInspectorToolbarInternal(
+    parentDisposable = parentDisposable,
+    targetComponent = targetComponent,
+    layoutInspector = layoutInspector,
+    actionGroup = actionGroup,
+  )
+}
+
+/** Private helper to create the common [ActionToolbar] and set up its listeners. */
+private fun createLayoutInspectorToolbarInternal(
+  parentDisposable: Disposable,
+  targetComponent: JComponent,
+  layoutInspector: LayoutInspector,
+  actionGroup: ActionGroup,
+): ActionToolbar {
   val actionToolbar =
     ActionManager.getInstance()
       .createActionToolbar(LAYOUT_INSPECTOR_MAIN_TOOLBAR, actionGroup, true)
@@ -150,37 +182,42 @@ fun createStandaloneLayoutInspectorToolbar(
  * Action Group containing all the actions used in Layout Inspector's main toolbar.
  *
  * @param firstGroupExtraActions Actions to be added to before the first separator.
+ * @param middleGroupExtraActions Actions to be added between the first and last separators.
  * @param lastGroupExtraActions Actions to be added as a new group at the end.
  */
 private class LayoutInspectorActionGroup(
   layoutInspector: LayoutInspector,
   selectProcessAction: AnAction?,
   firstGroupExtraActions: List<AnAction>,
+  middleGroupExtraActions: List<AnAction>,
   lastGroupExtraActions: List<AnAction>,
 ) : DefaultActionGroup() {
   init {
     if (selectProcessAction != null) {
       add(selectProcessAction)
     }
+
+    // first group
     add(Separator.getInstance())
-    add(
+
+    val rendererSettingsAction =
       RenderSettingsAction(
         renderModelProvider = { layoutInspector.renderModel },
         renderSettingsProvider = { layoutInspector.renderLogic.renderSettings },
       )
-    )
+    add(rendererSettingsAction)
     firstGroupExtraActions.forEach { add(it) }
     if (!layoutInspector.isSnapshot) {
       add(SnapshotAction)
     }
-    if (
-      !layoutInspector.isSnapshot &&
-      !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-    ) {
+
+    // second group
+      if (middleGroupExtraActions.isNotEmpty()) {
       add(Separator.getInstance())
-      add(ToggleLiveUpdatesAction(layoutInspector))
-      add(RefreshAction)
+      middleGroupExtraActions.forEach { add(it) }
     }
+
+    // third group
     add(Separator.getInstance())
     add(LayerSpacingSliderAction { layoutInspector.renderModel })
     lastGroupExtraActions.forEach { add(it) }
