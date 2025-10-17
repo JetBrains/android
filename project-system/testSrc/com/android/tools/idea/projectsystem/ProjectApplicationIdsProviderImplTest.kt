@@ -15,26 +15,25 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.tools.idea.concurrency.runWriteActionAndWait
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.ProjectApplicationIdsListener
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult.SUCCESS
-import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
-import com.intellij.facet.ProjectFacetManager
-import com.intellij.mock.MockModule
+import com.intellij.facet.FacetManager
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.modifyModules
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetConfiguration
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 
 /**
  * Tests for [ProjectApplicationIdsProviderImpl]
@@ -47,18 +46,17 @@ class ProjectApplicationIdsProviderImplTest {
   val rule = RuleChain(projectRule, disposableRule)
 
   private val project get() = projectRule.project
-  private val mockProjectFacetManager = mock<ProjectFacetManager>()
 
-  @Before
-  fun setUp() {
-    project.registerServiceInstance(ProjectFacetManager::class.java, mockProjectFacetManager, disposableRule.disposable)
-  }
 
   @Test
-  fun initialize_loadsApplicationIds() {
-    val facet1 = mockFacet("app1")
-    val facet2 = mockFacet("app2", "app3")
-    whenever(mockProjectFacetManager.getFacets(AndroidFacet.ID)).thenReturn(listOf(facet1, facet2))
+  fun initialize_loadsApplicationIds(): Unit = runBlocking {
+    createFacet(projectRule.module, "app1")
+    val module2 = runWriteActionAndWait {
+      projectRule.project.modifyModules {
+        newModule("", "module-type")
+      }
+    }
+    createFacet(module2, "app2", "app3")
 
     val projectApplicationIdsProviderImpl = ProjectApplicationIdsProviderImpl(project)
 
@@ -70,13 +68,17 @@ class ProjectApplicationIdsProviderImplTest {
   }
 
   @Test
-  fun syncEnds_reloadsApplicationIds() {
-    val facet1 = mockFacet("app1")
-    whenever(mockProjectFacetManager.getFacets(AndroidFacet.ID)).thenReturn(listOf(facet1))
+  fun syncEnds_reloadsApplicationIds(): Unit = runBlocking {
+    createFacet(projectRule.module, "app1")
+
     val projectApplicationIdsProviderImpl = ProjectApplicationIdsProviderImpl(project)
 
-    val facet2 = mockFacet("app2", "app3")
-    whenever(mockProjectFacetManager.getFacets(AndroidFacet.ID)).thenReturn(listOf(facet1, facet2))
+    val module2 = runWriteActionAndWait {
+      projectRule.project.modifyModules {
+        newModule("", "module-type")
+      }
+    }
+    createFacet(module2, "app2", "app3")
     project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SUCCESS)
 
     assertThat(projectApplicationIdsProviderImpl.getPackageNames()).containsExactly(
@@ -87,26 +89,29 @@ class ProjectApplicationIdsProviderImplTest {
   }
 
   @Test
-  fun syncEnds_applicationIdsChange_notifies() {
-    val facet1 = mockFacet("app1")
-    whenever(mockProjectFacetManager.getFacets(AndroidFacet.ID)).thenReturn(listOf(facet1))
+  fun syncEnds_applicationIdsChange_notifies(): Unit = runBlocking  {
+    createFacet(projectRule.module, "app1")
+
     ProjectApplicationIdsProviderImpl(project)
     var notified = false
     project.messageBus.connect(disposableRule.disposable).subscribe(PROJECT_APPLICATION_IDS_CHANGED_TOPIC, ProjectApplicationIdsListener {
       notified = true
     })
 
-    val facet2 = mockFacet("app2")
-    whenever(mockProjectFacetManager.getFacets(AndroidFacet.ID)).thenReturn(listOf(facet2))
+    val module2 = runWriteActionAndWait {
+      projectRule.project.modifyModules {
+        newModule("", "module-type")
+      }
+    }
+    createFacet(module2, "app2")
     project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SUCCESS)
 
     assertThat(notified).isTrue()
   }
 
   @Test
-  fun syncEnds_applicationIdsDoNotChange_doesNotNotifies() {
-    val facet1 = mockFacet("app1")
-    whenever(mockProjectFacetManager.getFacets(AndroidFacet.ID)).thenReturn(listOf(facet1))
+  fun syncEnds_applicationIdsDoNotChange_doesNotNotifies(): Unit = runBlocking  {
+    createFacet(projectRule.module, "app1")
     ProjectApplicationIdsProviderImpl(project)
     var notified = false
     project.messageBus.connect(disposableRule.disposable).subscribe(PROJECT_APPLICATION_IDS_CHANGED_TOPIC, ProjectApplicationIdsListener {
@@ -118,14 +123,21 @@ class ProjectApplicationIdsProviderImplTest {
     assertThat(notified).isFalse()
   }
 
-  private fun mockFacet(vararg applicationIds: String): AndroidFacet {
+  private fun createFacet(module: Module, vararg applicationIds: String): AndroidFacet  = runBlocking {
+
     val facet = AndroidFacet(
-      projectRule.module,
+      module,
       "ProjectApplicationIdsProviderImplTest:Facet",
       AndroidFacetConfiguration()
     )
+    runWriteActionAndWait {
+      FacetManager.getInstance(module).createModifiableModel().apply {
+        addFacet(facet)
+        commit()
+      }
+    }
     Disposer.register(disposableRule.disposable, facet)
     AndroidModel.setForTests(facet, TestAndroidModel(allApplicationIds = applicationIds.toSet()))
-    return facet
+    facet
   }
 }
