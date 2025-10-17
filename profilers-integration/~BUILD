@@ -91,8 +91,6 @@ iml_test(
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
-        "noci:studio-linux",
-        "ci:studio-linux_very_flaky",  # b/260867011
         "block-network",
     ],
     tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
@@ -126,7 +124,6 @@ iml_test(
     tags = ["studio-e2e-test"],
     tags_linux = [
         "block-network",
-        "ci:studio-linux_very_flaky",  # b/406616088
     ],
     tags_mac = [],
     tags_windows = [
@@ -192,8 +189,6 @@ iml_test(
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
-        "noci:studio-linux",
-        "ci:studio-linux_very_flaky",  # b/369429660
         "block-network",
     ],
     tags_mac = [],
@@ -211,8 +206,6 @@ iml_test(
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
-        "noci:studio-linux",
-        "ci:studio-linux_very_flaky",  # b/369429660
         "block-network",
     ],
     tags_mac = [],
@@ -230,8 +223,6 @@ iml_test(
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
-        "noci:studio-linux",
-        "ci:studio-linux_very_flaky",  # b/369429660
         "block-network",
     ],
     tags_mac = [],
@@ -254,8 +245,6 @@ iml_test(
     tags = ["studio-e2e-test"],
     tags_linux = [
         "block-network",
-        "noci:studio-linux",
-        "ci:studio-linux_very_flaky",  # b/260867011
     ],
     tags_windows = [
         # TODO(b/287284693): Add Windows support for this test.
