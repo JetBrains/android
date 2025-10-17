@@ -21,7 +21,7 @@ import com.intellij.openapi.project.Project
 
 /**
  * Starting with AGP 9.0, the default value of android.r8.strictFullModeForKeepRules is now true. This refactoring adds the property if it
- * was not defined and sets it to false when upgrading from a version lower than 9.0.0-alpha01
+ * was not defined and sets it to false when upgrading from a version lower than 9.0.0-alpha02
  */
 class R8StrictFullModeForKeepRulesDefaultRefactoringProcessor: AbstractBooleanPropertyDefaultRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
