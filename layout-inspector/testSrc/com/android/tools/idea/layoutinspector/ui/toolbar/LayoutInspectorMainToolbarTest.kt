@@ -32,6 +32,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.toImageType
+import com.android.tools.idea.layoutinspector.runningdevices.allChildren
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RefreshAction
@@ -179,7 +180,7 @@ class LayoutInspectorMainToolbarTest {
       val stats = layoutInspectorRule.inspector.currentClient.stats
       stats.currentModeIsLive = true
 
-      val toolbar = createToolbar()
+      val toolbar = createStandaloneToolbar()
       val toggle = findActionButton(ToggleLiveUpdatesAction::class.java, toolbar)!!
       toolbar.component.size = Dimension(800, 200)
       toolbar.component.doLayout()
@@ -207,7 +208,7 @@ class LayoutInspectorMainToolbarTest {
 
       val stats = layoutInspectorRule.inspector.currentClient.stats
       stats.currentModeIsLive = false
-      val toolbar = createToolbar()
+      val toolbar = createStandaloneToolbar()
       val toggle = findActionButton(ToggleLiveUpdatesAction::class.java, toolbar)!!
       toolbar.component.size = Dimension(800, 200)
       toolbar.component.doLayout()
@@ -237,7 +238,7 @@ class LayoutInspectorMainToolbarTest {
       val stats = layoutInspectorRule.inspector.currentClient.stats
       stats.currentModeIsLive = true
       latch = CountDownLatch(2)
-      val toolbar = createToolbar()
+      val toolbar = createStandaloneToolbar()
       val toggle = findActionButton(ToggleLiveUpdatesAction::class.java, toolbar)!!
       toolbar.component.size = Dimension(800, 200)
       toolbar.component.doLayout()
@@ -275,7 +276,7 @@ class LayoutInspectorMainToolbarTest {
       stats.currentModeIsLive = false
 
       latch = CountDownLatch(1)
-      val toolbar = createToolbar()
+      val toolbar = createStandaloneToolbar()
       val toggle = findActionButton(ToggleLiveUpdatesAction::class.java, toolbar)!!
       toolbar.component.size = Dimension(800, 200)
       toolbar.component.doLayout()
@@ -300,13 +301,13 @@ class LayoutInspectorMainToolbarTest {
 
   @Test
   fun testFocusableActionButtons() {
-    val toolbar = createToolbar()
+    val toolbar = createStandaloneToolbar()
     toolbar.component.components.forEach { Truth.assertThat(it.isFocusable).isTrue() }
   }
 
   @Test
   fun testDeviceSelectionToolbarIsImportant() {
-    val toolbar = createToolbar()
+    val toolbar = createStandaloneToolbar()
     val isImportant =
       toolbar.component.getClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY) as? Boolean
         ?: false
@@ -316,7 +317,8 @@ class LayoutInspectorMainToolbarTest {
   @Test
   fun showLayerSpacingSliderOnlyIfModelIsRotated() {
     val sliderBeforeRotation =
-      createToolbar().actions.find { it is LayerSpacingSliderAction } as? LayerSpacingSliderAction
+      createStandaloneToolbar().actions.find { it is LayerSpacingSliderAction }
+        as? LayerSpacingSliderAction
 
     sliderBeforeRotation?.let {
       // If the action is not null, check that is disabled.
@@ -328,7 +330,8 @@ class LayoutInspectorMainToolbarTest {
     layoutInspectorRule.inspector.renderModel.rotate(10.0, 10.0)
 
     val sliderAfterRotation =
-      createToolbar().actions.find { it is LayerSpacingSliderAction } as LayerSpacingSliderAction
+      createStandaloneToolbar().actions.find { it is LayerSpacingSliderAction }
+        as LayerSpacingSliderAction
 
     val presentationEnabled = getPresentation(sliderAfterRotation)
     assertThat(presentationEnabled.isEnabled).isTrue()
@@ -336,14 +339,13 @@ class LayoutInspectorMainToolbarTest {
   }
 
   @Test
-  fun testLiveUpdatesAndRefreshActionsAreMissingFromEmbeddedLayoutInspector() =
-    withEmbeddedLayoutInspector {
-      val toolbar = createToolbar()
-      val liveUpdatesAction = findActionButton(ToggleLiveUpdatesAction::class.java, toolbar)
-      val refreshAction = findActionButton(RefreshAction::class.java, toolbar)
-      assertThat(liveUpdatesAction).isNull()
-      assertThat(refreshAction).isNull()
-    }
+  fun testLiveUpdatesAndRefreshActionsAreMissingFromEmbeddedLayoutInspector() {
+    val toolbar = createEmbeddedToolbar()
+    val liveUpdatesAction = findActionButton(ToggleLiveUpdatesAction::class.java, toolbar)
+    val refreshAction = findActionButton(RefreshAction::class.java, toolbar)
+    assertThat(liveUpdatesAction).isNull()
+    assertThat(refreshAction).isNull()
+  }
 
   // Used by all tests that install command handlers
   private var latch: CountDownLatch? = null
@@ -383,7 +385,7 @@ class LayoutInspectorMainToolbarTest {
     layoutInspectorRule.processNotifier.fireConnected(process)
   }
 
-  private fun createToolbar(): ActionToolbar {
+  private fun createStandaloneToolbar(): ActionToolbar {
     val fakeAction = FakeAction("fake action")
     val toolbar =
       createStandaloneLayoutInspectorToolbar(
@@ -401,9 +403,37 @@ class LayoutInspectorMainToolbarTest {
     return toolbar
   }
 
+  private fun createEmbeddedToolbar(): ActionToolbar {
+    val fakeAction = FakeAction("fake action")
+    val toolbarPanel =
+      createEmbeddedLayoutInspectorToolbar(
+        androidProjectRule.testRootDisposable,
+        JPanel(),
+        layoutInspectorRule.inspector,
+        fakeAction,
+      )
+
+    val toolbars =
+      toolbarPanel.allChildren().filterIsInstance<ActionToolbar>().filter {
+        it.component.name == LAYOUT_INSPECTOR_MAIN_TOOLBAR
+      }
+
+    assertThat(toolbars).hasSize(1)
+    val toolbar = toolbars.first()
+
+    FakeUi(
+      toolbarPanel,
+      createFakeWindow = true,
+      parentDisposable = androidProjectRule.testRootDisposable,
+    )
+
+    waitForCondition(5.seconds) { toolbar.component.components.isNotEmpty() }
+    return toolbar
+  }
+
   private fun <T : AnAction> findActionButton(
     actionClass: Class<T>,
-    toolbar: ActionToolbar = createToolbar(),
+    toolbar: ActionToolbar = createStandaloneToolbar(),
   ): ActionButton? {
     return toolbar.component.components.filterIsInstance<ActionButton>().find {
       actionClass.isInstance(it.action)
