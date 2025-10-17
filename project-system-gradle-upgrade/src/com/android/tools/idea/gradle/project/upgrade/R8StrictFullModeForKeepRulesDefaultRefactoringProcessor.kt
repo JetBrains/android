@@ -40,6 +40,6 @@ class R8StrictFullModeForKeepRulesDefaultRefactoringProcessor: AbstractBooleanPr
   override fun getShortDescription() = AgpUpgradeBundle.message("useR8StrictModeForKeepRules.shortDescription")
 
   companion object {
-    val DEFAULT_CHANGED = AgpVersion.parse("9.0.0-alpha01")
+    val DEFAULT_CHANGED = AgpVersion.parse("9.0.0-alpha02")
   }
 }

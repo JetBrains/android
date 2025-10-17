@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Ignore
 import org.junit.Test
@@ -77,9 +78,16 @@ class R8StrictFullModeForKeepRulesRefactoringProcessorTest : UpgradeGradleFileMo
   }
 
   @Test
-  fun `Refactoring enabled for 9_0_0-alpha01`() {
+  fun `Refactoring disabled for 9_0_0-alpha01`() {
     val project = projectRule.project
     val processor = R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0-alpha01"))
+    assertFalse(processor.isEnabled)
+  }
+
+  @Test
+  fun `Refactoring enabled for 9_0_0-alpha02`() {
+    val project = projectRule.project
+    val processor = R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0-alpha02"))
     assertTrue(processor.isEnabled)
   }
 
