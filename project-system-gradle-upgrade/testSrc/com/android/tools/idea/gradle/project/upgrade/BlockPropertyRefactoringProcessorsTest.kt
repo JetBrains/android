@@ -193,7 +193,7 @@ class BlockUnifiedTestPlatformProcessorTest: AbstractBlockPropertyUnlessNoOpProc
 }
 
 class BlockR8IntegratedResourceShrinkingProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
-  override val removedVersion: AgpVersion = AgpVersion.parse("9.0.0-alpha01")
+  override val removedVersion: AgpVersion = AgpVersion.parse("9.0.0-alpha02")
   override val propertyKey: String = "android.r8.integratedResourceShrinking"
   override val defaultWhenRemoved = true
 
