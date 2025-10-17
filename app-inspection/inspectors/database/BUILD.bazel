@@ -62,6 +62,11 @@ jvm_library(
         "//platform/util-ex",
         "//platform/util-rt",
         "//platform/util:util-ui",
+        "//android/android:core",
+        "//java/java-indexing-api:indexing",
+        "//java/java-impl:impl",
+        "//java/java-frontback-psi-api:frontback-psi",
+        "//java/java-psi-api:psi",
     ],
 )
 
@@ -117,6 +122,11 @@ jvm_library(
         "//platform/util-ex:util-ex_test_lib",
         "//platform/util-rt:util-rt_test_lib",
         "//platform/util:util-ui_test_lib",
+        "//android/android:core_test_lib",
+        "//java/java-indexing-api:indexing_test_lib",
+        "//java/java-impl:impl_test_lib",
+        "//java/java-frontback-psi-api:frontback-psi_test_lib",
+        "//java/java-psi-api:psi_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.database` end
@@ -221,6 +231,8 @@ jvm_library(
         "//android/intellij.android.testutils:testutils_test_lib",
         "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
         "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon_test_lib",
+        "//java/openapi:java",
+        "//java/openapi:java_test_lib",
         "//java/java-frontback-psi-impl:frontback-psi-impl",
         "//java/java-frontback-psi-impl:frontback-psi-impl_test_lib",
         "//java/testFramework",
@@ -245,6 +257,8 @@ jvm_library(
         "//platform/platform-api:ide_test_lib",
         "//platform/ide-core",
         "//platform/platform-impl:ide-impl",
+        "//platform/lang-api:lang",
+        "//platform/lang-api:lang_test_lib",
         "//platform/lang-impl",
         "//platform/lang-impl:lang-impl_test_lib",
         "//platform/projectModel-api:projectModel",
