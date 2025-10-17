@@ -31,6 +31,9 @@ import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.r8.retrace.RetraceCommand
 import com.android.utils.associateByNotNull
 import com.android.utils.text.dropPrefix
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.StackRetraceEvent.MappingType
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.StackRetraceEvent.MappingType.PARTITIONED
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.StackRetraceEvent.MappingType.TEXT
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level.PROJECT
@@ -80,14 +83,25 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
           try {
             measureTimedValue { retracer.builder.rewrite(message) }
           } catch (e: Throwable) {
-            LogcatUsageTracker.logRetraceException(e, retracer.mappingSize, retracer.isCached)
+            LogcatUsageTracker.logRetraceException(
+              e,
+              retracer.mappingSize,
+              retracer.isCached,
+              retracer.mappingType,
+            )
             LOGGER.warn(
               "Error while retracing. mappingSize=${retracer.mappingSize} isCached=${retracer.isCached}"
             )
             return message
           }
         val result = if (retraced != message) "SUCCESS" else "NOOP"
-        LogcatUsageTracker.logRetrace(result, duration, retracer.mappingSize, retracer.isCached)
+        LogcatUsageTracker.logRetrace(
+          result,
+          duration,
+          retracer.mappingSize,
+          retracer.isCached,
+          retracer.mappingType,
+        )
         return retraced
       } catch (e: Throwable) {
         LogcatUsageTracker.logRetraceException(e)
@@ -120,7 +134,7 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
         is Mapping -> {
           val mappings = result.path
           val builder = result.createRetracer()
-          autoRetracer = AutoRetracer(id, builder, mappings, false)
+          autoRetracer = AutoRetracer(id, builder, mappings, false, result.mappingType)
           rescheduleCachePurge()
           autoRetracer
         }
@@ -162,6 +176,7 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
     val mapping: Path,
     // Mapping file might have changed, but we still have a valid cached retracer
     val isCached: Boolean,
+    val mappingType: MappingType,
     val mappingSize: Long = mapping.fileSize(),
   )
 
@@ -172,15 +187,15 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
       NO_MAPPING_IN_PROJECT,
     }
 
-    sealed class Mapping(val path: Path) : Result() {
+    sealed class Mapping(val path: Path, val mappingType: MappingType) : Result() {
       abstract fun createRetracer(): RetraceCommand.Builder
     }
 
-    class TextMapping(path: Path) : Mapping(path) {
+    class TextMapping(path: Path) : Mapping(path, TEXT) {
       override fun createRetracer() = createTextRetracer(path)
     }
 
-    class PartitionedMapping(path: Path) : Mapping(path) {
+    class PartitionedMapping(path: Path) : Mapping(path, PARTITIONED) {
       override fun createRetracer() = createPartitionedRetracer(path)
     }
 
