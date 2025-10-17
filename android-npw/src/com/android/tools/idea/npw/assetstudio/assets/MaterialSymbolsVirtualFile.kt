@@ -19,6 +19,7 @@ import com.android.tools.idea.material.icons.common.SymbolConfiguration
 import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.notebook.editor.BackedVirtualFile
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.JBColor
@@ -71,7 +72,7 @@ private fun getXMLString(
   val opticalSizeStr = symbolConfiguration.opticalSize.coerceIn(20, 48).toString()
   val hexCodeStr = unicode.toString(16)
   return BASE_XML.format(
-    fontPath,
+    FileUtil.toSystemIndependentName(fontPath),
     fillStr,
     weightStr,
     gradeStr,
