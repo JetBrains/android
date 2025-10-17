@@ -53,6 +53,7 @@ import javax.swing.JToggleButton
 import javax.swing.SwingConstants
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -404,10 +405,13 @@ class ScreenshotResultView {
       override fun update(e: AnActionEvent) { e.presentation.isEnabled = hasImage() }
     }
 
+    private var dynamicMinScale = 0.1
+    private var dynamicMaxScale = 8.0
+
     companion object {
-      private const val MIN_SCALE = 0.1
-      private const val MAX_SCALE = 1.8
       private const val ZOOM_FACTOR = 1.2
+      private const val MAX_ZOOM_FACTOR_BEYOND_ANCHOR = 2.5
+      private const val MIN_ZOOM_FACTOR_BEYOND_ANCHOR = 2.5
     }
 
     init {
@@ -458,13 +462,13 @@ class ScreenshotResultView {
     // Public API for external control
     fun zoomIn() {
       isAutoFitting = false
-      currentScale = (currentScale * ZOOM_FACTOR).coerceAtMost(MAX_SCALE)
+      currentScale = (currentScale * ZOOM_FACTOR).coerceAtMost(dynamicMaxScale)
       updateImage()
     }
 
     fun zoomOut() {
       isAutoFitting = false
-      currentScale = (currentScale / ZOOM_FACTOR).coerceAtLeast(MIN_SCALE)
+      currentScale = (currentScale / ZOOM_FACTOR).coerceAtLeast(dynamicMinScale)
       updateImage()
     }
 
@@ -482,16 +486,23 @@ class ScreenshotResultView {
 
       val widthScale = viewSize.width.toDouble() / image.width
       val heightScale = viewSize.height.toDouble() / image.height
-      val scale = min(widthScale, heightScale)
+      val fitScale = min(widthScale, heightScale)
 
-      currentScale = scale.coerceIn(MIN_SCALE, MAX_SCALE)
+      // Set the dynamic zoom range based on the fit-to-screen and actual size scales.
+      val actualScale = 1.0
+      dynamicMaxScale = max(fitScale, actualScale) * MAX_ZOOM_FACTOR_BEYOND_ANCHOR
+      dynamicMinScale = min(fitScale, actualScale) / MIN_ZOOM_FACTOR_BEYOND_ANCHOR
+
+      // Set the current scale to the calculated fit-to-screen scale without coercing it.
+      // This ensures the initial view is perfectly fit. Coercion only applies to subsequent zoom actions.
+      currentScale = fitScale
       updateImage()
     }
 
     fun setGridVisible(visible: Boolean) = imageLabel.setGridVisible(visible)
     fun isGridVisible(): Boolean = imageLabel.isGridVisible()
-    fun canZoomIn(): Boolean = originalImage != null && currentScale < MAX_SCALE
-    fun canZoomOut(): Boolean = originalImage != null && currentScale > MIN_SCALE
+    fun canZoomIn(): Boolean = originalImage != null && currentScale < dynamicMaxScale
+    fun canZoomOut(): Boolean = originalImage != null && currentScale > dynamicMinScale
     fun hasImage(): Boolean = originalImage != null
 
     @UiThread
