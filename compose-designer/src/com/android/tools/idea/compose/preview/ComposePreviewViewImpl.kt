@@ -456,7 +456,9 @@ internal class ComposePreviewViewImpl(
         it,
         psiFilePointer,
         mainSurface,
-        message("action.generate.previews.for.file.empty.panel"),
+        if (StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.get())
+          message("action.generate.single.preview.for.file.empty.panel")
+        else message("action.generate.previews.for.file.empty.panel"),
         StudioIcons.StudioBot.LOGO,
       )
     }
