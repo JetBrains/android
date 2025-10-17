@@ -2484,10 +2484,10 @@ public final class StudioFlags {
                     "Enable web search tool",
                     "Enables the 'Web Search Tool' as builtin tools.");
 
-  public static final Flag<Boolean> GEMINI_SEND_DURING_RESPONSE_ENABLED =
-    new BooleanFlag(STUDIOBOT, "send.during.response",
-                    "Enable sending queries while a response is streaming.",
-                    "Enables sending queries while a response is streaming. It may be queued or interrupt the stream.");
+  public static final Flag<Boolean> GEMINI_MESSAGE_QUEUE_ENABLED =
+    new BooleanFlag(STUDIOBOT, "message.queue.enabled",
+                    "Enable queuing queries while a response is streaming.",
+                    "Enables sending queries while a response is streaming, which queues it in a separate list.");
 
   public static final Flag<Boolean> STUDIOBOT_EDIT_CHAT_REQUEST_BUTTON_ENABLED =
     new BooleanFlag(STUDIOBOT, "edit.chat.request.button.enabled",
