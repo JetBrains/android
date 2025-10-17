@@ -14,6 +14,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/android-adb:intellij.android.adb",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/base/annotations:studio.android.sdktools.android-annotations",

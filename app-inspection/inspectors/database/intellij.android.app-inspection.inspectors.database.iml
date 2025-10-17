@@ -50,5 +50,8 @@
     <orderEntry type="module" module-name="intellij.platform.util.ex" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
+    <orderEntry type="module" module-name="intellij.android.core" />
+    <orderEntry type="module" module-name="intellij.java.indexing" />
+    <orderEntry type="module" module-name="intellij.java.impl" />
   </component>
 </module>
