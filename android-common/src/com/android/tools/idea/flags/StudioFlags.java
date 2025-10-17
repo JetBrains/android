@@ -2315,6 +2315,11 @@ public final class StudioFlags {
                     "Enable action to add attachments",
                     "When enabled, enables the actions to manage attachments");
 
+  public static final Flag<Boolean> STUDIOBOT_ASK_USER_TOOL_ENABLED =
+    new BooleanFlag(STUDIOBOT, "ask.user.tool.enabled",
+                    "Enable the AskUserTool",
+                    "When enabled, adds the AskUserTool to a set of default tools");
+
   // rate limits are controlled by server flags
   public static final Flag<Integer> STUDIOBOT_COMPLETIONS_PER_HOUR =
     new IntFlag(STUDIOBOT, "completions.per.hour",
