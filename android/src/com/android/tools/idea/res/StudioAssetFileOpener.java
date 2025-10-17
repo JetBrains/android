@@ -32,6 +32,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.res.AssetFileOpener;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.collect.Streams;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -133,9 +134,7 @@ public class StudioAssetFileOpener implements AssetFileOpener {
     return getDirectories(myFacet,
                           IdeaSourceProvider::getResDirectories,
                           it -> it.getResFolder() != null ? it.getResFolder().getRoot() : null)
-      .filter(
-        resDir -> VfsUtilCore.isAncestor(resDir, file, true)
-        || (getSdkPath() != null && VfsUtilCore.isAncestor(getSdkPath(), file, true)))
+      .filter(resDir -> VfsUtilCore.isAncestor(resDir, file, true))
       .map(resDir -> {
         try {
           return file.getInputStream();
@@ -146,7 +145,7 @@ public class StudioAssetFileOpener implements AssetFileOpener {
       })
       .findAny()
       .orElseGet(() -> {
-        if (isCachedFontFile(file)) {
+        if (isCachedFontFile(file) || isSdkFile(file)) {
           try {
             return file.getInputStream();
           }
@@ -218,13 +217,11 @@ public class StudioAssetFileOpener implements AssetFileOpener {
     return myFrameworkResDirOrJar;
   }
 
-  private VirtualFile getSdkPath() {
-    AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    Path sdkHome = sdkHandler.getLocation();
-    if (sdkHome == null) {
-      return null;
+  private Boolean isSdkFile(@NotNull VirtualFile file) {
+    for(Sdk sdk : AndroidSdks.getInstance().getAllAndroidSdks()) {
+      VirtualFile sdkHome = sdk.getHomeDirectory();
+      if(sdkHome != null && VfsUtilCore.isAncestor(sdkHome, file, true)) return true;
     }
-    VirtualFileManager virtualFileManager = VirtualFileManager.getInstance();
-    return virtualFileManager.findFileByUrl("file://" + sdkHome.toAbsolutePath());
+    return false;
   }
 }
