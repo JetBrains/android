@@ -76,11 +76,19 @@ class R8OptimizedResourceShrinkingRefactoringProcessorTest : UpgradeGradleFileMo
   }
 
   @Test
-  fun `Refactoring enabled for 9_0_0-alpha01`() {
+  fun `Refactoring disabled for 9_0_0-alpha01`() {
     val project = projectRule.project
-    val processor = R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0-alpha01"))
+    val processor = R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0-alpha02"))
     assertTrue(processor.isEnabled)
   }
+
+  @Test
+  fun `Refactoring enabled for 9_0_0-alpha02`() {
+    val project = projectRule.project
+    val processor = R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("9.0.0-alpha01"), AgpVersion.parse("9.0.0-alpha02"))
+    assertTrue(processor.isEnabled)
+  }
+
 
   private fun Project.findGradleProperties(): VirtualFile? = guessProjectDir()?.findChild("gradle.properties")
 }

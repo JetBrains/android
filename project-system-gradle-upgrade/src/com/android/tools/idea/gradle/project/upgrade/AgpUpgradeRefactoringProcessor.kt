@@ -310,12 +310,10 @@ class AgpUpgradeRefactoringProcessor(
     BlockAnalysisPerComponentProcessor(this),
     BlockEmulatorControlProcessor(this),
     BlockUnifiedTestPlatformProcessor(this),
-    BlockR8IntegratedResourceShrinkingProcessor(this),
     BlockMinifyLocalDependenciesLibrariesProcessor(this),
     BlockPreciseShrinkingProcessor(this),
     BlockResourceOptimizationsProcessor(this),
     BlockBuildFeaturesBuildConfigProcessor(this),
-    R8OptimizedResourceShrinkingDefaultRefactoringProcessor(this),
     TargetSdkDefaultRefactoringProcessor(this),
     AppCompileTimeRClassDefaultRefactoringProcessor(this),
     DeprecatedLibraryTargetSdkRefactoringProcessor(this),
@@ -324,6 +322,8 @@ class AgpUpgradeRefactoringProcessor(
     EnforceUniquePackageNameRefactoringProcessor(this),
     DependencyConstraintsRefactoringProcessor(this), // AGP 9.0.0-alpha02
     R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(this),
+    R8OptimizedResourceShrinkingDefaultRefactoringProcessor(this),
+    BlockR8IntegratedResourceShrinkingProcessor(this),
     REMOVE_EMULATOR_SNAPSHOTS.RefactoringProcessor(this),  // AGP 9.0.0-alpha03
     BuiltInKotlinDefaultRefactoringProcessor(this), // AGP 9.0.0-alpha03
     NewDslDefaultRefactoringProcessor(this), // AGP 9.0.0-alpha04
