@@ -19,7 +19,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Preconditions
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
-import com.google.common.collect.ImmutableSetMultimap
 import com.google.common.collect.Queues
 import com.google.common.graph.Traverser
 import com.google.idea.blaze.common.Context
@@ -36,7 +35,6 @@ import com.google.idea.blaze.qsync.query.PackageSet
 import java.nio.file.Path
 import java.util.Collections
 import java.util.Queue
-import java.util.function.Consumer
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import kotlin.jvm.optionals.getOrNull
@@ -53,10 +51,12 @@ data class BuildGraphDataImpl(
   @VisibleForTesting @JvmField val storage: Storage,
   private val sourceOwners: Map<Label, List<Label>>,
   private val alwaysBuildTargets: Set<Label>,
-  private val rdeps: ImmutableSetMultimap<Label, Label>,
+  private val rdeps: Map<Label, Deps<out Label>>,
   private val packages: PackageSet,
   override val externalDependencyCountForStatsOnly: Int,
 ) : BuildGraphData {
+
+  class Deps<T> (val deps: MutableSet<T> = mutableSetOf())
 
   override fun packages(): PackageSet = packages
 
@@ -320,16 +320,17 @@ data class BuildGraphDataImpl(
             .toSet()
         }
 
-        private fun computeRdeps(storage: Storage): ImmutableSetMultimap<Label, Label> {
-          val rdeps = ImmutableSetMultimap.builder<Label, Label>()
-          for (target in storage.targetMap.values) {
-            for (rdep in target.deps()) {
-              rdeps.put(rdep, target.label())
+        private fun computeRdeps(storage: Storage): Map<Label, Deps<out Label>> {
+          return buildMap<Label, Deps<Label>> {
+            fun rdepsOf(node: Label): Deps<Label> = this@buildMap.getOrPut(node) { Deps() }
+
+            for (target in storage.targetMap.values) {
+              for (rdep in target.deps()) {
+                rdepsOf(rdep).deps.add(target.label())
+              }
+              target.testRule().ifPresent { testRule -> rdepsOf(testRule).deps.add(target.label()) }
             }
-            val testRule = target.testRule()
-            testRule.ifPresent(Consumer { rdeps.put(it, target.label()) })
           }
-          return rdeps.build()
         }
 
         private fun computePackages(storage: Storage): PackageSet {
@@ -619,7 +620,7 @@ data class BuildGraphDataImpl(
   }
 
   private fun getRdeps(target: Label): Set<Label> {
-    return rdeps[target].orEmpty()
+    return rdeps[target]?.deps.orEmpty()
   }
 
   /**
