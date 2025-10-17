@@ -140,6 +140,9 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
   val generatePreviewFlagRule =
     FlagRule(StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW, generatePreviewFlag)
   @get:Rule
+  val generatePreviewAgenticFlagRule =
+    FlagRule(StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC, true)
+  @get:Rule
   val screenshotToCodeFlagRule =
     FlagRule(StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE, screenshotToCodeFlag)
 
@@ -486,9 +489,34 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
     )
   }
 
+  @Test
+  fun `empty preview state when preview generation agentic mode is enabled`() {
+    geminiPluginApi.contextAllowed = true
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.override(true)
+    checkEmptyPreviewState(
+      showAutoGenerateAction = true,
+      showScreenshotToAction = StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get(),
+      expectedAutoGenerateActionText = "Auto-generate a Compose Preview for this file",
+    )
+  }
+
+  @Test
+  fun `empty preview state when preview generation agentic mode is disabled`() {
+    geminiPluginApi.contextAllowed = true
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.override(false)
+    checkEmptyPreviewState(
+      showAutoGenerateAction = true,
+      showScreenshotToAction = StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get(),
+      expectedAutoGenerateActionText = "Auto-generate Compose Previews for this file",
+    )
+  }
+
   private fun checkEmptyPreviewState(
     showAutoGenerateAction: Boolean,
     showScreenshotToAction: Boolean,
+    expectedAutoGenerateActionText: String = "Auto-generate a Compose Preview for this file",
   ) = runBlocking {
     previewView.hasRendered = true
     previewView.hasContent = false
@@ -506,7 +534,7 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
             "Add preview by annotating Composables with @Preview.",
             "Note: syntax errors could cause existing previews not to be found.",
             "[Using the Compose preview]",
-            if (showAutoGenerateAction) "[Auto-generate Compose Previews for this file]" else null,
+            if (showAutoGenerateAction) "[$expectedAutoGenerateActionText]" else null,
             if (showScreenshotToAction) "[Generate Code From Screenshot]" else null,
           )
           .joinToString("\n"),
