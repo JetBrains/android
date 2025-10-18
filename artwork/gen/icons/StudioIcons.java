@@ -930,9 +930,10 @@ public final class StudioIcons {
   }
 
   public static final class StudioBot {
-    /** 16x16 */ public static final @NotNull Icon ASK = load("studio/icons/studio-bot/ask.svg", -1129882939, 2);
-    /** 16x16 */ public static final @NotNull Icon LOGO_MONOCHROME = load("studio/icons/studio-bot/logo-monochrome.svg", -1056940978, 2);
-    /** 16x16 */ public static final @NotNull Icon LOGO = load("studio/icons/studio-bot/logo.svg", -2000569748, 2);
+    /** 16x16 */ public static final @NotNull Icon ASK = load("studio/icons/studio-bot/ask.svg", -323558851, 2);
+    /** 16x16 */ public static final @NotNull Icon GEMINI_LOGO_MONOCHROME = load("studio/icons/studio-bot/gemini-logo-monochrome.svg", 1337628391, 2);
+    /** 16x16 */ public static final @NotNull Icon GEMINI_LOGO = load("studio/icons/studio-bot/gemini-logo.svg", 2058042118, 2);
+    /** 16x16 */ public static final @NotNull Icon GENERIC_AI_ACTION = load("studio/icons/studio-bot/generic-ai-action.svg", -1978498243, 2);
   }
 
   public static final class Test {
