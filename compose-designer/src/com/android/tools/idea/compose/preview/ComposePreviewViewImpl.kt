@@ -459,7 +459,7 @@ internal class ComposePreviewViewImpl(
         if (StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.get())
           message("action.generate.single.preview.for.file.empty.panel")
         else message("action.generate.previews.for.file.empty.panel"),
-        StudioIcons.StudioBot.LOGO,
+        StudioIcons.StudioBot.GENERIC_AI_ACTION,
       )
     }
   }
@@ -474,7 +474,7 @@ internal class ComposePreviewViewImpl(
         psiFilePointer,
         mainSurface,
         it.templatePresentation.text,
-        StudioIcons.StudioBot.LOGO,
+        StudioIcons.StudioBot.GENERIC_AI_ACTION,
       )
     }
   }
