@@ -36,7 +36,6 @@ import java.nio.file.Path
 import java.util.Collections
 import java.util.Comparator.comparingInt
 import java.util.TreeSet
-import kotlin.jvm.optionals.getOrNull
 import kotlinx.coroutines.runBlocking
 
 /** Converts a {@link BuildGraphDataImpl} instance into a project proto. */
@@ -368,7 +367,6 @@ class GraphToProjectConverter(
         .map(Path::getParent)
         .distinct()
         .toSet()
-    val androidResPackages = setOf<String>()
 
     context.output(PrintOutput.log("%-10d Android resource directories", androidResDirs.size))
 
@@ -377,7 +375,6 @@ class GraphToProjectConverter(
         //          .setType(ProjectProto.ModuleType.MODULE_TYPE_DEFAULT)
         it.isAndroidModule = projectDefinition.isAndroidWorkspace
         it.androidResourceDirectories.addAll(androidResDirs.map { ProjectPath.workspaceRelative(it, externalRepositoryFinder) })
-        it.androidSourcePackages.addAll(androidResPackages)
         it.androidCustomPackages.addAll(graph.getAllCustomPackages())
       }
 
