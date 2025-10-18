@@ -52,7 +52,7 @@ object InsightAction :
   JButtonAction(
     "Enable insights",
     "Complete Gemini onboarding to enable insights",
-    StudioIcons.StudioBot.LOGO,
+    StudioIcons.StudioBot.GEMINI_LOGO,
   ) {
 
   private val geminiPluginId: PluginId?

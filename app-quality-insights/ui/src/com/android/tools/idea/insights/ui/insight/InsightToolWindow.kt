@@ -55,7 +55,7 @@ object InsightToolWindow {
       )
     return AppInsightsToolWindowDefinition(
         "Insights",
-        StudioIcons.StudioBot.LOGO_MONOCHROME,
+        StudioIcons.StudioBot.GEMINI_LOGO_MONOCHROME,
         "APP_INSIGHTS_INSIGHTS",
         tabVisibility,
       ) {

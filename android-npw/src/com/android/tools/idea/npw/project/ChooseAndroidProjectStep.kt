@@ -219,7 +219,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
             )
             add(
               geminiLabel.apply {
-                icon = StudioIcons.StudioBot.LOGO
+                icon = StudioIcons.StudioBot.GEMINI_LOGO
                 text = "Create with Gemini..."
                 isOpaque = true
                 alignmentX = Component.LEFT_ALIGNMENT
