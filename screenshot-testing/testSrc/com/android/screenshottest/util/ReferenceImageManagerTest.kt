@@ -15,6 +15,7 @@
  */
 package com.android.screenshottest.util
 
+import com.android.screenshottest.ui.PreviewDetails
 import com.android.screenshottest.ScreenshotTestBuildSystemAdapter
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
@@ -196,7 +197,7 @@ class ReferenceImageManagerTest {
 
   /** Creates a test data object with the given image paths. */
   private fun createImageData(imagePaths: Map<String, String>): ImageData {
-    val details = PreviewDetails(testFunction, null, emptyList(), null)
+    val details = PreviewDetails("", "", "", "")
     return ImageData(details, imagePaths)
   }
 

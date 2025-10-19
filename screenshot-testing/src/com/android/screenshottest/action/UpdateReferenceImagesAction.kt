@@ -47,14 +47,10 @@ class UpdateReferenceImagesAction : AnAction(
   AllIcons.FileTypes.Image
 ) {
 
-  private val PREVIEW_TEST_ANNOTATION = "com.android.tools.screenshot.PreviewTest"
-
   override fun actionPerformed(e: AnActionEvent) {
     val context = ConfigurationContext.getFromEvent(e)
     val project = context.project ?: return
     val module = context.module ?: return
-    val psiFile = context.location?.psiElement?.containingFile as? KtFile ?: return
-    val previewFunctions = findPreviewTestFunctions(psiFile)
 
     val validateRunconfigSettings = context.createConfigurationsFromContext()?.firstOrNull()?.configurationSettings
                            ?: return
@@ -63,41 +59,10 @@ class UpdateReferenceImagesAction : AnAction(
     updateRunconfigSettings.isActivateToolWindowBeforeRun = false
     val executor = ExecutorRegistry.getInstance().getExecutorById(DefaultRunExecutor.EXECUTOR_ID) ?: return
 
-    val dialog = UpdateReferenceImagesDialog(project, previewFunctions, module, context.psiLocation)
+    val dialog = UpdateReferenceImagesDialog(project, module)
 
     project.messageBus.connect(dialog.disposable).subscribe(AndroidTestSuiteView.ANDROID_TEST_SUITE_TOPIC, UpdateScreenshotTestResultsListener(dialog))
     ExecutionUtil.runConfiguration(updateRunconfigSettings, executor)
     dialog.show()
-  }
-
-  @VisibleForTesting
-  fun findPreviewTestFunctions(psiFile: KtFile): List<KtNamedFunction> {
-    val visitedAnnotations = mutableMapOf<String, Boolean>()
-    return PsiTreeUtil.findChildrenOfType(psiFile, KtNamedFunction::class.java)
-      .filter { isPreviewTest(it, visitedAnnotations) }
-  }
-
-  @VisibleForTesting
-  fun determineTestClassFqns(functions: List<KtNamedFunction>): Set<String> {
-    return functions.mapNotNull { function ->
-      val containingClass = PsiTreeUtil.getParentOfType(function, KtClass::class.java)
-      if (containingClass != null) {
-        containingClass.fqName?.asString()
-      } else {
-        val file = function.containingKtFile
-        val packageName = file.packageFqName.asString()
-        val className = file.name.removeSuffix(".kt") + "Kt"
-        if (packageName.isEmpty()) className else "$packageName.$className"
-      }
-    }.toSet()
-  }
-
-  private fun isPreviewTest(function: KtNamedFunction, visited: MutableMap<String, Boolean>): Boolean {
-    val psiMethod = (function.toUElement() as? UMethod)?.javaPsi as? PsiMethod
-    return psiMethod != null && psiMethod.annotations.any{ it.qualifiedName == PREVIEW_TEST_ANNOTATION}
-  }
-
-  companion object {
-    private val LOG = Logger.getInstance(UpdateReferenceImagesAction::class.java)
   }
 }

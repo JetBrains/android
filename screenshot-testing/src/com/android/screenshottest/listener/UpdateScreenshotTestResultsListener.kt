@@ -29,13 +29,17 @@ import com.intellij.openapi.application.ApplicationManager
  */
 class UpdateScreenshotTestResultsListener(private val dialog: UpdateReferenceImagesDialog) : AndroidTestResultListener {
 
-  override fun onTestCaseStarted(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {
-    dialog.onTestCaseStarted(testCase.className, testCase.methodName)
-  }
-
   override fun onTestCaseFinished(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {
     ApplicationManager.getApplication().invokeLater {
-      dialog.onTestCaseFinished(testCase.className, testCase.methodName, testCase.additionalTestArtifacts["PreviewScreenshot.newImagePath"])
+      val className = testCase.className
+      val methodName = testCase.additionalTestArtifacts["PreviewScreenshot.methodName"]?: " "
+      val previewName = testCase.additionalTestArtifacts["PreviewScreenshot.previewName"]?: " "
+      val imagePath = testCase.additionalTestArtifacts["PreviewScreenshot.newImagePath"]
+      dialog.updateDialogWithTestResult(className, methodName, previewName, imagePath)
     }
+  }
+
+  override fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite) {
+    dialog.onTestSuiteFinished()
   }
 }
