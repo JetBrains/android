@@ -15,14 +15,8 @@
  */
 package com.android.screenshottest.ui
 
-import com.android.screenshottest.util.FqNames
 import com.android.screenshottest.util.ImageData
-import com.android.screenshottest.util.PreviewDetails
 import com.android.screenshottest.util.copyReferenceImages
-import com.android.screenshottest.util.findComposableCall
-import com.android.screenshottest.util.findPreviewAnnotations
-import com.android.screenshottest.util.getIdentifier
-import com.android.screenshottest.util.getProviderClassName
 import com.intellij.openapi.application.ApplicationManager
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
@@ -33,16 +27,15 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
-import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.tree.TreeUtil
-import java.awt.BorderLayout
+import java.awt.CardLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
@@ -52,10 +45,9 @@ import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTree
+import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreePath
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtNamedFunction
 
 /**
  * A dialog for selecting and viewing screenshot test previews. It features a two-pane layout with a
@@ -63,18 +55,20 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
  */
 class UpdateReferenceImagesDialog(
   private val project: Project?,
-  private val previewFunctions: List<KtNamedFunction>,
   private val module: Module,
-  private val triggerElement: PsiElement?,
   private val logger: Logger = Logger.getInstance(UpdateReferenceImagesDialog::class.java)
 ) : DialogWrapper(project) {
 
+  private val centerPanelCardLayout = CardLayout()
+  private val centerPanel = JPanel(centerPanelCardLayout)
+  private var isFirstTestDiscovered = false
   private val successfulLoads = AtomicInteger(0)
   private lateinit var tree: CheckboxTree
   private val previewsContainer = JPanel().apply { layout = BoxLayout(this, BoxLayout.Y_AXIS) }
   private val placeholderLabel = JBLabel("Select a node from the left to see its previews.", JBLabel.CENTER)
   private val imagePanelMap = mutableMapOf<String, PreviewItemPanel>()
-  private val multipreviewNodeMap = mutableMapOf<String, CheckedTreeNode>()
+  private val classNodeMap = mutableMapOf<String, DefaultMutableTreeNode>()
+  private val methodNodeMap = mutableMapOf<String, MutableMap<String, DefaultMutableTreeNode>>()
 
   init {
     isModal = false
@@ -97,110 +91,69 @@ class UpdateReferenceImagesDialog(
     }
   }
 
-  fun onTestCaseStarted(testClass: String, testId: String) {
+  fun updateDialogWithTestResult(className: String, methodName: String, previewName: String, imagePath: String?) {
     ApplicationManager.getApplication().invokeLater {
-      val fullyQualifiedTestId = "$testClass.$testId"
-
-      val standardPanel = imagePanelMap[fullyQualifiedTestId]
-      if (standardPanel != null) {
-        return@invokeLater
+      if (!isFirstTestDiscovered) {
+        isFirstTestDiscovered = true
+        populateCenterPanel()
       }
+      if(methodName.isNotBlank() && previewName.isNotBlank()) {
+        val testId = "$className.$methodName.$previewName"
 
-      val originalFunction = previewFunctions.find { function ->
-        testId.startsWith(function.name!!)
-      }
+        val root = tree.model.root as CheckedTreeNode
+        val model = tree.model as DefaultTreeModel
 
-      if (originalFunction == null) {
-        logger.warn("onMultipreviewTestCaseStarted: Could not find original function for testId: $testId")
-        return@invokeLater
-      }
-
-      val multipreviewIdentifier = getIdentifier(PreviewDetails(originalFunction, null, emptyList(), null))
-      val parentNode = multipreviewNodeMap[multipreviewIdentifier]
-
-      if (parentNode != null) {
-        //  On the very first result for this multipreview, clear the "Running tests..." placeholder.
-        val firstChild = parentNode.firstChild as? CheckedTreeNode
-        if (firstChild != null && (firstChild.userObject as? PreviewDetails)?.testId == multipreviewIdentifier) {
-          parentNode.removeAllChildren()
+        val classNode = classNodeMap.getOrPut(className) {
+          val newNode = CheckedTreeNode(className.substringAfterLast('.'))
+          newNode.isEnabled = true
+          model.insertNodeInto(newNode, root, root.childCount)
+          tree.expandPath(TreePath(root.path))
+          newNode
         }
 
-        val allAnnotations = findPreviewAnnotations(originalFunction)
-        val composableFunction = findComposableCall(originalFunction)
+        val methodMap = methodNodeMap.getOrPut(className) { mutableMapOf() }
+        val methodNode = methodMap.getOrPut(methodName) {
+          val newNode = CheckedTreeNode(methodName)
+          newNode.isEnabled = true
+          model.insertNodeInto(newNode, classNode, classNode.childCount)
+          tree.expandPath(TreePath(classNode.path))
+          newNode
+        }
 
-        val baseDisplayName = testId.substringAfter(originalFunction.name!!, "Preview")
-          .replace(Regex("[\\[\\]_{}]"), " ").trim()
-        val finalDisplayName = if (baseDisplayName.isNotEmpty()) baseDisplayName else "Parameter ${parentNode.childCount + 1}"
+        val details = PreviewDetails(testId, className, methodName, previewName)
+        val leafNode = CheckedTreeNode(details)
+        leafNode.isChecked = true
+        model.insertNodeInto(leafNode, methodNode, methodNode.childCount)
+        tree.expandPath(TreePath(methodNode.path))
 
-        val details = PreviewDetails(originalFunction, allAnnotations.firstOrNull(), allAnnotations, composableFunction, finalDisplayName, fullyQualifiedTestId)
-        val newPanel = PreviewItemPanel(previewData = details, onImageLoaded = { onImageLoadedSuccessfully() })
-        val childNode = CheckedTreeNode(details).apply { isChecked = parentNode.isChecked }
+        val panel = PreviewItemPanel(previewData = details, onImageLoaded = { onImageLoadedSuccessfully() })
+        imagePanelMap[testId] = panel
 
-        // Add the new panel to the map so it can be found when the test finishes.
-        imagePanelMap[fullyQualifiedTestId] = newPanel
-        parentNode.add(childNode)
-
-        // Refresh the tree UI to show the newly added node.
-        (tree.model as DefaultTreeModel).reload(parentNode)
-        tree.expandPath(TreePath(parentNode.path))
-        updateRightPane(tree)
-      } else {
-        logger.warn("onTestCaseStarted: Could not map testId to a known multipreview placeholder: $testId")
-      }
-    }
-  }
-
-  fun onTestCaseFinished(testClass: String, testId: String, imagePath: String?) {
-    ApplicationManager.getApplication().invokeLater {
-      val fullyQualifiedTestId = "$testClass.$testId"
-
-      val standardPanel = imagePanelMap[fullyQualifiedTestId]
-      if (standardPanel != null) {
-        if(imagePath !=null) {
-          standardPanel.loadImage(imagePath, fullyQualifiedTestId)
+        if (imagePath != null) {
+          panel.loadImage(imagePath, testId)
         }
         else {
-          standardPanel.showError("Test did not produce an image")
+          panel.showError("Test did not produce an image")
         }
         updateRightPane(tree)
-        return@invokeLater
       } else {
-        logger.warn("Received a result that could not be mapped to any known placeholder: $fullyQualifiedTestId")
+        logger.warn("Missing methodName or previewName for tests in class $className")
       }
     }
   }
 
-
-
-  private fun populateMultipreviewNode(
-    function: KtNamedFunction,
-    results: Map<String, String>,
-    handledTestIds: MutableSet<String>
-  ) {
-    val parentNode = multipreviewNodeMap[getIdentifier(PreviewDetails(function, null, emptyList(), null))] ?: return
-    val composableFunction = findComposableCall(function)
-    val allAnnotations = findPreviewAnnotations(function)
-    val mainAnnotation = allAnnotations.firstOrNull()
-    val shouldChildrenBeChecked = parentNode.isChecked
-
-    val sortedResults = results.entries.sortedBy { it.key }
-    sortedResults.forEachIndexed { index, (testId, imagePath) ->
-      handledTestIds.add(testId)
-
-      val baseDisplayName = testId.substringAfter('[', "").substringBefore(']', "parameter")
-      val finalDisplayName = "$baseDisplayName [${index}]"
-      val details = PreviewDetails(function, mainAnnotation, allAnnotations, composableFunction, finalDisplayName, testId)
-
-      val panel = PreviewItemPanel(details, { onImageLoadedSuccessfully() })
-      val childNode = CheckedTreeNode(details).apply { isChecked = shouldChildrenBeChecked }
-
-      imagePanelMap[testId] = panel
-      parentNode.add(childNode)
-      panel.loadImage(imagePath, testId)
+  fun onTestSuiteFinished() {
+    // If no tests were ever discovered by the time the suite finishes, it indicates a build
+    // failure or that no tests were found to run. Close the dialog and show an error.
+    ApplicationManager.getApplication().invokeLater {
+      if (!isFirstTestDiscovered) {
+        close(CANCEL_EXIT_CODE)
+        Messages.showErrorDialog(project, "Error while generating screenshots", "Failed to generate screenshots")
+      }
     }
   }
 
-  override fun createCenterPanel(): JComponent {
+  private fun populateCenterPanel() {
     val splitter = JBSplitter(false, 0.3f)
     tree = createPreviewTree()
     val treeScrollPane = JBScrollPane(tree)
@@ -208,41 +161,22 @@ class UpdateReferenceImagesDialog(
     rightScrollPane.border = null
     splitter.firstComponent = treeScrollPane
     splitter.secondComponent = rightScrollPane
-    val rootPanel = JPanel(BorderLayout())
-    rootPanel.add(splitter, BorderLayout.CENTER)
-    rootPanel.preferredSize = Dimension(800, 600)
-    rootPanel.minimumSize = Dimension(550, 400)
-    return rootPanel
+    centerPanel.add(splitter, "content")
+    centerPanelCardLayout.show(centerPanel, "content")
+  }
+
+  override fun createCenterPanel(): JComponent {
+    val loadingIcon = JBLabel("Generating screenshots", AnimatedIcon.Default(), JBLabel.CENTER)
+    centerPanel.add(loadingIcon, "Loading")
+    centerPanelCardLayout.show(centerPanel, "Loading")
+    centerPanel.preferredSize = Dimension(800, 600)
+    centerPanel.minimumSize = Dimension(550, 400)
+    return centerPanel
   }
 
   private fun createPreviewTree(): CheckboxTree {
-    val rootNode = CheckedTreeNode("Changes")
-    val functionsByFile = previewFunctions.groupBy { it.containingKtFile.name }
+    val rootNode = CheckedTreeNode("Select previews to update")
 
-    functionsByFile.forEach { (fileName, functions) ->
-      val fileNode = CheckedTreeNode(fileName)
-      functions.forEach { function ->
-        val isMultipreview = function.valueParameters.any { param ->
-          param.annotationEntries.any { it.shortName == FqNames.previewParameter.shortName() }
-        }
-
-        val shouldBeChecked = isFunctionInTriggerScope(function)
-        val functionNode = CheckedTreeNode(function.name).apply { isChecked = shouldBeChecked }
-
-        if (isMultipreview) {
-          setupMultipreviewNode(function, functionNode)
-        } else {
-          populateStandardPreviewNodes(function, functionNode, shouldBeChecked)
-        }
-
-        if (functionNode.childCount > 0) {
-          fileNode.add(functionNode)
-        }
-      }
-      if (fileNode.childCount > 0) {
-        rootNode.add(fileNode)
-      }
-    }
 
     val renderer = object : CheckboxTree.CheckboxTreeCellRenderer() {
       override fun customizeRenderer(
@@ -250,120 +184,21 @@ class UpdateReferenceImagesDialog(
         leaf: Boolean, row: Int, hasFocus: Boolean
       ) {
         val userObject = (value as? CheckedTreeNode)?.userObject
-        textRenderer.append(userObject?.toString() ?: "")
+        val displayText = when(userObject) {
+          is PreviewDetails -> userObject.previewName
+          else -> userObject?.toString() ?: ""
+        }
+        textRenderer.append(displayText)
       }
     }
 
     return CheckboxTree(renderer, rootNode).apply {
       isRootVisible = true
       addTreeSelectionListener { updateRightPane(this) }
-      TreeUtil.expandAll(this)
-      if (rootNode.childCount > 0) {
-        selectionPath = TreePath(rootNode.path)
-      }
+      // Select the root node by default when the dialog opens.
+      // The tree will be expanded dynamically as nodes are added.
+      selectionPath = TreePath(rootNode.path)
     }
-  }
-
-  /**
-   * Determines if a function should be checked by default based on the action's trigger point.
-   */
-  private fun isFunctionInTriggerScope(function: KtNamedFunction): Boolean {
-    if (triggerElement == null) {
-      // If the action is triggered from a non-specific context (e.g., a menu),
-      // it's better to check all previews by default.
-      return true
-    }
-
-    // Find the containing function and class for the trigger element.
-    val triggerFunction = PsiTreeUtil.getNonStrictParentOfType(triggerElement, KtNamedFunction::class.java)
-    if (triggerFunction != null) {
-      // Trigger was on a function (or its identifier), check only that function.
-      return function == triggerFunction
-    }
-
-    val triggerClass = PsiTreeUtil.getNonStrictParentOfType(triggerElement, KtClass::class.java)
-    if (triggerClass != null) {
-      // Trigger was on a class (or its identifier), check all functions inside that class.
-      return PsiTreeUtil.isAncestor(triggerClass, function, false)
-    }
-
-    // Fallback for unexpected trigger elements.
-    return true
-  }
-
-  private fun setupMultipreviewNode(function: KtNamedFunction, functionNode: CheckedTreeNode) {
-    val tempDetails = PreviewDetails(function, null, emptyList(), null)
-    val testIdPattern = getIdentifier(tempDetails) ?: return
-    multipreviewNodeMap[testIdPattern] = functionNode
-
-    val providerName = getProviderClassName(function)
-    val placeholderText = if (providerName != null) {
-      "Finding previews from $providerName..."
-    } else {
-      "Running tests to find previews..."
-    }
-
-    val placeholderDetails = PreviewDetails(
-      function = function,
-      annotation = null,
-      allAnnotationsOnFunction = emptyList(),
-      composableFunction = null,
-      displayNameOverride = placeholderText,
-      testId = testIdPattern
-    )
-    val placeholderNode = CheckedTreeNode(placeholderDetails).apply {
-      isEnabled = false
-      isChecked = functionNode.isChecked
-    }
-    functionNode.add(placeholderNode)
-
-    val placeholderPanel = PreviewItemPanel(placeholderDetails, { /* no-op */ })
-    imagePanelMap[testIdPattern] = placeholderPanel
-  }
-
-  private fun populateStandardPreviewNodes(
-    function: KtNamedFunction,
-    functionNode: CheckedTreeNode,
-    shouldBeChecked: Boolean
-  ) {
-    val previewAnnotations = findPreviewAnnotations(function)
-    val composableFunction = findComposableCall(function)
-
-    if (previewAnnotations.isEmpty()) {
-      val details = PreviewDetails(function, null, emptyList(), composableFunction)
-      val testId = getIdentifier(details)
-      val finalDetails = details.copy(testId = testId)
-      val previewNode = CheckedTreeNode(finalDetails).apply { isChecked = shouldBeChecked }
-      functionNode.add(previewNode)
-      createPanelForPreview(finalDetails)
-    } else {
-      // Use a map to de-duplicate previews that would generate the same test.
-      val uniqueDetails = mutableMapOf<String, PreviewDetails>()
-      previewAnnotations.forEach { annotation ->
-        val details = PreviewDetails(function, annotation, previewAnnotations, composableFunction)
-        getIdentifier(details)?.let { testId ->
-          // Only add the first occurrence of a preview with this testId.
-          uniqueDetails.putIfAbsent(testId, details.copy(testId = testId))
-        }
-      }
-
-      // Now, create nodes only for the unique configurations.
-      uniqueDetails.values.forEach { uniqueDetail ->
-        val previewNode = CheckedTreeNode(uniqueDetail).apply { isChecked = shouldBeChecked }
-        functionNode.add(previewNode)
-        createPanelForPreview(uniqueDetail)
-      }
-    }
-  }
-
-  private fun createPanelForPreview(nodeData: PreviewDetails) {
-    nodeData.testId?.let { testId ->
-      val panel = PreviewItemPanel(nodeData, { onImageLoadedSuccessfully() })
-      if (nodeData.function.valueParameters.any { param -> param.annotationEntries.any { it.shortName == FqNames.previewParameter.shortName() } }) {
-        panel.setMultipreview()
-      }
-      imagePanelMap[testId] = panel
-    } ?: logger.warn("Could not create panel because PreviewDetails has no testId: $nodeData")
   }
 
   private fun collectPreviews(startNode: CheckedTreeNode): List<PreviewDetails> {
@@ -371,9 +206,13 @@ class UpdateReferenceImagesDialog(
     val nodesToVisit = ArrayDeque<CheckedTreeNode>().apply { add(startNode) }
     while (nodesToVisit.isNotEmpty()) {
       val currentNode = nodesToVisit.removeFirst()
-      (currentNode.userObject as? PreviewDetails)?.let { previews.add(it) }
+      (currentNode.userObject as? PreviewDetails)?.let {
+        previews.add(it)
+      }
       for (child in currentNode.children()) {
-        if (child is CheckedTreeNode) nodesToVisit.add(child)
+        if (child is CheckedTreeNode) {
+          nodesToVisit.add(child)
+        }
       }
     }
     return previews
@@ -389,10 +228,10 @@ class UpdateReferenceImagesDialog(
       if (previewsToShow.isEmpty()) {
         previewsContainer.add(placeholderLabel)
       } else {
-        val previewsByFunction = previewsToShow.groupBy { it.function }
+        val previewsByFunction = previewsToShow.groupBy { it.methodName }
         previewsByFunction.forEach { (function, previews) ->
           val functionNameLabel =
-            JBLabel(function.name ?: "Unnamed Function").apply {
+            JBLabel(function ?: "Unnamed Function").apply {
               font = font.deriveFont(Font.BOLD, font.size + 2f)
               border = BorderFactory.createEmptyBorder(15, 5, 5, 5)
               alignmentX = JComponent.LEFT_ALIGNMENT
@@ -404,8 +243,7 @@ class UpdateReferenceImagesDialog(
               border = BorderFactory.createEmptyBorder(10, 20, 10, 20)
             }
           previews.forEach { previewData ->
-            val testId = previewData.testId ?: getIdentifier(previewData)
-            imagePanelMap[testId]?.let { panel ->
+            imagePanelMap[previewData.testId]?.let { panel ->
               horizontalPreviewsPanel.add(panel)
             }
           }
@@ -451,7 +289,7 @@ class UpdateReferenceImagesDialog(
 
     val failedPreviews = panelsToCopy.filter { !it.isLoadedSuccessfully }
     if (failedPreviews.isNotEmpty()) {
-      val failedNames = failedPreviews.joinToString(separator = "\n") { "- ${it.previewData.displayName}" }
+      val failedNames = failedPreviews.joinToString(separator = "\n") { "- ${it.previewData.previewName}" }
       Messages.showErrorDialog(
         project,
         "The following selected previews have not rendered successfully. Please uncheck them to proceed:\n\n$failedNames",
@@ -490,7 +328,7 @@ class UpdateReferenceImagesDialog(
           close(OK_EXIT_CODE)
           Messages.showInfoMessage(project, "Reference images were updated successfully.", "Update Successful")
         } else {
-          val failedNames = failures.joinToString(separator = "\n") { "- ${it.previewData.displayName}" }
+          val failedNames = failures.joinToString(separator = "\n") { "- ${it.previewData.previewName}" }
           Messages.showErrorDialog(project, "Failed to copy the following previews:\n\n$failedNames", "Copy Failed")
           okButton?.text = originalText
           okButton?.icon = null
@@ -501,3 +339,10 @@ class UpdateReferenceImagesDialog(
     }
   }
 }
+
+data class PreviewDetails(
+  val testId: String,
+  val className: String,
+  val methodName: String,
+  val previewName: String
+)

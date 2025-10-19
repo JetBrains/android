@@ -15,15 +15,10 @@
  */
 package com.android.screenshottest.ui
 
-import com.android.screenshottest.util.PreviewDetails
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.ui.JBColor
-import com.intellij.ui.components.AnActionLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ImageLoader
 import com.intellij.util.ui.AsyncProcessIcon
@@ -88,24 +83,10 @@ class PreviewItemPanel(
       JBLabel(previewData.toString()).apply { alignmentX = JComponent.LEFT_ALIGNMENT }
     detailsPanel.add(matchLabel)
     detailsPanel.add(previewNameLabel)
-    val composable = previewData.composableFunction
-    if (composable != null && composable != previewData.function) {
-      val navigationAction = object : AnAction("Composable: ${composable.name}") {
-        override fun actionPerformed(e: AnActionEvent) {
-          if (composable.canNavigate()) composable.navigate(true)
-        }
-      }
-      val composableLink = AnActionLink(navigationAction, ActionPlaces.UNKNOWN)
-      composableLink.alignmentX = JComponent.LEFT_ALIGNMENT
-      detailsPanel.add(composableLink)
-    }
+    // TODO: Add Composable link
 
     c.gridy = 1
     add(detailsPanel, c)
-  }
-
-  fun setMultipreview() {
-    imagePanel.setMultipreview()
   }
 
   fun showError(message: String) {
@@ -213,10 +194,6 @@ class PreviewItemPanel(
       add(JBLabel(message).apply { foreground = JBColor.RED })
       revalidate()
       repaint()
-    }
-
-    fun setMultipreview() {
-      loadingIcon.toolTipText = "Waiting for multipreview..."
     }
 
     override fun paintComponent(g: Graphics) {
