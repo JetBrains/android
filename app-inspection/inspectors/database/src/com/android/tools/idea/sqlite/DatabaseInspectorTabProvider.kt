@@ -113,6 +113,7 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
 
       private val dbClient =
         DatabaseInspectorClient(
+          project,
           messenger,
           parentDisposable,
           handleError,
@@ -120,6 +121,7 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
           onDatabasePossiblyChanged,
           onDatabaseClosed,
           taskExecutor,
+          ideServices,
           databaseInspectorProjectService.scope,
           errorsSideChannel,
         )
