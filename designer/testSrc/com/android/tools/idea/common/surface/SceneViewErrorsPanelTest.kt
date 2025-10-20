@@ -16,17 +16,26 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueFixActionProvider
+import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.ide.DataManager
+import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.JBLabel
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -118,9 +127,16 @@ class SceneViewErrorsPanelTest {
   @Test
   fun testAiFixButtonIsAvailable() {
     StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.override(true)
+
+    val throwable = Throwable("Test error")
+    val issue = createIssue(throwable)
+
+    var capturedSelectedItem: Issue? = null
     val testAction =
       object : AnAction("Fix with AI") {
-        override fun actionPerformed(e: AnActionEvent) {}
+        override fun actionPerformed(e: AnActionEvent) {
+          capturedSelectedItem = e.getData(PlatformDataKeys.SELECTED_ITEM) as? Issue
+        }
       }
     val issueFixActionProvider =
       object : IssueFixActionProvider {
@@ -134,8 +150,7 @@ class SceneViewErrorsPanelTest {
       disposableRule.disposable,
     )
 
-    val sceneViewErrorsPanel =
-      SceneViewErrorsPanel(errorProvider = { listOf(Throwable("Test error")) })
+    val sceneViewErrorsPanel = SceneViewErrorsPanel(errorProvider = { listOf(throwable) })
     panelParent.add(sceneViewErrorsPanel, BorderLayout.CENTER)
     fakeUi.root.validate()
     fakeUi.updateToolbars()
@@ -144,7 +159,22 @@ class SceneViewErrorsPanelTest {
       (sceneViewErrorsPanel.layout as BorderLayout).getLayoutComponent(BorderLayout.SOUTH)
         as ActionToolbar
     assertNotNull(toolbar)
-    assertTrue(toolbar.actions.any { it.templatePresentation.text == "Fix with AI" })
+    val action: AnAction? =
+      toolbar.actions.firstOrNull() { it.templatePresentation.text == "Fix with AI" }
+    assertNotNull(action)
+
+    // Setting up data provider
+    val provider = EdtNoGetDataProvider { sink ->
+      DataSink.uiDataSnapshot(sink, sceneViewErrorsPanel)
+    }
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
+      provider,
+      disposableRule.disposable,
+    )
+
+    // Performing action
+    action?.actionPerformed(TestActionEvent.createTestEvent(action))
+    assertEquals(issue, capturedSelectedItem)
   }
 
   @Test
@@ -178,4 +208,13 @@ class SceneViewErrorsPanelTest {
     assertNotNull(toolbar)
     assertFalse(toolbar.actions.any { it.templatePresentation.text == "Fix with AI" })
   }
+
+  private fun createIssue(throwable: Throwable) =
+    object : Issue() {
+      override val summary: String = throwable.message ?: throwable.message ?: "Render error"
+      override val description: String = throwable.stackTraceToString()
+      override val severity: HighlightSeverity = HighlightSeverity.ERROR
+      override val source: IssueSource = IssueSource.NONE
+      override val category: String = "Render Error"
+    }
 }
