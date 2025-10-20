@@ -2,7 +2,6 @@ package com.android.tools.idea.logcat.actions
 
 import com.android.adblib.connectedDevicesTracker
 import com.android.adblib.deviceProperties
-import com.android.adblib.isOnline
 import com.android.adblib.serialNumber
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.FakeAdbServerProvider
@@ -10,6 +9,8 @@ import com.android.adblib.testingutils.FakeAdbServerProviderRule
 import com.android.adblib.tools.debugging.AppProcess
 import com.android.adblib.tools.debugging.appProcessTracker
 import com.android.adblib.tools.debugging.jdwpProcessTracker
+import com.android.adblib.waitForDevice
+import com.android.adblib.waitUntilOnline
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.DeviceState.HostConnectionType.USB
 import com.android.sdklib.AndroidVersion
@@ -315,10 +316,10 @@ class TerminateAppActionsTest {
           device.apiLevel,
           USB,
         )
-        .also { it.deviceStatus = DeviceState.DeviceStatus.DEVICE }
-    adbSession.connectedDevicesTracker.connectedDevices.waitFor {
-      it.serialNumber == device.serialNumber && it.isOnline
-    }
+        .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
+
+    val connectedDevice = adbSession.connectedDevicesTracker.waitForDevice(device.serialNumber)
+    connectedDevice.waitUntilOnline()
     return deviceState
   }
 
