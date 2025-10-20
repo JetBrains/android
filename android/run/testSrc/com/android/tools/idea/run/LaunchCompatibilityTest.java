@@ -167,17 +167,16 @@ public class LaunchCompatibilityTest extends TestCase {
     assertEquals(new LaunchCompatibility(State.OK, null), compatibility);
   }
 
-  public void testXrGlassesCompatibility() {
+  public void testAIGlassesCompatibility() {
     AndroidVersion minSdkVersion = new AndroidVersion(34, null);
     MockPlatformTarget projectTarget = new MockPlatformTarget(34, 0);
     AndroidDevice device = createMockDevice(34, null);
-    // TODO merge
-    //when(device.supportsFeature(IDevice.HardwareFeature.XR_GLASSES)).thenAnswer((answer) -> answer.getArgument(0) == IDevice.HardwareFeature.XR_GLASSES);
+    when(device.supportsFeature(IDevice.HardwareFeature.AI_GLASSES)).thenAnswer((answer) -> answer.getArgument(0) == IDevice.HardwareFeature.AI_GLASSES);
 
     LaunchCompatibility compatibility =
       LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, NO_FEATURES,
                                          ImmutableSet.of(), device);
-    assertEquals(new LaunchCompatibility(State.WARNING, "XR Glasses can not run application"), compatibility);
+    assertEquals(new LaunchCompatibility(State.WARNING, "AI Glasses can not run application"), compatibility);
   }
 
   private static AndroidDevice createMockDevice(int api, @Nullable String codeName) {

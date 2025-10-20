@@ -97,7 +97,7 @@ internal class PreviewSurfaceActionManager(
 
   override fun getSceneViewContextToolbarActions(): List<AnAction?> =
     listOfNotNull(
-      StudioFlags.COMPOSE_PREVIEW_XR_GLASSES_PREVIEW.ifEnabled { GlassesBlendDropdownAction() }
+      StudioFlags.COMPOSE_PREVIEW_AI_GLASSES_PREVIEW.ifEnabled { GlassesBlendDropdownAction() }
     )
 
   override fun getSceneViewContextToolbarOverflowActions(): List<AnAction> =

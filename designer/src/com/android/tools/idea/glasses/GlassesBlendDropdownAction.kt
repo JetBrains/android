@@ -24,8 +24,8 @@ import icons.StudioIcons
 
 /**
  * A Dropdown action that contains preset backgrounds to be applied in a Compose Preview when the
- * device is XR glasses. The backgrounds will be blended into the preview by applying certain
- * heuristics used to simulate how Composables look like in XR Glasses environment.
+ * device is AI glasses. The backgrounds will be blended into the preview by applying certain
+ * heuristics used to simulate how Composables look like in AI Glasses environment.
  */
 class GlassesBlendDropdownAction :
   DropDownAction("Select Preset Backgrounds", null, StudioIcons.Avd.DEVICE_GLASS) {
@@ -36,7 +36,7 @@ class GlassesBlendDropdownAction :
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.isEnabledAndVisible =
-      Device.isXrGlasses(e.getData(SCENE_VIEW)?.configuration?.device)
+      Device.isAiGlasses(e.getData(SCENE_VIEW)?.configuration?.device)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

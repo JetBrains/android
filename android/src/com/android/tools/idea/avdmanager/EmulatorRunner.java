@@ -108,8 +108,7 @@ public class EmulatorRunner {
     if (isFoldable(avdInfo)) {
       return AvdClass.FOLDABLE;
     }
-    // TODO merge
-    if (SystemImageTags.isXrHeadsetImage(tags)/* || SystemImageTags.isXrGlassesImage(tags)*/) {
+    if (SystemImageTags.isXrHeadsetImage(tags) || SystemImageTags.isAiGlassesImage(tags)) {
       return AvdClass.XR;
     }
     return AvdClass.GENERIC;

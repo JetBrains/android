@@ -59,7 +59,7 @@ internal data class VirtualDeviceProfile(
         FormFactors.AUTO -> StudioIconsCompose.DeviceExplorer.VirtualDeviceCar
         FormFactors.WEAR -> StudioIconsCompose.DeviceExplorer.VirtualDeviceWear
         FormFactors.XR ->
-          if (Device.isXrGlasses(device)) StudioIconsCompose.DeviceExplorer.VirtualDeviceGlass
+          if (Device.isAiGlasses(device)) StudioIconsCompose.DeviceExplorer.VirtualDeviceGlass
           else StudioIconsCompose.DeviceExplorer.VirtualDeviceHeadset
         // TODO: Add icon for tablet
         else -> StudioIconsCompose.DeviceExplorer.VirtualDevicePhone
