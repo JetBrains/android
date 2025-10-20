@@ -27,12 +27,14 @@ import com.android.adblib.MdnsTlsService
 import com.android.adblib.MdnsTrackServiceInfo
 import com.android.adblib.ServiceInstanceName
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
+import com.android.tools.adtui.compose.utils.lingerMouseHover
 import com.android.tools.idea.adb.wireless.MdnsSupportState
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
 import com.android.tools.idea.adb.wireless.TrackingMdnsService
 import com.android.tools.idea.adb.wireless.WiFiPairingController
 import com.android.tools.idea.adb.wireless.WiFiPairingService
 import com.android.tools.idea.adb.wireless.v2.ui.WifiAvailableDevicesDialog.Companion.SEARCH_BAR_TEST_TAG
+import com.android.tools.idea.adb.wireless.v2.ui.WifiAvailableDevicesDialog.Companion.WARNING_TOOLTIP_TEST_TAG
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -252,6 +254,59 @@ class WifiAvailableDevicesDialogTest {
 
     composeTestRule.onNodeWithText("Foo Pixel").assertIsDisplayed()
     composeTestRule.onNodeWithText("192.168.1.103:5557").assertIsDisplayed()
+  }
+
+  @Test
+  fun deviceNeedsUpdate_showsWarningTooltip() = runTest {
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
+    whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
+    val needsUpdateService =
+      createMdnsTlsService(
+        "service1",
+        "192.168.1.101",
+        5555,
+        "Old Device",
+        "30",
+        mdnsServiceVersion = "1",
+      )
+    adblibMdnsServicesFlow.value =
+      MdnsServices(emptyList(), listOf(needsUpdateService), emptyList())
+
+    composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
+
+    composeTestRule
+      .onNode(hasTestTag(WARNING_TOOLTIP_TEST_TAG), useUnmergedTree = true)
+      .lingerMouseHover(composeTestRule)
+
+    composeTestRule
+      .onNodeWithText("Check for device software updates to improve Wi-Fi pairing.")
+      .assertIsDisplayed()
+  }
+
+  @Test
+  fun deviceUpToDate_dontShowWarningTooltip() = runTest {
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
+    whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
+    val deviceUpToDate =
+      createMdnsTlsService(
+        "service1",
+        "192.168.1.101",
+        5555,
+        "New Device",
+        "30",
+        mdnsServiceVersion = "2.0",
+      )
+    adblibMdnsServicesFlow.value = MdnsServices(emptyList(), listOf(deviceUpToDate), emptyList())
+
+    composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
+
+    composeTestRule
+      .onNode(hasTestTag(WARNING_TOOLTIP_TEST_TAG), useUnmergedTree = true)
+      .lingerMouseHover(composeTestRule)
+
+    composeTestRule
+      .onNodeWithText("Check for device software updates to improve Wi-Fi pairing.")
+      .assertDoesNotExist()
   }
 
   @Test
