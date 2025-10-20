@@ -19,10 +19,10 @@ import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidMod
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
+import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -41,7 +41,7 @@ import org.junit.Test;
  * {@link ProductFlavorModelImpl} is tested in great deal to cover all combinations in {@link ProductFlavorModelTest} using the
  * {@code android.defaultConfig {}} block.
  */
-public class ProductFlavorsElementTest extends GradleFileModelTestCase {
+public class ProductFlavorsElementTest extends AndroidGradleFileModelTestCase {
   @Test
   public void testProductFlavorsWithApplicationStatements() throws Exception {
     writeToBuildFile(TestFile.PRODUCT_FLAVORS_WITH_APPLICATION_STATEMENTS);

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.model.android.FlavorTypeModelImpl;
-import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.intellij.psi.PsiElement;
@@ -29,10 +27,6 @@ import org.jetbrains.annotations.Nullable;
  * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradleDslSimpleExpression}.
  */
 public final class GradleDslExpressionMap extends GradlePropertiesDslElement implements GradleDslExpression {
-  public static final PropertiesElementDescription<GradleDslExpressionMap> MANIFEST_PLACEHOLDERS = new PropertiesElementDescription<>(
-    FlavorTypeModelImpl.MANIFEST_PLACEHOLDERS.name, GradleDslExpressionMap.class, GradleDslExpressionMap::new);
-  public static final PropertiesElementDescription<GradleDslExpressionMap> TEST_INSTRUMENTATION_RUNNER_ARGUMENTS =
-    new PropertiesElementDescription<>(ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS.name, GradleDslExpressionMap.class, GradleDslExpressionMap::new);
   public static final PropertiesElementDescription<GradleDslExpressionMap> VERSIONS =
     new PropertiesElementDescription<>("versions", GradleDslExpressionMap.class, GradleDslExpressionMap::new);
 

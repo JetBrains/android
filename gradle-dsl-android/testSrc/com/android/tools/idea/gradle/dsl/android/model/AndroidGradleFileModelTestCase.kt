@@ -16,10 +16,21 @@
 package com.android.tools.idea.gradle.dsl.android.model
 
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidGradleDeclarativeBuildModel
+import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel.TypeNameValueElement
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import junit.framework.TestCase
 
 abstract class AndroidGradleFileModelTestCase: GradleFileModelTestCase("tools/adt/idea/gradle-dsl-android/testData/parser") {
   override fun getGradleDeclarativeBuildModel(): AndroidGradleDeclarativeBuildModel {
     return super.getGradleDeclarativeBuildModel() as AndroidGradleDeclarativeBuildModel
+  }
+
+  fun verifyFlavorType(message: String, expected: List<List<Any?>>, elements: List<TypeNameValueElement>?) {
+    assertEquals(message, expected.size, elements!!.size)
+    for (i in expected.indices) {
+      val list = expected.get(i)
+      val element: TypeNameValueElement = elements.get(i)
+      GradleFileModelTestCase.assertEquals(message, list, element.getModel())
+    }
   }
 }
