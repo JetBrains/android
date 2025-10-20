@@ -98,9 +98,9 @@ class SceneViewErrorsPanelTest {
     panelParent.add(sceneViewErrorsPanel, BorderLayout.CENTER)
 
     assertEquals(35, sceneViewErrorsPanel.minimumSize.height)
-    assertEquals(120, sceneViewErrorsPanel.minimumSize.width)
+    assertEquals(130, sceneViewErrorsPanel.minimumSize.width)
     assertEquals(35, sceneViewErrorsPanel.preferredSize.height)
-    assertEquals(120, sceneViewErrorsPanel.preferredSize.width)
+    assertEquals(130, sceneViewErrorsPanel.preferredSize.width)
   }
 
   @Test
@@ -110,9 +110,9 @@ class SceneViewErrorsPanelTest {
     panelParent.add(sceneViewErrorsPanel, BorderLayout.CENTER)
 
     assertEquals(70, sceneViewErrorsPanel.minimumSize.height)
-    assertEquals(120, sceneViewErrorsPanel.minimumSize.width)
+    assertEquals(130, sceneViewErrorsPanel.minimumSize.width)
     assertEquals(70, sceneViewErrorsPanel.preferredSize.height)
-    assertEquals(120, sceneViewErrorsPanel.preferredSize.width)
+    assertEquals(130, sceneViewErrorsPanel.preferredSize.width)
   }
 
   @Test
