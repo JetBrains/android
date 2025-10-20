@@ -149,6 +149,27 @@ class RenderingComponentsTest {
     assertThat(fakeSessionStats.setOnDeviceRenderingInvocations).isEqualTo(1)
   }
 
+  @Test
+  fun testOnDeviceRenderingSharesBetweenDifferentRenderers() {
+    val xrDisplay1 =
+      displayViewRule.newEmulatorView(avdCreator = { path -> FakeEmulator.createXrAvd(path) })
+    val xrDisplay2 =
+      displayViewRule.newEmulatorView(avdCreator = { path -> FakeEmulator.createXrAvd(path) })
+
+    val fakeSessionStats = FakeSessionStats()
+    val renderingComponents =
+      createRenderingComponents(
+        disposable = displayViewRule.disposable,
+        displayList = listOf(xrDisplay1, xrDisplay2),
+        layoutInspector = layoutInspector,
+        statsProvider = { fakeSessionStats },
+      )
+
+    assertThat(renderingComponents).hasSize(2)
+    assertThat(renderingComponents[0].model).isEqualTo(renderingComponents[1].model)
+    assertThat(renderingComponents[0].renderer).isNotEqualTo(renderingComponents[1].renderer)
+  }
+
   private fun createRenderingComponents(
     displayView: AbstractDisplayView,
     disposable: Disposable = displayViewRule.disposable,
