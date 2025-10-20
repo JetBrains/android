@@ -61,7 +61,7 @@ class SceneViewErrorsPanel(
 
   private val height =
     if (StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.get()) EXTENDED_HEIGHT else DEFAULT_HEIGHT
-  private val size = JBUI.size(120, height)
+  private val size = JBUI.size(130, height)
   private val label =
     JBLabel(ERROR_LABEL_CONTENT).apply {
       foreground = Gray._119
