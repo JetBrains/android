@@ -16,23 +16,29 @@
 package com.android.tools.idea.sqlite
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol.AcquireDatabaseLockCommand
+import androidx.sqlite.inspection.SqliteInspectorProtocol.AdditionalDriver
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Command
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Event
 import androidx.sqlite.inspection.SqliteInspectorProtocol.KeepDatabasesOpenCommand
 import androidx.sqlite.inspection.SqliteInspectorProtocol.ReleaseDatabaseLockCommand
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Response
 import androidx.sqlite.inspection.SqliteInspectorProtocol.TrackDatabasesCommand
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices.Severity.ERROR
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle.message
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.android.tools.idea.sqlite.settings.DatabaseInspectorProjectSettings
 import com.android.tools.idea.sqlite.settings.DatabaseInspectorSettings
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.project.Project
 import java.util.concurrent.Executor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -49,6 +55,7 @@ import kotlinx.coroutines.launch
  *   be created using SupervisorJob, to avoid the parent Job from failing when child Jobs fail.
  */
 class DatabaseInspectorClient(
+  private val project: Project,
   private val messenger: AppInspectorMessenger,
   private val parentDisposable: Disposable,
   private val onErrorEventListener: (errorMessage: String) -> Unit,
@@ -56,6 +63,7 @@ class DatabaseInspectorClient(
   private val onDatabasePossiblyChanged: () -> Unit,
   private val onDatabaseClosed: (databaseId: SqliteDatabaseId) -> Unit,
   private val taskExecutor: Executor,
+  private val ideServices: AppInspectionIdeServices,
   scope: CoroutineScope,
   errorsSideChannel: ErrorsSideChannel = { _, _ -> },
 ) : DatabaseInspectorClientCommandsChannel {
@@ -119,9 +127,27 @@ class DatabaseInspectorClient(
   suspend fun startTrackingDatabaseConnections() {
     val command = TrackDatabasesCommand.newBuilder()
     if (StudioFlags.APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR.get()) {
-      command.setForceOpen(DatabaseInspectorSettings.getInstance().isForceOpen)
+      command.forceOpen = DatabaseInspectorSettings.getInstance().isForceOpen
     }
-    dbMessenger.sendCommand(Command.newBuilder().setTrackDatabases(command.build()))
+    val settings = DatabaseInspectorProjectSettings.getInstance(project)
+    if (StudioFlags.APP_INSPECTION_ENABLE_ADDITIONAL_SQL_DRIVER.get()) {
+      if (settings.additionalDriverClass.isNotEmpty()) {
+        command.addAdditionalDrivers(
+          AdditionalDriver.newBuilder()
+            .setDriverClass(settings.additionalDriverClass)
+            .setConnectionClass(settings.additionalConnectionClass)
+        )
+      }
+    }
+    val response = dbMessenger.sendCommand(Command.newBuilder().setTrackDatabases(command.build()))
+
+    if (response.trackDatabases.trackedAdditionalDriversCount != command.additionalDriversCount) {
+      ideServices.showNotification(
+        message("notification.additional.driver.error", settings.additionalDriverClass),
+        message("database.inspector"),
+        ERROR,
+      )
+    }
   }
 
   /**
