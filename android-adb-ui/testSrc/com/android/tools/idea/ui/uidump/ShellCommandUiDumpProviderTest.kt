@@ -47,12 +47,41 @@ internal class ShellCommandUiDumpProviderTest {
 
   @Before
   fun setUp() {
-    deviceServices.configureShellCommand(device, COMMANDLINE, UI_DUMP_OUTPUT)
   }
 
   @Test
-  fun simple() {
+  fun successDump() {
+    deviceServices.configureShellCommand(device, DUMP_COMMAND,
+                                         "UI hierarchy dumped to: $TMP_DUMP_FILE")
+    deviceServices.configureShellCommand(device, READ_COMMAND, UI_DUMP_OUTPUT)
+    deviceServices.configureShellCommand(device, CLEANUP_COMMAND, "")
+
     val dump = runBlockingWithTimeout { uiDumpProvider.uiDump(project, serialNumber) }
     assertEquals(UI_DUMP_OUTPUT, dump)
+  }
+
+  @Test
+  fun failedDump() {
+    val errorMessage = "Bad things happened"
+    deviceServices.configureShellCommand(device, DUMP_COMMAND,
+                                         stdout = "",
+                                         stderr = errorMessage,
+                                         exitCode = 1)
+
+    val dump = runBlockingWithTimeout { uiDumpProvider.uiDump(project, serialNumber) }
+    assertEquals("$DUMP_COMMAND failed with exit code 1. $errorMessage", dump)
+  }
+
+  @Test
+  fun failedRead() {
+    val errorMessage = "Bad things happened again"
+    deviceServices.configureShellCommand(device, DUMP_COMMAND,
+                                         "UI hierarchy dumped to: $TMP_DUMP_FILE")
+    deviceServices.configureShellCommand(device, READ_COMMAND,
+                                         stdout = "",
+                                         stderr = errorMessage,
+                                         exitCode = 1)
+    val dump = runBlockingWithTimeout { uiDumpProvider.uiDump(project, serialNumber) }
+    assertEquals("Failed to read $TMP_DUMP_FILE. $errorMessage", dump)
   }
 }
