@@ -580,7 +580,7 @@ data class BuildGraphDataImpl(
   override fun computeWholeProjectTargets(projectDefinition: ProjectDefinition): RequestedTargets {
     val effectiveTargetPatterns = projectDefinition.effectiveTargetPatterns
     return computeRequestedTargets(
-      storage.allSupportedTargets.getTargets().filter { effectiveTargetPatterns.inScope(it) == INCLUDED }.toList()
+      storage.allSupportedTargets.getTargets().filter { effectiveTargetPatterns.inScope(it).status == INCLUDED }.toList()
     )
   }
 

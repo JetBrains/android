@@ -16,9 +16,11 @@
 package com.google.idea.blaze.common
 
 import com.google.common.truth.Expect
+import com.google.idea.blaze.common.TargetPattern.ScopeStatus
 import com.google.idea.blaze.common.TargetPattern.ScopeStatus.INCLUDED
 import com.google.idea.blaze.common.TargetPattern.ScopeStatus.EXCLUDED
 import com.google.idea.blaze.common.TargetPattern.ScopeStatus.NOT_IN_SCOPE
+import com.google.idea.blaze.common.TargetPatternCollection.ScopeStatusAndIndex
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -90,9 +92,9 @@ class TargetPatternTest {
   @Test
   fun simpleScope() {
     val scope = TargetPatternCollection.create(listOf(TargetPattern.parse("//..."), TargetPattern.parse("-//some")))
-    expect.that(scope.inScope(Label.of("//some/path"))).isEqualTo(INCLUDED)
-    expect.that(scope.inScope(Label.of("//some"))).isEqualTo(EXCLUDED)
-    expect.that(scope.inScope(Label.of("@@repo//some"))).isEqualTo(NOT_IN_SCOPE)
+    expect.that(scope.inScope(Label.of("//some/path"))).isEqualTo(INCLUDED at 0)
+    expect.that(scope.inScope(Label.of("//some"))).isEqualTo(EXCLUDED at 1)
+    expect.that(scope.inScope(Label.of("@@repo//some"))).isEqualTo(NOT_IN_SCOPE at -1)
   }
 
   @Test
@@ -103,9 +105,9 @@ class TargetPatternTest {
       TargetPattern.parse("-//some/deeper/..."),
       TargetPattern.parse("//some/deeper/other/path"),
     ))
-    expect.that(scope.inScope(Label.of("//some/deeper/path"))).isEqualTo(EXCLUDED)
-    expect.that(scope.inScope(Label.of("//some/deeper/other/path"))).isEqualTo(INCLUDED)
-    expect.that(scope.inScope(Label.of("//other/path"))).isEqualTo(NOT_IN_SCOPE)
+    expect.that(scope.inScope(Label.of("//some/deeper/path"))).isEqualTo(EXCLUDED at 1)
+    expect.that(scope.inScope(Label.of("//some/deeper/other/path"))).isEqualTo(INCLUDED at 3)
+    expect.that(scope.inScope(Label.of("//other/path"))).isEqualTo(NOT_IN_SCOPE at -1)
   }
 
   @Test
@@ -115,9 +117,11 @@ class TargetPatternTest {
       TargetPattern.parse("-//some/deeper:all"),
       TargetPattern.parse("//some/deeper:but-this-one"),
     ))
-    expect.that(scope.inScope(Label.of("//some/deeper/more"))).isEqualTo(INCLUDED)
-    expect.that(scope.inScope(Label.of("//some/deeper:target"))).isEqualTo(EXCLUDED)
-    expect.that(scope.inScope(Label.of("//some/deeper:but-this-one"))).isEqualTo(INCLUDED)
-    expect.that(scope.inScope(Label.of("//other/path"))).isEqualTo(NOT_IN_SCOPE)
+    expect.that(scope.inScope(Label.of("//some/deeper/more"))).isEqualTo(INCLUDED at 0)
+    expect.that(scope.inScope(Label.of("//some/deeper:target"))).isEqualTo(EXCLUDED at 1)
+    expect.that(scope.inScope(Label.of("//some/deeper:but-this-one"))).isEqualTo(INCLUDED at 2)
+    expect.that(scope.inScope(Label.of("//other/path"))).isEqualTo(NOT_IN_SCOPE at -1)
   }
 }
+
+private infix fun ScopeStatus.at(index: Int)  = ScopeStatusAndIndex(this, index)
