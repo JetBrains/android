@@ -80,8 +80,8 @@ data class Label(val workspace: String, val buildPackage: String, val name: Stri
     @JvmStatic
     fun fromWorkspacePackageAndName(workspace: String, packagePath: Path, name: Path): Label {
       return if (workspace.isEmpty())
-        Label.of("//$packagePath:$name")
-      else Label.of("@@$workspace//$packagePath:$name")
+        of("//$packagePath:$name")
+      else of("@@$workspace//$packagePath:$name")
     }
 
     @JvmStatic
@@ -199,16 +199,22 @@ data class TargetPattern(
 }
 
 class TargetPatternCollection(private val root: Node, private val rootScope: ScopeStatus) {
-  class Node(val key: String, var children: MutableMap<String, Node> = mutableMapOf(), var scope: ((Label) -> ScopeStatus)? = null)
+  class Node(val key: String, val index: Int, var children: MutableMap<String, Node> = mutableMapOf(), var scope: ((Label) -> ScopeStatus)? = null)
 
-  fun inScope(target: Label): ScopeStatus {
+  data class ScopeStatusAndIndex(val status: ScopeStatus, val index: Int)
+  fun inScope(target: Label): ScopeStatusAndIndex {
     var node = root
     var lastScope: ((Label) -> ScopeStatus) = { rootScope }
+    var lastIndex = root.index
     for (key in target.structuralKeys()) {
       node = node.children[key] ?: break
-      lastScope = node.scope ?: lastScope
+      val nodeScope = node.scope
+      if (nodeScope != null) {
+        lastScope = nodeScope
+        lastIndex = node.index
+      }
     }
-    return lastScope(target)
+    return ScopeStatusAndIndex(lastScope(target), lastIndex)
   }
 
   companion object {
@@ -216,21 +222,17 @@ class TargetPatternCollection(private val root: Node, private val rootScope: Sco
     fun create(patterns: List<TargetPattern>): TargetPatternCollection {
       if (patterns.isEmpty()) {
         // The empty list means everything is included.
-        return TargetPatternCollection(Node(key = ""), rootScope = INCLUDED)
+        return TargetPatternCollection(Node(key = "", index = -1), rootScope = INCLUDED)
       }
-      val root = Node(key = "")
+      val root = Node(key = "", index = -1)
 
-      fun add(pattern: TargetPattern) {
+      for ((index, pattern) in patterns.withIndex()) {
         var node = root
         for (key in pattern.structuralKeys()) {
-          node = node.children.getOrPut(key) { Node(key) }
+          node = node.children.getOrPut(key) { Node(key, index) }
         }
         node.children.clear() // Override any previously configured patterns underneath.
         node.scope = pattern::inScope
-      }
-
-      for (pattern in patterns) {
-        add(pattern)
       }
       return TargetPatternCollection(root, rootScope = NOT_IN_SCOPE)
     }
