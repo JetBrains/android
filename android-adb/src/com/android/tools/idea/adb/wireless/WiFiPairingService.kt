@@ -95,6 +95,7 @@ data class PairingMdnsService(
   val serviceType: ServiceType,
   val ipAddress: InetAddress,
   val port: Int,
+  val serial: String?,
 ) {
   /** A user friendly string representation of the device */
   val displayString: String
