@@ -285,7 +285,7 @@ class PreviewSurfaceActionManagerTest {
 
   @Test
   fun `verify actions contain glasses dropdown action if flag is enabled`() {
-    StudioFlags.COMPOSE_PREVIEW_XR_GLASSES_PREVIEW.overrideForTest(
+    StudioFlags.COMPOSE_PREVIEW_AI_GLASSES_PREVIEW.overrideForTest(
       true,
       projectRule.testRootDisposable,
     )
@@ -298,7 +298,7 @@ class PreviewSurfaceActionManagerTest {
 
   @Test
   fun `verify actions doesn't contain glasses dropdown action if flag is disabled`() {
-    StudioFlags.COMPOSE_PREVIEW_XR_GLASSES_PREVIEW.overrideForTest(
+    StudioFlags.COMPOSE_PREVIEW_AI_GLASSES_PREVIEW.overrideForTest(
       false,
       projectRule.testRootDisposable,
     )

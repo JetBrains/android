@@ -212,10 +212,10 @@ public final class StudioFlags {
     "Enable XR template",
     "Allows the XR template to be used.");
 
-  public static final Flag<Boolean> NPW_ENABLE_XR_GLASSES_TEMPLATE = new BooleanFlag(
-    NPW, "xr.glasses.template",
-    "Enable XR Glasses template",
-    "Allows the XR Glasses template to be used.");
+  public static final Flag<Boolean> NPW_ENABLE_AI_GLASSES_TEMPLATE = new BooleanFlag(
+    NPW, "ai.glasses.template",
+    "Enable AI Glasses template",
+    "Allows the AI Glasses template to be used.");
 
   public static final Flag<Boolean> NPW_ENABLE_NAVIGATION_UI_TEMPLATE = new BooleanFlag(
     NPW, "navigationui.template",
@@ -1197,9 +1197,9 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "allow.xr", "Allow XR headset AVD to run embedded",
     "Enables running an XR headset AVD in the Running Devices tool window"
     );
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_ALLOW_XR_GLASSES_AVD = new BooleanFlag(
-    EMBEDDED_EMULATOR, "allow.xr.glasses", "Allow XR glasses AVD to run embedded",
-    "Enables running an XR glasses AVD in the Running Devices tool window"
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_ALLOW_AI_GLASSES_AVD = new BooleanFlag(
+    EMBEDDED_EMULATOR, "allow.ai.glasses", "Allow AI glasses AVD to run embedded",
+    "Enables running an AI glasses AVD in the Running Devices tool window"
   );
   public static final Flag<Boolean> EMBEDDED_EMULATOR_XR_HAND_TRACKING = new BooleanFlag(
     EMBEDDED_EMULATOR, "xr.hand.tracking", "Enable hand tracking input mode for XR AVDs",
@@ -1647,9 +1647,9 @@ public final class StudioFlags {
     COMPOSE, "preview.render.tool", "Enable the Compose Preview render agent tool",
     "If enabled, an agent tool to render Compose Previews will be available for agents.");
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_XR_GLASSES_PREVIEW = new BooleanFlag(
-    COMPOSE, "preview.xr.glasses.preview", "Enable Compose Preview for XR Glasses",
-    "If enabled, Compose Preview will have limited support for XR Glasses when glasses are set as the preview device.");
+  public static final Flag<Boolean> COMPOSE_PREVIEW_AI_GLASSES_PREVIEW = new BooleanFlag(
+    COMPOSE, "preview.ai.glasses.preview", "Enable Compose Preview for AI Glasses",
+    "If enabled, Compose Preview will have limited support for AI Glasses when glasses are set as the preview device.");
   //endregion
 
   // region Wear surfaces
@@ -1796,7 +1796,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> AI_GLASSES_PHONE_EMULATOR_PAIRING_WIZARD_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
     "ai.glasses.phone.emulator.pairing.wizard.enabled",
-    "Enable microxr glasses emulator and phone emulator pairing wizard",
+    "Enable microai glasses emulator and phone emulator pairing wizard",
     "Enables the pairing assistant for glasses and phone emulators."
   );
   // endregion

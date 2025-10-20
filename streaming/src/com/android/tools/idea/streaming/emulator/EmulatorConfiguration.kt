@@ -27,8 +27,7 @@ import com.android.sdklib.SystemImageTags.AUTOMOTIVE_TAG
 import com.android.sdklib.SystemImageTags.DESKTOP_TAG
 import com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG
 import com.android.sdklib.SystemImageTags.WEAR_TAG
-// TODO merge
-//import com.android.sdklib.SystemImageTags.XR_GLASSES_TAG
+import com.android.sdklib.SystemImageTags.AI_GLASSES_TAG
 import com.android.sdklib.SystemImageTags.XR_HEADSET_TAG
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.internal.avd.ConfigKey
@@ -110,8 +109,7 @@ class EmulatorConfiguration private constructor(
         tagIds.asSeparatedListContains(GOOGLE_TV_TAG.id) || tagIds.asSeparatedListContains(ANDROID_TV_TAG.id) -> DeviceType.TV
         tagIds.asSeparatedListContains(WEAR_TAG.id) -> DeviceType.WEAR
         tagIds.asSeparatedListContains(XR_HEADSET_TAG.id) -> DeviceType.XR_HEADSET
-        // TODO merge
-        //tagIds.asSeparatedListContains(XR_GLASSES_TAG.id) -> DeviceType.XR_GLASSES
+        tagIds.asSeparatedListContains(AI_GLASSES_TAG.id) -> DeviceType.AI_GLASSES
         else -> DeviceType.HANDHELD
       }
       val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) != false

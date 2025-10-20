@@ -119,8 +119,7 @@ internal val AvdInfo.icon: Icon
       SystemImageTags.isAutomotiveImage(tags) -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
       SystemImageTags.isWearImage(tags) -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
       SystemImageTags.isXrHeadsetImage(tags) -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET
-      // TODO merge
-      //SystemImageTags.isXrGlassesImage(tags) -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS
+      SystemImageTags.isAiGlassesImage(tags) -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS
       else -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
     }
   }

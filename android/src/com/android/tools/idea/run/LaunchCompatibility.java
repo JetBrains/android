@@ -150,10 +150,9 @@ public class LaunchCompatibility {
       }
     }
 
-    // TODO merge
-    //if (device.supportsFeature(IDevice.HardwareFeature.XR_GLASSES)) {
-    //  return new LaunchCompatibility(State.WARNING, "XR Glasses can not run application");
-    //}
+    if (device.supportsFeature(IDevice.HardwareFeature.AI_GLASSES)) {
+      return new LaunchCompatibility(State.WARNING, "AI Glasses can not run application");
+    }
 
     // we are done with checks for platform targets
     if (projectTarget.isPlatform()) {
