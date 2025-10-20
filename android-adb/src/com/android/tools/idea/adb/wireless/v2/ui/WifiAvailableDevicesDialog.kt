@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adb.wireless.v2.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -54,6 +55,7 @@ import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
 import com.android.tools.idea.adb.wireless.TrackingMdnsService
 import com.android.tools.idea.adb.wireless.Urls
 import com.android.tools.idea.adb.wireless.WiFiPairingService
+import com.android.tools.idea.adb.wireless.needsUpdate
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
 import com.android.tools.idea.adddevicedialog.RowFilter
 import com.android.tools.idea.adddevicedialog.SearchBar
@@ -83,8 +85,10 @@ import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.styling.LocalLinkStyle
 
+@OptIn(ExperimentalFoundationApi::class)
 class WifiAvailableDevicesDialog(
   private val project: Project,
   private val wifiPairingService: WiFiPairingService,
@@ -92,6 +96,7 @@ class WifiAvailableDevicesDialog(
 
   companion object {
     internal const val SEARCH_BAR_TEST_TAG = "deviceSearchBar"
+    internal const val WARNING_TOOLTIP_TEST_TAG = "warningTag"
   }
 
   private val dialog: SimpleDialog
@@ -366,30 +371,44 @@ class WifiAvailableDevicesDialog(
         attribute = { it.service.buildVersionSdkFull ?: "Unknown" },
       ),
       TableColumn("", TableColumnWidth.Weighted(1f)) { device, _ ->
-        OutlinedButton(
-          onClick = {
-            val controller =
-              PairDevicesUsingWiFiService.getInstance(project)
-                .createPairingDialogController(
-                  TrackingMdnsService(
-                    serviceName = device.service.serviceInstanceName.instance,
-                    ipv4 = device.service.ipv4,
-                    port = device.service.port.toString(),
-                    deviceName = buildDeviceName(device.service),
-                    mdnsServiceVersion = device.service.mdnsServiceVersion,
-                  )
+        val button =
+          @Composable {
+            OutlinedButton(
+              onClick = {
+                val controller =
+                  PairDevicesUsingWiFiService.getInstance(project)
+                    .createPairingDialogController(
+                      TrackingMdnsService(
+                        serviceName = device.service.serviceInstanceName.instance,
+                        ipv4 = device.service.ipv4,
+                        port = device.service.port.toString(),
+                        deviceName = buildDeviceName(device.service),
+                        mdnsServiceVersion = device.service.mdnsServiceVersion,
+                      )
+                    )
+                controller.showDialog()
+              }
+            ) {
+              Row {
+                Icon(
+                  if (device.service.needsUpdate()) {
+                    StudioIconsCompose.Common.Warning
+                  } else {
+                    StudioIconsCompose.Avd.PairOverWifi
+                  },
+                  contentDescription = "pair device over wifi",
                 )
-            controller.showDialog()
+                Spacer(Modifier.width(4.dp))
+                Text("Pair")
+              }
+            }
           }
+        Tooltip(
+          tooltip = { Text("Check for device software updates to improve Wi-Fi pairing.") },
+          modifier = Modifier.testTag(WARNING_TOOLTIP_TEST_TAG),
+          enabled = device.service.needsUpdate(),
         ) {
-          Row {
-            Icon(
-              key = StudioIconsCompose.Avd.PairOverWifi,
-              contentDescription = "pair device over wifi",
-            )
-            Spacer(Modifier.width(4.dp))
-            Text("Pair")
-          }
+          button()
         }
       },
     )
