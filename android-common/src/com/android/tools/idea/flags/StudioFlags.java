@@ -227,6 +227,12 @@ public final class StudioFlags {
     "Enable Architecture Sample template",
     "Allows the Architecture Sample template to be used.");
 
+  public static final Flag<String> NPW_AI_STARTER_TEMPLATE = new StringFlag(
+    NPW, "ai.starter.template",
+    "AI Starter base template",
+    "The name of the template to start with for the New Project Agent",
+    "AI Starter");
+
   public static final Flag<Boolean> NPW_ENABLE_BASIC_WATCH_FACE_TEMPLATE = new BooleanFlag(
     NPW, "watchface.template",
     "Enable Basic Watch Face template",

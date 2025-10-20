@@ -383,7 +383,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
       TemplateResolver.getAllTemplates().filter {
         WizardUiContext.NewProject in it.uiContexts &&
           it.formFactor == this &&
-          (it.name != "Architecture Sample" ||
+          (it.name !in setOf("Architecture Sample", "AI Starter") ||
             StudioFlags.NPW_ENABLE_ARCHITECTURE_SAMPLE_TEMPLATE.get())
       }
 
