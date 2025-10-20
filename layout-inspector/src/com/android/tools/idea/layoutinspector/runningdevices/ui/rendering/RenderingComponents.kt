@@ -75,8 +75,9 @@ fun createRenderingComponents(
     // away they should be disposed.
     val combinedDisposable = combine(disposable, mainDisplayView)
 
-    // For on-device rendering we want to always keep a single model and renderer.
-    // TODO(b/443263320): add support for multiple displays to on-device rendering
+    // For on-device rendering we want to always keep a single model shared by the renderers, having
+    // multiple models for the same device would cause duplicated rendering instructions to be sent
+    // to the device.
     val renderModel =
       EmbeddedRendererModel(
         parentDisposable = combinedDisposable,
@@ -98,25 +99,25 @@ fun createRenderingComponents(
         renderModel = renderModel,
       )
 
-    val renderer =
-      OnDeviceRendererPanel(
-        disposable = combinedDisposable,
-        scope = layoutInspector.coroutineScope,
-        model = onDeviceRendererModel,
-        enableSendRightClicksToDevice = { enable ->
-          mainDisplayView.rightClicksAreSentToDevice = enable
-        },
-      )
+    displayList.map { displayView ->
+      val renderer =
+        OnDeviceRendererPanel(
+          disposable = combinedDisposable,
+          scope = layoutInspector.coroutineScope,
+          model = onDeviceRendererModel,
+          enableSendRightClicksToDevice = { enable ->
+            displayView.rightClicksAreSentToDevice = enable
+          },
+        )
 
-    listOf(
       RenderingComponents(
         disposable = combinedDisposable,
         layoutInspector = layoutInspector,
-        displayView = mainDisplayView,
+        displayView = displayView,
         renderer = renderer,
         model = renderModel,
       )
-    )
+    }
   } else {
     displayList.map { displayView ->
       // Rendering components are tied to the lifecycle of the tab - if the tab goes away they
