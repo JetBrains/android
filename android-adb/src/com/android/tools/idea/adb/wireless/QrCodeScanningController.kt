@@ -155,6 +155,7 @@ class QrCodeScanningController(
                 it.toPairingType(),
                 InetAddress.getByName(it.mdnsService.ipv4),
                 it.mdnsService.port,
+                it.mdnsService.serial,
               )
             }
 
@@ -184,7 +185,18 @@ class QrCodeScanningController(
   }
 
   private fun updateQrCodeServices(newServices: List<PairingMdnsService>) {
-    view.model.qrCodeServices = newServices.filter { it.serviceType == ServiceType.QrCode }
+    view.model.qrCodeServices =
+      newServices.filter {
+        it.serviceType == ServiceType.QrCode &&
+          (
+          // old generic pairing dialog.
+          mdnsServiceUnderPairing == null ||
+            // old devices with no serial in pairing mdns service.
+            it.serial.isNullOrBlank() ||
+            // adb wifi v2 devices with serial in pairing mdns service.
+            it.serial ==
+              mdnsServiceUnderPairing.serviceName.substringAfter("-").substringBefore("-"))
+      }
   }
 
   private fun updatePairingCodeServices(newServices: List<PairingMdnsService>) {
