@@ -177,7 +177,7 @@ class WiFiPairingServiceImpl(
           val serviceType =
             if (serviceName.startsWith(studioServiceNamePrefix)) ServiceType.QrCode
             else ServiceType.PairingCode
-          PairingMdnsService(serviceName, serviceType, ipAddress, port)
+          PairingMdnsService(serviceName, serviceType, ipAddress, port, null)
         } catch (ignored: Exception) {
           LOG.warn("mDNS service entry ignored due do invalid characters: ${line}")
           null
