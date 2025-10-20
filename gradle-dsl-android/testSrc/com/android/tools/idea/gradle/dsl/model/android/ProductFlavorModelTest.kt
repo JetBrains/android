@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License atA
+ * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.android
 
 import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl
 import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
@@ -56,7 +57,7 @@ import org.junit.Test
  * the `android.defaultConfig {}` block. The general structure of `android.productFlavors {}` is tested in
  * [ProductFlavorsElementTest].
  */
-class ProductFlavorModelTest : GradleFileModelTestCase() {
+class ProductFlavorModelTest : AndroidGradleFileModelTestCase() {
 
   @Before
   override fun before() {

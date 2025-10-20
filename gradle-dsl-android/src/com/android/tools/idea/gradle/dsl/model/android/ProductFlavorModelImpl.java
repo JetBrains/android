@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -79,7 +80,8 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @NonNls public static final String VERSION_CODE = "mVersionCode";
   @NonNls public static final String VERSION_NAME = "mVersionName";
   @NonNls public static final String WEAR_APP_UNBUNDLED = "mWearAppUnbundled";
-
+  @NonNls public static final PropertiesElementDescription<GradleDslExpressionMap> TEST_INSTRUMENTATION_RUNNER_ARGUMENTS_DESCRIPTION =
+    new PropertiesElementDescription<>(ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS.name, GradleDslExpressionMap.class, GradleDslExpressionMap::new);
 
   public ProductFlavorModelImpl(@NotNull AbstractProductFlavorDslElement dslElement) {
     super(dslElement);
@@ -256,7 +258,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   @NotNull
   public ResolvedPropertyModel testInstrumentationRunnerArguments() {
-    GradleDslExpressionMap testInstrumentationRunnerArguments = myDslElement.getPropertyElement(GradleDslExpressionMap.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS);
+    GradleDslExpressionMap testInstrumentationRunnerArguments = myDslElement.getPropertyElement(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS_DESCRIPTION);
     if (testInstrumentationRunnerArguments == null) {
       testInstrumentationRunnerArguments =
         new GradleDslExpressionMap(myDslElement, GradleNameElement.fake(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS.name));
