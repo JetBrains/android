@@ -24,7 +24,10 @@ import com.android.tools.rendering.RenderProblem
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.ui.Gray
 import com.intellij.ui.components.JBLabel
@@ -45,7 +48,7 @@ private val EXTENDED_HEIGHT = DEFAULT_HEIGHT * 2
 class SceneViewErrorsPanel(
   val errorProvider: () -> List<Throwable>?,
   val styleProvider: () -> Style = { Style.SOLID },
-) : JPanel(BorderLayout()) {
+) : JPanel(BorderLayout()), UiDataProvider {
 
   /** The style applied to the panel */
   enum class Style {
@@ -86,25 +89,13 @@ class SceneViewErrorsPanel(
     updateStyles()
   }
 
-  /** Converts a [RenderProblem] to an [Issue]. */
-  private fun toIssue(throwable: Throwable): Issue =
-    object : Issue() {
-      override val summary: String = throwable.message ?: throwable.message ?: "Render error"
-      override val description: String = throwable.stackTraceToString()
-      override val severity: HighlightSeverity = HighlightSeverity.ERROR
-      override val source: IssueSource = IssueSource.NONE
-      override val category: String = "Render Error"
-    }
-
   override fun getPreferredSize() = size
 
   override fun getMinimumSize() = size
 
   private fun updateFixWithAiButton() {
     fixWithAiActionGroup.removeAll()
-    val issues = errorProvider()?.map { toIssue(it) } ?: emptyList()
-
-    if (issues.isNotEmpty()) {
+    if (getIssues().isNotEmpty()) {
       fixWithAiActionProvider()?.let { action ->
         action.templatePresentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
         fixWithAiActionGroup.add(action)
@@ -146,7 +137,24 @@ class SceneViewErrorsPanel(
     return newStyle
   }
 
+  override fun uiDataSnapshot(sink: DataSink) {
+    getIssues().firstOrNull()?.let { sink[PlatformDataKeys.SELECTED_ITEM] = it }
+  }
+
   override fun isVisible(): Boolean {
     return updateStyles() != Style.HIDDEN
   }
+
+  /** Returns a list of [Issue]s from the current errors. */
+  private fun getIssues(): List<Issue> = errorProvider()?.map { toIssue(it) } ?: emptyList()
+
+  /** Converts a [RenderProblem] to an [Issue]. */
+  private fun toIssue(throwable: Throwable): Issue =
+    object : Issue() {
+      override val summary: String = throwable.message ?: throwable.message ?: "Render error"
+      override val description: String = throwable.stackTraceToString()
+      override val severity: HighlightSeverity = HighlightSeverity.ERROR
+      override val source: IssueSource = IssueSource.NONE
+      override val category: String = "Render Error"
+    }
 }
