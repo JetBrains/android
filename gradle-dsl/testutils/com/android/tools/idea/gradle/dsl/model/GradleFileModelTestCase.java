@@ -55,7 +55,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel.TypeNameValueElement;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
@@ -625,17 +624,6 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
                                       @NotNull Map<String, T> expected,
                                       @Nullable GradlePropertyModel propertyModel) {
     verifyMapProperty(message, propertyModel, new HashMap<>(expected));
-  }
-
-  public static void verifyFlavorType(@NotNull String message,
-                                      @NotNull List<List<Object>> expected,
-                                      @Nullable List<? extends TypeNameValueElement> elements) {
-    assertEquals(message, expected.size(), elements.size());
-    for (int i = 0; i < expected.size(); i++) {
-      List<Object> list = expected.get(i);
-      TypeNameValueElement element = elements.get(i);
-      assertEquals(message, list, element.getModel());
-    }
   }
 
   public static void assertMissingProperty(@NotNull GradlePropertyModel model) {

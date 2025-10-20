@@ -34,6 +34,7 @@ import static org.junit.Assume.assumeTrue;
 
 import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport;
 import com.android.tools.idea.gradle.dsl.TestFileName;
+import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
@@ -44,7 +45,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.SigningConfigPropertyModel;
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.google.common.collect.ImmutableList;
@@ -63,7 +63,7 @@ import org.junit.Test;
 /**
  * Tests for {@link BuildTypeModelImpl}.
  */
-public class BuildTypeModelTest extends GradleFileModelTestCase {
+public class BuildTypeModelTest extends AndroidGradleFileModelTestCase {
   @Before
   @Override
   public void before() throws Exception {

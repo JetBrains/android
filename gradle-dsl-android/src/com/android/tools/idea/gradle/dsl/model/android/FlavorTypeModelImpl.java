@@ -45,6 +45,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.base.Function;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +78,8 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NonNls public static final String SIGNING_CONFIG = "mSigningConfig";
   @NonNls public static final String USE_JACK = "mUseJack";
   @NonNls public static final String VERSION_NAME_SUFFIX = "mVersionNameSuffix";
+  @NonNls public static final PropertiesElementDescription<GradleDslExpressionMap> MANIFEST_PLACEHOLDERS_DESCRIPTION = new PropertiesElementDescription<>(
+    FlavorTypeModelImpl.MANIFEST_PLACEHOLDERS.name, GradleDslExpressionMap.class, GradleDslExpressionMap::new);
 
   public FlavorTypeModelImpl(@NotNull AbstractFlavorTypeDslElement dslElement) {
     super(dslElement);
@@ -160,7 +163,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @Override
   @NotNull
   public ResolvedPropertyModel manifestPlaceholders() {
-    GradleDslExpressionMap manifestPlaceholders = myDslElement.getPropertyElement(GradleDslExpressionMap.MANIFEST_PLACEHOLDERS);
+    GradleDslExpressionMap manifestPlaceholders = myDslElement.getPropertyElement(MANIFEST_PLACEHOLDERS_DESCRIPTION);
     if (manifestPlaceholders == null) {
       manifestPlaceholders = new GradleDslExpressionMap(myDslElement, GradleNameElement.fake(MANIFEST_PLACEHOLDERS.name));
       ModelEffectDescription effect = new ModelEffectDescription(MANIFEST_PLACEHOLDERS, CREATE_WITH_VALUE);

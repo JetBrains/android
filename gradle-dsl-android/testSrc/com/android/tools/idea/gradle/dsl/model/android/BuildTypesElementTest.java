@@ -17,10 +17,10 @@ import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidMod
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
+import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +36,7 @@ import org.junit.Test;
  * In this test, we only test the general structure of {@code android.buildTypes {}}. The build type structure defined by
  * {@link BuildTypeModelImpl} is tested in great deal to cover all combinations in {@link BuildTypeModelTest}.
  */
-public class BuildTypesElementTest extends GradleFileModelTestCase {
+public class BuildTypesElementTest extends AndroidGradleFileModelTestCase {
   @Test
   public void testBuildTypesWithApplicationStatements() throws Exception {
     writeToBuildFile(TestFile.BUILD_TYPES_WITH_APPLICATION_STATEMENTS);
