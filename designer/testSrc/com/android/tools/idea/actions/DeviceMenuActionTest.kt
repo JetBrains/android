@@ -172,7 +172,7 @@ class DeviceMenuActionTest {
               ------------------------------------------------------
               XR
               XR Headset (1280 × 1279 dp, xhdpi)
-              XR Glasses (200 × 200 dp, mdpi)
+              AI Glasses (200 × 200 dp, mdpi)
               ------------------------------------------------------
               Generic Devices
                   Small Phone (360 × 640 dp, xhdpi)

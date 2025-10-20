@@ -485,8 +485,7 @@ constructor(
       return project != null &&
         ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null &&
         (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_HEADSET_AVD.get() || !avd.isXrHeadsetDevice) &&
-             // TODO merge
-        (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_GLASSES_AVD.get() /*|| !avd.isXrGlassesDevice*/)
+             (StudioFlags.EMBEDDED_EMULATOR_ALLOW_AI_GLASSES_AVD.get() || !avd.isAiGlassesDevice)
     }
 
     @JvmStatic

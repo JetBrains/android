@@ -38,10 +38,10 @@ class EnableInteractiveAction :
 
   override fun update(e: AnActionEvent) {
     val isEssentialsModeEnabled = PreviewEssentialsModeManager.isEssentialsModeEnabled
-    val isXrGlassesDevice = Device.isXrGlasses(e.getData(SCENE_VIEW)?.configuration?.device)
-    // Interactive mode should not be enabled for XR Glasses devices.
-    e.presentation.isVisible = !isXrGlassesDevice
-    e.presentation.isEnabled = !isEssentialsModeEnabled && !isXrGlassesDevice
+    val isAiGlassesDevice = Device.isAiGlasses(e.getData(SCENE_VIEW)?.configuration?.device)
+    // Interactive mode should not be enabled for AI Glasses devices.
+    e.presentation.isVisible = !isAiGlassesDevice
+    e.presentation.isEnabled = !isEssentialsModeEnabled && !isAiGlassesDevice
     e.presentation.description =
       if (isEssentialsModeEnabled) message("action.interactive.essentials.mode.description")
       else message("action.interactive.description")
