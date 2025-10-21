@@ -593,6 +593,31 @@ class OnDeviceRendererPanelTest {
     assertThat(inspectorModel.selection).isEqualTo(inspectorModel[COMPOSE1])
     lastPopup!!.assertSelectViewActionAndGotoDeclaration(COMPOSE1, ROOT)
     verify(lastPopup.popup).show(onDeviceRenderer, 42, 42)
+
+    lastPopup = null
+
+    // test that right click is ignored when cursor is not above the panel
+    // move the cursor
+    fakeUi.mouse.moveTo(200, 200)
+    withContext(Dispatchers.EDT) { fakeUi.layoutAndDispatchEvents() }
+
+    val rightClickEvent2 =
+      buildUserInputEventProto(
+        rootId = ROOT,
+        x = 15f,
+        y = 55f,
+        type = LayoutInspectorViewProtocol.UserInputEvent.Type.RIGHT_CLICK,
+      )
+    // send right click from the device
+    onDeviceRenderingClient.handleEvent(rightClickEvent2)
+
+    testScheduler.advanceUntilIdle()
+
+    // wait for the popup to be shown.
+    popupLatch.await()
+
+    assertThat(inspectorModel.selection).isEqualTo(inspectorModel[COMPOSE1])
+    assertThat(lastPopup).isNull()
   }
 
   @Test
