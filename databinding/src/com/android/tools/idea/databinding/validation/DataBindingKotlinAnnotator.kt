@@ -26,6 +26,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 
+// TODO(b/452940736) Inspection currently disabled in databinding.xml
 /** An annotator that searches for Kotlin-specific issues in data binding source files. */
 class DataBindingKotlinAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
