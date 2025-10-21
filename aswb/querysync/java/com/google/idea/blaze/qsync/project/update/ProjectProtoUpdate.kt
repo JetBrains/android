@@ -15,19 +15,15 @@
  */
 package com.google.idea.blaze.qsync.project.update
 
-import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage
-import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import com.intellij.util.containers.with
 import java.nio.file.Path
-import kotlin.collections.plus
-import kotlin.collections.plusAssign
 
 /**
  * Helper class for making a number of updates to the project proto.
@@ -49,7 +45,11 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
    * A module is a target in the scope of the project.
    */
   interface ModuleUpdater {
+    fun markAsAndroidModule()
     fun addAndroidResourceJavaPackage(pkg: String)
+    fun addAndroidCustomPackage(customPackage: String)
+    fun addAndroidResourceDirectories(directories: Collection<ProjectPath.SourceCodeRepositoryRelativeProjectPath>)
+    fun addLanguages(languages: Collection<QuerySyncLanguage>)
     fun addExternalAndroidLibrary(externalAndroidLibrary: ProjectProto.ExternalAndroidLibrary)
     fun contentEntry(root: ProjectPath, updater: ContentEntryUpdater.() -> Unit)
   }
@@ -61,6 +61,7 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
    */
   interface ContentEntryUpdater {
     fun addSourceRoot(root: ProjectPath, javaPackage: String, isTest: Boolean, isGenerated: Boolean)
+    fun addExcludes(excludes: Collection<ProjectPath.SourceCodeRepositoryRelativeProjectPath>)
   }
 
   /**
@@ -124,8 +125,24 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
 
   fun module(name: Label, updater: ModuleUpdater.() -> Unit) {
     object: ModuleUpdater {
+      override fun markAsAndroidModule() {
+        workspaceModule.isAndroidModule = true
+      }
+
       override fun addAndroidResourceJavaPackage(pkg: String) {
         workspaceModule.androidSourcePackages += pkg
+      }
+
+      override fun addAndroidCustomPackage(customPackage: String) {
+        workspaceModule.androidCustomPackages += customPackage
+      }
+
+      override fun addAndroidResourceDirectories(directories: Collection<ProjectPath.SourceCodeRepositoryRelativeProjectPath>) {
+        workspaceModule.androidResourceDirectories += directories
+      }
+
+      override fun addLanguages(languages: Collection<QuerySyncLanguage>) {
+        project.activeLanguages += languages
       }
 
       override fun addExternalAndroidLibrary(externalAndroidLibrary: ProjectProto.ExternalAndroidLibrary) {
@@ -153,6 +170,12 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
                                 isTest = isTest,
                                 packagePrefix = javaPackage,
                               )
+            )
+          }
+
+          override fun addExcludes(excludes: Collection<ProjectPath.SourceCodeRepositoryRelativeProjectPath>) {
+            contentEntryBuilder = contentEntryBuilder.copy(
+              excludes = contentEntryBuilder.excludes + excludes
             )
           }
         }.updater()
@@ -256,7 +279,7 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
       return project
                .modules
                .firstOrNull { it.name == BlazeProjectDataStorage.WORKSPACE_MODULE_NAME }
-             ?: ProjectProto.Module.Builder(BlazeProjectDataStorage.WORKSPACE_MODULE_NAME)
+             ?: ProjectProto.Module.Builder(BlazeProjectDataStorage.WORKSPACE_MODULE_NAME).also { project.modules.add(it) }
     }
   }
 }

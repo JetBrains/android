@@ -17,9 +17,7 @@ package com.google.idea.blaze.qsync.deps
 
 import com.google.common.truth.Truth
 import com.google.idea.blaze.common.Label
-import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
-import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
