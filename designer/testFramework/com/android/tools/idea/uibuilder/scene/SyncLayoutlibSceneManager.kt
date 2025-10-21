@@ -29,6 +29,7 @@ import com.android.tools.rendering.RenderResult
 import com.google.common.collect.ImmutableSet
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
@@ -50,6 +51,14 @@ constructor(
     LayoutlibSceneManagerHierarchyProvider(),
     DISABLED,
     listenToResourceChanges,
+    { parentDisposable ->
+      AppExecutorUtil.createBoundedApplicationPoolExecutor(
+        "SceneManager resource listener",
+        AppExecutorUtil.getAppExecutorService(),
+        1,
+        parentDisposable,
+      )
+    },
   ) {
   var ignoreRenderRequests: Boolean = false
   var ignoreModelUpdateRequests: Boolean = false
@@ -109,6 +118,15 @@ constructor(
   }
 
   fun simulateResourceChanged(reason: ImmutableSet<ResourceNotificationManager.Reason>) {
-    if (listenToResourceChanges) resourceChangeListener.resourcesChanged(reason)
+    if (listenToResourceChanges) {
+      resourceChangeListener.resourcesChanged(reason)
+      runInEdtAndWait {
+        // Ensure all queued notifications have completed
+        PlatformTestUtil.waitForFuture(
+          resourceChangeListener.notificationExecutorService.submit {},
+          10_000L,
+        )
+      }
+    }
   }
 }

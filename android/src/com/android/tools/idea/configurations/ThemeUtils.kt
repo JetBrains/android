@@ -204,9 +204,9 @@ class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
       ChangeTrackerCachedValue.get(defaultThemeCache, {
         computeDefaultThemeForConfiguration(configuration)
       }, ChangeTracker(
-        ChangeTracker { weakConfig.get()?.modificationCount ?: 0 },
-        ChangeTracker { modificationTracker.modificationCount },
-        ChangeTracker { dumbServiceTracker.modificationTracker.modificationCount }
+        { weakConfig.get()?.modificationCount ?: 0 },
+        { modificationTracker.modificationCount },
+        { dumbServiceTracker.modificationTracker.modificationCount }
       ))
     }
   }

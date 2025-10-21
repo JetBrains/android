@@ -30,8 +30,11 @@ import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
+import org.jetbrains.annotations.VisibleForTesting
 
 private val NL_MODEL_CHANGE_TYPE =
   mapOf(
@@ -50,18 +53,25 @@ private val NL_MODEL_CHANGE_TYPE =
  *   [SceneComponent]s from the given [NlComponent].
  * @param listenToResourceChanges if true, a change in resources will automatically trigger a
  *   re-render and will clear the caches.
+ * @param notificationExecutorService the [ExecutorService] to be used for running the resource
+ *   change notifications.
  */
 abstract class SceneManager(
   val model: NlModel,
   protected open val designSurface: DesignSurface<*>,
   private val sceneComponentProvider: SceneComponentHierarchyProvider,
   private val listenToResourceChanges: Boolean,
+  protected val notificationExecutorServiceProvider: (Disposable) -> ExecutorService =
+    ::defaultNotificationExecutorService,
 ) : Disposable {
   /**
    * [ResourceChangeListener] used to clean up the resources cache when a build happens or resources
    * are modified.
    */
-  protected class ResourceChangeListenerImpl(val model: NlModel) : ResourceChangeListener {
+  protected class ResourceChangeListenerImpl(
+    val model: NlModel,
+    @VisibleForTesting val notificationExecutorService: ExecutorService,
+  ) : ResourceChangeListener {
     val configuration = model.configuration
 
     override fun resourcesChanged(reason: ImmutableSet<ResourceNotificationManager.Reason>) {
@@ -73,10 +83,13 @@ abstract class SceneManager(
           }
 
       if (shouldClearRenderCache) RenderUtils.clearCache(ImmutableList.of(model.configuration))
-      // TODO(b/365124075): add support for using a set of reasons and not only the last one.
-      model.notifyModified(
-        NL_MODEL_CHANGE_TYPE.getOrDefault(reason.lastOrNull() ?: return, ChangeType.BUILD)
-      )
+      notificationExecutorService.submit {
+        if (model.isDisposed) return@submit
+        // TODO(b/365124075): add support for using a set of reasons and not only the last one.
+        model.notifyModified(
+          NL_MODEL_CHANGE_TYPE.getOrDefault(reason.lastOrNull() ?: return@submit, ChangeType.BUILD)
+        )
+      }
     }
   }
 
@@ -85,7 +98,8 @@ abstract class SceneManager(
   val scene: Scene
   private val hitProvider: HitProvider = DefaultHitProvider()
   private val isActive = AtomicBoolean(false)
-  protected val resourceChangeListener = ResourceChangeListenerImpl(model)
+  protected val resourceChangeListener =
+    ResourceChangeListenerImpl(model, notificationExecutorServiceProvider(this))
 
   // This will be initialized when constructor calls updateSceneView().
   protected var sceneView: SceneView? = null
@@ -295,4 +309,14 @@ abstract class SceneManager(
       // NlModel handles the double activation/deactivation itself.
       model.deactivate()
     }
+
+  companion object {
+    internal fun defaultNotificationExecutorService(parentDisposable: Disposable) =
+      AppExecutorUtil.createBoundedApplicationPoolExecutor(
+        "SceneManager resource listener",
+        AppExecutorUtil.getAppExecutorService(),
+        10,
+        parentDisposable,
+      )
+  }
 }
