@@ -27,6 +27,7 @@ import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
+import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
@@ -141,6 +142,19 @@ class GraphToProjectConverter(
   }
 
   companion object {
+    fun initializeProjectStructureData(graph: BuildGraphData): ProjectStructureData {
+      return ProjectStructureData(
+        javaSourceFiles = graph.getJavaSourceFiles(),
+        packages = graph.packages(),
+        nonJavaSourceFiles =
+          graph
+            .getSourceFilesByRuleKindAndType({ t -> !RuleKinds.isJava(t) }, *SourceType.all())
+            .values
+            .flatten(),
+        activeLanguages = graph.getActiveLanguages(),
+      )
+    }
+
     private fun relativeParentOf(path: Path): Path? {
       Preconditions.checkState(!path.isAbsolute())
       if (path.toString().isEmpty()) {
@@ -354,53 +368,30 @@ class GraphToProjectConverter(
   }
 
   @Throws(BuildException::class)
-  fun createProject(
-    graph: BuildGraphData,
+  fun configureProject(
+    packages: ProjectStructureData,
     externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
     update: ProjectProtoUpdate,
   ) {
     update.module(Label.of("@aswb_workspace_module//")) {
-      createModule(graph, externalRepositoryFinder)
+      configureModule(packages, externalRepositoryFinder)
     }
   }
 
-  fun ProjectProtoUpdate.ModuleUpdater.createModule(
-    graph: BuildGraphData,
+  fun ProjectProtoUpdate.ModuleUpdater.configureModule(
+    packages: ProjectStructureData,
     externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
     if (projectDefinition.isAndroidWorkspace) {
       markAsAndroidModule()
     }
-
     val javaSourceRoots =
-      calculateJavaRootSources(context, graph.getJavaSourceFiles(), graph.packages())
-    val rootToNonJavaSource =
-      nonJavaSourceFolders(
-        graph
-          .getSourceFilesByRuleKindAndType({ t -> !RuleKinds.isJava(t) }, *SourceType.all())
-          .values
-          .flatten()
-      )
-    // Note: according to:
-    //  https://developer.android.com/guide/topics/resources/providing-resources
-    // "Never save resource files directly inside the res/ directory. It causes a compiler error."
-    // This implies that we can safely take the grandparent of each resource file to find the
-    // top level res dir:
-    val resList = graph.getAndroidResourceFiles()
-    val androidResDirs =
-      resList.map(Path::getParent).distinct().map(Path::getParent).distinct().toSet()
-
-    context.output(PrintOutput.log("%-10d Android resource directories", androidResDirs.size))
-
-    addAndroidResourceDirectories(
-      androidResDirs.map { ProjectPath.workspaceRelative(it, externalRepositoryFinder) }
-    )
-    graph.getAllCustomPackages().forEach { addAndroidCustomPackage(it) }
-
+      calculateJavaRootSources(context, packages.javaSourceFiles, packages.packages)
+    val rootToNonJavaSource = nonJavaSourceFolders(packages.nonJavaSourceFiles)
     val excludesByRootDirectory = projectDefinition.excludesByRootDirectory
     val testSourceGlobMatcher = TestSourceGlobMatcher.create(projectDefinition)
     for (dir in projectDefinition.projectIncludes) {
-      val sourceRootsWithPrefixes = javaSourceRoots.get(dir).orEmpty()
+      val sourceRootsWithPrefixes = javaSourceRoots[dir].orEmpty()
       contentEntry(ProjectPath.workspaceRelative(dir, externalRepositoryFinder)) {
         sourceRootsWithPrefixes.entries.forEach { entry ->
           val path = dir.resolve(entry.key)
@@ -435,8 +426,39 @@ class GraphToProjectConverter(
         )
       }
     }
+    addLanguages(packages.activeLanguages)
+  }
 
-    addLanguages(graph.getActiveLanguages())
+  @Throws(BuildException::class)
+  fun configureProject(
+    graph: BuildGraphData,
+    externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
+    update: ProjectProtoUpdate,
+  ) {
+    update.module(Label.of("@aswb_workspace_module//")) {
+      configureModule(graph, externalRepositoryFinder)
+    }
+  }
+
+  fun ProjectProtoUpdate.ModuleUpdater.configureModule(
+    graph: BuildGraphData,
+    externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
+  ) {
+    // Note: according to:
+    //  https://developer.android.com/guide/topics/resources/providing-resources
+    // "Never save resource files directly inside the res/ directory. It causes a compiler error."
+    // This implies that we can safely take the grandparent of each resource file to find the
+    // top level res dir:
+    val resList = graph.getAndroidResourceFiles()
+    val androidResDirs =
+      resList.map(Path::getParent).distinct().map(Path::getParent).distinct().toSet()
+
+    context.output(PrintOutput.log("%-10d Android resource directories", androidResDirs.size))
+
+    addAndroidResourceDirectories(
+      androidResDirs.map { ProjectPath.workspaceRelative(it, externalRepositoryFinder) }
+    )
+    graph.getAllCustomPackages().forEach { addAndroidCustomPackage(it) }
   }
 
   /**
