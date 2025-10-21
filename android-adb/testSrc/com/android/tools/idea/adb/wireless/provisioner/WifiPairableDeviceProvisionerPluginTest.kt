@@ -98,6 +98,12 @@ class WifiPairableDeviceProvisionerPluginTest {
 
   private val mdnsFlow = MutableStateFlow(MdnsServices(emptyList(), emptyList(), emptyList()))
 
+  private val WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceHandle.mdnsService:
+    MdnsTrackServiceInfo
+    get() =
+      (this.state.properties as WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceProperties)
+        .mdnsService
+
   @Before
   fun setUp() {
     pairingController = mock()
@@ -129,7 +135,7 @@ class WifiPairableDeviceProvisionerPluginTest {
     assertThat(plugin.devices.value).hasSize(1)
     val handle =
       plugin.devices.value.first() as WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceHandle
-    assertThat(handle.serviceName).isEqualTo("service1")
+    assertThat(handle.mdnsService.serviceInstanceName.instance).isEqualTo("service1")
     assertThat(handle.state.properties.model).isEqualTo("Pixel 8 at 192.168.1.100:4321")
     assertThat(handle.state.error).isNull()
   }
@@ -154,9 +160,43 @@ class WifiPairableDeviceProvisionerPluginTest {
     assertThat(plugin.devices.value).hasSize(1)
     val handle =
       plugin.devices.value.first() as WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceHandle
-    assertThat(handle.serviceName).isEqualTo("service1")
+    assertThat(handle.mdnsService.serviceInstanceName.instance).isEqualTo("service1")
     assertThat(handle.state.properties.model).isEqualTo("Foo Pixel")
     assertThat(handle.state.error).isNull()
+  }
+
+  @Test
+  fun newMdnsService_userChangesDeviceName_reusesSameHandle_nameGetsUpdated() = runTest {
+    mdnsFlow.value = createMdnsTlsService("service1", givenName = "Foo Pixel")
+    val plugin =
+      WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
+    advanceTimeBy(6000) // Past initial delay
+
+    assertThat(plugin.devices.value).hasSize(1)
+    val handle =
+      plugin.devices.value.first() as WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceHandle
+    assertThat(handle.mdnsService.serviceInstanceName.instance).isEqualTo("service1")
+    assertThat(handle.state.properties.model).isEqualTo("Foo Pixel")
+    assertThat(handle.state.error).isNull()
+
+    mdnsFlow.value = createMdnsTlsService("service1", givenName = "New Foo Pixel")
+
+    assertThat(plugin.devices.value).hasSize(1)
+    waitUntil {
+      handle.state.properties.model == "New Foo Pixel" &&
+        handle.mdnsService.serviceInstanceName.instance == "service1" &&
+        handle.state.error == null
+    }
+
+    handle.wifiPairDeviceAction!!.pair()
+
+    verify(pairDevicesService)
+      .createPairingDialogController(
+        argThat { s: TrackingMdnsService ->
+          s.serviceName == "service1" && s.deviceName == "New Foo Pixel"
+        }
+      )
+    verify(pairingController).showDialog()
   }
 
   @Test
@@ -169,7 +209,7 @@ class WifiPairableDeviceProvisionerPluginTest {
     assertThat(plugin.devices.value).hasSize(1)
     val handle =
       plugin.devices.value.first() as WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceHandle
-    assertThat(handle.serviceName).isEqualTo("service1")
+    assertThat(handle.mdnsService.serviceInstanceName.instance).isEqualTo("service1")
     assertThat(handle.state.properties.model).isEqualTo("Pixel at 192.168.1.100:4321")
     assertThat(handle.state.error).isNull()
   }
@@ -184,7 +224,7 @@ class WifiPairableDeviceProvisionerPluginTest {
     assertThat(plugin.devices.value).hasSize(1)
     val handle =
       plugin.devices.value.first() as WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceHandle
-    assertThat(handle.serviceName).isEqualTo("service1")
+    assertThat(handle.mdnsService.serviceInstanceName.instance).isEqualTo("service1")
     assertThat(handle.state.properties.model).isEqualTo("Device at 192.168.1.100:4321")
     assertThat(handle.state.error).isNull()
   }
@@ -199,7 +239,7 @@ class WifiPairableDeviceProvisionerPluginTest {
     assertThat(plugin.devices.value).hasSize(1)
     val handle =
       plugin.devices.value.first() as WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceHandle
-    assertThat(handle.serviceName).isEqualTo("service1")
+    assertThat(handle.mdnsService.serviceInstanceName.instance).isEqualTo("service1")
     assertThat(handle.state.error!!.message)
       .isEqualTo("Check for device software updates to improve Wi-Fi pairing.")
   }
