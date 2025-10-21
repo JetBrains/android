@@ -22,7 +22,9 @@ import com.android.adblib.MdnsTrackServiceInfo
 import com.android.adblib.serialNumber
 import com.android.adblib.utils.createChildScope
 import com.android.annotations.concurrency.GuardedBy
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersionUtil
+import com.android.sdklib.deviceprovisioner.ConnectionType
 import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceError
 import com.android.sdklib.deviceprovisioner.DeviceHandle
@@ -35,7 +37,9 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.HideDeviceAction
 import com.android.sdklib.deviceprovisioner.PairDeviceAction
 import com.android.sdklib.deviceprovisioner.PhysicalDeviceProvisionerPlugin
+import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.deviceprovisioner.awaitDisconnection
+import com.android.sdklib.devices.Abi
 import com.android.tools.idea.adb.wireless.AdbServiceWrapper
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
 import com.android.tools.idea.adb.wireless.TrackingMdnsService
@@ -46,10 +50,12 @@ import com.android.tools.idea.adb.wireless.v2.ui.WifiPairableDevicesPersistentSt
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceIcons
+import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
+import javax.swing.Icon
 import kotlin.collections.plus
 import kotlin.collections.toSet
 import kotlin.coroutines.cancellation.CancellationException
@@ -152,7 +158,7 @@ class WifiPairableDeviceProvisionerPlugin(
             val handlesToCancel = determineHandlesToCancel(newVisibleHandlesMap)
 
             handlesToCancel.forEach { handle ->
-              log.info("Cancelling scope for handle: ${handle.serviceName} (removed or hidden)")
+              log.info("Cancelling scope for handle: ${handle.id} (removed or hidden)")
               handle.scope.cancel()
             }
 
@@ -194,14 +200,19 @@ class WifiPairableDeviceProvisionerPlugin(
       }
 
       val handle =
-        this.deviceHandles[serviceName]
+        this.deviceHandles[serviceName]?.also {
+          it.ensureDeviceNameUpToDate(
+            trackService,
+            buildDeviceNameForDeviceManager(trackService.service),
+          )
+        }
           ?: run {
             log.info("Creating new WifiPairableDeviceHandle for service: $serviceName")
             WifiPairableDeviceHandle.create(
               this.scope.createChildScope(isSupervisor = true),
               Disconnected(
                 properties =
-                  DeviceProperties.build {
+                  WifiPairableDeviceProperties.build {
                     this.deviceType = DeviceType.HANDHELD
                     icon = StudioDefaultDeviceIcons.iconForDeviceType(this.deviceType)
                     model = buildDeviceNameForDeviceManager(trackService.service)
@@ -215,6 +226,7 @@ class WifiPairableDeviceProvisionerPlugin(
                       )
                     isVirtual = false
                     isRemote = false
+                    mdnsService = trackService.service
                     populateDeviceInfoProto(PLUGIN_ID, null, emptyMap(), randomConnectionId())
                   },
                 status = "Available for Wi-Fi pairing",
@@ -222,11 +234,6 @@ class WifiPairableDeviceProvisionerPlugin(
               ),
               project,
               notificationService,
-              serviceName,
-              buildDeviceNameForPairingDialog(trackService.service),
-              trackService.service.ipv4,
-              trackService.service.port,
-              trackService.service.mdnsServiceVersion,
             )
           }
       newOrReusedHandles[serviceName] = handle
@@ -258,61 +265,124 @@ class WifiPairableDeviceProvisionerPlugin(
         ?.let { "$it at ${service.ipv4}:${service.port}" }
       ?: "Device at ${service.ipv4}:${service.port}"
 
-  private fun buildDeviceNameForPairingDialog(service: MdnsTrackServiceInfo): String =
-    service.givenName.takeUnless { it.isNullOrBlank() }
-      ?: service.deviceModel.takeUnless { it.isNullOrBlank() }
-      ?: "Device"
+  data class WifiPairableDeviceProperties(
+    override val model: String?,
+    override val manufacturer: String?,
+    override val preferredAbi: String?,
+    override val abiList: List<Abi>,
+    override val androidVersion: AndroidVersion?,
+    override val androidRelease: String?,
+    override val deviceType: DeviceType?,
+    override val isVirtual: Boolean?,
+    override val isRemote: Boolean?,
+    override val isDebuggable: Boolean?,
+    override val isResizable: Boolean?,
+    override val icon: Icon,
+    override val resolution: Resolution?,
+    override val density: Int?,
+    override val disambiguator: String?,
+    override val wearPairingId: String?,
+    override val connectionType: ConnectionType?,
+    override val deviceInfoProto: DeviceInfo,
+    val mdnsService: MdnsTrackServiceInfo,
+  ) : DeviceProperties {
+
+    override fun toBuilder(): Builder =
+      Builder().apply { copyFrom(this@WifiPairableDeviceProperties) }
+
+    companion object {
+      inline fun build(block: Builder.() -> Unit): WifiPairableDeviceProperties =
+        Builder().apply(block).build()
+    }
+
+    class Builder : DeviceProperties.Builder() {
+      var mdnsService: MdnsTrackServiceInfo? = null
+
+      fun copyFrom(properties: WifiPairableDeviceProperties) {
+        super.copyFrom(properties)
+        mdnsService = properties.mdnsService
+      }
+
+      override fun build(): WifiPairableDeviceProperties =
+        WifiPairableDeviceProperties(
+          model = model,
+          manufacturer = manufacturer,
+          preferredAbi = preferredAbi,
+          abiList = abiList,
+          androidVersion = androidVersion,
+          androidRelease = androidRelease,
+          deviceType = deviceType,
+          isVirtual = isVirtual,
+          isRemote = isRemote,
+          isDebuggable = isDebuggable,
+          isResizable = isResizable,
+          icon = checkNotNull(icon),
+          resolution = resolution,
+          density = density,
+          disambiguator = disambiguator,
+          wearPairingId = wearPairingId,
+          connectionType = connectionType,
+          deviceInfoProto = deviceInfoProto.build(),
+          mdnsService = checkNotNull(mdnsService),
+        )
+    }
+  }
 
   class WifiPairableDeviceHandle
   private constructor(
     override val scope: CoroutineScope,
-    override val stateFlow: StateFlow<DeviceState>,
+    private val _stateFlow: MutableStateFlow<Disconnected>,
     private val project: Project,
     private val notificationService: WiFiPairingNotificationService,
-    val serviceName: String,
-    val deviceName: String?,
-    val ipv4: String,
-    val port: Int,
-    val mdnsServiceVersion: String?,
   ) : DeviceHandle {
+
+    override val stateFlow: StateFlow<DeviceState> = _stateFlow.asStateFlow()
 
     companion object {
       fun create(
         scope: CoroutineScope,
-        baseState: DeviceState,
+        baseState: Disconnected,
         project: Project,
         notificationService: WiFiPairingNotificationService,
-        serviceName: String,
-        deviceName: String?,
-        ipv4: String,
-        port: Int,
-        mdnsServiceVersion: String?,
       ): WifiPairableDeviceHandle =
-        WifiPairableDeviceHandle(
-          scope,
-          MutableStateFlow(baseState),
-          project,
-          notificationService,
-          serviceName,
-          deviceName,
-          ipv4,
-          port,
-          mdnsServiceVersion,
-        )
+        WifiPairableDeviceHandle(scope, MutableStateFlow(baseState), project, notificationService)
     }
 
-    override val wifiPairDeviceAction: PairDeviceAction? =
+    private val mdnsService: MdnsTrackServiceInfo
+      get() = (stateFlow.value.properties as WifiPairableDeviceProperties).mdnsService
+
+    private fun buildDeviceName(service: MdnsTrackServiceInfo): String =
+      service.givenName.takeUnless { it.isNullOrBlank() }
+        ?: service.deviceModel.takeUnless { it.isNullOrBlank() }
+        ?: "Device"
+
+    fun ensureDeviceNameUpToDate(trackService: MdnsTlsService, newModel: String) {
+      _stateFlow.update { currentState ->
+        currentState.copy(
+          properties =
+            (currentState.properties as WifiPairableDeviceProperties)
+              .toBuilder()
+              .apply {
+                model = newModel
+                mdnsService = trackService.service
+              }
+              .build()
+        )
+      }
+    }
+
+    override val wifiPairDeviceAction: PairDeviceAction =
       object : PairDeviceAction {
         override suspend fun pair() {
           val controller =
             PairDevicesUsingWiFiService.getInstance(project)
               .createPairingDialogController(
                 TrackingMdnsService(
-                  serviceName = serviceName,
-                  ipv4 = ipv4,
-                  port = port.toString(),
-                  deviceName = deviceName,
-                  mdnsServiceVersion = mdnsServiceVersion,
+                  serviceName = mdnsService.serviceInstanceName.instance,
+                  ipv4 = mdnsService.ipv4,
+                  port = mdnsService.port.toString(),
+                  deviceName = buildDeviceName(mdnsService),
+                  mdnsServiceVersion = mdnsService.mdnsServiceVersion,
                 )
               )
           controller.showDialog()
@@ -327,9 +397,10 @@ class WifiPairableDeviceProvisionerPlugin(
     override val hideDeviceAction: HideDeviceAction =
       object : HideDeviceAction {
         override suspend fun hide() {
-          WifiPairableDevicesPersistentStateComponent.getInstance().addHiddenDevice(serviceName)
+          WifiPairableDevicesPersistentStateComponent.getInstance()
+            .addHiddenDevice(mdnsService.serviceInstanceName.instance)
           project.coroutineScope.launch(Dispatchers.EDT) {
-            notificationService.showDeviceHiddenBalloon(deviceName)
+            notificationService.showDeviceHiddenBalloon(buildDeviceName(mdnsService))
           }
         }
 
@@ -337,7 +408,8 @@ class WifiPairableDeviceProvisionerPlugin(
           MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
       }
 
-    override val id = DeviceId("Wireless", false, "serviceName=$serviceName")
+    override val id =
+      DeviceId("Wireless", false, "serviceName=${mdnsService.serviceInstanceName.instance}")
   }
 
   companion object {
