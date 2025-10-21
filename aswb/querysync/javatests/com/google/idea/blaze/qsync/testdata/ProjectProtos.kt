@@ -17,6 +17,7 @@ package com.google.idea.blaze.qsync.testdata
 
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.GraphToProjectConverter
+import com.google.idea.blaze.qsync.GraphToProjectConverter.Companion.initializeProjectStructureData
 import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
@@ -52,8 +53,14 @@ object ProjectProtos {
           ),
       )
     val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
-    converter.createProject(
-      BuildGraphs.forTestProject(project),
+    val graph = BuildGraphs.forTestProject(project)
+    converter.configureProject(
+      initializeProjectStructureData(graph),
+      ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
+      update,
+    )
+    converter.configureProject(
+      graph,
       ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
       update,
     )
