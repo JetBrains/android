@@ -85,8 +85,11 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
     LayoutBindingModuleCache.getInstance(androidFacet!!).dataBindingMode = mode
   }
 
+  // TODO(b/452940736)
+  // Kapt is now deprecated, and in AGP 9+, the error message can be confusing.
+  // We modify the previous test on Kapt inspection to confirm that it is disabled for now.
   @Test
-  fun testDataBindingInspection_kotlinShowsWarningIfKaptNotApplied() {
+  fun testDataBindingInspection_kotlinShowsNoWarningIfKaptNotApplied() {
     val useBindingAdapterFile =
       fixture.addFileToProject(
         "src/test/db/UseBindingAdapter.kt",
@@ -95,7 +98,6 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
         package test.langdb
         import ${mode.bindingAdapter}
 
-        <error descr="To use data binding annotations in Kotlin, apply the 'kotlin-kapt' plugin in your module's build.gradle">@BindingAdapter("sampleValue")</error>
         fun sampleFunction() {
         }
       """
