@@ -94,7 +94,8 @@ fun showViewContextMenu(
         override fun popupMenuWillBecomeVisible(unuxed: PopupMenuEvent?) {
           ApplicationManager.getApplication().invokeLater {
             val subMenu =
-              popupComponent.subElements[0].subElements[0] as? JPopupMenu ?: return@invokeLater
+              popupComponent.subElements.firstOrNull()?.subElements?.firstOrNull() as? JPopupMenu
+                ?: return@invokeLater
             subMenu.addPopupMenuListener(
               object : PopupMenuListenerAdapter() {
                 override fun popupMenuWillBecomeVisible(unused: PopupMenuEvent) {
