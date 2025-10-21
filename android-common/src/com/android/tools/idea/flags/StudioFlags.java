@@ -2460,6 +2460,21 @@ public final class StudioFlags {
                     "Enable sending queries while a response is streaming.",
                     "Enables sending queries while a response is streaming. It may be queued or interrupt the stream.");
 
+  public static final Flag<Boolean> STUDIOBOT_EDIT_CHAT_REQUEST_BUTTON_ENABLED =
+    new BooleanFlag(STUDIOBOT, "edit.chat.request.button.enabled",
+                    "Enable editing past chat queries.",
+                    "Enable editing past chat queries by hovering and clicking an edit button.");
+
+  public static final Flag<Boolean> STUDIOBOT_DELETE_CHAT_REQUEST_BUTTON_ENABLED =
+    new BooleanFlag(STUDIOBOT, "delete.chat.request.button.enabled",
+                    "Enable deleting past chat queries.",
+                    "Enable delete past chat queries by hovering and clicking a delete button.");
+
+  public static final Flag<Boolean> STUDIOBOT_REGENERATE_CHAT_REQUEST_BUTTON_ENABLED =
+    new BooleanFlag(STUDIOBOT, "regenerate.chat.request.button.enabled",
+                    "Enable regenerating past chat queries.",
+                    "Enable regenerating past chat queries by hovering and clicking a regenerate button.");
+
   public enum DasherSupportMode {
     /**
      * Don't include any special treatment for dasher users.
