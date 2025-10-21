@@ -19,7 +19,6 @@ package com.android.tools.idea.adblib
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
-import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
 import com.intellij.facet.impl.FacetUtil
 import com.intellij.notification.Notification
@@ -42,17 +41,13 @@ class DeviceCableMonitorTest {
   private val projectRule = ProjectRule()
   private val initAdbLibApplicationServiceRule = InitAdbLibApplicationServiceRule()
   private val adbRule = FakeAdbRule()
-  private val adbServiceRule = FakeAdbServiceRule(projectRule::project, adbRule)
   private lateinit var monitor: DeviceCableMonitor
 
   private val latch = CountDownLatch(1)
 
   @get:Rule
   val ruleChain =
-    RuleChain.outerRule(projectRule)
-      .around(initAdbLibApplicationServiceRule)
-      .around(adbRule)
-      .around(adbServiceRule)!!
+    RuleChain.outerRule(projectRule).around(initAdbLibApplicationServiceRule).around(adbRule)!!
 
   @Before
   fun setup() {

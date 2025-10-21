@@ -16,7 +16,6 @@
 package com.android.tools.idea.adblib
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ProjectRule
@@ -29,14 +28,10 @@ class AdbLibServiceTest {
   private val projectRule = ProjectRule()
   private val initAdbLibApplicationServiceRule = InitAdbLibApplicationServiceRule()
   private val fakeAdbRule = FakeAdbRule()
-  private val fakeAdbServiceRule = FakeAdbServiceRule({ projectRule.project }, fakeAdbRule)
 
   @get:Rule
   val ruleChain =
-    RuleChain.outerRule(projectRule)
-      .around(initAdbLibApplicationServiceRule)
-      .around(fakeAdbRule)
-      .around(fakeAdbServiceRule)!!
+    RuleChain.outerRule(projectRule).around(initAdbLibApplicationServiceRule).around(fakeAdbRule)!!
 
   private val project
     get() = projectRule.project

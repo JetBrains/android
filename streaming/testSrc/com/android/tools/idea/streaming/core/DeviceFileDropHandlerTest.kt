@@ -19,7 +19,6 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
-import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
@@ -64,9 +63,9 @@ class DeviceFileDropHandlerTest {
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
   private val adbRule = FakeAdbRule()
-  private val adbServiceRule = FakeAdbServiceRule(projectRule::project, adbRule)
   @get:Rule
-  val ruleChain = RuleChain(projectRule, InitAdbLibApplicationServiceRule(), adbRule, adbServiceRule, emulatorRule, EdtRule())
+  val ruleChain = RuleChain(projectRule, InitAdbLibApplicationServiceRule(), adbRule,
+                            emulatorRule, EdtRule())
   @get:Rule
   val tempDirRule = TemporaryDirectoryRule()
 
