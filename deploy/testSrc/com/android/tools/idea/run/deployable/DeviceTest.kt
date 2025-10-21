@@ -13,165 +13,136 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployable;
+package com.android.tools.idea.run.deployable
 
-import static com.android.fakeadbserver.DeviceState.DeviceStatus.ONLINE;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertNotNull;
+import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
+import com.android.adblib.ddmlibcompatibility.testutils.UseAdbLibAndroidDebugBridgeRule
+import com.android.adblib.testingutils.FakeAdbServerProviderRule
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.Client
+import com.android.ddmlib.IDevice
+import com.android.fakeadbserver.DeviceState
+import com.android.fakeadbserver.FakeAdbServer
+import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
+import com.android.fakeadbserver.services.ShellCommandOutput
+import com.android.fakeadbserver.services.StatusWriter
+import com.android.sdklib.AndroidApiLevel
+import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.CoroutineScope
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import java.io.IOException
+import java.io.PrintWriter
+import java.net.Socket
+import java.util.Collections
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.regex.Pattern
 
-import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule;
-import com.android.adblib.ddmlibcompatibility.testutils.UseAdbLibAndroidDebugBridgeRule;
-import com.android.adblib.testingutils.FakeAdbServerProvider;
-import com.android.adblib.testingutils.FakeAdbServerProviderRule;
-import com.android.annotations.Nullable;
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
-import com.android.fakeadbserver.ClientState;
-import com.android.fakeadbserver.DeviceState;
-import com.android.fakeadbserver.FakeAdbServer;
-import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler;
-import com.android.fakeadbserver.services.ShellCommandOutput;
-import com.android.fakeadbserver.services.StatusWriter;
-import com.android.sdklib.AndroidApiLevel;
-import com.google.common.collect.ImmutableMap;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
-import kotlin.jvm.functions.Function0;
-import kotlinx.coroutines.CoroutineScope;
-import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+class DeviceTest {
+  private lateinit var myPreOBinder: DeviceBinder
+  private lateinit var myOBinder: DeviceBinder
 
-public class DeviceTest {
-  private static final String PROCESS_NAME = "com.example.android.notdisplayingbitmaps";
-  private static final String APP_ID = "com.example.android.displayingbitmaps";
-  private static final String OTHER_APP_ID = "com.some.other.app";
-  private static final String INVALID_APP_ID = "com.does.not.exist";
+  private val myPreOResult = Collections.synchronizedList(mutableListOf<String>())
 
-  private static final int PRE_O_VALID_PID = 1025;
-  private static final int PRE_O_RESTART_PID = 2025;
-  private static final int O_VALID_PID = 1026;
-  private static final int O_RESTART_PID = 2026;
+  @Volatile
+  private var myPreOContinuationLatch = CountDownLatch(1)
 
-  private static final int OTHER_PID = 9999;
-  private static final int ANOTHER_PID = 10000;
+  @Volatile
+  private var myPreOFinishedLatch = CountDownLatch(1)
 
-  private static final int WAIT_TIME_S = 1000;
+  private val myOResult = Collections.synchronizedList(mutableListOf("package:$APP_ID "))
 
-  private DeviceBinder myPreOBinder;
-  private DeviceBinder myOBinder;
+  @Volatile
+  private var myOContinuationLatch = CountDownLatch(1)
 
-  private final List<String> myPreOResult = Collections.<String>synchronizedList(new ArrayList<>());
-  private volatile CountDownLatch myPreOContinuationLatch = new CountDownLatch(1);
-  private volatile CountDownLatch myPreOFinishedLatch = new CountDownLatch(1);
+  @Volatile
+  private var myOFinishedLatch = CountDownLatch(1)
+  private val myStatPidMap = mutableMapOf<String, List<String>>(getStatLookup(O_VALID_PID) to myOResult)
 
-  private final List<String> myOResult = Collections.<String>synchronizedList(new ArrayList<>(Arrays.<String>asList(String.format("package:%s ", APP_ID))));
-  private volatile CountDownLatch myOContinuationLatch = new CountDownLatch(1);
-  private volatile CountDownLatch myOFinishedLatch = new CountDownLatch(1);
-  private final Map<String, List<String>> myStatPidMap = new HashMap<>(ImmutableMap.<@NotNull String, List<String>>of(getStatLookup(O_VALID_PID), myOResult));
+  private val myApplicationIdResolver = ApplicationIdResolver()
 
-  private final ApplicationIdResolver myApplicationIdResolver = new ApplicationIdResolver();
+  private val fakeAdbRule = FakeAdbServerProviderRule {
+    installDefaultCommandHandlers()
+      .installDeviceHandler(
+        getShellHandler(
+          Pattern.compile("^uid.*"), mapOf(APP_ID to myPreOResult), { myPreOContinuationLatch }, { myPreOFinishedLatch }))
+      .installDeviceHandler(getShellHandler(Pattern.compile("^stat.*"), myStatPidMap, { myOContinuationLatch }, { myOFinishedLatch }))
+  }
 
-  private final FakeAdbServerProviderRule fakeAdbRule = new FakeAdbServerProviderRule(
-    (FakeAdbServerProvider provider) ->
-      provider.installDefaultCommandHandlers()
-        .installDeviceHandler(
-          getShellHandler(
-            Pattern.compile("^uid.*"), ImmutableMap.<String, List<String>>of(APP_ID, myPreOResult), () -> myPreOContinuationLatch, () -> myPreOFinishedLatch))
-        .installDeviceHandler(getShellHandler(Pattern.compile("^stat.*"), myStatPidMap, () -> myOContinuationLatch, () -> myOFinishedLatch))
-  );
+  private val useAdbLibAndroidDebugBridgeRule = UseAdbLibAndroidDebugBridgeRule { fakeAdbRule.adbSession }
 
-  private final UseAdbLibAndroidDebugBridgeRule useAdbLibAndroidDebugBridgeRule =
-    new UseAdbLibAndroidDebugBridgeRule(
-      () -> fakeAdbRule.getAdbSession()
-    );
+  private val initAndroidDebugBridgeRule = InitAndroidDebugBridgeRule { fakeAdbRule.fakeAdb.port }
 
-  private final InitAndroidDebugBridgeRule initAndroidDebugBridgeRule =
-    // TODO merge
-    new InitAndroidDebugBridgeRule(false, () -> fakeAdbRule.getFakeAdb().getPort());
-
-  @Rule
-  public final RuleChain ruleChain =
-    RuleChain.outerRule(fakeAdbRule)
-      .around(useAdbLibAndroidDebugBridgeRule)
-      .around(initAndroidDebugBridgeRule);
+  @get:Rule
+  val ruleChain: RuleChain = RuleChain.outerRule(fakeAdbRule)
+    .around(useAdbLibAndroidDebugBridgeRule)
+    .around(initAndroidDebugBridgeRule)
 
   @Before
-  public void setup() throws Exception {
-    DeviceState preODeviceState = fakeAdbRule.getFakeAdb().getFakeAdbServer().connectDevice(
+  fun setup() {
+    val preODeviceState = fakeAdbRule.fakeAdb.fakeAdbServer.connectDevice(
       "test_device_N",
       "Google",
       "Nexus Gold",
       "7.1",
-      new AndroidApiLevel(25),
-      DeviceState.HostConnectionType.USB).get();
+      AndroidApiLevel(25),
+      DeviceState.HostConnectionType.USB).get()
 
-    DeviceState oDeviceState = fakeAdbRule.getFakeAdb().getFakeAdbServer().connectDevice(
+    val oDeviceState = fakeAdbRule.fakeAdb.fakeAdbServer.connectDevice(
       "test_device_O",
       "Google",
       "Nexus Gold",
       "10.0",
-      new AndroidApiLevel(26),
-      DeviceState.HostConnectionType.USB).get();
+      AndroidApiLevel(26),
+      DeviceState.HostConnectionType.USB).get()
 
     // Test that we obtain 1 device via the ddmlib APIs
-    AndroidDebugBridge.terminate();
-    AndroidDebugBridge bridge = AndroidDebugBridge.createBridge();
-    assertNotNull("Debug bridge", bridge);
+    AndroidDebugBridge.terminate()
+    val bridge = AndroidDebugBridge.createBridge()
+    assertThat(bridge).isNotNull()
 
-    myPreOBinder = new DeviceBinder(preODeviceState);
-    myOBinder = new DeviceBinder(oDeviceState);
+    myPreOBinder = DeviceBinder(preODeviceState)
+    myOBinder = DeviceBinder(oDeviceState)
 
-    assertThat(myApplicationIdResolver.resolve(myPreOBinder.getIDevice(), APP_ID)).isEmpty();
-    assertThat(myApplicationIdResolver.resolve(myOBinder.getIDevice(), APP_ID)).isEmpty();
+    assertThat(myApplicationIdResolver.resolve(myPreOBinder.iDevice, APP_ID)).isEmpty()
+    assertThat(myApplicationIdResolver.resolve(myOBinder.iDevice, APP_ID)).isEmpty()
   }
 
   @After
-  public void teardown() throws Exception {
-    myApplicationIdResolver.dispose();
+  fun teardown() {
+    myApplicationIdResolver.dispose()
   }
 
   @Test
-  public void testStartup() throws Exception {
+  fun testStartup() {
     // Turn devices online.
-    myPreOBinder.setStatus(ONLINE);
-    myOBinder.setStatus(ONLINE);
+    myPreOBinder.setStatus(DeviceState.DeviceStatus.ONLINE)
+    myOBinder.setStatus(DeviceState.DeviceStatus.ONLINE)
 
-    myPreOResult.add(Integer.toString(PRE_O_VALID_PID));
+    myPreOResult.add(PRE_O_VALID_PID.toString())
 
-    ClientState preOClient = myPreOBinder.startClient(PRE_O_VALID_PID, 0, PROCESS_NAME, APP_ID, false);
-    myPreOBinder.startClient(OTHER_PID, 0, OTHER_APP_ID, false);
-    ClientState oClient = myOBinder.startClient(O_VALID_PID, 0, PROCESS_NAME, APP_ID, false);
-    myOBinder.startClient(ANOTHER_PID, 0, OTHER_APP_ID, false);
+    val preOClient = myPreOBinder.startClient(PRE_O_VALID_PID, 0, PROCESS_NAME, APP_ID, false)
+    myPreOBinder.startClient(OTHER_PID, 0, OTHER_APP_ID, false)
+    val oClient = myOBinder.startClient(O_VALID_PID, 0, PROCESS_NAME, APP_ID, false)
+    myOBinder.startClient(ANOTHER_PID, 0, OTHER_APP_ID, false)
 
     // Ensure we don't have a bug somewhere.
-    assertThat(myApplicationIdResolver.resolve(myPreOBinder.getIDevice(), APP_ID)).isEmpty();
-    assertThat(myApplicationIdResolver.resolve(myOBinder.getIDevice(), APP_ID)).isEmpty();
-    assertInvalidClients();
+    assertThat(myApplicationIdResolver.resolve(myPreOBinder.iDevice, APP_ID)).isEmpty()
+    assertThat(myApplicationIdResolver.resolve(myOBinder.iDevice, APP_ID)).isEmpty()
+    assertInvalidClients()
 
     // Release the shell command handler latches to let resolutions go through.
-    myPreOContinuationLatch.countDown();
-    myOContinuationLatch.countDown();
+    myPreOContinuationLatch.countDown()
+    myOContinuationLatch.countDown()
 
-    assertThat(resolveUntilNotEmpty(myPreOBinder.getIDevice(), APP_ID)).containsExactly(myPreOBinder.findClient(preOClient));
-    assertThat(resolveUntilNotEmpty(myOBinder.getIDevice(), APP_ID)).containsExactly(myOBinder.findClient(oClient));
-    assertInvalidClients();
+    assertThat(resolveUntilNotEmpty(myPreOBinder.iDevice, APP_ID)).containsExactly(myPreOBinder.findClient(preOClient))
+    assertThat(resolveUntilNotEmpty(myOBinder.iDevice, APP_ID)).containsExactly(myOBinder.findClient(oClient))
+    assertInvalidClients()
   }
 
   /**
@@ -183,146 +154,157 @@ public class DeviceTest {
    * 5) Release the resolutions on the "old" clients and ensure that they don't show up in the results.
    */
   @Test
-  public void testClientRespawn() throws Exception {
+  fun testClientRespawn() {
     // Turn devices online.
-    myPreOBinder.setStatus(ONLINE);
-    myOBinder.setStatus(ONLINE);
+    myPreOBinder.setStatus(DeviceState.DeviceStatus.ONLINE)
+    myOBinder.setStatus(DeviceState.DeviceStatus.ONLINE)
 
-    myPreOResult.add(Integer.toString(PRE_O_VALID_PID));
+    myPreOResult.add(PRE_O_VALID_PID.toString())
 
     // Start up the "old" clients.
-    ClientState preOClient = myPreOBinder.startClient(PRE_O_VALID_PID, 0, PROCESS_NAME, APP_ID, false);
-    myPreOBinder.startClient(OTHER_PID, 0, OTHER_APP_ID, false);
-    ClientState oClient = myOBinder.startClient(O_VALID_PID, 0, PROCESS_NAME, APP_ID, false);
-    myOBinder.startClient(ANOTHER_PID, 0, OTHER_APP_ID, false);
+    val preOClient = myPreOBinder.startClient(PRE_O_VALID_PID, 0, PROCESS_NAME, APP_ID, false)
+    myPreOBinder.startClient(OTHER_PID, 0, OTHER_APP_ID, false)
+    val oClient = myOBinder.startClient(O_VALID_PID, 0, PROCESS_NAME, APP_ID, false)
+    myOBinder.startClient(ANOTHER_PID, 0, OTHER_APP_ID, false)
 
     // Now swap out the latches and leave the command handlers on the "old" clients waiting.
-    CountDownLatch oldPreOContinuationLatch = myPreOContinuationLatch;
-    CountDownLatch oldOContinuationLatch = myOContinuationLatch;
+    val oldPreOContinuationLatch = myPreOContinuationLatch
+    val oldOContinuationLatch = myOContinuationLatch
 
     // Kick off a resolution using initial app states.
-    myApplicationIdResolver.resolve(myPreOBinder.getIDevice(), APP_ID);
-    myApplicationIdResolver.resolve(myOBinder.getIDevice(), APP_ID);
+    myApplicationIdResolver.resolve(myPreOBinder.iDevice, APP_ID)
+    myApplicationIdResolver.resolve(myOBinder.iDevice, APP_ID)
 
     // Wait until we finish writing all response to the socket, but didn't close the socket yet.
-    myPreOFinishedLatch.await();
-    myOFinishedLatch.await();
+    myPreOFinishedLatch.await(WAIT_TIME_S.toLong(), TimeUnit.SECONDS)
+    myOFinishedLatch.await(WAIT_TIME_S.toLong(), TimeUnit.SECONDS)
 
     // Now attempt to change the clients.
-    myPreOBinder.stopClient(preOClient);
-    myOBinder.stopClient(oClient);
+    myPreOBinder.stopClient(preOClient)
+    myOBinder.stopClient(oClient)
 
-    myPreOContinuationLatch = new CountDownLatch(1);
-    myPreOFinishedLatch = new CountDownLatch(1);
-    myOContinuationLatch = new CountDownLatch(1);
-    myOFinishedLatch = new CountDownLatch(1);
-    myPreOResult.clear();
-    myPreOResult.add(Integer.toString(PRE_O_RESTART_PID));
-    myStatPidMap.clear();
-    myStatPidMap.put(getStatLookup(O_RESTART_PID), myOResult);
+    myPreOContinuationLatch = CountDownLatch(1)
+    myPreOFinishedLatch = CountDownLatch(1)
+    myOContinuationLatch = CountDownLatch(1)
+    myOFinishedLatch = CountDownLatch(1)
+    myPreOResult.clear()
+    myPreOResult.add(PRE_O_RESTART_PID.toString())
+    myStatPidMap.clear()
+    myStatPidMap[getStatLookup(O_RESTART_PID)] = myOResult
 
     // Now start new Clients with new PIDs.
-    preOClient = myPreOBinder.startClient(PRE_O_RESTART_PID, 0, APP_ID, false);
-    oClient = myOBinder.startClient(O_RESTART_PID, 0, APP_ID, false);
+    val newPreOClient = myPreOBinder.startClient(PRE_O_RESTART_PID, 0, APP_ID, false)
+    val newOClient = myOBinder.startClient(O_RESTART_PID, 0, APP_ID, false)
 
     // Now resolve with new Clients.
-    assertThat(resolveUntilNotEmpty(myPreOBinder.getIDevice(), APP_ID)).containsExactly(myPreOBinder.findClient(preOClient));
-    assertThat(resolveUntilNotEmpty(myOBinder.getIDevice(), APP_ID)).containsExactly(myOBinder.findClient(oClient));
-    assertInvalidClients();
+    assertThat(resolveUntilNotEmpty(myPreOBinder.iDevice, APP_ID)).containsExactly(myPreOBinder.findClient(newPreOClient))
+    assertThat(resolveUntilNotEmpty(myOBinder.iDevice, APP_ID)).containsExactly(myOBinder.findClient(newOClient))
+    assertInvalidClients()
 
     // Release the stale shell command handler latches to let stale resolutions go through.
-    oldPreOContinuationLatch.countDown();
-    oldOContinuationLatch.countDown();
+    oldPreOContinuationLatch.countDown()
+    oldOContinuationLatch.countDown()
 
     // Ensure that our resolutions don't change.
-    assertThat(myApplicationIdResolver.resolve(myPreOBinder.getIDevice(), APP_ID)).containsExactly(myPreOBinder.findClient(preOClient));
-    assertThat(myApplicationIdResolver.resolve(myOBinder.getIDevice(), APP_ID)).containsExactly(myOBinder.findClient(oClient));
-    assertInvalidClients();
+    assertThat(myApplicationIdResolver.resolve(myPreOBinder.iDevice, APP_ID)).containsExactly(myPreOBinder.findClient(newPreOClient))
+    assertThat(myApplicationIdResolver.resolve(myOBinder.iDevice, APP_ID)).containsExactly(myOBinder.findClient(newOClient))
+    assertInvalidClients()
   }
 
-  private void assertInvalidClients() {
-    assertThat(myApplicationIdResolver.resolve(myPreOBinder.getIDevice(), INVALID_APP_ID)).isEmpty();
-    assertThat(myApplicationIdResolver.resolve(myOBinder.getIDevice(), INVALID_APP_ID)).isEmpty();
+  private fun assertInvalidClients() {
+    assertThat(myApplicationIdResolver.resolve(myPreOBinder.iDevice, INVALID_APP_ID)).isEmpty()
+    assertThat(myApplicationIdResolver.resolve(myOBinder.iDevice, INVALID_APP_ID)).isEmpty()
   }
 
-  @NotNull
-  private List<Client> resolveUntilNotEmpty(@NotNull IDevice device, @NotNull String appId) throws Exception {
-    long startTime = System.currentTimeMillis();
-    while (TimeUnit.SECONDS.toMillis(WAIT_TIME_S) >= System.currentTimeMillis() - startTime) {
-      List<Client> client = myApplicationIdResolver.resolve(device, appId);
-      if (!client.isEmpty()) {
-        return client;
+  private fun resolveUntilNotEmpty(device: IDevice, appId: String): List<Client> {
+    val startTime = System.currentTimeMillis()
+    while (TimeUnit.SECONDS.toMillis(WAIT_TIME_S.toLong()) >= System.currentTimeMillis() - startTime) {
+      val client = myApplicationIdResolver.resolve(device, appId)
+      if (client.isNotEmpty()) {
+        return client
       }
       //noinspection BusyWait
-      Thread.sleep(50);
+      Thread.sleep(50)
     }
-    throw new TimeoutException();
+    throw TimeoutException()
   }
 
-  @NotNull
-  private static String getStatLookup(int pid) {
-    return String.format("/proc/%d", pid);
-  }
+  companion object {
+    private const val PROCESS_NAME = "com.example.android.notdisplayingbitmaps"
+    private const val APP_ID = "com.example.android.displayingbitmaps"
+    private const val OTHER_APP_ID = "com.some.other.app"
+    private const val INVALID_APP_ID = "com.does.not.exist"
 
-  @NotNull
-  private static DeviceCommandHandler getShellHandler(@NotNull Pattern commandPattern,
-                                                      @Nullable Map<String, List<String>> appIdToPidsMap,
-                                                      @NotNull Supplier<CountDownLatch> continuationLatchSupplier,
-                                                      @NotNull Supplier<CountDownLatch> finishedLatchSupplier) {
-    return new DeviceCommandHandler("shell") {
-      @Override
-      public boolean accept(@NotNull FakeAdbServer server,
-                            @NotNull CoroutineScope socketScope,
-                            @NotNull Socket socket,
-                            @NotNull DeviceState device,
-                            @NotNull String command,
-                            @NotNull String args,
-                            @NotNull StatusWriter statusWriter,
-                            @Nullable Function0<? extends @NotNull ShellCommandOutput> shellCommandOutputProvider) {
-        if (!this.command.equals(command) || !commandPattern.matcher(args).matches()) {
-          return false;
-        }
+    private const val PRE_O_VALID_PID = 1025
+    private const val PRE_O_RESTART_PID = 2025
+    private const val O_VALID_PID = 1026
+    private const val O_RESTART_PID = 2026
 
-        try {
-          writeOkay(socket.getOutputStream());
-        }
-        catch (IOException ignored) {
-        }
+    private const val OTHER_PID = 9999
+    private const val ANOTHER_PID = 10000
 
-        if (appIdToPidsMap != null && !appIdToPidsMap.isEmpty()) {
-          List<String> pids =
-            appIdToPidsMap.entrySet().stream()
-              .filter(entry -> args.contains(entry.getKey()))
-              .<List<String>>map(entry -> entry.getValue())
-              .findFirst().orElse(Collections.<String>emptyList());
+    private const val WAIT_TIME_S = 10
 
-          try (PrintWriter pw = new PrintWriter(socket.getOutputStream())) {
-            for (String value : pids) {
-              pw.write(value);
-            }
-            pw.flush();
+    private fun getStatLookup(pid: Int): String {
+      return "/proc/$pid"
+    }
 
-            CountDownLatch finishedLatch = finishedLatchSupplier.get();
-            if (finishedLatch != null) {
-              finishedLatch.countDown();
-            }
+    private fun getShellHandler(
+      commandPattern: Pattern,
+      appIdToPidsMap: Map<String, List<String>>?,
+      continuationLatchSupplier: () -> CountDownLatch?,
+      finishedLatchSupplier: () -> CountDownLatch?
+    ): DeviceCommandHandler {
+      return object : DeviceCommandHandler("shell") {
+        override fun accept(
+          server: FakeAdbServer,
+          socketScope: CoroutineScope,
+          socket: Socket,
+          device: DeviceState,
+          command: String,
+          args: String,
+          statusWriter: StatusWriter,
+          shellCommandOutputProvider: (() -> ShellCommandOutput)?
+        ): Boolean {
+          if (this.command != command || !commandPattern.matcher(args).matches()) {
+            return false
+          }
 
-            CountDownLatch continuationLatch = continuationLatchSupplier.get();
-            if (continuationLatch != null) {
-              try {
-                continuationLatch.await();
+          try {
+            writeOkay(socket.outputStream)
+          }
+          catch (_: IOException) {
+          }
+
+          if (appIdToPidsMap != null && appIdToPidsMap.isNotEmpty()) {
+            val pids = appIdToPidsMap.entries
+                         .firstOrNull { args.contains(it.key) }
+                         ?.value
+                       ?: emptyList()
+
+            try {
+              PrintWriter(socket.outputStream).use { pw ->
+                for (value in pids) {
+                  pw.write(value)
+                }
+                pw.flush()
+
+                finishedLatchSupplier()?.countDown()
+
+                try {
+                  continuationLatchSupplier()?.await()
+                }
+                catch (_: InterruptedException) {
+                  Thread.currentThread().interrupt()
+                }
               }
-              catch (InterruptedException ignored) {
-                Thread.currentThread().interrupt();
-              }
+            }
+            catch (_: IOException) {
             }
           }
-          catch (IOException ignored) {
-          }
+          return true
         }
-
-        return true;
       }
-    };
+    }
   }
 }
