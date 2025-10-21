@@ -203,10 +203,6 @@ public class GradlePropertyModelBuilder {
     return setUpModel(model);
   }
 
-  public SigningConfigPropertyModelImpl buildSigningConfig() {
-    return new SigningConfigPropertyModelImpl(build());
-  }
-
   /**
    * Builds a {@link PasswordPropertyModel} with the properties defined by this builder.
    *
