@@ -15,17 +15,15 @@
  */
 package com.google.idea.blaze.qsync.testdata
 
-import com.google.common.util.concurrent.MoreExecutors
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.GraphToProjectConverter
 import com.google.idea.blaze.qsync.QuerySyncTestUtils
-import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import java.io.IOException
-import java.nio.file.Path
 
 /**
  * Test utility class to build simple project proto instances based on a [TestData] project.
@@ -53,6 +51,12 @@ object ProjectProtos {
           deriveTargetsFromDirectories = false,
         )
       )
-    return converter.createProject(BuildGraphs.forTestProject(project), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
+    val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
+    converter.createProject(
+      BuildGraphs.forTestProject(project),
+      ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
+      update
+    )
+    return update.build()
   }
 }

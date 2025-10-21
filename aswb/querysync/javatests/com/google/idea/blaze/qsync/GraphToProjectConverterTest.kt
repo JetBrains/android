@@ -27,7 +27,9 @@ import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectPath.Companion.workspaceRelativeForTests
 import com.google.idea.blaze.qsync.project.ProjectPath.ExternalRepositoryFinder.Companion.createEmptyForTests
+import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.query.PackageSet
 import com.google.idea.blaze.qsync.testdata.BuildGraphs
 import com.google.idea.blaze.qsync.testdata.TestData
@@ -709,4 +711,10 @@ class GraphToProjectConverterTest {
 
     Truth.assertThat(project.activeLanguages).contains(QuerySyncLanguage.CC)
   }
+}
+
+private fun GraphToProjectConverter.createProject(graph: BuildGraphData, externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder): ProjectProto.Project {
+  val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
+  createProject(graph, externalRepositoryFinder, update)
+  return update.build()
 }

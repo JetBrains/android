@@ -16,18 +16,16 @@
 package com.google.idea.blaze.qsync
 
 import com.google.common.collect.ImmutableSet
-import com.google.common.util.concurrent.MoreExecutors
 import com.google.idea.blaze.common.Context
-import com.google.idea.blaze.common.vcs.VcsState
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
-import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
+import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.testdata.TestData
 import java.io.IOException
-import java.nio.file.Path
 import java.util.Optional
 
 /**
@@ -67,7 +65,9 @@ class TestDataSyncRunner(
         context = context,
         projectDefinition = projectDefinition
       )
-    val project = converter.createProject(buildGraphData, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
+    val update = ProjectProtoUpdate(existingProject = ProjectProto.Project.getDefaultInstance())
+    converter.createProject(buildGraphData, ProjectPath.ExternalRepositoryFinder.createEmptyForTests(), update)
+    val project = update.build()
     return QuerySyncProjectSnapshot(
       queryData = pqsd,
       graph = BlazeQueryParser(querySummary, context, ImmutableSet.of()).parse(),
