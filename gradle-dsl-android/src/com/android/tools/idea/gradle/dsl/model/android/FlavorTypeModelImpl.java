@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ScriptDependenciesModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
+import com.android.tools.idea.gradle.dsl.model.ext.SigningConfigPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.ListOrVarargsTransform;
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
@@ -253,7 +254,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NotNull
   @Override
   public SigningConfigPropertyModel signingConfig() {
-    return GradlePropertyModelBuilder.create(myDslElement, SIGNING_CONFIG).buildSigningConfig();
+    return new SigningConfigPropertyModelImpl(GradlePropertyModelBuilder.create(myDslElement, SIGNING_CONFIG).build());
   }
 
   @Override
