@@ -25,6 +25,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -74,6 +75,10 @@ class OnDeviceRendererPanel(
     childScope.launch {
       model.rightClick
         .mapNotNull { it }
+        // When there are multiple displays there are going to be multiple panels. The right click
+        // event coming from the device will be received by all the panels. Consider only the panel
+        // where the cursor is.
+        .filter { isMouseOnPanel }
         .collect { event ->
           val views =
             model.renderModel.rightClickNode(event.x.toDouble(), event.y.toDouble(), event.rootId)
