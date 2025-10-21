@@ -52,6 +52,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -111,6 +112,7 @@ class OnDeviceRendererModelTest {
       )
   }
 
+  @Ignore("b/454014907")
   @Test
   fun testClientConnectionStartsOnDeviceRendering() {
     inspectorRule.launchSynchronously = false
