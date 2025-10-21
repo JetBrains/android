@@ -15,7 +15,6 @@
  */
 package com.android.gmdcodecompletion
 
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
@@ -41,7 +40,7 @@ abstract class GmdDeviceCatalogService<T : GmdDeviceCatalogState>(
 
   /**
    * This function runs before Task starts in updateDeviceCatalog. Do not call from EDT
-   * as it makes expensive calls to [ProjectBuildModel.get]
+   * as it makes expensive calls
    *
    * Return false to avoid running the updateDeviceCatalog function. Default is true
    */

@@ -87,7 +87,7 @@ class GmdCodeCompletionContributor : CompletionContributor() {
     // Add code completion for FTl device definition
     extend(CompletionType.BASIC, ftlDevicePropertyPattern, object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-        if (!isFtlPluginEnabled(parameters.position.project, arrayOf(parameters.position.module ?: return))) return
+        if (!isFtlPluginEnabled(parameters.position.project, parameters.position.module ?: return)) return
         addDeviceDefinitionCompletions(parameters, customSorter, FtlDeviceCatalogService.getInstance().state.myDeviceCatalog, result)
       }
     })
@@ -102,7 +102,7 @@ class GmdCodeCompletionContributor : CompletionContributor() {
     // Add code completion for FTl test options
     extend(CompletionType.BASIC, ftlTestOptionsPattern, object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-        if (!isFtlPluginEnabled(parameters.position.project, arrayOf(parameters.position.module ?: return))) return
+        if (!isFtlPluginEnabled(parameters.position.project, parameters.position.module ?: return)) return
         ProgressManager.checkCanceled()
         val currentPosition = parameters.position
         val configurationParameterName: ConfigurationParameterName? = getCompletionParameterName(currentPosition)

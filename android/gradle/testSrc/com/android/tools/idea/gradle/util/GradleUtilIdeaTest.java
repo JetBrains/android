@@ -69,7 +69,7 @@ public class GradleUtilIdeaTest extends HeavyPlatformTestCase {
     GradleProjectStub gradleProject = new GradleProjectStub(name, ":" + name, getBaseDirPath(getProject()), myBuildFile);
 
     GradleModuleModel gradleModuleModel =
-      new GradleModuleModel(myModule.getName(), gradleProject, myBuildFile, "2.2.1", null, false, false);
+      new GradleModuleModel(myModule.getName(), gradleProject, myBuildFile, "2.2.1", null, null);
 
 
     ApplicationManager.getApplication()

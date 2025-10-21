@@ -818,6 +818,7 @@ fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub(): IdeAndroidGradlePlugin
     dataBindingEnabled = false,
     generateManifestClass = true,
     disableAgpUpgradePrompt = false,
+    useCustomManagedDevices = false
   )
 
 fun AndroidProjectStubBuilder.buildDefaultConfigStub() = IdeProductFlavorContainerImpl(
@@ -1781,6 +1782,7 @@ private fun createAndroidModuleDataNode(
         gradleVersion,
         agpVersion,
         false,
+        false,
         false
       ),
       null
@@ -2013,6 +2015,7 @@ private fun createJavaModuleDataNode(
           moduleBasePath.resolve("build.gradle").toImpl(),
           null,
           null,
+          false,
           false,
           false
         ),

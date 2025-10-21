@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model
 
 import com.android.SdkConstants
+import com.android.ide.gradle.model.GradlePluginModel
 import com.android.tools.idea.gradle.model.impl.FileImpl
 import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.gradle.project.entities.gradleModuleModel
@@ -46,6 +47,7 @@ data class GradleModuleModel(
   val agpVersion: String?,
   val safeArgsJava: Boolean,
   val safeArgsKotlin: Boolean,
+  val hasFtlPlugin: Boolean,
 ): ModuleModel {
   constructor(
     moduleName: String,
@@ -53,12 +55,19 @@ data class GradleModuleModel(
     buildFilePath: File?,
     gradleVersion: String?,
     agpVersion: String?,
-    safeArgsJava: Boolean,
-    safeArgsKotlin: Boolean
-  ): this(moduleName, gradleProject.getTaskNames(), gradleProject.getPath(),
-          gradleProject.projectIdentifier.buildIdentifier.rootDir.toImpl(),
-          buildFilePath?.toImpl(), gradleVersion, agpVersion, safeArgsJava,
-          safeArgsKotlin)
+    gradlePluginModel: GradlePluginModel?,
+  ): this(
+    moduleName,
+    gradleProject.getTaskNames(),
+    gradleProject.getPath(),
+    gradleProject.projectIdentifier.buildIdentifier.rootDir.toImpl(),
+    buildFilePath?.toImpl(),
+    gradleVersion,
+    agpVersion,
+    gradlePluginModel?.hasSafeArgsJava() ?:  false,
+    gradlePluginModel?.hasSafeArgsKotlin() ?: false,
+    gradlePluginModel?.hasFtlPlugin() ?: false
+  )
 
   fun buildFileAsVirtualFile() = buildFilePath?.let { VfsUtil.findFileByIoFile(it, true) }
   override fun getModuleName() = moduleNameField

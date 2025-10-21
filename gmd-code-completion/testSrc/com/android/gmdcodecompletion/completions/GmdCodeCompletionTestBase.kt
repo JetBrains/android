@@ -60,16 +60,6 @@ abstract class GmdCodeCompletionTestBase : AndroidTestCase() {
     return mockManagedVirtualDeviceCatalogService
   }
 
-  protected fun createFakeGradleModelProvider(): GradleModelProvider {
-    val mockGradleModelProvider = mock<GradleModelProvider>()
-    ApplicationManager.getApplication().replaceService(
-      GradleModelProvider::class.java,
-      mockGradleModelProvider,
-      myFixture.testRootDisposable
-    )
-    return mockGradleModelProvider
-  }
-
   protected fun gmdCodeCompletionContributorTestHelper(buildFileName: String, buildFileContent: String, callback: () -> Unit) {
     val buildFile = myFixture.addFileToProject("app/$buildFileName", buildFileContent)
     myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)

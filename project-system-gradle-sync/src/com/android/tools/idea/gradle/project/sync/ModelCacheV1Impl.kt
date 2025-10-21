@@ -1264,7 +1264,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         // Gradle property respected, implicitly defaulting to `false`
         else -> gradlePropertiesModel.generateManifestClass ?: false
       },
-      disableAgpUpgradePrompt = gradlePropertiesModel.disableAgpUpgradePrompt ?: false
+      disableAgpUpgradePrompt = gradlePropertiesModel.disableAgpUpgradePrompt ?: false,
+      useCustomManagedDevices = gradlePropertiesModel.useCustomManagedDevices ?: false
     )
   }
 

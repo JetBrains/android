@@ -15,7 +15,6 @@
  */
 package com.android.gmdcodecompletion
 
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
@@ -149,18 +148,13 @@ enum class GmdConfigurationInterfaceInfo(val interfaceName: String,
   }
 }
 
-fun isFtlPluginEnabled(project: Project, selectedModules: Array<Module>): Boolean {
-  fun GradleBuildModel.getPluginNames(): List<String> = this.plugins().orEmpty().mapNotNull { it.psiElement?.text }
-  if (!ApplicationManager.getApplication().isUnitTestMode && project.getProjectSystem() !is GradleProjectSystem) return false
-  val projectBuildModel = ProjectBuildModel.get(project) ?: return false
-  val selectedPlugins: HashSet<String> = hashSetOf()
-  selectedModules.forEach {
-    ApplicationManager.getApplication().runReadAction {
-      selectedPlugins.addAll(projectBuildModel.getModuleBuildModel(it)?.getPluginNames().orEmpty())
-    }
+fun isFtlPluginEnabled(project: Project, selectedModule: Module? = null): Boolean {
+  val projectSystem = project.getProjectSystem()
+  return if (projectSystem is GradleProjectSystem) {
+    projectSystem.isManagedDevicesEnabled(project, selectedModule)
+  } else {
+    ApplicationManager.getApplication().isUnitTestMode // enabled in unit tests with [DefaultProjectSystem]
   }
-  return selectedPlugins.any { it.contains("com.google.firebase.testlab") } &&
-         getGradlePropertyValue(projectBuildModel, "android.experimental.testOptions.managedDevices.customDevice")
 }
 
 fun getGradlePropertyValue(projectBuildModel: ProjectBuildModel, propertyName: String): Boolean {

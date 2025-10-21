@@ -895,14 +895,14 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       } catch (e: UnsupportedOperationException) {
         null
       }
+
       return GradleModuleModel(
         moduleName,
         gradleModule.gradleProject,
         buildScriptPath,
         buildScriptClasspathModel?.gradleVersion,
         modelVersionString,
-        gradlePluginModel?.hasSafeArgsJava() ?: false,
-        gradlePluginModel?.hasSafeArgsKotlin() ?: false
+        gradlePluginModel,
       )
     }
 
