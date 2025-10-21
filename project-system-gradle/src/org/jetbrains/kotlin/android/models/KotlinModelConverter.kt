@@ -220,7 +220,8 @@ class KotlinModelConverter {
     }?.value ?: BooleanFlag.GENERATE_MANIFEST_CLASS.legacyDefault,
 
     // b/425320603 - For now, not implemented in KMP only projects. Should be read from gradle.properties.
-    disableAgpUpgradePrompt = false
+    disableAgpUpgradePrompt = false,
+    useCustomManagedDevices = false // Gradle managed devices are not supported for KMP
   )
 
   private fun SigningConfig.convert() = IdeSigningConfigImpl(

@@ -57,6 +57,7 @@ import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
+import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.tools.idea.gradle.model.ClasspathType
@@ -1419,13 +1420,15 @@ fun modelCacheV2Impl(
   )
 
   fun androidGradlePluginProjectFlagsFrom(
+    agpVersionAsString: String,
     flags: AndroidGradlePluginProjectFlags,
     gradlePropertiesModel: GradlePropertiesModel,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
-  ): IdeAndroidGradlePluginProjectFlagsImpl =
-    IdeAndroidGradlePluginProjectFlagsImpl(
+  ): IdeAndroidGradlePluginProjectFlagsImpl {
+    val agpVersion = AgpVersion.parse(agpVersionAsString)
+    return IdeAndroidGradlePluginProjectFlagsImpl(
       applicationRClassConstantIds =
-      AndroidGradlePluginProjectFlags.BooleanFlag.APPLICATION_R_CLASS_CONSTANT_IDS.getValue(flags),
+        AndroidGradlePluginProjectFlags.BooleanFlag.APPLICATION_R_CLASS_CONSTANT_IDS.getValue(flags),
       testRClassConstantIds = AndroidGradlePluginProjectFlags.BooleanFlag.TEST_R_CLASS_CONSTANT_IDS.getValue(flags),
       transitiveRClasses = AndroidGradlePluginProjectFlags.BooleanFlag.TRANSITIVE_R_CLASS.getValue(flags),
       usesCompose = AndroidGradlePluginProjectFlags.BooleanFlag.JETPACK_COMPOSE.getValue(flags),
@@ -1437,9 +1440,22 @@ fun modelCacheV2Impl(
       useAndroidX = AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.getValue(flags, gradlePropertiesModel.useAndroidX),
       dataBindingEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.DATA_BINDING_ENABLED
         .getValue(flags, legacyAndroidGradlePluginProperties?.dataBindingEnabled),
-      generateManifestClass = AndroidGradlePluginProjectFlags.BooleanFlag.GENERATE_MANIFEST_CLASS.getValue(flags, gradlePropertiesModel.generateManifestClass),
-      disableAgpUpgradePrompt = gradlePropertiesModel.disableAgpUpgradePrompt ?: false
+      generateManifestClass = AndroidGradlePluginProjectFlags.BooleanFlag.GENERATE_MANIFEST_CLASS.getValue(flags,
+                                                                                                           gradlePropertiesModel.generateManifestClass),
+      disableAgpUpgradePrompt = gradlePropertiesModel.disableAgpUpgradePrompt ?: false,
+      // GradleProperties model is only able to parse what's in the build script, it doesn't know the defaults.
+      // Ideally whether the property is on would be fed to us by AGP directly in AndroidGradlePluginProjectFlags model,
+      // but as of 9.0 this property is enforced by AGP  and it doesn't really make sense to add a field in the model
+      // for this at this stage. Logic below hardcodes the known defaults instead via looking up the AGP version.
+      useCustomManagedDevices =
+        if (agpVersion.isAtLeast(9, 0, 0)) {
+          true
+        } else {
+          gradlePropertiesModel.useCustomManagedDevices
+          ?: agpVersion.isAtLeast(8, 3, 0) // default is true from 8.3.0 onwards
+        }
     )
+  }
 
   fun copyProjectType(projectType: ProjectType): IdeAndroidProjectType = when (projectType) {
     // TODO(b/187504821): is the number of supported project type in V2 reduced ? this is a restricted list compared to V1.
@@ -1570,7 +1586,7 @@ fun modelCacheV2Impl(
     val groupId = androidDsl.groupId
     val lintChecksJarsCopy: List<File> = project.lintChecksJars.deduplicateFiles()
     val isBaseSplit = basicProject.projectType == ProjectType.APPLICATION
-    val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl = androidGradlePluginProjectFlagsFrom(project.flags, gradlePropertiesModel, legacyAndroidGradlePluginProperties)
+    val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl = androidGradlePluginProjectFlagsFrom(modelVersions.agpVersionAsString, project.flags, gradlePropertiesModel, legacyAndroidGradlePluginProperties)
     val desugarLibConfig = project.takeIf { modelVersions[ModelFeature.HAS_DESUGAR_LIB_CONFIG] }?.desugarLibConfig.orEmpty()
     val lintJar = project.takeIf { modelVersions[ModelFeature.HAS_LINT_JAR_IN_ANDROID_PROJECT] }?.lintJar?.deduplicateFile()
 

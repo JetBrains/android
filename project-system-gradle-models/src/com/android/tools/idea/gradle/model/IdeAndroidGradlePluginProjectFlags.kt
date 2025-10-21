@@ -63,4 +63,7 @@ interface IdeAndroidGradlePluginProjectFlags {
 
   /** Whether to disable Android Gradle plugin upgrade prompt for this project. */
   val disableAgpUpgradePrompt: Boolean
+
+  /** Whether to use Gradle managed devices.  */
+  val useCustomManagedDevices: Boolean
 }

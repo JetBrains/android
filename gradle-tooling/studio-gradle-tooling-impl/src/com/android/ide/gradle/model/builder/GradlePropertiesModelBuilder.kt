@@ -40,6 +40,7 @@ class GradlePropertiesModelBuilder : ToolingModelBuilder {
                                                   EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY_EXPERIMENTAL, project),
       generateManifestClass = getGradlePropertyBooleanValue(GENERATE_MANIFEST_CLASS_PROPERTY, project),
       disableAgpUpgradePrompt = getGradlePropertyBooleanValue(DISABLE_AGP_UPGRADE_PROMPT, project),
+      getGradlePropertyBooleanValue(USE_CUSTOM_MANAGED_DEVICES, project)
     )
   }
 
@@ -77,3 +78,4 @@ private const val EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY = "androi
 private const val EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY_EXPERIMENTAL = "android.experimental.dependency.excludeLibraryComponentsFromConstraints"
 private const val GENERATE_MANIFEST_CLASS_PROPERTY = "android.generateManifestClass"
 private const val DISABLE_AGP_UPGRADE_PROMPT = "android.disableAgpUpgradePrompt"
+private const val USE_CUSTOM_MANAGED_DEVICES = "android.experimental.testOptions.managedDevices.customDevice"
