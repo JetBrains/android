@@ -156,4 +156,8 @@
             implementation="com.google.idea.blaze.android.run.BazelApplicationProjectContextProvider"/>
   </extensions>
 
+  <extensions defaultExtensionNs="com.android.tools">
+    <ndk.run.NativeDebuggerAppContextProvider
+        implementation="com.google.idea.blaze.android.run.BazelNativeDebuggerAppContextProvider" />
+  </extensions>
 </idea-plugin>
