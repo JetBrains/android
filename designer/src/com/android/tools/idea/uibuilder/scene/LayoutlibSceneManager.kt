@@ -45,6 +45,7 @@ import com.android.tools.idea.uibuilder.type.MenuFileType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.rendering.RenderResult
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -54,6 +55,7 @@ import com.intellij.util.ui.UIUtil
 import java.awt.event.KeyEvent
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -71,6 +73,8 @@ private val DECORATOR_FACTORY: SceneDecoratorFactory = NlSceneDecoratorFactory()
  *   Accessibility Testing Framework.
  * @param listenToResourceChanges if true, a change in resources will automatically trigger a
  *   re-render and will clear the caches.
+ * @param notificationExecutorService the [ExecutorService] to be used for running the resource
+ *   change notifications.
  */
 open class LayoutlibSceneManager(
   model: NlModel,
@@ -80,8 +84,16 @@ open class LayoutlibSceneManager(
     LayoutlibSceneManagerHierarchyProvider(),
   layoutScannerConfig: LayoutScannerConfiguration = LayoutScannerEnabled(),
   listenToResourceChanges: Boolean = true,
+  notificationExecutorServiceProvider: (Disposable) -> ExecutorService =
+    ::defaultNotificationExecutorService,
 ) :
-  SceneManager(model, designSurface, sceneComponentProvider, listenToResourceChanges),
+  SceneManager(
+    model,
+    designSurface,
+    sceneComponentProvider,
+    listenToResourceChanges,
+    notificationExecutorServiceProvider,
+  ),
   InteractiveSceneManager {
   private var areListenersRegistered = false
 

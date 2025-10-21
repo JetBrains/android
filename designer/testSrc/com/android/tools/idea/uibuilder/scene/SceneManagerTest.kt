@@ -37,7 +37,10 @@ import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.CompletableFuture
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -50,7 +53,21 @@ class TestSceneManager(
   model: NlModel,
   surface: DesignSurface<*>,
   sceneComponentProvider: SceneComponentHierarchyProvider = DefaultSceneManagerHierarchyProvider(),
-) : SceneManager(model, surface, sceneComponentProvider, true) {
+) :
+  SceneManager(
+    model,
+    surface,
+    sceneComponentProvider,
+    true,
+    { parentDisposable ->
+      AppExecutorUtil.createBoundedApplicationPoolExecutor(
+        "SceneManager resource listener",
+        AppExecutorUtil.getAppExecutorService(),
+        1,
+        parentDisposable,
+      )
+    },
+  ) {
   override fun updateSceneViews() {
     this.sceneView = TestSceneView(100, 100, this)
   }
@@ -71,6 +88,13 @@ class TestSceneManager(
 
   fun simulateResourceChanged(reason: ImmutableSet<ResourceNotificationManager.Reason>) {
     resourceChangeListener.resourcesChanged(reason)
+    runInEdtAndWait {
+      // Ensure all queued notifications have completed
+      PlatformTestUtil.waitForFuture(
+        resourceChangeListener.notificationExecutorService.submit {},
+        10_000,
+      )
+    }
   }
 }
 
