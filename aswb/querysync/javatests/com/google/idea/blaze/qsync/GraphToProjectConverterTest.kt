@@ -23,6 +23,7 @@ import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.common.Output
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.common.TargetPatternCollection
+import com.google.idea.blaze.qsync.GraphToProjectConverter.Companion.initializeProjectStructureData
 import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
@@ -490,7 +491,7 @@ class GraphToProjectConverterTest {
   @Test
   fun testConvertProject_emptyProject() {
     val converter = GraphToProjectConvertersForTests.create()
-    val project = converter.createProject(BuildGraphData.EMPTY, emptyRepositoryFinder)
+    val project = converter.configureProject(BuildGraphData.EMPTY, emptyRepositoryFinder)
     Truth.assertThat(project.modules.size).isEqualTo(1)
 
     val workspaceModule = project.modules.get(0)
@@ -517,7 +518,7 @@ class GraphToProjectConverterTest {
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
 
-    val project = converter.createProject(buildGraphData, emptyRepositoryFinder)
+    val project = converter.configureProject(buildGraphData, emptyRepositoryFinder)
 
     // Sanity check
     Truth.assertThat(project.modules.size).isEqualTo(1)
@@ -554,7 +555,7 @@ class GraphToProjectConverterTest {
       )
     val buildGraphData: BuildGraphData =
       BuildGraphs.forTestProject(TestData.JAVA_LIBRARY_NO_DEPS_QUERY)
-    val project = converter.createProject(buildGraphData, emptyRepositoryFinder)
+    val project = converter.configureProject(buildGraphData, emptyRepositoryFinder)
 
     Truth.assertThat(project.modules.size).isEqualTo(1)
     Truth.assertThat(project.modules.get(0).contentEntries.size).isEqualTo(1)
@@ -605,7 +606,7 @@ class GraphToProjectConverterTest {
   @Test
   fun testActiveLanguages_emptyProject() {
     val converter = GraphToProjectConvertersForTests.create()
-    val project = converter.createProject(BuildGraphData.EMPTY, emptyRepositoryFinder)
+    val project = converter.configureProject(BuildGraphData.EMPTY, emptyRepositoryFinder)
     Truth.assertThat(project.activeLanguages).isEmpty()
   }
 
@@ -626,7 +627,7 @@ class GraphToProjectConverterTest {
           emptySet(),
         )
         .parse()
-    val project = converter.createProject(buildGraphData, emptyRepositoryFinder)
+    val project = converter.configureProject(buildGraphData, emptyRepositoryFinder)
 
     Truth.assertThat(project.activeLanguages).contains(QuerySyncLanguage.JVM)
   }
@@ -649,7 +650,7 @@ class GraphToProjectConverterTest {
         )
         .parse()
 
-    val project = converter.createProject(buildGraphData, createEmptyForTests())
+    val project = converter.configureProject(buildGraphData, createEmptyForTests())
 
     val expectedProject =
       ProjectProto.Project(
@@ -708,7 +709,7 @@ class GraphToProjectConverterTest {
         )
         .parse()
 
-    val project = converter.createProject(buildGraphData, createEmptyForTests())
+    val project = converter.configureProject(buildGraphData, createEmptyForTests())
 
     val expectedProject =
       ProjectProto.Project(
@@ -738,7 +739,7 @@ class GraphToProjectConverterTest {
               isAndroidModule = true,
               androidSourcePackages =
                 emptyList(), // Expected to be empty as Build Graph does not contain resource
-                             // packages
+              // packages
               androidCustomPackages = emptyList(),
               androidExternalLibraries = emptyList(),
             )
@@ -753,11 +754,12 @@ class GraphToProjectConverterTest {
   }
 }
 
-private fun GraphToProjectConverter.createProject(
+private fun GraphToProjectConverter.configureProject(
   graph: BuildGraphData,
   externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
 ): ProjectProto.Project {
   val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
-  createProject(graph, externalRepositoryFinder, update)
+  configureProject(initializeProjectStructureData(graph), externalRepositoryFinder, update)
+  configureProject(graph, externalRepositoryFinder, update)
   return update.build()
 }

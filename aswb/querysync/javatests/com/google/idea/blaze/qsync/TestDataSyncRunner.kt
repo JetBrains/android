@@ -18,6 +18,7 @@ package com.google.idea.blaze.qsync
 import com.google.common.collect.ImmutableSet
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
+import com.google.idea.blaze.qsync.GraphToProjectConverter.Companion.initializeProjectStructureData
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
@@ -72,7 +73,12 @@ class TestDataSyncRunner(
         projectDefinition = projectDefinition,
       )
     val update = ProjectProtoUpdate(existingProject = ProjectProto.Project.getDefaultInstance())
-    converter.createProject(
+    converter.configureProject(
+      initializeProjectStructureData(buildGraphData),
+      ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
+      update,
+    )
+    converter.configureProject(
       buildGraphData,
       ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
       update,
