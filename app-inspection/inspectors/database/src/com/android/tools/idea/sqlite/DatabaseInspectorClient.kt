@@ -138,6 +138,7 @@ class DatabaseInspectorClient(
             .setConnectionClass(settings.additionalConnectionClass)
         )
       }
+      command.ignoreFrameworkApi = settings.isIgnoreFrameworkApi
     }
     val response = dbMessenger.sendCommand(Command.newBuilder().setTrackDatabases(command.build()))
 
