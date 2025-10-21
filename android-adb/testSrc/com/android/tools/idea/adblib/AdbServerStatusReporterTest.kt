@@ -19,7 +19,6 @@ package com.android.tools.idea.adblib
 import com.android.adblib.ServerStatus
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.test.testutils.EnsureAndroidProjectRule
-import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
 import com.intellij.testFramework.ProjectRule
 import java.util.concurrent.CountDownLatch
@@ -35,7 +34,6 @@ class AdbServerStatusReporterTest {
   private val projectRule = ProjectRule()
   private val initAdbLibApplicationServiceRule = InitAdbLibApplicationServiceRule()
   private val adbRule = FakeAdbRule()
-  private val adbServiceRule = FakeAdbServiceRule(projectRule::project, adbRule)
   @get:Rule val ensureAndroidProjectRule = EnsureAndroidProjectRule()
   private lateinit var reporter: AdbServerStatusReporter
 
@@ -44,10 +42,7 @@ class AdbServerStatusReporterTest {
 
   @get:Rule
   val ruleChain =
-    RuleChain.outerRule(projectRule)
-      .around(initAdbLibApplicationServiceRule)
-      .around(adbRule)
-      .around(adbServiceRule)!!
+    RuleChain.outerRule(projectRule).around(initAdbLibApplicationServiceRule).around(adbRule)!!
 
   private fun statusReporterCallback(status: ServerStatus) {
     Assert.assertNotNull("No server-status version", status.version)
