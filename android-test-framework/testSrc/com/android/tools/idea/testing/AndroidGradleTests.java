@@ -241,8 +241,9 @@ public class AndroidGradleTests {
   public static void updateToolingVersionsAndPaths(@NotNull File path,
                                                    @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
                                                    @Nullable String ndkVersion,
-                                                   @NotNull List<File> localRepos) throws IOException {
-    internalUpdateToolingVersionsAndPaths(path, true, agpVersion, ndkVersion, localRepos, true);
+                                                   @NotNull List<File> localRepos,
+                                                   @Nullable Boolean builtInKotlinEnabled) throws IOException {
+    internalUpdateToolingVersionsAndPaths(path, true, agpVersion, ndkVersion, localRepos, true, builtInKotlinEnabled);
   }
 
   private static void internalUpdateToolingVersionsAndPaths(@NotNull File path,
@@ -250,13 +251,14 @@ public class AndroidGradleTests {
                                                             @NotNull ResolvedAgpVersionSoftwareEnvironment agpEnvironment,
                                                             @Nullable String ndkVersion,
                                                             @NotNull List<File> localRepos,
-                                                            boolean syncEnabled) throws IOException {
+                                                            boolean syncEnabled,
+                                                            @Nullable Boolean builtInKotlinEnabled) throws IOException {
 
     // Tools/base versions are the same but with then major incremented by 23
     int firstSeparator = agpEnvironment.getAgpVersion().indexOf('.');
     int majorVersion = Integer.parseInt(agpEnvironment.getAgpVersion().substring(0, firstSeparator)) + 23;
     String toolsBaseVersion = majorVersion + agpEnvironment.getAgpVersion().substring(firstSeparator);
-
+    boolean builtInKotlin = (builtInKotlinEnabled != null) ? builtInKotlinEnabled : getBuiltInKotlinEnabled(path, agpEnvironment);
     BasicFileAttributes fileAttributes;
     try {
       fileAttributes = Files.readAttributes(path.toPath(), BasicFileAttributes.class);
@@ -282,7 +284,7 @@ public class AndroidGradleTests {
       }
       for (File child : notNullize(path.listFiles())) {
         internalUpdateToolingVersionsAndPaths(
-          child, false, agpEnvironment, ndkVersion, localRepos, syncEnabled
+          child, false, agpEnvironment, ndkVersion, localRepos, syncEnabled, builtInKotlin
         );
       }
     }
@@ -308,6 +310,7 @@ public class AndroidGradleTests {
         contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdkVersion *[(=]? *(\\d+)");
         contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdk *= *(\\d+)");
         contents = updateLocalRepositories(contents, localRepositories);
+        contents = migrateBuildFileToBuiltInKotlin(contents, agpEnvironment.getAgpVersion(), builtInKotlin);
 
         if (ndkVersion != null) {
           contents = contents.replace(NDK_VERSION_PLACEHOLDER, String.format("ndkVersion=\"%s\"", ndkVersion));
@@ -612,6 +615,51 @@ public class AndroidGradleTests {
     return repositories;
   }
 
+  @NotNull
+  private static String migrateBuildFileToBuiltInKotlin(@NotNull String contents, @NotNull String agpVersion, boolean builtInKotlin) {
+    if (!builtInKotlin) return contents;
+
+    // Top level gradle build file
+    if (contents.contains("classpath\\s+['\"]com.android.tools.build:gradle:.+['\"]")) {
+      // Remove old Kotlin plugin dependency application
+      contents = contents.replaceAll("classpath\\s+['\"]org.jetbrains.kotlin:kotlin-gradle-plugin:.+['\"]", "");
+    } else {
+      contents = contents.replaceAll("classpath\\s+['\"]org.jetbrains.kotlin:kotlin-gradle-plugin:.+['\"]",
+                                     "classpath 'com.android.tools.build:gradle-kotlin:" + agpVersion + "'\n");
+    }
+
+    if (contents.contains("org.jetbrains.kotlin.android") || contents.contains("kotlin-android")) {
+      // Remove old Kotlin plugin application
+      contents = contents.replaceAll("id\\s+['\"]org.jetbrains.kotlin.android['\"].*\\s+", "");
+      contents = contents.replaceAll("(?:apply\\s+plugin:|id)\\s+['\"](?:kotlin-android|kotlin-android-extensions)['\"].*\\s+", "");
+
+      // Remove incompatible kotlinOptions block
+      contents = contents.replaceAll("\\s*kotlinOptions\\s*\\{[\\s\\S]*?}", "");
+
+      // Replace kotlin-kapt with the legacy-kapt plugin for built-in Kotlin
+      contents = contents.replaceAll("((?:apply\\s+plugin:|id)\\s+)['\"]kotlin-kapt['\"]", "$1'com.android.legacy-kapt'\n");
+
+      // Remove explicit stdlib dependencies, as they are provided by the built-in Kotlin plugin
+      contents = contents.replaceAll("implementation\\s*['\"]org.jetbrains.kotlin:kotlin-stdlib-jdk.:.+['\"]\\s+", "");
+    }
+    return contents;
+  }
+
+  private static boolean getBuiltInKotlinEnabled(@NotNull File path, @NotNull ResolvedAgpVersionSoftwareEnvironment agpEnvironment) {
+    if (!AgpVersion.parse(agpEnvironment.getAgpVersion()).isAtLeastIncludingPreviews(9, 0, 0)) {
+      return false;
+    }
+
+    try {
+      String value = new GradleProperties(new File(path, FN_GRADLE_PROPERTIES)).getProperties().getProperty("android.builtInKotlin");
+      return !"false".equals(value);
+    }
+    catch (IOException e) {
+      // If gradle.properties doesn't exist, assume the default.
+      return true;
+    }
+  }
+
   /**
    * Takes a regex pattern with a single group in it and replace the contents of that group with a
    * new value.
@@ -799,7 +847,7 @@ public class AndroidGradleTests {
                                                  File... localRepos) throws IOException {
     preCreateDotGradle(projectRoot);
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-    internalUpdateToolingVersionsAndPaths(projectRoot, true, agpVersion, ndkVersion, Lists.newArrayList(localRepos), syncReady);
+    internalUpdateToolingVersionsAndPaths(projectRoot, true, agpVersion, ndkVersion, Lists.newArrayList(localRepos), syncReady, null);
   }
 
 

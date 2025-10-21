@@ -105,26 +105,6 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        FACET                         : Kotlin
-            TypeId                        : kotlin-language
-            ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
-            CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            CompilerSettings
-                additionalArguments           : -Xuse-inline-scopes-numbers
-                copyJsLibraryFiles            : true
-                outputDirectoryForJsLibraryFiles        : lib
-            IsTestModule                  : false
-            Kind                          : DEFAULT
-            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
-            MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
-            UseProjectSettings            : false
-            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/java
@@ -147,15 +127,10 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
-            Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib1.lib.main
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
-            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugAndroidTest
             -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : <PROJECT>::TestCompositeLib1:lib:generateDebugAndroidTestSources
@@ -197,26 +172,6 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        FACET                         : Kotlin
-            TypeId                        : kotlin-language
-            ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
-            CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            CompilerSettings
-                additionalArguments           :
-                copyJsLibraryFiles            : true
-                outputDirectoryForJsLibraryFiles        : lib
-            IsTestModule                  : false
-            Kind                          : DEFAULT
-            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
-            MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
-            UseProjectSettings            : false
-            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/src/main
@@ -239,11 +194,8 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
-        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debug
             -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : <PROJECT>::TestCompositeLib1:lib:generateDebugSources
@@ -287,26 +239,6 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        FACET                         : Kotlin
-            TypeId                        : kotlin-language
-            ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
-            CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            CompilerSettings
-                additionalArguments           :
-                copyJsLibraryFiles            : true
-                outputDirectoryForJsLibraryFiles        : lib
-            IsTestModule                  : false
-            Kind                          : DEFAULT
-            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
-            MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
-            UseProjectSettings            : false
-            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/src/test
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib1/lib/src/test/java
@@ -329,15 +261,10 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
-            Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib1.lib.main
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
-            -                             : file://<PROJECT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugUnitTest
             -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : <PROJECT>::TestCompositeLib1:lib:createMockableJar
@@ -457,21 +384,21 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            ApiLevel                      : 2.2
             CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
             CompilerSettings
                 additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            LanguageLevel                 : 2.2
             MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -506,8 +433,8 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
             -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebugAndroidTest
@@ -551,21 +478,21 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            ApiLevel                      : 2.2
             CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
             CompilerSettings
                 additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            LanguageLevel                 : 2.2
             MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
@@ -595,8 +522,8 @@ PROJECT                       : project
         ORDER_ENTRY                   : TestCompositeLib1.lib.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debug
             -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -644,21 +571,21 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            ApiLevel                      : 2.2
             CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            LanguageLevel                 : 2.2
             MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -693,7 +620,7 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
+            -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:createMockableJar
