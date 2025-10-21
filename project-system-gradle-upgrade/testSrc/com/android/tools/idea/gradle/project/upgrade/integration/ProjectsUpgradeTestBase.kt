@@ -171,7 +171,8 @@ abstract class ProjectsUpgradeTestBase {
           target,
           environment,
           testProject.ndkVersion(),
-          emptyList()
+          emptyList(),
+          false
         )
         when (relative.path) {
           FN_GRADLE_PROPERTIES -> {

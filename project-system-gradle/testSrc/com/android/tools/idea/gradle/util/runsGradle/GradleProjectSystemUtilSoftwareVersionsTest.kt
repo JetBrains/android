@@ -21,10 +21,13 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinitio
 import com.android.tools.idea.gradle.project.sync.snapshots.replaceContent
 import com.android.tools.idea.gradle.util.KotlinGradleProjectSystemUtil
 import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.getBuiltInKotlinVersion
 import com.google.common.truth.Truth.assertThat
 import org.gradle.util.GradleVersion
 import org.junit.Assume.assumeTrue
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -33,13 +36,13 @@ class GradleProjectSystemUtilSoftwareVersionsTest {
   val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
-  fun testCurrentKotlin() {
+  fun testCurrentBuiltInKotlin() {
     val preparedProject = projectRule.prepareTestProject(TestProject.KOTLIN_KAPT)
     preparedProject
       .open { project ->
         val kotlinVersionInUse = KotlinGradleProjectSystemUtil.getKotlinVersionsInUse(project, project.basePath!!)?.firstOrNull()?.toString()
         assertThat(kotlinVersionInUse).isNotNull()
-        assertThat(kotlinVersionInUse).isEqualTo(KOTLIN_VERSION_FOR_TESTS)
+        assertThat(kotlinVersionInUse).isEqualTo(AgpVersionSoftwareEnvironmentDescriptor.selected.getBuiltInKotlinVersion())
       }
   }
 

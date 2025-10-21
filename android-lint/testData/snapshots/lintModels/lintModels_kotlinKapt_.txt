@@ -23,8 +23,8 @@ MODULE                        : MainActivity.app
         MainArtifact
             ApplicationId                 : com.example.mainactivity
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/localDebug/out [-]
-            - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kapt/localDebug [-]
-            - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
+            - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kapt/local/debug [-]
+            - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kaptKotlin/local/debug [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
@@ -40,7 +40,6 @@ MODULE                        : MainActivity.app
                     com.google.dagger:dagger      : null => com.google.dagger:dagger:2.6
                     javax.inject:javax.inject     : null => javax.inject:javax.inject:1
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -55,12 +54,11 @@ MODULE                        : MainActivity.app
                     com.google.dagger:dagger      : null => com.google.dagger:dagger:2.6
                     javax.inject:javax.inject     : null => javax.inject:javax.inject:1
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kapt_classes_dir/localDebug/kaptLocalDebugKotlin [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kotlinc/localDebug/compileLocalDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_r_class_jar/localDebug/generateLocalDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/localDebug/compileLocalDebugJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
-            - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/localDebug [-]
         TestArtifact
             Dependencies
                 CompileDependencies
@@ -79,7 +77,6 @@ MODULE                        : MainActivity.app
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -97,16 +94,15 @@ MODULE                        : MainActivity.app
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kapt_classes_dir/localDebugUnitTest/kaptLocalDebugUnitTestKotlin [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kotlinc/localDebugUnitTest/compileLocalDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/localDebug/processLocalDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/localDebugUnitTest/compileLocalDebugUnitTestJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
-            - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/localDebugUnitTest [-]
         ApplicationId                 : com.example.mainactivity.test
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/localDebugAndroidTest/out [-]
-        - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
-        - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
+        - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kapt/androidTest/local/debug [-]
+        - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kaptKotlin/androidTest/local/debug [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
@@ -136,7 +132,6 @@ MODULE                        : MainActivity.app
                 org.hamcrest:hamcrest-integration       : null => org.hamcrest:hamcrest-integration:1.3
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -157,10 +152,10 @@ MODULE                        : MainActivity.app
                 org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                 org.hamcrest:hamcrest-integration       : null => org.hamcrest:hamcrest-integration:1.3
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
+        - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kapt_classes_dir/localDebugAndroidTest/kaptLocalDebugAndroidTestKotlin [-]
+        - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kotlinc/localDebugAndroidTest/compileLocalDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/compile_r_class_jar/localDebugAndroidTest/generateLocalDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/localDebugAndroidTest/compileLocalDebugAndroidTestJavaWithJavac/classes [-]
-        - ClassOutputs                : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
-        - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/localDebugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API 34
         SourceProviders
@@ -395,10 +390,6 @@ MODULE                        : MainActivity.app
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
                 Identifier                    : org.hamcrest:hamcrest-library:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-library:1.3
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
@@ -505,9 +496,9 @@ MODULE                        : MainActivity.lib
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/lib/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
         TestArtifact
             Dependencies
                 CompileDependencies
@@ -578,9 +569,9 @@ MODULE                        : MainActivity.lib
                     artifacts::lib                : null => :lib@main
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/lib/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.example.lib.test
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
@@ -653,9 +644,9 @@ MODULE                        : MainActivity.lib
                 artifacts::lib                : null => :lib@main
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+        - ClassOutputs                : <ROOT>/lib/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-        - ClassOutputs                : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API 34
         SourceProviders

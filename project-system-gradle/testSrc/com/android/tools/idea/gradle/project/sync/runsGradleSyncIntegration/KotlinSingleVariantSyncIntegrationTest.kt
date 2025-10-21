@@ -45,8 +45,9 @@ class KotlinSingleVariantSyncIntegrationTest {
     preparedProject.open { project ->
       expect.that(getKotlinModel(project.gradleModule(":app")!!)?.testSourceSetNames().orEmpty())
         .containsExactly("debugAndroidTest", "debug", "debugUnitTest")
+      // TODO(b/457710857): `KaptGradleModel` no longer exists when built-in Kotlin is enabled
       expect.that(getKaptModel(project.gradleModule(":app")!!)?.testSourceSetNames().orEmpty())
-        .containsExactly("debugAndroidTest", "debug", "debugUnitTest")
+        .containsNoneIn(setOf("debugAndroidTest", "debug", "debugUnitTest"))
     }
   }
 }
