@@ -26,7 +26,16 @@ data class AiEventStats(
   val transformEvent: TransformEventMetadata? = null,
   val chatBotEvent: ChatBotEventMetadata? = null,
   val devAiEventContext: DevAiContext,
-) : LoggedEvent
+  val feature: Feature,
+) : LoggedEvent {
+  enum class Feature {
+    FEATURE_UNSPECIFIED,
+    CHAT,
+    AGENT,
+    CODE_COMPLETION,
+    TRANSFORM_CODE,
+  }
+}
 
 data class CompletionEventMetadata(
   val trigger: Trigger,
