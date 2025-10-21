@@ -244,6 +244,10 @@
 
     <postStartupActivity implementation="com.android.tools.idea.startup.ProjectMetricsInitializer$MyStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.diagnostics.commit.GitCommitTrackerActivity"/>
+    <applicationService serviceInterface="com.intellij.ide.browsers.BrowserLauncher"
+                        serviceImplementation="com.android.tools.idea.browser.AndroidStudioBrowserLauncher"
+                        overrides="true"
+    />
   </extensions>
 
   <applicationListeners>
