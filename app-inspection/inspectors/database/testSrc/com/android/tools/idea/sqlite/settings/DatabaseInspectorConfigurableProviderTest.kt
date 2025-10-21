@@ -79,6 +79,7 @@ class DatabaseInspectorConfigurableProviderTest {
     settings.isForceOpen = true
     projectSettings.additionalDriverClass = "Driver"
     projectSettings.additionalConnectionClass = "Connection"
+    projectSettings.isIgnoreFrameworkApi = true
 
     val configurable = createConfigurable()
 
@@ -86,6 +87,7 @@ class DatabaseInspectorConfigurableProviderTest {
     assertThat(configurable.getForceOpen().isSelected).isTrue()
     assertThat(configurable.getDriverClass().text).isEqualTo("Driver")
     assertThat(configurable.getConnectionClass().text).isEqualTo("Connection")
+    assertThat(configurable.getIgnoreFrameworkApi().isSelected).isTrue()
   }
 
   @Test
@@ -94,18 +96,21 @@ class DatabaseInspectorConfigurableProviderTest {
     settings.isForceOpen = true
     projectSettings.additionalDriverClass = "Driver"
     projectSettings.additionalConnectionClass = "Connection"
+    projectSettings.isIgnoreFrameworkApi = false
     val configurable = createConfigurable()
 
     configurable.getEnableOfflineMode().isSelected = true
     configurable.getForceOpen().isSelected = false
     configurable.getDriverClass().text = "Driver1"
     configurable.getConnectionClass().text = "Connection1"
+    configurable.getIgnoreFrameworkApi().isSelected = true
     configurable.apply()
 
     assertThat(settings.isOfflineModeEnabled).isTrue()
     assertThat(settings.isForceOpen).isFalse()
     assertThat(projectSettings.additionalDriverClass).isEqualTo("Driver1")
     assertThat(projectSettings.additionalConnectionClass).isEqualTo("Connection1")
+    assertThat(projectSettings.isIgnoreFrameworkApi).isTrue()
   }
 
   @Test
@@ -114,18 +119,21 @@ class DatabaseInspectorConfigurableProviderTest {
     settings.isForceOpen = true
     projectSettings.additionalDriverClass = "Driver"
     projectSettings.additionalConnectionClass = "Connection"
+    projectSettings.isIgnoreFrameworkApi = true
     val configurable = createConfigurable()
 
     configurable.getEnableOfflineMode().isSelected = true
     configurable.getForceOpen().isSelected = false
     configurable.getDriverClass().text = "Driver1"
     configurable.getConnectionClass().text = "Connection1"
+    configurable.getIgnoreFrameworkApi().isSelected = false
     configurable.reset()
 
     assertThat(configurable.getEnableOfflineMode().isSelected).isFalse()
     assertThat(configurable.getForceOpen().isSelected).isTrue()
     assertThat(configurable.getDriverClass().text).isEqualTo("Driver")
     assertThat(configurable.getConnectionClass().text).isEqualTo("Connection")
+    assertThat(configurable.getIgnoreFrameworkApi().isSelected).isTrue()
   }
 
   @Test
@@ -177,6 +185,18 @@ class DatabaseInspectorConfigurableProviderTest {
   }
 
   @Test
+  fun isModified_ignoreFrameworkApi() {
+    projectSettings.isIgnoreFrameworkApi = false
+    val configurable = createConfigurable()
+    val ignoreFrameworkApi = configurable.getIgnoreFrameworkApi()
+    assertThat(configurable.isModified).isFalse()
+
+    ignoreFrameworkApi.isSelected = true
+
+    assertThat(configurable.isModified).isTrue()
+  }
+
+  @Test
   fun testForceOpenCheckbox_flagDisabled_notShown() {
     val provider = DatabaseInspectorConfigurableProvider(project)
     assertThat(provider.createConfigurable().hasNamedComponent<JCheckBox>("forceOpen")).isTrue()
@@ -200,6 +220,17 @@ class DatabaseInspectorConfigurableProviderTest {
       .isFalse()
   }
 
+  @Test
+  fun testIsIgnoreFramework_flagDisabled_notShown() {
+    val provider = DatabaseInspectorConfigurableProvider(project)
+    assertThat(provider.createConfigurable().hasNamedComponent<JCheckBox>("ignoreFrameworkApi"))
+      .isTrue()
+
+    ADDITIONAL_DRIVER_FLAG.override(false)
+    assertThat(provider.createConfigurable().hasNamedComponent<JCheckBox>("ignoreFrameworkApi"))
+      .isFalse()
+  }
+
   private fun createConfigurable(): Configurable {
     val provider = DatabaseInspectorConfigurableProvider(project)
     return provider.createConfigurable()
@@ -213,6 +244,9 @@ private fun Configurable.getForceOpen() = getNamedComponent<JCheckBox>("forceOpe
 private fun Configurable.getDriverClass() = getNamedComponent<TextAccessor>("driverClass")
 
 private fun Configurable.getConnectionClass() = getNamedComponent<TextAccessor>("connectionClass")
+
+private fun Configurable.getIgnoreFrameworkApi() =
+  getNamedComponent<JCheckBox>("ignoreFrameworkApi")
 
 private inline fun <reified T : Any> Configurable.getNamedComponent(name: String): T {
   val component = createComponent() ?: fail("Unexpected null component")

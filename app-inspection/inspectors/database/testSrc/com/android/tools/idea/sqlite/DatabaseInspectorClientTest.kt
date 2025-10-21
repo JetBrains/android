@@ -19,6 +19,7 @@ import androidx.sqlite.inspection.SqliteInspectorProtocol
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Command
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Response
 import androidx.sqlite.inspection.SqliteInspectorProtocol.TrackDatabasesCommand
+import androidx.sqlite.inspection.SqliteInspectorProtocol.TrackDatabasesResponse
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices.Severity
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices.Severity.ERROR
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
@@ -114,7 +115,7 @@ class DatabaseInspectorClientTest {
     val response =
       Response.newBuilder()
         .setTrackDatabases(
-          SqliteInspectorProtocol.TrackDatabasesResponse.newBuilder()
+          TrackDatabasesResponse.newBuilder()
             .addTrackedAdditionalDrivers(
               SqliteInspectorProtocol.AdditionalDriver.newBuilder()
                 .setDriverClass("Driver")
@@ -207,6 +208,27 @@ class DatabaseInspectorClientTest {
           TestNotification("Database Inspector", "Failed to inject tracker into Driver", ERROR)
         )
     }
+
+  @Test
+  fun testStartTrackingDatabaseConnectionSendsMessage_ignoreFrameworkApi() = runBlocking {
+    StudioFlags.APP_INSPECTION_ENABLE_ADDITIONAL_SQL_DRIVER.overrideForTest(true, disposable)
+    val settings = DatabaseInspectorProjectSettings.getInstance(project)
+    settings.isIgnoreFrameworkApi = true
+
+    val appInspectorMessenger = FakeAppInspectorMessenger(scope, Response.newBuilder())
+    val databaseInspectorClient = createDatabaseInspectorClient(appInspectorMessenger)
+
+    val trackDatabasesCommand =
+      Command.newBuilder()
+        .setTrackDatabases(TrackDatabasesCommand.newBuilder().setIgnoreFrameworkApi(true))
+        .build()
+
+    // Act
+    databaseInspectorClient.startTrackingDatabaseConnections()
+
+    // Assert
+    assertThat(appInspectorMessenger.command).isEqualTo(trackDatabasesCommand)
+  }
 
   @Test
   fun testOnDatabaseOpenedEventOpensDatabase() {

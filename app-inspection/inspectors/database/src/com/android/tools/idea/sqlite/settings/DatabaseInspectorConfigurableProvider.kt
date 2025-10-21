@@ -60,6 +60,7 @@ private class DatabaseInspectorConfigurable(private val project: Project) : Sear
   private var additionDriverClass = propertyGraph.property(projectSettings.additionalDriverClass)
   private var additionConnectionClass =
     propertyGraph.property(projectSettings.additionalConnectionClass)
+  private var isIgnoreFrameworkApi = propertyGraph.property(projectSettings.isIgnoreFrameworkApi)
 
   private val panel = panel {
     row {
@@ -77,6 +78,12 @@ private class DatabaseInspectorConfigurable(private val project: Project) : Sear
       row(message("additional.connection.class")) {
         classPicker(CONNECTION_INTERFACE).bindText(additionConnectionClass).named("connectionClass")
       }
+      row {
+        checkBox(message("ignore.framework.api"))
+          .bindSelected(isIgnoreFrameworkApi)
+          .named("ignoreFrameworkApi")
+          .applyToComponent { toolTipText = message("ignore.framework.api.tooltip") }
+      }
     }
   }
 
@@ -86,7 +93,8 @@ private class DatabaseInspectorConfigurable(private val project: Project) : Sear
     isOfflineModeEnabled.get() != settings.isOfflineModeEnabled ||
       isForceOpen.get() != settings.isForceOpen ||
       additionDriverClass.get() != projectSettings.additionalDriverClass ||
-      additionConnectionClass.get() != projectSettings.additionalConnectionClass
+      additionConnectionClass.get() != projectSettings.additionalConnectionClass ||
+      isIgnoreFrameworkApi.get() != projectSettings.isIgnoreFrameworkApi
 
   override fun apply() {
     val isOfflineModeEnabled = isOfflineModeEnabled.get()
@@ -94,6 +102,7 @@ private class DatabaseInspectorConfigurable(private val project: Project) : Sear
     settings.isForceOpen = isForceOpen.get()
     projectSettings.additionalDriverClass = additionDriverClass.get()
     projectSettings.additionalConnectionClass = additionConnectionClass.get()
+    projectSettings.isIgnoreFrameworkApi = isIgnoreFrameworkApi.get()
   }
 
   override fun reset() {
@@ -101,6 +110,7 @@ private class DatabaseInspectorConfigurable(private val project: Project) : Sear
     isForceOpen.set(settings.isForceOpen)
     additionDriverClass.set(projectSettings.additionalDriverClass)
     additionConnectionClass.set(projectSettings.additionalConnectionClass)
+    isIgnoreFrameworkApi.set(projectSettings.isIgnoreFrameworkApi)
   }
 
   override fun getDisplayName(): String {
@@ -149,6 +159,8 @@ class DatabaseInspectorProjectSettings :
   var additionalDriverClass: String = ""
 
   var additionalConnectionClass: String = ""
+
+  var isIgnoreFrameworkApi: Boolean = false
 
   override fun getState() = this
 
