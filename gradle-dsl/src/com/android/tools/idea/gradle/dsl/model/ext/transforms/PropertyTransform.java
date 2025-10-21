@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 
-import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
@@ -33,8 +32,8 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsD
  * Simple properties will be in the form of:</p>
  * <code>propertyName = propertyValue</code><br>
  * <p>
- * <p>However sometimes properties will need to be represented in other ways such as {@link SigningConfigModel#storeFile()}.
- * The type of this property is a file and as such need to be shown in the gradle file as:</p>
+ * <p>However sometimes properties will need to be represented in other ways. For example, a property representing a file might
+ * be expressed in a gradle file as:</p>
  * <code>propertyName = file(propertyValue)</code><br>
  * <p>See {@link SingleArgumentMethodTransform} as an example transform for this.</p>
  * <p>

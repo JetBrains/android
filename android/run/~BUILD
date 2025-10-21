@@ -50,6 +50,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
+        "//tools/adt/idea/gradle-dsl-android:intellij.android.gradle.dsl.android",
         "//tools/adt/idea/jps-model:intellij.android.jps.model",
         "//tools/adt/idea/android/lib:instantapps-api",
         "//tools/base/common:studio.android.sdktools.common.testfixtures",

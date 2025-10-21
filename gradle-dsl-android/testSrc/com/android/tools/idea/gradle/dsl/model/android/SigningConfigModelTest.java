@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidMod
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
+import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
@@ -32,7 +33,6 @@ import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import java.io.File;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +42,7 @@ import org.junit.Test;
 /**
  * Tests for {@link SigningConfigModel}.
  */
-public class SigningConfigModelTest extends GradleFileModelTestCase {
+public class SigningConfigModelTest extends AndroidGradleFileModelTestCase {
   @Test
   public void testSigningConfigBlockWithApplicationStatements() throws Exception {
     writeToBuildFile(TestFile.SIGNING_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS);

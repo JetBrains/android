@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.api.ext;
 
-import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslContextModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslElementModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
@@ -67,8 +66,8 @@ public final class ReferenceTo {
 
   /**
    * Create a reference to a dsl element given its name.
-   * Please only consider using this function if you cannot fetch the {@link GradlePropertyModel} or the {@link SigningConfigModel} of the
-   * element you want to refer to, as this function only guarantees a correct result if the {@param referredElementName} is in the expected
+   * Please only consider using this function if you cannot fetch the model (e.g. a {@link GradlePropertyModel}) of the element
+   * you want to refer to, as this function only guarantees a correct result if the {@param referredElementName} is in the expected
    * syntax.
    * @param referredElementName the name of the dslElement we are trying to set a reference to. This name should be the canonical name in
    *                            the external build language.
