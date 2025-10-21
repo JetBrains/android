@@ -29,7 +29,6 @@ import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.Resolution
-import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.testing.disposable
@@ -66,7 +65,6 @@ class FakeScreenSharingAgentRule : TestRule {
   private val devices = mutableListOf<FakeDevice>()
   private val projectRule = ProjectRule()
   private val fakeAdbRule: FakeAdbRule = createFakeAdbRule()
-  private val fakeAdbServiceRule = FakeAdbServiceRule(projectRule::project, fakeAdbRule)
   private val testEnvironment = object : ExternalResource() {
 
     override fun before() {
@@ -100,9 +98,7 @@ class FakeScreenSharingAgentRule : TestRule {
     return projectRule.apply(
       InitAdbLibApplicationServiceRule().apply(
         fakeAdbRule.apply(
-          fakeAdbServiceRule.apply(
-            testEnvironment.apply(base, description),
-            description),
+          testEnvironment.apply(base, description),
           description),
         description),
       description)
