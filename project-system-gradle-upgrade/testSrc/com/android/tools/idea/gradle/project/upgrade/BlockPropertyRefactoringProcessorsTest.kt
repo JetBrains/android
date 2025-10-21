@@ -32,6 +32,7 @@ abstract class AbstractBlockPropertyUnlessNoOpProcessorTestBase: UpgradeGradleFi
   abstract val removedVersion: AgpVersion
   abstract val propertyKey: String
   abstract val defaultWhenRemoved: Boolean
+  open val readMoreLink: String? = null
   abstract fun createProcessor(currentVersion: AgpVersion, newVersion: AgpVersion): AbstractBlockPropertyUnlessNoOpProcessor
 
   val olderPreRemoveVersion: AgpVersion
@@ -77,6 +78,12 @@ abstract class AbstractBlockPropertyUnlessNoOpProcessorTestBase: UpgradeGradleFi
   fun `Refactoring not enabled when new version lower than removed version`() {
     val processor = createProcessor(olderPreRemoveVersion, preRemoveVersion)
     assertThat(processor.isEnabled).isFalse()
+  }
+
+  @Test
+  fun `Read URL matches`() {
+    val processor = createProcessor(olderPreRemoveVersion, preRemoveVersion)
+    assertThat(processor.getReadMoreUrl()).isEqualTo(readMoreLink)
   }
 
   private fun Project.findGradleProperties(): VirtualFile? = guessProjectDir()?.findChild("gradle.properties")
@@ -196,6 +203,7 @@ class BlockR8IntegratedResourceShrinkingProcessorTest: AbstractBlockPropertyUnle
   override val removedVersion: AgpVersion = AgpVersion.parse("9.0.0-alpha02")
   override val propertyKey: String = "android.r8.integratedResourceShrinking"
   override val defaultWhenRemoved = true
+  override val readMoreLink: String = "https://developer.android.com/r/tools/upgrade-assistant/r8-integrated-resource-shrinking"
 
   override fun createProcessor(currentVersion: AgpVersion, newVersion: AgpVersion): AbstractBlockPropertyUnlessNoOpProcessor {
     return BlockR8IntegratedResourceShrinkingProcessor(project, currentVersion, newVersion)

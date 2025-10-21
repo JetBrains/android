@@ -309,6 +309,7 @@ class BlockR8IntegratedResourceShrinkingProcessor: AbstractBlockPropertyUnlessNo
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_R8_INTEGRATED_RESOURCE_SHRINKING_PRESENT
   override val noOpValue = true
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.r8IntegratedResourceShrinkingBlockProperty"
+  override val readMoreUrlRedirect: ReadMoreUrlRedirect = ReadMoreUrlRedirect("r8-integrated-resource-shrinking")
 }
 
 /**
