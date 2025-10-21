@@ -7,7 +7,7 @@ aswb_library(
     name = "TestUtils",
     testonly = 1,
     srcs = [
-        "GraphToProjectConvertersForTests.java",
+        "GraphToProjectConvertersForTests.kt",
         "QuerySyncTestUtils.java",
         "TestDataSyncRunner.kt",
     ],
@@ -42,9 +42,9 @@ java_test(
     ],
 )
 
-java_test(
+aswb_test(
     name = "GraphToProjectConverterTest",
-    srcs = ["GraphToProjectConverterTest.java"],
+    srcs = ["GraphToProjectConverterTest.kt"],
     deps = [
         ":TestUtils",
         "//tools/adt/idea/aswb/common/experiments",

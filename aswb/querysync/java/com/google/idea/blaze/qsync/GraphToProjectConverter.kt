@@ -184,12 +184,8 @@ class GraphToProjectConverter(
      */
     @VisibleForTesting
     @JvmStatic
-    fun mergeCompatibleSourceRoots(srcRoots: ImmutableMap<Path, ImmutableMap<Path, String>>): ImmutableMap<Path, ImmutableMap<Path, String>> {
-      val result: ImmutableMap.Builder<Path, ImmutableMap<Path, String>> = ImmutableMap.builder()
-      for (contentRoot in srcRoots.entries) {
-        result.put(contentRoot.key, mergeSourceRoots(contentRoot.value))
-      }
-      return result.buildOrThrow()
+    fun mergeCompatibleSourceRoots(srcRoots: Map<Path, Map<Path, String>>): Map<Path, Map<Path, String>> {
+      return srcRoots.mapValues { mergeSourceRoots(it.value) }
     }
 
     /**
@@ -434,8 +430,8 @@ class GraphToProjectConverter(
   @VisibleForTesting
   fun computeAndroidSourcePackages(
     androidSourceFiles: List<Path>,
-    rootToPrefix: ImmutableMap<Path, ImmutableMap<Path, String>>,
-  ): ImmutableSet<String> {
+    rootToPrefix: Map<Path, Map<Path, String>>,
+  ): Set<String> {
     val androidSourcePackages: ImmutableSet.Builder<String> = ImmutableSet.builder()
 
     // Map entries are sorted by path length to ensure that, if the map contains keys k1 and k2,
