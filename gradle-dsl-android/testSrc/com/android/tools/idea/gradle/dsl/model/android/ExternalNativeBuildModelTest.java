@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,12 +45,12 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelUtilsKt.android;
 
-import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
+import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.api.android.ExternalNativeBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.CMakeModel;
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.NdkBuildModel;
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.NdkBuildModelImpl;
 import org.junit.Test;
@@ -58,7 +58,7 @@ import org.junit.Test;
 /**
  * Tests for {@link ExternalNativeBuildModelImpl}.
  */
-public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
+public class ExternalNativeBuildModelTest extends AndroidGradleFileModelTestCase {
   @Test
   public void testCMake() throws Exception {
     writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_C_MAKE);
