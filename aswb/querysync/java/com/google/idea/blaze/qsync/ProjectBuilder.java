@@ -24,6 +24,7 @@ import com.google.idea.blaze.qsync.java.WorkspaceResolvingPackageReader;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectPath;
+import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.Project;
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation;
@@ -75,9 +76,8 @@ public class ProjectBuilder {
         new GraphToProjectConverter(
             javaPackagePrefixReader, context, postQuerySyncData.projectDefinition());
     ProjectPath.ExternalRepositoryFinder externalRepositoryFinder = ProjectPath.ExternalRepositoryFinder.createAndPrepare(workspaceRoot);
-    final var update =
-      new ProjectProtoUpdate(
-        graphToProjectConverter.createProject(graph, externalRepositoryFinder));
+    final var update = new ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance());
+    graphToProjectConverter.createProject(graph, externalRepositoryFinder, update);
     for (ProjectProtoUpdateOperation updateOperation : projectProtoUpdates) {
       updateOperation.update(update, graph, artifactTrackerState, context, externalRepositoryFinder);
     }
