@@ -32,9 +32,7 @@ object ComposeRenderErrorContributor {
 
   // region Public API - These methods must remain stable for external contract.
 
-  /**
-   * Checks if the given [Throwable] is one of the types that this contributor can handle.
-   */
+  /** Checks if the given [Throwable] is one of the types that this contributor can handle. */
   @JvmStatic
   fun isHandledByComposeContributor(throwable: Throwable?): Boolean =
     ComposeRenderErrorType.entries.any { it.predicate(throwable) }
@@ -55,7 +53,6 @@ object ComposeRenderErrorContributor {
   @JvmStatic
   fun isViewModelStackTrace(stackTrace: String): Boolean = isViewModelStackTraceInternal(stackTrace)
 
-
   /**
    * Analyzes the logged errors and returns a list of [RenderErrorModel.Issue] for Compose-specific
    * problems.
@@ -66,27 +63,26 @@ object ComposeRenderErrorContributor {
     linkManager: HtmlLinkManager,
     linkHandler: HyperlinkListener,
   ): List<RenderErrorModel.Issue> =
-    logger.messages
-      .mapNotNull { message ->
-        ComposeRenderErrorType.entries
-          .firstOrNull { it.predicate(message.throwable) }
-          ?.let { errorType ->
-            val builder =
-              RenderErrorModel.Issue.builder()
-                .setSeverity(errorType.severity)
-                .setSummary(errorType.summary(message.throwable))
-                .setLinkHandler(linkHandler)
+    logger.messages.mapNotNull { message ->
+      ComposeRenderErrorType.entries
+        .firstOrNull { it.predicate(message.throwable) }
+        ?.let { errorType ->
+          val builder =
+            RenderErrorModel.Issue.builder()
+              .setSeverity(errorType.severity)
+              .setSummary(errorType.summary(message.throwable))
+              .setLinkHandler(linkHandler)
 
-            errorType.htmlContentProvider?.let { provider ->
-              builder.setHtmlContent(provider(linkManager, message.throwable))
-            }
-            errorType.messageTipProvider?.let { provider ->
-              builder.addMessageTip(provider(linkManager, message.throwable))
-            }
-
-            builder.build()
+          errorType.htmlContentProvider?.let { provider ->
+            builder.setHtmlContent(provider(linkManager, message.throwable))
           }
-      }
+          errorType.messageTipProvider?.let { provider ->
+            builder.addMessageTip(provider(linkManager, message.throwable))
+          }
+
+          builder.build()
+        }
+    }
 
   // endregion
 
@@ -158,6 +154,22 @@ object ComposeRenderErrorContributor {
       },
       messageTipProvider = { linkManager, _ -> createAddReportBugMessage(linkManager, null) },
     ),
+    CLASS_CAST_EXCEPTION(
+      predicate = { throwable -> isClassCastException(throwable) },
+      severity = HighlightSeverity.ERROR,
+      summary = { "Context cannot be cast to Activity in Compose Preview" },
+      htmlContentProvider = { linkManager, throwable ->
+        HtmlBuilder()
+          .add(
+            "The java.lang.ClassCastException you are currently seeing in Jetpack Compose " +
+              "Previews occurs because the @Preview environment provides a non-activity Context " +
+              "(BridgeContext) that cannot be cast to an Activity. "
+          )
+          .newline()
+          .newline()
+          .addExceptionMessage(linkManager, throwable)
+      },
+    ),
     COMPOSITION_LOCAL_NOT_FOUND(
       predicate = { throwable ->
         throwable is IllegalStateException &&
@@ -200,13 +212,12 @@ object ComposeRenderErrorContributor {
             "You can ",
             "read more",
             " about preview limitations in our external documentation.",
-            "https://developer.android.com/jetpack/compose/tooling/" +
-              "previews#preview-viewmodel",
+            "https://developer.android.com/jetpack/compose/tooling/" + "previews#preview-viewmodel",
           )
           .newlineIfNecessary()
           .addExceptionMessage(linkManager, throwable)
       },
-    )
+    ),
   }
 
   /**
@@ -235,6 +246,14 @@ object ComposeRenderErrorContributor {
           line.contains("ViewModelProvider") ||
           line.contains("ViewModelKt"))
     }
+  }
+
+  private fun isClassCastException(throwable: Throwable?): Boolean {
+    if (throwable !is ClassCastException) return false
+    val message = throwable.message ?: return false
+    return message.startsWith(
+      "class com.android.layoutlib.bridge.android.BridgeContext cannot be cast to class android.app.Activity"
+    )
   }
 
   /**
