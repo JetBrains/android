@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.ExternalNativeBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.CMakeModel;
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.NdkBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;

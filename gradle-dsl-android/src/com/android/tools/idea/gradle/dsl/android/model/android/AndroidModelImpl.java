@@ -51,7 +51,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyTy
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.NUMERIC;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.STRING;
 
-import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.ExternalNativeBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.AdbOptionsModel;
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
@@ -105,7 +105,6 @@ import com.android.tools.idea.gradle.dsl.model.android.SplitsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.TestCoverageModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.TestOptionsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.UseLibrariesModelImpl;
-import com.android.tools.idea.gradle.dsl.android.model.android.ViewBindingModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement;
