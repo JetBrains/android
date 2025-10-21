@@ -49,7 +49,6 @@ import com.android.tools.idea.gradle.project.upgrade.AgpVersionChecker
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.LocalProperties
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.intellij.execution.RunConfigurationProducerService
@@ -90,6 +89,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import com.intellij.platform.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES
+import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.workspaceModel.ide.JpsProjectLoadingManager
 import com.intellij.workspaceModel.ide.legacyBridge.findModuleEntity
@@ -409,20 +409,21 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
           !ApplicationManager.getApplication().getService(AgpVersionChecker::class.java).versionsAreIncompatible(agpVersion, latestKnown)
         }
 
+    /** Returns an action that attaches a model from the data node to the appropriate place. */
     fun <T, V : Facet<*>> prepare(
       dataKey: Key<T>,
       getModel: (DataNode<*>, Key<T>) -> T?,
       getFacet: (Module) -> V?,
-      attach: suspend V.(T) -> Unit,
+      attach: V.(T, MutableEntityStorage) -> Unit,
       validate: T.() -> Boolean = { true }
-    ): suspend (() -> Unit) {
+    ): ((MutableEntityStorage) -> Unit) {
       val model = getModel(data.dataNode, dataKey) ?: return { /* No model for datanode/datakey pair */ }
       if (!model.validate()) {
         requestSync("invalid model found for $dataKey in ${data.module.name}")
       }
       val facet = getFacet(data.module) ?: requestSync("no facet found for $dataKey in ${data.module.name} module")
       facets.remove(facet)
-      return { facet.attach(model) }
+      return { storage -> facet.attach(model, storage) }
     }
 
     // For models that can be broken into source sets we need to check the parent datanode for the model
@@ -438,34 +439,31 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
         ANDROID_MODEL,
         getModelForMaybeSourceSetDataNode(),
         AndroidFacet::getInstance,
-        {
-          project.workspaceModel.update("Set GradleAndroidModel for compatibility") { storage ->
-            module.findModuleEntity(storage)?.let { entity ->
-              storage.modifyModuleEntity(entity) {
-                this.gradleAndroidModel = GradleAndroidModelEntity(
-                  entitySource = this@modifyModuleEntity.entitySource,
-                  gradleAndroidModel = data.gradleAndroidModelFactory(it)
-                )
-              }
+        { model, storage ->
+          module.findModuleEntity(storage)?.let { entity ->
+            storage.modifyModuleEntity(entity) {
+              this.gradleAndroidModel = GradleAndroidModelEntity(
+                entitySource = this@modifyModuleEntity.entitySource,
+                gradleAndroidModel = data.gradleAndroidModelFactory(model)
+              )
             }
           }
         },
         validate = GradleAndroidModelData::validate
       ),
-      prepare(GRADLE_MODULE_MODEL, ::getModelFromDataNode, GradleFacet::getInstance, {
-        project.workspaceModel.update("Set GradleModuleModel for compatibility") { storage ->
-          module.findModuleEntity(storage)?.let { entity ->
-            storage.modifyModuleEntity(entity) {
-              this.gradleModuleModel = GradleModuleModelEntity(
-                entitySource = this@modifyModuleEntity.entitySource,
-                gradleModuleModel = it
-              )
-            }
+      prepare(GRADLE_MODULE_MODEL, ::getModelFromDataNode, GradleFacet::getInstance, { model, storage ->
+        module.findModuleEntity(storage)?.let { entity ->
+          storage.modifyModuleEntity(entity) {
+            this.gradleModuleModel = GradleModuleModelEntity(
+              entitySource = this@modifyModuleEntity.entitySource,
+              gradleModuleModel = model
+            )
           }
         }
-
       }),
-      prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, NdkFacet::setNdkModuleModel)
+      prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, { model, _ ->
+        setNdkModuleModel(model)
+      })
     )
   }
 
@@ -474,8 +472,9 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
   }
 
   LOG.info("Up-to-date models found in the cache. Not invoking Gradle sync.")
-  attachModelActions.forEach { it() }
-
+  project.workspaceModel.update("Update Android entities") { storage ->
+    attachModelActions.forEach { action -> action(storage) }
+  }
   additionalProjectSetup(project)
 
   GradleSyncStateHolder.getInstance(project).syncSkipped(null)
