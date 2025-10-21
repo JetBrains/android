@@ -114,8 +114,7 @@ class ModelSerializationTest {
       null,
       "4.1.10",
       "3.6.0-dev",
-      false,
-      false,
+      null
     )
   }
 

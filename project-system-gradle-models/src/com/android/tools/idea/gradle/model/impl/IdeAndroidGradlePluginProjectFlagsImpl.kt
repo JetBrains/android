@@ -68,4 +68,5 @@ data class IdeAndroidGradlePluginProjectFlagsImpl(
 
   override val disableAgpUpgradePrompt: Boolean,
 
+  override val useCustomManagedDevices: Boolean,
 ) : Serializable, IdeAndroidGradlePluginProjectFlags

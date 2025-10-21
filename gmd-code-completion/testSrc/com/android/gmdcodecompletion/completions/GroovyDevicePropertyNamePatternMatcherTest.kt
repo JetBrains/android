@@ -24,30 +24,13 @@ import com.android.gmdcodecompletion.GmdConfigurationInterfaceInfo.FTL_RESULTS
 import com.android.gmdcodecompletion.GmdConfigurationInterfaceInfo.MANAGED_VIRTUAL_DEVICE
 import com.android.gmdcodecompletion.freshFtlDeviceCatalogState
 import com.android.gmdcodecompletion.ftl.FtlDeviceCatalogState
-import com.android.tools.idea.gradle.dsl.api.PluginModel
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.testing.caret
-import com.intellij.openapi.module.Module
 import com.intellij.testFramework.TestApplicationManager
-import org.mockito.Answers
-import org.mockito.Mock
-import org.mockito.MockitoAnnotations
-import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 class GroovyDevicePropertyNamePatternMatcherTest : GmdCodeCompletionTestBase() {
-
-  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-  private lateinit var mockProjectBuildModel: ProjectBuildModel
-
-  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-  private lateinit var mockPluginModel: PluginModel
-
   override fun setUp() {
     super.setUp()
-    MockitoAnnotations.openMocks(this)
     TestApplicationManager.getInstance()
   }
 
@@ -285,17 +268,6 @@ class GroovyDevicePropertyNamePatternMatcherTest : GmdCodeCompletionTestBase() {
     createFakeFtlDeviceCatalogService().apply {
       whenever(this.state).thenReturn(deviceCatalogState)
     }
-    createFakeGradleModelProvider().apply {
-      whenever(this.getProjectModel(any())).thenReturn(mockProjectBuildModel)
-    }
-    val mockGradlePropertyModel = mock<GradlePropertyModel>().apply {
-      whenever(this.name).thenReturn("android.experimental.testOptions.managedDevices.customDevice")
-      whenever(this.valueAsString()).thenReturn("true")
-    }
-    whenever(mockProjectBuildModel.getModuleBuildModel(any<Module>())!!.plugins()).thenReturn(listOf(mockPluginModel))
-    whenever(mockProjectBuildModel.projectBuildModel!!.propertiesModel!!.declaredProperties).thenReturn(listOf(mockGradlePropertyModel))
-    whenever(mockProjectBuildModel.projectBuildModel!!.plugins()).thenReturn(listOf(mockPluginModel))
-    whenever(mockPluginModel.psiElement!!.text).thenReturn("com.google.firebase.testlab")
     callBack()
   }
 

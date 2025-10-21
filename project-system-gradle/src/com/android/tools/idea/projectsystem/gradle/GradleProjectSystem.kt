@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.model.IdeJavaArtifactCore
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.gradleModuleModel
 import com.android.tools.idea.gradle.run.OutputBuildAction
 import com.android.tools.idea.gradle.run.PostBuildModel
 import com.android.tools.idea.gradle.run.PostBuildModelProvider
@@ -70,6 +71,7 @@ import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VfsUtil
@@ -319,6 +321,15 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
   override fun supportsProfilingMode() = true
 
   override fun getProjectSystemModuleTypeComparator(): Comparator<Module> = gradleProjectSystemModuleTypeComparator
+
+  fun isManagedDevicesEnabled(project: Project, currentModule: Module?): Boolean {
+    val selectedModules = currentModule?.let { arrayOf(it) } ?: project.modules
+    return selectedModules.any {
+      val androidProject = GradleAndroidModel.get(it)?.androidProject ?: return@any false
+      if (it.gradleModuleModel?.hasFtlPlugin != true) return@any false
+      androidProject.agpFlags.useCustomManagedDevices
+    }
+  }
 }
 
 private val gradleProjectSystemModuleTypeComparator: Comparator<Module> = Comparator.comparingInt {

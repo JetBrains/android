@@ -29,4 +29,7 @@ interface GradlePropertiesModel {
 
   /** Whether to disable Android Gradle plugin upgrade prompt */
   val disableAgpUpgradePrompt: Boolean?
+
+  /** Whether to use Gradle managed devices. */
+  val useCustomManagedDevices: Boolean?
 }

@@ -31,6 +31,7 @@ class GradlePluginModelBuilder : ToolingModelBuilder {
       project.plugins.hasPlugin("androidx.navigation.safeargs"),
       project.plugins.hasPlugin("androidx.navigation.safeargs.kotlin"),
       project.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform") || project.plugins.hasPlugin("kotlin-multiplatform"),
+      project.plugins.hasPlugin("com.google.firebase.testlab"),
     )
   }
 }
