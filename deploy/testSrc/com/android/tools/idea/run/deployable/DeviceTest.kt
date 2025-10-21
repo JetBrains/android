@@ -77,14 +77,14 @@ public class DeviceTest {
   private DeviceBinder myPreOBinder;
   private DeviceBinder myOBinder;
 
-  private final List<String> myPreOResult = Collections.synchronizedList(new ArrayList<>());
+  private final List<String> myPreOResult = Collections.<String>synchronizedList(new ArrayList<>());
   private volatile CountDownLatch myPreOContinuationLatch = new CountDownLatch(1);
   private volatile CountDownLatch myPreOFinishedLatch = new CountDownLatch(1);
 
-  private final List<String> myOResult = Collections.synchronizedList(new ArrayList<>(Arrays.asList(String.format("package:%s ", APP_ID))));
+  private final List<String> myOResult = Collections.<String>synchronizedList(new ArrayList<>(Arrays.<String>asList(String.format("package:%s ", APP_ID))));
   private volatile CountDownLatch myOContinuationLatch = new CountDownLatch(1);
   private volatile CountDownLatch myOFinishedLatch = new CountDownLatch(1);
-  private final Map<String, List<String>> myStatPidMap = new HashMap<>(ImmutableMap.of(getStatLookup(O_VALID_PID), myOResult));
+  private final Map<String, List<String>> myStatPidMap = new HashMap<>(ImmutableMap.<@NotNull String, List<String>>of(getStatLookup(O_VALID_PID), myOResult));
 
   private final ApplicationIdResolver myApplicationIdResolver = new ApplicationIdResolver();
 
@@ -93,7 +93,7 @@ public class DeviceTest {
       provider.installDefaultCommandHandlers()
         .installDeviceHandler(
           getShellHandler(
-            Pattern.compile("^uid.*"), ImmutableMap.of(APP_ID, myPreOResult), () -> myPreOContinuationLatch, () -> myPreOFinishedLatch))
+            Pattern.compile("^uid.*"), ImmutableMap.<String, List<String>>of(APP_ID, myPreOResult), () -> myPreOContinuationLatch, () -> myPreOFinishedLatch))
         .installDeviceHandler(getShellHandler(Pattern.compile("^stat.*"), myStatPidMap, () -> myOContinuationLatch, () -> myOFinishedLatch))
   );
 
@@ -293,8 +293,8 @@ public class DeviceTest {
           List<String> pids =
             appIdToPidsMap.entrySet().stream()
               .filter(entry -> args.contains(entry.getKey()))
-              .map(entry -> entry.getValue())
-              .findFirst().orElse(Collections.emptyList());
+              .<List<String>>map(entry -> entry.getValue())
+              .findFirst().orElse(Collections.<String>emptyList());
 
           try (PrintWriter pw = new PrintWriter(socket.getOutputStream())) {
             for (String value : pids) {
