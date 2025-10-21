@@ -643,14 +643,6 @@ LIBRARY_TABLE
         artifactAddress               : org.hamcrest:hamcrest-library:1.3@jar
         component                     : org.hamcrest:hamcrest-library:1.3
         - srcJars                     : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3-sources.jar
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
     - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
@@ -807,8 +799,8 @@ MODULE                        : project.app
             Name                          : main
             Manifest                      : <ROOT>/app/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/app/src/main/java
-            KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
             KotlinDirectories             : <ROOT>/app/src/main/java
+            KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
             ResDirectories                : <ROOT>/app/src/main/res
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
@@ -821,8 +813,8 @@ MODULE                        : project.app
                     Name                          : androidTest
                     Manifest                      : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTest/java
-                    KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
                     ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
@@ -834,8 +826,8 @@ MODULE                        : project.app
                     Name                          : test
                     Manifest                      : <ROOT>/app/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/test/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
                     ResDirectories                : <ROOT>/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
@@ -847,8 +839,8 @@ MODULE                        : project.app
                     Name                          : screenshotTest
                     Manifest                      : <ROOT>/app/src/screenshotTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/screenshotTest/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/screenshotTest/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/screenshotTest/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/screenshotTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/screenshotTest/resources [-]
                     ResDirectories                : <ROOT>/app/src/screenshotTest/res [-]
                     AssetsDirectories             : <ROOT>/app/src/screenshotTest/assets [-]
@@ -860,8 +852,8 @@ MODULE                        : project.app
                     Name                          : testFixtures
                     Manifest                      : <ROOT>/app/src/testFixtures/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixtures/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/testFixtures/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testFixtures/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testFixtures/resources [-]
                     ResDirectories                : <ROOT>/app/src/testFixtures/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testFixtures/assets [-]
@@ -881,8 +873,8 @@ MODULE                        : project.app
             Name                          : debug
             Manifest                      : <ROOT>/app/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
             KotlinDirectories             : <ROOT>/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
             ResDirectories                : <ROOT>/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
@@ -896,8 +888,8 @@ MODULE                        : project.app
                     Manifest                      : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestDebug/java [-]
                     JavaDirectories               : <ROOT>/app/src/android/java
-                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
                     ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
@@ -911,8 +903,8 @@ MODULE                        : project.app
                     Manifest                      : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testDebug/java [-]
                     JavaDirectories               : <ROOT>/app/src/unit/java
-                    KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
                     ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
@@ -926,8 +918,8 @@ MODULE                        : project.app
                     Manifest                      : <ROOT>/app/src/screenshotTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/screenshotTestDebug/java [-]
                     JavaDirectories               : <ROOT>/app/src/screenshot/java
-                    KotlinDirectories             : <ROOT>/app/src/screenshotTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/screenshotTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/screenshotTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/screenshotTestDebug/resources [-]
                     ResDirectories                : <ROOT>/app/src/screenshotTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/screenshotTestDebug/assets [-]
@@ -941,8 +933,8 @@ MODULE                        : project.app
                     Manifest                      : <ROOT>/app/src/testFixturesDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testFixturesDebug/java [-]
                     JavaDirectories               : <ROOT>/app/src/fixtures/java
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/testFixturesDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testFixturesDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testFixturesDebug/resources [-]
                     ResDirectories                : <ROOT>/app/src/testFixturesDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testFixturesDebug/assets [-]
@@ -963,8 +955,8 @@ MODULE                        : project.app
             Name                          : release
             Manifest                      : <ROOT>/app/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/release/java [-]
-            KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
             KotlinDirectories             : <ROOT>/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
             ResDirectories                : <ROOT>/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
@@ -978,8 +970,8 @@ MODULE                        : project.app
                     Manifest                      : <ROOT>/app/src/screenshotTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/screenshotTestRelease/java [-]
                     JavaDirectories               : <ROOT>/app/src/screenshot/java
-                    KotlinDirectories             : <ROOT>/app/src/screenshotTestRelease/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/screenshotTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/screenshotTestRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/screenshotTestRelease/resources [-]
                     ResDirectories                : <ROOT>/app/src/screenshotTestRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/screenshotTestRelease/assets [-]
@@ -993,8 +985,8 @@ MODULE                        : project.app
                     Manifest                      : <ROOT>/app/src/testFixturesRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testFixturesRelease/java [-]
                     JavaDirectories               : <ROOT>/app/src/fixtures/java
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesRelease/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/testFixturesRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testFixturesRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testFixturesRelease/resources [-]
                     ResDirectories                : <ROOT>/app/src/testFixturesRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testFixturesRelease/assets [-]
@@ -1046,9 +1038,9 @@ MODULE                        : project.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -1170,14 +1162,9 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1298,14 +1285,9 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 ApplicationId                 : google.simpleapplication
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1329,9 +1311,9 @@ MODULE                        : project.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support.test:runner:1.0.2@aar
@@ -1480,19 +1462,15 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:app-TEST_FIXTURES
                         module                        : <ROOT>-:app-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : com.android.support.test:runner:1.0.2@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1556,8 +1534,6 @@ MODULE                        : project.app
                     - provided                    : com.android.support:versionedparcelable:28.0.0@aar
                     - provided                    : com.android.support:viewpager:28.0.0@aar
                     - provided                    : com.google.guava:guava:19.0
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains:annotations:13.0
                 ApplicationId                 : google.simpleapplication.test
@@ -1583,9 +1559,9 @@ MODULE                        : project.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -1707,14 +1683,9 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -1723,6 +1694,7 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1843,14 +1815,9 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -1859,7 +1826,7 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
             ScreenshotTestArtifact
                 Name                          : SCREENSHOT_TEST
@@ -1993,19 +1960,15 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:app-TEST_FIXTURES
                         module                        : <ROOT>-:app-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -2126,20 +2089,15 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:app-TEST_FIXTURES
                         module                        : <ROOT>-:app-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
             TestFixturesArtifact
                 Name                          : TEST_FIXTURES
@@ -2148,6 +2106,7 @@ MODULE                        : project.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugTestFixturesSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugTestFixtures/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/debugTestFixtures/compileDebugTestFixturesKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugTestFixtures/compileDebugTestFixturesJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
@@ -2270,10 +2229,14 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:app-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                 ProvidedDependencies
                     - provided                    : android.arch.core:common:1.1.1
@@ -2309,6 +2272,8 @@ MODULE                        : project.app
                     - provided                    : com.android.support:versionedparcelable:28.0.0@aar
                     - provided                    : com.android.support:viewpager:28.0.0@aar
                     - provided                    : com.google.guava:guava:19.0
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains:annotations:13.0
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -2317,21 +2282,19 @@ MODULE                        : project.app
     kotlinGradleModel             : KotlinGradleModelImpl
         additionalVisibleSourceSets
             debug                         : <empty>
-            - debugAndroidTest            : debug
-            - debugAndroidTest            : main
+            debugAndroidTest              : <empty>
             debugScreenshotTest           : <empty>
-            - debugUnitTest               : debug
-            - debugUnitTest               : main
+            debugTestFixtures             : <empty>
+            debugUnitTest                 : <empty>
         compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
+                    destination                   : <ROOT>/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
                     jvmTarget                     : 11
-                    moduleName                    : app_debug
-                    noJdk                         : true
+                    moduleName                    : app
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2347,10 +2310,9 @@ MODULE                        : project.app
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
+                    destination                   : <ROOT>/app/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes
                     jvmTarget                     : 11
-                    moduleName                    : app_debugAndroidTest
-                    noJdk                         : true
+                    moduleName                    : app
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2369,7 +2331,23 @@ MODULE                        : project.app
                     destination                   : <ROOT>/app/build/intermediates/built_in_kotlinc/debugScreenshotTest/compileDebugScreenshotTestKotlin/classes
                     jvmTarget                     : 11
                     moduleName                    : app
-                    noJdk                         : true
+                    noReflect                     : true
+                    noStdlib                      : true
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    explicitApi                   : disable
+                    explicitReturnTypes           : disable
+                    returnValueChecker            : disable
+                    useFirLT                      : true
+            debugTestFixtures
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/app/build/intermediates/built_in_kotlinc/debugTestFixtures/compileDebugTestFixturesKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : app
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2384,10 +2362,9 @@ MODULE                        : project.app
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
+                    destination                   : <ROOT>/app/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes
                     jvmTarget                     : 11
-                    moduleName                    : app_debugUnitTest
-                    noJdk                         : true
+                    moduleName                    : app
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2400,7 +2377,7 @@ MODULE                        : project.app
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+            versionString                 : 2.2.10
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -2410,6 +2387,9 @@ MODULE                        : project.app
                 incremental                   : true
                 pluginVersion                 : <CUT>
             debugScreenshotTest           : KotlinTaskPropertiesImpl
+                incremental                   : true
+                pluginVersion                 : <CUT>
+            debugTestFixtures             : KotlinTaskPropertiesImpl
                 incremental                   : true
                 pluginVersion                 : <CUT>
             debugUnitTest                 : KotlinTaskPropertiesImpl

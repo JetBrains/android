@@ -63,9 +63,6 @@ MODULE                        : TestCompositeLib1.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
                     android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
@@ -104,12 +101,8 @@ MODULE                        : TestCompositeLib1.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debug [-]
         TestArtifact
             Dependencies
                 CompileDependencies
@@ -151,9 +144,6 @@ MODULE                        : TestCompositeLib1.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
                     android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
@@ -193,12 +183,8 @@ MODULE                        : TestCompositeLib1.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite1.test
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
@@ -242,9 +228,6 @@ MODULE                        : TestCompositeLib1.app
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::                   : null => :@main
                 artifacts::                   : null => :@main
@@ -254,7 +237,6 @@ MODULE                        : TestCompositeLib1.app
                 artifacts::lib                : null => :lib@main
         - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-        - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API 34
         SourceProviders
@@ -644,18 +626,6 @@ MODULE                        : TestCompositeLib1.app
                 ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-            LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
-                - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                Identifier                    : org.jetbrains:annotations:13.0
-                ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : TestCompositeLib1.app.androidTest
 MODULE                        : TestCompositeLib1.app.main
 MODULE                        : TestCompositeLib1.app.unitTest
@@ -719,9 +689,6 @@ MODULE                        : TestCompositeLib1.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
                     android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
@@ -756,12 +723,8 @@ MODULE                        : TestCompositeLib1.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debug [-]
         TestArtifact
             Dependencies
                 CompileDependencies
@@ -799,9 +762,6 @@ MODULE                        : TestCompositeLib1.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
                     android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
@@ -837,12 +797,8 @@ MODULE                        : TestCompositeLib1.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite1.test
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
@@ -882,9 +838,6 @@ MODULE                        : TestCompositeLib1.lib
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 android.arch.core:common      : null => android.arch.core:common:1.1.1
                 android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
@@ -920,12 +873,8 @@ MODULE                        : TestCompositeLib1.lib
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
         - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-        - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API 34
         SourceProviders
@@ -1296,18 +1245,6 @@ MODULE                        : TestCompositeLib1.lib
                 ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-            LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
-                - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                Identifier                    : org.jetbrains:annotations:13.0
-                ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : TestCompositeLib1.lib.androidTest
 MODULE                        : TestCompositeLib1.lib.main
 MODULE                        : TestCompositeLib1.lib.unitTest
@@ -1374,9 +1311,6 @@ MODULE                        : TestCompositeLib3.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
                     android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
@@ -1413,12 +1347,8 @@ MODULE                        : TestCompositeLib3.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debug [-]
         TestArtifact
             Dependencies
                 CompileDependencies
@@ -1458,9 +1388,6 @@ MODULE                        : TestCompositeLib3.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
                     android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
@@ -1498,12 +1425,8 @@ MODULE                        : TestCompositeLib3.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite3.test
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
@@ -1545,9 +1468,6 @@ MODULE                        : TestCompositeLib3.app
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::                   : null => :@main
                 artifacts::                   : null => :@main
@@ -1555,7 +1475,6 @@ MODULE                        : TestCompositeLib3.app
                 artifacts::lib                : null => :lib@main
         - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-        - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API 34
         SourceProviders
@@ -1945,18 +1864,6 @@ MODULE                        : TestCompositeLib3.app
                 ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-            LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
-                - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                Identifier                    : org.jetbrains:annotations:13.0
-                ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : TestCompositeLib3.app.androidTest
 MODULE                        : TestCompositeLib3.app.main
 MODULE                        : TestCompositeLib3.app.unitTest
@@ -2645,7 +2552,6 @@ MODULE                        : project.app
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
@@ -2686,11 +2592,10 @@ MODULE                        : project.app
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
         TestArtifact
             Dependencies
                 CompileDependencies
@@ -2733,7 +2638,6 @@ MODULE                        : project.app
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
@@ -2775,11 +2679,10 @@ MODULE                        : project.app
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.compositeapp.test
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
@@ -2824,7 +2727,6 @@ MODULE                        : project.app
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::                   : null => :@main
@@ -2833,9 +2735,9 @@ MODULE                        : project.app
                 artifacts::app                : null => :app@main
                 artifacts::lib                : null => :lib@main
                 artifacts::lib                : null => :lib@main
+        - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-        - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API 34
         SourceProviders
@@ -3225,10 +3127,6 @@ MODULE                        : project.app
                 ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
@@ -3298,7 +3196,6 @@ MODULE                        : project.lib
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
@@ -3332,11 +3229,10 @@ MODULE                        : project.lib
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/lib/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
         TestArtifact
             Dependencies
                 CompileDependencies
@@ -3372,7 +3268,6 @@ MODULE                        : project.lib
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
@@ -3407,11 +3302,10 @@ MODULE                        : project.lib
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/lib/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite0.test
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
@@ -3449,7 +3343,6 @@ MODULE                        : project.lib
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 android.arch.core:common      : null => android.arch.core:common:1.1.1
@@ -3484,11 +3377,10 @@ MODULE                        : project.lib
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+        - ClassOutputs                : <ROOT>/lib/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-        - ClassOutputs                : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API 34
         SourceProviders
@@ -3856,10 +3748,6 @@ MODULE                        : project.lib
                 ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>

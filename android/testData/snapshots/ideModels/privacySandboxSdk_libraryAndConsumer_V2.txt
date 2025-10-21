@@ -939,8 +939,6 @@ MODULE                        : project
                         debugApi                      : <empty>
                         debugApiDependenciesMetadata  : <empty>
                         debugApiElements              : <empty>
-                        - debugApiElements-published  : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-debug.aar [-]
-                        - debugArchives               : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-debug.aar [-]
                         debugCompilationApi           : <empty>
                         debugCompilationCompileOnly   : <empty>
                         debugCompilationImplementation          : <empty>
@@ -955,10 +953,7 @@ MODULE                        : project
                         debugLintChecksClasspath      : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
-                        - debugRuntimeElements-published        : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-debug.aar [-]
                         debugRuntimeOnly              : <empty>
-                        - debugSourcesElements        : <ROOT>/ads-sdk-implementation/build/libs/ads-sdk-implementation-debug-sources.jar [-]
-                        - debugSourcesElements-published        : <ROOT>/ads-sdk-implementation/build/libs/ads-sdk-implementation-debug-sources.jar [-]
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestApi              : <empty>
                         debugUnitTestApiDependenciesMetadata    : <empty>
@@ -979,7 +974,6 @@ MODULE                        : project
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
-                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -987,9 +981,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinInternalAbiValidation   : <empty>
-                        kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
                         releaseAnnotationProcessor    : <empty>
@@ -997,8 +988,6 @@ MODULE                        : project
                         releaseApi                    : <empty>
                         releaseApiDependenciesMetadata          : <empty>
                         releaseApiElements            : <empty>
-                        - releaseApiElements-published          : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-release.aar [-]
-                        - releaseArchives             : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-release.aar [-]
                         releaseCompilationApi         : <empty>
                         releaseCompilationCompileOnly : <empty>
                         releaseCompilationImplementation        : <empty>
@@ -1013,13 +1002,8 @@ MODULE                        : project
                         releaseLintChecksClasspath    : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
-                        - releaseRuntimeElements-published      : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-release.aar [-]
                         releaseRuntimeOnly            : <empty>
-                        - releaseSourcesElements      : <ROOT>/ads-sdk-implementation/build/libs/ads-sdk-implementation-sources.jar [-]
-                        - releaseSourcesElements-published      : <ROOT>/ads-sdk-implementation/build/libs/ads-sdk-implementation-sources.jar [-]
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1203,7 +1187,6 @@ MODULE                        : project
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
-                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -1211,9 +1194,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinInternalAbiValidation   : <empty>
-                        kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
                         releaseAnnotationProcessor    : <empty>
@@ -1238,8 +1218,6 @@ MODULE                        : project
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1423,7 +1401,6 @@ MODULE                        : project
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
-                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -1431,9 +1408,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinInternalAbiValidation   : <empty>
-                        kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
                         releaseAnnotationProcessor    : <empty>
@@ -1458,8 +1432,6 @@ MODULE                        : project
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1643,7 +1615,6 @@ MODULE                        : project
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
-                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -1651,9 +1622,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinInternalAbiValidation   : <empty>
-                        kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
                         releaseAnnotationProcessor    : <empty>
@@ -1678,8 +1646,6 @@ MODULE                        : project
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1987,9 +1953,9 @@ MODULE                        : project.ads-sdk-implementation
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/ap_generated_sources/debug/out [-]
+                ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
@@ -2045,9 +2011,9 @@ MODULE                        : project.ads-sdk-implementation
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
@@ -2064,7 +2030,6 @@ MODULE                        : project.ads-sdk-implementation
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:ads-sdk-implementation-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.3|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3
                             javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3@jar
                         unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.3|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.3
@@ -2116,9 +2081,9 @@ MODULE                        : project.ads-sdk-implementation
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
@@ -2135,7 +2100,6 @@ MODULE                        : project.ads-sdk-implementation
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:ads-sdk-implementation-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.3|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3
                             javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3@jar
                         unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.3|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.3
@@ -2168,20 +2132,17 @@ MODULE                        : project.ads-sdk-implementation
     kotlinGradleModel             : KotlinGradleModelImpl
         additionalVisibleSourceSets
             debug                         : <empty>
-            - debugAndroidTest            : debug
-            - debugAndroidTest            : main
-            - debugUnitTest               : debug
-            - debugUnitTest               : main
+            debugAndroidTest              : <empty>
+            debugUnitTest                 : <empty>
         compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 21
-                    moduleName                    : ads-sdk-implementation_debug
-                    noJdk                         : true
+                    destination                   : <ROOT>/ads-sdk-implementation/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : ads-sdk-implementation
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2196,10 +2157,9 @@ MODULE                        : project.ads-sdk-implementation
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 21
-                    moduleName                    : ads-sdk-implementation_debugAndroidTest
-                    noJdk                         : true
+                    destination                   : <ROOT>/ads-sdk-implementation/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : ads-sdk-implementation
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2215,10 +2175,9 @@ MODULE                        : project.ads-sdk-implementation
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 21
-                    moduleName                    : ads-sdk-implementation_debugUnitTest
-                    noJdk                         : true
+                    destination                   : <ROOT>/ads-sdk-implementation/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : ads-sdk-implementation
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -2231,7 +2190,7 @@ MODULE                        : project.ads-sdk-implementation
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+            versionString                 : 2.2.10
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -2498,9 +2457,9 @@ MODULE                        : project.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.4.1@aar
@@ -2818,9 +2777,9 @@ MODULE                        : project.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.test.espresso:espresso-core:3.4.0@aar
@@ -2965,7 +2924,6 @@ MODULE                        : project.app
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.3.0@jar
                         module                        : <ROOT>-:app-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : androidx.test.espresso:espresso-core:3.4.0@aar
                             androidLibrary                : androidx.test:runner:1.4.0@aar
@@ -2997,6 +2955,9 @@ MODULE                        : project.app
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-integration:1.3@jar
                             javaLibrary                   : org.hamcrest:hamcrest-library:1.3@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                 ProvidedDependencies
                     - provided                    : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/privacySandboxClassesJarStubs/sdk-interface-descriptors.jar:unspecified
                     - provided                    : androidx.activity:activity:1.2.4@aar
@@ -3026,8 +2987,6 @@ MODULE                        : project.app
                     - provided                    : androidx.vectordrawable:vectordrawable:1.1.0@aar
                     - provided                    : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                     - provided                    : androidx.viewpager:viewpager:1.0.0@aar
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    - provided                    : org.jetbrains:annotations:13.0
                 ApplicationId                 : com.example.rubidumconsumer.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -3051,9 +3010,9 @@ MODULE                        : project.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.4.1@aar
@@ -3174,7 +3133,6 @@ MODULE                        : project.app
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         module                        : <ROOT>-:app-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.4.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.3.0@jar
@@ -3359,20 +3317,17 @@ MODULE                        : project.app
     kotlinGradleModel             : KotlinGradleModelImpl
         additionalVisibleSourceSets
             debug                         : <empty>
-            - debugAndroidTest            : debug
-            - debugAndroidTest            : main
-            - debugUnitTest               : debug
-            - debugUnitTest               : main
+            debugAndroidTest              : <empty>
+            debugUnitTest                 : <empty>
         compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 21
-                    moduleName                    : app_debug
-                    noJdk                         : true
+                    destination                   : <ROOT>/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : app
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -3388,10 +3343,9 @@ MODULE                        : project.app
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 21
-                    moduleName                    : app_debugAndroidTest
-                    noJdk                         : true
+                    destination                   : <ROOT>/app/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : app
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -3407,10 +3361,9 @@ MODULE                        : project.app
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 21
-                    moduleName                    : app_debugUnitTest
-                    noJdk                         : true
+                    destination                   : <ROOT>/app/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : app
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -3423,7 +3376,7 @@ MODULE                        : project.app
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+            versionString                 : 2.2.10
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -3688,9 +3641,9 @@ MODULE                        : project.app-with-dynamic-feature
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/app-with-dynamic-feature/build/generated/ap_generated_sources/debug/out [-]
+                ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.4.1@aar
@@ -4008,9 +3961,9 @@ MODULE                        : project.app-with-dynamic-feature
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app-with-dynamic-feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.test.ext:junit:1.1.3@aar
@@ -4157,7 +4110,6 @@ MODULE                        : project.app-with-dynamic-feature
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.3.0@jar
                         module                        : <ROOT>-:app-with-dynamic-feature-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : androidx.test.ext:junit:1.1.3@aar
                             javaLibrary                   : junit:junit:4.12@jar
@@ -4202,6 +4154,9 @@ MODULE                        : project.app-with-dynamic-feature
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-integration:1.3@jar
                             javaLibrary                   : org.hamcrest:hamcrest-library:1.3@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                 ProvidedDependencies
                     - provided                    : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/privacySandboxClassesJarStubs/sdk-interface-descriptors.jar:unspecified
                     - provided                    : androidx.activity:activity:1.2.4@aar
@@ -4229,8 +4184,6 @@ MODULE                        : project.app-with-dynamic-feature
                     - provided                    : androidx.vectordrawable:vectordrawable:1.1.0@aar
                     - provided                    : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                     - provided                    : androidx.viewpager:viewpager:1.0.0@aar
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    - provided                    : org.jetbrains:annotations:13.0
                 RuntimeOnlyClasses
                     - class                       : <M2>/androidx/lifecycle/lifecycle-common/2.4.0/lifecycle-common-2.4.0.jar
                 ApplicationId                 : com.example.rubidumconsumer.test
@@ -4256,9 +4209,9 @@ MODULE                        : project.app-with-dynamic-feature
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app-with-dynamic-feature/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.4.1@aar
@@ -4379,7 +4332,6 @@ MODULE                        : project.app-with-dynamic-feature
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         module                        : <ROOT>-:app-with-dynamic-feature-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.4.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.3.0@jar
@@ -4564,20 +4516,17 @@ MODULE                        : project.app-with-dynamic-feature
     kotlinGradleModel             : KotlinGradleModelImpl
         additionalVisibleSourceSets
             debug                         : <empty>
-            - debugAndroidTest            : debug
-            - debugAndroidTest            : main
-            - debugUnitTest               : debug
-            - debugUnitTest               : main
+            debugAndroidTest              : <empty>
+            debugUnitTest                 : <empty>
         compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 21
-                    moduleName                    : app-with-dynamic-feature_debug
-                    noJdk                         : true
+                    destination                   : <ROOT>/app-with-dynamic-feature/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : app-with-dynamic-feature
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -4593,10 +4542,9 @@ MODULE                        : project.app-with-dynamic-feature
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 21
-                    moduleName                    : app-with-dynamic-feature_debugAndroidTest
-                    noJdk                         : true
+                    destination                   : <ROOT>/app-with-dynamic-feature/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : app-with-dynamic-feature
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -4612,10 +4560,9 @@ MODULE                        : project.app-with-dynamic-feature
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 21
-                    moduleName                    : app-with-dynamic-feature_debugUnitTest
-                    noJdk                         : true
+                    destination                   : <ROOT>/app-with-dynamic-feature/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : app-with-dynamic-feature
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -4628,7 +4575,7 @@ MODULE                        : project.app-with-dynamic-feature
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+            versionString                 : 2.2.10
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -4875,16 +4822,15 @@ MODULE                        : project.feature
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/feature/build/generated/ap_generated_sources/debug/out [-]
+                ClassesFolder                 : <ROOT>/feature/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/feature/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/feature/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/feature/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:app-with-dynamic-feature-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.4.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.3.0@jar
@@ -5103,22 +5049,20 @@ MODULE                        : project.feature
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                ClassesFolder                 : <ROOT>/feature/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/feature/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/feature/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/feature/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:feature-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:app-with-dynamic-feature-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
-                ProvidedDependencies
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    - provided                    : org.jetbrains:annotations:13.0
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                 ApplicationId                 : com.example.feature.test
                 IsSigned                      : false
                 CodeShrinker                  : null
@@ -5137,18 +5081,16 @@ MODULE                        : project.feature
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/feature/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/feature/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/feature/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
                 ClassesFolder                 : <ROOT>/feature/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/feature/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:feature-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:app-with-dynamic-feature-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.4.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.3.0@jar
@@ -5361,20 +5303,17 @@ MODULE                        : project.feature
     kotlinGradleModel             : KotlinGradleModelImpl
         additionalVisibleSourceSets
             debug                         : <empty>
-            - debugAndroidTest            : debug
-            - debugAndroidTest            : main
-            - debugUnitTest               : debug
-            - debugUnitTest               : main
+            debugAndroidTest              : <empty>
+            debugUnitTest                 : <empty>
         compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/feature/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 21
-                    moduleName                    : feature_debug
-                    noJdk                         : true
+                    destination                   : <ROOT>/feature/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : feature
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -5390,10 +5329,9 @@ MODULE                        : project.feature
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/feature/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 21
-                    moduleName                    : feature_debugAndroidTest
-                    noJdk                         : true
+                    destination                   : <ROOT>/feature/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : feature
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -5409,10 +5347,9 @@ MODULE                        : project.feature
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/feature/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 21
-                    moduleName                    : feature_debugUnitTest
-                    noJdk                         : true
+                    destination                   : <ROOT>/feature/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : feature
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -5425,7 +5362,7 @@ MODULE                        : project.feature
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+            versionString                 : 2.2.10
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl

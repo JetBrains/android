@@ -60,7 +60,6 @@ MODULE                        : My_First_App.app
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                     artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -97,11 +96,10 @@ MODULE                        : My_First_App.app
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                     artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug [-]
         TestArtifact
             Dependencies
                 CompileDependencies
@@ -142,7 +140,6 @@ MODULE                        : My_First_App.app
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -182,11 +179,10 @@ MODULE                        : My_First_App.app
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.example.firstapp.test
         - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
@@ -227,14 +223,13 @@ MODULE                        : My_First_App.app
                 artifacts::app                : null => :app@main
                 artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::app                : null => :app@main
                 artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
+        - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-        - ClassOutputs                : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API 34
         SourceProviders
@@ -629,10 +624,6 @@ MODULE                        : My_First_App.app
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                 Identifier                    : org.hamcrest:hamcrest-core:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-core:1.3
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
@@ -701,7 +692,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -735,11 +725,10 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug [-]
         TestArtifact
             Dependencies
                 CompileDependencies
@@ -777,7 +766,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -814,11 +802,10 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-            - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.example.mysharedlibrary.test
         - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
@@ -856,7 +843,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                 artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -891,11 +877,10 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                 artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+        - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-        - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API 34
         - ConsumerProguardFiles       : <ROOT>/shared/mysharedlibrary/consumer-rules.pro
@@ -1272,10 +1257,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                 Identifier                    : org.hamcrest:hamcrest-core:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-core:1.3
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>

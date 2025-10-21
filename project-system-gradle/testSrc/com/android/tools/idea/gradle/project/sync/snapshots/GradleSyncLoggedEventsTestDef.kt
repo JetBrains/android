@@ -172,7 +172,13 @@ data class GradleSyncLoggedEventsTestDef(
         assertThat(events.dumpModuleCounts()).isEqualTo(
           """
             |Module count: 13
-            |Library count: 35
+            |Library count: ${
+              // In AGP 9.0+, the Kotlin standard library is provided by the built-in Kotlin support
+              // and is no longer counted as a separate library dependency.
+              if (agpVersion < AgpVersionSoftwareEnvironmentDescriptor.AGP_9_0) {
+                "35"
+              } else "34"
+            }
             |total_module_count: 13
             |app_module_count: 3
             |lib_module_count: 3
@@ -199,7 +205,7 @@ data class GradleSyncLoggedEventsTestDef(
         namePrefix = "kotlin_versions",
         testProject = TestProject.KOTLIN_KAPT
       ) { events ->
-        assertThat(events.dumpKotlinVersions(agpVersion.kotlinVersion)).isEqualTo(
+        assertThat(events.dumpKotlinVersions(agpVersion.getBuiltInKotlinVersion() ?: agpVersion.kotlinVersion)).isEqualTo(
           """
             |kotlin version: KOTLIN_VERSION_FOR_TESTS
             |core-ktx version: 1.0.1
