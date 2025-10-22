@@ -126,7 +126,7 @@ private fun InstructionsPanel.toDisplayText(): String =
       when (it) {
         is TextInstruction -> it.text
         is NewRowInstruction -> "\n"
-        is HyperlinkInstruction -> "[${it.displayText}]"
+        is HyperlinkInstruction -> "[${it.displayTextForTests}]"
         else -> null
       }
     }
