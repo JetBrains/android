@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.flow
 
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.concurrency.createChildScope
@@ -29,10 +28,12 @@ import com.android.tools.idea.testing.moveCaretToEnd
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.ui.ApplicationUtils
 import com.android.tools.preview.ComposePreviewElement
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.SmartPointerManager
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
@@ -113,7 +114,7 @@ class ComposePreviewElementFlowTest {
 
     listenersReady.await()
 
-    withContext(uiThread) { projectRule.fixture.openFileInEditor(psiFile.virtualFile) }
+    withContext(Dispatchers.EDT) { projectRule.fixture.openFileInEditor(psiFile.virtualFile) }
 
     // Make irrelevant change that should not trigger any updates
     repeat(2) {
