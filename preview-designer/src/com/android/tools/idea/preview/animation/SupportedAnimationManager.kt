@@ -30,6 +30,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -81,7 +82,7 @@ abstract class SupportedAnimationManager(
   abstract val animationState: AnimationState<*>
 
   /** Animation [Transition]. Could be empty for unsupported or not yet loaded transitions. */
-  private var currentTransition = Transition()
+  private val currentTransition = MutableStateFlow(Transition())
 
   /** Callback when [animatedPropertiesAtCurrentTime] has been changed. */
   private var animatedPropertiesChangedCallback: (List<AnimationUnit.TimelineUnit>) -> Unit = {}
@@ -110,7 +111,7 @@ abstract class SupportedAnimationManager(
     AnimationTab(rootComponent, playbackControls, animationState.changeStateActions, freezeAction)
   }
   override val timelineMaximumMs: Int
-    get() = currentTransition.endMillis ?: 0
+    get() = currentTransition.value.endMillis ?: 0
 
   override fun createTimelineElement(
     parent: JComponent,
@@ -118,25 +119,25 @@ abstract class SupportedAnimationManager(
     forIndividualTab: Boolean,
     positionProxy: PositionProxy,
   ): TimelineElement {
+    val transition = currentTransition.value
     val timelineElement =
       if (card.expanded.value || forIndividualTab) {
-        val curve =
-          TransitionCurve.create(frozenState.value, currentTransition, minY, positionProxy)
+        val curve = TransitionCurve.create(frozenState.value, transition, minY, positionProxy)
         animatedPropertiesChangedCallback = { curve.timelineUnits = it }
         curve.timelineUnits = animatedPropertiesAtCurrentTime
         curve
       } else
         TimelineLine(
             frozenState.value,
-            currentTransition.startMillis?.let { positionProxy.xPositionForValue(it) }
+            transition.startMillis?.let { positionProxy.xPositionForValue(it) }
               ?: (positionProxy.minimumXPosition()),
-            currentTransition.endMillis?.let { positionProxy.xPositionForValue(it) }
+            transition.endMillis?.let { positionProxy.xPositionForValue(it) }
               ?: positionProxy.minimumXPosition(),
             minY,
           )
           .also {
-            card.expandedSize = TransitionCurve.expectedHeight(currentTransition)
-            card.setDuration(currentTransition.duration)
+            card.expandedSize = TransitionCurve.expectedHeight(transition)
+            card.setDuration(transition.duration)
           }
     return timelineElement
   }
@@ -145,7 +146,9 @@ abstract class SupportedAnimationManager(
 
   /** Load transition for current animation state. */
   private suspend fun loadTransition(longTimeout: Boolean = false) {
-    executeInRenderSession(longTimeout, false) { currentTransition = loadTransitionFromLibrary() }
+    executeInRenderSession(longTimeout, false) {
+      currentTransition.value = loadTransitionFromLibrary()
+    }
   }
 
   abstract suspend fun loadAnimatedPropertiesAtCurrentTime(longTimeout: Boolean)
@@ -191,15 +194,29 @@ abstract class SupportedAnimationManager(
 
     // Launch coroutines to handle state changes
     scope.launch { animationState.state.collect { syncState() } }
-    scope.launch { frozenState.collect { updateTimelineElementsCallback() } }
-    scope.launch { card.expanded.collect { updateTimelineElementsCallback() } }
+    scope.launch {
+      frozenState.drop(1).collect {
+        updateTimelineElementsCallback()
+        loadAnimatedPropertiesAtCurrentTime(false)
+      }
+    }
+    scope.launch {
+      card.expanded.drop(1).collect {
+        updateTimelineElementsCallback()
+        loadAnimatedPropertiesAtCurrentTime(false)
+      }
+    }
+    scope.launch {
+      currentTransition.drop(1).collect {
+        updateTimelineElementsCallback()
+        loadAnimatedPropertiesAtCurrentTime(false)
+      }
+    }
   }
 
   private suspend fun syncState() {
     syncAnimationWithState()
     loadTransition()
-    loadAnimatedPropertiesAtCurrentTime(false)
-    updateTimelineElementsCallback()
   }
 
   /**

@@ -163,8 +163,10 @@ class ComposeAnimationPreview(
           rootComponent,
           playbackControls,
           {
-            updateTimelineElements()
+            setClockTime(clockControl.currentValue())
             renderAnimation()
+            updateTimelineElements()
+            updateMaxDuration()
           },
           scope,
         )
@@ -198,8 +200,10 @@ class ComposeAnimationPreview(
           rootComponent,
           playbackControls,
           {
-            updateTimelineElements()
+            setClockTime(clockControl.currentValue())
             renderAnimation()
+            updateTimelineElements()
+            updateMaxDuration()
           },
           scope,
           state,

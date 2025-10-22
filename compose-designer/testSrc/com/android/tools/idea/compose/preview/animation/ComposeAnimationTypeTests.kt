@@ -18,13 +18,12 @@ package com.android.tools.idea.compose.preview.animation
 import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
-import com.android.testutils.delayUntilCondition
 import com.android.testutils.retryUntilPassing
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import java.awt.Dimension
@@ -35,7 +34,10 @@ import javax.swing.JPanel
 import javax.swing.JSlider
 import junit.framework.TestCase.assertTrue
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -58,8 +60,8 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
   }
 
   @Test
-  fun intTransitionStates() {
-    setupAndCheckToolbar(animationType, setOf(10)) { toolbar, ui ->
+  fun intTransitionStates() = runTest {
+    setupAndCheckToolbar(animationPreview, animationType, setOf(10)) { toolbar, ui ->
       // Freeze, swap, picker state.
       assertEquals(3, toolbar.componentCount)
       assertEquals("10 to 10", (toolbar.components[2] as JButton).text)
@@ -69,8 +71,8 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
   }
 
   @Test
-  fun booleanTransitionStates() {
-    setupAndCheckToolbar(animationType, setOf(true)) { toolbar, ui ->
+  fun booleanTransitionStates() = runTest {
+    setupAndCheckToolbar(animationPreview, animationType, setOf(true)) { toolbar, ui ->
       // Freeze, swap, from state, label, to state
       assertEquals(5, toolbar.componentCount)
       assertEquals("true", toolbar.components[2].findComboBox().text)
@@ -84,8 +86,9 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
   }
 
   @Test
-  fun enumTransitionStates() {
+  fun enumTransitionStates() = runTest {
     setupAndCheckToolbar(
+      animationPreview,
       animationType,
       setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3),
     ) { toolbar, ui ->
@@ -102,8 +105,8 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
   }
 
   @Test
-  fun stringTransitionStates() {
-    setupAndCheckToolbar(animationType, setOf("a")) { toolbar, ui ->
+  fun stringTransitionStates() = runTest {
+    setupAndCheckToolbar(animationPreview, animationType, setOf("a")) { toolbar, ui ->
       // Freeze, swap, picker state.
       assertEquals(3, toolbar.componentCount)
       assertEquals("a to a", (toolbar.components[2] as JButton).text)
@@ -113,8 +116,12 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
   }
 
   @Test
-  fun pairTransitionStates() {
-    setupAndCheckToolbar(animationType, setOf(Pair(1, 1), Pair(2, 3), Pair(3, 4))) { toolbar, ui ->
+  fun pairTransitionStates() = runTest {
+    setupAndCheckToolbar(
+      animationPreview,
+      animationType,
+      setOf(Pair(1, 1), Pair(2, 3), Pair(3, 4)),
+    ) { toolbar, ui ->
       // Freeze, swap, from state, label, to state
       assertEquals(5, toolbar.componentCount)
       assertEquals("(1, 1)", toolbar.components[2].findComboBox().text)
@@ -128,8 +135,8 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
   }
 
   @Test
-  fun booleanAnimateXStates() {
-    setupAndCheckToolbar(animationType, setOf(false, true)) { toolbar, ui ->
+  fun booleanAnimateXStates() = runTest {
+    setupAndCheckToolbar(animationPreview, animationType, setOf(false, true)) { toolbar, ui ->
       // Freeze, swap, from state, label, to state
       assertEquals(5, toolbar.componentCount)
       assertEquals("false", toolbar.components[2].findComboBox().text)
@@ -189,8 +196,9 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
     }
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Test
-  fun changeTime() {
+  fun changeTime() = runTest {
     var numberOfCalls = 0
     val clock =
       object : TestClock() {
@@ -198,23 +206,32 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
           super.getAnimatedProperties(animation).also { numberOfCalls++ }
       }
 
-    setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { _, ui ->
+    val animationPreview = createAnimationPreview(backgroundScope)
+
+    setupAndCheckToolbar(animationPreview, animationType, setOf("one", "two"), clock) { _, ui ->
       // Two calls from AnimationManager.setup
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
+      runCurrent()
+      waitForCondition(10.seconds) { numberOfCalls == 1 }
+
       val sliders =
         TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
       assertEquals(1, sliders.size)
+      // Change time
       val timelineSlider = sliders[0] as JSlider
       timelineSlider.value = 100
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 3 } }
-      assertEquals(3, numberOfCalls)
+      runCurrent()
+      waitForCondition(10.seconds) { numberOfCalls == 2 }
+      assertEquals(2, numberOfCalls)
+      // Change time again.
       timelineSlider.value = 200
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 4 } }
-      assertEquals(4, numberOfCalls)
+      runCurrent()
+      waitForCondition(10.seconds) { numberOfCalls == 3 }
+      assertEquals(3, numberOfCalls)
     }
   }
 
-  private fun setupAndCheckToolbar(
+  private suspend fun setupAndCheckToolbar(
+    animationPreview: ComposeAnimationPreview,
     type: ComposeAnimationType,
     states: Set<Any>,
     clock: TestClock = TestClock(),
@@ -229,19 +246,17 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
         override val states = states
       }
 
-    runBlocking {
-      surface.sceneManagers.forEach { it.requestRenderAndWait() }
-      animationPreview.addAnimation(animation).join()
-      assertTrue("No animation is added", 1 == animationPreview.animations.size)
-      withContext(uiThread) {
-        val ui = FakeUi(animationPreview.component.apply { size = Dimension(500, 400) })
-        ui.updateToolbars()
-        ui.layout()
-        val cards = findAllCards(animationPreview.component)
-        assertEquals(1, cards.size)
-        val toolbar = cards.first().component.findToolbar("AnimationCard") as JComponent
-        checkToolbar(toolbar, ui)
-      }
+    surface.sceneManagers.forEach { it.requestRenderAndWait() }
+    animationPreview.addAnimation(animation).join()
+    assertTrue("No animation is added", 1 == animationPreview.animations.size)
+    withContext(uiThread) {
+      val ui = FakeUi(animationPreview.component.apply { size = Dimension(500, 400) })
+      ui.updateToolbars()
+      ui.layout()
+      val cards = findAllCards(animationPreview.component)
+      assertEquals(1, cards.size)
+      val toolbar = cards.first().component.findToolbar("AnimationCard") as JComponent
+      checkToolbar(toolbar, ui)
     }
   }
 }
