@@ -846,6 +846,7 @@ MODULE                        : project
                         apiElements                   : <empty>
                         include                       : <empty>
                         includeApiClasspath           : <empty>
+                        includeLintChecksClasspath    : <empty>
                         includeRuntimeClasspath       : <empty>
                         lintChecks                    : <empty>
                         optionalSdk                   : <empty>
@@ -930,6 +931,7 @@ MODULE                        : project
                         debugAndroidTestImplementation          : <empty>
                         debugAndroidTestImplementationDependenciesMetadata          : <empty>
                         debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAndroidTestRuntimeOnly   : <empty>
                         debugAnnotationProcessor      : <empty>
@@ -950,6 +952,7 @@ MODULE                        : project
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
                         debugIntransitiveDependenciesMetadata   : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
                         - debugRuntimeElements-published        : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-debug.aar [-]
@@ -969,6 +972,7 @@ MODULE                        : project
                         debugUnitTestImplementation   : <empty>
                         debugUnitTestImplementationDependenciesMetadata   : <empty>
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         debugUnitTestRuntimeOnly      : <empty>
                         default                       : <empty>
@@ -1006,6 +1010,7 @@ MODULE                        : project
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
                         releaseIntransitiveDependenciesMetadata : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         - releaseRuntimeElements-published      : <ROOT>/ads-sdk-implementation/build/outputs/aar/ads-sdk-implementation-release.aar [-]
@@ -1154,6 +1159,7 @@ MODULE                        : project
                         debugAndroidTestImplementation          : <empty>
                         debugAndroidTestImplementationDependenciesMetadata          : <empty>
                         debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAndroidTestRuntimeOnly   : <empty>
                         debugAnnotationProcessor      : <empty>
@@ -1172,6 +1178,7 @@ MODULE                        : project
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
                         debugIntransitiveDependenciesMetadata   : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugReverseMetadataValues    : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
@@ -1189,6 +1196,7 @@ MODULE                        : project
                         debugUnitTestImplementation   : <empty>
                         debugUnitTestImplementationDependenciesMetadata   : <empty>
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         debugUnitTestRuntimeOnly      : <empty>
                         default                       : <empty>
@@ -1224,6 +1232,7 @@ MODULE                        : project
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
                         releaseIntransitiveDependenciesMetadata : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseReverseMetadataValues  : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
@@ -1370,6 +1379,7 @@ MODULE                        : project
                         debugAndroidTestImplementation          : <empty>
                         debugAndroidTestImplementationDependenciesMetadata          : <empty>
                         debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAndroidTestRuntimeOnly   : <empty>
                         debugAnnotationProcessor      : <empty>
@@ -1388,6 +1398,7 @@ MODULE                        : project
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
                         debugIntransitiveDependenciesMetadata   : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugReverseMetadataValues    : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
@@ -1405,6 +1416,7 @@ MODULE                        : project
                         debugUnitTestImplementation   : <empty>
                         debugUnitTestImplementationDependenciesMetadata   : <empty>
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         debugUnitTestRuntimeOnly      : <empty>
                         default                       : <empty>
@@ -1440,6 +1452,7 @@ MODULE                        : project
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
                         releaseIntransitiveDependenciesMetadata : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseReverseMetadataValues  : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
@@ -1586,6 +1599,7 @@ MODULE                        : project
                         debugAndroidTestImplementation          : <empty>
                         debugAndroidTestImplementationDependenciesMetadata          : <empty>
                         debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAndroidTestRuntimeOnly   : <empty>
                         debugAnnotationProcessor      : <empty>
@@ -1604,6 +1618,7 @@ MODULE                        : project
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
                         debugIntransitiveDependenciesMetadata   : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugReverseMetadataElements  : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
@@ -1621,6 +1636,7 @@ MODULE                        : project
                         debugUnitTestImplementation   : <empty>
                         debugUnitTestImplementationDependenciesMetadata   : <empty>
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         debugUnitTestRuntimeOnly      : <empty>
                         default                       : <empty>
@@ -1656,6 +1672,7 @@ MODULE                        : project
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
                         releaseIntransitiveDependenciesMetadata : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseReverseMetadataElements          : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>

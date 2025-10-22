@@ -761,6 +761,7 @@ MODULE                        : project
                         debugAndroidTestImplementation          : <empty>
                         debugAndroidTestImplementationDependenciesMetadata          : <empty>
                         debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAndroidTestRuntimeOnly   : <empty>
                         debugAnnotationProcessor      : <empty>
@@ -779,6 +780,7 @@ MODULE                        : project
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
                         debugIntransitiveDependenciesMetadata   : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugReverseMetadataValues    : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
@@ -796,11 +798,13 @@ MODULE                        : project
                         debugScreenshotTestImplementation       : <empty>
                         debugScreenshotTestImplementationDependenciesMetadata       : <empty>
                         debugScreenshotTestIntransitiveDependenciesMetadata         : <empty>
+                        debugScreenshotTestLintChecksClasspath  : <empty>
                         debugScreenshotTestRuntimeClasspath     : <empty>
                         debugScreenshotTestRuntimeOnly          : <empty>
                         debugTestFixturesAnnotationProcessorClasspath     : <empty>
                         debugTestFixturesApiElements  : <empty>
                         debugTestFixturesCompileClasspath       : <empty>
+                        debugTestFixturesLintChecksClasspath    : <empty>
                         debugTestFixturesRuntimeClasspath       : <empty>
                         debugTestFixturesRuntimeElements        : <empty>
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
@@ -816,6 +820,7 @@ MODULE                        : project
                         debugUnitTestImplementation   : <empty>
                         debugUnitTestImplementationDependenciesMetadata   : <empty>
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         debugUnitTestRuntimeOnly      : <empty>
                         default                       : <empty>
@@ -853,6 +858,7 @@ MODULE                        : project
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
                         releaseIntransitiveDependenciesMetadata : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseReverseMetadataValues  : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
@@ -870,11 +876,13 @@ MODULE                        : project
                         releaseScreenshotTestImplementation     : <empty>
                         releaseScreenshotTestImplementationDependenciesMetadata     : <empty>
                         releaseScreenshotTestIntransitiveDependenciesMetadata       : <empty>
+                        releaseScreenshotTestLintChecksClasspath          : <empty>
                         releaseScreenshotTestRuntimeClasspath   : <empty>
                         releaseScreenshotTestRuntimeOnly        : <empty>
                         releaseTestFixturesAnnotationProcessorClasspath   : <empty>
                         releaseTestFixturesApiElements          : <empty>
                         releaseTestFixturesCompileClasspath     : <empty>
+                        releaseTestFixturesLintChecksClasspath  : <empty>
                         releaseTestFixturesRuntimeClasspath     : <empty>
                         releaseTestFixturesRuntimeElements      : <empty>
                         runtimeOnly                   : <empty>

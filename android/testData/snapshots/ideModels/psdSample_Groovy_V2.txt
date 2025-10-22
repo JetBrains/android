@@ -847,6 +847,7 @@ MODULE                        : project
                         basicBarCompileOnlyApi        : <empty>
                         basicBarDebugAndroidTestAnnotationProcessorClasspath        : <empty>
                         basicBarDebugAndroidTestCompileClasspath          : <empty>
+                        basicBarDebugAndroidTestLintChecksClasspath       : <empty>
                         basicBarDebugAndroidTestRuntimeClasspath          : <empty>
                         basicBarDebugAnnotationProcessor        : <empty>
                         basicBarDebugAnnotationProcessorClasspath         : <empty>
@@ -856,12 +857,14 @@ MODULE                        : project
                         basicBarDebugCompileOnly      : <empty>
                         basicBarDebugCompileOnlyApi   : <empty>
                         basicBarDebugImplementation   : <empty>
+                        basicBarDebugLintChecksClasspath        : <empty>
                         basicBarDebugReverseMetadataValues      : <empty>
                         basicBarDebugRuntimeClasspath : <empty>
                         basicBarDebugRuntimeElements  : <empty>
                         basicBarDebugRuntimeOnly      : <empty>
                         basicBarDebugUnitTestAnnotationProcessorClasspath : <empty>
                         basicBarDebugUnitTestCompileClasspath   : <empty>
+                        basicBarDebugUnitTestLintChecksClasspath          : <empty>
                         basicBarDebugUnitTestRuntimeClasspath   : <empty>
                         basicBarImplementation        : <empty>
                         basicBarReleaseAnnotationProcessor      : <empty>
@@ -872,6 +875,7 @@ MODULE                        : project
                         basicBarReleaseCompileOnly    : <empty>
                         basicBarReleaseCompileOnlyApi : <empty>
                         basicBarReleaseImplementation : <empty>
+                        basicBarReleaseLintChecksClasspath      : <empty>
                         basicBarReleaseReverseMetadataValues    : <empty>
                         basicBarReleaseRuntimeClasspath         : <empty>
                         basicBarReleaseRuntimeElements          : <empty>
@@ -885,6 +889,7 @@ MODULE                        : project
                         basicBarSpecialReleaseCompileOnly       : <empty>
                         basicBarSpecialReleaseCompileOnlyApi    : <empty>
                         basicBarSpecialReleaseImplementation    : <empty>
+                        basicBarSpecialReleaseLintChecksClasspath         : <empty>
                         basicBarSpecialReleaseReverseMetadataValues       : <empty>
                         basicBarSpecialReleaseRuntimeClasspath  : <empty>
                         basicBarSpecialReleaseRuntimeElements   : <empty>
@@ -898,6 +903,7 @@ MODULE                        : project
                         basicOtherBarCompileOnlyApi   : <empty>
                         basicOtherBarDebugAndroidTestAnnotationProcessorClasspath   : <empty>
                         basicOtherBarDebugAndroidTestCompileClasspath     : <empty>
+                        basicOtherBarDebugAndroidTestLintChecksClasspath  : <empty>
                         basicOtherBarDebugAndroidTestRuntimeClasspath     : <empty>
                         basicOtherBarDebugAnnotationProcessor   : <empty>
                         basicOtherBarDebugAnnotationProcessorClasspath    : <empty>
@@ -907,12 +913,14 @@ MODULE                        : project
                         basicOtherBarDebugCompileOnly : <empty>
                         basicOtherBarDebugCompileOnlyApi        : <empty>
                         basicOtherBarDebugImplementation        : <empty>
+                        basicOtherBarDebugLintChecksClasspath   : <empty>
                         basicOtherBarDebugReverseMetadataValues : <empty>
                         basicOtherBarDebugRuntimeClasspath      : <empty>
                         basicOtherBarDebugRuntimeElements       : <empty>
                         basicOtherBarDebugRuntimeOnly : <empty>
                         basicOtherBarDebugUnitTestAnnotationProcessorClasspath      : <empty>
                         basicOtherBarDebugUnitTestCompileClasspath        : <empty>
+                        basicOtherBarDebugUnitTestLintChecksClasspath     : <empty>
                         basicOtherBarDebugUnitTestRuntimeClasspath        : <empty>
                         basicOtherBarImplementation   : <empty>
                         basicOtherBarReleaseAnnotationProcessor : <empty>
@@ -923,6 +931,7 @@ MODULE                        : project
                         basicOtherBarReleaseCompileOnly         : <empty>
                         basicOtherBarReleaseCompileOnlyApi      : <empty>
                         basicOtherBarReleaseImplementation      : <empty>
+                        basicOtherBarReleaseLintChecksClasspath : <empty>
                         basicOtherBarReleaseReverseMetadataValues         : <empty>
                         basicOtherBarReleaseRuntimeClasspath    : <empty>
                         basicOtherBarReleaseRuntimeElements     : <empty>
@@ -936,6 +945,7 @@ MODULE                        : project
                         basicOtherBarSpecialReleaseCompileOnly  : <empty>
                         basicOtherBarSpecialReleaseCompileOnlyApi         : <empty>
                         basicOtherBarSpecialReleaseImplementation         : <empty>
+                        basicOtherBarSpecialReleaseLintChecksClasspath    : <empty>
                         basicOtherBarSpecialReleaseReverseMetadataValues  : <empty>
                         basicOtherBarSpecialReleaseRuntimeClasspath       : <empty>
                         basicOtherBarSpecialReleaseRuntimeElements        : <empty>
@@ -968,6 +978,7 @@ MODULE                        : project
                         paidBarCompileOnlyApi         : <empty>
                         paidBarDebugAndroidTestAnnotationProcessorClasspath         : <empty>
                         paidBarDebugAndroidTestCompileClasspath : <empty>
+                        paidBarDebugAndroidTestLintChecksClasspath        : <empty>
                         paidBarDebugAndroidTestRuntimeClasspath : <empty>
                         paidBarDebugAnnotationProcessor         : <empty>
                         paidBarDebugAnnotationProcessorClasspath          : <empty>
@@ -977,12 +988,14 @@ MODULE                        : project
                         paidBarDebugCompileOnly       : <empty>
                         paidBarDebugCompileOnlyApi    : <empty>
                         paidBarDebugImplementation    : <empty>
+                        paidBarDebugLintChecksClasspath         : <empty>
                         paidBarDebugReverseMetadataValues       : <empty>
                         paidBarDebugRuntimeClasspath  : <empty>
                         paidBarDebugRuntimeElements   : <empty>
                         paidBarDebugRuntimeOnly       : <empty>
                         paidBarDebugUnitTestAnnotationProcessorClasspath  : <empty>
                         paidBarDebugUnitTestCompileClasspath    : <empty>
+                        paidBarDebugUnitTestLintChecksClasspath : <empty>
                         paidBarDebugUnitTestRuntimeClasspath    : <empty>
                         paidBarImplementation         : <empty>
                         paidBarReleaseAnnotationProcessor       : <empty>
@@ -993,6 +1006,7 @@ MODULE                        : project
                         paidBarReleaseCompileOnly     : <empty>
                         paidBarReleaseCompileOnlyApi  : <empty>
                         paidBarReleaseImplementation  : <empty>
+                        paidBarReleaseLintChecksClasspath       : <empty>
                         paidBarReleaseReverseMetadataValues     : <empty>
                         paidBarReleaseRuntimeClasspath          : <empty>
                         paidBarReleaseRuntimeElements : <empty>
@@ -1006,6 +1020,7 @@ MODULE                        : project
                         paidBarSpecialReleaseCompileOnly        : <empty>
                         paidBarSpecialReleaseCompileOnlyApi     : <empty>
                         paidBarSpecialReleaseImplementation     : <empty>
+                        paidBarSpecialReleaseLintChecksClasspath          : <empty>
                         paidBarSpecialReleaseReverseMetadataValues        : <empty>
                         paidBarSpecialReleaseRuntimeClasspath   : <empty>
                         paidBarSpecialReleaseRuntimeElements    : <empty>
@@ -1019,6 +1034,7 @@ MODULE                        : project
                         paidOtherBarCompileOnlyApi    : <empty>
                         paidOtherBarDebugAndroidTestAnnotationProcessorClasspath    : <empty>
                         paidOtherBarDebugAndroidTestCompileClasspath      : <empty>
+                        paidOtherBarDebugAndroidTestLintChecksClasspath   : <empty>
                         paidOtherBarDebugAndroidTestRuntimeClasspath      : <empty>
                         paidOtherBarDebugAnnotationProcessor    : <empty>
                         paidOtherBarDebugAnnotationProcessorClasspath     : <empty>
@@ -1028,12 +1044,14 @@ MODULE                        : project
                         paidOtherBarDebugCompileOnly  : <empty>
                         paidOtherBarDebugCompileOnlyApi         : <empty>
                         paidOtherBarDebugImplementation         : <empty>
+                        paidOtherBarDebugLintChecksClasspath    : <empty>
                         paidOtherBarDebugReverseMetadataValues  : <empty>
                         paidOtherBarDebugRuntimeClasspath       : <empty>
                         paidOtherBarDebugRuntimeElements        : <empty>
                         paidOtherBarDebugRuntimeOnly  : <empty>
                         paidOtherBarDebugUnitTestAnnotationProcessorClasspath       : <empty>
                         paidOtherBarDebugUnitTestCompileClasspath         : <empty>
+                        paidOtherBarDebugUnitTestLintChecksClasspath      : <empty>
                         paidOtherBarDebugUnitTestRuntimeClasspath         : <empty>
                         paidOtherBarImplementation    : <empty>
                         paidOtherBarReleaseAnnotationProcessor  : <empty>
@@ -1044,6 +1062,7 @@ MODULE                        : project
                         paidOtherBarReleaseCompileOnly          : <empty>
                         paidOtherBarReleaseCompileOnlyApi       : <empty>
                         paidOtherBarReleaseImplementation       : <empty>
+                        paidOtherBarReleaseLintChecksClasspath  : <empty>
                         paidOtherBarReleaseReverseMetadataValues          : <empty>
                         paidOtherBarReleaseRuntimeClasspath     : <empty>
                         paidOtherBarReleaseRuntimeElements      : <empty>
@@ -1057,6 +1076,7 @@ MODULE                        : project
                         paidOtherBarSpecialReleaseCompileOnly   : <empty>
                         paidOtherBarSpecialReleaseCompileOnlyApi          : <empty>
                         paidOtherBarSpecialReleaseImplementation          : <empty>
+                        paidOtherBarSpecialReleaseLintChecksClasspath     : <empty>
                         paidOtherBarSpecialReleaseReverseMetadataValues   : <empty>
                         paidOtherBarSpecialReleaseRuntimeClasspath        : <empty>
                         paidOtherBarSpecialReleaseRuntimeElements         : <empty>
@@ -1247,6 +1267,7 @@ MODULE                        : project
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
                         debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAnnotationProcessor      : <empty>
                         debugAnnotationProcessorClasspath       : <empty>
@@ -1256,12 +1277,14 @@ MODULE                        : project
                         debugCompileOnly              : <empty>
                         debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugReverseMetadataElements  : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
                         debugRuntimeOnly              : <empty>
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         default                       : <empty>
                         implementation                : <empty>
@@ -1275,6 +1298,7 @@ MODULE                        : project
                         releaseCompileOnly            : <empty>
                         releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseReverseMetadataElements          : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
@@ -1444,6 +1468,7 @@ MODULE                        : project
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
                         debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAnnotationProcessor      : <empty>
                         debugAnnotationProcessorClasspath       : <empty>
@@ -1453,11 +1478,13 @@ MODULE                        : project
                         debugCompileOnly              : <empty>
                         debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
                         debugRuntimeOnly              : <empty>
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         default                       : <empty>
                         implementation                : <empty>
@@ -1471,6 +1498,7 @@ MODULE                        : project
                         releaseCompileOnly            : <empty>
                         releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
@@ -1571,6 +1599,7 @@ MODULE                        : project
                                 coreLibraryDesugaring         : <empty>
                                 debugAndroidTestAnnotationProcessorClasspath      : <empty>
                                 debugAndroidTestCompileClasspath        : <empty>
+                                debugAndroidTestLintChecksClasspath     : <empty>
                                 debugAndroidTestRuntimeClasspath        : <empty>
                                 debugAnnotationProcessor      : <empty>
                                 debugAnnotationProcessorClasspath       : <empty>
@@ -1580,11 +1609,13 @@ MODULE                        : project
                                 debugCompileOnly              : <empty>
                                 debugCompileOnlyApi           : <empty>
                                 debugImplementation           : <empty>
+                                debugLintChecksClasspath      : <empty>
                                 debugRuntimeClasspath         : <empty>
                                 debugRuntimeElements          : <empty>
                                 debugRuntimeOnly              : <empty>
                                 debugUnitTestAnnotationProcessorClasspath         : <empty>
                                 debugUnitTestCompileClasspath : <empty>
+                                debugUnitTestLintChecksClasspath        : <empty>
                                 debugUnitTestRuntimeClasspath : <empty>
                                 default                       : <empty>
                                 implementation                : <empty>
@@ -1598,6 +1629,7 @@ MODULE                        : project
                                 releaseCompileOnly            : <empty>
                                 releaseCompileOnlyApi         : <empty>
                                 releaseImplementation         : <empty>
+                                releaseLintChecksClasspath    : <empty>
                                 releaseRuntimeClasspath       : <empty>
                                 releaseRuntimeElements        : <empty>
                                 releaseRuntimeOnly            : <empty>
@@ -1675,6 +1707,7 @@ MODULE                        : project
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
                         debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAnnotationProcessor      : <empty>
                         debugAnnotationProcessorClasspath       : <empty>
@@ -1684,11 +1717,13 @@ MODULE                        : project
                         debugCompileOnly              : <empty>
                         debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
                         debugRuntimeOnly              : <empty>
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         default                       : <empty>
                         implementation                : <empty>
@@ -1702,6 +1737,7 @@ MODULE                        : project
                         releaseCompileOnly            : <empty>
                         releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
@@ -1802,6 +1838,7 @@ MODULE                        : project
                                 coreLibraryDesugaring         : <empty>
                                 debugAndroidTestAnnotationProcessorClasspath      : <empty>
                                 debugAndroidTestCompileClasspath        : <empty>
+                                debugAndroidTestLintChecksClasspath     : <empty>
                                 debugAndroidTestRuntimeClasspath        : <empty>
                                 debugAnnotationProcessor      : <empty>
                                 debugAnnotationProcessorClasspath       : <empty>
@@ -1811,11 +1848,13 @@ MODULE                        : project
                                 debugCompileOnly              : <empty>
                                 debugCompileOnlyApi           : <empty>
                                 debugImplementation           : <empty>
+                                debugLintChecksClasspath      : <empty>
                                 debugRuntimeClasspath         : <empty>
                                 debugRuntimeElements          : <empty>
                                 debugRuntimeOnly              : <empty>
                                 debugUnitTestAnnotationProcessorClasspath         : <empty>
                                 debugUnitTestCompileClasspath : <empty>
+                                debugUnitTestLintChecksClasspath        : <empty>
                                 debugUnitTestRuntimeClasspath : <empty>
                                 default                       : <empty>
                                 implementation                : <empty>
@@ -1829,6 +1868,7 @@ MODULE                        : project
                                 releaseCompileOnly            : <empty>
                                 releaseCompileOnlyApi         : <empty>
                                 releaseImplementation         : <empty>
+                                releaseLintChecksClasspath    : <empty>
                                 releaseRuntimeClasspath       : <empty>
                                 releaseRuntimeElements        : <empty>
                                 releaseRuntimeOnly            : <empty>
@@ -1929,6 +1969,7 @@ MODULE                        : project
                                         coreLibraryDesugaring         : <empty>
                                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
                                         debugAndroidTestCompileClasspath        : <empty>
+                                        debugAndroidTestLintChecksClasspath     : <empty>
                                         debugAndroidTestRuntimeClasspath        : <empty>
                                         debugAnnotationProcessor      : <empty>
                                         debugAnnotationProcessorClasspath       : <empty>
@@ -1938,11 +1979,13 @@ MODULE                        : project
                                         debugCompileOnly              : <empty>
                                         debugCompileOnlyApi           : <empty>
                                         debugImplementation           : <empty>
+                                        debugLintChecksClasspath      : <empty>
                                         debugRuntimeClasspath         : <empty>
                                         debugRuntimeElements          : <empty>
                                         debugRuntimeOnly              : <empty>
                                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                                         debugUnitTestCompileClasspath : <empty>
+                                        debugUnitTestLintChecksClasspath        : <empty>
                                         debugUnitTestRuntimeClasspath : <empty>
                                         default                       : <empty>
                                         implementation                : <empty>
@@ -1956,6 +1999,7 @@ MODULE                        : project
                                         releaseCompileOnly            : <empty>
                                         releaseCompileOnlyApi         : <empty>
                                         releaseImplementation         : <empty>
+                                        releaseLintChecksClasspath    : <empty>
                                         releaseRuntimeClasspath       : <empty>
                                         releaseRuntimeElements        : <empty>
                                         releaseRuntimeOnly            : <empty>
@@ -2055,6 +2099,7 @@ MODULE                        : project
                         basicCompileOnlyApi           : <empty>
                         basicDebugAndroidTestAnnotationProcessorClasspath : <empty>
                         basicDebugAndroidTestCompileClasspath   : <empty>
+                        basicDebugAndroidTestLintChecksClasspath          : <empty>
                         basicDebugAndroidTestRuntimeClasspath   : <empty>
                         basicDebugAnnotationProcessor : <empty>
                         basicDebugAnnotationProcessorClasspath  : <empty>
@@ -2064,11 +2109,13 @@ MODULE                        : project
                         basicDebugCompileOnly         : <empty>
                         basicDebugCompileOnlyApi      : <empty>
                         basicDebugImplementation      : <empty>
+                        basicDebugLintChecksClasspath : <empty>
                         basicDebugRuntimeClasspath    : <empty>
                         basicDebugRuntimeElements     : <empty>
                         basicDebugRuntimeOnly         : <empty>
                         basicDebugUnitTestAnnotationProcessorClasspath    : <empty>
                         basicDebugUnitTestCompileClasspath      : <empty>
+                        basicDebugUnitTestLintChecksClasspath   : <empty>
                         basicDebugUnitTestRuntimeClasspath      : <empty>
                         basicImplementation           : <empty>
                         basicReleaseAnnotationProcessor         : <empty>
@@ -2079,6 +2126,7 @@ MODULE                        : project
                         basicReleaseCompileOnly       : <empty>
                         basicReleaseCompileOnlyApi    : <empty>
                         basicReleaseImplementation    : <empty>
+                        basicReleaseLintChecksClasspath         : <empty>
                         basicReleaseRuntimeClasspath  : <empty>
                         basicReleaseRuntimeElements   : <empty>
                         basicReleaseRuntimeOnly       : <empty>
@@ -2102,6 +2150,7 @@ MODULE                        : project
                         paidCompileOnlyApi            : <empty>
                         paidDebugAndroidTestAnnotationProcessorClasspath  : <empty>
                         paidDebugAndroidTestCompileClasspath    : <empty>
+                        paidDebugAndroidTestLintChecksClasspath : <empty>
                         paidDebugAndroidTestRuntimeClasspath    : <empty>
                         paidDebugAnnotationProcessor  : <empty>
                         paidDebugAnnotationProcessorClasspath   : <empty>
@@ -2111,11 +2160,13 @@ MODULE                        : project
                         paidDebugCompileOnly          : <empty>
                         paidDebugCompileOnlyApi       : <empty>
                         paidDebugImplementation       : <empty>
+                        paidDebugLintChecksClasspath  : <empty>
                         paidDebugRuntimeClasspath     : <empty>
                         paidDebugRuntimeElements      : <empty>
                         paidDebugRuntimeOnly          : <empty>
                         paidDebugUnitTestAnnotationProcessorClasspath     : <empty>
                         paidDebugUnitTestCompileClasspath       : <empty>
+                        paidDebugUnitTestLintChecksClasspath    : <empty>
                         paidDebugUnitTestRuntimeClasspath       : <empty>
                         paidImplementation            : <empty>
                         paidReleaseAnnotationProcessor          : <empty>
@@ -2126,6 +2177,7 @@ MODULE                        : project
                         paidReleaseCompileOnly        : <empty>
                         paidReleaseCompileOnlyApi     : <empty>
                         paidReleaseImplementation     : <empty>
+                        paidReleaseLintChecksClasspath          : <empty>
                         paidReleaseRuntimeClasspath   : <empty>
                         paidReleaseRuntimeElements    : <empty>
                         paidReleaseRuntimeOnly        : <empty>
