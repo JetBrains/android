@@ -19,18 +19,21 @@ import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JComponent
 import javax.swing.JSlider
-import kotlinx.coroutines.runBlocking
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -39,7 +42,7 @@ import org.junit.Test
 class AnimatedVisibilityManagerTest : InspectorTests() {
 
   @Test
-  fun swapStatesFromStringEnter() {
+  fun swapStatesFromStringEnter() = runTest {
     var lastState: Any = TestClock.AnimatedVisibilityState.Enter
     val clock =
       object : TestClock() {
@@ -50,7 +53,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
           super.updateAnimatedVisibilityState(animation, state)
         }
       }
-    setupAndCheckToolbar(clock) { toolbar, ui ->
+    setupAndCheckToolbar(animationPreview, clock) { toolbar, ui ->
       // Freeze, swap, state.
       assertTrue(lastState is TestClock.AnimatedVisibilityState)
       assertEquals(3, toolbar.componentCount)
@@ -63,7 +66,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
   }
 
   @Test
-  fun swapStatesFromEnter() {
+  fun swapStatesFromEnter() = runTest {
     var lastState: Any = TestClock.AnimatedVisibilityState.Enter
     val clock =
       object : TestClock() {
@@ -75,7 +78,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
           super.updateAnimatedVisibilityState(animation, state)
         }
       }
-    setupAndCheckToolbar(clock) { toolbar, ui ->
+    setupAndCheckToolbar(animationPreview, clock) { toolbar, ui ->
       // Freeze, swap, state.
       assertTrue(lastState is TestClock.AnimatedVisibilityState)
       assertEquals(3, toolbar.componentCount)
@@ -88,7 +91,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
   }
 
   @Test
-  fun swapStateFromStringExit() {
+  fun swapStateFromStringExit() = runTest {
     var lastState: Any = TestClock.AnimatedVisibilityState.Enter
     val clock =
       object : TestClock() {
@@ -99,7 +102,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
           super.updateAnimatedVisibilityState(animation, state)
         }
       }
-    setupAndCheckToolbar(clock) { toolbar, ui ->
+    setupAndCheckToolbar(animationPreview, clock) { toolbar, ui ->
       // Freeze, swap, state.
       assertTrue(lastState is TestClock.AnimatedVisibilityState)
       assertEquals(3, toolbar.componentCount)
@@ -112,7 +115,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
   }
 
   @Test
-  fun swapStateFromExit() {
+  fun swapStateFromExit() = runTest {
     var lastState: Any = TestClock.AnimatedVisibilityState.Exit
     val clock =
       object : TestClock() {
@@ -124,7 +127,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
           super.updateAnimatedVisibilityState(animation, state)
         }
       }
-    setupAndCheckToolbar(clock) { toolbar, ui ->
+    setupAndCheckToolbar(animationPreview, clock) { toolbar, ui ->
       // Freeze, swap, state.
       assertTrue(lastState is TestClock.AnimatedVisibilityState)
       assertEquals(3, toolbar.componentCount)
@@ -136,8 +139,9 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
     }
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Test
-  fun changeTime() {
+  fun changeTime() = runTest {
     var numberOfCalls = 0
     val clock =
       object : TestClock() {
@@ -145,20 +149,25 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
           super.getAnimatedProperties(animation).also { numberOfCalls++ }
       }
 
-    setupAndCheckToolbar(clock) { _, ui ->
-      // 2 calls from SupportedAnimationManager.setup
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
+    val animationPreview = createAnimationPreview(backgroundScope)
+
+    setupAndCheckToolbar(animationPreview, clock) { _, ui ->
+      runCurrent()
+      waitForCondition(25.seconds) { numberOfCalls == 1 }
       val sliders =
         TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
       assertEquals(1, sliders.size)
       val timelineSlider = sliders[0] as JSlider
+      // Change time again.
       timelineSlider.value = 100
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 3 } }
-      assertEquals(3, numberOfCalls)
+      runCurrent()
+      waitForCondition(10.seconds) { numberOfCalls == 2 }
+      assertEquals(2, numberOfCalls)
     }
   }
 
-  private fun setupAndCheckToolbar(
+  private suspend fun setupAndCheckToolbar(
+    animationPreview: ComposeAnimationPreview,
     clock: TestClock,
     checkToolbar: suspend (JComponent, FakeUi) -> Unit,
   ) {
@@ -171,19 +180,17 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
           setOf(TestClock.AnimatedVisibilityState.Enter, TestClock.AnimatedVisibilityState.Exit)
       }
 
-    runBlocking {
-      surface.sceneManagers.forEach { it.requestRenderAndWait() }
-      animationPreview.addAnimation(animation).join()
+    surface.sceneManagers.forEach { it.requestRenderAndWait() }
+    animationPreview.addAnimation(animation).join()
 
-      withContext(uiThread) {
-        val ui = FakeUi(animationPreview.component.apply { size = Dimension(500, 400) })
-        ui.updateToolbars()
-        ui.layoutAndDispatchEvents()
-        val cards = findAllCards(animationPreview.component)
-        assertEquals(1, cards.size)
-        val toolbar = cards.first().component.findToolbar("AnimationCard") as JComponent
-        checkToolbar(toolbar, ui)
-      }
+    withContext(uiThread) {
+      val ui = FakeUi(animationPreview.component.apply { size = Dimension(500, 400) })
+      ui.updateToolbars()
+      ui.layoutAndDispatchEvents()
+      val cards = findAllCards(animationPreview.component)
+      assertEquals(1, cards.size)
+      val toolbar = cards.first().component.findToolbar("AnimationCard") as JComponent
+      checkToolbar(toolbar, ui)
     }
   }
 }
