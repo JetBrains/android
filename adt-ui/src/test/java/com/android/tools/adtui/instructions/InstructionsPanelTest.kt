@@ -28,7 +28,6 @@ import com.intellij.util.ui.UIUtilities
 import java.awt.BorderLayout
 import java.awt.Cursor
 import java.awt.event.InputEvent
-import java.util.function.Consumer
 import javax.swing.JPanel
 import kotlin.math.roundToInt
 import org.junit.Rule
@@ -130,7 +129,7 @@ class InstructionsPanelTest {
     val metrics = UIUtilities.getFontMetrics(panel, AdtUiUtils.DEFAULT_FONT)
 
     var actionPerformed = false
-    val action = Consumer<InputEvent> { actionPerformed = true }
+    val action = { _: InputEvent -> actionPerformed = true }
 
     val instructions =
       InstructionsPanel.Builder(HyperlinkInstruction(metrics.font, "Hyperlink", action))
@@ -159,7 +158,7 @@ class InstructionsPanelTest {
     val panel = JPanel(TabularLayout("Fit-"))
     val metrics = UIUtilities.getFontMetrics(panel, AdtUiUtils.DEFAULT_FONT)
 
-    val action = Consumer<InputEvent> {}
+    val action = { _: InputEvent -> }
 
     val instructions =
       InstructionsPanel.Builder(HyperlinkInstruction(metrics.font, "Hyperlink", action))
