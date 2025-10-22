@@ -44,6 +44,7 @@ import javax.swing.Icon
  * @param mainSurface the [DesignSurface] of the preview
  * @param text the text to be displayed for the action
  * @param icon the [Icon] to be displayed for the action
+ * @param suffixIcon an optional [Icon] to be displayed after the [text], `null` by default.
  */
 internal suspend fun createPreviewActionData(
   action: AnAction,
@@ -51,6 +52,7 @@ internal suspend fun createPreviewActionData(
   mainSurface: DesignSurface<*>,
   text: String,
   icon: Icon?,
+  suffixIcon: Icon? = null,
 ): ActionData? {
   val event = previewActionEvent(action, psiFilePointer, mainSurface) ?: return null
   try {
@@ -63,7 +65,7 @@ internal suspend fun createPreviewActionData(
     return null
   }
 
-  return ActionData(text, icon) { inputEvent ->
+  return ActionData(text, icon = icon, suffixIcon = suffixIcon) { inputEvent ->
     val event =
       previewActionEvent(action, psiFilePointer, mainSurface, inputEvent) ?: return@ActionData
     action.actionPerformed(event)

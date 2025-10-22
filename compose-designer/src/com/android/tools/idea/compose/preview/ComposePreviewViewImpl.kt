@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.flags.ifEnabled
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.stdui.ActionData
@@ -39,6 +40,7 @@ import com.android.tools.idea.preview.focus.FocusModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataSink
@@ -459,7 +461,11 @@ internal class ComposePreviewViewImpl(
         if (StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.get())
           message("action.generate.single.preview.for.file.empty.panel")
         else message("action.generate.previews.for.file.empty.panel"),
-        StudioIcons.StudioBot.GENERIC_AI_ACTION,
+        icon = StudioIcons.StudioBot.GENERIC_AI_ACTION,
+        suffixIcon =
+          StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.ifEnabled {
+            AllIcons.General.ChevronDown
+          },
       )
     }
   }
