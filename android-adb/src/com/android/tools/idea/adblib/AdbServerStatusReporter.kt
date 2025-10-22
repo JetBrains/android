@@ -15,52 +15,29 @@
  */
 package com.android.tools.idea.adblib
 
-import com.android.adblib.AdbFeatures
-import com.android.adblib.AdbSession
 import com.android.adblib.ServerStatus
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.adb.AdbHostLog
 import com.android.tools.idea.adb.AdbOptionsService
+import com.android.tools.idea.adb.AdbServerStatusRetriever
 import com.android.tools.idea.isAndroidEnvironment
 import com.google.wireless.android.sdk.stats.AdbServerStatus
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 
 /** Retrieve status of ADB Server and upload stats */
 class AdbServerStatusReporter(val statusReporter: (ServerStatus) -> Unit) : ProjectActivity {
   @Suppress("unused") constructor() : this(::reportAdbStatus)
 
-  private val logger = thisLogger()
-
   override suspend fun execute(project: Project) {
     if (!isAndroidEnvironment(project)) {
       return
     }
-    val session = AdbLibService.getInstance(project).session
-    session.scope.launch {
-      runCatching {
-          retrieveServerStatus(session)?.let { serverStatus ->
-            AdbHostLog.getInstance(project).path = serverStatus.absoluteLogPath
-            statusReporter(serverStatus)
-            logger.info("ADB server logs can be found at: ${serverStatus.absoluteLogPath}")
-          }
-        }
-        .onFailure { e ->
-          if (e !is CancellationException) {
-            thisLogger().warn("Cannot report `AdbServerStatus` due to a problem with adb server", e)
-          }
-        }
-    }
-  }
-
-  private suspend fun retrieveServerStatus(session: AdbSession): ServerStatus? {
-    return if (session.hostServices.hostFeatures().contains(AdbFeatures.SERVER_STATUS)) {
-      session.hostServices.serverStatus()
-    } else null
+    val serverStatus =
+      AdbServerStatusRetriever.getInstance(project).serverStatus.filterNotNull().first()
+    statusReporter(serverStatus)
   }
 }
 
