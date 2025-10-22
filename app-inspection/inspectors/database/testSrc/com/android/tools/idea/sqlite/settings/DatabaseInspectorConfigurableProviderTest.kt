@@ -29,6 +29,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.TextAccessor
 import java.awt.Component
 import javax.swing.JCheckBox
+import javax.swing.JComponent
 import kotlin.test.fail
 import org.junit.Rule
 import org.junit.Test
@@ -234,6 +235,19 @@ class DatabaseInspectorConfigurableProviderTest {
   private fun createConfigurable(): Configurable {
     val provider = DatabaseInspectorConfigurableProvider(project)
     return provider.createConfigurable()
+  }
+
+  @Test
+  fun driverEmpty_connectionDisabled() {
+    projectSettings.additionalDriverClass = "Foo"
+    val configurable = createConfigurable()
+    val driverClass = configurable.getDriverClass()
+    val connectionClass = configurable.getConnectionClass() as JComponent
+    assertThat(connectionClass.isEnabled).isTrue()
+
+    driverClass.text = ""
+
+    assertThat(connectionClass.isEnabled).isFalse()
   }
 }
 

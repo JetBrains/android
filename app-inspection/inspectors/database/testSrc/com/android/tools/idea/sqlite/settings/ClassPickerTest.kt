@@ -28,6 +28,7 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import javax.swing.JButton
+import javax.swing.JComponent
 import javax.swing.JLabel
 import org.junit.Before
 import org.junit.Rule
@@ -125,12 +126,25 @@ class ClassPickerTest {
     assertThat(picker.text).isEqualTo("com.app.SQLiteDriver")
   }
 
+  @Test
+  fun enabled_propagates() {
+    val picker = ClassPicker(project, "androidx.sqlite.SQLiteDriver")
+
+    picker.isEnabled = false
+    assertThat(picker.textComponent().isEnabled).isFalse()
+
+    picker.isEnabled = true
+    assertThat(picker.textComponent().isEnabled).isTrue()
+  }
+
   private fun findClass(name: String): PsiClass? {
     val facade = JavaPsiFacade.getInstance(project)
     val scope = ProjectScope.getAllScope(project)
     return facade.findClass(name, scope)
   }
 }
+
+private fun ClassPicker.textComponent() = getDescendant<JComponent> { it.name == "textComponent" }
 
 private fun ClassPicker.errorLabel() = getDescendant<JLabel> { it.name == "errorLabel" }
 
