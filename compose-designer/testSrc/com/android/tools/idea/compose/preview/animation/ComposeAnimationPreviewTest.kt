@@ -26,7 +26,6 @@ import com.android.tools.idea.compose.preview.animation.TestUtils.createComposeA
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.compose.preview.animation.TestUtils.findLabel
 import com.android.tools.idea.compose.preview.animation.managers.ComposeAnimationManager
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.preview.animation.AllTabPanel
 import com.android.tools.idea.preview.animation.AnimationCard
@@ -57,7 +56,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -82,7 +80,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   private suspend fun createFakeUiForInspector(inspector: ComposeAnimationPreview) =
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       FakeUi(inspector.component.apply { size = Dimension(500, 400) }).apply {
         updateToolbars()
         layoutAndDispatchEvents()
@@ -104,7 +102,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun noAnimationsPanelShownWhenNoAnimationsAreSubscribed() = runBlocking {
+  fun noAnimationsPanelShownWhenNoAnimationsAreSubscribed() = runTest {
     UIUtil.pump() // Wait for UI to dispatch all events
     // When first opening the inspector, we show the panel informing there are no supported
     // animations to be displayed
@@ -147,7 +145,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun oneTabPerSubscribedAnimation() = runBlocking {
+  fun oneTabPerSubscribedAnimation() = runTest {
     assertNull(animationPreview.tabbedPane.parent)
     assertEquals(0, animationPreview.animations.size)
 
@@ -165,7 +163,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun comboBoxesDisplayComposeAnimationStates() = runBlocking {
+  fun comboBoxesDisplayComposeAnimationStates() = runTest {
     val animationStates = setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
     val transitionAnimation = createTransitionAnimation(animationStates)
 
@@ -181,7 +179,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
     assertEquals("State1", animationCardToolbar.components[2].findComboBox().text) // From state
     assertEquals("State2", animationCardToolbar.components[4].findComboBox().text) // To state
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       // Simulate clicking the "Swap" button
       ui.clickOn(animationCardToolbar.components[1])
     }
@@ -192,7 +190,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun animatedVisibilityComboBoxDisplayAllVisibilityStates() = runBlocking {
+  fun animatedVisibilityComboBoxDisplayAllVisibilityStates() = runTest {
     val animatedVisibilityAnimation =
       object : ComposeAnimation {
         override val animationObject = Any()
@@ -211,7 +209,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
     assertEquals(3, animationCardToolbar.componentCount)
     assertEquals("Enter", animationCardToolbar.components[2].findComboBox().text) // Initial state
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       // Simulate clicking the "Swap" button
       ui.clickOn(animationCardToolbar.components[1])
     }
@@ -221,10 +219,10 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun changeClockTime() = runBlocking {
+  fun changeClockTime() = runTest {
     subscribeAnimations(listOf(createTransitionAnimation()))
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       // We can get any of the combo boxes, since "from" and "to" states should be the same.
       val sliders =
         TreeWalker(animationPreview.component)
@@ -243,12 +241,12 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun playbackControlActions() = runBlocking {
+  fun playbackControlActions() = runTest {
     val numberOfPlaybackControls = 6 // loop, go to start, play, go to end, speed, separator
 
     subscribeAnimations(listOf(createTransitionAnimation()))
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       val toolbars =
         TreeWalker(animationPreview.component)
           .descendantStream()
@@ -291,7 +289,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun resizeInspector() = runBlocking {
+  fun resizeInspector() = runTest {
     subscribeAnimations(listOf(createTransitionAnimation()))
 
     animationPreview.component.setSize(
@@ -301,7 +299,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun animationStatesInferredForBoolean() = runBlocking {
+  fun animationStatesInferredForBoolean() = runTest {
     val transitionAnimation =
       object : ComposeAnimation {
         override val animationObject = Any()
@@ -324,7 +322,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
       animationCardToolbar.components[4].findComboBox().text,
     ) // To state (inferred)
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       // Simulate clicking the "Swap" button
       ui.clickOn(animationCardToolbar.components[1])
     }
@@ -335,7 +333,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun tabsAreNamedFromAnimationLabel() = runBlocking {
+  fun tabsAreNamedFromAnimationLabel() = runTest {
     val animation1 = createComposeAnimation("repeatedLabel")
 
     val animationWithSameLabel = createComposeAnimation("repeatedLabel")
@@ -380,10 +378,10 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun `cards and timeline elements are added to coordination panel`() = runBlocking {
+  fun `cards and timeline elements are added to coordination panel`() = runTest {
     subscribeAnimations(animations)
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       val cards = findAllCards(animationPreview.component)
       val timeline = TestUtils.findTimeline(animationPreview.component)
       // 11 cards and 11 TimelineElements are added to coordination panel.
@@ -406,7 +404,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun `managers are created for each animation`(): Unit = runBlocking {
+  fun `managers are created for each animation`(): Unit = runTest {
     subscribeAnimations(animations)
 
     assertEquals(11, animationPreview.animations.size)
@@ -424,7 +422,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun invalidateInspector() = runBlocking {
+  fun invalidateInspector() = runTest {
     subscribeAnimations(animations)
 
     assertEquals(11, animationPreview.animations.size)
@@ -436,7 +434,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun invalidateInspectorShouldClearTabsAndShowNoAnimationsPanel() = runBlocking {
+  fun invalidateInspectorShouldClearTabsAndShowNoAnimationsPanel() = runTest {
     subscribeAnimations(listOf(createComposeAnimation()))
 
     assertNotNull(animationPreview.tabbedPane.parent)
