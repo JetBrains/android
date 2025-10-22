@@ -18,13 +18,13 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.preview.find.FilteredPreviewElementProvider
 import com.android.tools.idea.preview.find.StaticPreviewProvider
 import com.android.tools.preview.SingleComposePreviewElementInstance
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ComposePreviewElementProviderTest {
   @Test
-  fun testFilteredProvider() = runBlocking {
+  fun testFilteredProvider() = runTest {
     val staticPreviewProvider =
       StaticPreviewProvider(
         listOf(
