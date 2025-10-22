@@ -18,11 +18,12 @@ package com.android.tools.idea.compose.preview.animation
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.LabelCard
 import com.android.tools.idea.preview.animation.TestUtils.findAllCards
+import com.intellij.openapi.application.EDT
 import java.awt.Dimension
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -48,7 +49,7 @@ class UnsupportedManagerTests(private val animationType: ComposeAnimationType) :
   }
 
   @Test
-  fun unsupportedAnimationInspector() = runBlocking {
+  fun unsupportedAnimationInspector() = runTest {
     val animation =
       object : ComposeAnimation {
         override val animationObject = Any()
@@ -58,9 +59,9 @@ class UnsupportedManagerTests(private val animationType: ComposeAnimationType) :
 
     animationPreview.addAnimation(animation).join()
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       val ui = FakeUi(animationPreview.component.apply { size = Dimension(500, 400) })
-      ui.updateToolbars()
+      ui.updateToolbarsIfNecessary()
       ui.layoutAndDispatchEvents()
       val cards = findAllCards(animationPreview.component)
       assertEquals(1, cards.size)
