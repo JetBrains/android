@@ -134,6 +134,7 @@ public class ConfigureCcCompilationTest {
                 CcTargetInfo.newBuilder()
                     .setLabel(ccTargetLabel.toString())
                     .setToolchainId("//my/cc_toolchain")
+                    .addCopts("-w")
                     .addDefines("DEBUG")
                     .addIncludeDirectories("bazel-out/include/directory")
                     .addIncludeDirectories("src/include/directory")
@@ -187,7 +188,7 @@ public class ConfigureCcCompilationTest {
             "-isystem/workspace/src/system/include/directory",
             "-F/project/.bazel/buildout/bazel-out/framework/include/directory",
             "-F/workspace/src/framework/include/directory",
-            "-w", // This is defined in `copts` of the test project build rule.
+            "-w", // This is defined in `copts` of the test project build rule and extracted via the aspect.
             "--sharedopt",
             "--cppopt");
 
@@ -204,7 +205,7 @@ public class ConfigureCcCompilationTest {
         "-isystem/workspace/src/system/include/directory",
         "-F/project/.bazel/buildout/bazel-out/framework/include/directory",
         "-F/workspace/src/framework/include/directory",
-        "-w", // This is defined in `copts` of the test project build rule.
+        "-w", // This is defined in `copts` of the test project build rule and extracted via the aspect.
         "--sharedopt",
         "--conlyopt");
 

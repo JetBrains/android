@@ -37,6 +37,8 @@ import java.util.List;
 public abstract class CcCompilationInfo {
   public abstract Label target();
 
+  public abstract ImmutableList<String> copts();
+
   public abstract ImmutableList<String> defines();
 
   public abstract ImmutableList<ProjectPath> includeDirectories();
@@ -71,6 +73,7 @@ public abstract class CcCompilationInfo {
     Label target = Label.of(targetInfo.getLabel());
     return builder()
         .target(target)
+        .copts(ImmutableList.copyOf(targetInfo.getCoptsList()))
         .defines(ImmutableList.copyOf(targetInfo.getDefinesList()))
         .includeDirectories(
             targetInfo.getIncludeDirectoriesList().stream()
@@ -100,6 +103,8 @@ public abstract class CcCompilationInfo {
   public abstract static class Builder {
 
     public abstract Builder target(Label value);
+
+    public abstract Builder copts(List<String> value);
 
     public abstract Builder defines(List<String> value);
 
