@@ -26,19 +26,23 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyTy
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 
 import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.SigningConfigPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ScriptDependenciesModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.ListOrVarargsTransform;
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.base.Function;
@@ -259,6 +263,13 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NotNull
   public ResolvedPropertyModel versionNameSuffix() {
     return getModelForProperty(VERSION_NAME_SUFFIX);
+  }
+
+  @Override
+  @NotNull
+  public DependenciesModel dependencies() {
+    DependenciesDslElement dependenciesElement = myDslElement.ensurePropertyElement(DependenciesDslElement.DEPENDENCIES);
+    return new ScriptDependenciesModelImpl(dependenciesElement);
   }
 
   /**

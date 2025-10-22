@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dsl.parser.android;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES;
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_DCL;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.model.android.FlavorTypeModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
@@ -27,7 +29,11 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
+import com.google.common.collect.ImmutableMap;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -117,6 +123,23 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
       {"versionNameSuffix", property, VERSION_NAME_SUFFIX, VAR},
     })
     .collect(toModelMap());
+
+  public static final ImmutableMap<String, PropertiesElementDescription<?>> DCL_CHILD_PROPERTIES_ELEMENTS_MAP =
+    ImmutableMap.<String, PropertiesElementDescription<?>>builder()
+      .put("dependencies", DEPENDENCIES).build();
+
+  @Override
+  @NotNull
+  public Map<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+    @NotNull GradleDslNameConverter.Kind kind
+  ) {
+    Map<String, PropertiesElementDescription<?>> childPropertiesElements =
+      new HashMap<>(super.getChildPropertiesElementsDescriptionMap(kind));
+    if (kind == GradleDslNameConverter.Kind.DECLARATIVE) {
+      childPropertiesElements.putAll(DCL_CHILD_PROPERTIES_ELEMENTS_MAP);
+    }
+    return childPropertiesElements;
+  }
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
