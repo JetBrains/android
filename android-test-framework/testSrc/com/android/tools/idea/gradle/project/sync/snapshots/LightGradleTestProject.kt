@@ -42,6 +42,8 @@ import java.nio.file.Path
 interface LightGradleTestProject : TestProjectDefinition {
   val templateProject: TemplateBasedTestProject
   val modelBuilders: List<ModuleModelBuilder>
+  override val name get() = templateProject.name
+  override val projectName get() = templateProject.name
 
   override val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean
     get() = { true }
@@ -115,4 +117,6 @@ enum class LightGradleTestProjects(
       )
     )
   );
+
+  override val projectName: String = name
 }

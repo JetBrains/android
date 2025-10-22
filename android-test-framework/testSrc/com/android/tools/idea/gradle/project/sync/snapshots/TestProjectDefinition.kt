@@ -35,6 +35,16 @@ import java.time.Clock
  */
 interface TestProjectDefinition {
   /**
+   * A developer-friendly name for this project, for example as implemented by [Enum.name].
+   */
+  val name: String
+
+  /**
+   * A name used in migrating existing tests, often inferred from a containing directory.
+   */
+  val projectName: String
+
+  /**
    * A predicate which returns whether this test project is compatible with a given AGP software environment.
    */
   val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean
@@ -136,4 +146,3 @@ interface PreparedTestProject {
     }
   }
 }
-
