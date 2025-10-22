@@ -16,7 +16,10 @@
 
 package com.android.tools.idea.adblib
 
-import com.android.ddmlib.testing.FakeAdbRule
+import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
+import com.android.adblib.ddmlibcompatibility.testutils.waitForOnlineDevice
+import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
+import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
@@ -40,14 +43,20 @@ import org.junit.rules.RuleChain
 class DeviceCableMonitorTest {
   private val projectRule = ProjectRule()
   private val initAdbLibApplicationServiceRule = InitAdbLibApplicationServiceRule()
-  private val adbRule = FakeAdbRule()
+  private val adbRule = FakeAdbServerRule()
+  private val initAndroidDebugBridgeRule =
+    InitAndroidDebugBridgeRule(alsoCreateBridge = true) { adbRule.adbServer.port }
+
   private lateinit var monitor: DeviceCableMonitor
 
   private val latch = CountDownLatch(1)
 
   @get:Rule
   val ruleChain =
-    RuleChain.outerRule(projectRule).around(initAdbLibApplicationServiceRule).around(adbRule)!!
+    RuleChain.outerRule(projectRule)
+      .around(initAdbLibApplicationServiceRule)
+      .around(adbRule)
+      .around(initAndroidDebugBridgeRule)!!
 
   @Before
   fun setup() {
@@ -64,28 +73,31 @@ class DeviceCableMonitorTest {
         },
       )
 
-    // Add devices with desired properties here through adbRule.
-    adbRule.attachDevice(
-      deviceId = "device_with_bad_usb_cable",
-      manufacturer = "Google",
-      model = "Pixel7",
-      release = "eng",
-      sdk = AndroidApiLevel(34),
-      abi = "x85_64",
-      hostConnectionType = DeviceState.HostConnectionType.USB,
-      maxSpeedMbps = 5000L,
-      negotiatedSpeedMbps = 480L,
-    )
-    WriteAction.runAndWait<Throwable> {
-      FacetUtil.addFacet(projectRule.module, AndroidFacet.getFacetType())
-    }
-
     monitor = DeviceCableMonitor()
     CoroutineScope(Dispatchers.IO).launch { monitor.execute(projectRule.project) }
   }
 
   @Test
-  fun badUSBCableNotificationTest() {
+  fun badUSBCableNotificationTest() = runBlockingWithTimeout {
+    // Add devices with desired properties here through adbRule.
+    val deviceState =
+      adbRule
+        .connectDevice(
+          deviceId = "device_with_bad_usb_cable",
+          manufacturer = "Google",
+          deviceModel = "Pixel7",
+          release = "10.0.0",
+          sdk = AndroidApiLevel(34),
+          hostConnectionType = DeviceState.HostConnectionType.USB,
+          maxSpeedMbps = 5000L,
+          negotiatedSpeedMbps = 480L,
+        )
+        .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
+    deviceState.waitForOnlineDevice()
+    WriteAction.runAndWait<Throwable> {
+      FacetUtil.addFacet(projectRule.module, AndroidFacet.getFacetType())
+    }
+
     if (!latch.await(5, TimeUnit.SECONDS)) {
       Assert.fail("Bad cable notification not detected")
     }
