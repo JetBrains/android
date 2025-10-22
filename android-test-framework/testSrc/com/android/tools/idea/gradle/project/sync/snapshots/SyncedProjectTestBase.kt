@@ -81,10 +81,10 @@ interface SyncedProjectTestDef : AgpIntegrationTestDefinition {
 }
 
 /**
- * A base class for a test case that applies multiple [SyncedProjectTestDef]s to multiple [TemplateBasedTestProject]s. See
+ * A base class for a test case that applies multiple [SyncedProjectTestDef]s to multiple [TestProjectDefinition]s. See
  * `SyncedProjectTest` as an example.
  */
-abstract class SyncedProjectTestBase<TestProject: TemplateBasedTestProject>(
+abstract class SyncedProjectTestBase<TestProject: TestProjectDefinition>(
   /**
    * A AGP version this test will run with.
    */
@@ -174,7 +174,7 @@ abstract class SyncedProjectTestBase<TestProject: TemplateBasedTestProject>(
   }
 }
 
-private class ReportUsedProjectException(val testProject: TemplateBasedTestProject) : Throwable()
+private class ReportUsedProjectException(val testProject: TestProjectDefinition) : Throwable()
 
 /**
  * A base class for special test cases that ensure all test projects are actually tested by implementations of [SyncedProjectTestBase].
