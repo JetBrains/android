@@ -119,9 +119,12 @@ interface BuildGraphData {
   /** Returns a list of all the java source files of the project, relative to the workspace root.  */
   fun getJavaSourceFiles(): List<Path>
 
+  /**
+   * Returns targets matching the given predicate that have any source files of the given types.
+   */
   fun getSourceFilesByRuleKindAndType(
     ruleKindPredicate: (String) -> Boolean, vararg sourceTypes: ProjectTarget.SourceType
-  ): List<Path>
+  ): Map<Label, List<Path>>
 
   /**
    * Returns a list of regular (java/kt) source files owned by an Android target, relative to the

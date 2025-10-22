@@ -493,12 +493,11 @@ class BuildGraphDataImplTest {
       .containsExactly(TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"))
     assertThat(graph.getAndroidSourceFiles())
       .containsExactly(TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"))
-    assertThat(graph.getSourceFilesByRuleKindAndType({ ruleClass: String? ->
-      RuleKinds.isAndroid(
-        ruleClass
+    assertThat(graph.getSourceFilesByRuleKindAndType({ RuleKinds.isAndroid(it)}, ProjectTarget.SourceType.AIDL))
+      .containsExactly(
+        Label.of("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/aidl:aidl"),
+        listOf(Path.of("$TESTDATA_ROOT/aidl/TestAidlService.aidl"))
       )
-    }, ProjectTarget.SourceType.AIDL))
-      .containsExactly(Path.of("$TESTDATA_ROOT/aidl/TestAidlService.aidl"))
   }
 
   @Test
