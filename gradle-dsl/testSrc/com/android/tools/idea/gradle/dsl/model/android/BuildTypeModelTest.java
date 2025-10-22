@@ -32,16 +32,21 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assume.assumeTrue;
 
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.SigningConfigPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -51,12 +56,28 @@ import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Tests for {@link BuildTypeModelImpl}.
  */
 public class BuildTypeModelTest extends GradleFileModelTestCase {
+  @Before
+  @Override
+  public void before() throws Exception {
+    DeclarativeIdeSupport.override(true);
+    DeclarativeStudioSupport.override(true);
+    super.before();
+  }
+
+  @After
+  public void after() {
+    DeclarativeIdeSupport.clearOverride();
+    DeclarativeStudioSupport.clearOverride();
+  }
+
   @Test
   public void testBuildTypeBlockWithApplicationStatements() throws Exception {
     writeToBuildFile(TestFile.BUILD_TYPE_BLOCK_WITH_APPLICATION_STATEMENTS);
@@ -1731,6 +1752,28 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     verifyFileContents(myBuildFile, TestFile.RENAME_EXPLICIT_TO_IMPLICIT_EXPECTED);
   }
 
+  @Test
+  public void readDeclarativeDependencies() throws IOException {
+    isIrrelevantForGroovy("No dependencies block in groovy");
+    isIrrelevantForKotlinScript("No dependencies block in kotlin");
+    writeToBuildFile(TestFile.DECLARATIVE_DEPENDENCIES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = android(buildModel);
+    List<BuildTypeModel> buildTypes = androidModel.buildTypes();
+    Truth.assertThat(buildTypes).hasSize(2);
+    // 0 element is `release`
+    assertEquals("debug", buildTypes.get(1).name());
+    DependenciesModel model = buildTypes.get(1).dependencies();
+
+    List<DependencyModel> dependencies = model.all();
+    assertSize(1, model.all());
+
+    ArtifactDependencyModel dep = (ArtifactDependencyModel)dependencies.get(0);
+    assertThat(dep.configurationName(), equalTo("compile"));
+    assertThat(dep.compactNotation(), equalTo("com.android.support:appcompat-v7:+"));
+  }
+
   @NotNull
   private static BuildTypeModel getXyzBuildType(GradleBuildModel buildModel) {
     AndroidModel android = android(buildModel);
@@ -1804,6 +1847,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     RENAME_TO_IMPLICIT_EXPECTED("renameToImplicitExpected"),
     RENAME_EXPLICIT_TO_IMPLICIT("renameExplicitToImplicit"),
     RENAME_EXPLICIT_TO_IMPLICIT_EXPECTED("renameExplicitToImplicitExpected"),
+    DECLARATIVE_DEPENDENCIES("declarativeDependencies"),
     ;
 
     @NotNull private @SystemDependent String path;

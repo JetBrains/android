@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE
@@ -32,14 +33,19 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVer
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
+import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
+import java.io.File
+import java.io.IOException
+import junit.framework.TestCase
+import org.hamcrest.CoreMatchers
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert
 import org.jetbrains.annotations.SystemDependent
 import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
-import java.io.File
-import java.io.IOException
 
 /**
  * Tests for [ProductFlavorModelImpl].
@@ -2751,6 +2757,27 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyMapProperty(testInstrumentationRunnerArguments, mapOf("key1" to "value1", "key2" to "value2", "key3" to "value3"))
   }
 
+  @Test
+  fun readDeclarativeDependencies() {
+    isIrrelevantForGroovy("No dependencies block in groovy")
+    isIrrelevantForKotlinScript("No dependencies block in kotlin")
+    writeToBuildFile(TestFile.DECLARATIVE_DEPENDENCIES)
+
+    val buildModel = getGradleBuildModel()
+    val androidModel = buildModel.android()
+    val flavors = androidModel.productFlavors()
+    Truth.assertThat(flavors).hasSize(1)
+    TestCase.assertEquals("demo", flavors[0].name())
+    val model = flavors[0].dependencies()
+
+    val dependencies = model.all()
+    assertSize(1, model.all())
+
+    val dep = dependencies[0] as ArtifactDependencyModel
+    MatcherAssert.assertThat(dep.configurationName(), equalTo("compile"))
+    MatcherAssert.assertThat(dep.compactNotation(), equalTo("com.android.support:appcompat-v7:+"))
+  }
+
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
     NATIVE_ELEMENT_TEXT("nativeElementText"),
     EDIT_NATIVE_ELEMENTS_EXPECTED("editNativeElementsExpected"),
@@ -2838,6 +2865,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     SET_PROGUARD_FILES_CLEARS_PROGUARD_FILES("setProguardFilesClearsProguardFiles"),
     TEST_INSTRUMENTATION_RUNNER_ARGUMENT_SINGULAR_THEN_PLURAL("testInstrumentationRunnerArgumentSingularThenPlural"),
     TEST_INSTRUMENTATION_RUNNER_ARGUMENT_PLURAL_THEN_SINGULAR("testInstrumentationRunnerArgumentPluralThenSingular"),
+    DECLARATIVE_DEPENDENCIES("declarativeDependencies")
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
