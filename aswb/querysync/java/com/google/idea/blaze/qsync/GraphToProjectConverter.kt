@@ -359,7 +359,13 @@ class GraphToProjectConverter(
     }
 
     val javaSourceRoots = calculateJavaRootSources(context, graph.getJavaSourceFiles(), graph.packages())
-    val rootToNonJavaSource = nonJavaSourceFolders(graph.getSourceFilesByRuleKindAndType({ t -> !RuleKinds.isJava(t) }, *SourceType.all()))
+    val rootToNonJavaSource =
+      nonJavaSourceFolders(
+        graph
+          .getSourceFilesByRuleKindAndType({ t -> !RuleKinds.isJava(t) }, *SourceType.all())
+          .values
+          .flatten()
+      )
     // Note: according to:
     //  https://developer.android.com/guide/topics/resources/providing-resources
     // "Never save resource files directly inside the res/ directory. It causes a compiler error."
