@@ -15,7 +15,7 @@ def _aspect_impl(target, ctx):
     kotlin_info = IDE_KOTLIN.get_kotlin_info(target, ctx.rule)
     java_proto_info = IDE_JAVA_PROTO.get_java_proto_info(target, ctx.rule)
     toolchain_target = IDE_CC.toolchain_target(ctx.rule)
-    compilation_context = IDE_CC.compilation_context(target)
+    compilation_context = IDE_CC.compilation_context(target, ctx.rule)
     cc_toolchain_info = IDE_CC.cc_toolchain_info(target, ctx)
     android_info = IDE_ANDROID.get_android_info(target, ctx.rule)
     return TargetInfo(
