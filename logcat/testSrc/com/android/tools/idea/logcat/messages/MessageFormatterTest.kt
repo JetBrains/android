@@ -663,7 +663,7 @@ class MessageFormatterTest {
       object : ExceptionMessageRewriter {
         override fun rewrite(message: String): String {
           val split = message.split("\n", ignoreCase = false, limit = 2)
-          return "${split[0]} (Ask Gemini)\n${split[1]}"
+          return "${split[0]} (Explain with AI)\n${split[1]}"
         }
       }
     ApplicationManager.getApplication()
@@ -678,7 +678,7 @@ class MessageFormatterTest {
     assertThat(textAccumulator.text.trim())
       .isEqualTo(
         "" +
-          "1970-01-01 04:00:10.000     1-2     ExampleTag              com.example.app                      I  Exception (Ask Gemini)\n" +
+          "1970-01-01 04:00:10.000     1-2     ExampleTag              com.example.app                      I  Exception (Explain with AI)\n" +
           "                                                                                                    \tat com.example(File.kt:1)"
       )
   }
