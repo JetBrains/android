@@ -54,6 +54,7 @@ class ClassPicker(private val project: Project, private val base: String) :
   private val textComponent =
     ComponentWithBrowseButton<EditorTextField>(editorTextField, ClassPickerActionListener()).apply {
       alignmentX = LEFT_ALIGNMENT
+      name = "textComponent"
     }
   private val errorLabel =
     JLabel().apply {
@@ -77,6 +78,11 @@ class ClassPicker(private val project: Project, private val base: String) :
   }
 
   override fun getText(): String = editorTextField.text
+
+  override fun setEnabled(enabled: Boolean) {
+    super.setEnabled(enabled)
+    textComponent.isEnabled = enabled
+  }
 
   fun addDocumentListener(listener: DocumentListener) {
     editorTextField.addDocumentListener(listener)
