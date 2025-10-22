@@ -20,7 +20,6 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.compose.preview.NopComposePreviewManager
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
@@ -31,10 +30,12 @@ import com.android.tools.preview.config.DeviceConfig
 import com.android.tools.preview.config.DimUnit
 import com.android.tools.preview.config.Shape
 import com.android.tools.preview.config.createDeviceInstance
+import com.intellij.openapi.application.EDT
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import java.awt.Rectangle
 import java.awt.geom.Ellipse2D
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertTrue
@@ -47,7 +48,7 @@ class ComposeScreenViewProvidersTest {
   @Test
   fun `shape policy depends on the showSystemUi value`() = runBlocking {
     val model =
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         NlModelBuilderUtil.model(
             AndroidBuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
             projectRule.fixture,
