@@ -846,6 +846,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugAndroidTestImplementation          : <empty>
                         debugAndroidTestImplementationDependenciesMetadata          : <empty>
                         debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAndroidTestRuntimeOnly   : <empty>
                         debugAnnotationProcessor      : <empty>
@@ -864,6 +865,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
                         debugIntransitiveDependenciesMetadata   : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugReverseMetadataValues    : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
@@ -881,6 +883,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugUnitTestImplementation   : <empty>
                         debugUnitTestImplementationDependenciesMetadata   : <empty>
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         debugUnitTestRuntimeOnly      : <empty>
                         default                       : <empty>
@@ -916,6 +919,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
                         releaseIntransitiveDependenciesMetadata : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseReverseMetadataValues  : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
@@ -1346,6 +1350,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugAndroidTestImplementation          : <empty>
                         debugAndroidTestImplementationDependenciesMetadata          : <empty>
                         debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAndroidTestRuntimeOnly   : <empty>
                         debugAnnotationProcessor      : <empty>
@@ -1366,6 +1371,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
                         debugIntransitiveDependenciesMetadata   : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
                         - debugRuntimeElements-published        : <ROOT>/feature-a/build/outputs/aar/feature-a-debug.aar [-]
@@ -1385,6 +1391,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugUnitTestImplementation   : <empty>
                         debugUnitTestImplementationDependenciesMetadata   : <empty>
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         debugUnitTestRuntimeOnly      : <empty>
                         default                       : <empty>
@@ -1422,6 +1429,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
                         releaseIntransitiveDependenciesMetadata : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         - releaseRuntimeElements-published      : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
@@ -1652,6 +1660,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
                         debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAnnotationProcessor      : <empty>
                         debugAnnotationProcessorClasspath       : <empty>
@@ -1662,6 +1671,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugCompileOnly              : <empty>
                         debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
                         - debugRuntimeElements-published        : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
@@ -1670,6 +1680,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         - debugSourcesElements-published        : <ROOT>/feature-b/build/libs/feature-b-android-debug-sources.jar [-]
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         default                       : <empty>
                         implementation                : <empty>
@@ -1703,6 +1714,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseCompileOnly            : <empty>
                         releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         - releaseRuntimeElements-published      : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
@@ -2216,6 +2228,7 @@ MODULE                        : NonStandardSourceSetDependencies
                                 coreLibraryDesugaring         : <empty>
                                 debugAndroidTestAnnotationProcessorClasspath      : <empty>
                                 debugAndroidTestCompileClasspath        : <empty>
+                                debugAndroidTestLintChecksClasspath     : <empty>
                                 debugAndroidTestRuntimeClasspath        : <empty>
                                 debugAnnotationProcessor      : <empty>
                                 debugAnnotationProcessorClasspath       : <empty>
@@ -2225,11 +2238,13 @@ MODULE                        : NonStandardSourceSetDependencies
                                 debugCompileOnly              : <empty>
                                 debugCompileOnlyApi           : <empty>
                                 debugImplementation           : <empty>
+                                debugLintChecksClasspath      : <empty>
                                 debugRuntimeClasspath         : <empty>
                                 debugRuntimeElements          : <empty>
                                 debugRuntimeOnly              : <empty>
                                 debugUnitTestAnnotationProcessorClasspath         : <empty>
                                 debugUnitTestCompileClasspath : <empty>
+                                debugUnitTestLintChecksClasspath        : <empty>
                                 debugUnitTestRuntimeClasspath : <empty>
                                 default                       : <empty>
                                 implementation                : <empty>
@@ -2243,6 +2258,7 @@ MODULE                        : NonStandardSourceSetDependencies
                                 releaseCompileOnly            : <empty>
                                 releaseCompileOnlyApi         : <empty>
                                 releaseImplementation         : <empty>
+                                releaseLintChecksClasspath    : <empty>
                                 releaseRuntimeClasspath       : <empty>
                                 releaseRuntimeElements        : <empty>
                                 releaseRuntimeOnly            : <empty>
@@ -2367,6 +2383,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugAndroidTestImplementation          : <empty>
                         debugAndroidTestImplementationDependenciesMetadata          : <empty>
                         debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAndroidTestRuntimeOnly   : <empty>
                         debugAnnotationProcessor      : <empty>
@@ -2387,6 +2404,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
                         debugIntransitiveDependenciesMetadata   : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
                         - debugRuntimeElements-published        : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-debug.aar [-]
@@ -2406,6 +2424,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugUnitTestImplementation   : <empty>
                         debugUnitTestImplementationDependenciesMetadata   : <empty>
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         debugUnitTestRuntimeOnly      : <empty>
                         default                       : <empty>
@@ -2444,6 +2463,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
                         releaseIntransitiveDependenciesMetadata : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-release.aar [-]

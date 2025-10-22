@@ -713,6 +713,7 @@ MODULE                        : application
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
                         debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAnnotationProcessor      : <empty>
                         debugAnnotationProcessorClasspath       : <empty>
@@ -722,12 +723,14 @@ MODULE                        : application
                         debugCompileOnly              : <empty>
                         debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugReverseMetadataValues    : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
                         debugRuntimeOnly              : <empty>
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         default                       : <empty>
                         implementation                : <empty>
@@ -741,6 +744,7 @@ MODULE                        : application
                         releaseCompileOnly            : <empty>
                         releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseReverseMetadataValues  : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>

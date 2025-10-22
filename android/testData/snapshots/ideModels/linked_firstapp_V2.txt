@@ -661,6 +661,7 @@ MODULE                        : My_First_App
                                 debugAndroidTestImplementation          : <empty>
                                 debugAndroidTestImplementationDependenciesMetadata          : <empty>
                                 debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
+                                debugAndroidTestLintChecksClasspath     : <empty>
                                 debugAndroidTestRuntimeClasspath        : <empty>
                                 debugAndroidTestRuntimeOnly   : <empty>
                                 debugAnnotationProcessor      : <empty>
@@ -681,6 +682,7 @@ MODULE                        : My_First_App
                                 debugImplementation           : <empty>
                                 debugImplementationDependenciesMetadata : <empty>
                                 debugIntransitiveDependenciesMetadata   : <empty>
+                                debugLintChecksClasspath      : <empty>
                                 debugRuntimeClasspath         : <empty>
                                 debugRuntimeElements          : <empty>
                                 - debugRuntimeElements-published        : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
@@ -700,6 +702,7 @@ MODULE                        : My_First_App
                                 debugUnitTestImplementation   : <empty>
                                 debugUnitTestImplementationDependenciesMetadata   : <empty>
                                 debugUnitTestIntransitiveDependenciesMetadata     : <empty>
+                                debugUnitTestLintChecksClasspath        : <empty>
                                 debugUnitTestRuntimeClasspath : <empty>
                                 debugUnitTestRuntimeOnly      : <empty>
                                 default                       : <empty>
@@ -737,6 +740,7 @@ MODULE                        : My_First_App
                                 releaseImplementation         : <empty>
                                 releaseImplementationDependenciesMetadata         : <empty>
                                 releaseIntransitiveDependenciesMetadata : <empty>
+                                releaseLintChecksClasspath    : <empty>
                                 releaseRuntimeClasspath       : <empty>
                                 releaseRuntimeElements        : <empty>
                                 - releaseRuntimeElements-published      : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
@@ -874,6 +878,7 @@ MODULE                        : My_First_App
                         debugAndroidTestImplementation          : <empty>
                         debugAndroidTestImplementationDependenciesMetadata          : <empty>
                         debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAndroidTestRuntimeOnly   : <empty>
                         debugAnnotationProcessor      : <empty>
@@ -892,6 +897,7 @@ MODULE                        : My_First_App
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
                         debugIntransitiveDependenciesMetadata   : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugReverseMetadataValues    : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
@@ -909,6 +915,7 @@ MODULE                        : My_First_App
                         debugUnitTestImplementation   : <empty>
                         debugUnitTestImplementationDependenciesMetadata   : <empty>
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         debugUnitTestRuntimeOnly      : <empty>
                         default                       : <empty>
@@ -944,6 +951,7 @@ MODULE                        : My_First_App
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
                         releaseIntransitiveDependenciesMetadata : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseReverseMetadataValues  : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>

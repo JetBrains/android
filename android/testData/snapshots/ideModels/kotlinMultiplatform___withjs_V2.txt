@@ -673,6 +673,7 @@
                             debugAndroidTestImplementation          : <empty>
                             debugAndroidTestImplementationDependenciesMetadata          : <empty>
                             debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
+                            debugAndroidTestLintChecksClasspath     : <empty>
                             debugAndroidTestRuntimeClasspath        : <empty>
                             debugAndroidTestRuntimeOnly   : <empty>
                             debugAnnotationProcessor      : <empty>
@@ -691,6 +692,7 @@
                             debugImplementation           : <empty>
                             debugImplementationDependenciesMetadata : <empty>
                             debugIntransitiveDependenciesMetadata   : <empty>
+                            debugLintChecksClasspath      : <empty>
                             debugReverseMetadataValues    : <empty>
                             debugRuntimeClasspath         : <empty>
                             debugRuntimeElements          : <empty>
@@ -708,6 +710,7 @@
                             debugUnitTestImplementation   : <empty>
                             debugUnitTestImplementationDependenciesMetadata   : <empty>
                             debugUnitTestIntransitiveDependenciesMetadata     : <empty>
+                            debugUnitTestLintChecksClasspath        : <empty>
                             debugUnitTestRuntimeClasspath : <empty>
                             debugUnitTestRuntimeOnly      : <empty>
                             default                       : <empty>
@@ -743,6 +746,7 @@
                             releaseImplementation         : <empty>
                             releaseImplementationDependenciesMetadata         : <empty>
                             releaseIntransitiveDependenciesMetadata : <empty>
+                            releaseLintChecksClasspath    : <empty>
                             releaseReverseMetadataValues  : <empty>
                             releaseRuntimeClasspath       : <empty>
                             releaseRuntimeElements        : <empty>
@@ -1044,6 +1048,7 @@
                             coreLibraryDesugaring         : <empty>
                             debugAndroidTestAnnotationProcessorClasspath      : <empty>
                             debugAndroidTestCompileClasspath        : <empty>
+                            debugAndroidTestLintChecksClasspath     : <empty>
                             debugAndroidTestRuntimeClasspath        : <empty>
                             debugAnnotationProcessor      : <empty>
                             debugAnnotationProcessorClasspath       : <empty>
@@ -1054,6 +1059,7 @@
                             debugCompileOnly              : <empty>
                             debugCompileOnlyApi           : <empty>
                             debugImplementation           : <empty>
+                            debugLintChecksClasspath      : <empty>
                             debugRuntimeClasspath         : <empty>
                             debugRuntimeElements          : <empty>
                             - debugRuntimeElements-published        : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
@@ -1062,6 +1068,7 @@
                             - debugSourcesElements-published        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
                             debugUnitTestAnnotationProcessorClasspath         : <empty>
                             debugUnitTestCompileClasspath : <empty>
+                            debugUnitTestLintChecksClasspath        : <empty>
                             debugUnitTestRuntimeClasspath : <empty>
                             default                       : <empty>
                             implementation                : <empty>
@@ -1095,6 +1102,7 @@
                             releaseCompileOnly            : <empty>
                             releaseCompileOnlyApi         : <empty>
                             releaseImplementation         : <empty>
+                            releaseLintChecksClasspath    : <empty>
                             releaseRuntimeClasspath       : <empty>
                             releaseRuntimeElements        : <empty>
                             - releaseRuntimeElements-published      : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]

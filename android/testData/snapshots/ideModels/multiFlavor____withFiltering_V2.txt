@@ -137,6 +137,7 @@ MODULE                        : MultiFlavor
                         firstAbcSecondAbcCompileOnlyApi         : <empty>
                         firstAbcSecondAbcDebugAndroidTestAnnotationProcessorClasspath         : <empty>
                         firstAbcSecondAbcDebugAndroidTestCompileClasspath : <empty>
+                        firstAbcSecondAbcDebugAndroidTestLintChecksClasspath        : <empty>
                         firstAbcSecondAbcDebugAndroidTestRuntimeClasspath : <empty>
                         firstAbcSecondAbcDebugAnnotationProcessor         : <empty>
                         firstAbcSecondAbcDebugAnnotationProcessorClasspath          : <empty>
@@ -146,12 +147,14 @@ MODULE                        : MultiFlavor
                         firstAbcSecondAbcDebugCompileOnly       : <empty>
                         firstAbcSecondAbcDebugCompileOnlyApi    : <empty>
                         firstAbcSecondAbcDebugImplementation    : <empty>
+                        firstAbcSecondAbcDebugLintChecksClasspath         : <empty>
                         firstAbcSecondAbcDebugReverseMetadataValues       : <empty>
                         firstAbcSecondAbcDebugRuntimeClasspath  : <empty>
                         firstAbcSecondAbcDebugRuntimeElements   : <empty>
                         firstAbcSecondAbcDebugRuntimeOnly       : <empty>
                         firstAbcSecondAbcDebugUnitTestAnnotationProcessorClasspath  : <empty>
                         firstAbcSecondAbcDebugUnitTestCompileClasspath    : <empty>
+                        firstAbcSecondAbcDebugUnitTestLintChecksClasspath : <empty>
                         firstAbcSecondAbcDebugUnitTestRuntimeClasspath    : <empty>
                         firstAbcSecondAbcImplementation         : <empty>
                         firstAbcSecondAbcReleaseAnnotationProcessor       : <empty>
@@ -162,6 +165,7 @@ MODULE                        : MultiFlavor
                         firstAbcSecondAbcReleaseCompileOnly     : <empty>
                         firstAbcSecondAbcReleaseCompileOnlyApi  : <empty>
                         firstAbcSecondAbcReleaseImplementation  : <empty>
+                        firstAbcSecondAbcReleaseLintChecksClasspath       : <empty>
                         firstAbcSecondAbcReleaseReverseMetadataValues     : <empty>
                         firstAbcSecondAbcReleaseRuntimeClasspath          : <empty>
                         firstAbcSecondAbcReleaseRuntimeElements : <empty>

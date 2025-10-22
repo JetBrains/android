@@ -631,6 +631,7 @@ MODULE                        : project
                         debugAndroidTestImplementation          : <empty>
                         debugAndroidTestImplementationDependenciesMetadata          : <empty>
                         debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAndroidTestRuntimeOnly   : <empty>
                         debugAnnotationProcessor      : <empty>
@@ -649,6 +650,7 @@ MODULE                        : project
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
                         debugIntransitiveDependenciesMetadata   : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugReverseMetadataValues    : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
@@ -666,6 +668,7 @@ MODULE                        : project
                         debugUnitTestImplementation   : <empty>
                         debugUnitTestImplementationDependenciesMetadata   : <empty>
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         debugUnitTestRuntimeOnly      : <empty>
                         default                       : <empty>
@@ -697,6 +700,7 @@ MODULE                        : project
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
                         releaseIntransitiveDependenciesMetadata : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseReverseMetadataValues  : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
