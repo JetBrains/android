@@ -316,6 +316,7 @@ abstract class AnimationPreview<T : AnimationManager>(
   protected suspend fun renderAnimation() {
     sceneManagerProvider()?.let {
       it.sceneRenderConfiguration.executeCallbacksAfterRender.set(true)
+      it.sceneRenderConfiguration.doubleRender.set(true)
       it.requestRenderAndWait()
     }
   }

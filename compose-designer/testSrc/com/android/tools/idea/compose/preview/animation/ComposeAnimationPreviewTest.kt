@@ -548,6 +548,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
         val configuration =
           mock<LayoutlibSceneRenderConfiguration>().apply {
             whenever(this.executeCallbacksAfterRender).then { AtomicBoolean(false) }
+            whenever(this.doubleRender).then { AtomicBoolean(false) }
           }
         whenever(this.sceneRenderConfiguration).then { configuration }
       }
