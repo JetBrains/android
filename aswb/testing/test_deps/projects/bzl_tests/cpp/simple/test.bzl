@@ -29,6 +29,7 @@ def _cc_library_test_impl(env, target):
     actual.label().equals("//{}:{}".format(TEST_TARGET_PACKAGE, CC_LIBRARY_TARGET))
     actual.compilation_context().contains_exactly(
         struct(
+            copts = ["-DGOPT", "-Ifoo/baz/", "-I", "other/headers"],
             defines = ["VERSION2"],
             external_includes = [],
             framework_includes = [],
@@ -56,6 +57,7 @@ def _cc_binary_test_impl(env, target):
     actual.label().equals("//{}:{}".format(TEST_TARGET_PACKAGE, CC_BINARY_TARGET))
     actual.compilation_context().contains_exactly(
         struct(
+            copts = [],
             external_includes = [],
             framework_includes = [],
             includes = ["*"],

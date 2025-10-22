@@ -7,6 +7,7 @@ def compilation_context_factory(actual, *, meta):
         actual = actual,
         meta = meta,
         attrs = dict(
+            copts = subjects_collection_predicate_factory,
             defines = subjects_depset_factory,
             external_includes = subjects_depset_factory,
             framework_includes = subjects_depset_factory,

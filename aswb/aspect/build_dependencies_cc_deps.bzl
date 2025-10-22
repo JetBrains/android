@@ -67,10 +67,11 @@ def _get_cc_toolchain_info(target, ctx):
         cpp_options = cpp_options,
     )
 
-def _get_cc_compilation_context(target):
+def _get_cc_compilation_context(target, rule):
     if CcInfo in target:
         compilation_context = target[CcInfo].compilation_context
         return struct(
+            copts = getattr(rule.attr, "copts", []),
             headers = compilation_context.headers,
             defines = compilation_context.defines,
             includes = compilation_context.includes,

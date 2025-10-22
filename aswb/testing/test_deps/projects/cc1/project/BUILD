@@ -40,5 +40,6 @@ cc_library(
     name = "hello-api",
     srcs = ["hello-api.cc"],
     hdrs = ["hello-api.h"],
+    copts = ["-DSOMETHING"],
     deps = [":cc1"],
 )

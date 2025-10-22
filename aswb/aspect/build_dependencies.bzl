@@ -309,6 +309,7 @@ def _encode_cc_compilation_info_proto(label, cc_compilation_info):
         struct(targets = [
             struct(
                 label = str(label),
+                copts = cc_compilation_info.copts,
                 defines = cc_compilation_info.transitive_defines,
                 include_directories = cc_compilation_info.transitive_include_directory,
                 quote_include_directories = cc_compilation_info.transitive_quote_include_directory,
@@ -693,13 +694,14 @@ def _collect_own_and_toolchain_cc_info(target, rule):
         # The IDE cannot analyze targets without a toolchain (normally _untransitioned, cc_proto etc.).
         return None
 
-    compilation_context = IDE_CC.compilation_context(target)
+    compilation_context = IDE_CC.compilation_context(target, rule)
     cc_gen_headers = []
     compilation_info = None
     if compilation_context:
         cc_gen_headers = [f for f in compilation_context.headers.to_list() if not f.is_source]
 
         compilation_info = struct(
+            copts = compilation_context.copts,
             transitive_defines = compilation_context.defines.to_list(),
             transitive_include_directory = compilation_context.includes.to_list(),
             transitive_quote_include_directory = compilation_context.quote_includes.to_list(),

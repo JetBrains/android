@@ -33,6 +33,7 @@ message CcToolchainInfo {
 
 message CcTargetInfo {
   string label = 1;
+  repeated string copts = 9;
   repeated string defines = 2;
   repeated string include_directories = 3;
   repeated string quote_include_directories = 4;
