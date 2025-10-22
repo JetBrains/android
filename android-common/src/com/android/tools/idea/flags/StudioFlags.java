@@ -139,6 +139,13 @@ public final class StudioFlags {
     STUDIO_DIAGNOSTIC, "manifestindex.treaterrorsascrashes", "Treat Manifest Index query errors as crashes",
     "Report manifest query index errors using Logger.error, which results in them being treated as crashes, and reported for" +
     " opt-in developers.");
+
+  public static final Flag<Boolean> ADB_HOST_LOGS_ENABLED =
+    new BooleanFlag(
+      STUDIO_DIAGNOSTIC,
+      "adb.host.logs.diagnostic.report.enable",
+      "Enable Adb host logs and display in Diagnostic report",
+      "Enable Adb host logs and display in Diagnostic report");
   //endregion
 
   //region New Project Wizard
