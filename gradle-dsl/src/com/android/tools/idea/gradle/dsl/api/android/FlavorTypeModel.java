@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.SigningConfigPropertyModel;
@@ -96,9 +97,12 @@ public interface FlavorTypeModel extends GradleBlockModel {
   @NotNull
   ResolvedPropertyModel useJack();
 
-
   @NotNull
   ResolvedPropertyModel versionNameSuffix();
+
+  // declarative model support
+  @NotNull
+  DependenciesModel dependencies();
 
   /**
    * Represents a statement like {@code resValue} or {@code buildConfigField} which contains type, name and value parameters.
