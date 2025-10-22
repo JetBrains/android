@@ -101,13 +101,6 @@ class ConfigureCcCompilation(
     }
 
     fun visitTarget(ccInfo: CcCompilationInfo, buildContext: DependencyBuildContext) {
-      val projectTarget =
-        buildGraph.getProjectTarget(ccInfo.target())
-        // This target is no longer present in the project. Ignore it.
-        // We should really clean up the dependency cache itself to remove any artifacts relating to
-        // no-longer-present targets, but that will be a lot more work. For now, just ensure we
-        // don't crash.
-        ?: return
       val toolchain = artifactState.ccToolchainMap()[ccInfo.toolchainId()] ?: let {
         context.output(PrintOutput.error("Cannot find toolchain with id: '${ccInfo.toolchainId()}' referred to from ${ccInfo.target()}"))
         return@visitTarget
@@ -115,7 +108,7 @@ class ConfigureCcCompilation(
 
       val targetFlags =
         buildList {
-          addAll(projectTarget.copts().map { makeStringFlag(it, "") })
+          addAll(ccInfo.copts().map { makeStringFlag(it, "") })
           addAll(ccInfo.defines().map { makeStringFlag("-D", it) })
           addAll(ccInfo.includeDirectories().map { makePathFlag("-I", it) })
           addAll(ccInfo.quoteIncludeDirectories().map { p -> makePathFlag("-iquote", p) })

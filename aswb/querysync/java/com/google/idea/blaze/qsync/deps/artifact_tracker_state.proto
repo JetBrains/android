@@ -122,6 +122,7 @@ message ProjectPath {
 }
 
 message CcCompilationInfo {
+  repeated string copts = 8;
   repeated string defines = 1;
   repeated ProjectPath include_directories = 2;
   repeated ProjectPath quote_include_directories = 3;
