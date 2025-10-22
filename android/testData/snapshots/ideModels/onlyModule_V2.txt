@@ -694,6 +694,7 @@ MODULE                        : project
                         benchmarkCompileOnly          : <empty>
                         benchmarkCompileOnlyApi       : <empty>
                         benchmarkImplementation       : <empty>
+                        benchmarkLintChecksClasspath  : <empty>
                         benchmarkReverseMetadataValues          : <empty>
                         benchmarkRuntimeClasspath     : <empty>
                         benchmarkRuntimeElements      : <empty>
@@ -703,6 +704,7 @@ MODULE                        : project
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
                         debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestLintChecksClasspath     : <empty>
                         debugAndroidTestRuntimeClasspath        : <empty>
                         debugAnnotationProcessor      : <empty>
                         debugAnnotationProcessorClasspath       : <empty>
@@ -712,12 +714,14 @@ MODULE                        : project
                         debugCompileOnly              : <empty>
                         debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugReverseMetadataValues    : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
                         debugRuntimeOnly              : <empty>
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestLintChecksClasspath        : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         default                       : <empty>
                         implementation                : <empty>
@@ -731,6 +735,7 @@ MODULE                        : project
                         releaseCompileOnly            : <empty>
                         releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
+                        releaseLintChecksClasspath    : <empty>
                         releaseReverseMetadataValues  : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
@@ -820,6 +825,7 @@ MODULE                        : project
                         benchmarkCompileOnly          : <empty>
                         benchmarkCompileOnlyApi       : <empty>
                         benchmarkImplementation       : <empty>
+                        benchmarkLintChecksClasspath  : <empty>
                         benchmarkRuntimeClasspath     : <empty>
                         benchmarkRuntimeOnly          : <empty>
                         benchmarkTestedApks           : <empty>
@@ -882,6 +888,7 @@ MODULE                        : project
                         debugCompileOnly              : <empty>
                         debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeOnly              : <empty>
                         debugTestedApks               : <empty>
@@ -935,6 +942,7 @@ MODULE                        : project
                         debugCompileOnly              : <empty>
                         debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
+                        debugLintChecksClasspath      : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeOnly              : <empty>
                         debugTestedApks               : <empty>
