@@ -54,13 +54,6 @@ import kotlin.streams.asSequence
  */
 interface TemplateBasedTestProject : TestProjectDefinition {
   /**
-   * The name of this test project.
-   *
-   * Note, it is usually implemented by [Enum.name].
-   */
-  val name: String
-
-  /**
    * The path to the Gradle project relative to [getTestDataDirectoryWorkspaceRelativePath].
    */
   val template: String
@@ -121,7 +114,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
   /**
    * For compatibility with existing tests.
    */
-  val projectName: String get() = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
+  override val projectName: String get() = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
 
   /**
    * Returns the root directory of the source test project in the test data directory.
