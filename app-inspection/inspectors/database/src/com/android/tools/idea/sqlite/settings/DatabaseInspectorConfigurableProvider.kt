@@ -37,6 +37,7 @@ import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.layout.ComponentPredicate
 import com.intellij.util.xmlb.XmlSerializerUtil
 import javax.swing.JComponent
 
@@ -76,8 +77,20 @@ private class DatabaseInspectorConfigurable(private val project: Project) : Sear
         classPicker(DRIVER_INTERFACE).bindText(additionDriverClass).named("driverClass")
       }
       row(message("additional.connection.class")) {
-        classPicker(CONNECTION_INTERFACE).bindText(additionConnectionClass).named("connectionClass")
+        classPicker(CONNECTION_INTERFACE)
+          .bindText(additionConnectionClass)
+          .named("connectionClass")
+          .enabledIf(
+            object : ComponentPredicate() {
+              override fun addListener(listener: (Boolean) -> Unit) {
+                additionDriverClass.afterChange { listener(invoke()) }
+              }
+
+              override fun invoke() = additionDriverClass.get().isNotEmpty()
+            }
+          )
       }
+
       row {
         checkBox(message("ignore.framework.api"))
           .bindSelected(isIgnoreFrameworkApi)
