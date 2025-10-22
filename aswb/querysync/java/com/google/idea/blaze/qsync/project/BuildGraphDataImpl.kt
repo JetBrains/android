@@ -412,32 +412,23 @@ data class BuildGraphDataImpl(
   /** Returns a list of all the java source files of the project, relative to the workspace root.  */
   override fun getJavaSourceFiles(): List<Path> {
     return getSourceFilesByRuleKindAndType(RuleKinds::isJava, SourceType.REGULAR_JVM)
+      .values
+      .flatten()
   }
 
   override fun getSourceFilesByRuleKindAndType(
     ruleKindPredicate: (String) -> Boolean, vararg sourceTypes: SourceType
-  ): List<Path> {
-    return pathListFromSourceFileLabelsOnly(sourcesByRuleKindAndType(ruleKindPredicate, *sourceTypes))
-  }
-
-  private fun sourcesByRuleKindAndType(
-    ruleKindPredicate: (String) -> Boolean, vararg sourceTypes: SourceType,
-  ): Set<Label> {
+  ): Map<Label, List<Path>> {
     return storage.targetMap.values.asSequence()
       .filter { ruleKindPredicate(it.kind()) }
-      .map { it.sourceLabels() }
-      .flatMap {
-        sourceTypes.flatMap { type -> it[type].orEmpty() }
+      .map { target ->
+        target.label() to
+          sourceTypes.flatMap { target.sourceLabels()[it] }
+            .filter { storage.sourceFileLabels.contains(it) }
+            .map { it.toFilePath() }
       }
-      .toSet()
-  }
-
-  private fun pathListFromSourceFileLabelsOnly(labels: Collection<Label>): List<Path> {
-    return labels
-      .asSequence()
-      .filter { storage.sourceFileLabels.contains(it) }
-      .map { it.toFilePath() }
-      .toList()
+      .filter { it.second.isNotEmpty() }
+      .toMap()
   }
 
   /**
@@ -446,9 +437,13 @@ data class BuildGraphDataImpl(
    */
   override fun getAndroidSourceFiles(): List<Path> =
     getSourceFilesByRuleKindAndType(RuleKinds::isAndroid, SourceType.REGULAR_JVM)
+      .values
+      .flatten()
 
   override fun getAndroidResourceFiles(): List<Path> =
     getSourceFilesByRuleKindAndType(RuleKinds::isAndroid, SourceType.ANDROID_RESOURCES)
+      .values
+      .flatten()
 
   /** Returns a list of custom_package fields that used by current project.  */
   override fun getAllCustomPackages(): Set<String> {
