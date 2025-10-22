@@ -35,7 +35,20 @@ import org.jetbrains.annotations.TestOnly
 
 class UrlData(val text: String, val url: String)
 
-class ActionData(val text: String, val icon: Icon? = null, val callback: (InputEvent) -> Unit)
+/**
+ * Data required for rendering an action in the [EmptyStatePanel].
+ *
+ * @param text the text to be displayed for the action
+ * @param icon optional, an icon that will be displayed before the [text], `null` by default
+ * @param suffixIcon optional, an icon that will be displayed after the [text], `null` by default
+ * @param callback the callback to be run when the action is triggered
+ */
+class ActionData(
+  val text: String,
+  val icon: Icon? = null,
+  val suffixIcon: Icon? = null,
+  val callback: (InputEvent) -> Unit,
+)
 
 sealed class Chunk
 
@@ -120,7 +133,14 @@ private fun createInstructionsPanel(
   actionData.filterNotNull().forEach {
     instructions.add(NewRowInstruction(12))
     it.icon?.let { icon -> instructions.add(IconInstruction(icon, 5, null)) }
-    instructions.add(HyperlinkInstruction(textMetrics.font, it.text, it.callback))
+    instructions.add(
+      HyperlinkInstruction(
+        font = textMetrics.font,
+        text = it.text,
+        suffixIcon = it.suffixIcon,
+        action = it.callback,
+      )
+    )
   }
 
   return InstructionsPanel.Builder(*instructions.toTypedArray())

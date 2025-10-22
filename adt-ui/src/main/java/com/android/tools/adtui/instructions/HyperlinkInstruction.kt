@@ -23,6 +23,7 @@ import java.awt.Graphics2D
 import java.awt.Rectangle
 import java.awt.RenderingHints
 import java.awt.event.InputEvent
+import javax.swing.Icon
 import javax.swing.JComponent
 import org.jetbrains.annotations.TestOnly
 
@@ -30,13 +31,16 @@ import org.jetbrains.annotations.TestOnly
  * An instruction for rendering an URL. It wraps a [HyperlinkLabel] which supports all the proper
  * formatting and interactions users would perform on a typical URL. By default, it will handle
  * mouse clicks by browsing to the specified url, unless action is specified, in which case the
- * action will be run when the link is clicked.
+ * action will be run when the link is clicked. When specifying an action, a suffix [Icon] can be
+ * specified. It will be displayed after the text. It's not possible to specify a suffix icon when a
+ * url is specified.
  */
 class HyperlinkInstruction
 private constructor(
   font: Font,
   text: String,
   url: String? = null,
+  suffixIcon: Icon? = null,
   action: ((InputEvent) -> Unit)? = null,
 ) : RenderInstruction() {
 
@@ -44,19 +48,25 @@ private constructor(
     font: Font,
     text: String,
     url: String,
-  ) : this(font = font, text = text, url = url, action = null)
+  ) : this(font = font, text = text, url = url, suffixIcon = null, action = null)
 
   constructor(
     font: Font,
     text: String,
     action: ((InputEvent) -> Unit)? = null,
-  ) : this(font = font, text = text, url = null, action = action)
+    suffixIcon: Icon? = null,
+  ) : this(font = font, text = text, url = null, suffixIcon = suffixIcon, action = action)
 
   private val hyperlinkLabel = HyperlinkLabel(text)
   private val size: Dimension
 
   init {
+    check(url == null || suffixIcon == null) { "Cannot specify both a url and a suffix icon" }
     hyperlinkLabel.setFont(font)
+    if (suffixIcon != null) {
+      hyperlinkLabel.setIcon(suffixIcon)
+      hyperlinkLabel.setIconAtRight(true)
+    }
 
     if (url != null) {
       hyperlinkLabel.setHyperlinkTarget(url)
@@ -91,6 +101,5 @@ private constructor(
     g2d.translate(-bounds.x, -bounds.y)
   }
 
-  @get:TestOnly
-  val displayTextForTests = hyperlinkLabel.text
+  @get:TestOnly val displayTextForTests = hyperlinkLabel.text
 }
