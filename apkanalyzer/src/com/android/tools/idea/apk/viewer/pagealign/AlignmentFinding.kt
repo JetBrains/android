@@ -19,15 +19,17 @@ import com.android.ide.common.pagealign.is16kAligned
 import com.android.tools.apk.analyzer.ArchiveEntry
 import com.android.tools.apk.analyzer.ArchiveNode
 import com.android.tools.apk.analyzer.ZipEntryInfo.Alignment
-import com.android.tools.idea.ndk.PageAlignConfig.isPageAlignMessageEnabled
 import com.google.common.annotations.VisibleForTesting
 import javax.swing.tree.TreePath
 
 /**
- * Convenience shortcut to allow toggling this feature just for APK viewer
+ * Convenience shortcut to allow toggling this feature just for APK viewer.
+ * Enabled by default, no server flag required.
+ * To re-enable dependency on the server flag, set:
+ *  val IS_PAGE_ALIGN_ENABLED =
+ *    com.android.tools.idea.ndk.PageAlignConfig.isPageAlignMessageEnabled()
  */
-@JvmField
-val IS_PAGE_ALIGN_ENABLED = isPageAlignMessageEnabled()
+const val IS_PAGE_ALIGN_ENABLED = true
 
 /**
  * Information to display in the Alignment column.
