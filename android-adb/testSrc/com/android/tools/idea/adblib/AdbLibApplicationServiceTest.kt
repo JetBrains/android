@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.adblib
 
-import com.android.ddmlib.testing.FakeAdbRule
+import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
+import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.google.common.truth.Truth
@@ -29,7 +30,9 @@ import org.junit.rules.RuleChain
 class AdbLibApplicationServiceTest {
   private val projectRule = ProjectRule()
   private val initAdbLibApplicationServiceRule = InitAdbLibApplicationServiceRule()
-  private val fakeAdbRule = FakeAdbRule()
+  private val fakeAdbRule = FakeAdbServerRule()
+  private val initAndroidDebugBridgeRule =
+    InitAndroidDebugBridgeRule(alsoCreateBridge = true) { fakeAdbRule.adbServer.port }
   private val project2Rule = ProjectRule()
 
   @get:Rule
@@ -37,7 +40,8 @@ class AdbLibApplicationServiceTest {
     RuleChain.outerRule(projectRule)
       .around(project2Rule)
       .around(initAdbLibApplicationServiceRule)
-      .around(fakeAdbRule)!!
+      .around(fakeAdbRule)
+      .around(initAndroidDebugBridgeRule)!!
 
   @Test
   fun hostServicesShouldWork() {
