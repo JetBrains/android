@@ -182,6 +182,8 @@ Projects:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                     - PropertyName                  : testBuildType
@@ -331,6 +333,8 @@ Projects:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                 Supertypes                    : kotlin.Any
@@ -546,6 +550,8 @@ Projects:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                     - PropertyName                  : testBuildType
@@ -835,6 +841,8 @@ Projects:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalLibraryExtension,com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
@@ -888,6 +896,8 @@ Projects:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.gradle.LibraryExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalLibraryExtension,com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
@@ -1026,6 +1036,8 @@ Projects:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.gradle.AppExtension,com.android.build.gradle.AbstractAppExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalApplicationExtension,com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,com.android.build.api.dsl.ApkExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
@@ -1079,6 +1091,8 @@ Projects:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.gradle.internal.dsl.BaseAppModuleExtension,com.android.build.gradle.AppExtension,com.android.build.gradle.AbstractAppExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalApplicationExtension,com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,com.android.build.api.dsl.ApkExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
@@ -1265,6 +1279,8 @@ Projects:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                     - PropertyName                  : testBuildType
@@ -1319,6 +1335,8 @@ Projects:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable
@@ -1350,6 +1368,8 @@ Projects:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                     - PropertyName                  : testBuildType
@@ -1386,6 +1406,8 @@ Projects:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                     - PropertyName                  : testBuildType
@@ -2715,6 +2737,8 @@ Settings:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                     - PropertyName                  : testBuildType
@@ -2864,6 +2888,8 @@ Settings:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                 Supertypes                    : kotlin.Any
@@ -3079,6 +3105,8 @@ Settings:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                     - PropertyName                  : testBuildType
@@ -3368,6 +3396,8 @@ Settings:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalLibraryExtension,com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
@@ -3421,6 +3451,8 @@ Settings:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.gradle.LibraryExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalLibraryExtension,com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
@@ -3559,6 +3591,8 @@ Settings:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.gradle.AppExtension,com.android.build.gradle.AbstractAppExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalApplicationExtension,com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,com.android.build.api.dsl.ApkExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
@@ -3612,6 +3646,8 @@ Settings:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.gradle.internal.dsl.BaseAppModuleExtension,com.android.build.gradle.AppExtension,com.android.build.gradle.AbstractAppExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalApplicationExtension,com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,com.android.build.api.dsl.ApkExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
@@ -3798,6 +3834,8 @@ Settings:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                     - PropertyName                  : testBuildType
@@ -3852,6 +3890,8 @@ Settings:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable
@@ -3883,6 +3923,8 @@ Settings:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                     - PropertyName                  : testBuildType
@@ -3919,6 +3961,8 @@ Settings:
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
+                    - PropertyName                  : enableKotlin
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
                     - PropertyName                  : testBuildType
