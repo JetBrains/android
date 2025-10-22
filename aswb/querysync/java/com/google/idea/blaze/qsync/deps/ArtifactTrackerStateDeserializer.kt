@@ -113,6 +113,7 @@ class ArtifactTrackerStateDeserializer(private val metadataFactory: ArtifactMeta
   private fun convertCcCompilationInfo(owner: Label, proto: ArtifactTrackerProto.CcCompilationInfo): CcCompilationInfo {
     return CcCompilationInfo.builder()
       .target(owner)
+      .copts(proto.coptsList)
       .defines(proto.definesList)
       .includeDirectories(proto.includeDirectoriesList.map { projectPathFrom(it) })
       .quoteIncludeDirectories(proto.quoteIncludeDirectoriesList.map { projectPathFrom(it) })

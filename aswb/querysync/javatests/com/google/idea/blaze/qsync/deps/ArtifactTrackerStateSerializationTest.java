@@ -114,6 +114,7 @@ public class ArtifactTrackerStateSerializationTest {
             TargetBuildInfo.forCcTarget(
                 CcCompilationInfo.builder()
                     .target(Label.of("//my/package:target"))
+                    .copts(ImmutableList.of("-DDEF"))
                     .defines(ImmutableList.of("-D", "-w"))
                     .includeDirectories(
                         ImmutableList.of(
