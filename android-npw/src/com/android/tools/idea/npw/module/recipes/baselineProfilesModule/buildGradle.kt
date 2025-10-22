@@ -93,7 +93,7 @@ fun baselineProfilesBuildGradle(
         )
         appendLine("    // To use GMD please invoke generation through the command line:")
         appendLine("    // ./gradlew $targetModuleGradlePath:generateBaselineProfile")
-        appendLine("    testOptions.managedDevices.devices {")
+        appendLine("    testOptions.managedDevices.allDevices {")
         appendLine("        $createGMD {")
         appendLine("            device = \"${useGmd.deviceName}\"")
         appendLine("            apiLevel = ${useGmd.apiLevel}")
