@@ -1289,6 +1289,20 @@ class ComposePreviewRepresentationTest {
     }
   }
 
+  // Regression test for b/448050227
+  @Test
+  fun composeViewShouldAlwaysHaveContentIfThereArePreviews() {
+    runComposePreviewRepresentationTest {
+      createPreviewAndCompile(
+        onRefreshCompletedCallback = {
+          // if there is no content, the empty panel is shown, which should not happen when there
+          // are previews in the file
+          assertTrue(composeView.hasContent)
+        }
+      )
+    }
+  }
+
   private fun runComposePreviewRepresentationTest(
     previewPsiFile: PsiFile = createPreviewPsiFile(),
     mainSurface: NlDesignSurface =
@@ -1370,9 +1384,10 @@ class ComposePreviewRepresentationTest {
     suspend fun createPreviewAndCompile(
       previewOverride: ComposePreviewRepresentation? = null,
       expectedModelCount: Int = 2,
+      onRefreshCompletedCallback: () -> Unit = {},
     ): ComposePreviewRepresentation {
       newModelAddedLatch = CountDownLatch(expectedModelCount)
-      composeView = TestComposePreviewView(mainSurface)
+      composeView = TestComposePreviewView(mainSurface, onRefreshCompletedCallback)
       preview =
         previewOverride
           ?: ComposePreviewRepresentation(previewPsiFile, PreferredVisibility.SPLIT) {
