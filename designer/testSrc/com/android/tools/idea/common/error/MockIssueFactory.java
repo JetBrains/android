@@ -32,6 +32,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.SmartPsiElementPointer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
 
 class MockIssueFactory {
@@ -72,13 +73,18 @@ class MockIssueFactory {
   }
 
   public static RenderErrorModel.Issue createRenderIssue(HighlightSeverity level) {
-    return createRenderIssue(level, null, null);
+    return createRenderIssue(level, null, null, null);
   }
 
   public static RenderErrorModel.Issue createRenderIssue(HighlightSeverity level, String title, String content) {
+    return createRenderIssue(level, title, content, null);
+  }
+
+  public static RenderErrorModel.Issue createRenderIssue(HighlightSeverity level, String title, String content, @Nullable Throwable throwable) {
     RenderErrorModel.Issue.Builder builder = RenderErrorModel.Issue.builder().setSeverity(level);
     if (title != null) builder.setSummary(title);
     if (content != null) builder.setHtmlContent(new HtmlBuilder().add(content));
+    if (throwable != null) builder.setThrowable(throwable);
     return builder.build();
   }
 }

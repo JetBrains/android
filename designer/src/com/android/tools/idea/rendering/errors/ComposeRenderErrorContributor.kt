@@ -72,6 +72,7 @@ object ComposeRenderErrorContributor {
               .setSeverity(errorType.severity)
               .setSummary(errorType.summary(message.throwable))
               .setLinkHandler(linkHandler)
+              .setThrowable(message.throwable)
 
           errorType.htmlContentProvider?.let { provider ->
             builder.setHtmlContent(provider(linkManager, message.throwable))

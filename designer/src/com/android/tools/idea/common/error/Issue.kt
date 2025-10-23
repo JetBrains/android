@@ -120,6 +120,9 @@ abstract class Issue {
   /** The priority between 1 and 10. */
   abstract val category: String
 
+  /** The throwable that caused this issue. */
+  open val throwable: Throwable? = null
+
   /** A short message and an action showing some tips on how to solve the issue */
   open val messageTips: List<MessageTip> = emptyList()
 
@@ -143,7 +146,8 @@ abstract class Issue {
       other.summary == summary &&
       other.description == description &&
       other.category == category &&
-      other.source == source
+      other.source == source &&
+      other.throwable == throwable
   }
 
   override fun hashCode(): Int {
@@ -153,6 +157,7 @@ abstract class Issue {
     result += 23 * description.hashCode()
     result += 29 * category.hashCode()
     result += 31 * source.hashCode()
+    result += 37 * (throwable?.hashCode() ?: 0)
     return result
   }
 
