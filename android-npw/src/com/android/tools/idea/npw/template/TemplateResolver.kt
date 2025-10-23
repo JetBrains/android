@@ -41,7 +41,9 @@ class TemplateResolver {
             "Bottom Navigation Views Activity",
             "Navigation Drawer Views Activity" ->
               !StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.get()
-            "Journey File" -> StudioFlags.JOURNEYS_WITH_GEMINI_EXECUTION.get()
+            "Journey File" ->
+              StudioFlags.JOURNEYS_WITH_GEMINI_EXECUTION.get() &&
+                StudioFlags.AGP_TEST_SUITES_ENABLED.get()
             "Basic Watch Face" -> StudioFlags.NPW_ENABLE_BASIC_WATCH_FACE_TEMPLATE.get()
             else -> true
           }

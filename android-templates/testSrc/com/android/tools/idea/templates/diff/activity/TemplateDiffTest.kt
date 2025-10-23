@@ -780,7 +780,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
   @Test
   fun testJourneysWithTestSuite() {
-    StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE.override(true)
+    StudioFlags.AGP_TEST_SUITES_ENABLED.override(true)
     checkCreateTemplate("Journey File")
   }
 
