@@ -19,6 +19,8 @@ import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.RuleKinds
+import com.google.idea.blaze.common.TargetPatternCollection
+import com.google.idea.blaze.common.TargetPatternCollection.Companion.create
 import com.google.idea.blaze.qsync.BlazeQueryParser
 import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl.Companion.builder
@@ -33,10 +35,13 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
+
 @RunWith(JUnit4::class)
 class BuildGraphDataImplTest {
   @get:Rule
   var expect: Expect = Expect.create()
+
+  private val emptyTargetCollection = TargetPatternCollection.create(emptyList())
 
   @Test
   fun pathToLabel() {
@@ -54,7 +59,7 @@ class BuildGraphDataImplTest {
       .addSupportedTargetLabel(Label.of("//nested:nested"))
       .addSupportedTargetLabel(Label.of("//nested/inner:inner"))
 
-    val graph: BuildGraphData = builder.build(emptySet())
+    val graph: BuildGraphData = builder.build(emptyTargetCollection, emptySet())
     expect.that(graph.pathToLabel(Path.of("abc.txt"))).isEqualTo(Label.of("//:abc.txt"))
     expect.that(graph.pathToLabel(Path.of("BUILD"))).isEqualTo(Label.of("//:BUILD"))
     expect.that(graph.pathToLabel(Path.of("nested/abc.txt"))).isEqualTo(Label.of("//nested:abc.txt"))
@@ -89,7 +94,7 @@ class BuildGraphDataImplTest {
       .addSupportedTargetLabel(Label.of("//nested:nested"))
       .addSupportedTargetLabel(Label.of("//nested/inner:inner"))
 
-    val graph: BuildGraphData = builder.build(emptySet())
+    val graph: BuildGraphData = builder.build(emptyTargetCollection, emptySet())
     expect.that(graph.sourceFileToLabel(Path.of("abc.txt"))).isNull()
     expect.that(graph.sourceFileToLabel(Path.of("BUILD"))).isEqualTo(Label.of("//:BUILD"))
     expect.that(graph.sourceFileToLabel(Path.of("nested/abc.txt"))).isNull()
@@ -112,6 +117,7 @@ class BuildGraphDataImplTest {
   fun testJavaLibraryNoDeps() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_NO_DEPS_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -150,6 +156,7 @@ class BuildGraphDataImplTest {
   fun testJavaLibraryExternalDep() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -169,6 +176,7 @@ class BuildGraphDataImplTest {
   fun testJavaLibraryInternalDep() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_INTERNAL_DEP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -191,6 +199,7 @@ class BuildGraphDataImplTest {
   fun testJavaLibraryTransientDep() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_TRANSITIVE_DEP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -213,6 +222,7 @@ class BuildGraphDataImplTest {
   fun testJavaLibraryProtoDep() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_PROTO_DEP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -256,6 +266,7 @@ class BuildGraphDataImplTest {
   fun testDoesDependencyPathContainRules() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.DOES_DEPENDENCY_PATH_CONTAIN_RULES),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -340,6 +351,7 @@ class BuildGraphDataImplTest {
   fun testJavaLibraryMultiTargets() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_MULTI_TARGETS),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -381,6 +393,7 @@ class BuildGraphDataImplTest {
   fun testJavaLibraryExportingExternalTargets() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_EXPORTED_DEP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -402,6 +415,7 @@ class BuildGraphDataImplTest {
   fun testAndroidLibrary() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.ANDROID_LIB_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -433,6 +447,7 @@ class BuildGraphDataImplTest {
   fun testProjectAndroidLibrariesWithAidlSource_areProjectDeps() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.ANDROID_AIDL_SOURCE_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -462,6 +477,7 @@ class BuildGraphDataImplTest {
   fun testProjectAndroidLibrariesWithAidlSource_aidlsAreSources() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.ANDROID_AIDL_SOURCE_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -490,6 +506,7 @@ class BuildGraphDataImplTest {
   fun testFileGroupSource() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.FILEGROUP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -516,6 +533,7 @@ class BuildGraphDataImplTest {
   fun testCcLibrary() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.CC_LIBRARY_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -596,6 +614,7 @@ class BuildGraphDataImplTest {
   fun computeRequestedTargets_srcFile() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -624,6 +643,7 @@ class BuildGraphDataImplTest {
   fun computeRequestedTargets_buildFile_multiTarget() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_MULTI_TARGETS),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -657,6 +677,7 @@ class BuildGraphDataImplTest {
   fun computeRequestedTargets_buildFile_nested() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_NESTED_PACKAGE),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -683,6 +704,7 @@ class BuildGraphDataImplTest {
   fun computeRequestedTargets_directory() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_NESTED_PACKAGE),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -715,6 +737,7 @@ class BuildGraphDataImplTest {
   fun computeRequestedTargets_cc_srcFile() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.CC_EXTERNAL_DEP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -803,6 +826,7 @@ class BuildGraphDataImplTest {
   fun reverseDeps() {
     val graph =
       BlazeQueryParser(
+        emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_NO_DEPS_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -842,7 +866,7 @@ class BuildGraphDataImplTest {
 
   private fun getRequiredTargets(
     graph: BuildGraphData,
-    forTargets: Collection<Label>
+    forTargets: Collection<Label>,
   ): Set<Label> {
     return graph.computeRequestedTargets(forTargets).requiredTargets
   }

@@ -40,7 +40,7 @@ class TestDataSyncRunner(
   fun sync(testProject: TestData): QuerySyncProjectSnapshot {
     val projectDefinition =
       ProjectDefinition(
-        projectIncludes = testProject.getRelativeSourcePaths().toSet(),
+        projectIncludes = testProject.relativeSourcePaths.toSet(),
         projectExcludes = emptySet(),
         deriveTargetsFromDirectories = false,
         targetPatterns = emptyList(),
@@ -58,7 +58,12 @@ class TestDataSyncRunner(
         .setBazelVersion(Optional.empty())
         .build()
     val buildGraphData =
-      BlazeQueryParser(querySummary, context, ImmutableSet.of()).parse()
+      BlazeQueryParser(
+        projectDefinition.effectiveTargetPatterns,
+        querySummary,
+        context,
+        ImmutableSet.of()
+      ).parse()
     val converter =
       GraphToProjectConverter(
         javaPackagePrefixReader = javaPackagePrefixReader,
@@ -70,7 +75,12 @@ class TestDataSyncRunner(
     val project = update.build()
     return QuerySyncProjectSnapshot(
       queryData = pqsd,
-      graph = BlazeQueryParser(querySummary, context, ImmutableSet.of()).parse(),
+      graph = BlazeQueryParser(
+        projectDefinition.effectiveTargetPatterns,
+        querySummary,
+        context,
+        ImmutableSet.of()
+      ).parse(),
       artifactState = ArtifactTracker.State.EMPTY,
       project = project,
       incompleteTargets = emptySet()

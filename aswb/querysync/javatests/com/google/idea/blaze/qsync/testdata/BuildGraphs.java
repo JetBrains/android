@@ -18,9 +18,10 @@ package com.google.idea.blaze.qsync.testdata;
 import static com.google.idea.blaze.qsync.QuerySyncTestUtils.NOOP_CONTEXT;
 import static com.google.idea.blaze.qsync.QuerySyncTestUtils.getQuerySummary;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.idea.blaze.common.TargetPatternCollection;
 import com.google.idea.blaze.qsync.BlazeQueryParser;
-import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl;
 import java.io.IOException;
 
@@ -30,6 +31,7 @@ public class BuildGraphs {
   private BuildGraphs() {}
 
   public static BuildGraphDataImpl forTestProject(TestData project) throws IOException {
-    return new BlazeQueryParser(getQuerySummary(project), NOOP_CONTEXT, ImmutableSet.of()).parseForTesting();
+    return new BlazeQueryParser(TargetPatternCollection.create(ImmutableList.of()),
+        getQuerySummary(project), NOOP_CONTEXT, ImmutableSet.of()).parseForTesting();
   }
 }
