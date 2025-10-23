@@ -112,6 +112,7 @@ jvm_library(
     "//android/visual-lint",
     "//plugins/kotlin/idea",
     "//platform/refactoring",
+    "@lib//:kotlinc-analysis-api-platform-interface-provided",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
