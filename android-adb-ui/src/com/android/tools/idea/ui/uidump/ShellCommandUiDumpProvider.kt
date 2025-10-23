@@ -16,8 +16,7 @@
 package com.android.tools.idea.ui.uidump
 
 import com.android.adblib.DeviceSelector
-import com.android.adblib.shellCommand
-import com.android.adblib.withTextCollector
+import com.android.adblib.shellAsText
 import com.android.tools.idea.adblib.AdbLibService
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
@@ -37,48 +36,25 @@ class ShellCommandUiDumpProvider {
     val deviceSelector = DeviceSelector.fromSerialNumber(serialNumber)
     val adbLibService = AdbLibService.getInstance(project)
 
-    var shell = adbLibService.session.deviceServices.shellCommand(deviceSelector, DUMP_COMMAND)
-    var stdoutBuilder = StringBuilder()
-    var stderrBuilder = StringBuilder()
-    var exitCode = 0
+    var shellOutput =
+      adbLibService.session.deviceServices.shellAsText(deviceSelector, DUMP_COMMAND)
 
-    shell.withTextCollector().execute().collect {value ->
-      stderrBuilder.append(value.stderr)
-      exitCode = value.exitCode
+    if (shellOutput.exitCode != 0) {
+      return "$DUMP_COMMAND failed with exit code ${shellOutput.exitCode}. ${shellOutput.stderr}"
     }
 
-    if (exitCode != 0) {
-      return "$DUMP_COMMAND failed with exit code $exitCode. $stderrBuilder"
+    shellOutput = adbLibService.session.deviceServices.shellAsText(deviceSelector, READ_COMMAND)
+
+    if (shellOutput.exitCode != 0) {
+      return "Failed to read $TMP_DUMP_FILE. ${shellOutput.stderr}"
     }
 
-    stdoutBuilder = StringBuilder()
-    stderrBuilder = StringBuilder()
-    exitCode = 0
-    shell = adbLibService.session.deviceServices.shellCommand(deviceSelector, READ_COMMAND)
-    shell.withTextCollector().execute().collect {value ->
-      stdoutBuilder.append(value.stdout)
-      stderrBuilder.append(value.stderr)
-      exitCode = value.exitCode
-    }
+    val result = shellOutput.stdout
 
-    if (exitCode != 0) {
-      return "Failed to read $TMP_DUMP_FILE. $stderrBuilder"
-    }
+    shellOutput = adbLibService.session.deviceServices.shellAsText(deviceSelector, CLEANUP_COMMAND)
 
-    val result = stdoutBuilder.toString()
-
-    stdoutBuilder = StringBuilder()
-    stderrBuilder = StringBuilder()
-    exitCode = 0
-    shell = adbLibService.session.deviceServices.shellCommand(deviceSelector, CLEANUP_COMMAND)
-
-    shell.withTextCollector().execute().collect {value ->
-      stderrBuilder.append(value.stderr)
-      exitCode = value.exitCode
-    }
-
-    if (exitCode != 0) {
-      thisLogger().warn("Failed to clean up $DUMP_COMMAND: $stderrBuilder")
+    if (shellOutput.exitCode != 0) {
+      thisLogger().warn("Failed to clean up $DUMP_COMMAND: ${shellOutput.stderr}")
     }
 
     return result
