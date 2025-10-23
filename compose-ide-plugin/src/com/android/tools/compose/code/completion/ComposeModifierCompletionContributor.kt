@@ -74,6 +74,7 @@ import org.jetbrains.kotlin.idea.util.getResolutionScope
 import org.jetbrains.kotlin.idea.util.receiverTypesWithIndex
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtClass
@@ -403,6 +404,16 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       as KtSimpleNameExpression
   }
 
+  private fun isModifierPrefixMatch(
+    prefixMatcher: PrefixMatcher,
+    name: Name
+  ): Boolean {
+    // The user types part of `Modifier` we still want to show _all_ our results for Modifier extensions
+    if ("Modifier".startsWith(prefixMatcher.prefix)) return true
+    // If the user types the name of some extension function on Modifier, we want to show it
+    return prefixMatcher.prefixMatches(name.asString())
+  }
+
   @OptIn(KaExperimentalApi::class)
   private fun KaSession.getExtensionFunctionsForModifier(
     nameExpression: KtSimpleNameExpression,
@@ -421,7 +432,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     return KtSymbolFromIndexProvider(file)
       .getExtensionCallableSymbolsByNameFilter(
-        { name -> prefixMatcher.prefixMatches(name.asString()) },
+        { name -> isModifierPrefixMatch(prefixMatcher, name) },
         listOf(receiverType),
       )
       .filter(visibilityChecker::isVisible)
