@@ -1285,7 +1285,7 @@ class UpgradeAssistantContentManagerTest {
     assertThat(uiStates).containsExactly(RunningBuild, ReadyToRun, Loading, ReadyToRun).inOrder()
   }
 
-  fun treeString(tree: CheckboxTree): String {
+  private fun treeString(tree: CheckboxTree): String {
     fun addRowText(n: Int, sb: StringBuilder) {
       val path = tree.getPathForRow(n)
       val userObject = (path.lastPathComponent as CheckedTreeNode).userObject
