@@ -32,9 +32,7 @@ class PreviewEntryPointTest {
 
   @Before
   fun setUp() {
-    val unusedSymbolInspection =
-        K2UnusedSymbolInspection()
-
+    val unusedSymbolInspection = K2UnusedSymbolInspection()
     fixture.enableInspections(unusedSymbolInspection as InspectionProfileEntry)
   }
 

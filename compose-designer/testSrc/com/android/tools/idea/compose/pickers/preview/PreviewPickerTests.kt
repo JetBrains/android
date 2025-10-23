@@ -43,7 +43,6 @@ import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.stubConfigurationAsLibrary
-import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -57,11 +56,9 @@ private fun PsiComposePreviewElement.annotationText(): String =
 
 class PreviewPickerTests {
 
-  @get:Rule
-  val projectRule = ComposeProjectRule()
+  @get:Rule val projectRule = ComposeProjectRule()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
   private val fixture
     get() = projectRule.fixture
 
@@ -225,10 +222,7 @@ class PreviewPickerTests {
 
     Sdks.addLatestAndroidSdk(fixture.projectDisposable, module)
     val model = getFirstModel(fileContent)
-    assertEquals(
-      "1.0",
-      model.properties["", "fontScale"].defaultValue,
-    )
+    assertEquals("1.0", model.properties["", "fontScale"].defaultValue)
     assertEquals("false", model.properties["", "showBackground"].defaultValue)
     assertEquals("false", model.properties["", "showSystemUi"].defaultValue)
     assertEquals("Default (en-US)", model.properties["", "locale"].defaultValue)
@@ -324,7 +318,7 @@ class PreviewPickerTests {
 
       notNightOption.select(uiModeProperty) {}
 
-      Assert.assertEquals(
+      assertEquals(
         """
             import android.content.res.Configuration
             import androidx.compose.runtime.Composable
@@ -340,7 +334,7 @@ class PreviewPickerTests {
       )
 
       nightModeOption.select(uiModeProperty) {}
-      Assert.assertEquals(
+      assertEquals(
         """
             import android.content.res.Configuration
             import androidx.compose.runtime.Composable
@@ -378,7 +372,7 @@ class PreviewPickerTests {
 
       Wallpaper.BLUE.select(model.properties["", "wallpaper"]) {}
 
-      Assert.assertEquals(
+      assertEquals(
         """
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.tooling.preview.Preview
@@ -613,39 +607,39 @@ class PreviewPickerTests {
     // ProhibitedAnalysisException is private, and it is an extension of
     // IllegalStateException.
     // Check if the error message is the one we expect from ProhibitedAnalysisException
-      runBlocking {
-        @Language("kotlin")
-        val fileContent =
-          """
-          import $COMPOSABLE_ANNOTATION_FQN
-          import $PREVIEW_TOOLING_PACKAGE.Preview
-  
-          @Composable
-          @Preview
-          fun PreviewWithoutParameters() {
-          }
-          """
-            .trimIndent()
-        val model = getFirstModel(fileContent)
+    runBlocking {
+      @Language("kotlin")
+      val fileContent =
+        """
+        import $COMPOSABLE_ANNOTATION_FQN
+        import $PREVIEW_TOOLING_PACKAGE.Preview
 
-        val property =
-          model.properties.values.find { it.name == "showSystemUi" } as PsiCallParameterPropertyItem
+        @Composable
+        @Preview
+        fun PreviewWithoutParameters() {
+        }
+        """
+          .trimIndent()
+      val model = getFirstModel(fileContent)
 
-        model.addListener(FakePropertiesRefreshListener())
+      val property =
+        model.properties.values.find { it.name == "showSystemUi" } as PsiCallParameterPropertyItem
 
-        runWriteAction {
-          try {
-            property.writeNewValue("true", true, PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED)
-            fail("Expected to fail with a ProhibitedAnalysisException.")
-          }
-          catch (e: IllegalStateException) {
-            // ProhibitedAnalysisException is private, and it is an extension of
-            // IllegalStateException.
-            // Check if the error message is the one we expect from ProhibitedAnalysisException
-            assertEquals("Analysis is not allowed: Called from a write action.", e.message)
-          }
+      model.addListener(FakePropertiesRefreshListener())
+
+      runWriteAction {
+        try {
+          property.writeNewValue("true", true, PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED)
+          fail("Expected to fail with a ProhibitedAnalysisException.")
+        }
+        catch (e: IllegalStateException) {
+          // ProhibitedAnalysisException is private, and it is an extension of
+          // IllegalStateException.
+          // Check if the error message is the one we expect from ProhibitedAnalysisException
+          assertEquals("Analysis is not allowed: Called from a write action.", e.message)
         }
       }
+    }
   }
 
   @RunsInEdt
@@ -682,11 +676,12 @@ class PreviewPickerTests {
 
   @RunsInEdt
   @Test
-  fun `test K2 crash if analyze is called into a delete parameter`() { // ProhibitedAnalysisException is private, and it is an extension of
+  fun `test K2 crash if analyze is called into a delete parameter`() {
+    // ProhibitedAnalysisException is private, and it is an extension of
     // ProhibitedAnalysisException is private, and it is an extension of IllegalStateException.
     // Check if the error message is the one we expect from ProhibitedAnalysisException
     // Test fails if this call throws a ProhibitedAnalysisException.
-    runBlocking<Unit> {
+    runBlocking {
       @Language("kotlin")
       val fileContent =
         """
@@ -715,13 +710,13 @@ class PreviewPickerTests {
         try {
           // Test fails if this call throws a ProhibitedAnalysisException.
           property.deleteParameter()
-          Assert.fail("Expected to fail with a ProhibitedAnalysisException.")
+          fail("Expected to fail with a ProhibitedAnalysisException.")
         }
         catch (e: IllegalStateException) {
           // ProhibitedAnalysisException is private, and it is an extension of
           // IllegalStateException.
           // Check if the error message is the one we expect from ProhibitedAnalysisException
-          Assert.assertEquals("Analysis is not allowed: Called from a write action.", e.message)
+          assertEquals("Analysis is not allowed: Called from a write action.", e.message)
         }
       }
     }
@@ -763,9 +758,7 @@ class PreviewPickerTests {
     try {
       model.properties["", "notexists"].value = "3"
       fail("Nonexistent property should throw NoSuchElementException")
-    }
-    catch (expected: NoSuchElementException) {
-    }
+    } catch (expected: NoSuchElementException) {}
 
     // Verify final values on model
     assertNull(model.properties["", "name"].value)
@@ -814,7 +807,6 @@ class PreviewPickerTests {
       )
     }
   }
-
 }
 
 private class TestTracker : ComposePickerTracker {

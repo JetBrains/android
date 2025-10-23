@@ -110,13 +110,11 @@ private constructor(
           currentDeviceValue?.let(availableDevices::findOrParseFromDefinition)
 
         deviceFromParameterValue
-        ?: ConfigurationManager.findExistingInstance(module)?.getDefaultPreviewDevice()
+          ?: ConfigurationManager.findExistingInstance(module)?.getDefaultPreviewDevice()
       }
-
       AvailableDevicesKey.name -> {
         availableDevices
       }
-
       else -> null
     }
 
@@ -130,11 +128,11 @@ private constructor(
       val annotationEntry = previewElementDefinitionPsi?.element as? KtAnnotationEntry
       val libraryDefaultValues: Map<String, String?> =
         (annotationEntry.toUElement() as? UAnnotation)?.findPreviewDefaultValues()
-        ?: kotlin.run {
-          Logger.getInstance(PsiCallPropertiesModel::class.java)
-            .warn("Could not obtain default values")
-          emptyMap()
-        }
+          ?: kotlin.run {
+            Logger.getInstance(PsiCallPropertiesModel::class.java)
+              .warn("Could not obtain default values")
+            emptyMap()
+          }
       val valuesProvider =
         PreviewPickerValuesProvider.createPreviewValuesProvider(
           module = module,
@@ -161,22 +159,18 @@ private constructor(
             PARAMETER_WIDTH_DP,
             PARAMETER_HEIGHT,
             PARAMETER_HEIGHT_DP -> entry.value?.sizeToReadable()
-
             PARAMETER_BACKGROUND_COLOR ->
               null // We ignore background color, as the default value is set by Studio
             PARAMETER_UI_MODE ->
               UiMode.entries.firstOrNull { it.resolvedValue == entry.value }?.display
-              ?: UiMode.UNDEFINED.display
-
+                ?: UiMode.UNDEFINED.display
             PARAMETER_DEVICE ->
               Device.entries.firstOrNull { it.resolvedValue == entry.value }?.display
-              ?: Device.DEFAULT.display
-
+                ?: Device.DEFAULT.display
             PARAMETER_LOCALE -> entry.value?.takeIf { it.isNotEmpty() } ?: "Default (en-US)"
             PARAMETER_WALLPAPER ->
               Wallpaper.entries.firstOrNull { it.resolvedValue == entry.value }?.display
-              ?: Wallpaper.NONE.display
-
+                ?: Wallpaper.NONE.display
             PARAMETER_FONT_SCALE -> entry.value?.removeSuffix("f")
             else -> entry.value
           }
@@ -219,9 +213,7 @@ private class PreviewPropertiesProvider(
     model: PsiCallPropertiesModel,
   ): Collection<PsiPropertyItem> {
     val properties = mutableListOf<PsiPropertyItem>()
-    ReadAction.run<Throwable> {
-      collectParameterPropertyItemsForK2(project, model, properties)
-    }
+    ReadAction.run<Throwable> { collectParameterPropertyItemsForK2(project, model, properties) }
     return properties
   }
 
@@ -252,7 +244,6 @@ private class PreviewPropertiesProvider(
           argumentExpression,
           defaultValue,
         )
-
       PARAMETER_BACKGROUND_COLOR ->
         ColorPsiCallParameter(
           project,
@@ -263,7 +254,6 @@ private class PreviewPropertiesProvider(
           argumentExpression,
           defaultValue,
         )
-
       PARAMETER_WIDTH,
       PARAMETER_WIDTH_DP,
       PARAMETER_HEIGHT,
@@ -278,7 +268,6 @@ private class PreviewPropertiesProvider(
           defaultValue,
           IntegerNormalValidator,
         )
-
       PARAMETER_API_LEVEL ->
         PsiCallParameterPropertyItem(
           project,
@@ -290,21 +279,19 @@ private class PreviewPropertiesProvider(
           defaultValue,
           IntegerStrictValidator,
         )
-
       PARAMETER_DEVICE -> { // Note that DeviceParameterPropertyItem sets its own name to
         // PARAMETER_HARDWARE_DEVICE
         DeviceParameterPropertyItem(
-          project,
-          model,
-          ::addNewValueArgument,
-          parameterName,
-          parameterTypeNameIfStandard,
-          argumentExpression,
-          defaultValue,
-        )
+            project,
+            model,
+            ::addNewValueArgument,
+            parameterName,
+            parameterTypeNameIfStandard,
+            argumentExpression,
+            defaultValue,
+          )
           .also { properties.addAll(it.innerProperties) }
       }
-
       PARAMETER_UI_MODE,
       PARAMETER_WALLPAPER ->
         ClassPsiCallParameter(
@@ -316,7 +303,6 @@ private class PreviewPropertiesProvider(
           argumentExpression,
           defaultValue,
         )
-
       PARAMETER_SHOW_SYSTEM_UI,
       PARAMETER_SHOW_BACKGROUND ->
         BooleanPsiCallParameter(
@@ -328,7 +314,6 @@ private class PreviewPropertiesProvider(
           argumentExpression,
           defaultValue,
         )
-
       else ->
         PsiCallParameterPropertyItem(
           project,

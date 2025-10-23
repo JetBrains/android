@@ -22,7 +22,6 @@ import com.android.tools.idea.compose.ComposeGradleProjectRule
 import com.android.tools.idea.compose.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.SimpleComposeAppPaths
 import com.android.tools.idea.compose.renderer.renderPreviewElement
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.toFileNameSet
@@ -61,10 +60,10 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
- 
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
@@ -137,7 +136,7 @@ class FastPreviewManagerGradleTest {
 
       // Decompile the generated Preview code
       val decompiledOutput =
-        withContext(diskIoThread) {
+        withContext(Dispatchers.IO) {
           File(outputPath).toPath().toFileNameSet().joinToString("\n") {
             try {
               val reader =
@@ -170,8 +169,6 @@ class FastPreviewManagerGradleTest {
           it.findAll(decompiledOutput)
         }
       assertTrue("Expected stringResource calls not found", matches.count() != 0)
-
-      // K2 does not generate `LDC (\\d+)`, so we cannot check IDs for the light R class.
     }
   }
 
@@ -235,7 +232,7 @@ class FastPreviewManagerGradleTest {
         )
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
       val generatedFilesSet =
-        withContext(diskIoThread) { File(outputPath).toPath().toFileNameSet() }
+        withContext(Dispatchers.IO) { File(outputPath).toPath().toFileNameSet() }
       assertTrue(generatedFilesSet.contains("OtherPreviewsKt.class"))
     }
   }

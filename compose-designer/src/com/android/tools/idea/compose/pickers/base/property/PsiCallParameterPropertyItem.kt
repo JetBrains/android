@@ -33,7 +33,6 @@ import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
- 
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -79,9 +78,9 @@ internal open class PsiCallParameterPropertyItem(
   override var value: String?
     get() =
       SlowOperations.knownIssue("b/382724628").use {
-          allowAnalysisOnEdt {
-            argumentExpression?.let { analyze(it) { it.tryEvaluateConstantAsText(this) } }
-          }
+        allowAnalysisOnEdt {
+          argumentExpression?.let { analyze(it) { it.tryEvaluateConstantAsText(this) } }
+        }
       }
     set(value) {
       val newValue = value?.trim()?.nullize()
@@ -126,7 +125,8 @@ internal open class PsiCallParameterPropertyItem(
     model.firePropertyValuesChanged()
   }
 
-  fun PsiElement.deleteElementAndCleanParent() {
+  // Copied inline due to the planned K1 removal, see community/plugins/kotlin/core/src/org/jetbrains/kotlin/idea/core/psiModificationUtils.kt:247
+  private fun PsiElement.deleteElementAndCleanParent() {
     val parent = parent
 
     deleteElementWithDelimiters(this)
