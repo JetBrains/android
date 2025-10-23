@@ -411,6 +411,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackProfilerToolWindowCreated() {
+
+  }
+
+  @Override
   public void trackToggleCpuThreadsHideablePanel() {
 
   }

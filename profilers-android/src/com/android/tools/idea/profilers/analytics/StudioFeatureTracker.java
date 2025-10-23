@@ -593,6 +593,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackProfilerToolWindowCreated() {
+    track(AndroidProfilerEvent.Type.PROFILER_TOOL_WINDOW_CREATED);
+  }
+
+  @Override
   public void trackFilterMetadata(@NotNull com.android.tools.profilers.analytics.FilterMetadata filterMetadata) {
     newTracker(AndroidProfilerEvent.Type.FILTER).setFilterMetadata(filterMetadata).track();
   }
