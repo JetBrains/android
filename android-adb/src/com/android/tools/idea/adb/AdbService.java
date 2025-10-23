@@ -375,9 +375,7 @@ public final class AdbService implements Disposable {
       case DEFAULT -> {}
     }
 
-    if (AdbOptionsService.getInstance().getAdbServerLogsEnabled()) {
-      options.withEnv("ADB_TRACE", "all");
-    }
+    setUpAdbServerTraceLogs(options);
 
     getInstance().myAllowMdnsOpenscreen = true;
     if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode()) {
@@ -402,6 +400,25 @@ public final class AdbService implements Disposable {
       options.setAdbDelegateUsageTracker(getAdbDelegateUsageTracker());
     }
     return options.build();
+  }
+
+  private static void setUpAdbServerTraceLogs(AdbInitOptions.Builder initOptions) {
+    AdbOptionsService adbOptions = AdbOptionsService.getInstance();
+    if (StudioFlags.ADB_HOST_LOGS_ENABLED.get()) {
+      initOptions.withEnv("ADB_TRACE", adbOptions.getAdbServerLogLevel().getEnabledTags());
+    }
+    else {
+      setUpAdbServerTraceLogsFromServerLogEnabled(adbOptions, initOptions);
+    }
+  }
+
+  private static void setUpAdbServerTraceLogsFromServerLogEnabled(AdbOptionsService adbOptions, AdbInitOptions.Builder initOptions) {
+    if (adbOptions.getAdbServerLogsEnabled()) {
+      initOptions.withEnv("ADB_TRACE", AdbServerLogLevel.FULL.getEnabledTags());
+    }
+    else {
+      initOptions.withEnv("ADB_TRACE", AdbServerLogLevel.DISABLED.getEnabledTags());
+    }
   }
 
   @NotNull
