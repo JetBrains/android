@@ -322,6 +322,11 @@ interface FeatureTracker {
   fun trackCreateCustomProfilingConfig()
 
   /**
+   * Track when the profiler tool window is created successfully.
+   */
+  fun trackProfilerToolWindowCreated()
+
+  /**
    * Track when the user uses the filter component in the profilers.
    */
   fun trackFilterMetadata(filterMetadata: FilterMetadata)
