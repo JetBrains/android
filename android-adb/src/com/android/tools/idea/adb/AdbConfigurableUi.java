@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adb;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.options.ConfigurableUi;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.ui.HyperlinkLabel;
@@ -47,6 +48,7 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   private JComboBox<String> myAdbServerUsbBackend;
   private JComboBox myAdbServerMdnsBackend;
   private JComboBox myAdbServerBurstMode;
+  private JComboBox myAdbServerLogLevel;
   private JCheckBox myEnableADBServerLogs;
 
   public AdbConfigurableUi() {
@@ -60,7 +62,8 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
            || myUseExistingManuallyManagedServerRadioButton.isSelected() != settings.shouldUseUserManagedAdb()
            || getUserManagedAdbPortNumber() != settings.getUserManagedAdbPort()
            || getAdbServerBurstMode() != settings.getAdbServerBurstMode()
-           || getAdbServerLogsEnabled() != settings.getAdbServerLogsEnabled();
+           || getAdbServerLogsEnabled() != settings.getAdbServerLogsEnabled()
+           || getAdbServerLogLevel() != settings.getAdbServerLogLevel();
   }
 
   @Override
@@ -77,6 +80,7 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     setPortNumberUiEnabled(settings.shouldUseUserManagedAdb());
     setAdbServerBurstMode(settings.getAdbServerBurstMode());
     setAdbServerLogsEnabled(settings.getAdbServerLogsEnabled());
+    setAdbServerLogLevel(settings.getAdbServerLogLevel());
   }
 
   @Override
@@ -88,6 +92,7 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
       .setUserManagedAdbPort(getUserManagedAdbPortNumber())
       .setBurstMode(getAdbServerBurstMode())
       .setAdbServerLogsEnabled(getAdbServerLogsEnabled())
+      .setAdbServerLogLevel(getAdbServerLogLevel())
       .commit();
   }
 
@@ -113,6 +118,9 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     myAdbServerUsbBackend = new com.intellij.openapi.ui.ComboBox<>();
     myAdbServerMdnsBackend = new com.intellij.openapi.ui.ComboBox<>();
     myAdbServerBurstMode = new com.intellij.openapi.ui.ComboBox<>();
+    myEnableADBServerLogs = new JCheckBox();
+    myAdbServerLogLevel = new com.intellij.openapi.ui.ComboBox<>();
+    myAdbServerLogLevel.setModel(new DefaultComboBoxModel(AdbServerLogLevel.values()));
   }
 
   private void setPortNumberUiEnabled(boolean enabled) {
@@ -147,6 +155,14 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
 
   AdbServerBurstMode getAdbServerBurstMode() {
     return AdbServerBurstMode.fromDisplayText(myAdbServerBurstMode.getSelectedItem().toString());
+  }
+
+  AdbServerLogLevel getAdbServerLogLevel() {
+    return AdbServerLogLevel.fromDisplayText(myAdbServerLogLevel.getSelectedItem().toString());
+  }
+
+  void setAdbServerLogLevel(AdbServerLogLevel logLevel) {
+    myAdbServerLogLevel.setSelectedItem(logLevel);
   }
 
   private void setupUI() {
@@ -200,16 +216,22 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
                                                           GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
                                                           new Dimension(83, 38), null, 0, false));
 
+    if (StudioFlags.ADB_HOST_LOGS_ENABLED.get()) {
+      JBLabel adbServerLogLevelLabel = new JBLabel("ADB server Log Level:");
+      myPanel.add(adbServerLogLevelLabel,
+                  new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                      GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(4, 38), null, 0, false));
 
-
-
-
-
-    myEnableADBServerLogs = new JCheckBox();
-    myEnableADBServerLogs.setText("Enable ADB server logs");
-    myPanel.add(myEnableADBServerLogs,
-                new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
-                                    GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(4, 38), null, 0, false));
+      myPanel.add(myAdbServerLogLevel, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                           GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                           new Dimension(83, 38), null, 0, false));
+    }
+    else {
+      myEnableADBServerLogs.setText("Enable ADB server logs");
+      myPanel.add(myEnableADBServerLogs,
+                  new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                      GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(4, 38), null, 0, false));
+    }
 
 
     final JPanel lifeCyclePanel = new JPanel();

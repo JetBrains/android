@@ -47,67 +47,71 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
 
   @Test
   fun testApply() {
-    myAdbOptionsService
-      .getOptionsUpdater()
+    myAdbOptionsService.optionsUpdater
       .setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT)
       .setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT)
       .setBurstMode(AdbServerBurstMode.DEFAULT)
       .setAdbServerLogsEnabled(false)
+      .setAdbServerLogLevel(AdbServerLogLevel.MINIMAL)
       .commit()
     myConfigurable.reset(myAdbOptionsService)
 
-    myConfigurable.setAdbServerUsbBackend(AdbServerUsbBackend.LIBUSB)
-    myConfigurable.setAdbServerMdnsBackend(AdbServerMdnsBackend.OPENSCREEN)
-    myConfigurable.setAdbServerBurstMode(AdbServerBurstMode.ENABLED)
-    myConfigurable.setAdbServerLogsEnabled(true)
+    myConfigurable.adbServerUsbBackend = AdbServerUsbBackend.LIBUSB
+    myConfigurable.adbServerMdnsBackend = AdbServerMdnsBackend.OPENSCREEN
+    myConfigurable.adbServerBurstMode = AdbServerBurstMode.ENABLED
+    myConfigurable.adbServerLogsEnabled = true
+    myConfigurable.adbServerLogLevel = AdbServerLogLevel.FULL
     myConfigurable.apply(myAdbOptionsService)
 
     assertThat(myAdbOptionsService.adbServerUsbBackend).isEqualTo(AdbServerUsbBackend.LIBUSB)
     assertThat(myAdbOptionsService.adbServerMdnsBackend).isEqualTo(AdbServerMdnsBackend.OPENSCREEN)
     assertThat(myAdbOptionsService.adbServerBurstMode).isEqualTo(AdbServerBurstMode.ENABLED)
     assertThat(myAdbOptionsService.adbServerLogsEnabled).isEqualTo(true)
+    assertThat(myAdbOptionsService.adbServerLogLevel).isEqualTo(AdbServerLogLevel.FULL)
   }
 
   @Test
   fun testReset() {
-    myAdbOptionsService
-      .getOptionsUpdater()
+    myAdbOptionsService.optionsUpdater
       .setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT)
       .setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT)
       .setBurstMode(AdbServerBurstMode.DEFAULT)
       .setAdbServerLogsEnabled(false)
+      .setAdbServerLogLevel(AdbServerLogLevel.MINIMAL)
       .commit()
     myConfigurable.reset(myAdbOptionsService)
 
-    myConfigurable.setAdbServerUsbBackend(AdbServerUsbBackend.LIBUSB)
-    myConfigurable.setAdbServerMdnsBackend(AdbServerMdnsBackend.OPENSCREEN)
-    myConfigurable.setAdbServerBurstMode(AdbServerBurstMode.ENABLED)
-    myConfigurable.setAdbServerLogsEnabled(true)
+    myConfigurable.adbServerUsbBackend = AdbServerUsbBackend.LIBUSB
+    myConfigurable.adbServerMdnsBackend = AdbServerMdnsBackend.OPENSCREEN
+    myConfigurable.adbServerBurstMode = AdbServerBurstMode.ENABLED
+    myConfigurable.adbServerLogsEnabled = true
+    myConfigurable.adbServerLogLevel = AdbServerLogLevel.FULL
     myConfigurable.reset(myAdbOptionsService)
 
     assertThat(myConfigurable.adbServerUsbBackend).isEqualTo(AdbServerUsbBackend.DEFAULT)
     assertThat(myConfigurable.adbServerMdnsBackend).isEqualTo(AdbServerMdnsBackend.DEFAULT)
     assertThat(myConfigurable.adbServerBurstMode).isEqualTo(AdbServerBurstMode.DEFAULT)
     assertThat(myConfigurable.adbServerLogsEnabled).isEqualTo(false)
+    assertThat(myAdbOptionsService.adbServerLogLevel).isEqualTo(AdbServerLogLevel.MINIMAL)
   }
 
   @Test
   fun testIsModified() {
-    myAdbOptionsService
-      .getOptionsUpdater()
+    myAdbOptionsService.optionsUpdater
       .setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT)
       .setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT)
       .setBurstMode(AdbServerBurstMode.DEFAULT)
       .setAdbServerLogsEnabled(false)
+      .setAdbServerLogLevel(AdbServerLogLevel.MINIMAL)
       .commit()
     myConfigurable.reset(myAdbOptionsService)
     assertThat(myConfigurable.isModified(myAdbOptionsService)).isFalse()
 
-    myConfigurable.setAdbServerMdnsBackend(AdbServerMdnsBackend.OPENSCREEN)
+    myConfigurable.adbServerMdnsBackend = AdbServerMdnsBackend.OPENSCREEN
     assertThat(myConfigurable.isModified(myAdbOptionsService)).isTrue()
 
     myConfigurable.reset(myAdbOptionsService)
-    myConfigurable.setAdbServerUsbBackend(AdbServerUsbBackend.LIBUSB)
+    myConfigurable.adbServerUsbBackend = AdbServerUsbBackend.LIBUSB
     assertThat(myConfigurable.isModified(myAdbOptionsService)).isTrue()
 
     myConfigurable.reset(myAdbOptionsService)
@@ -116,6 +120,10 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
 
     myConfigurable.reset(myAdbOptionsService)
     myConfigurable.adbServerLogsEnabled = true
+    assertThat(myConfigurable.isModified(myAdbOptionsService)).isTrue()
+
+    myConfigurable.reset(myAdbOptionsService)
+    myConfigurable.adbServerLogLevel = AdbServerLogLevel.FULL
     assertThat(myConfigurable.isModified(myAdbOptionsService)).isTrue()
   }
 
