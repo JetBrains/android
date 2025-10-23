@@ -37,9 +37,6 @@ import javax.swing.BoxLayout
 import javax.swing.JCheckBox
 import javax.swing.JPanel
 
-const val STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL =
-  "https://d.android.com/r/studio-ui/embedded-layout-inspector"
-
 /** Class used to provide a [Configurable] to show in Android Studio settings panel. */
 class LayoutInspectorConfigurableProvider(
   private val showRestartAndroidStudioDialog: () -> Boolean = { showRestartStudioDialog() },
