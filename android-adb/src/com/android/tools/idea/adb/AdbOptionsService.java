@@ -42,6 +42,7 @@ public final class AdbOptionsService {
   private static final String MDNS_BACKEND_NAME = "adb.mdns.backend.name3";
   private static final String BURST_MODE_NAME = "adb.burst.mode";
   private static final String LOG_ENABLED = "adb.log.enabled";
+  private static final String LOG_LEVEL_NAME = "adb.log.level";
   private static final String USE_USER_MANAGED_ADB = "AdbOptionsService.use.user.managed.adb";
   private static final String USER_MANAGED_ADB_PORT = "AdbOptionsService.user.managed.adb.port";
   private static final boolean USE_USER_MANAGED_ADB_DEFAULT = false;
@@ -91,6 +92,17 @@ public final class AdbOptionsService {
     }
   }
 
+  @NotNull
+  public AdbServerLogLevel getAdbServerLogLevel() {
+    AdbServerLogLevel defaultLogLevel = AdbServerLogLevel.MINIMAL;
+    String value = PropertiesComponent.getInstance().getValue(LOG_LEVEL_NAME, defaultLogLevel.name());
+    try {
+      return AdbServerLogLevel.valueOf(value);
+    } catch(IllegalArgumentException e) {
+      return defaultLogLevel;
+    }
+  }
+
   public boolean shouldUseUserManagedAdb() {
     return PropertiesComponent.getInstance().getBoolean(USE_USER_MANAGED_ADB, USE_USER_MANAGED_ADB_DEFAULT);
   }
@@ -116,6 +128,7 @@ public final class AdbOptionsService {
     props.setValue(USER_MANAGED_ADB_PORT, options.getUserManagedAdbPort(), USER_MANAGED_ADB_PORT_DEFAULT);
     props.setValue(BURST_MODE_NAME, options.getBurstMode().name());
     props.setValue(LOG_ENABLED, options.getAdbServerLogsEnabled());
+    props.setValue(LOG_LEVEL_NAME, options.getAdbServerLogLevel().name());
     updateListeners();
   }
 
@@ -150,6 +163,7 @@ public final class AdbOptionsService {
     private int myUserManagedAdbPort;
     private AdbServerBurstMode myServerBurstMode;
     private boolean myLogEnabled;
+    private AdbServerLogLevel myAdbServerLogLevel;
 
     private AdbOptionsUpdater(@NotNull AdbOptionsService service) {
       myService = service;
@@ -159,6 +173,7 @@ public final class AdbOptionsService {
       myUserManagedAdbPort = service.getUserManagedAdbPort();
       myServerBurstMode = service.getAdbServerBurstMode();
       myLogEnabled = service.getAdbServerLogsEnabled();
+      myAdbServerLogLevel = service.getAdbServerLogLevel();
     }
 
     public AdbServerUsbBackend getAdbServerUsbBackend() {
@@ -173,9 +188,18 @@ public final class AdbOptionsService {
     public AdbServerMdnsBackend getAdbServerMdnsBackend() {
       return myServerMdnsBackend;
     }
-    
+
     public AdbOptionsUpdater setAdbServerMdnsBackend(AdbServerMdnsBackend serverBackend) {
       myServerMdnsBackend = serverBackend;
+      return this;
+    }
+
+    public AdbServerLogLevel getAdbServerLogLevel() {
+      return myAdbServerLogLevel;
+    }
+
+    public AdbOptionsUpdater setAdbServerLogLevel(AdbServerLogLevel adbServerLogLevel) {
+      myAdbServerLogLevel = adbServerLogLevel;
       return this;
     }
 
