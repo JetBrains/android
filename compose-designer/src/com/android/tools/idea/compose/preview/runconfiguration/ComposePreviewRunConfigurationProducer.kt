@@ -19,7 +19,6 @@ import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.compose.MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.util.isValidComposePreviewForRunConfiguration
-import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -37,7 +36,6 @@ import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -82,23 +80,9 @@ open class ComposePreviewRunConfigurationProducer :
       updateConfigurationTriggerToGutterIfNeeded(configuration, context)
 
       ktNamedFunction.valueParameters.forEach { parameter ->
-        if (KotlinPluginModeProvider.isK2Mode()) {
-          parameter.providerClassNameK2()?.let { providerClass ->
-            configuration.providerClassFqn = providerClass
-            return@forEach
-          }
-        } else {
-          parameter.annotationEntries
-            .firstOrNull { annotation ->
-              annotation.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN) ||
-                annotation.fqNameMatches(MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN)
-            }
-            ?.let { previewParameter ->
-              previewParameter.providerClassName()?.let { providerClass ->
-                configuration.providerClassFqn = providerClass
-                return@forEach
-              }
-            }
+        parameter.providerClassNameK2()?.let { providerClass ->
+          configuration.providerClassFqn = providerClass
+          return@forEach
         }
       }
       return true

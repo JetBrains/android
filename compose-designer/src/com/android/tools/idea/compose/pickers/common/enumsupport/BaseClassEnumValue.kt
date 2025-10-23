@@ -57,7 +57,7 @@ internal interface BaseClassEnumValue : EnumValue {
       if (finalValue == null) {
         property.deleteParameter()
       } else {
-        property.importAndSetValue(fqClass, finalValue, fqFallbackValue, trackableValue)
+        property.importAndSetValue(fqFallbackValue, trackableValue)
       }
     } else {
       newEnumValue.newValue(fqFallbackValue)

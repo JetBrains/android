@@ -43,7 +43,6 @@ import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.stubConfigurationAsLibrary
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -223,10 +222,7 @@ class PreviewPickerTests {
 
     Sdks.addLatestAndroidSdk(fixture.projectDisposable, module)
     val model = getFirstModel(fileContent)
-    assertEquals(
-      if (KotlinPluginModeProvider.isK2Mode()) "1.0" else "1",
-      model.properties["", "fontScale"].defaultValue,
-    )
+    assertEquals("1.0", model.properties["", "fontScale"].defaultValue)
     assertEquals("false", model.properties["", "showBackground"].defaultValue)
     assertEquals("false", model.properties["", "showSystemUi"].defaultValue)
     assertEquals("Default (en-US)", model.properties["", "locale"].defaultValue)
@@ -298,19 +294,19 @@ class PreviewPickerTests {
 
   @RunsInEdt
   @Test
-  fun testUiModeImports() = runInK2Only {
-    runBlocking {
+  fun testUiModeImports() {
+    runBlocking<Unit> {
       @Language("kotlin")
       val fileContent =
         """
-      import $COMPOSABLE_ANNOTATION_FQN
-      import $PREVIEW_TOOLING_PACKAGE.Preview
+        import $COMPOSABLE_ANNOTATION_FQN
+        import $PREVIEW_TOOLING_PACKAGE.Preview
 
-      @Composable
-      @Preview
-      fun Preview() {
-      }
-      """
+        @Composable
+        @Preview
+        fun Preview() {
+        }
+        """
           .trimIndent()
 
       fixture.stubConfigurationAsLibrary()
@@ -324,15 +320,15 @@ class PreviewPickerTests {
 
       assertEquals(
         """
-          import android.content.res.Configuration
-          import androidx.compose.runtime.Composable
-          import androidx.compose.ui.tooling.preview.Preview
+            import android.content.res.Configuration
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.tooling.preview.Preview
 
-          @Composable
-          @Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
-          fun Preview() {
-          }
-        """
+            @Composable
+            @Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
+            fun Preview() {
+            }
+          """
           .trimIndent(),
         fixture.file.text,
       )
@@ -340,15 +336,15 @@ class PreviewPickerTests {
       nightModeOption.select(uiModeProperty) {}
       assertEquals(
         """
-          import android.content.res.Configuration
-          import androidx.compose.runtime.Composable
-          import androidx.compose.ui.tooling.preview.Preview
+            import android.content.res.Configuration
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.tooling.preview.Preview
 
-          @Composable
-          @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
-          fun Preview() {
-          }
-        """
+            @Composable
+            @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
+            fun Preview() {
+            }
+          """
           .trimIndent(),
         fixture.file.text,
       )
@@ -357,19 +353,19 @@ class PreviewPickerTests {
 
   @RunsInEdt
   @Test
-  fun testWallpaperImports() = runInK2Only {
-    runBlocking {
+  fun testWallpaperImports() {
+    runBlocking<Unit> {
       @Language("kotlin")
       val fileContent =
         """
-      import $COMPOSABLE_ANNOTATION_FQN
-      import $PREVIEW_TOOLING_PACKAGE.Preview
+        import $COMPOSABLE_ANNOTATION_FQN
+        import $PREVIEW_TOOLING_PACKAGE.Preview
 
-      @Composable
-      @Preview
-      fun Preview() {
-      }
-      """
+        @Composable
+        @Preview
+        fun Preview() {
+        }
+        """
           .trimIndent()
 
       val model = getFirstModel(fileContent)
@@ -378,15 +374,15 @@ class PreviewPickerTests {
 
       assertEquals(
         """
-          import androidx.compose.runtime.Composable
-          import androidx.compose.ui.tooling.preview.Preview
-          import androidx.compose.ui.tooling.preview.Wallpapers
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.ui.tooling.preview.Wallpapers
 
-          @Composable
-          @Preview(wallpaper = Wallpapers.BLUE_DOMINATED_EXAMPLE)
-          fun Preview() {
-          }
-        """
+            @Composable
+            @Preview(wallpaper = Wallpapers.BLUE_DOMINATED_EXAMPLE)
+            fun Preview() {
+            }
+          """
           .trimIndent(),
         fixture.file.text,
       )
@@ -607,37 +603,35 @@ class PreviewPickerTests {
 
   @RunsInEdt
   @Test
-  fun `test K2 crash if analyze is called into a write action`() = runInK2Only {
-    runBlocking {
-      @Language("kotlin")
-      val fileContent =
-        """
-        import $COMPOSABLE_ANNOTATION_FQN
-        import $PREVIEW_TOOLING_PACKAGE.Preview
+  fun `test K2 crash if analyze is called into a write action`() = runBlocking {
+    @Language("kotlin")
+    val fileContent =
+      """
+          import $COMPOSABLE_ANNOTATION_FQN
+          import $PREVIEW_TOOLING_PACKAGE.Preview
 
-        @Composable
-        @Preview
-        fun PreviewWithoutParameters() {
-        }
-        """
-          .trimIndent()
-      val model = getFirstModel(fileContent)
+          @Composable
+          @Preview
+          fun PreviewWithoutParameters() {
+          }
+          """
+        .trimIndent()
+    val model = getFirstModel(fileContent)
 
-      val property =
-        model.properties.values.find { it.name == "showSystemUi" } as PsiCallParameterPropertyItem
+    val property =
+      model.properties.values.find { it.name == "showSystemUi" } as PsiCallParameterPropertyItem
 
-      model.addListener(FakePropertiesRefreshListener())
+    model.addListener(FakePropertiesRefreshListener())
 
-      runWriteAction {
-        try {
-          property.writeNewValue("true", true, PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED)
-          fail("Expected to fail with a ProhibitedAnalysisException.")
-        } catch (e: IllegalStateException) {
-          // ProhibitedAnalysisException is private, and it is an extension of
-          // IllegalStateException.
-          // Check if the error message is the one we expect from ProhibitedAnalysisException
-          assertEquals("Analysis is not allowed: Called from a write action.", e.message)
-        }
+    runWriteAction {
+      try {
+        property.writeNewValue("true", true, PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED)
+        fail("Expected to fail with a ProhibitedAnalysisException.")
+      } catch (e: IllegalStateException) {
+        // ProhibitedAnalysisException is private, and it is an extension of
+        // IllegalStateException.
+        // Check if the error message is the one we expect from ProhibitedAnalysisException
+        assertEquals("Analysis is not allowed: Called from a write action.", e.message)
       }
     }
   }
@@ -676,43 +670,41 @@ class PreviewPickerTests {
 
   @RunsInEdt
   @Test
-  fun `test K2 crash if analyze is called into a delete parameter`() = runInK2Only {
-    runBlocking {
-      @Language("kotlin")
-      val fileContent =
-        """
-        import $COMPOSABLE_ANNOTATION_FQN
-        import $PREVIEW_TOOLING_PACKAGE.Preview
+  fun `test K2 crash if analyze is called into a delete parameter`() = runBlocking {
+    @Language("kotlin")
+    val fileContent =
+      """
+          import $COMPOSABLE_ANNOTATION_FQN
+          import $PREVIEW_TOOLING_PACKAGE.Preview
 
-        @Composable
-        @Preview(
-            name = "old-preview-name",
-            showSystemUi = true,
-            showBackground = true,
-            device = "id:medium_phone"
-        )
-        fun PreviewWithParameters() {
-        }
-        """
-          .trimIndent()
-      val model = getFirstModel(fileContent)
+          @Composable
+          @Preview(
+              name = "old-preview-name",
+              showSystemUi = true,
+              showBackground = true,
+              device = "id:medium_phone"
+          )
+          fun PreviewWithParameters() {
+          }
+          """
+        .trimIndent()
+    val model = getFirstModel(fileContent)
 
-      val property =
-        model.properties.values.find { it.name == "showSystemUi" } as PsiCallParameterPropertyItem
+    val property =
+      model.properties.values.find { it.name == "showSystemUi" } as PsiCallParameterPropertyItem
 
-      model.addListener(FakePropertiesRefreshListener())
+    model.addListener(FakePropertiesRefreshListener())
 
-      runWriteAction {
-        try {
-          // Test fails if this call throws a ProhibitedAnalysisException.
-          property.deleteParameter()
-          fail("Expected to fail with a ProhibitedAnalysisException.")
-        } catch (e: IllegalStateException) {
-          // ProhibitedAnalysisException is private, and it is an extension of
-          // IllegalStateException.
-          // Check if the error message is the one we expect from ProhibitedAnalysisException
-          assertEquals("Analysis is not allowed: Called from a write action.", e.message)
-        }
+    runWriteAction {
+      try {
+        // Test fails if this call throws a ProhibitedAnalysisException.
+        property.deleteParameter()
+        fail("Expected to fail with a ProhibitedAnalysisException.")
+      } catch (e: IllegalStateException) {
+        // ProhibitedAnalysisException is private, and it is an extension of
+        // IllegalStateException.
+        // Check if the error message is the one we expect from ProhibitedAnalysisException
+        assertEquals("Analysis is not allowed: Called from a write action.", e.message)
       }
     }
   }
@@ -800,13 +792,6 @@ class PreviewPickerTests {
         preview.previewElementDefinition,
         tracker,
       )
-    }
-  }
-
-  private fun runInK2Only(block: () -> Unit) {
-    // Skip this test if not using K2
-    if (KotlinPluginModeProvider.isK2Mode()) {
-      block()
     }
   }
 }
