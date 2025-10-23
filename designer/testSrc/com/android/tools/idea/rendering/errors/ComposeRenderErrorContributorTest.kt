@@ -35,7 +35,8 @@ import org.junit.Rule
 import org.junit.Test
 
 class ComposeRenderErrorContributorTest {
-  @get:Rule val androidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule
+  val androidProjectRule = AndroidProjectRule.inMemory()
 
   private lateinit var linkManager: StudioHtmlLinkManager
   private val nopLinkHandler = HyperlinkListener {}
@@ -141,7 +142,7 @@ class ComposeRenderErrorContributorTest {
       	at java.base/java.lang.Thread.run(Thread.java:1583)
 
       """
-          .trimIndent()
+        .trimIndent()
       )
     val logger =
       RenderLogger(androidProjectRule.project).apply {
@@ -154,8 +155,8 @@ class ComposeRenderErrorContributorTest {
     assertEquals("Failed to instantiate Composition Local", issues[0].summary)
     assertEquals(
       "This preview was unable to find a <A HREF=\"https://developer.android.com/jetpack/compose/compositionlocal\">CompositionLocal</A>. " +
-        "You might need to define it so it can render correctly.<BR/>" +
-        "<A HREF=\"runnable:0\">Show Exception</A>",
+      "You might need to define it so it can render correctly.<BR/>" +
+      "<A HREF=\"runnable:0\">Show Exception</A>",
       issues[0].htmlContent,
     )
   }
@@ -203,7 +204,7 @@ class ComposeRenderErrorContributorTest {
       MessageTip(
         AllIcons.General.Information,
         "The preview will display after rebuilding the project.<BR/>" +
-          "Tip: <A HREF=\"action:build\">Build</A> the project.",
+        "Tip: <A HREF=\"action:build\">Build</A> the project.",
       ),
     )
   }
@@ -261,9 +262,9 @@ class ComposeRenderErrorContributorTest {
     assertEquals("Failed to instantiate a ViewModel", issues[0].summary)
     assertEquals(
       "This preview uses a <A HREF=\"https://developer.android.com/topic/libraries/architecture/viewmodel\">ViewModel</A>. " +
-        "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
-        "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling/previews#preview-viewmodel\">read more</A> about preview" +
-        " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
+      "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
+      "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling/previews#preview-viewmodel\">read more</A> about preview" +
+      " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
       issues[0].htmlContent,
     )
   }
@@ -321,9 +322,9 @@ class ComposeRenderErrorContributorTest {
     assertEquals("Failed to instantiate a ViewModel", issues[0].summary)
     assertEquals(
       "This preview uses a <A HREF=\"https://developer.android.com/topic/libraries/architecture/viewmodel\">ViewModel</A>. " +
-        "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
-        "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling/previews#preview-viewmodel\">read more</A> about preview" +
-        " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
+      "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
+      "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling/previews#preview-viewmodel\">read more</A> about preview" +
+      " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
       issues[0].htmlContent,
     )
   }
@@ -451,9 +452,9 @@ class ComposeRenderErrorContributorTest {
     assertEquals("Fail to load PreviewParameterProvider", issues[0].summary)
     assertEquals(
       "There was problem to load the " +
-        "<A HREF=\"https://developer.android.com/develop/ui/compose/tooling/previews#preview-data\">PreviewParameterProvider</A> defined. " +
-        "Please double-check its constructor and the values property implementation. " +
-        "The IDE logs should contain the full exception stack trace.",
+      "<A HREF=\"https://developer.android.com/develop/ui/compose/tooling/previews#preview-data\">PreviewParameterProvider</A> defined. " +
+      "Please double-check its constructor and the values property implementation. " +
+      "The IDE logs should contain the full exception stack trace.",
       issues[0].htmlContent,
     )
   }
@@ -480,7 +481,7 @@ class ComposeRenderErrorContributorTest {
     assertEquals("Timeout error", issues[0].summary)
     assertEquals(
       "The preview took too long to load. The issue can be caused by long operations or infinite loops on the Preview code." +
-        "<BR/>If you think this issue is not caused by your code, you can report a bug in our issue tracker.",
+      "<BR/>If you think this issue is not caused by your code, you can report a bug in our issue tracker.",
       issues[0].htmlContent,
     )
 
