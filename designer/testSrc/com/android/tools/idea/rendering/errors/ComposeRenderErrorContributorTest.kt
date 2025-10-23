@@ -47,6 +47,30 @@ class ComposeRenderErrorContributorTest {
   }
 
   @Test
+  fun `stackTrace is populated`() {
+    val throwable =
+      IllegalStateException("CompositionLocal LocalGraphicsContext not present").apply {
+        stackTrace =
+          arrayOf(
+            StackTraceElement(
+              "androidx.compose.ui.tooling.CommonPreviewUtils",
+              "invokeComposableMethod",
+              "CommonPreviewUtils.kt",
+              149
+            )
+          )
+      }
+    val logger =
+      RenderLogger(androidProjectRule.project).apply {
+        error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
+      }
+    assertTrue(isHandledByComposeContributor(throwable))
+    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
+    assertEquals(1, issues.size)
+    assertEquals(throwable, issues[0].throwable)
+  }
+
+  @Test
   fun `composition local stack trace is found`() {
     val throwable =
       createExceptionFromDesc(
@@ -602,9 +626,9 @@ class ComposeRenderErrorContributorTest {
     assertEquals("Context cannot be cast to Activity in Compose Preview", issues[0].summary)
     assertEquals(
       "The java.lang.ClassCastException you are currently seeing in Jetpack Compose " +
-        "Previews occurs because the @Preview environment provides a non-activity Context " +
-        "(BridgeContext) that cannot be cast to an Activity. <BR/><BR/>" +
-        "<A HREF=\"runnable:0\">Show Exception</A>",
+      "Previews occurs because the @Preview environment provides a non-activity Context " +
+      "(BridgeContext) that cannot be cast to an Activity. <BR/><BR/>" +
+      "<A HREF=\"runnable:0\">Show Exception</A>",
       issues[0].htmlContent,
     )
   }

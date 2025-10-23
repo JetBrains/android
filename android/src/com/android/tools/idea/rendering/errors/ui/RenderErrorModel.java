@@ -80,6 +80,7 @@ public class RenderErrorModel {
    * <li><b>HTML content</b>: A detailed description of the issue that can contain HTML, including links.</li>
    * <li><b>Message tip</b>: containing a message with possible solution that could solve an issue.</li>
    * <li><b>Link handler</b>: An {@link HyperlinkListener} to handle any links on the HTML content. It can be null.</li>
+   * <li><b>Throwable</b>: The throwable that caused this issue.</li>
    * </ui>
    */
   public static class Issue implements Comparable<Issue> {
@@ -88,6 +89,7 @@ public class RenderErrorModel {
     private String myHtmlContent;
     private List<MessageTip> myMessageTips = new ArrayList<>();
     private HyperlinkListener myHyperlinkListener;
+    private Throwable myThrowable;
     // myHtmlContent with HTML tags stripped. Used for comparisons
     private String myCachedPlainContent;
 
@@ -117,6 +119,11 @@ public class RenderErrorModel {
     @NotNull
     public List<MessageTip> getMessageTip() {
       return myMessageTips;
+    }
+
+    @Nullable
+    public Throwable getThrowable() {
+      return myThrowable;
     }
 
     /**
@@ -151,12 +158,13 @@ public class RenderErrorModel {
       Issue issue = (Issue)o;
       return Objects.equals(mySeverity, issue.mySeverity) &&
              Objects.equals(mySummary, issue.mySummary) &&
-             Objects.equals(getPlainContent(), issue.getPlainContent());
+             Objects.equals(getPlainContent(), issue.getPlainContent()) &&
+             Objects.equals(myThrowable, issue.myThrowable);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(mySeverity, mySummary, getPlainContent());
+      return Objects.hash(mySeverity, mySummary, getPlainContent(), myThrowable);
     }
 
     @Override
@@ -167,6 +175,7 @@ public class RenderErrorModel {
         .add("htmlContent", myHtmlContent)
         .add("hasHyperlinkListener", myHyperlinkListener != null)
         .add("messageTips", myMessageTips)
+        .add("throwable", myThrowable)
         .toString();
     }
 
@@ -226,6 +235,12 @@ public class RenderErrorModel {
       @NotNull
       public Builder addMessageTip(MessageTip messageTip) {
         myIssue.myMessageTips.add(messageTip);
+        return this;
+      }
+
+      @NotNull
+      public Builder setThrowable(@Nullable Throwable throwable) {
+        myIssue.myThrowable = throwable;
         return this;
       }
 

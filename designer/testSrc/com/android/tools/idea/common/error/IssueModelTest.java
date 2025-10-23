@@ -243,6 +243,22 @@ public class IssueModelTest {
   }
 
   @Test
+  public void testRenderErrorWithStackTrace() {
+    Throwable throwable = new Throwable("at com.example.MyClass.myMethod(MyClass.java:123)\n" +
+                                    "at com.example.MyOtherClass.myOtherMethod(MyOtherClass.java:456)");
+    RenderErrorModel.Issue issue = MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR, "My Summary", "My Description", throwable);
+    RenderErrorModel renderErrorModel = createRenderErrorModel(issue);
+    NlModel sourceNlModel = Mockito.mock(NlModel.class);
+    DisplaySettings displaySettings = new DisplaySettings();
+    displaySettings.setDisplayName("");
+    Mockito.when(sourceNlModel.getDisplaySettings()).thenReturn(displaySettings);
+    myIssueModel.addIssueProvider(new RenderIssueProvider(sourceNlModel, renderErrorModel));
+
+    Issue issueInModel = myIssueModel.getIssues().iterator().next();
+    assertEquals(throwable, issueInModel.getThrowable());
+  }
+
+  @Test
   public void addAndRemoveIssueProvider() {
     IssueProvider fakeProvider = new IssueProvider() {
       @Override

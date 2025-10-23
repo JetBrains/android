@@ -112,6 +112,12 @@ public class RenderIssueProvider extends IssueProvider {
       return myIssue.getHyperlinkListener();
     }
 
+    @Nullable
+    @Override
+    public Throwable getThrowable() {
+      return myIssue.getThrowable();
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
