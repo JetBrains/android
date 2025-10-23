@@ -21,7 +21,6 @@ import static com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory.*;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -66,7 +65,6 @@ import com.google.idea.blaze.qsync.java.ParallelPackageReader;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectDirectoryConfigurator;
 import com.google.idea.blaze.qsync.project.ProjectPath;
-import com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory;
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation;
 import com.google.idea.blaze.qsync.query.QuerySpec.QueryStrategy;
 import com.google.idea.common.experiments.BoolExperiment;
@@ -79,11 +77,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Loads a project, either from saved state or from a {@code .blazeproject} file, yielding a {@link
@@ -269,7 +265,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
     AppInspectorTracker appInspectorTracker =
         new AppInspectorTrackerImpl(appInspectorBuilder, appInspectorArtifactTracker);
     DependencyTracker dependencyTracker =
-        new DependencyTrackerImpl(latestProjectDef, snapshotHolder, dependencyBuilder, artifactTracker);
+        new DependencyTrackerImpl(snapshotHolder, dependencyBuilder, artifactTracker);
     ProjectRefresher projectRefresher =
         new ProjectRefresher(
             vcsHandler.map(it -> (VcsStateDiffer)it::diffVcsState).orElse(VcsStateDiffer.NONE),

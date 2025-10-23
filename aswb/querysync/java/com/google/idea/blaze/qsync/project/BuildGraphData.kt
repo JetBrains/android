@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSet
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
+import com.google.idea.blaze.common.TargetPatternCollection
 import com.google.idea.blaze.qsync.query.PackageSet
 import java.nio.file.Path
 
@@ -158,7 +159,7 @@ interface BuildGraphData {
   /**
    * Calculates the [RequestedTargets] for the whole project.
    */
-  fun computeWholeProjectTargets(projectDefinition: ProjectDefinition): RequestedTargets
+  fun computeWholeProjectTargets(): RequestedTargets
 
   /** Output stats about the the project to the context (and thus normally to the console).  */
   fun outputStats(context: Context<*>)
@@ -183,6 +184,6 @@ interface BuildGraphData {
 
   companion object {
     @JvmField
-    val EMPTY: BuildGraphData = BuildGraphDataImpl.builder().build(ImmutableSet.of())
+    val EMPTY: BuildGraphData = BuildGraphDataImpl.builder().build(TargetPatternCollection.create(emptyList()), emptySet())
   }
 }

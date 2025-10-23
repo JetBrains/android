@@ -249,6 +249,7 @@ java_library(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
+        "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
         "@maven//:com.google.guava.guava",
     ],
 )

@@ -208,7 +208,12 @@ class QuerySyncProject(
     postQuerySyncData: PostQuerySyncData,
     context: Context<*>,
   ): BuildGraphData {
-    return BlazeQueryParser(postQuerySyncData.querySummary(), context, ImmutableSet.copyOf(handledRuleKinds)).parse()
+    return BlazeQueryParser(
+      postQuerySyncData.projectDefinition().effectiveTargetPatterns,
+      postQuerySyncData.querySummary(),
+      context,
+      ImmutableSet.copyOf(handledRuleKinds)
+    ).parse()
   }
 
   @Throws(IOException::class, BuildException::class)

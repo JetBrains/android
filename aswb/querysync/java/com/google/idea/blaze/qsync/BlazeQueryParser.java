@@ -27,6 +27,7 @@ import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.RuleKinds;
+import com.google.idea.blaze.common.TargetPatternCollection;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl;
 import com.google.idea.blaze.qsync.project.ProjectTarget;
@@ -36,7 +37,6 @@ import com.google.idea.blaze.qsync.query.QueryData;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -63,6 +63,7 @@ public class BlazeQueryParser {
       "kt_proto_library_helper", // Underlying rule for kt_jvm_lite_proto_library and kt_jvm_proto_library
       "kt_stubby_library_helper");
 
+  private final TargetPatternCollection targetPatterns;
   private final Context<?> context;
   private final SetView<String> alwaysBuildRuleKinds;
 
@@ -119,7 +120,8 @@ public class BlazeQueryParser {
   }
 
   public BlazeQueryParser(
-      QuerySummary query, Context<?> context, Set<String> handledRuleKinds) {
+    TargetPatternCollection targetPatterns, QuerySummary query, Context<?> context, Set<String> handledRuleKinds) {
+    this.targetPatterns = targetPatterns;
     this.context = context;
     this.alwaysBuildRuleKinds = Sets.difference(ALWAYS_BUILD_RULE_KINDS, handledRuleKinds);
     this.query = query;
@@ -180,7 +182,7 @@ public class BlazeQueryParser {
     long elapsedMs = (System.nanoTime() - now) / 1000000L;
     context.output(PrintOutput.log("%-10d Targets (%d ms):", nTargets, elapsedMs));
 
-    BuildGraphDataImpl graph = graphBuilder.build(alwaysBuildRuleKinds);
+    BuildGraphDataImpl graph = graphBuilder.build(targetPatterns, alwaysBuildRuleKinds);
 
     graph.outputStats(context);
     context.output(PrintOutput.log("%-10d Dependencies", javaDeps.size()));
