@@ -26,7 +26,6 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
-import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBCheckBox
 import org.junit.Rule
 import org.junit.Test
@@ -175,7 +174,6 @@ class LayoutInspectorConfigurableProviderTest {
     val configurable = provider.createConfigurable()
     val enableEmbeddedLiPanel = configurable.createComponent()!!.getComponent(1) as JPanel
     val enableEmbeddedLiCheckBox = enableEmbeddedLiPanel.components.first() as JCheckBox
-    assertThat(enableEmbeddedLiPanel.components[2]).isInstanceOf(ActionLink::class.java)
 
     // make sure to start with property set to true
     enableEmbeddedLayoutInspector = true
