@@ -148,6 +148,8 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     // not a possible flow in the Task-Based UX, the initialization of the Profiler tab logic is used for both the Sessions-based Profiler
     // tab and the Task-Based UX Profiler tab, so it must be called in a place that accommodates both tabs.
     initializeProfilerTab()
+
+    ideProfilerServices.featureTracker.trackProfilerToolWindowCreated()
   }
 
   private fun getToolbarDeviceSelections(project: Project): List<ToolbarDeviceSelection> {
