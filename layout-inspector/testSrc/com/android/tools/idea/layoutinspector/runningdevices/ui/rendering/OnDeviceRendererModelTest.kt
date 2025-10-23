@@ -30,7 +30,6 @@ import com.android.tools.idea.layoutinspector.model.RenderingDimensions.EMPHASIZ
 import com.android.tools.idea.layoutinspector.model.RenderingDimensions.NORMAL_BORDER_THICKNESS
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.OnDeviceRenderingClient
 import com.android.tools.idea.layoutinspector.ui.BASE_COLOR_ARGB
@@ -43,7 +42,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
-import java.util.concurrent.CountDownLatch
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -52,7 +50,6 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -112,11 +109,8 @@ class OnDeviceRendererModelTest {
       )
   }
 
-  @Ignore("b/454014907")
   @Test
   fun testClientConnectionStartsOnDeviceRendering() {
-    inspectorRule.launchSynchronously = false
-
     val commands = mutableListOf<ByteArray>()
     appInspectorRule.viewInspector.listenWhen(
       condition = { true },
@@ -132,7 +126,11 @@ class OnDeviceRendererModelTest {
 
     connectAppInspectionClient()
 
-    waitForCondition(2.seconds) { commands.size == 3 }
+    waitForCondition(10.seconds) {
+      // Copy to avoid concurrent modification
+      val localCommands = commands.toList()
+      localCommands.any { it.contentEquals(enableOnDeviceRenderingCommand) }
+    }
 
     val enableCommand = commands.last()
     assertThat(enableCommand).isEqualTo(enableOnDeviceRenderingCommand)
@@ -240,17 +238,9 @@ class OnDeviceRendererModelTest {
   }
 
   private fun connectAppInspectionClient() {
-    val latch = CountDownLatch(1)
-    inspectorRule.inspectorModel.addConnectionListener {
-      if (it.isConnected && it is AppInspectionInspectorClient) {
-        latch.countDown()
-      }
-    }
     inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.startLaunch(2)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
-    inspectorRule.awaitLaunch()
-    latch.await()
   }
 }
 
