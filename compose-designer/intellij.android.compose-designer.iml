@@ -125,5 +125,6 @@
     <orderEntry type="module" module-name="intellij.libraries.grpc" />
     <orderEntry type="module" module-name="intellij.android.visual-lint" />
     <orderEntry type="module" module-name="intellij.platform.refactoring" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-platform-interface" level="project" />
   </component>
 </module>

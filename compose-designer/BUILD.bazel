@@ -116,6 +116,7 @@ jvm_library(
         "//libraries/grpc",
         "//android/visual-lint",
         "//platform/refactoring",
+        "@lib//:kotlinc-analysis-api-platform-interface-provided",
     ],
 )
 
@@ -216,6 +217,7 @@ jvm_library(
         "//libraries/grpc:grpc_test_lib",
         "//android/visual-lint:visual-lint_test_lib",
         "//platform/refactoring:refactoring_test_lib",
+        "@lib//:kotlinc-analysis-api-platform-interface-provided",
     ],
 )
 ### auto-generated section `build intellij.android.compose-designer` end
