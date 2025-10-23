@@ -2680,10 +2680,6 @@ public final class StudioFlags {
     JOURNEYS_WITH_GEMINI, "journeys.with.gemini.editor.disable.xml.space.preserve", "Disable insertion of 'xml:space:\"preserve\" attribute",
     "Disable insertion of 'xml:space:\"preserve\" attribute when editing a Journey XML file."
   );
-  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_TEST_SUITE = new BooleanFlag(
-    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.test.suite", "Enable Journeys with Gemini test suite",
-    "Toggles IDE support for Journeys tests configured as AGP test suites"
-  );
   public static final Flag<String> JOURNEYS_WITH_GEMINI_TEST_SUITE_JOURNEYS_ENGINE_DEP = new StringFlag(
     JOURNEYS_WITH_GEMINI, "dependency.journeys.with.gemini.test.suite.journeys.engine.dep",
     "The name of the Journeys test engine dependency used by the Journeys test suite",
