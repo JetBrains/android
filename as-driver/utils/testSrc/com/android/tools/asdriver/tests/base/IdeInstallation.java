@@ -430,8 +430,16 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
   public void enableBleak() throws IOException {
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(vmOptionsPath.toFile(), true))) {
       try {
+        String agentName;
+        if (SystemInfo.isMac) {
+          agentName = "libjnibleakhelper.dylib";
+        } else if (SystemInfo.isLinux) {
+          agentName = "libjnibleakhelper.so";
+        } else {
+          throw new IllegalStateException("BLeak is not supported on " + System.getProperty("os.name"));
+        }
         Path jvmtiAgent = TestUtils.resolveWorkspacePath(
-          "tools/adt/idea/bleak/native/libjnibleakhelper.so").toRealPath();
+          "tools/adt/idea/bleak/native/" + agentName).toRealPath();
         writer.append(String.format("-agentpath:%s%n", jvmtiAgent));
         writer.append(String.format("-Denable.bleak=true%n"));
         writer.append(String.format("-Dbleak.jvmti.enabled=true%n"));
