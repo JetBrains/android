@@ -616,9 +616,14 @@ iml_test(
     ],
     module = ":intellij.android.core.integration",
     tags = [
-        "block-network",
         "noci:studio-win",
         "studio-e2e-test",
+    ],
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "manual",  # dependency '//tools/adt/idea/bleak/native:jnibleakhelper' is incompatible for windows
+        "block-network",
     ],
     test_class = "com.android.tools.idea.BuildProjectBleakTest",
 )
