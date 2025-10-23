@@ -59,7 +59,6 @@ class ScreenshotTestMethodGradleConfigurationProducer: TestMethodGradleConfigura
                                     element: PsiMethod,
                                     chosenElements: List<PsiClass>): List<TestTasksToRun> {
     val tasksToRun = mutableListOf<TestTasksToRun>()
-    // TODO: Handle case with top level methods b/393230437
     val className = JavaExecutionUtil.getRuntimeQualifiedName(element.containingClass!!) ?: return tasksToRun
     val methodName = element.name
     val testFilter = "--tests \"$className.$methodName\""
@@ -103,7 +102,6 @@ class ScreenshotTestMethodGradleConfigurationProducer: TestMethodGradleConfigura
   }
 
   private fun taskNamesWithFilter(context: ConfigurationContext, psiMethod: PsiMethod): List<String> {
-    // TODO: Handle case with top level methods b/393230437
     val className = psiMethod.containingClass?.qualifiedName?: return emptyList()
     val methodName = psiMethod.name
     return getScreenshotTestTaskNames(context)!! + "--tests" + "\"$className.$methodName\""
