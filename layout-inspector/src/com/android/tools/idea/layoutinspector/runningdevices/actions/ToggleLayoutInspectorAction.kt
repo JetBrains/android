@@ -19,7 +19,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerGlobalState
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
-import com.android.tools.idea.layoutinspector.settings.STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.intellij.ide.BrowserUtil
@@ -35,7 +34,7 @@ import icons.StudioIcons
 import javax.swing.JComponent
 import org.jetbrains.annotations.TestOnly
 
-/** Action used to turn Layout Inspector on and off in Running Devices tool window. */
+const val STUDIO_DOC_LI_URL = "https://d.android.com/r/studio-ui/layout-inspector"
 
 /**
  * The min API supported by the Embedded Layout Inspector. Before API 29 we don't have support for
@@ -43,6 +42,7 @@ import org.jetbrains.annotations.TestOnly
  */
 const val EMBEDDED_LAYOUT_INSPECTOR_MIN_API = 29
 
+/** Action used to turn Layout Inspector on and off in Running Devices tool window. */
 class ToggleLayoutInspectorAction(
   @TestOnly
   private val showNotificationDiscovery: (Project) -> Unit = {
@@ -152,7 +152,7 @@ class ToggleLayoutInspectorAction(
   @Suppress("DialogTitleCapitalization")
   override fun getTooltipLink(owner: JComponent?): TooltipLinkProvider.TooltipLink {
     return TooltipLinkProvider.TooltipLink(LayoutInspectorBundle.message("learn.more")) {
-      BrowserUtil.browse(STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL)
+      BrowserUtil.browse(STUDIO_DOC_LI_URL)
     }
   }
 }
