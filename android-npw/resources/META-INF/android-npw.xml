@@ -37,6 +37,7 @@
     </action>
   </actions>
   <extensionPoints>
-  <extensionPoint qualifiedName="com.android.moduleDescriptionProvider" interface="com.android.tools.idea.npw.module.ModuleDescriptionProvider"/>
+    <extensionPoint qualifiedName="com.android.androidProjectEntryProvider" interface="com.android.tools.idea.npw.project.AndroidProjectEntryProvider" />
+    <extensionPoint qualifiedName="com.android.moduleDescriptionProvider" interface="com.android.tools.idea.npw.module.ModuleDescriptionProvider"/>
   </extensionPoints>
 </idea-plugin>
