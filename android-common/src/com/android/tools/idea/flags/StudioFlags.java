@@ -2482,6 +2482,11 @@ public final class StudioFlags {
                     "Enable regenerating past chat queries.",
                     "Enable regenerating past chat queries by hovering and clicking a regenerate button.");
 
+  public static final Flag<Boolean> GEMINI_DEBUGGER_TOOLS_ENABLED =
+    new BooleanFlag(STUDIOBOT, "debugger.tools",
+                    "Enable Debugger tools.",
+                    "Enable Debugger tools.");
+
   public enum DasherSupportMode {
     /**
      * Don't include any special treatment for dasher users.
