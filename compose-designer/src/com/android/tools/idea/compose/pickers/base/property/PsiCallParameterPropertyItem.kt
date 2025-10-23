@@ -31,7 +31,6 @@ import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.core.deleteElementAndCleanParent
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
@@ -78,12 +77,8 @@ internal open class PsiCallParameterPropertyItem(
   override var value: String?
     get() =
       SlowOperations.knownIssue("b/382724628").use {
-        if (KotlinPluginModeProvider.isK2Mode()) {
-          allowAnalysisOnEdt {
-            argumentExpression?.let { analyze(it) { it.tryEvaluateConstantAsText(this) } }
-          }
-        } else {
-          argumentExpression?.tryEvaluateConstantAsText()
+        allowAnalysisOnEdt {
+          argumentExpression?.let { analyze(it) { it.tryEvaluateConstantAsText(this) } }
         }
       }
     set(value) {

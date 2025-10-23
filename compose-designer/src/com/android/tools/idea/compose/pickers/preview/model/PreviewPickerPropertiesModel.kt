@@ -69,10 +69,6 @@ import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtCallElement
@@ -80,11 +76,6 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
 
@@ -216,47 +207,15 @@ private class PreviewPropertiesProvider(
   private val defaultValues: Map<String, String?>,
   private val annotationEntry: KtAnnotationEntry,
 ) : PsiPropertiesProvider {
-  val resolvedCall: ResolvedCall<out CallableDescriptor>? =
-    if (KotlinPluginModeProvider.isK2Mode()) null
-    else annotationEntry.getResolvedCall(annotationEntry.analyzeK1(BodyResolveMode.FULL))
 
   override fun invoke(
     project: Project,
     model: PsiCallPropertiesModel,
   ): Collection<PsiPropertyItem> {
     val properties = mutableListOf<PsiPropertyItem>()
-    ReadAction.run<Throwable> {
-      if (KotlinPluginModeProvider.isK2Mode()) {
-        collectParameterPropertyItemsForK2(project, model, properties)
-        return@run
-      }
-      resolvedCall!!
-        .valueArguments
-        .toList()
-        .sortedBy { (descriptor, _) -> descriptor.index }
-        .forEach { (descriptor, resolved) ->
-          val argumentExpression =
-            (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression()
-          val defaultValue = defaultValues[descriptor.name.asString()]
-          val parameterName = descriptor.name
-          val parameterTypeNameIfStandard = descriptor.type.nameIfStandardType
-          collectParameterPropertyItems(
-            project,
-            model,
-            properties,
-            parameterName,
-            parameterTypeNameIfStandard,
-            argumentExpression,
-            defaultValue,
-            null,
-          )
-        }
-    }
+    ReadAction.run<Throwable> { collectParameterPropertyItemsForK2(project, model, properties) }
     return properties
   }
-
-  private val KotlinType.nameIfStandardType: Name?
-    get() = constructor.declarationDescriptor?.takeIf(KotlinBuiltIns::isBuiltIn)?.name
 
   private fun collectParameterPropertyItems(
     project: Project,
@@ -269,11 +228,7 @@ private class PreviewPropertiesProvider(
     callElement: KtCallElement?,
   ) {
     fun addNewValueArgument(newValueArgument: KtValueArgument, psiFactory: KtPsiFactory) =
-      if (KotlinPluginModeProvider.isK2Mode()) {
-        callElement?.addNewValueArgument(newValueArgument, psiFactory)
-      } else {
-        resolvedCall?.addNewValueArgument(newValueArgument, psiFactory)
-      }
+      callElement?.addNewValueArgument(newValueArgument, psiFactory)
 
     when (
       parameterName.asString()

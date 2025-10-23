@@ -16,12 +16,10 @@
 package com.android.tools.idea.compose.preview.util.device
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
-import com.android.tools.idea.compose.preview.ComposePreviewAnnotationChecker
 import com.android.tools.idea.kotlin.getFullyQualifiedNameOnWriteActionForK2
 import com.android.tools.idea.preview.util.device.DeviceSpecInjectionContributor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 
 class ComposeDeviceSpecInjectionContributor : DeviceSpecInjectionContributor() {
@@ -35,10 +33,6 @@ class ComposeDeviceSpecInjectionContributor : DeviceSpecInjectionContributor() {
    */
   override fun isInPreviewAnnotation(psiElement: PsiElement): Boolean =
     psiElement.parentOfType<KtAnnotationEntry>()?.let { parent ->
-      if (KotlinPluginModeProvider.isK2Mode()) {
-        parent.getFullyQualifiedNameOnWriteActionForK2() == COMPOSE_PREVIEW_ANNOTATION_FQN
-      } else {
-        ComposePreviewAnnotationChecker.isPreview(parent)
-      }
+      parent.getFullyQualifiedNameOnWriteActionForK2() == COMPOSE_PREVIEW_ANNOTATION_FQN
     } ?: false
 }

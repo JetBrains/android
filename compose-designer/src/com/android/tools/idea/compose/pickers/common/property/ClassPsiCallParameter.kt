@@ -18,15 +18,10 @@ package com.android.tools.idea.compose.pickers.common.property
 import com.android.tools.idea.compose.pickers.base.model.PsiCallPropertiesModel
 import com.android.tools.idea.compose.pickers.base.property.PsiCallParameterPropertyItem
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
-import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
-import org.jetbrains.kotlin.idea.util.ImportDescriptorResult
-import org.jetbrains.kotlin.idea.util.ImportInsertHelper
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -57,51 +52,35 @@ internal class ClassPsiCallParameter(
   ) {
 
   /**
-   * Imports the class defined by [fqClass], sets the property value from [newValue].
+   * Sets the property value and attempts to shorten the reference.
    *
-   * [fqValue] is a fallback for [newValue] if the importing of [fqClass] fails. It's recommended
-   * for that string to include fully qualified references of the desired imported class.
+   * This method updates the property with a fully qualified value (`fqValue`), and then triggers
+   * the IDE's `ShortenReferencesFacility` to automatically add the necessary import statements and
+   * simplify the reference in the code.
    *
-   * [trackableValue] is the value reflected in usage tracking.
+   * For example, if you have:
+   * ```
+   * @Preview(uiMode = 0)
+   * ```
    *
-   * E.g:
+   * Calling this function with:
+   * - `fqValue` = `"android.content.res.Configuration.UI_MODE_TYPE_NORMAL"`
    *
-   * fqClass -> android.content.res.Configuration
+   * Will result in the following code, with the import for `Configuration` being added
+   * automatically:
+   * ```
+   * import android.content.res.Configuration
    *
-   * newValue -> Configuration.UI_MODE_TYPE_NORMAL
+   * @Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
+   * ```
    *
-   * fqValue -> android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+   * @param fqValue The fully qualified string representation of the value to be set.
+   * @param trackableValue A value for usage tracking.
    */
-  fun importAndSetValue(
-    fqClass: String,
-    newValue: String,
-    fqValue: String,
-    trackableValue: PreviewPickerValue,
-  ) {
-    if (KotlinPluginModeProvider.isK2Mode()) {
-      setValueAndShorten(fqValue, trackableValue)
-      return
-    }
-    val importResult = importClass(fqClass)
-
-    if (importResult != null && importResult != ImportDescriptorResult.FAIL) {
-      writeNewValue(newValue, true, trackableValue)
-    } else {
-      writeNewValue(fqValue, true, trackableValue)
-    }
-  }
-
-  private fun importClass(fqClass: String) =
-    model.ktFile.resolveImportReference(FqName(fqClass)).firstOrNull()?.let { importDescriptor ->
-      WriteCommandAction.runWriteCommandAction<ImportDescriptorResult>(project) {
-        ImportInsertHelper.getInstance(project).importDescriptor(model.ktFile, importDescriptor)
-      }
-    }
-
-  private fun setValueAndShorten(fqValue: String, trackableValue: PreviewPickerValue) {
+  fun importAndSetValue(fqValue: String, trackableValue: PreviewPickerValue) {
     writeNewValue(fqValue, true, trackableValue)
     argumentExpression?.let { expression ->
-      WriteCommandAction.runWriteCommandAction<PsiElement>(project) {
+      runWriteCommandAction<PsiElement>(project) {
         ShortenReferencesFacility.getInstance().shorten(expression)
       }
     }
