@@ -281,6 +281,7 @@ internal class ComposePreviewViewImpl(
 
     workbench.init(mainPanelSplitter, mainSurface, listOf(), false)
     workbench.hideContent()
+    workbench.showLoading(message("panel.initializing"))
     val projectStatus = renderingBuildStatusManager.status
     log.debug("ProjectStatus: $projectStatus")
     when (projectStatus) {
@@ -294,7 +295,6 @@ internal class ComposePreviewViewImpl(
         }
       }
       RenderingBuildStatus.Building -> workbench.showLoading(message("panel.building"))
-      RenderingBuildStatus.NotReady -> workbench.showLoading(message("panel.initializing"))
       else -> {
         if (DumbService.getInstance(project).isDumb)
           workbench.showLoading(message("panel.indexing"))

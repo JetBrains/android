@@ -1358,16 +1358,21 @@ class ComposePreviewRepresentation(
 
         try {
           refreshProgressIndicator.text = message("refresh.progress.indicator.finding.previews")
+          val previewsToRender =
+            composePreviewFlowManager.toRenderPreviewElementsFlow.value
+              .takeIf { it is FlowableCollection.Present }
+              ?.asCollection()
+              ?.toList()
+              ?: run {
+                requestLogger.debug("The previews have not yet been initialized yet")
+                return@launchWithProgress
+              }
 
           val needsFullRefresh =
             refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY &&
               invalidated.getAndSet(false)
           invalidateIfCancelled = needsFullRefresh
 
-          val previewsToRender =
-            withContext(workerThread) {
-              composePreviewFlowManager.toRenderPreviewElementsFlow.value.asCollection().toList()
-            }
           composeWorkBench.hasContent =
             previewsToRender.isNotEmpty() || mode.value is PreviewMode.UiCheck
           if (!needsFullRefresh) {
