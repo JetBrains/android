@@ -26,6 +26,7 @@ import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.common.RuleKinds
 import com.google.idea.blaze.common.TargetPattern.ScopeStatus.INCLUDED
+import com.google.idea.blaze.common.TargetPatternCollection
 import com.google.idea.blaze.common.TargetTree
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl.Location.Companion.Location
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
@@ -48,6 +49,7 @@ import kotlin.jvm.optionals.getOrNull
  */
 @JvmRecord
 data class BuildGraphDataImpl(
+  private val projectDefinitionTargetPatterns: TargetPatternCollection,
   @VisibleForTesting @JvmField val storage: Storage,
   private val sourceOwners: Map<Label, List<Label>>,
   private val alwaysBuildTargets: Set<Label>,
@@ -73,7 +75,7 @@ data class BuildGraphDataImpl(
       path = path?.parent
       val probe = path ?: Path.of("")
       val probeNameCount = path?.nameCount ?: 0
-      if (this.packages.contains(probe)) {
+      if (packages.contains(probe)) {
         return Label.of("//$probe:" + file.subpath(probeNameCount, file.nameCount).toString())
       }
     } while (path != null)
@@ -263,11 +265,12 @@ data class BuildGraphDataImpl(
       private val targetMapBuilder = ImmutableMap.builder<Label, ProjectTarget>()
       private val allTargetLabelsBuilder = ImmutableSet.builder<Label>()
 
-      fun build(alwaysBuildRules: Set<String>): BuildGraphDataImpl {
+      fun build(projectDefinitionTargetPatterns: TargetPatternCollection, alwaysBuildRules: Set<String>): BuildGraphDataImpl {
         val storage = Storage(sourceFileLabelsBuilder.build(), targetMapBuilder.build(), allTargetLabelsBuilder.build())
         val sourceOwners = computeSourceOwners(storage)
         val alwaysBuildTargets = computeAlwaysBuildTargets(storage, sourceOwners, alwaysBuildRules)
         return BuildGraphDataImpl(
+          projectDefinitionTargetPatterns,
           storage,
           sourceOwners,
           alwaysBuildTargets,
@@ -394,7 +397,7 @@ data class BuildGraphDataImpl(
   }
 
   override fun getSourceFileOwners(label: Label): Set<Label> {
-    return this.sourceOwners[label]?.toSet().orEmpty()
+    return sourceOwners[label]?.toSet().orEmpty()
   }
 
   @Deprecated(
@@ -519,7 +522,7 @@ data class BuildGraphDataImpl(
     while (!queue.isEmpty()) {
       val target = queue.removeFirst()
       val targetInfo = storage.targetMap[target]
-      if (targetInfo == null || this.alwaysBuildTargets.contains(target)) {
+      if (targetInfo == null || alwaysBuildTargets.contains(target)) {
         // External dependency.
         externalDeps.add(target)
         continue
@@ -578,10 +581,9 @@ data class BuildGraphDataImpl(
     }
   }
 
-  override fun computeWholeProjectTargets(projectDefinition: ProjectDefinition): RequestedTargets {
-    val effectiveTargetPatterns = projectDefinition.effectiveTargetPatterns
+  override fun computeWholeProjectTargets(): RequestedTargets {
     return computeRequestedTargets(
-      storage.allSupportedTargets.getTargets().filter { effectiveTargetPatterns.inScope(it).status == INCLUDED }.toList()
+      storage.allSupportedTargets.getTargets().filter { projectDefinitionTargetPatterns.inScope(it).status == INCLUDED }.toList()
     )
   }
 
@@ -593,7 +595,7 @@ data class BuildGraphDataImpl(
       )
     )
     context.output(PrintOutput.log("%-10d Java sources", getJavaSourceFiles().size))
-    context.output(PrintOutput.log("%-10d Packages", this.packages.size()))
+    context.output(PrintOutput.log("%-10d Packages", packages.size()))
     context.output(
       PrintOutput.log(
         "%-10d External dependencies",

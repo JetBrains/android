@@ -22,6 +22,7 @@ import com.google.idea.blaze.common.Label.Companion.of
 import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.common.Output
 import com.google.idea.blaze.common.PrintOutput
+import com.google.idea.blaze.common.TargetPatternCollection
 import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
@@ -562,6 +563,7 @@ class GraphToProjectConverterTest {
     val workspaceImportDirectory = TestData.ROOT.resolve("nodeps")
     val buildGraphData =
       BlazeQueryParser(
+        TargetPatternCollection.create(emptyList()),
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_NO_DEPS_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -682,6 +684,7 @@ class GraphToProjectConverterTest {
 
     val buildGraphData =
       BlazeQueryParser(
+        TargetPatternCollection.create(emptyList()),
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_NO_DEPS_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
@@ -702,6 +705,7 @@ class GraphToProjectConverterTest {
 
     val buildGraphData =
       BlazeQueryParser(
+        TargetPatternCollection.create(emptyList()),
         QuerySyncTestUtils.getQuerySummary(TestData.CC_LIBRARY_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet()
