@@ -436,6 +436,7 @@ filegroup(
         "//tools/vendor/google/firebase:libfirebase_java_proto",
         "//tools/vendor/google/game-tools/main:game-tools-protos",
         "//tools/vendor/google/game-tools/packaging:game-tools-protos",
+        "//tools/vendor/google/marketing:chime_kt_proto",
         "//tools/vendor/google/ml/aiplugin/android-plugin/integration:aida_grpc",
         "//tools/vendor/google/ml/aiplugin/android-plugin/integration:aida_proto",
         "//tools/vendor/google/ml/aiplugin/android-plugin/integration:aida_protobuf",
