@@ -31,6 +31,7 @@ import com.android.flags.overrides.PropertyOverrides;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.AgpReleaseBranchProvider;
+import com.android.tools.idea.flags.overrides.AgpTestSuitesProvider;
 import com.android.tools.idea.flags.overrides.FeatureConfigurationProvider;
 import com.android.tools.idea.flags.overrides.MendelOverrides;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
@@ -68,7 +69,8 @@ public final class StudioFlags {
       new PropertyOverrides(),
       new MendelOverrides(),
       new ServerFlagOverrides(),
-      new AgpReleaseBranchProvider());
+      new AgpReleaseBranchProvider(),
+      new AgpTestSuitesProvider());
   }
 
   // This class is a workaround for b/355292387: IntelliJ 2024.2 does not allow services to be instantiated inside static initializers.
@@ -2832,7 +2834,7 @@ public final class StudioFlags {
       AGP_TEST_SUITES,
       "enabled",
       "Enable IDE support for AGP test suites",
-      "Enables IDE support for AGP test suites"
+      "Enables IDE support for AGP test suites. This value is overridden to `true` when Journeys with Gemini is enabled."
     );
   // endregion AGP Test Suites
 
