@@ -391,17 +391,17 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     // If we have module per sourceSet turned on we need to fill in the GradleSourceSetData for each of the artifacts.
     if (androidModel != null) {
       val variant = androidModel.selectedVariantCore
-      val prodModule = createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, variant.mainArtifact.name, null)
-      val buildConfigClassPath = variant.mainArtifact.generatedClassPaths["buildConfigGeneratedClasses"]
+      val prodModule = createAndSetupGradleSourceSetDataNode(
+        moduleNode, gradleModule, variant.mainArtifact.name, null
+      ).data
       val unitTest: IdeBaseArtifactCore? = variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }
       if (unitTest != null) {
-        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, unitTest.name, prodModule, setOf(buildConfigClassPath))
+        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, unitTest.name, prodModule)
       }
       val androidTest: IdeBaseArtifactCore? = variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
       if (androidTest != null) {
-        val androidTestBuildConfigClassPath = androidTest.generatedClassPaths["buildConfigGeneratedClasses"]
         createAndSetupGradleSourceSetDataNode(
-          moduleNode, gradleModule, androidTest.name, prodModule, setOf(buildConfigClassPath, androidTestBuildConfigClassPath))
+          moduleNode, gradleModule, androidTest.name, prodModule)
       }
       val testFixtures: IdeBaseArtifactCore? = variant.testFixturesArtifact
       if (testFixtures != null) {
@@ -409,7 +409,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       }
       val screenshotTest: IdeBaseArtifactCore? = variant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
       if (screenshotTest != null) {
-        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, screenshotTest.name, prodModule, setOf(buildConfigClassPath))
+        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, screenshotTest.name, prodModule)
       }
 
       if (StudioFlags.AGP_TEST_SUITES_ENABLED.get()) {
@@ -450,17 +450,30 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     moduleDataNode.createChild(ProjectKeys.TEST, testData)
   }
 
-  private fun addGeneratedClassesToLibraryDependencies(
-    variant: IdeVariantCore,
-    moduleNode: DataNode<ModuleData>)
-  {
-    variant.mainArtifact.generatedClassPaths.forEach {
-      addToNewOrExistingLibraryData(
-        moduleNode.findSourceSetDataForArtifact(variant.mainArtifact),
-        it.key,
-        setOf(it.value),
-        false)
+  private fun addGeneratedClassesToLibraryDependencies(variant: IdeVariantCore, moduleNode: DataNode<ModuleData>) {
+    fun processGeneratedClasspath(
+      artifactSelector: (IdeVariantCore) -> IdeBaseArtifactCore?,
+      isTest: Boolean = false
+    ) {
+      val artifact = artifactSelector(variant) ?: return
+      // Make sure if there is no generated classpath for the tested component, we still process the main one for it by processing each key
+      val allClasspathNames =  artifact.generatedClassPaths.keys + variant.mainArtifact.generatedClassPaths.keys
+      allClasspathNames.forEach { classpathName ->
+        addToNewOrExistingLibraryData(
+          moduleNode.findSourceSetDataForArtifact(artifact),
+          classpathName,
+          // For tests, include the main artifact classpath as well
+          setOfNotNull(artifact.generatedClassPaths[classpathName], variant.mainArtifact.generatedClassPaths[classpathName]),
+          isTest
+        )
+      }
     }
+
+    processGeneratedClasspath({ variant.mainArtifact })
+    processGeneratedClasspath({ variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST } }, isTest = true)
+    processGeneratedClasspath({ variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST } }, isTest = true)
+    processGeneratedClasspath({ variant.testFixturesArtifact }, isTest = true)
+    processGeneratedClasspath({ variant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST } }, isTest = true)
   }
 
   private fun createAndSetupGradleSourceSetDataNode(
@@ -468,24 +481,20 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     gradleModule: IdeaModule,
     artifactName: IdeArtifactName,
     productionModule: GradleSourceSetData?,
-    buildConfigClassPaths: Set<File?>? = null
-  ): GradleSourceSetData =
-    createAndSetupGradleSourceSetDataNode(
-      parentDataNode,
-      gradleModule,
-      getModuleName(artifactName),
-      productionModule,
-      buildConfigClassPaths
-    )
+  ) = createAndSetupGradleSourceSetDataNode(
+    parentDataNode,
+    gradleModule,
+    getModuleName(artifactName),
+    productionModule,
+  )
 
   private fun createAndSetupGradleSourceSetDataNode(
     parentDataNode: DataNode<ModuleData>,
     gradleModule: IdeaModule,
     readableArtifactName: String,
     productionModule: GradleSourceSetData?,
-    buildConfigClassPaths: Set<File?>? = null,
     isTestSuite: Boolean = false
-  ): GradleSourceSetData {
+  ): DataNode<GradleSourceSetData> {
     val moduleId = computeModuleIdForArtifact(resolverCtx, gradleModule, readableArtifactName)
     val moduleExternalName = gradleModule.name + ":" + readableArtifactName
     val moduleInternalName = parentDataNode.data.internalName + "." + readableArtifactName
@@ -497,14 +506,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       sourceSetData.productionModuleId = productionModule.internalName
     }
     sourceSetData.setProperty("TestSuite", isTestSuite.toString())
-    val dataNode = parentDataNode.createChild(GradleSourceSetData.KEY, sourceSetData)
-    if (buildConfigClassPaths != null) {
-      val nonNullClassPaths = buildConfigClassPaths.filterNotNull().toSet()
-      if (nonNullClassPaths.isNotEmpty()) {
-        addToNewOrExistingLibraryData(dataNode, "buildConfigGeneratedClasses", nonNullClassPaths, true)
-      }
-    }
-    return sourceSetData
+    return parentDataNode.createChild(GradleSourceSetData.KEY, sourceSetData)
   }
 
   private fun populateAdditionalClassifierArtifactsModel(gradleModule: IdeaModule) {
