@@ -91,13 +91,14 @@ class ConfigureCcCompilationTest {
   fun empty() {
     val original = syncRunner.sync(TestData.CC_LIBRARY_QUERY)
     val update = ProjectProtoUpdate(original.project)
-    val ccConfig =
-      ConfigureCcCompilation(
-        ProjectPath.ExternalRepositoryFinder.createFailingForTests(),
-        ArtifactTracker.State.EMPTY,
-        update
-      )
-    ccConfig.update(BuildGraphData.EMPTY, context)
+    val ccConfig = ConfigureCcCompilation()
+    ccConfig.update(
+      update,
+      BuildGraphData.EMPTY,
+      ArtifactTracker.State.EMPTY,
+      context,
+      ProjectPath.ExternalRepositoryFinder.createFailingForTests()
+    )
     val project = update.build()
     assertThat(project.ccWorkspace).isEqualTo(CcWorkspace.getDefaultInstance())
   }
@@ -106,13 +107,14 @@ class ConfigureCcCompilationTest {
   fun emptyArtifactTracker() {
     val original = syncRunner.sync(TestData.CC_LIBRARY_QUERY)
     val update = ProjectProtoUpdate(original.project)
-    val ccConfig =
-      ConfigureCcCompilation(
-        ProjectPath.ExternalRepositoryFinder.createFailingForTests(),
-        ArtifactTracker.State.EMPTY,
-        update
-      )
-    ccConfig.update(original.graph, context)
+    val ccConfig = ConfigureCcCompilation()
+    ccConfig.update(
+      update,
+      original.graph,
+      ArtifactTracker.State.EMPTY,
+      context,
+      ProjectPath.ExternalRepositoryFinder.createFailingForTests()
+    )
     val project = update.build()
     val ccTarget = Label.of("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/cc:cc")
     val testClassCcPath = ProjectPath.WorkspaceRelativeProjectPath(
@@ -179,13 +181,14 @@ class ConfigureCcCompilationTest {
         )
         .build()
 
-    val ccConfig =
-      ConfigureCcCompilation(
-        ProjectPath.ExternalRepositoryFinder.createFailingForTests(),
-        toArtifactState(compilationInfo),
-        update
-      )
-    ccConfig.update(original.graph, context)
+    val ccConfig = ConfigureCcCompilation()
+    ccConfig.update(
+      update,
+      original.graph,
+      toArtifactState(compilationInfo),
+      context,
+      ProjectPath.ExternalRepositoryFinder.createFailingForTests()
+    )
 
     val project = update.build()
 
@@ -275,7 +278,7 @@ class ConfigureCcCompilationTest {
     val pkgPath =
       Iterables.getOnlyElement(TestData.CC_MULTISRC_QUERY.relativeSourcePaths)
     val labels =
-      listOf<Label?>(
+      listOf(
         fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, pkgPath, "testclass"),
         fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, pkgPath, "testclass2")
       )
@@ -303,13 +306,14 @@ class ConfigureCcCompilationTest {
         )
         .build()
 
-    val ccConfig =
-      ConfigureCcCompilation(
-        ProjectPath.ExternalRepositoryFinder.createFailingForTests(),
-        toArtifactState(ccCi),
-        update
-      )
-    ccConfig.update(original.graph, context)
+    val ccConfig = ConfigureCcCompilation()
+    ccConfig.update(
+      update,
+      original.graph,
+      toArtifactState(ccCi),
+      context,
+      ProjectPath.ExternalRepositoryFinder.createFailingForTests()
+    )
 
     val project = update.build()
 
