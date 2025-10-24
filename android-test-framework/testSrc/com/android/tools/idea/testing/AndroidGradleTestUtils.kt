@@ -1701,13 +1701,6 @@ private fun setupTestProjectFromAndroidModelCore(
     resolvedTable,
     null
   )
-  projectDataNode.createChild(
-    AndroidProjectKeys.IDE_COMPOSITE_BUILD_MAP,
-    IdeCompositeBuildMapImpl(
-      builds = listOf(IdeBuildImpl(buildPath = ":", buildId = rootProjectBasePath)),
-      gradleSupportsDirectTaskInvocation = true
-    )
-  )
 
   projectDataNode.createChild(
     AndroidProjectKeys.IDE_LIBRARY_TABLE,

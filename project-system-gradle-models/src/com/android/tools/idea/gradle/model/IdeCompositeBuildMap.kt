@@ -23,11 +23,4 @@ interface IdeCompositeBuildMap {
    * referred to as `:included_build_name:project:path:task_name`.
    */
   val gradleSupportsDirectTaskInvocation: Boolean
-
-  object EMPTY: IdeCompositeBuildMap {
-    override val builds: List<IdeBuild>
-      get() = emptyList()
-    override val gradleSupportsDirectTaskInvocation: Boolean
-      get() = false
-  }
 }

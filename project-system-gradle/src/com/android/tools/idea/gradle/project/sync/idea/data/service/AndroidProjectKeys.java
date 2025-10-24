@@ -79,11 +79,7 @@ public final class AndroidProjectKeys {
     Key.create(KotlinMultiplatformIdeLibraryTable.class, IDE_LIBRARY_TABLE.getProcessingWeight() + 10);
 
   @NotNull
-  public static final Key<IdeCompositeBuildMap> IDE_COMPOSITE_BUILD_MAP =
-    Key.create(IdeCompositeBuildMap.class, KMP_ANDROID_LIBRARY_TABLE.getProcessingWeight() + 10);
-
-  @NotNull
-  public static final Key<IdeSyncIssue> SYNC_ISSUE = Key.create(IdeSyncIssue.class, IDE_COMPOSITE_BUILD_MAP.getProcessingWeight() + 10);
+  public static final Key<IdeSyncIssue> SYNC_ISSUE = Key.create(IdeSyncIssue.class, KMP_ANDROID_LIBRARY_TABLE.getProcessingWeight() + 10);
 
   @NotNull
   public static final Key<IdeAndroidNativeVariantsModelsWrapper> NATIVE_VARIANTS =
