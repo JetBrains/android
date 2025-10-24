@@ -33,6 +33,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import org.intellij.images.fileTypes.ImageFileTypeManager
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.plugins.gradle.util.GradleConstants.GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME
+import org.jetbrains.plugins.gradle.util.GradleConstants.GRADLE_DIR_NAME
 
 fun isGradleFile(psiFile: PsiFile): Boolean {
   if (GradleFileType.isGradleFile(psiFile)) return true
@@ -50,7 +52,9 @@ fun isGradleFile(psiFile: PsiFile): Boolean {
     (SdkConstants.FN_GRADLE_PROPERTIES == name ||
       SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == name ||
       (SdkConstants.FN_GRADLE_CONFIG_PROPERTIES == name &&
-        SdkConstants.FD_GRADLE_CACHE == psiFile.parent?.name))
+        SdkConstants.FD_GRADLE_CACHE == psiFile.parent?.name) ||
+      (GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME == name &&
+       GRADLE_DIR_NAME == psiFile.parent?.name))
 }
 
 internal fun isRelevantFile(file: PsiFile): Boolean {
