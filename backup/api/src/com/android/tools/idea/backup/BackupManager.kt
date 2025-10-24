@@ -122,5 +122,9 @@ interface BackupManager {
 
     @JvmStatic
     fun getInstance(project: Project): BackupManager = project.getService(BackupManager::class.java)
+
+    @JvmStatic
+    fun tryGetInstance(project: Project): BackupManager? =
+      project.getServiceIfCreated(BackupManager::class.java)
   }
 }
