@@ -17,18 +17,20 @@ package com.android.tools.idea.settingssync.onboarding
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.IntellijInternalApi
 import com.intellij.settingsSync.core.UpdateResult
-import com.intellij.settingsSync.core.communicator.SettingsSyncCommunicatorProvider
+import com.intellij.settingsSync.core.communicator.getAvailableSyncProviders
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+@OptIn(IntellijInternalApi::class) // For getAvailableSyncProviders().
 internal suspend fun checkCloudUpdates(userEmail: String, providerCode: String): UpdateResult {
   return withContext(Dispatchers.IO) {
     val parentDisposable = Disposer.newDisposable()
     try {
       val communicator =
-        SettingsSyncCommunicatorProvider.PROVIDER_EP.extensionList
-          .singleOrNull { it.isAvailable() && it.providerCode == providerCode }
+        getAvailableSyncProviders()
+          .singleOrNull { it.providerCode == providerCode }
           ?.createCommunicator(userEmail)
           ?.apply { (this as? Disposable)?.let { Disposer.register(parentDisposable, it) } }
           ?: error("Can't create $providerCode communicator for $userEmail.")
