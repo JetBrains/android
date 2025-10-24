@@ -1546,6 +1546,10 @@ MODULE                        : My_First_App.app
                     ApkFromBundleTaskName         : extractApksForDebug
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/firstapp/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/createDebugApksFromBundleListingFileRedirect/redirect.txt [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                AbiFilters                    : arm64-v8a
+                AbiFilters                    : armeabi-v7a
+                AbiFilters                    : x86
+                AbiFilters                    : x86_64
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -1732,6 +1736,10 @@ MODULE                        : My_First_App.app
                     AnimationsDisabled            : false
                     Execution                     : HOST
                     InstrumentedTestTaskName      : connectedDebugAndroidTest
+                AbiFilters                    : arm64-v8a
+                AbiFilters                    : armeabi-v7a
+                AbiFilters                    : x86
+                AbiFilters                    : x86_64
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
@@ -2580,6 +2588,10 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
                 DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                AbiFilters                    : arm64-v8a
+                AbiFilters                    : armeabi-v7a
+                AbiFilters                    : x86
+                AbiFilters                    : x86_64
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -2849,6 +2861,10 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     AnimationsDisabled            : false
                     Execution                     : HOST
                     InstrumentedTestTaskName      : connectedDebugAndroidTest
+                AbiFilters                    : arm64-v8a
+                AbiFilters                    : armeabi-v7a
+                AbiFilters                    : x86
+                AbiFilters                    : x86_64
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
