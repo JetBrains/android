@@ -24,7 +24,6 @@ import com.android.tools.compile.fast.isSuccess
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.concurrency.createCoroutineScope
@@ -76,6 +75,7 @@ import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
@@ -87,7 +87,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
-import com.intellij.testFramework.DumbModeTestUtils.waitForSmartMode
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.replaceService
@@ -102,6 +102,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -205,47 +206,46 @@ class CommonPreviewRepresentationTest {
   }
 
   @Test
-  fun testFullRefreshIsTriggeredOnSuccessfulBuild() =
-    runBlocking(Dispatchers.Default) {
-      // Turn off flag to make sure quality refreshes won't affect the asserts in this test
-      StudioFlags.PREVIEW_RENDER_QUALITY.overrideForTest(false, projectRule.testRootDisposable)
-      val previewRepresentation = createPreviewRepresentation()
-      previewRepresentation.compileAndWaitForRefresh()
+  fun testFullRefreshIsTriggeredOnSuccessfulBuild() = runTest {
+    // Turn off flag to make sure quality refreshes won't affect the asserts in this test
+    StudioFlags.PREVIEW_RENDER_QUALITY.overrideForTest(false, projectRule.testRootDisposable)
+    val previewRepresentation = createPreviewRepresentation()
+    previewRepresentation.compileAndWaitForRefresh()
 
-      // block the refresh manager with a high priority refresh that won't finish
-      val blockingRefresh = blockRefreshManager()
+    // block the refresh manager with a high priority refresh that won't finish
+    val blockingRefresh = blockRefreshManager()
 
-      // building the project again should invalidate the preview representation
-      assertFalse(previewRepresentation.isInvalidatedForTest())
-      buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.SUCCESS)
-      delayUntilCondition(delayPerIterationMs = 1000, 20.seconds) {
-        previewRepresentation.isInvalidatedForTest()
-      }
-      assertTrue(previewRepresentation.isInvalidatedForTest())
+    // building the project again should invalidate the preview representation
+    assertFalse(previewRepresentation.isInvalidatedForTest())
+    buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    delayUntilCondition(delayPerIterationMs = 1000, 20.seconds) {
+      previewRepresentation.isInvalidatedForTest()
+    }
+    assertTrue(previewRepresentation.isInvalidatedForTest())
 
-      // unblock the refresh manager
-      TestPreviewRefreshRequest.expectedLogPrintCount.await()
-      TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
-      blockingRefresh.waitUntilRefreshStarts()
-      blockingRefresh.runningRefreshJob!!.cancel()
-      TestPreviewRefreshRequest.expectedLogPrintCount.await()
-      assertEquals(
-        """
+    // unblock the refresh manager
+    TestPreviewRefreshRequest.expectedLogPrintCount.await()
+    TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
+    blockingRefresh.waitUntilRefreshStarts()
+    blockingRefresh.runningRefreshJob!!.cancel()
+    TestPreviewRefreshRequest.expectedLogPrintCount.await()
+    assertEquals(
+      """
       start testRequest
       user-cancel testRequest
     """
-          .trimIndent(),
-        TestPreviewRefreshRequest.log.toString().trimIndent(),
-      )
+        .trimIndent(),
+      TestPreviewRefreshRequest.log.toString().trimIndent(),
+    )
 
-      // As a consequence of the build a refresh should happen in the preview representation now
-      // that the refresh manager was unblocked
-      delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) {
-        !previewRepresentation.isInvalidatedForTest()
-      }
-      assertFalse(previewRepresentation.isInvalidatedForTest())
-      previewRepresentation.onDeactivateImmediately()
+    // As a consequence of the build a refresh should happen in the preview representation now
+    // that the refresh manager was unblocked
+    delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) {
+      !previewRepresentation.isInvalidatedForTest()
     }
+    assertFalse(previewRepresentation.isInvalidatedForTest())
+    previewRepresentation.onDeactivateImmediately()
+  }
 
   @Test
   fun testFastPreviewIsRequested() = runBlocking {
@@ -300,7 +300,7 @@ class CommonPreviewRepresentationTest {
 
   @Test
   fun testDataKeysShouldBeRegistered() {
-    runBlocking(Dispatchers.Default) {
+    runTest {
       val preview = createPreviewRepresentation()
       val surface = preview.previewView.mainSurface
       val context =
@@ -318,60 +318,53 @@ class CommonPreviewRepresentationTest {
   }
 
   @Test
-  fun testReactivationWithoutChangesDontFullRefresh(): Unit =
-    runBlocking(Dispatchers.Default) {
-      // Turn off flag to make sure quality refreshes won't affect the asserts in this test
-      StudioFlags.PREVIEW_RENDER_QUALITY.overrideForTest(false, projectRule.testRootDisposable)
-      val previewRepresentation = createPreviewRepresentation()
-      previewRepresentation.compileAndWaitForRefresh()
+  fun testReactivationWithoutChangesDontFullRefresh(): Unit = runTest {
+    // Turn off flag to make sure quality refreshes won't affect the asserts in this test
+    StudioFlags.PREVIEW_RENDER_QUALITY.overrideForTest(false, projectRule.testRootDisposable)
+    val previewRepresentation = createPreviewRepresentation()
+    previewRepresentation.compileAndWaitForRefresh()
 
-      assertFalse(previewRepresentation.isInvalidatedForTest())
-      previewRepresentation.onDeactivateImmediately()
+    previewRepresentation.onDeactivateImmediately()
 
-      val blockingRefresh = blockRefreshManager()
+    val blockingRefresh = blockRefreshManager()
 
-      // reactivating the representation shouldn't enqueue a new refresh
-      previewRepresentation.onActivate()
-      assertFalse(previewRepresentation.isInvalidatedForTest())
-      assertFails {
-        delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
-          refreshManager.getTotalRequestsInQueueForTest() == 1
-        }
+    // reactivating the representation shouldn't enqueue a new refresh
+    previewRepresentation.onActivate()
+    assertFalse(previewRepresentation.isInvalidatedForTest())
+    assertFails {
+      delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
+        refreshManager.getTotalRequestsInQueueForTest() == 1
       }
-      assertFalse(previewRepresentation.isInvalidatedForTest())
-      blockingRefresh.runningRefreshJob!!.cancel()
     }
+    assertFalse(previewRepresentation.isInvalidatedForTest())
+    blockingRefresh.runningRefreshJob!!.cancel()
+  }
 
   @Test
-  fun testReactivationWithoutChangesDoesQualityRefresh(): Unit =
-    runBlocking(Dispatchers.Default) {
-      val previewRepresentation = createPreviewRepresentation()
-      previewRepresentation.compileAndWaitForRefresh()
+  fun testReactivationWithoutChangesDoesQualityRefresh(): Unit = runTest {
+    val previewRepresentation = createPreviewRepresentation()
+    previewRepresentation.compileAndWaitForRefresh()
 
-      assertFalse(previewRepresentation.isInvalidatedForTest())
-      var blockingRefresh = blockRefreshManager()
-      previewRepresentation.onDeactivateImmediately()
-      // Quality refresh on deactivation to decrease qualities
-      delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
-        refreshManager.getTotalRequestsInQueueForTest() == 1
-      }
-      assertFalse(previewRepresentation.isInvalidatedForTest())
-      // unblock and wait for the quality refresh to be taken out of the queue
-      blockingRefresh.runningRefreshJob!!.cancel()
-      delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
-        refreshManager.getTotalRequestsInQueueForTest() == 0
-      }
-
-      blockingRefresh = blockRefreshManager()
-      previewRepresentation.onActivate()
-      // Another quality refresh on reactivation
-      assertFalse(previewRepresentation.isInvalidatedForTest())
-      delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
-        refreshManager.getTotalRequestsInQueueForTest() == 1
-      }
-      assertFalse(previewRepresentation.isInvalidatedForTest())
-      blockingRefresh.runningRefreshJob?.cancel()
+    var blockingRefresh = blockRefreshManager()
+    previewRepresentation.onDeactivateImmediately()
+    // Quality refresh on deactivation to decrease qualities
+    delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
+      refreshManager.getTotalRequestsInQueueForTest() == 1
     }
+    assertFalse(previewRepresentation.isInvalidatedForTest())
+    // unblock and wait for the quality refresh to be taken out of the queue
+    blockingRefresh.runningRefreshJob!!.cancel()
+
+    blockingRefresh = blockRefreshManager()
+    previewRepresentation.onActivate()
+    // Another quality refresh on reactivation
+    assertFalse(previewRepresentation.isInvalidatedForTest())
+    delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
+      refreshManager.getTotalRequestsInQueueForTest() == 1
+    }
+    assertFalse(previewRepresentation.isInvalidatedForTest())
+    blockingRefresh.runningRefreshJob?.cancel()
+  }
 
   @Test
   fun testPreviewRefreshMetricsAreTracked() {
@@ -411,7 +404,7 @@ class CommonPreviewRepresentationTest {
     val previewRepresentation = createPreviewRepresentation()
     try {
       AnalyticsSettings.optedIn = true
-      runBlocking(Dispatchers.Default) {
+      runTest {
         PreviewRefreshTracker.setInstanceForTest(
           previewRepresentation.previewView.mainSurface,
           refreshTracker,
@@ -429,7 +422,7 @@ class CommonPreviewRepresentationTest {
 
   @Test
   fun clickingOnThePreviewNavigatesToDefinition() {
-    runBlocking(Dispatchers.Default) {
+    runTest {
       val preview = createPreviewRepresentation()
       preview.compileAndWaitForRefresh()
 
@@ -438,7 +431,7 @@ class CommonPreviewRepresentationTest {
       waitUntil { preview.previewView.mainSurface.models.size == 1 }
       val sceneView = preview.previewView.mainSurface.sceneManagers.first().sceneViews.first()
 
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         preview.navigationHandler
           .findNavigatablesWithCoordinates(sceneView, sceneView.x, sceneView.y, false, false)
           .map { it.navigatable }
@@ -459,7 +452,7 @@ class CommonPreviewRepresentationTest {
   // Regression test for b/353458840
   @Test
   fun previewsAreOrderedByPositioningThenOffsetThenName() {
-    runBlocking(Dispatchers.Default) {
+    runTest {
       psiFile =
         fixture.configureByText(
           "Test.kt",
@@ -534,7 +527,7 @@ class CommonPreviewRepresentationTest {
   // Regression test for b/370595516
   @Test
   fun animationPreviewScopeIsCancelledWhenExitingAnimationInspectorMode() {
-    runBlocking(Dispatchers.Default) {
+    runTest {
       val animationPreview =
         mock<AnimationPreview<AnimationManager>>().also {
           whenever(it.component).thenReturn(TooltipLayeredPane(JPanel()))
@@ -567,7 +560,7 @@ class CommonPreviewRepresentationTest {
   // Regression test for: b/344639845
   @Test
   fun flowsAreCanceledOnDeactivate() {
-    runBlocking(Dispatchers.Default) {
+    runTest {
       val previewElementProvider =
         mock<PreviewElementProvider<PsiTestPreviewElement>>().also {
           whenever(it.previewElements()).thenReturn(emptySequence())
@@ -607,116 +600,110 @@ class CommonPreviewRepresentationTest {
 
   // Regression test for b/373572532
   @Test
-  fun layoutOptionIsPersisted(): Unit =
-    runBlocking(Dispatchers.Default) {
-      val persistedPreviewRepresentation = createPreviewRepresentation()
-      persistedPreviewRepresentation.compileAndWaitForRefresh()
-      // We can't use Grid layout option in this test as it's default layout.
-      assertThat(persistedPreviewRepresentation.mode.value).isNotEqualTo(PreviewMode.Focus(null))
-      persistedPreviewRepresentation.setMode(PreviewMode.Focus(null))
-      assertThat(persistedPreviewRepresentation.mode.value).isEqualTo(PreviewMode.Focus(null))
-      retryUntilPassing(1.seconds) {
-        assertThat(
-            persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
-              ?.currentLayoutOption
-              ?.value
-          )
-          .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
-      }
-
-      val state = persistedPreviewRepresentation.getState()
-      // Deactivate now to avoid interfering with the other preview representation
-      persistedPreviewRepresentation.onDeactivateImmediately()
-
-      val restoredPreviewRepresentation = createPreviewRepresentation()
-      assertThat(restoredPreviewRepresentation.mode.value).isNotEqualTo(PreviewMode.Focus(null))
-      restoredPreviewRepresentation.setState(state)
-      restoredPreviewRepresentation.compileAndWaitForRefresh()
-      assertThat(restoredPreviewRepresentation.mode.value)
-        .isInstanceOf(PreviewMode.Focus::class.java)
-      retryUntilPassing(1.seconds) {
-        assertThat(
-            restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
-              ?.currentLayoutOption
-              ?.value
-          )
-          .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
-      }
-
-      restoredPreviewRepresentation.onDeactivateImmediately()
+  fun layoutOptionIsPersisted(): Unit = runTest {
+    val persistedPreviewRepresentation = createPreviewRepresentation()
+    persistedPreviewRepresentation.compileAndWaitForRefresh()
+    // We can't use Grid layout option in this test as it's default layout.
+    assertThat(persistedPreviewRepresentation.mode.value).isNotEqualTo(PreviewMode.Focus(null))
+    persistedPreviewRepresentation.setMode(PreviewMode.Focus(null))
+    assertThat(persistedPreviewRepresentation.mode.value).isEqualTo(PreviewMode.Focus(null))
+    retryUntilPassing(1.seconds) {
+      assertThat(
+          persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
+            ?.currentLayoutOption
+            ?.value
+        )
+        .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
     }
+
+    val state = persistedPreviewRepresentation.getState()
+    // Deactivate now to avoid interfering with the other preview representation
+    persistedPreviewRepresentation.onDeactivateImmediately()
+
+    val restoredPreviewRepresentation = createPreviewRepresentation()
+    assertThat(restoredPreviewRepresentation.mode.value).isNotEqualTo(PreviewMode.Focus(null))
+    restoredPreviewRepresentation.setState(state)
+    restoredPreviewRepresentation.compileAndWaitForRefresh()
+    assertThat(restoredPreviewRepresentation.mode.value).isInstanceOf(PreviewMode.Focus::class.java)
+    retryUntilPassing(1.seconds) {
+      assertThat(
+          restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
+            ?.currentLayoutOption
+            ?.value
+        )
+        .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
+    }
+
+    restoredPreviewRepresentation.onDeactivateImmediately()
+  }
 
   // Regression test for b/373572532
   @Test
-  fun focusLayoutOptionIsPersisted(): Unit =
-    runBlocking(Dispatchers.Default) {
-      val previewElement = PsiTestPreviewElement("test element")
-      val previewElementProvider = TestPreviewElementProvider(sequenceOf(previewElement))
-      val persistedPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
-      persistedPreviewRepresentation.compileAndWaitForRefresh()
+  fun focusLayoutOptionIsPersisted(): Unit = runTest {
+    val previewElement = PsiTestPreviewElement("test element")
+    val previewElementProvider = TestPreviewElementProvider(sequenceOf(previewElement))
+    val persistedPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
+    persistedPreviewRepresentation.compileAndWaitForRefresh()
 
-      assertThat(persistedPreviewRepresentation.mode.value.layoutOption)
-        .isNotEqualTo(FOCUS_MODE_LAYOUT_OPTION)
-      persistedPreviewRepresentation.setMode(PreviewMode.Focus(previewElement))
-      assertThat(persistedPreviewRepresentation.mode.value)
-        .isEqualTo(PreviewMode.Focus(previewElement))
-      retryUntilPassing(1.seconds) {
-        assertThat(
-            persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
-              ?.currentLayoutOption
-              ?.value
-          )
-          .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
-      }
-
-      val state = persistedPreviewRepresentation.getState()
-      // Deactivate now to avoid interfering with the other preview representation
-      persistedPreviewRepresentation.onDeactivateImmediately()
-
-      val restoredPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
-      restoredPreviewRepresentation.setState(state)
-      restoredPreviewRepresentation.compileAndWaitForRefresh()
-      assertThat(restoredPreviewRepresentation.mode.value)
-        .isEqualTo(PreviewMode.Focus(previewElement))
-      retryUntilPassing(1.seconds) {
-        assertThat(
-            restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
-              ?.currentLayoutOption
-              ?.value
-          )
-          .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
-      }
-
-      restoredPreviewRepresentation.onDeactivateImmediately()
+    assertThat(persistedPreviewRepresentation.mode.value.layoutOption)
+      .isNotEqualTo(FOCUS_MODE_LAYOUT_OPTION)
+    persistedPreviewRepresentation.setMode(PreviewMode.Focus(previewElement))
+    assertThat(persistedPreviewRepresentation.mode.value)
+      .isEqualTo(PreviewMode.Focus(previewElement))
+    retryUntilPassing(1.seconds) {
+      assertThat(
+          persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
+            ?.currentLayoutOption
+            ?.value
+        )
+        .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
     }
+
+    val state = persistedPreviewRepresentation.getState()
+    // Deactivate now to avoid interfering with the other preview representation
+    persistedPreviewRepresentation.onDeactivateImmediately()
+
+    val restoredPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
+    restoredPreviewRepresentation.setState(state)
+    restoredPreviewRepresentation.compileAndWaitForRefresh()
+    assertThat(restoredPreviewRepresentation.mode.value)
+      .isEqualTo(PreviewMode.Focus(previewElement))
+    retryUntilPassing(1.seconds) {
+      assertThat(
+          restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
+            ?.currentLayoutOption
+            ?.value
+        )
+        .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
+    }
+
+    restoredPreviewRepresentation.onDeactivateImmediately()
+  }
 
   // Regression test for b/373572532
   @Test
-  fun groupSelectionIsPersisted(): Unit =
-    runBlocking(Dispatchers.Default) {
-      val previewElement =
-        PsiTestPreviewElement(displayName = "test element", groupName = "test group")
-      val previewElementProvider = TestPreviewElementProvider(sequenceOf(previewElement))
-      val persistedPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
-      persistedPreviewRepresentation.compileAndWaitForRefresh()
+  fun groupSelectionIsPersisted(): Unit = runTest {
+    val previewElement =
+      PsiTestPreviewElement(displayName = "test element", groupName = "test group")
+    val previewElementProvider = TestPreviewElementProvider(sequenceOf(previewElement))
+    val persistedPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
+    persistedPreviewRepresentation.compileAndWaitForRefresh()
 
-      assertThat(persistedPreviewRepresentation.groupManager.groupFilter)
-        .isEqualTo(PreviewGroup.All)
-      persistedPreviewRepresentation.groupManager.groupFilter =
-        PreviewGroup.namedGroup("test group")
+    assertThat(persistedPreviewRepresentation.groupManager.groupFilter).isEqualTo(PreviewGroup.All)
+    persistedPreviewRepresentation.groupManager.groupFilter = PreviewGroup.namedGroup("test group")
 
-      val state = persistedPreviewRepresentation.getState()
-      // Deactivate now to avoid interfering with the other preview representation
-      persistedPreviewRepresentation.onDeactivateImmediately()
+    val state = persistedPreviewRepresentation.getState()
+    // Deactivate now to avoid interfering with the other preview representation
+    persistedPreviewRepresentation.onDeactivateImmediately()
 
-      val restoredPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
-      restoredPreviewRepresentation.setState(state)
-      restoredPreviewRepresentation.compileAndWaitForRefresh()
-      assertThat(restoredPreviewRepresentation.groupManager.groupFilter)
-        .isEqualTo(PreviewGroup.namedGroup("test group"))
+    val restoredPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
+    restoredPreviewRepresentation.setState(state)
+    restoredPreviewRepresentation.compileAndWaitForRefresh()
+    assertThat(restoredPreviewRepresentation.groupManager.groupFilter)
+      .isEqualTo(PreviewGroup.namedGroup("test group"))
 
-      restoredPreviewRepresentation.onDeactivateImmediately()
-    }
+    restoredPreviewRepresentation.onDeactivateImmediately()
+  }
 
   @Test
   fun `test animation preview is hidden if there is build error in the file`() = runBlocking {
@@ -755,7 +742,8 @@ class CommonPreviewRepresentationTest {
   private suspend fun blockRefreshManager(): TestPreviewRefreshRequest {
     // Wait for refresh queue to be empty
     delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
-      refreshManager.getTotalRequestsInQueueForTest() == 0
+      refreshManager.getTotalRequestsInQueueForTest() == 0 &&
+        refreshManager.refreshingTypeFlow.value == null
     }
     // block the refresh manager with a high priority refresh that won't finish
     TestPreviewRefreshRequest.log = StringBuilder()
@@ -827,8 +815,8 @@ class CommonPreviewRepresentationTest {
 
   private suspend fun CommonPreviewRepresentation<PsiTestPreviewElement>
     .compileAndWaitForRefresh() {
-    // wait for smart mode and status to be needs build
-    waitForSmartMode(fixture.project)
+    // Wait until indexes are ready and status is needs build
+    IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
     delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) {
       getProjectBuildStatusForTest() == RenderingBuildStatus.NeedsBuild
     }
@@ -866,13 +854,12 @@ class CommonPreviewRepresentationTest {
         refreshManager.getTotalRequestsInQueueForTest() == 0 &&
         refreshManager.refreshingTypeFlow.value == null
     }
-    assertFalse(isInvalidatedForTest())
   }
 
   private suspend fun previewElementDefinitionForTextAtCaret(
     textWithCaret: String
   ): SmartPsiElementPointer<PsiElement> {
-    withContext(uiThread) { fixture.moveCaret(textWithCaret) }
+    withContext(Dispatchers.EDT) { fixture.moveCaret(textWithCaret) }
     return runReadAction {
       fixture.elementAtCaret.let { smartPointerManager.createSmartPsiElementPointer(it) }
     }
