@@ -101,9 +101,8 @@ class AddProjectGenSrcsTest {
     val addGensrcs =
       AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
 
-    val update =
-      ProjectProtoUpdate(original.project)
-    addGensrcs.update(update, original.graph, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
+    val update = ProjectProtoUpdate(original.project)
+    addGensrcs.update(update, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
 
     val workspace = newProject.modules.single()
@@ -199,9 +198,8 @@ class AddProjectGenSrcsTest {
     val addGenSrcs =
       AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
 
-    val update =
-      ProjectProtoUpdate(original.project)
-    addGenSrcs.update(update, original.graph, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
+    val update = ProjectProtoUpdate(original.project)
+    addGenSrcs.update(update, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
 
     val workspace = newProject.modules.single()
@@ -297,9 +295,8 @@ class AddProjectGenSrcsTest {
     val addGenSrcs =
       AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
 
-    val update =
-      ProjectProtoUpdate(original.project)
-    addGenSrcs.update(update, original.graph, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
+    val update = ProjectProtoUpdate(original.project)
+    addGenSrcs.update(update, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     Mockito.verify(context, Mockito.never())!!.setHasWarnings()
   }
 
@@ -330,9 +327,8 @@ class AddProjectGenSrcsTest {
     val addGensrcs =
       AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
 
-    val update =
-      ProjectProtoUpdate(original.project)
-    addGensrcs.update(update, original.graph, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
+    val update = ProjectProtoUpdate(original.project)
+    addGensrcs.update(update, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
 
     val workspace = newProject.modules.single()
