@@ -90,10 +90,9 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
     // correctly. This, unfortunately, makes assumptions about the order in which these methods are invoked. If broken it will be caught
     // by any test attempting to sync a composite build.
     val buildModelsAndMap = this.buildModelsAndMap ?: syncCounters.buildInfoPhase {
-      val buildModelsAndMap = buildModelsAndMap(buildModel, controller)
-      consumer.consumeBuildModel(buildModel, buildModelsAndMap.map, IdeCompositeBuildMap::class.java)
-      this.buildModelsAndMap = buildModelsAndMap
-      buildModelsAndMap
+      buildModelsAndMap(buildModel, controller)
+    }.also {
+      this.buildModelsAndMap = it
     }
 
     if (!seenBuildModels.add(buildModel)) {
