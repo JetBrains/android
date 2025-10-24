@@ -178,6 +178,7 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData
 import com.intellij.openapi.externalSystem.model.project.ModuleSdkData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
+import com.intellij.openapi.externalSystem.model.project.TestData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager
@@ -1969,6 +1970,14 @@ private fun createJavaModuleDataNode(
         null
       )
     )
+    if (isTest) {
+      val sources = setOf("$root/java", "$root/resources")
+      val testData = TestData(GradleConstants.SYSTEM_ID, "test", "test", sources)
+      moduleDataNode.createChild(
+        ProjectKeys.TEST,
+        testData
+      )
+    }
     sourceSetDataDataNode.addDefaultJdk()
     if (isTest) {
       sourceSetDataDataNode.addChild(
