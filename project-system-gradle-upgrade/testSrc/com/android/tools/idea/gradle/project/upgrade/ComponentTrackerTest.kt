@@ -69,6 +69,7 @@ import org.junit.After
 import org.junit.Test
 import com.android.tools.idea.gradle.project.upgrade.REWRITE_DEPRECATED_OPERATORS as REWRITE_DEPRECATED_OPERATORS_INFO
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.DYNAMIC_FEATURE_CONSUMER_PROGUARD_FILES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JCENTER_TO_MAVEN_CENTRAL
 
 @RunsInEdt
@@ -288,6 +289,24 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
       UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.2.0").setNewAgpVersion("7.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(REMOVE_IMPLEMENTATION_PROPERTIES).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(4).setFiles(2))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testDynamicFeatureConsumerProguardEverythingUsageTracker() {
+    writeToBuildFile(TestFileName("DynamicFeatureConsumerProguardFiles/DynamicFeatureEverything"))
+    val processor = DynamicFeatureConsumerProguardFilesProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("9.0.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.2.0").setNewAgpVersion("9.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(DYNAMIC_FEATURE_CONSUMER_PROGUARD_FILES).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(3).setFiles(2))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.2.0").setNewAgpVersion("9.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(DYNAMIC_FEATURE_CONSUMER_PROGUARD_FILES).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(3).setFiles(2))
         .build(),
     )
   }
