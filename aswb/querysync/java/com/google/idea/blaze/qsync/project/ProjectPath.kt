@@ -128,6 +128,14 @@ sealed interface ProjectPath: ProjectProtoModel {
           override fun find(name: String): Path? = null
         }
       }
+
+      @JvmStatic
+      @TestOnly
+      fun createFailingForTests(): ExternalRepositoryFinder {
+        return object: ExternalRepositoryFinder {
+          override fun find(name: String): Path = error("Unexpected in this test. name = $name")
+        }
+      }
     }
   }
 
