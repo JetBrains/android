@@ -82,7 +82,6 @@ import java.io.File
 import java.nio.charset.Charset
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
-import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinBinaryCoordinates
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependencyCoordinates
@@ -515,7 +514,7 @@ class KotlinModelConverter {
       desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate(),
       generatedClassPaths = emptyMap(),
       bytecodeTransforms = null,
-      generatedAssetFolders = emptyList(),
+      generatedAssetFolders = mainAndroidCompilation.mainInfo?.generatedAssetFoldersList?.convertAndDeduplicate() ?: emptyList(),
       mappingR8TextFile = null,
       mappingR8PartitionFile = null,
     )
@@ -582,7 +581,7 @@ class KotlinModelConverter {
         desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate(),
         generatedClassPaths = emptyMap(),
         bytecodeTransforms = null,
-        generatedAssetFolders = emptyList(),
+        generatedAssetFolders = androidTestAndroidCompilation.instrumentedTestInfo.generatedAssetFoldersList.convertAndDeduplicate(),
         mappingR8TextFile = null,
         mappingR8PartitionFile = null,
       )
