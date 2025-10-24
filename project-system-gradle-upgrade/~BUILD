@@ -106,7 +106,6 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker",
         "@intellij//:com.intellij.properties",
         "//tools/adt/idea/analytics",
-        "@intellij//:org.jetbrains.kotlin",
         "@intellij//:intellij.platform.lvcs.impl",
         "//tools/adt/idea/gmaven:intellij.android.gmaven",
     ],
