@@ -25,7 +25,6 @@ import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarJavaPackageRoots
-import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import java.nio.file.Path
@@ -56,7 +55,6 @@ class AddDependencyGenSrcsJars(
   @Throws(BuildException::class)
   override fun update(
     update: ProjectProtoUpdate,
-    buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
     context: Context<*>,
     externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,

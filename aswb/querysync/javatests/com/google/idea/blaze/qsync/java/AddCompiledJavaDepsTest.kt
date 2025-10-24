@@ -26,11 +26,10 @@ import com.google.idea.blaze.qsync.deps.ArtifactDirectories
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
-import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.testdata.ProjectProtos
 import com.google.idea.blaze.qsync.testdata.TestData
 import java.nio.file.Path
@@ -55,7 +54,7 @@ class AddCompiledJavaDepsTest {
     val original = ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
 
     val update = ProjectProtoUpdate(original)
-    javaDeps.update(update, BuildGraphData.EMPTY, ArtifactTracker.State.EMPTY, NoopContext(),
+    javaDeps.update(update, ArtifactTracker.State.EMPTY, NoopContext(),
                     ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries).isEqualTo(original.libraries)
@@ -94,7 +93,7 @@ class AddCompiledJavaDepsTest {
 
     val update =
       ProjectProtoUpdate(original)
-    javaDeps.update(update, BuildGraphData.EMPTY, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
+    javaDeps.update(update, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
     Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys)
@@ -142,7 +141,7 @@ class AddCompiledJavaDepsTest {
 
     val update =
       ProjectProtoUpdate(original)
-    javaDeps.update(update, BuildGraphData.EMPTY, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
+    javaDeps.update(update, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
     Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys)

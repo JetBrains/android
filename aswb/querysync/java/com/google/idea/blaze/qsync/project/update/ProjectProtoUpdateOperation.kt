@@ -22,7 +22,6 @@ import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
-import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
 
 /**
@@ -38,7 +37,6 @@ interface ProjectProtoUpdateOperation {
   @Throws(BuildException::class)
   fun update(
     update: ProjectProtoUpdate,
-    buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
     context: Context<*>,
     externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,

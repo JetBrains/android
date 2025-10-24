@@ -94,7 +94,6 @@ class ConfigureCcCompilationTest {
     ConfigureCcSources().update(update, BuildGraphData.EMPTY, context)
     ConfigureCcCompilation().update(
       update,
-      BuildGraphData.EMPTY,
       ArtifactTracker.State.EMPTY,
       context,
       ProjectPath.ExternalRepositoryFinder.createFailingForTests()
@@ -110,7 +109,6 @@ class ConfigureCcCompilationTest {
     ConfigureCcSources().update(update, original.graph, context)
     ConfigureCcCompilation().update(
       update,
-      original.graph,
       ArtifactTracker.State.EMPTY,
       context,
       ProjectPath.ExternalRepositoryFinder.createFailingForTests()
@@ -184,7 +182,6 @@ class ConfigureCcCompilationTest {
     ConfigureCcSources().update(update, original.graph, context)
     ConfigureCcCompilation().update(
       update,
-      original.graph,
       toArtifactState(compilationInfo),
       context,
       ProjectPath.ExternalRepositoryFinder.createFailingForTests()
@@ -309,7 +306,6 @@ class ConfigureCcCompilationTest {
     ConfigureCcSources().update(update, original.graph, context)
     ConfigureCcCompilation().update(
       update,
-      original.graph,
       toArtifactState(ccCi),
       context,
       ProjectPath.ExternalRepositoryFinder.createFailingForTests()
