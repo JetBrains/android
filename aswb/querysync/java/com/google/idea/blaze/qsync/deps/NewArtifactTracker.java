@@ -146,7 +146,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   @Override
   public State getStateSnapshot() {
     synchronized (stateLock) {
-      return State.create(ImmutableMap.copyOf(builtDeps), ImmutableMap.copyOf(ccToolchainMap));
+      return State.create(builtDeps, ccToolchainMap);
     }
   }
 

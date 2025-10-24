@@ -28,6 +28,7 @@ import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -64,9 +65,9 @@ public interface ArtifactTracker<ContextT extends Context<?>> {
     }
 
     public static State create(
-        ImmutableMap<Label, TargetBuildInfo> map,
-        ImmutableMap<String, CcToolchain> ccToolchainMap) {
-      return new AutoValue_ArtifactTracker_State(map, ccToolchainMap);
+        Map<Label, ? extends TargetBuildInfo> map,
+        Map<String, ? extends CcToolchain> ccToolchainMap) {
+      return new AutoValue_ArtifactTracker_State(ImmutableMap.copyOf(map), ImmutableMap.copyOf(ccToolchainMap));
     }
 
     @VisibleForTesting
