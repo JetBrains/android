@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySp
 
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_DECLARATIVE
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG
 import com.android.tools.idea.testing.TestProjectPaths.TEST_SUITES_VERSION_CATALOG
 import com.android.tools.idea.testing.TestProjectPaths.TEST_SUITES
