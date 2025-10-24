@@ -732,7 +732,7 @@ private data class ApkProviderTest(
     ): ApkProvider {
       val module = project.gradleModule(gradlePath)!!
       val androidFacet = AndroidFacet.getInstance(module)!!
-      return ApkProvider { getBuiltApksForSelectedVariant(androidFacet, forTests).orEmpty() }
+      return ApkProvider { getBuiltApksForSelectedVariant(androidFacet, device, forTests).orEmpty() }
     }
 
     val apkProvider = when (scenario.target) {

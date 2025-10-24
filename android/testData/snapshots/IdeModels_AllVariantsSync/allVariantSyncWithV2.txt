@@ -1581,6 +1581,10 @@ IdeVariants
                 ApkFromBundleTaskName         : extractApksForBasicBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/createBasicBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compileBasicBarDebugAndroidTestSources
@@ -1819,6 +1823,10 @@ IdeVariants
                 AnimationsDisabled            : false
                 Execution                     : HOST
                 InstrumentedTestTaskName      : connectedBasicBarDebugAndroidTest
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicBarDebugUnitTestSources
@@ -2510,6 +2518,10 @@ IdeVariants
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarDebug/createBasicOtherBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compileBasicOtherBarDebugAndroidTestSources
@@ -2748,6 +2760,10 @@ IdeVariants
                 AnimationsDisabled            : false
                 Execution                     : HOST
                 InstrumentedTestTaskName      : connectedBasicOtherBarDebugAndroidTest
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicOtherBarDebugUnitTestSources
@@ -3440,6 +3456,10 @@ IdeVariants
                 ApkFromBundleTaskName         : extractApksForPaidBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarDebug/createPaidBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compilePaidBarDebugAndroidTestSources
@@ -3678,6 +3698,10 @@ IdeVariants
                 AnimationsDisabled            : false
                 Execution                     : HOST
                 InstrumentedTestTaskName      : connectedPaidBarDebugAndroidTest
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidBarDebugUnitTestSources
@@ -4373,6 +4397,10 @@ IdeVariants
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarDebug/createPaidOtherBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compilePaidOtherBarDebugAndroidTestSources
@@ -4611,6 +4639,10 @@ IdeVariants
                 AnimationsDisabled            : false
                 Execution                     : HOST
                 InstrumentedTestTaskName      : connectedPaidOtherBarDebugAndroidTest
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidOtherBarDebugUnitTestSources
@@ -5302,6 +5334,10 @@ IdeVariants
                 ApkFromBundleTaskName         : extractApksForBasicBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarRelease/createBasicBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64
     IdeVariant
         Name                          : basicOtherBarRelease
         BuildType                     : release
@@ -5665,6 +5701,10 @@ IdeVariants
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarRelease/createBasicOtherBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64
     IdeVariant
         Name                          : paidBarRelease
         BuildType                     : release
@@ -6029,6 +6069,10 @@ IdeVariants
                 ApkFromBundleTaskName         : extractApksForPaidBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarRelease/createPaidBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64
     IdeVariant
         Name                          : paidOtherBarRelease
         BuildType                     : release
@@ -6396,6 +6440,10 @@ IdeVariants
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarRelease/createPaidOtherBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64
     IdeVariant
         Name                          : basicBarSpecialRelease
         BuildType                     : specialRelease
@@ -6752,6 +6800,10 @@ IdeVariants
                 ApkFromBundleTaskName         : extractApksForBasicBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarSpecialRelease/createBasicBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64
     IdeVariant
         Name                          : basicOtherBarSpecialRelease
         BuildType                     : specialRelease
@@ -7111,6 +7163,10 @@ IdeVariants
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarSpecialRelease/createBasicOtherBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64
     IdeVariant
         Name                          : paidBarSpecialRelease
         BuildType                     : specialRelease
@@ -7471,6 +7527,10 @@ IdeVariants
                 ApkFromBundleTaskName         : extractApksForPaidBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarSpecialRelease/createPaidBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64
     IdeVariant
         Name                          : paidOtherBarSpecialRelease
         BuildType                     : specialRelease
@@ -7834,3 +7894,7 @@ IdeVariants
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarSpecialRelease/createPaidOtherBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            AbiFilters                    : arm64-v8a
+            AbiFilters                    : armeabi-v7a
+            AbiFilters                    : x86
+            AbiFilters                    : x86_64

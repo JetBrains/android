@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.execution.common.debug.utils.FacetFinder
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
@@ -159,6 +160,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
   internal fun getBuiltApksForSelectedVariant(
     androidFacet: AndroidFacet,
     assembleResult: AssembleInvocationResult,
+    device: IDevice,
     forTests: Boolean = false
   ): List<ApkInfo>? {
     val androidModel = GradleAndroidModel.get(androidFacet) ?: return null
@@ -185,7 +187,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
       false // Overridden and doesn't matter.
     )
       .getApks(
-        emptyList(),
+        device.abis,
         AndroidVersion(30),
         false,
         androidModel,
@@ -485,11 +487,11 @@ private fun createIdeaSourceProviderFromModelSourceProvider(it: IdeSourceProvide
 private fun Sequence<File>.toUrls(): Sequence<String> = map { VfsUtil.fileToUrl(it) }
 
 @TestOnly
-fun AssembleInvocationResult.getBuiltApksForSelectedVariant(androidFacet: AndroidFacet, forTests: Boolean = false): List<ApkInfo>? {
+fun AssembleInvocationResult.getBuiltApksForSelectedVariant(androidFacet: AndroidFacet, device: IDevice, forTests: Boolean = false): List<ApkInfo>? {
   val projectSystem = androidFacet.module.project.getProjectSystem() as? GradleProjectSystem
                       ?: error("The supplied facet does not represent a project managed by the Gradle project system. " +
                                "Module: ${androidFacet.module.name}")
-  return projectSystem.getBuiltApksForSelectedVariant(androidFacet, this, forTests)
+  return projectSystem.getBuiltApksForSelectedVariant(androidFacet, this, device, forTests)
 }
 
 private fun IdeArtifactName.toHostTestSourceProviderName(): TestComponentType.HostTest =

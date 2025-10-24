@@ -3007,6 +3007,10 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     ApkFromBundleTaskName         : extractApksForDebug
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/createDebugApksFromBundleListingFileRedirect/redirect.txt [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                AbiFilters                    : arm64-v8a
+                AbiFilters                    : armeabi-v7a
+                AbiFilters                    : x86
+                AbiFilters                    : x86_64
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -3053,6 +3057,10 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     AnimationsDisabled            : false
                     Execution                     : HOST
                     InstrumentedTestTaskName      : connectedDebugAndroidTest
+                AbiFilters                    : arm64-v8a
+                AbiFilters                    : armeabi-v7a
+                AbiFilters                    : x86
+                AbiFilters                    : x86_64
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
@@ -4097,6 +4105,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
                 DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                AbiFilters                    : arm64-v8a
+                AbiFilters                    : armeabi-v7a
+                AbiFilters                    : x86
+                AbiFilters                    : x86_64
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -4359,6 +4371,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     AnimationsDisabled            : false
                     Execution                     : HOST
                     InstrumentedTestTaskName      : connectedDebugAndroidTest
+                AbiFilters                    : arm64-v8a
+                AbiFilters                    : armeabi-v7a
+                AbiFilters                    : x86
+                AbiFilters                    : x86_64
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
@@ -4978,6 +4994,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     AssembleTaskName              : assembleDebug
                 GeneratedAssetFolders         : <ROOT>/feature-b/build/generated/assets/debugAssetsCopyForAGP [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                AbiFilters                    : arm64-v8a
+                AbiFilters                    : armeabi-v7a
+                AbiFilters                    : x86
+                AbiFilters                    : x86_64
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -5024,6 +5044,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     AnimationsDisabled            : false
                     Execution                     : HOST
                     InstrumentedTestTaskName      : connectedDebugAndroidTest
+                AbiFilters                    : arm64-v8a
+                AbiFilters                    : armeabi-v7a
+                AbiFilters                    : x86
+                AbiFilters                    : x86_64
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
@@ -5873,6 +5897,10 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
                 DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                AbiFilters                    : arm64-v8a
+                AbiFilters                    : armeabi-v7a
+                AbiFilters                    : x86
+                AbiFilters                    : x86_64
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -5899,6 +5927,10 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     AnimationsDisabled            : false
                     Execution                     : HOST
                     InstrumentedTestTaskName      : connectedDebugAndroidTest
+                AbiFilters                    : arm64-v8a
+                AbiFilters                    : armeabi-v7a
+                AbiFilters                    : x86
+                AbiFilters                    : x86_64
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
@@ -6186,6 +6218,10 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
                 DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                AbiFilters                    : arm64-v8a
+                AbiFilters                    : armeabi-v7a
+                AbiFilters                    : x86
+                AbiFilters                    : x86_64
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -6306,6 +6342,10 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     AnimationsDisabled            : false
                     Execution                     : HOST
                     InstrumentedTestTaskName      : connectedDebugAndroidTest
+                AbiFilters                    : arm64-v8a
+                AbiFilters                    : armeabi-v7a
+                AbiFilters                    : x86
+                AbiFilters                    : x86_64
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
