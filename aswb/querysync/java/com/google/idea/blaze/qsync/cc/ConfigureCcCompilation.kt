@@ -16,7 +16,6 @@
 package com.google.idea.blaze.qsync.cc
 
 import com.google.idea.blaze.common.Context
-import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories
 import com.google.idea.blaze.qsync.deps.ArtifactTracker.State
@@ -31,8 +30,6 @@ import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilerFlag
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilerFlagSet
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilerSettings
 import com.google.idea.blaze.qsync.project.ProjectProto.CcLanguage
-import com.google.idea.blaze.qsync.project.ProjectProto.CcSourceFile
-import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
 import com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
@@ -53,19 +50,13 @@ class ConfigureCcCompilation: ProjectProtoUpdateOperation {
 
   override fun update(
     update: ProjectProtoUpdate,
-    buildGraph: BuildGraphData,
+    unusedBuildGraphData: BuildGraphData,
     artifactState: State,
     context: Context<*>,
     externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
     update.ccWorkspace {
       val visitor = Visitor(update, artifactState, context, this, externalRepositoryFinder)
-
-      val ccSources = buildGraph.getSourceFilesByRuleKindAndType(ruleKindPredicate = { true }, SourceType.REGULAR_CC)
-      for ((target, sources) in ccSources) {
-        visitor.visitTargetSourceFiles(target, sources)
-      }
-
       visitor.visitToolchainMap(artifactState.ccToolchainMap())
 
       for (target in artifactState.targets()) {
@@ -82,20 +73,6 @@ class ConfigureCcCompilation: ProjectProtoUpdateOperation {
     private val workspaceUpdater: ProjectProtoUpdate.CcWorkspaceUpdater,
     private val externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
-
-    fun visitTargetSourceFiles(target: Label, srcPaths: Collection<Path>) {
-      workspaceUpdater.target(target) {
-        for (srcPath in srcPaths) {
-          val lang = getLanguage(srcPath) ?: continue
-          addSourceFile(
-            CcSourceFile(
-              workspacePath = ProjectPath.WorkspaceRelativeProjectPath(srcPath, EMPTY_PATH),
-              language = lang,
-            )
-          )
-        }
-      }
-    }
 
     fun visitToolchainMap(toolchainInfoMap: Map<String, CcToolchain>) {
       toolchainInfoMap.values.forEach(this::visitToolchain)
@@ -170,27 +147,6 @@ class ConfigureCcCompilation: ProjectProtoUpdateOperation {
         workspaceUpdater.putFlagSets(flagSetId, CcCompilerFlagSet(flags.toList()))
       }
     }
-
-    private fun getLanguage(srcPath: Path): CcLanguage? {
-      // logic in here based on https://bazel.build/reference/be/c-cpp#cc_library.srcs
-      val lastDot = srcPath.fileName.toString().lastIndexOf('.')
-      if (lastDot < 0) {
-        // default to cpp
-        context.output(PrintOutput.log("No extension for c/c++ source file %s; assuming cpp", srcPath))
-        return CcLanguage.CPP
-      }
-      val ext = srcPath.fileName.toString().substring(lastDot + 1)
-      if (IGNORE_SRC_FILE_EXTENSIONS.contains(ext)) {
-        return null
-      }
-      if (EXTENSION_TO_LANGUAGE_MAP.containsKey(ext)) {
-        return EXTENSION_TO_LANGUAGE_MAP[ext]
-      }
-      context.output(
-        PrintOutput.log(
-          "Unrecognized extension %s for c/c++ source file %s; assuming cpp", ext, srcPath))
-      return CcLanguage.CPP
-    }
   }
 
   private fun makeStringFlag(flag: String, value: String): CcCompilerFlag {
@@ -203,19 +159,6 @@ class ConfigureCcCompilation: ProjectProtoUpdateOperation {
 
   companion object {
     private val nextFlagSetId = AtomicInteger(0)
-
-    private val EXTENSION_TO_LANGUAGE_MAP =
-      mapOf(
-        "c" to CcLanguage.C,
-        "cc" to CcLanguage.CPP,
-        "cpp" to CcLanguage.CPP,
-        "cxx" to CcLanguage.CPP,
-        "c++" to CcLanguage.CPP,
-        "C" to CcLanguage.C)
-
-    /* Files we ignore because they are not top level source files: */
-    private val IGNORE_SRC_FILE_EXTENSIONS =
-      setOf("h", "hh", "hpp", "hxx", "inc", "inl", "H", "S", "a", "lo", "so", "o")
   }
 }
 
@@ -245,6 +188,3 @@ private fun MutableSet<String>.collectExternalRepositoryNameFrom(path: ProjectPa
     add(externalRepositoryName)
   }
 }
-
-private val EMPTY_PATH = Path.of("")
-
