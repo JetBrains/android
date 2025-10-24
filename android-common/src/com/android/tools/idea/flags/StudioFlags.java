@@ -2668,30 +2668,6 @@ public final class StudioFlags {
     JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.execution", "Enable Journeys with Gemini execution",
     "Enable Journeys with Gemini related functionality to allow users to create, edit and execute Journeys."
   );
-  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION = new BooleanFlag(
-    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.auto.gradle.configuration",
-    "Enable automatic Gradle configuration for Journeys with Gemini",
-    "Applies the Gradle configuration needed to run Journeys automatically when a Journeys run configuration is triggered"
-  );
-  public static final Flag<String> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION_DEP = new StringFlag(
-    JOURNEYS_WITH_GEMINI, "dependency.journeys.with.gemini.auto.gradle.configuration",
-    "Journey plugin dependency name used by automatic Gradle configuration",
-    "The ID of the Journey AGP plugin to use in the init-script injected when JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION " +
-    "is enabled, Use the `-dev` suffix to use a locally built plugin.",
-    "com.android.tools.journeys:journeys-gradle-plugin:0.0.1-alpha03"
-  );
-  public static final Flag<String> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION_EXTRA_REPOSITORY_URL = new StringFlag(
-    JOURNEYS_WITH_GEMINI, "extra.repository.url.for.journeys.with.gemini.auto.gradle.configuration",
-    "URL of extra repository used by automatic Gradle configuration (e.g. staging repo)",
-    "URL of extra repository used by automatic Gradle configuration (e.g. staging repo)",
-    ""
-  );
-  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION_INIT_SCRIPT_V2 = new BooleanFlag(
-    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.auto.gradle.configuration.init.script.v2",
-    "Use a V2 version of Journeys init script which is used in the Gradle run configuration for Journeys with Gemini",
-    "Applies Journeys Gradle plugin to your Gradle project by the new version of Journeys Gradle init script." +
-    " This version includes a fix for ClassNotFound exception when AppPlugin is not applied in your root Gradle project (b/418228060)."
-  );
   public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_RECORDING = new BooleanFlag(
     JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.recording", "Enable Journeys with Gemini recording",
     "Enable recording of Journeys with Gemini"
