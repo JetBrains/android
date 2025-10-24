@@ -23,12 +23,10 @@ import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.qsync.JavaPackagePrefixReaderImpl
 import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.TestDataSyncRunner
-import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.java.PackageStatementParser
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectPath.Companion.workspaceRelativeForTests
-import com.google.idea.blaze.qsync.project.ProjectPath.ExternalRepositoryFinder.Companion.createEmptyForTests
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.CcWorkspace
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
@@ -55,7 +53,6 @@ class ConfigureCcSourcesTest {
   }
 
   private val context: Context<*> = NoopContext()
-  private val externalRepositoryFinder = createEmptyForTests()
   private val syncRunner = TestDataSyncRunner(
     context,
     JavaPackagePrefixReaderImpl(
@@ -70,13 +67,7 @@ class ConfigureCcSourcesTest {
   fun empty() {
     val original = syncRunner.sync(TestData.CC_LIBRARY_QUERY)
     val update = ProjectProtoUpdate(original.project)
-    ConfigureCcSources().update(
-      update,
-      BuildGraphData.EMPTY,
-      ArtifactTracker.State.EMPTY,
-      context,
-      ProjectPath.ExternalRepositoryFinder.createFailingForTests()
-    )
+    ConfigureCcSources().update(update, BuildGraphData.EMPTY, context)
     val project = update.build()
     assertThat(project.ccWorkspace).isEqualTo(CcWorkspace.getDefaultInstance())
   }
@@ -85,13 +76,7 @@ class ConfigureCcSourcesTest {
   fun emptyArtifactTracker() {
     val original = syncRunner.sync(TestData.CC_LIBRARY_QUERY)
     val update = ProjectProtoUpdate(original.project)
-    ConfigureCcSources().update(
-      update,
-      original.graph,
-      ArtifactTracker.State.EMPTY,
-      context,
-      ProjectPath.ExternalRepositoryFinder.createFailingForTests()
-    )
+    ConfigureCcSources().update(update, original.graph, context)
     val project = update.build()
     val ccTarget = Label.of("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/cc:cc")
     val testClassCcPath = ProjectPath.WorkspaceRelativeProjectPath(
@@ -115,13 +100,7 @@ class ConfigureCcSourcesTest {
     val original = syncRunner.sync(TestData.CC_LIBRARY_QUERY)
     val update = ProjectProtoUpdate(original.project)
 
-    ConfigureCcSources().update(
-      update,
-      original.graph,
-      ArtifactTracker.State.EMPTY,
-      context,
-      ProjectPath.ExternalRepositoryFinder.createFailingForTests()
-    )
+    ConfigureCcSources().update(update, original.graph, context)
 
     val project = update.build()
 

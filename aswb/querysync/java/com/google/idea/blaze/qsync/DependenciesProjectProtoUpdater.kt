@@ -21,7 +21,6 @@ import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.cc.ConfigureCcCompilation
-import com.google.idea.blaze.qsync.cc.ConfigureCcSources
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.AddCompiledJavaDeps
@@ -62,7 +61,6 @@ class DependenciesProjectProtoUpdater(
         AddCompiledJavaDeps(emptyJarDigests),
         AddProjectGenSrcJars(projectDefinition, SrcJarPrefixedPackageRootsExtractor(srcJarInnerPathFinder)),
         AddProjectGenSrcs(projectDefinition, JavaSourcePackageExtractor(packageReader)),
-        ConfigureCcSources(),
         ConfigureCcCompilation(),
       ) +
       if (attachDepsSrcjarsExperiment.get())
