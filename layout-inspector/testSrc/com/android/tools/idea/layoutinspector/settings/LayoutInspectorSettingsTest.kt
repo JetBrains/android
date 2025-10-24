@@ -20,6 +20,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 
@@ -46,6 +48,27 @@ class LayoutInspectorSettingsTest {
     runWithFlagState(EMBEDDED_LAYOUT_INSPECTOR_FLAG, true) {
       enableEmbeddedLayoutInspector = true
       assertThat(enableEmbeddedLayoutInspector).isTrue()
+    }
+  }
+
+  @Test
+  fun testEmbeddedLayoutInspectorSettingObserver() = withEmbeddedLayoutInspector {
+    runTest {
+      val observedValues = mutableListOf<Boolean?>()
+      val job = launch { embeddedLayoutInspectorChanges.collect { observedValues.add(it) } }
+
+      testScheduler.advanceUntilIdle()
+      assertThat(observedValues).isEmpty()
+
+      enableEmbeddedLayoutInspector = true
+      testScheduler.advanceUntilIdle()
+      assertThat(observedValues).containsExactly(true)
+
+      enableEmbeddedLayoutInspector = false
+      testScheduler.advanceUntilIdle()
+      assertThat(observedValues).containsExactly(true, false)
+
+      job.cancel()
     }
   }
 

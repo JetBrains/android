@@ -24,10 +24,14 @@ import com.android.tools.idea.appinspection.ide.ui.RecentProcess
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
@@ -38,6 +42,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.highlighter.ProjectFileType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectEx
@@ -61,7 +66,11 @@ import java.io.PrintStream
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -288,6 +297,83 @@ class LayoutInspectorToolWindowFactoryTest {
       ToolWindowManager.getInstance(projectRule.project)
         .getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
     assertThat(layoutInspectorToolWindow3).isNull()
+  }
+
+  @Test
+  fun testEmbeddedLayoutInspectorBanner() {
+    val originalService =
+      ApplicationManager.getApplication().getService(ShowSettingsUtil::class.java)
+    val mockService = mock<ShowSettingsUtil>()
+    ApplicationManager.getApplication()
+      .replaceService(ShowSettingsUtil::class.java, mockService, projectRule.testRootDisposable)
+
+    val notificationModel = NotificationModel(projectRule.project)
+
+    val testScheduler = TestCoroutineScheduler()
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
+
+    val setShouldShowBannerInvocations = mutableListOf<Boolean>()
+    var activateEmbeddedLiInvocationsCounter = 0
+    showEmbeddedLayoutInspectorBanner(
+      project = projectRule.project,
+      notificationModel = notificationModel,
+      scope = scope,
+      shouldShowBanner = { true },
+      setShouldShowBanner = { setShouldShowBannerInvocations.add(it) },
+      activateEmbeddedLayoutInspector = { activateEmbeddedLiInvocationsCounter += 1 },
+    )
+
+    whenever(
+        mockService.showSettingsDialog(
+          eq(projectRule.project),
+          eq(LayoutInspectorConfigurable::class.java),
+        )
+      )
+      .then {
+        // Wait for the coroutine to start listening to embeddedLayoutInspectorChanges
+        testScheduler.advanceUntilIdle()
+        // Simulate the user enabling the setting in the ui
+        LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = true
+      }
+
+    val notification = notificationModel.notifications.first()
+    assertThat(notification.id).isEqualTo(BANNER_STRING_ID)
+
+    val doNotShowAgainAction =
+      notification.actions.find { it.name == LayoutInspectorBundle.message("do.not.show.again") }
+    doNotShowAgainAction!!.invoke(notification)
+
+    assertThat(setShouldShowBannerInvocations).containsExactly(false)
+
+    val enableAction =
+      notification.actions.find { it.name == LayoutInspectorBundle.message("enable") }
+    enableAction!!.invoke(notification)
+    testScheduler.advanceUntilIdle()
+
+    verify(mockService)
+      .showSettingsDialog(eq(projectRule.project), eq(LayoutInspectorConfigurable::class.java))
+    waitForCondition(10.seconds) { activateEmbeddedLiInvocationsCounter == 1 }
+    assertThat(activateEmbeddedLiInvocationsCounter).isEqualTo(1)
+
+    // clean up by restoring the original service
+    ApplicationManager.getApplication()
+      .replaceService(ShowSettingsUtil::class.java, originalService, projectRule.testRootDisposable)
+  }
+
+  @Test
+  fun testEmbeddedLayoutInspectorBannerNotShown() {
+    val notificationModel = NotificationModel(projectRule.project)
+
+    showEmbeddedLayoutInspectorBanner(
+      project = projectRule.project,
+      notificationModel = notificationModel,
+      scope = projectRule.testRootDisposable.createCoroutineScope(),
+      shouldShowBanner = { false },
+      setShouldShowBanner = {},
+      activateEmbeddedLayoutInspector = {},
+    )
+
+    assertThat(notificationModel.notifications).isEmpty()
   }
 }
 

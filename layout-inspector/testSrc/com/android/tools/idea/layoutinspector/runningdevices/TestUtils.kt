@@ -63,6 +63,9 @@ object EmbeddedLayoutInspectorSettingsProxy {
       LayoutInspectorSettings.getInstance().autoConnectEnabled = value
     }
     get() = LayoutInspectorSettings.getInstance().autoConnectEnabled
+
+  val embeddedLayoutInspectorChanges =
+    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorChanges
 }
 
 /**
