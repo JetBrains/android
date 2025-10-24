@@ -63,7 +63,11 @@ fun getBlockContent(text: String, path: String): String {
   val elements = path.split(".")
   assert(elements.isNotEmpty()) { "Path must be formatted as dot separated path `pluginManagement.plugins`" }
   fun snippet(string: String, element: String): String? {
-    val blockNamePosition = "$element[ \\t\\n\\{]".toRegex().find(string)?.range?.start
+    val blockNamePosition =
+      "${element
+        .replace("(", "\\(")
+        .replace(")", "\\)")}[ \\t\\n\\{]"
+        .toRegex().find(string)?.range?.start
     if (blockNamePosition == null) {
       fail("Cannot find $element")
       return null
