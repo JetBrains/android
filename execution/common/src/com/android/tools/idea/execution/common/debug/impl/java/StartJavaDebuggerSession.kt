@@ -40,7 +40,7 @@ fun startAndroidJavaDebuggerSession(
 
   runInEdt {
     promise.catchError {
-      val debugEnvironment = AndroidJavaDebugEnvironment(
+      val debugEnvironment = AndroidJavaDebugEnvironmentImpl(
         project,
         client,
         sessionName,

@@ -16,8 +16,8 @@
 package com.android.tools.idea.execution.common.debug.impl.java
 
 import com.android.ddmlib.Client
+import com.android.tools.idea.execution.common.debug.AndroidJavaDebugEnvironment
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
-import com.intellij.debugger.DebugEnvironment
 import com.intellij.debugger.DebuggerGlobalSearchScope
 import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.execution.DefaultExecutionResult
@@ -36,13 +36,13 @@ import com.intellij.psi.search.GlobalSearchScope
  *
  * This class is needed by the platform to create a debug session. See [DebuggerManagerEx.attachVirtualMachine]
  */
-internal class AndroidJavaDebugEnvironment(
+internal class AndroidJavaDebugEnvironmentImpl(
   project: Project,
   private val client: Client,
   private val mySessionName: String,
   private val consoleViewToReuse: ConsoleView?,
   private val detachIsDefault: Boolean
-) : DebugEnvironment, Disposable {
+) : AndroidJavaDebugEnvironment(), Disposable {
   init {
     Disposer.register(project, this)
   }
@@ -86,4 +86,8 @@ internal class AndroidJavaDebugEnvironment(
   override fun getSessionName() = mySessionName
 
   override fun getRunJre() = runJre
+
+  override val applicationId: String = client.clientData.packageName ?: "unknown"
+
+  override val deviceSerialNumber: String = client.device.serialNumber
 }
