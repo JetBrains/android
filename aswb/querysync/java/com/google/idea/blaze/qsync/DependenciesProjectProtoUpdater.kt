@@ -33,7 +33,6 @@ import com.google.idea.blaze.qsync.java.PackageStatementParser
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder
 import com.google.idea.blaze.qsync.java.SrcJarPackageRootsExtractor
 import com.google.idea.blaze.qsync.java.SrcJarPrefixedPackageRootsExtractor
-import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
@@ -92,13 +91,12 @@ class DependenciesProjectProtoUpdater(
   @Throws(BuildException::class)
   override fun update(
     update: ProjectProtoUpdate,
-    buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
     context: Context<*>,
     externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
     for (op in updateOperations) {
-      op.update(update, buildGraph, artifactState, context, externalRepositoryFinder)
+      op.update(update, artifactState, context, externalRepositoryFinder)
     }
   }
 }

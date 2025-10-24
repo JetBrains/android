@@ -72,7 +72,7 @@ class ProjectBuilder(
     graphToProjectConverter.createProject(graph, externalRepositoryFinder, update)
     ConfigureCcSources().update(update, graph, context)
     for (updateOperation in projectProtoUpdates) {
-      updateOperation.update(update, graph, artifactTrackerState, context, externalRepositoryFinder)
+      updateOperation.update(update, artifactTrackerState, context, externalRepositoryFinder)
     }
     return update.build()
   }

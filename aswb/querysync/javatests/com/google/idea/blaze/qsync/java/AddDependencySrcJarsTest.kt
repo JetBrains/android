@@ -25,10 +25,13 @@ import com.google.idea.blaze.qsync.TestDataSyncRunner
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.testdata.TestData
+import com.google.idea.common.experiments.ExperimentService
+import com.google.idea.common.experiments.MockExperimentService
+import com.google.idea.testing.IntellijRule
 import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.charset.StandardCharsets
@@ -36,9 +39,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
-import com.google.idea.common.experiments.ExperimentService
-import com.google.idea.common.experiments.MockExperimentService
-import com.google.idea.testing.IntellijRule
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -92,7 +92,7 @@ class AddDependencySrcJarsTest {
     val update =
       ProjectProtoUpdate(original.project)
 
-    addSrcJars.update(update, original.graph, ArtifactTracker.State.EMPTY, NoopContext(),
+    addSrcJars.update(update, ArtifactTracker.State.EMPTY, NoopContext(),
                       ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
 
     val newProject = update.build()
@@ -145,10 +145,9 @@ class AddDependencySrcJarsTest {
           .build()
       )
 
-    val update =
-      ProjectProtoUpdate(original.project)
+    val update = ProjectProtoUpdate(original.project)
 
-    addSrcJars.update(update, original.graph, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
+    addSrcJars.update(update, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
 
     val newProject = update.build()
 
