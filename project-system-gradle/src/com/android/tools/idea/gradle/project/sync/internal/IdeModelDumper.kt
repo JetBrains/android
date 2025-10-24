@@ -517,10 +517,6 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         }
     }
 
-    fun dump(compositeBuildMap: IdeCompositeBuildMap) {
-      modelDumper.dumpModel(projectDumper, "CompositeBuildMap", compositeBuildMap)
-    }
-
     fun dump(resValues:  Map<String, IdeClassField>) {
       head("ResValues")
       nest {

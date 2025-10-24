@@ -191,10 +191,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       removeExternalSourceSetsAndReportWarnings(project, gradleProject)
       attachVariantsSavedFromPreviousSyncs(project, projectDataNode)
     }
-    val buildMap = resolverCtx.getRootModel(IdeCompositeBuildMap::class.java)
-    if (buildMap != null) {
-      projectDataNode.createChild(AndroidProjectKeys.IDE_COMPOSITE_BUILD_MAP, buildMap)
-    }
 
     val syncError = resolverCtx.getRootModel(IdeAndroidSyncError::class.java)
     if (syncError != null) {
