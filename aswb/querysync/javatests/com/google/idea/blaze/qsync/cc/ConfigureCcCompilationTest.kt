@@ -33,6 +33,7 @@ import com.google.idea.blaze.qsync.deps.DependencyBuildContext
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.PackageStatementParser
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass
+import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectPath.Companion.workspaceRelativeForTests
 import com.google.idea.blaze.qsync.project.ProjectPath.ExternalRepositoryFinder.Companion.createEmptyForTests
@@ -96,9 +97,38 @@ class ConfigureCcCompilationTest {
         ArtifactTracker.State.EMPTY,
         update
       )
-    ccConfig.update(original.graph, context)
+    ccConfig.update(BuildGraphData.EMPTY, context)
     val project = update.build()
     assertThat(project.ccWorkspace).isEqualTo(CcWorkspace.getDefaultInstance())
+  }
+
+  @Test
+  fun emptyArtifactTracker() {
+    val original = syncRunner.sync(TestData.CC_LIBRARY_QUERY)
+    val update = ProjectProtoUpdate(original.project)
+    val ccConfig =
+      ConfigureCcCompilation(
+        ProjectPath.ExternalRepositoryFinder.createFailingForTests(),
+        ArtifactTracker.State.EMPTY,
+        update
+      )
+    ccConfig.update(original.graph, context)
+    val project = update.build()
+    val ccTarget = Label.of("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/cc:cc")
+    val testClassCcPath = ProjectPath.WorkspaceRelativeProjectPath(
+      Path.of("tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/cc/TestClass.cc"), Path.of(""))
+    assertThat(project.ccWorkspace).isEqualTo(
+      CcWorkspace.getDefaultInstance()
+        .copy(
+          targets = mapOf(
+            ccTarget to ProjectProto.CcTarget(
+              target = ccTarget,
+              sources = mapOf(testClassCcPath to ProjectProto.CcSourceFile(testClassCcPath, ProjectProto.CcLanguage.CPP)),
+              contexts = emptyMap()
+            )
+          )
+        )
+    )
   }
 
   @Test
@@ -254,13 +284,13 @@ class ConfigureCcCompilationTest {
       CcCompilationInfoOuterClass.CcCompilationInfo.newBuilder()
         .addAllTargets(
           labels.map { label: Label? ->
-              CcCompilationInfoOuterClass.CcTargetInfo.newBuilder()
-                .setLabel(label.toString())
-                .addDefines("DEBUG")
-                .addIncludeDirectories("src/include/directory")
-                .setToolchainId("//my/cc_toolchain")
-                .build()
-            })
+            CcCompilationInfoOuterClass.CcTargetInfo.newBuilder()
+              .setLabel(label.toString())
+              .addDefines("DEBUG")
+              .addIncludeDirectories("src/include/directory")
+              .setToolchainId("//my/cc_toolchain")
+              .build()
+          })
         .addToolchains(
           CcCompilationInfoOuterClass.CcToolchainInfo.newBuilder()
             .setId("//my/cc_toolchain")

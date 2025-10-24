@@ -16,6 +16,7 @@
 package com.google.idea.blaze.qsync.cc
 
 import com.google.idea.blaze.common.Context
+import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories
@@ -70,7 +71,13 @@ class ConfigureCcCompilation(
   @Throws(BuildException::class)
   fun update(buildGraph: BuildGraphData, context: Context<*>) {
     update.ccWorkspace {
-      val visitor = Visitor(context, buildGraph, this)
+      val visitor = Visitor(context, this)
+
+      val ccSources = buildGraph.getSourceFilesByRuleKindAndType(ruleKindPredicate = { true }, SourceType.REGULAR_CC)
+      for ((target, sources) in ccSources) {
+        visitor.visitTargetSourceFiles(target, sources)
+      }
+
       visitor.visitToolchainMap(artifactState.ccToolchainMap())
 
       for (target in artifactState.targets()) {
@@ -82,9 +89,22 @@ class ConfigureCcCompilation(
 
   private inner class Visitor(
     private val context: Context<*>,
-    private val buildGraph: BuildGraphData,
     private val workspaceUpdater: ProjectProtoUpdate.CcWorkspaceUpdater,
   ) {
+
+    fun visitTargetSourceFiles(target: Label, srcPaths: Collection<Path>) {
+      workspaceUpdater.target(target) {
+        for (srcPath in srcPaths) {
+          val lang = getLanguage(srcPath) ?: continue
+          addSourceFile(
+            CcSourceFile(
+              workspacePath = ProjectPath.WorkspaceRelativeProjectPath(srcPath, EMPTY_PATH),
+              language = lang,
+            )
+          )
+        }
+      }
+    }
 
     fun visitToolchainMap(toolchainInfoMap: Map<String, CcToolchain>) {
       toolchainInfoMap.values.forEach(this::visitToolchain)
@@ -116,19 +136,7 @@ class ConfigureCcCompilation(
           addAll(ccInfo.frameworkIncludeDirectories().map { p -> makePathFlag("-F", p) })
         }
 
-      val srcs = buildGraph.getTargetSources(ccInfo.target(), *SourceType.all())
-        .mapNotNull { srcPath ->
-          val lang = getLanguage(srcPath) ?: return@mapNotNull null
-          CcSourceFile(
-            workspacePath = ProjectPath.WorkspaceRelativeProjectPath(srcPath, EMPTY_PATH),
-            language = lang,
-          )
-        }
-
       workspaceUpdater.target(ccInfo.target()) {
-        srcs.forEach {
-          addSourceFile(it)
-        }
         val targetContext =
           CcCompilationContext(
             id = ccInfo.target().toString() + "%" + toolchain.targetGnuSystemName(),
