@@ -20,5 +20,9 @@ import com.android.tools.idea.flags.StudioFlags
 
 class StudioDeviceManagerDeviceFilter : DeviceManagerDeviceFilter {
   override fun isSupportedDevice(device: Device): Boolean =
-    StudioFlags.XR_DEVICE_SUPPORT_ENABLED.get() || !Device.isXr(device)
+    when {
+      Device.isAiGlasses(device) -> StudioFlags.AI_GLASSES_DEVICE_SUPPORT_ENABLED.get()
+      Device.isXrHeadset(device) -> StudioFlags.XR_DEVICE_SUPPORT_ENABLED.get()
+      else -> true
+    }
 }

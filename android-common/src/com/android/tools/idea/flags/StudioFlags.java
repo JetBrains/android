@@ -1793,6 +1793,13 @@ public final class StudioFlags {
     "Enable the support of XR device in the device manager"
   );
 
+  public static final Flag<Boolean> AI_GLASSES_DEVICE_SUPPORT_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "ai.glasses.device.support.enabled",
+    "AI Glasses Support Enabled",
+    "Enable the support of AI Glasses device in the device manager"
+  );
+
   public static final Flag<Boolean> AI_GLASSES_PHONE_EMULATOR_PAIRING_WIZARD_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
     "ai.glasses.phone.emulator.pairing.wizard.enabled",
