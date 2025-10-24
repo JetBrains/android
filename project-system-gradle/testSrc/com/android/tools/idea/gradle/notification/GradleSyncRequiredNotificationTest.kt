@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.notification
 
+import com.android.tools.idea.gradle.fixtures.createDaemonJvmPropertiesFile
 import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.android.tools.idea.gradle.project.sync.GradleFilesUpdater
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
@@ -55,6 +56,14 @@ class GradleSyncRequiredNotificationTest {
   @Test
   fun testModifyingGradleConfigPropertiesFileDisplaysNotification() {
     openFileInEditor(".gradle/config.properties", true)
+    assertNotificationPanelText(
+      "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+  }
+
+  @Test
+  fun testModifyingGradleDaemonJvmCriteriaPropertiesFileDisplaysNotification() {
+    project.createDaemonJvmPropertiesFile("17")
+    openFileInEditor("gradle/gradle-daemon-jvm.properties", true)
     assertNotificationPanelText(
       "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
   }

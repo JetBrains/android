@@ -49,6 +49,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.jetbrains.plugins.gradle.util.GradleConstants.GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME
 
 @Service(Service.Level.PROJECT)
 class GradleFilesUpdater(private val project: Project, private val cs: CoroutineScope) {
@@ -143,6 +144,12 @@ class GradleFilesUpdater(private val project: Project, private val cs: Coroutine
         dotGradle.findChild(FN_GRADLE_CONFIG_PROPERTIES)?.takeIf { it.isRegularFile }?.let { Result.from(it) } ?: Result.EMPTY
       }
     }
+    suspend fun computeDaemonJvmCriteriaHash(gradle: VirtualFile): Result {
+      if (!gradle.isDirectory) return Result.EMPTY
+      return readAction {
+        gradle.findChild(GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME)?.takeIf { it.isRegularFile }?.let { Result.from(it) } ?: Result.EMPTY
+      }
+    }
     val deferredResults = withContext(Dispatchers.IO) {
       buildList {
         add(async { computeWrapperPropertiesHash() })
@@ -150,7 +157,10 @@ class GradleFilesUpdater(private val project: Project, private val cs: Coroutine
         ModuleManager.getInstance(project).modules.filter { it.isHolderModule() }.forEach { add(async { computeModuleHashes(it) }) }
         project.guessProjectDir()?.let { root ->
           add(async { computeRootHashes(root) })
-          root.findChild("gradle")?.let { gradle -> add(async { computeVersionCatalogHashes(gradle) }) }
+          root.findChild("gradle")?.let { gradle ->
+            add(async { computeVersionCatalogHashes(gradle) })
+            add(async { computeDaemonJvmCriteriaHash(gradle) })
+          }
           root.findChild(".gradle")?.let { dotGradle -> add(async { computeGradleCacheHash(dotGradle) }) }
         }
       }
