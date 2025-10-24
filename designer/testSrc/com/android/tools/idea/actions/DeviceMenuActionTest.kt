@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.actions
 
+import com.android.flags.junit.FlagRule
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.Density
@@ -37,6 +38,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.StudioConfigurationModelModule
 import com.android.tools.idea.configurations.groupDevices
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.collect.ImmutableList
@@ -73,6 +75,7 @@ private fun AnAction.flattenActions(): List<AnAction> {
 class DeviceMenuActionTest {
 
   @JvmField @Rule val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
+  @get:Rule val flagRule = FlagRule(StudioFlags.AI_GLASSES_DEVICE_SUPPORT_ENABLED, true)
 
   private fun getReferenceDevicesExpected(): String {
     return """
