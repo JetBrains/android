@@ -17,9 +17,12 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.model.NotificationModel
+import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
@@ -27,7 +30,10 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.wm.ToolWindow
@@ -35,10 +41,15 @@ import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.ui.EditorNotificationPanel
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
 
@@ -116,6 +127,12 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
           layoutInspector.launcher!!,
         ),
       )
+
+    showEmbeddedLayoutInspectorBanner(
+      layoutInspector.inspectorModel.project,
+      layoutInspector.notificationModel,
+      layoutInspector.coroutineScope,
+    )
   }
 
   private fun createDevicePanel(
@@ -178,4 +195,60 @@ constructor(
       clientLauncher.enabled = isWindowVisible
     }
   }
+}
+
+private const val showBannerDefaultValue: Boolean = true
+private const val SHOW_BANNER_KEY =
+  "com.android.tools.idea.layoutinspector.try.embedded.layout.inspector.key"
+
+@VisibleForTesting const val BANNER_STRING_ID = "enable.embedded.layout.inspector.banner"
+
+@VisibleForTesting
+fun showEmbeddedLayoutInspectorBanner(
+  project: Project,
+  notificationModel: NotificationModel,
+  scope: CoroutineScope,
+  shouldShowBanner: () -> Boolean = {
+    PropertiesComponent.getInstance().getBoolean(SHOW_BANNER_KEY, showBannerDefaultValue)
+  },
+  setShouldShowBanner: (Boolean) -> Unit = {
+    PropertiesComponent.getInstance().setValue(SHOW_BANNER_KEY, it, showBannerDefaultValue)
+  },
+  activateEmbeddedLayoutInspector: (Project) -> Unit = {
+    activateEmbeddedLayoutInspectorToolWindow(project)
+  },
+) {
+  if (!shouldShowBanner()) {
+    return
+  }
+
+  notificationModel.addNotification(
+    id = BANNER_STRING_ID,
+    text = LayoutInspectorBundle.message(BANNER_STRING_ID),
+    status = EditorNotificationPanel.Status.Info,
+    actions =
+      listOf(
+        StatusNotificationAction(LayoutInspectorBundle.message("do.not.show.again")) { notification
+          ->
+          setShouldShowBanner(false)
+          notificationModel.removeNotification(notification.id)
+        },
+        StatusNotificationAction(LayoutInspectorBundle.message("enable")) {
+          // launch the coroutine first, since showSettingsDialog is blocking
+          scope.launch {
+            val settings = LayoutInspectorSettings.getInstance()
+            settings.embeddedLayoutInspectorChanges.collect { enabled ->
+              if (enabled == true) {
+                // if embedded LI is enabled, activate running devices toolbar
+                withContext(Dispatchers.EDT) { activateEmbeddedLayoutInspector(project) }
+              }
+            }
+          }
+
+          // show settings screen
+          ShowSettingsUtil.getInstance()
+            .showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
+        },
+      ),
+  )
 }

@@ -56,7 +56,8 @@ class ShowLayoutInspectorAction :
   }
 }
 
-private fun activateEmbeddedLayoutInspectorToolWindow(project: Project) {
+/** Activates running devices toolbar and enables Layout Inspector if a device tab is present. */
+fun activateEmbeddedLayoutInspectorToolWindow(project: Project) {
   activateToolWindow(project, toolWindowId = RUNNING_DEVICES_TOOL_WINDOW_ID) { toolWindow ->
     val toggleLayoutInspectorAction =
       ActionManager.getInstance().getAction(TOGGLE_EMBEDDED_LAYOUT_INSPECTOR_ACTION_ID)
