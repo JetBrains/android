@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.intellij.psi.PsiFile
+import kotlin.text.uppercase
 import org.jetbrains.kotlin.utils.addIfNotNull
 
 @Suppress("AddDependencyUsage")
@@ -124,5 +125,4 @@ open class DependenciesInserter {
    */
   fun addDependency(configuration: String, dependency: String, parsedModel: GradleBuildModel, sourceSet: String) =
     addDependency(configuration, dependency, listOf(), parsedModel, ExactDependencyMatcher(configuration, dependency), sourceSet)
-
 }
