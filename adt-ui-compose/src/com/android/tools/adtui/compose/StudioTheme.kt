@@ -29,7 +29,6 @@ import org.jetbrains.jewel.intui.markdown.bridge.create
 import org.jetbrains.jewel.markdown.extensions.LocalMarkdownBlockRenderer
 import org.jetbrains.jewel.markdown.extensions.LocalMarkdownProcessor
 import org.jetbrains.jewel.markdown.extensions.LocalMarkdownStyling
-import org.jetbrains.jewel.markdown.processing.MarkdownProcessor
 import org.jetbrains.jewel.markdown.rendering.MarkdownBlockRenderer
 
 @OptIn(ExperimentalJewelApi::class)
