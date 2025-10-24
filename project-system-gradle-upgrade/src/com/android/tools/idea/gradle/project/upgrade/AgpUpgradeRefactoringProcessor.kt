@@ -330,6 +330,7 @@ class AgpUpgradeRefactoringProcessor(
     AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(this),
     AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(this),
     RemoveImplementationPropertiesRefactoringProcessor(this),
+    DynamicFeatureConsumerProguardFilesProcessor(this),
     GradleDaemonJvmCriteriaRefactoringProcessor(this),
     // AGP 10.x
     BlockR8StrictFullModeForKeepRulesProcessor(this),
