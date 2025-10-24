@@ -18,7 +18,6 @@ package com.google.idea.blaze.qsync.cc
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.PrintOutput
-import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories
 import com.google.idea.blaze.qsync.deps.ArtifactTracker.State
 import com.google.idea.blaze.qsync.deps.CcCompilationInfo
@@ -42,23 +41,7 @@ import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicInteger
 
 /** Adds C/C++ compilation information and headers to the project proto. */
-class ConfigureCcCompilation(
-  private val externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
-  private val artifactState: State,
-  private val update: ProjectProtoUpdate,
-) {
-  /** An update operation to configure CC compilation. */
-  class UpdateOperation : ProjectProtoUpdateOperation {
-    override fun update(
-      update: ProjectProtoUpdate,
-      buildGraph: BuildGraphData,
-      artifactState: State,
-      context: Context<*>,
-      externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
-    ) {
-      ConfigureCcCompilation(externalRepositoryFinder, artifactState, update).update(buildGraph, context)
-    }
-  }
+class ConfigureCcCompilation: ProjectProtoUpdateOperation {
 
   /* Map from toolchain ID -> language -> flags for that toolchain & language. */
   private val toolchainLanguageFlags: MutableMap<String, Map<CcLanguage, List<CcCompilerFlag>>> = hashMapOf()
@@ -68,10 +51,15 @@ class ConfigureCcCompilation(
    * which can have a large memory footprint. */
   private val uniqueFlagSetIds: MutableMap<Set<CcCompilerFlag>, String> = hashMapOf()
 
-  @Throws(BuildException::class)
-  fun update(buildGraph: BuildGraphData, context: Context<*>) {
+  override fun update(
+    update: ProjectProtoUpdate,
+    buildGraph: BuildGraphData,
+    artifactState: State,
+    context: Context<*>,
+    externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
+  ) {
     update.ccWorkspace {
-      val visitor = Visitor(context, this)
+      val visitor = Visitor(update, artifactState, context, this, externalRepositoryFinder)
 
       val ccSources = buildGraph.getSourceFilesByRuleKindAndType(ruleKindPredicate = { true }, SourceType.REGULAR_CC)
       for ((target, sources) in ccSources) {
@@ -88,8 +76,11 @@ class ConfigureCcCompilation(
   }
 
   private inner class Visitor(
+    private val update: ProjectProtoUpdate,
+    private val artifactState: State,
     private val context: Context<*>,
     private val workspaceUpdater: ProjectProtoUpdate.CcWorkspaceUpdater,
+    private val externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
 
     fun visitTargetSourceFiles(target: Label, srcPaths: Collection<Path>) {
