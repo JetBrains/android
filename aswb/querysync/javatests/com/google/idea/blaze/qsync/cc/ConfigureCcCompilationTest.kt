@@ -91,8 +91,8 @@ class ConfigureCcCompilationTest {
   fun empty() {
     val original = syncRunner.sync(TestData.CC_LIBRARY_QUERY)
     val update = ProjectProtoUpdate(original.project)
-    val ccConfig = ConfigureCcCompilation()
-    ccConfig.update(
+    ConfigureCcSources().update(update, BuildGraphData.EMPTY, context)
+    ConfigureCcCompilation().update(
       update,
       BuildGraphData.EMPTY,
       ArtifactTracker.State.EMPTY,
@@ -107,8 +107,8 @@ class ConfigureCcCompilationTest {
   fun emptyArtifactTracker() {
     val original = syncRunner.sync(TestData.CC_LIBRARY_QUERY)
     val update = ProjectProtoUpdate(original.project)
-    val ccConfig = ConfigureCcCompilation()
-    ccConfig.update(
+    ConfigureCcSources().update(update, original.graph, context)
+    ConfigureCcCompilation().update(
       update,
       original.graph,
       ArtifactTracker.State.EMPTY,
@@ -181,8 +181,8 @@ class ConfigureCcCompilationTest {
         )
         .build()
 
-    val ccConfig = ConfigureCcCompilation()
-    ccConfig.update(
+    ConfigureCcSources().update(update, original.graph, context)
+    ConfigureCcCompilation().update(
       update,
       original.graph,
       toArtifactState(compilationInfo),
@@ -306,8 +306,8 @@ class ConfigureCcCompilationTest {
         )
         .build()
 
-    val ccConfig = ConfigureCcCompilation()
-    ccConfig.update(
+    ConfigureCcSources().update(update, original.graph, context)
+    ConfigureCcCompilation().update(
       update,
       original.graph,
       toArtifactState(ccCi),

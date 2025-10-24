@@ -3,23 +3,19 @@ package com.google.idea.blaze.qsync.cc
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.PrintOutput
-import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectTarget
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import java.nio.file.Path
 
 /** Adds C/C++ compilation information and headers to the project proto. */
-class ConfigureCcSources: ProjectProtoUpdateOperation {
-  override fun update(
+class ConfigureCcSources {
+  fun update(
     update: ProjectProtoUpdate,
     buildGraph: BuildGraphData,
-    unusedArtifactState: ArtifactTracker.State,
     context: Context<*>,
-    externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
     update.ccWorkspace {
       val visitor = Visitor(context, this)
@@ -31,7 +27,7 @@ class ConfigureCcSources: ProjectProtoUpdateOperation {
     }
   }
 
-  private inner class Visitor(
+  private class Visitor(
     private val context: Context<*>,
     private val workspaceUpdater: ProjectProtoUpdate.CcWorkspaceUpdater,
   ) {
