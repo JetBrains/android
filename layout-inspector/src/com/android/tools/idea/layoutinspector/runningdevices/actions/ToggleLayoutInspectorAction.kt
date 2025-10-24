@@ -34,6 +34,9 @@ import icons.StudioIcons
 import javax.swing.JComponent
 import org.jetbrains.annotations.TestOnly
 
+const val TOGGLE_EMBEDDED_LAYOUT_INSPECTOR_ACTION_ID =
+  "com.android.tools.idea.layoutinspector.toggle.layout.inspector.action"
+
 const val STUDIO_DOC_LI_URL = "https://d.android.com/r/studio-ui/layout-inspector"
 
 /**
