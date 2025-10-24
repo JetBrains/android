@@ -29,6 +29,7 @@ import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.run.AndroidRunConfiguration.Companion.CURRENT_SCHEMA_VERSION
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch
@@ -166,8 +167,10 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
   override fun validate(executor: Executor?, quickFixCallback: Runnable?): List<ValidationError> {
     val errors = super.validate(executor, quickFixCallback).toMutableList()
     if (StudioFlags.BACKUP_ENABLED.get()) {
-      val section = BackupManager.getInstance(project).getRestoreRunConfigSection(project)
-      errors.addAll(section.validate(this@AndroidRunConfiguration))
+      val section = BackupManager.tryGetInstance(project)?.getRestoreRunConfigSection(project)
+      if (section != null) {
+        errors.addAll(section.validate(this@AndroidRunConfiguration))
+      }
     }
     return errors
   }

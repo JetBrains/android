@@ -43,23 +43,16 @@ import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
-import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.SmartList;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
-import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -67,12 +60,10 @@ import java.util.Objects;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.intellij.ui.BrowserHyperlinkListener;
 
 public class ApplicationRunParameters<T extends AndroidRunConfiguration> implements ConfigurationSpecificEditor<T>, ActionListener {
   private JPanel myPanel;
@@ -168,8 +159,9 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
       StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get() != StudioFlags.OptimisticInstallSupportLevel.DISABLED);
     myAssumeVerified.setVisible(StudioFlags.INSTALL_WITH_ASSUME_VERIFIED.get());
 
-    if (StudioFlags.BACKUP_ENABLED.get()) {
-      myRestoreRunConfigSection = BackupManager.getInstance(project).getRestoreRunConfigSection(project);
+    BackupManager backupManager = BackupManager.tryGetInstance(project);
+    if (StudioFlags.BACKUP_ENABLED.get() && backupManager != null) {
+      myRestoreRunConfigSection = backupManager.getRestoreRunConfigSection(project);
       myRestorePanelWrapper.add(myRestoreRunConfigSection.getComponent(this), BorderLayout.CENTER);
     }
     else {
