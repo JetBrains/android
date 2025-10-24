@@ -43,5 +43,11 @@ internal object StudioLabsIcons {
         "images/studio_labs/transform-compose-preview.png",
         javaClass,
       )
+    val Journeys =
+      IntelliJIconKey(
+        "images/studio_labs/journeys.png",
+        "images/studio_labs/journeys.png",
+        javaClass,
+      )
   }
 }

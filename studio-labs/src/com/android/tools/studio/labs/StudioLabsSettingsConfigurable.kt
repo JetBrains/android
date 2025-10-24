@@ -176,6 +176,17 @@ class StudioLabsSettingsConfigurable :
             imageDescription = "Suggested Fix in AQI",
           ),
           */
+          StudioLabsFeaturePanelUi(
+            flag = StudioFlags.JOURNEYS_WITH_GEMINI_EXECUTION,
+            heading = "Journeys",
+            description =
+              """
+                Use the vision and reasoning capabilities of AI to convert natural language instructions into automated tests.
+              """
+                .trimIndent(),
+            imageKey = StudioLabsIcons.Features.Journeys,
+            imageDescription = "Journeys",
+          ),
         )
 
       if (StudioFlags.STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED.get()) {
