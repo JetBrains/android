@@ -16,12 +16,10 @@
 package com.google.idea.blaze.android.resources;
 
 import com.android.tools.idea.projectsystem.LightResourceClassService;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
-import com.google.idea.common.experiments.FeatureRolloutExperiment;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
 import java.util.Collection;
@@ -31,18 +29,13 @@ import java.util.Set;
 /** Implementation of {@link LightResourceClassService} set up at Blaze sync time. */
 public abstract class BlazeLightResourceClassServiceBase implements LightResourceClassService {
 
-  @VisibleForTesting
-  public static final FeatureRolloutExperiment workspaceResourcesFeature =
-      new FeatureRolloutExperiment("aswb.workspace.light.class.enabled");
-
   Map<String, BlazeRClass> rClasses = Maps.newHashMap();
   Map<Module, BlazeRClass> rClassesByModule = Maps.newHashMap();
   final Set<BlazeRClass> allRClasses = Sets.newHashSet();
 
   @Override
   public Collection<? extends PsiClass> getLightRClassesAccessibleFromModule(Module module) {
-    if (workspaceResourcesFeature.isEnabled()
-        && module.getName().equals(BlazeDataStorage.WORKSPACE_MODULE_NAME)) {
+    if (module.getName().equals(BlazeDataStorage.WORKSPACE_MODULE_NAME)) {
       // Returns all the packages in resource modules, and all the workspace packages that
       // have previously been asked for. All `res/` directories in our project should belong to a
       // resource module. For java sources, IntelliJ will ask for explicit resource package by
