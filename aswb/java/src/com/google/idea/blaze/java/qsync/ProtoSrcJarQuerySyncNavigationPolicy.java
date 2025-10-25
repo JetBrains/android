@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Bazel Authors. All rights reserved.
+ * Copyright 2025 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,11 @@
  */
 package com.google.idea.blaze.java.qsync;
 
+import static com.google.idea.blaze.java.qsync.QuerySyncNavigationPolicy.ENABLED;
+
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
-import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.compiled.ClsCustomNavigationPolicy;
@@ -31,10 +32,7 @@ import org.jetbrains.annotations.Nullable;
  * Substitutes a workspace source file in place of a decompiled class file for non-project
  * dependencies with sources in the workspace.
  */
-public class QuerySyncNavigationPolicy implements ClsCustomNavigationPolicy {
-
-  public static final BoolExperiment ENABLED =
-      new BoolExperiment("querysync.navigationpolicy", true);
+public class ProtoSrcJarQuerySyncNavigationPolicy implements ClsCustomNavigationPolicy {
 
   @Override
   @Nullable
@@ -44,11 +42,11 @@ public class QuerySyncNavigationPolicy implements ClsCustomNavigationPolicy {
       return null;
     }
     return CachedValuesManager.getCachedValue(
-        clsFile,
-        () ->
-            Result.create(
-                new ClassFileJavaSourceFinder(clsFile).findSourceFile(),
-                clsFile,
-                QuerySyncManager.getInstance(project).getProjectModificationTracker()));
+      clsFile,
+      () ->
+        Result.create(
+          new ProtoFileJavaSourceFinder(clsFile).findSourceFile(),
+          clsFile,
+          QuerySyncManager.getInstance(project).getProjectModificationTracker()));
   }
 }
