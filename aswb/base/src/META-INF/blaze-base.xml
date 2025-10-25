@@ -629,7 +629,6 @@
     <SettingsUiContributor implementation="com.google.idea.blaze.base.settings.ui.BlazeUserSettingsConfigurable$UiContributor" order="first" id="base"/>
     <MacroTargetProvider implementation="com.google.idea.blaze.base.query.BlazeQueryMacroTargetProvider" order="last"/>
     <BinaryPathRemapper implementation="com.google.idea.blaze.base.async.process.MacBinaryPathRemapper" order="last"/>
-    <CustomFormatter implementation="com.google.idea.blaze.base.buildmodifier.BuildifierCustomFormatter"/>
     <ArtifactStateHelper implementation="com.google.idea.blaze.base.filecache.LocalArtifactStateProtoConverter"/>
     <!-- Order of loaders is important. If a value for the same experiment defined in a few sources, then the first has higher priority. -->
     <ExperimentLoader implementation="com.google.idea.common.experiments.SystemPropertyExperimentLoader" order="first" id="SystemPropertyExperimentLoader"/>
