@@ -39,9 +39,6 @@ import javax.annotation.Nullable;
 /** Formatting support for BUILD/bzl sources, delegating to an external 'buildifier' binary. */
 public final class BuildifierFormattingService extends AsyncDocumentFormattingService {
 
-  static final FeatureRolloutExperiment useNewBuildifierFormattingService =
-      new FeatureRolloutExperiment("formatter.api.buildifier");
-
   static final Supplier<Optional<String>> binaryPath = Suppliers.memoize(() -> getBinary());
 
   @Override
@@ -73,8 +70,7 @@ public final class BuildifierFormattingService extends AsyncDocumentFormattingSe
 
   @Override
   public boolean canFormat(PsiFile file) {
-    return useNewBuildifierFormattingService.isEnabled()
-        && file instanceof BuildFile
+    return file instanceof BuildFile
         && binaryPath.get().isPresent();
   }
 
