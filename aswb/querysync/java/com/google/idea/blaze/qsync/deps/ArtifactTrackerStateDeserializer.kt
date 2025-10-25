@@ -104,6 +104,7 @@ class ArtifactTrackerStateDeserializer(private val metadataFactory: ArtifactMeta
       .setOutputJars(toArtifactList(proto.outputJarsList, owner))
       .setIdeAar(if (proto.hasIdeAar()) toArtifact(proto.ideAar, owner) else null)
       .setGenSrcs(toArtifactList(proto.genSrcsList, owner))
+      .setProtoSrcjars(toArtifactList(proto.protoSrcjarsList, owner))
       .setSources(proto.sourcesList.map { projectPathFrom(it) }.toSet())
       .setSrcJars(proto.srcJarsList.map { projectPathFrom(it) }.toSet())
       .setAndroidResourcesPackage(proto.getAndroidResourcesPackage())

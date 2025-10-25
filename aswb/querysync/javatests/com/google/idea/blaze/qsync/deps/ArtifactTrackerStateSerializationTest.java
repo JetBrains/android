@@ -94,6 +94,12 @@ public class ArtifactTrackerStateSerializationTest {
                                 "gensrcdigest",
                                 Path.of("/build/out/Generated.java"),
                                 Label.of("//my/package:target"))))
+                  .setProtoSrcjars(
+                        ImmutableList.of(
+                            BuildArtifact.create(
+                                "gensrcdigest",
+                                Path.of("/build/out/libproto-src.jar"),
+                                Label.of("//my/package:target"))))
                     .setSources(ImmutableSet.of(ProjectPath.workspaceRelativeForTests(Path.of("/workspace/path/Source.java"))))
                     .setSrcJars(ImmutableSet.of(ProjectPath.workspaceRelativeForTests(Path.of("/workspace/path/sources.srcjar"))))
                     .setAndroidResourcesPackage("com.my.package")

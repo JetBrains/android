@@ -64,6 +64,8 @@ public abstract class JavaArtifactInfo {
    */
   public abstract ImmutableSet<BuildArtifact> genSrcs();
 
+  public abstract ImmutableSet<BuildArtifact> protoSrcjars();
+
   /** Workspace relative sources for this dependency, extracted at dependency build time. */
   public abstract ImmutableSet<ProjectPath> sources();
 
@@ -80,6 +82,7 @@ public abstract class JavaArtifactInfo {
     }
     return toBuilder()
         .setGenSrcs(BuildArtifact.addMetadata(genSrcs(), metadata))
+        .setProtoSrcjars(BuildArtifact.addMetadata(protoSrcjars(), metadata))
         .setIdeAar(ideAar() != null ?ideAar().withMetadata(metadata.get(ideAar())) : null)
         .setJars(BuildArtifact.addMetadata(jars(), metadata))
         .setOutputJars(BuildArtifact.addMetadata(outputJars(), metadata))
@@ -105,6 +108,7 @@ public abstract class JavaArtifactInfo {
         .setJars(BuildArtifact.fromProtos(proto.getJarsList(), digestMap, target))
         .setOutputJars(BuildArtifact.fromProtos(proto.getOutputJarsList(), digestMap, target))
         .setGenSrcs(BuildArtifact.fromProtos(proto.getGenSrcsList(), digestMap, target))
+        .setProtoSrcjars(BuildArtifact.fromProtos(proto.getProtoSrcjarsList(), digestMap, target))
         .setSources(proto.getSrcsList().stream()
                       .map(it -> ProjectPath.workspaceRelative(Interners.pathOf(it), externalRepositoryFinder))
                       .collect(toImmutableSet()))
@@ -123,6 +127,7 @@ public abstract class JavaArtifactInfo {
         .setJars(ImmutableList.of())
         .setOutputJars(ImmutableList.of())
         .setGenSrcs(ImmutableList.of())
+        .setProtoSrcjars(ImmutableList.of())
         .setSources(ImmutableSet.of())
         .setSrcJars(ImmutableSet.of())
         .setAndroidResourcesPackage("")
@@ -150,6 +155,8 @@ public abstract class JavaArtifactInfo {
     public abstract Builder setGenSrcs(List<BuildArtifact> value);
 
     public abstract Builder setGenSrcs(BuildArtifact... value);
+
+    public abstract Builder setProtoSrcjars(List<BuildArtifact> value);
 
     public abstract Builder setSources(Set<ProjectPath> value);
 

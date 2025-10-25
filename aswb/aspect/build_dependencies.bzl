@@ -284,6 +284,7 @@ def _encode_target_info_proto(target_info):
         output_jars = _encode_file_list(target_info.output_jars),
         ide_aar = struct(file = target_info.ide_aar.path) if target_info.ide_aar else None,
         gen_srcs = _encode_file_list(target_info.gen_srcs),
+        proto_srcjars = _encode_file_list(target_info.proto_srcjars),
         srcs = target_info.srcs,
         srcjars = target_info.srcjars,
         android_resources_package = target_info.android_resources_package,
@@ -453,6 +454,7 @@ def _collect_own_java_artifacts(
     own_output_jar_files = []
     own_ide_aar_file = None
     own_gensrc_files = []
+    own_proto_srcjars = []
     own_src_file_paths = []
     own_srcjar_file_paths = []
     resource_package = ""
@@ -559,6 +561,9 @@ def _collect_own_java_artifacts(
                     else:
                         own_gensrc_files.append(file)
 
+        if java_proto_info:
+            own_proto_srcjars += getattr(java_proto_info, "proto_source_jars", [])
+
     if not (java_info or kotlin_info or android_info or java_proto_info or own_gensrc_files or own_src_file_paths or own_srcjar_file_paths):
         return None
     if own_jar_files or len(own_jar_depsets) > 1:
@@ -580,6 +585,7 @@ def _collect_own_java_artifacts(
         output_jar_depset = depset(own_output_jar_files),
         ide_aar = own_ide_aar_file,
         gensrc_depset = depset(own_gensrc_files),
+        proto_srcjars_depset = depset(own_proto_srcjars),
         src_file_paths = own_src_file_paths,
         srcjar_file_paths = own_srcjar_file_paths,
         android_resources_package = resource_package,
@@ -594,6 +600,7 @@ def _target_to_artifact_entry(
         output_jars = [],
         ide_aar = None,
         gen_srcs = [],
+        proto_srcjars = [],
         srcs = [],
         srcjars = [],
         android_resources_package = ""):
@@ -606,6 +613,7 @@ def _target_to_artifact_entry(
         output_jars = output_jars,
         ide_aar = ide_aar,
         gen_srcs = gen_srcs,
+        proto_srcjars = proto_srcjars,
         srcs = srcs,
         srcjars = srcjars,
         android_resources_package = android_resources_package,
@@ -646,6 +654,7 @@ def _collect_own_and_dependency_java_artifacts(
     output_jars = own_files.output_jar_depset.to_list()
     ide_aar = own_files.ide_aar
     gen_srcs = own_files.gensrc_depset.to_list()  # Flattening is fine here (these are files from one target)
+    proto_srcjars = own_files.proto_srcjars_depset.to_list()
     java_info_file = _write_java_target_info(ctx, target.label, _target_to_artifact_entry(
         label = str(target.label),
         is_external_dependency = own_files.is_external_dependency,
@@ -655,6 +664,7 @@ def _collect_own_and_dependency_java_artifacts(
         output_jars = output_jars,
         ide_aar = ide_aar,
         gen_srcs = gen_srcs,
+        proto_srcjars = proto_srcjars,
         srcs = own_files.src_file_paths,
         srcjars = own_files.srcjar_file_paths,
         android_resources_package = own_files.android_resources_package,
@@ -676,7 +686,7 @@ def _collect_own_and_dependency_java_artifacts(
         compile_jars = depset(transitive = own_and_transitive_jar_depsets),
         compile_jdeps = depset(transitive = own_and_transitive_compile_jdeps_depsets),
         aars = depset([ide_aar] if ide_aar else [], transitive = own_and_transitive_ide_aar_depsets),
-        gensrcs = depset(gen_srcs, transitive = own_and_transitive_gensrc_depsets),
+        gensrcs = depset(gen_srcs + proto_srcjars, transitive = own_and_transitive_gensrc_depsets),
     )
 
 def _get_cc_toolchain_dependency_info(rule):

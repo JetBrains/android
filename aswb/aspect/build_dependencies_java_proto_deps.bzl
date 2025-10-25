@@ -15,7 +15,14 @@ def _get_dependency_attribute(rule, attr):
 
 def _get_java_proto_info(target, rule):
     if rule.kind in ["proto_lang_toolchain", "java_rpc_toolchain"]:
-        return struct()
+        return struct(
+            proto_source_jars = [],
+        )
+    if rule.kind in ["java_proto_library", "java_lite_proto_library"]:
+        if JavaInfo in target:
+            return struct(
+                proto_source_jars = target[JavaInfo].source_jars,
+            )
     return None
 
 def _get_followed_java_proto_dependencies(rule):
