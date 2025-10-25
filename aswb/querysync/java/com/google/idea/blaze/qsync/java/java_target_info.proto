@@ -36,4 +36,5 @@ message JavaArtifacts {
   repeated OutputArtifact dep_java_info_files = 9;
   bool is_external_dependency = 12;
   optional OutputArtifact ide_aar = 13;
+  repeated OutputArtifact proto_srcjars = 14;
 }
