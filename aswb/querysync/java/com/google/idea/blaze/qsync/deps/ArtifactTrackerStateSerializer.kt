@@ -28,7 +28,7 @@ import com.google.idea.blaze.qsync.project.ProjectPath.WorkspaceRelativeProjectP
 /** Serializes [NewArtifactTracker] state to a proto.  */
 class ArtifactTrackerStateSerializer {
   companion object {
-    const val VERSION: Int = 6
+    const val VERSION: Int = 7
   }
   private val proto = ArtifactTrackerProto.ArtifactTrackerState.newBuilder().setVersion(VERSION)
   private val buildIdsSeen: MutableSet<String> = Sets.newHashSet()
@@ -73,6 +73,7 @@ class ArtifactTrackerStateSerializer {
     javaInfo.ideAar()?.let {artifactTrackerProtoBuilder.setIdeAar(toProto(it))}
     artifactTrackerProtoBuilder
       .addAllGenSrcs(toProtos(javaInfo.genSrcs()))
+      .addAllProtoSrcjars(toProtos(javaInfo.protoSrcjars()))
       .addAllJars(toProtos(javaInfo.jars()))
       .addAllSources(javaInfo.sources().map { projectPathToProto(it) })
       .addAllSrcJars(javaInfo.srcJars().map { projectPathToProto(it) })

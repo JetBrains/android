@@ -45,11 +45,17 @@ class AddDependencyGenSrcsJars(
     return if (projectDefinition.isIncluded(javaInfo.label())) emptyList()
     else javaInfo.genSrcs().filter { ProjectProtoUpdateOperation.Companion.JAVA_ARCHIVE_EXTENSIONS.contains(it.getExtension()) }
   }
+  private fun getDependencyProtoSrcJars(target: TargetBuildInfo): Collection<BuildArtifact> {
+    val javaInfo = target.javaInfo().getOrNull() ?: return emptyList()
+
+    return if (projectDefinition.isIncluded(javaInfo.label())) emptyList()
+    else javaInfo.protoSrcjars().filter { ProjectProtoUpdateOperation.Companion.JAVA_ARCHIVE_EXTENSIONS.contains(it.getExtension()) }
+  }
 
   override fun getRequiredArtifacts(
     forTarget: TargetBuildInfo,
   ): Map<BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {
-    return getDependencyGenSrcJars(forTarget).associateWith { listOf(srcJarPathsMetadata) }
+    return (getDependencyGenSrcJars(forTarget) + getDependencyProtoSrcJars(forTarget)).associateWith { listOf(srcJarPathsMetadata) }
   }
 
   @Throws(BuildException::class)
@@ -62,6 +68,9 @@ class AddDependencyGenSrcsJars(
     update
       .artifactDirectory(ArtifactDirectories.DEFAULT) {
         for (target in artifactState.targets()) {
+          for (protoSrcJar in getDependencyProtoSrcJars(target)) {
+            addIfNewer(protoSrcJar.artifactPath(), protoSrcJar, target.buildContext())
+          }
           val projectPaths = getDependencyGenSrcJars(target)
             .flatMap { genSrc ->
               val projectPath = addIfNewer(genSrc.artifactPath(), genSrc, target.buildContext())

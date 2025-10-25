@@ -89,6 +89,7 @@ message JavaArtifacts {
   string android_resources_package = 6;
   bool is_external_dependency = 9;
   optional Artifact ide_aar= 10;
+  repeated Artifact proto_srcjars = 13;
 }
 
 message BuildContext {
