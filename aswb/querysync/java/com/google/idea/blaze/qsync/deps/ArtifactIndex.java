@@ -15,9 +15,9 @@
  */
 package com.google.idea.blaze.qsync.deps;
 
-import static autovalue.shaded.com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
-import autovalue.shaded.com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList;
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.collect.ImmutableMap;
