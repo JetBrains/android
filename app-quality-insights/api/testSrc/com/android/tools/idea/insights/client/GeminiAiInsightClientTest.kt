@@ -32,6 +32,7 @@ import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
+import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ExtensionTestUtil
@@ -100,7 +101,11 @@ class GeminiAiInsightClientTest {
   @Test
   fun `test gemini client without code context`() = runBlocking {
     val client =
-      GeminiAiInsightClient(projectRule.project, AppInsightsCacheImpl(), codeContextResolver)
+      GeminiAiInsightClient(
+        projectRule.project,
+        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+        codeContextResolver,
+      )
 
     val request =
       GeminiCrashInsightRequest(
@@ -140,7 +145,11 @@ class GeminiAiInsightClientTest {
   @Test
   fun `test gemini client with code context`() = runBlocking {
     val client =
-      GeminiAiInsightClient(projectRule.project, AppInsightsCacheImpl(), codeContextResolver)
+      GeminiAiInsightClient(
+        projectRule.project,
+        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+        codeContextResolver,
+      )
 
     val request =
       GeminiCrashInsightRequest(
@@ -196,7 +205,7 @@ class GeminiAiInsightClientTest {
   @Test
   fun `client reuses cached insights`() = runBlocking {
     fakeGeminiPluginApi.contextAllowed = false
-    val cache = AppInsightsCacheImpl()
+    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
     cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
     val client = GeminiAiInsightClient(projectRule.project, cache, codeContextResolver)
 
@@ -218,7 +227,7 @@ class GeminiAiInsightClientTest {
 
   @Test
   fun `client caches new insight`() = runBlocking {
-    val cache = AppInsightsCacheImpl()
+    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
     val client = GeminiAiInsightClient(projectRule.project, cache, codeContextResolver)
 
     (codeContextResolver as FakeCodeContextResolver).codeContext = emptyList()
@@ -235,16 +244,18 @@ class GeminiAiInsightClientTest {
       )
 
     assertThat(client.fetchCrashInsight(request))
-      .isEqualTo(AiInsight("", insightSource = InsightSource.STUDIO_BOT))
+      .isEqualTo(AiInsight("", ISSUE1.sampleEvent, insightSource = InsightSource.STUDIO_BOT))
     assertThat(cache.getAiInsight(CONNECTION1, ISSUE1.id, null, ContextSharingState.DISABLED))
-      .isEqualTo(AiInsight("", isCached = true, insightSource = InsightSource.STUDIO_BOT))
+      .isEqualTo(
+        AiInsight("", ISSUE1.sampleEvent, isCached = true, insightSource = InsightSource.STUDIO_BOT)
+      )
   }
 
   @Test
   fun `client prefers insight generated with code context regardless of context sharing setting`() =
     runBlocking {
       fakeGeminiPluginApi.contextAllowed = false
-      val cache = AppInsightsCacheImpl()
+      val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
       cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
       cache.putAiInsight(CONNECTION1, ISSUE1.id, null, AI_INSIGHT_WITH_CODE_CONTEXT)
       val client = GeminiAiInsightClient(projectRule.project, cache, codeContextResolver)
@@ -267,7 +278,7 @@ class GeminiAiInsightClientTest {
   fun `when context sharing is enabled, client does not serve cached insight generated without context`() =
     runBlocking {
       fakeGeminiPluginApi.contextAllowed = true
-      val cache = AppInsightsCacheImpl()
+      val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
       cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
       val client = GeminiAiInsightClient(projectRule.project, cache, codeContextResolver)
 
@@ -325,7 +336,11 @@ class GeminiAiInsightClientTest {
   @Test
   fun `client omits code context when connection does not match project`() = runBlocking {
     val client =
-      GeminiAiInsightClient(projectRule.project, AppInsightsCacheImpl(), codeContextResolver)
+      GeminiAiInsightClient(
+        projectRule.project,
+        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+        codeContextResolver,
+      )
     val connection = mock<Connection>()
     `when`(connection.isMatchingProject()).thenReturn(false)
 
@@ -368,7 +383,11 @@ class GeminiAiInsightClientTest {
   @Test
   fun `create gemini insight request truncates at the context limit`() = runBlocking {
     val client =
-      GeminiAiInsightClient(projectRule.project, AppInsightsCacheImpl(), codeContextResolver)
+      GeminiAiInsightClient(
+        projectRule.project,
+        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+        codeContextResolver,
+      )
 
     val event = ISSUE1.sampleEvent
 
@@ -413,7 +432,11 @@ class GeminiAiInsightClientTest {
   fun `gemini insight request with suggest a fix prompt`() = runBlocking {
     StudioFlags.SUGGEST_A_FIX.override(true)
     val client =
-      GeminiAiInsightClient(projectRule.project, AppInsightsCacheImpl(), codeContextResolver)
+      GeminiAiInsightClient(
+        projectRule.project,
+        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+        codeContextResolver,
+      )
 
     val request =
       GeminiCrashInsightRequest(
@@ -475,7 +498,11 @@ class GeminiAiInsightClientTest {
       StudioFlags.SUGGEST_A_FIX.override(true)
       StudioFlags.STUDIOBOT_TRANSFORM_SESSION_DIFF_EDITOR_VIEWER_ENABLED.override(true)
       val client =
-        GeminiAiInsightClient(projectRule.project, AppInsightsCacheImpl(), codeContextResolver)
+        GeminiAiInsightClient(
+          projectRule.project,
+          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+          codeContextResolver,
+        )
 
       val request =
         GeminiCrashInsightRequest(
@@ -545,7 +572,11 @@ class GeminiAiInsightClientTest {
         }
       }
     val client =
-      GeminiAiInsightClient(projectRule.project, AppInsightsCacheImpl(), codeContextResolver)
+      GeminiAiInsightClient(
+        projectRule.project,
+        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+        codeContextResolver,
+      )
     fakeGeminiPluginApi.generateResponse = "a /b /c /Hello World1 .kt,\na/b/c/Hello World 2.kt\n"
 
     val request =

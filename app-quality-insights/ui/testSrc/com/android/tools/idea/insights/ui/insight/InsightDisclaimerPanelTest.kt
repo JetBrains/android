@@ -113,7 +113,7 @@ class InsightDisclaimerPanelTest {
               }
             }
         )
-      insightFlow.update { LoadingState.Ready(AiInsight("")) }
+      insightFlow.update { LoadingState.Ready(AiInsight("", ISSUE1.sampleEvent)) }
       waitForCondition(2.seconds) { disclaimerPanel.isVisible }
 
       clickOnLink()
@@ -121,7 +121,7 @@ class InsightDisclaimerPanelTest {
       fakeUi.updateToolbars()
       assertThat(refreshInsightCalled.await()).isTrue()
 
-      insightFlow.update { LoadingState.Ready(AiInsight("")) }
+      insightFlow.update { LoadingState.Ready(AiInsight("", ISSUE1.sampleEvent)) }
       waitForCondition(2.seconds) { !disclaimerPanel.isVisible }
     }
 

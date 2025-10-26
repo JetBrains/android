@@ -23,6 +23,7 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
 import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCache
@@ -92,7 +93,7 @@ class AppInsightsProjectLevelControllerRule(
     val offlineStatusManager = OfflineStatusManagerImpl()
     scope = AndroidCoroutineScope(disposable, AndroidDispatchers.uiThread)
     clock = FakeClock(NOW)
-    cache = AppInsightsCacheImpl()
+    cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
     client = spy(TestAppInsightsClient(cache))
     connections = MutableSharedFlow(replay = 1)
     tracker = mock<AppInsightsTracker>()

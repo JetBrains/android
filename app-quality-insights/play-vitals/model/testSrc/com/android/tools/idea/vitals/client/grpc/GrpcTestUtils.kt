@@ -22,6 +22,7 @@ import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.StackTraceGroupParser
 import com.android.tools.idea.insights.StubStackTraceGroupParser
+import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
@@ -54,7 +55,7 @@ fun createIssueRequest(connection: VitalsConnection = TEST_CONNECTION_1, clock: 
     .toIssueRequest(clock)!!
 
 fun createVitalsClient(
-  cache: AppInsightsCache = AppInsightsCacheImpl(),
+  cache: AppInsightsCache = AppInsightsCacheImpl(ProductType.PLAY_VITALS),
   grpcClient: VitalsGrpcClient? = null,
   aiInsightClient: AiInsightClient = FakeAiInsightClient,
   stackTraceParser: StackTraceGroupParser = StubStackTraceGroupParser(),

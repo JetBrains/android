@@ -25,6 +25,7 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.Timed
+import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
@@ -49,7 +50,7 @@ class SelectedIssueChangedTest {
           currentState,
           TestAppInsightsTracker,
           FakeInsightsProvider(),
-          AppInsightsCacheImpl(),
+          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
         )
 
     with(transition) {
@@ -86,7 +87,7 @@ class SelectedIssueChangedTest {
           currentState,
           TestAppInsightsTracker,
           FakeInsightsProvider(),
-          AppInsightsCacheImpl(),
+          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
         )
 
     assertThat(transition).isEqualTo(StateTransition(currentState, Action.NONE))
@@ -107,7 +108,7 @@ class SelectedIssueChangedTest {
           currentState,
           TestAppInsightsTracker,
           FakeInsightsProvider("name", false),
-          AppInsightsCacheImpl(),
+          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
         )
 
     with(transition) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.events.EventsChanged
@@ -42,7 +43,7 @@ class EventsChangedTest {
         currentState,
         TestAppInsightsTracker,
         FakeInsightsProvider(),
-        AppInsightsCacheImpl(),
+        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
       )
     assertThat(transition.newState.currentEvents)
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(eventList, 0, "")))
@@ -68,7 +69,7 @@ class EventsChangedTest {
         currentState,
         TestAppInsightsTracker,
         FakeInsightsProvider(),
-        AppInsightsCacheImpl(),
+        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
       )
     assertThat(transition.newState.currentEvents)
       .isEqualTo(
@@ -93,7 +94,7 @@ class EventsChangedTest {
         currentState,
         TestAppInsightsTracker,
         FakeInsightsProvider(),
-        AppInsightsCacheImpl(),
+        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
       )
     assertThat(transition.newState.currentEvents).isEqualTo(failure)
     assertThat(transition.action)

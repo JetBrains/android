@@ -40,6 +40,7 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
+import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.google.common.truth.Truth.assertThat
 import java.time.Duration
 import java.time.Instant
@@ -126,6 +127,7 @@ class AppInsightsCacheTest {
             emptyList(),
           ),
           testEvent,
+          source = ProductType.PLAY_VITALS,
         )
 
       issue =
@@ -193,14 +195,14 @@ class AppInsightsCacheTest {
       populateIssues.add(issue)
     }
 
-    val cache = AppInsightsCacheImpl()
+    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
     assertThat(
         cache.getTopIssues(
           IssueRequest(
             connection,
             QueryFilters(
               Interval(now.minus(Duration.ofDays(60)), now),
-              eventTypes = FailureType.values().toList(),
+              eventTypes = FailureType.entries,
             ),
           )
         )
@@ -216,7 +218,7 @@ class AppInsightsCacheTest {
           connection,
           QueryFilters(
             Interval(now.minus(Duration.ofDays(60)), now),
-            eventTypes = FailureType.values().toList(),
+            eventTypes = FailureType.entries,
           ),
         )
       )!!
@@ -271,7 +273,7 @@ class AppInsightsCacheTest {
           connection,
           QueryFilters(
             Interval(now.minus(Duration.ofDays(90)), now),
-            eventTypes = FailureType.values().toList(),
+            eventTypes = FailureType.entries,
             signal = SignalType.SIGNAL_FRESH,
           ),
         )
@@ -314,9 +316,10 @@ class AppInsightsCacheTest {
           emptyList(),
         ),
         testEvent,
+        source = ProductType.PLAY_VITALS,
       )
 
-    val cache = AppInsightsCacheImpl(5)
+    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS, 5)
     cache.populateIssues(
       connection,
       listOf(
@@ -331,7 +334,7 @@ class AppInsightsCacheTest {
     val looseFilter =
       QueryFilters(
         Interval(now.minus(Duration.ofDays(30)), now.minus(Duration.ofDays(4))),
-        eventTypes = FailureType.values().toList(),
+        eventTypes = FailureType.entries,
         devices = setOf(testEvent.eventData.device),
         operatingSystems = setOf(testEvent.eventData.operatingSystemInfo),
       )
@@ -347,7 +350,7 @@ class AppInsightsCacheTest {
     val strictFilter =
       QueryFilters(
         Interval(now.minus(Duration.ofDays(3)), now),
-        eventTypes = FailureType.values().toList(),
+        eventTypes = FailureType.entries,
         devices = setOf(testEvent.eventData.device),
         operatingSystems = setOf(testEvent.eventData.operatingSystemInfo),
       )
@@ -381,9 +384,10 @@ class AppInsightsCacheTest {
           emptyList(),
         ),
         testEvent,
+        source = ProductType.PLAY_VITALS,
       )
 
-    val cache = AppInsightsCacheImpl(5)
+    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS, 5)
     cache.populateIssues(connection, listOf(issue))
     assertThat(cache.getNotes(connection, issue.issueDetails.id)).isNull()
 
@@ -404,7 +408,7 @@ class AppInsightsCacheTest {
   fun `add and delete notes from cache`() {
     val issue = ISSUE1
 
-    val cache = AppInsightsCacheImpl(5)
+    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS, 5)
     cache.populateIssues(connection, listOf(issue))
     assertThat(cache.getNotes(connection, issue.issueDetails.id)).isNull()
 
@@ -432,7 +436,7 @@ class AppInsightsCacheTest {
 
   @Test
   fun `get issues based on issue Ids`() {
-    val cache = AppInsightsCacheImpl(5)
+    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS, 5)
     cache.populateIssues(connection, listOf(ISSUE1, ISSUE2))
 
     assertThat(cache.getIssues(connection, listOf(ISSUE2.id))).containsExactly(ISSUE2)
@@ -444,7 +448,7 @@ class AppInsightsCacheTest {
 
   @Test
   fun `populate connections retains only current connections`() {
-    val cache = AppInsightsCacheImpl()
+    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
     cache.populateIssues(connection, listOf(ISSUE1, ISSUE2))
 
     cache.populateConnections(listOf(connection2))
@@ -474,9 +478,10 @@ class AppInsightsCacheTest {
           emptyList(),
         ),
         testEvent,
+        ProductType.PLAY_VITALS,
       )
 
-    val cache = AppInsightsCacheImpl()
+    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
     cache.populateIssues(connection, listOf(issue))
 
     // Mismatch device
@@ -560,7 +565,7 @@ class AppInsightsCacheTest {
 
   @Test
   fun `get and put AI insights`() {
-    val cache = AppInsightsCacheImpl()
+    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
     val context =
       CodeContextData(
         listOf(CodeContext("/path", "abc")),
@@ -580,7 +585,7 @@ class AppInsightsCacheTest {
     assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.ALLOWED))
       .isNull()
 
-    val newInsight = AiInsight("blah", codeContextData = context)
+    val newInsight = AiInsight("blah", ISSUE1.sampleEvent, codeContextData = context)
     cache.putAiInsight(connection, ISSUE1.id, null, newInsight)
     assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.ALLOWED))
       .isEqualTo(newInsight.copy(isCached = true))
@@ -592,7 +597,7 @@ class AppInsightsCacheTest {
 
   @Test
   fun `removeIssue removes the issue from cache`() {
-    val cache = AppInsightsCacheImpl()
+    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
     cache.populateIssues(connection, listOf(ISSUE1))
     cache.addNote(connection, ISSUE1.issueDetails.id, NOTE1)
     cache.putAiInsight(connection, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
@@ -600,7 +605,7 @@ class AppInsightsCacheTest {
       connection,
       ISSUE1.id,
       "variant2",
-      AiInsight("blah", codeContextData = CodeContextData.DISABLED),
+      AiInsight("blah", ISSUE1.sampleEvent, codeContextData = CodeContextData.DISABLED),
     )
 
     cache.removeIssue(connection, ISSUE1.id)

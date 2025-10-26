@@ -96,9 +96,9 @@ interface AppInsightsTracker {
     deprecationInfo: DevServiceDeprecationInfo,
   )
 
-  enum class ProductType {
-    CRASHLYTICS,
-    PLAY_VITALS;
+  enum class ProductType(val uiName: String) {
+    CRASHLYTICS("Crashlytics"),
+    PLAY_VITALS("Play Vitals");
 
     fun toProtoProductType(): AppQualityInsightsUsageEvent.AppQualityInsightsProductType =
       when (this) {

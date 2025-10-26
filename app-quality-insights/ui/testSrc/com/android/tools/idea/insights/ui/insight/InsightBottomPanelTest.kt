@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.ui.insight
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
@@ -78,7 +79,8 @@ class InsightBottomPanelTest {
         
         The fix should likely be in AndroidManifest.xml.
       """
-              .trimIndent()
+              .trimIndent(),
+          ISSUE1.sampleEvent,
         )
       currentInsightFlow.value = LoadingState.Ready(insight)
 
@@ -89,7 +91,8 @@ class InsightBottomPanelTest {
       assertThat(button.isEnabled).isTrue()
       assertThat(button.isBorderPainted).isTrue()
 
-      currentInsightFlow.value = LoadingState.Ready(AiInsight("This is an insight"))
+      currentInsightFlow.value =
+        LoadingState.Ready(AiInsight("This is an insight", ISSUE1.sampleEvent))
       waitForCondition(5.seconds) { button.text == "No suggested fix available." }
       assertThat(button.isBorderPainted).isFalse()
       assertThat(button.isEnabled).isFalse()
@@ -106,7 +109,8 @@ class InsightBottomPanelTest {
         |
         |The fix should likely be in AndroidManifest.xml.
       """
-            .trimMargin()
+            .trimMargin(),
+        ISSUE1.sampleEvent,
       )
     currentInsightFlow.value = LoadingState.Ready(insight)
 
@@ -135,7 +139,8 @@ class InsightBottomPanelTest {
         |
         |The fix should likely be in AndroidManifest.xml.
       """
-            .trimMargin()
+            .trimMargin(),
+        ISSUE1.sampleEvent,
       )
     currentInsightFlow.value = LoadingState.Ready(insight)
 
