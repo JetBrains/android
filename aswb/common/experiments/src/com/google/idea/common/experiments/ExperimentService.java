@@ -15,7 +15,9 @@
  */
 package com.google.idea.common.experiments;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +28,60 @@ import javax.annotation.Nullable;
 public interface ExperimentService {
 
   static ExperimentService getInstance() {
-    return ApplicationManager.getApplication().getService(ExperimentService.class);
+    Application application = ApplicationManager.getApplication();
+    ExperimentService service = application != null ? application.getService(ExperimentService.class) : null;
+    if (service != null) return service;
+    if ((application != null && application.isUnitTestMode()) || "1".equals(System.getenv("BAZEL_TEST"))) {
+      return new ExperimentService(){
+        @Override
+        public void initService() {
+          // Do nothing.
+        }
+
+        @Override
+        public boolean getExperiment(Experiment experiment, boolean defaultValue) {
+          return defaultValue;
+        }
+
+        @Nullable
+        @Override
+        public String getExperimentString(Experiment experiment,
+                                          @Nullable String defaultValue) {
+          return defaultValue;
+        }
+
+        @Override
+        public int getExperimentInt(Experiment experiment, int defaultValue) {
+          return defaultValue;
+        }
+
+        @Override
+        public void startExperimentScope() {
+          // Do nothing.
+        }
+
+        @Override
+        public void endExperimentScope() {
+          // Do nothing.
+        }
+
+        @Override
+        public ImmutableMap<String, Experiment> getAllQueriedExperiments() {
+          return ImmutableMap.of();
+        }
+
+        @Override
+        public void notifyExperimentsChanged() {
+          // Do nothing.
+        }
+
+        @Override
+        public List<ExperimentValue> getOverrides(String key) {
+          return ImmutableList.of();
+        }
+      };
+    }
+    return null;
   }
 
   public void initService();
