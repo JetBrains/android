@@ -633,7 +633,6 @@
     <!-- Order of loaders is important. If a value for the same experiment defined in a few sources, then the first has higher priority. -->
     <ExperimentLoader implementation="com.google.idea.common.experiments.SystemPropertyExperimentLoader" order="first" id="SystemPropertyExperimentLoader"/>
     <ExperimentLoader implementation="com.google.idea.common.experiments.UserOverridesExperimentLoader" order="after SystemPropertyExperimentLoader" id="UserOverridesExperimentLoader"/>
-    <ExperimentLoader implementation="com.google.idea.common.experiments.DefaultValuesExperimentLoader" order="last" id="DefaultValuesExperimentLoader"/>
     <BlazeGuard implementation="com.google.idea.blaze.base.execution.TrustedProjectGuard"/>
   </extensions>
 
