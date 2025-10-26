@@ -19,6 +19,6 @@ import com.android.tools.idea.insights.ai.AiInsight
 
 object FakeAiInsightClient : AiInsightClient {
   override suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight {
-    return AiInsight(request.toString())
+    return AiInsight(request.toString(), request.event)
   }
 }

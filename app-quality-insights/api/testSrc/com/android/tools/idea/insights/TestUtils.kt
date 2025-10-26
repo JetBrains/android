@@ -19,6 +19,7 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
+import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import java.time.Duration
 import java.time.Instant
 
@@ -151,6 +152,7 @@ val ISSUE1 =
       customKeys = SAMPLE_KEYS,
       logs = SAMPLE_LOGS,
     ),
+    source = ProductType.PLAY_VITALS,
   )
 val ISSUE1_DETAILS =
   DetailedIssueStats(
@@ -299,6 +301,7 @@ val ISSUE2 =
         ),
       appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO)),
     ),
+    source = ProductType.PLAY_VITALS,
   )
 
 val ISSUE3 =
@@ -387,6 +390,7 @@ val ISSUE3 =
         ),
       appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO)),
     ),
+    source = ProductType.PLAY_VITALS,
   )
 
 val NOTE1 =
@@ -425,10 +429,11 @@ val ISSUE_VARIANT2 =
     eventsCount = 1,
   )
 
-val DEFAULT_AI_INSIGHT = AiInsight("")
+val DEFAULT_AI_INSIGHT = AiInsight("", ISSUE1.sampleEvent)
 val AI_INSIGHT_WITH_CODE_CONTEXT =
   AiInsight(
     "context",
+    ISSUE1.sampleEvent,
     codeContextData =
       CodeContextData(
         listOf(CodeContext("filePath", "content")),

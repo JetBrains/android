@@ -47,6 +47,7 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
+import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.events.AiInsightFetched
@@ -282,7 +283,7 @@ class AppInsightsTrackerTest {
 
   @Test
   fun `track events fetched`() = runBlocking {
-    val cache = AppInsightsCacheImpl()
+    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
     var testState =
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
@@ -315,7 +316,7 @@ class AppInsightsTrackerTest {
 
   @Test
   fun `track crash view`() = runBlocking {
-    val cache = AppInsightsCacheImpl()
+    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
     val testState =
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
@@ -366,6 +367,7 @@ class AppInsightsTrackerTest {
     val insight =
       AiInsight(
         "",
+        ISSUE1.sampleEvent,
         insightSource = InsightSource.STUDIO_BOT,
         isCached = true,
         codeContextData = context,
@@ -375,7 +377,7 @@ class AppInsightsTrackerTest {
       testState,
       controllerRule.tracker,
       FakeInsightsProvider(),
-      AppInsightsCacheImpl(),
+      AppInsightsCacheImpl(ProductType.PLAY_VITALS),
     )
 
     verify(controllerRule.tracker, times(1))

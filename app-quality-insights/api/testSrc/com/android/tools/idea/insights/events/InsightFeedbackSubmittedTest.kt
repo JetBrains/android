@@ -26,6 +26,7 @@ import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.google.common.truth.Truth.assertThat
@@ -39,7 +40,7 @@ class InsightFeedbackSubmittedTest {
   @Test
   fun `InsightFeedbackSubmitted tracks feedback and caches it`() {
     val tracker = mock<AppInsightsTracker>()
-    val cache = AppInsightsCacheImpl()
+    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
     val startingState =
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),

@@ -25,6 +25,7 @@ import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.Permission
+import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
@@ -55,7 +56,7 @@ class ToggleIssueActionTest {
   fun `close issue`() {
     val issue = createAppInsightIssue(IssueState.OPEN)
     val toggleIssueAction = createToggleIssueAction(issue)
-    val event = createAnActionEvent(toggleIssueAction, issue)
+    val event = createAnActionEvent(toggleIssueAction)
 
     toggleIssueAction.update(event)
 
@@ -71,7 +72,7 @@ class ToggleIssueActionTest {
   fun `reopen issue`() {
     val issue = createAppInsightIssue(IssueState.CLOSED)
     val toggleIssueAction = createToggleIssueAction(issue)
-    val event = createAnActionEvent(toggleIssueAction, issue)
+    val event = createAnActionEvent(toggleIssueAction)
 
     toggleIssueAction.update(event)
 
@@ -87,7 +88,7 @@ class ToggleIssueActionTest {
     controllerPermission = Permission.READ_ONLY
     val issue = createAppInsightIssue(IssueState.OPEN)
     val toggleIssueAction = createToggleIssueAction(issue)
-    val event = createAnActionEvent(toggleIssueAction, issue)
+    val event = createAnActionEvent(toggleIssueAction)
 
     toggleIssueAction.update(event)
 
@@ -102,7 +103,7 @@ class ToggleIssueActionTest {
     connectionMode = ConnectionMode.OFFLINE
     val issue = createAppInsightIssue(IssueState.OPEN)
     val toggleIssueAction = createToggleIssueAction(issue)
-    val event = createAnActionEvent(toggleIssueAction, issue)
+    val event = createAnActionEvent(toggleIssueAction)
 
     toggleIssueAction.update(event)
 
@@ -115,7 +116,7 @@ class ToggleIssueActionTest {
   fun `menu item disabled for opening state`() {
     val issue = createAppInsightIssue(IssueState.OPENING)
     val toggleIssueAction = createToggleIssueAction(issue)
-    val event = createAnActionEvent(toggleIssueAction, issue)
+    val event = createAnActionEvent(toggleIssueAction)
 
     toggleIssueAction.update(event)
 
@@ -127,7 +128,7 @@ class ToggleIssueActionTest {
   fun `menu item disabled for closing state`() {
     val issue = createAppInsightIssue(IssueState.CLOSING)
     val toggleIssueAction = createToggleIssueAction(issue)
-    val event = createAnActionEvent(toggleIssueAction, issue)
+    val event = createAnActionEvent(toggleIssueAction)
 
     toggleIssueAction.update(event)
 
@@ -138,8 +139,8 @@ class ToggleIssueActionTest {
   private fun createToggleIssueAction(issue: AppInsightsIssue) =
     ToggleIssueAction(mockController, mockAppInsightState, issue)
 
-  private fun createAnActionEvent(action: AnAction, issue: AppInsightsIssue) =
-    createEvent(action, { it: String -> }, null, "", ActionUiKind.NONE, null)
+  private fun createAnActionEvent(action: AnAction) =
+    createEvent(action, { _: String -> }, null, "", ActionUiKind.NONE, null)
 
   private fun createAppInsightIssue(state: IssueState) =
     AppInsightsIssue(
@@ -161,6 +162,7 @@ class ToggleIssueActionTest {
         emptyList(),
       ),
       Event(),
+      ProductType.PLAY_VITALS,
       state,
     )
 }
