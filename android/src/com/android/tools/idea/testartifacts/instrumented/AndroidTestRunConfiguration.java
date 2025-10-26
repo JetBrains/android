@@ -81,6 +81,7 @@ import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.base.facet.KotlinFacetUtils;
 
 /**
  * Run Configuration for "Android Instrumented Tests"
@@ -113,6 +114,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
    * A default value for instrumentation runner class used in Android Gradle Plugin.
    */
   public static final String DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS = "android.test.InstrumentationTestRunner";
+
+  public static final String KOTLIN_TEST_ANNOTATION = "kotlin.test.Test";
 
   public int TESTING_TYPE = TEST_ALL_IN_MODULE;
   @NotNull public String METHOD_NAME = "";
@@ -195,6 +198,25 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return TestRunnerBundle.message("all.tests.scope.presentable.text");
   }
 
+  public static boolean isKmpTestClass(@NotNull Module module, PsiClass psiClass) {
+    if (KotlinFacetUtils.isMultiPlatformModule(module)) {
+      for (PsiMethod method : psiClass.getMethods()) {
+        if (isKotlinTestMethod(method)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  public static boolean isKotlinTestMethod(PsiMethod method) {
+    if (method == null) {
+      return false;
+    }
+    return method.hasAnnotation(KOTLIN_TEST_ANNOTATION);
+  }
+
   @NotNull
   @Override
   public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
@@ -218,7 +240,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         catch (RuntimeConfigurationException e) {
           errors.add(ValidationError.fromException(e));
         }
-        if (testClass != null && !JUnitUtil.isTestClass(testClass)) {
+        if (testClass != null && !JUnitUtil.isTestClass(testClass) && !isKmpTestClass(module, testClass)) {
           errors.add(ValidationError.warning(ExecutionBundle.message("class.isnt.test.class.error.message", CLASS_NAME)));
         }
         break;
@@ -270,7 +292,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       return ImmutableList.of(ValidationError.fromException(e));
     }
     List<ValidationError> errors = new ArrayList<>();
-    if (!JUnitUtil.isTestClass(testClass)) {
+    if (!JUnitUtil.isTestClass(testClass) && !isKmpTestClass(moduleForAndroidTest, testClass)) {
       errors.add(ValidationError.warning(ExecutionBundle.message("class.isnt.test.class.error.message", CLASS_NAME)));
     }
     if (isEmptyOrSpaces(METHOD_NAME)) {
@@ -282,6 +304,10 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     for (final PsiMethod method : testClass.findMethodsByName(METHOD_NAME, true)) {
       if (filter.value(method)) found = true;
       if (JUnitUtil.isTestAnnotated(method)) testAnnotated = true;
+      if (isKotlinTestMethod(method)) {
+        found = true;
+        testAnnotated = true;
+      }
     }
     if (!found) {
       errors.add(ValidationError.warning(JUnitBundle.message("test.method.doesnt.exist.error.message", METHOD_NAME)));

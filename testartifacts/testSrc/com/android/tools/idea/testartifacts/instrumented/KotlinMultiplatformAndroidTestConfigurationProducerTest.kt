@@ -47,6 +47,57 @@ class KotlinMultiplatformAndroidTestConfigurationProducerTest {
   }
 
   @Test
+  fun testCanCreateTestConfigurationsFromCommonComposeMultiplatformTestClass() {
+    projectRule.loadProject(ANDROID_KOTLIN_MULTIPLATFORM)
+    // make sure that we do both set up Android Run configs and unit test Run config.
+    val element = projectRule.project.getPsiElement(Class("com.example.kmpfirstlib.CommonComposeTest"))
+    val runConfigs = element.createConfigurations()
+
+    assertThat(runConfigs).isNotNull()
+    assertThat(runConfigs).hasSize(2)
+    val configurations = runConfigs!!.map { it.configuration }
+    // Check we have a AndroidRunConfiguration created from this context.
+    val androidRunConfig = configurations.find { it is AndroidTestRunConfiguration } as? AndroidTestRunConfiguration
+
+    assertThat(androidRunConfig).isNotNull()
+    assertThat(androidRunConfig!!.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_CLASS)
+    assertThat(androidRunConfig.INSTRUMENTATION_RUNNER_CLASS).isEmpty()
+    assertThat(androidRunConfig.PACKAGE_NAME).isEmpty()
+    assertThat(androidRunConfig.CLASS_NAME).isEqualTo("com.example.kmpfirstlib.CommonComposeTest")
+    assertThat(androidRunConfig.METHOD_NAME).isEmpty()
+
+    // Check that we also have a unit test Run config created too.
+    val unitTestConfig = configurations.find { it is GradleRunConfiguration } as? GradleRunConfiguration
+    assertThat(unitTestConfig).isNotNull()
+    assertThat(unitTestConfig!!.isRunAsTest).isTrue()
+  }
+
+  @Test
+  fun testCanCreateTestConfigurationsFromCommonComposeMultiplatformTestMethod() {
+    projectRule.loadProject(ANDROID_KOTLIN_MULTIPLATFORM)
+    val element = projectRule.project.getPsiElement(Method("com.example.kmpfirstlib.CommonComposeTest", "emptyComposeUiTestThatPasses"))
+    val runConfigs = element.createConfigurations()
+
+    assertThat(runConfigs).isNotNull()
+    assertThat(runConfigs).hasSize(2)
+    val configurations = runConfigs!!.map { it.configuration }
+    // Check we have a AndroidRunConfiguration created from this context.
+    val androidRunConfig = configurations.find { it is AndroidTestRunConfiguration } as? AndroidTestRunConfiguration
+
+    assertThat(androidRunConfig).isNotNull()
+    assertThat(androidRunConfig!!.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_METHOD)
+    assertThat(androidRunConfig.INSTRUMENTATION_RUNNER_CLASS).isEmpty()
+    assertThat(androidRunConfig.PACKAGE_NAME).isEmpty()
+    assertThat(androidRunConfig.CLASS_NAME).isEqualTo("com.example.kmpfirstlib.CommonComposeTest")
+    assertThat(androidRunConfig.METHOD_NAME).isEqualTo("emptyComposeUiTestThatPasses")
+
+    // Check that we also have a unit test Run config created too.
+    val unitTestConfig = configurations.find { it is GradleRunConfiguration } as? GradleRunConfiguration
+    assertThat(unitTestConfig).isNotNull()
+    assertThat(unitTestConfig!!.isRunAsTest).isTrue()
+  }
+
+  @Test
   fun testCanCreateMultipleTestConfigurationFromCommonTestDirectory() {
     projectRule.loadProject(ANDROID_KOTLIN_MULTIPLATFORM)
     // make sure that we do both set up Android Run configs and unit test Run config.
