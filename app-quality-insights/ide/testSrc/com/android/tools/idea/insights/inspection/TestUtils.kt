@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.analysis.Cause
+import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
 import com.google.common.truth.Truth
@@ -36,7 +37,11 @@ import org.mockito.kotlin.mock
 data class LineToInsights(val line: Int, val insights: List<AppInsight>)
 
 internal fun buildIssue(appVcsInfo: AppVcsInfo): AppInsightsIssue {
-  return AppInsightsIssue(issueDetails = mock(), sampleEvent = Event(appVcsInfo = appVcsInfo))
+  return AppInsightsIssue(
+    issueDetails = mock(),
+    sampleEvent = Event(appVcsInfo = appVcsInfo),
+    source = ProductType.PLAY_VITALS,
+  )
 }
 
 internal fun buildAppInsight(frame: Frame, issue: AppInsightsIssue): AppInsight {

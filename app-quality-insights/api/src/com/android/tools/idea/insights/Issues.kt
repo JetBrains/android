@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import icons.StudioIcons
 import javax.swing.Icon
@@ -32,6 +33,7 @@ enum class IssueState {
 data class AppInsightsIssue(
   val issueDetails: IssueDetails,
   val sampleEvent: Event,
+  val source: AppInsightsTracker.ProductType,
   val state: IssueState = IssueState.OPEN,
 ) {
   val id: IssueId = issueDetails.id

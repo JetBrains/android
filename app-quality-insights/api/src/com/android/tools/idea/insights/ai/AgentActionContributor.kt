@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,22 @@
  */
 package com.android.tools.idea.insights.ai
 
+import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Event
-import com.android.tools.idea.insights.ai.codecontext.CodeContextData
-import com.android.tools.idea.insights.experiments.InsightFeedback
+import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.project.Project
 
-data class AiInsight(
-  val rawInsight: String,
-  val event: Event,
-  val isCached: Boolean = false,
-  val insightSource: InsightSource = InsightSource.UNKNOWN,
-  val feedback: InsightFeedback = InsightFeedback.NONE,
-  val codeContextData: CodeContextData = CodeContextData.DISABLED,
-)
+interface AgentActionContributor {
+  fun provideActions(
+    event: Event,
+    issue: AppInsightsIssue,
+    project: Project,
+  ): List<Pair<String, () -> Unit>>
+
+  companion object {
+    val EP_NAME =
+      ExtensionPointName<AgentActionContributor>(
+        "com.android.tools.idea.insights.ai.agentActionContributor"
+      )
+  }
+}

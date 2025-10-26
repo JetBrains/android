@@ -31,6 +31,7 @@ import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Stacktrace
 import com.android.tools.idea.insights.StacktraceGroup
+import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 
 val TEST_CONNECTION_1 = VitalsConnection("appId1", "Test App 1", true)
@@ -114,6 +115,7 @@ val TEST_ISSUE1 =
             )
         ),
     ),
+    ProductType.PLAY_VITALS,
   )
 
 val TEST_ISSUE2 =
@@ -231,4 +233,5 @@ val TEST_ISSUE2 =
             )
         ),
     ),
+    ProductType.PLAY_VITALS,
   )

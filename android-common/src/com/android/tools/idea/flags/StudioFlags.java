@@ -1983,6 +1983,10 @@ public final class StudioFlags {
       "Set Play Vitals gRpc server address, mainly used for testing purposes.",
       "playdeveloperreporting.googleapis.com");
 
+  public static final Flag<Boolean> AQI_FIX_WITH_AGENT =
+    new BooleanFlag(APP_INSIGHTS, "fix.with.agent", "Use Agent for suggested fixes.",
+                    "Use the AI Agent to propose and implement suggested fixes.");
+
   // endregion App Insights
 
   // region App Links Assistant

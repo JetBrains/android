@@ -20,6 +20,7 @@ import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.SignalType
+import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.testing.ui.flatten
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.SimpleColoredComponent
@@ -61,10 +62,10 @@ class AppInsightsIssuesTableCellRendererTest {
         AppInsightsIssuesTableCellRenderer.getTableCellRendererComponent(
           table,
           issue,
-          false,
-          false,
-          0,
-          0,
+          selected = false,
+          focused = false,
+          viewRowIndex = 0,
+          viewColumnIndex = 0,
         )
       return renderer.flatten().mapNotNull {
         when (it) {
@@ -74,15 +75,25 @@ class AppInsightsIssuesTableCellRendererTest {
         }
       }
     }
-    assertThat(getIcons(AppInsightsIssue(detailsTemplate, mock())))
+    assertThat(getIcons(AppInsightsIssue(detailsTemplate, mock(), ProductType.PLAY_VITALS)))
       .containsExactly(StudioIcons.AppQualityInsights.FATAL)
 
     assertThat(
-        getIcons(AppInsightsIssue(detailsTemplate.copy(fatality = FailureType.NON_FATAL), mock()))
+        getIcons(
+          AppInsightsIssue(
+            detailsTemplate.copy(fatality = FailureType.NON_FATAL),
+            mock(),
+            ProductType.PLAY_VITALS,
+          )
+        )
       )
       .containsExactly(StudioIcons.AppQualityInsights.NON_FATAL)
 
-    assertThat(getIcons(AppInsightsIssue(detailsTemplate.copy(notesCount = 4), mock())))
+    assertThat(
+        getIcons(
+          AppInsightsIssue(detailsTemplate.copy(notesCount = 4), mock(), ProductType.PLAY_VITALS)
+        )
+      )
       .containsExactly(StudioIcons.AppQualityInsights.FATAL_WITH_NOTE)
 
     assertThat(
@@ -92,6 +103,7 @@ class AppInsightsIssuesTableCellRendererTest {
               signals = setOf(SignalType.SIGNAL_FRESH, SignalType.SIGNAL_REGRESSED)
             ),
             mock(),
+            ProductType.PLAY_VITALS,
           )
         )
       )

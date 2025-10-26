@@ -123,7 +123,8 @@ class InsightContentPanelTest {
       listOf(fakeGeminiPluginApi),
       projectRule.disposable,
     )
-    currentInsightFlow = MutableStateFlow(LoadingState.Ready(AiInsight("insight")))
+    currentInsightFlow =
+      MutableStateFlow(LoadingState.Ready(AiInsight("insight", ISSUE1.sampleEvent)))
     insightContentPanel =
       InsightContentPanel(mockController, scope, currentInsightFlow, projectRule.disposable)
   }

@@ -44,6 +44,14 @@ private val GEMINI_PREAMBLE =
   """
     .trimIndent()
 
+private val SHORT_GEMINI_PREAMBLE =
+  """
+    Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+    Do no include headings. Begin with the explanation directly. Do not add fillers at the start of
+    response. Respond in no more than four sentences.
+  """
+    .trimIndent()
+
 private val GEMINI_INSIGHT_PROMPT_FORMAT =
   """
     Explain this exception from my app running on %s with Android version %s:
@@ -140,7 +148,12 @@ class GeminiAiInsightClient(
       val userPrompt = createPrompt(request, contextData.codeContext)
       val finalPrompt =
         buildLlmPrompt(project) {
-          systemMessage { text(GEMINI_PREAMBLE, emptyList()) }
+          systemMessage {
+            text(
+              if (StudioFlags.AQI_FIX_WITH_AGENT.get()) SHORT_GEMINI_PREAMBLE else GEMINI_PREAMBLE,
+              emptyList(),
+            )
+          }
           userMessage { text(userPrompt, emptyList()) }
         }
       logger.debug("This is the final prompt:\n$userPrompt")
@@ -148,12 +161,21 @@ class GeminiAiInsightClient(
       val response =
         GeminiPluginApi.getInstance().generate(project, finalPrompt).toList().joinToString("\n")
 
-      AiInsight(response, insightSource = InsightSource.STUDIO_BOT, codeContextData = contextData)
+      AiInsight(
+          response,
+          request.event,
+          insightSource = InsightSource.STUDIO_BOT,
+          codeContextData = contextData,
+        )
         .also { cache.putAiInsight(request.connection, request.issueId, request.variantId, it) }
     } else {
       // Simulate a delay that would come generating an actual insight
       delay(2000)
-      AiInsight(createPrompt(request, emptyList()), insightSource = InsightSource.STUDIO_BOT)
+      AiInsight(
+        createPrompt(request, emptyList()),
+        request.event,
+        insightSource = InsightSource.STUDIO_BOT,
+      )
     }
 
   // Always prefer the insight generated with context regardless of current context sharing setting.
@@ -254,7 +276,7 @@ fun createGeminiInsightRequest(
     event = event,
   )
 
-private fun Event.prettyStackTrace() =
+fun Event.prettyStackTrace() =
   buildString {
       stacktraceGroup.exceptions.forEachIndexed { idx, exception ->
         if (idx == 0 || exception.rawExceptionMessage.shouldTakeException()) {

@@ -39,6 +39,7 @@ import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCache
@@ -282,7 +283,7 @@ class VitalsClient(
               issueDetails.id,
               stackTraceGroupParser,
             )
-        AppInsightsIssue(issueDetails, event)
+        AppInsightsIssue(issueDetails, event, source = AppInsightsTracker.ProductType.PLAY_VITALS)
       }
       .also { cache.populateIssues(request.connection, it) }
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
@@ -81,10 +82,15 @@ class InsightContentPanel(
 
   private val insightBottomPanel = InsightBottomPanel(controller, currentInsightFlow, this)
 
+  private val insightLinksPanel = InsightLinksPanel(controller, currentInsightFlow, this)
+
   private val insightPanel =
     JPanel(VerticalLayout(JBUI.scale(8))).apply {
       add(InsightDisclaimerPanel(controller, scope, currentInsightFlow))
       add(insightTextPane)
+      if (StudioFlags.AQI_FIX_WITH_AGENT.get()) {
+        add(insightLinksPanel)
+      }
       border = JBUI.Borders.empty(8, 16, 8, 8)
     }
 
@@ -122,7 +128,9 @@ class InsightContentPanel(
       setLoadingText(GENERATING_INSIGHT)
       border = JBUI.Borders.empty()
       add(insightScrollPanel, BorderLayout.CENTER)
-      add(insightBottomPanel, BorderLayout.SOUTH)
+      if (!StudioFlags.AQI_FIX_WITH_AGENT.get()) {
+        add(insightBottomPanel, BorderLayout.SOUTH)
+      }
     }
 
   private val geminiOnboardingObserverAction =

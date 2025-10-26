@@ -43,6 +43,7 @@ import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
+import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.IssueResponse
@@ -117,7 +118,7 @@ class IssuesChangedTest {
         currentState,
         TestAppInsightsTracker,
         FakeInsightsProvider(),
-        AppInsightsCacheImpl(),
+        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
       )
     ) {
       assertThat(newState.currentIssueDetails).isEqualTo(LoadingState.Ready(null))
@@ -157,7 +158,7 @@ class IssuesChangedTest {
         currentState,
         TestAppInsightsTracker,
         FakeInsightsProvider(),
-        AppInsightsCacheImpl(),
+        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
       )
     ) {
       assertThat((newState.issues as LoadingState.Ready).value.value.selected).isEqualTo(ISSUE1)
@@ -205,7 +206,7 @@ class IssuesChangedTest {
         currentState,
         TestAppInsightsTracker,
         FakeInsightsProvider(),
-        AppInsightsCacheImpl(),
+        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
       )
     ) {
       assertThat((newState.issues as LoadingState.Ready).value.value.selected).isEqualTo(ISSUE2)
@@ -256,7 +257,7 @@ class IssuesChangedTest {
         currentState,
         TestAppInsightsTracker,
         FakeInsightsProvider(),
-        AppInsightsCacheImpl(),
+        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
       )
 
     // These filters should remain untouched
@@ -318,7 +319,7 @@ class IssuesChangedTest {
         currentState,
         TestAppInsightsTracker,
         FakeInsightsProvider(),
-        AppInsightsCacheImpl(),
+        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
       )
 
     // These filters are untouched
@@ -368,7 +369,7 @@ class IssuesChangedTest {
         currentState,
         TestAppInsightsTracker,
         FakeInsightsProvider("name", false),
-        AppInsightsCacheImpl(),
+        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
       )
     ) {
       assertThat((newState.issues as LoadingState.Ready).value.value.selected).isEqualTo(ISSUE1)
