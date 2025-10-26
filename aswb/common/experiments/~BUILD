@@ -16,7 +16,6 @@ licenses(["notice"])
 java_library(
     name = "experiments",
     srcs = glob(["src/**/*.java"]),
-    resources = [":experiment_properties"],
     visibility = COMMON_PLUGINS_VISIBILITY,
     deps = [
         "//tools/adt/idea/aswb/common/util:platform",
@@ -24,12 +23,6 @@ java_library(
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
     ],
-)
-
-filegroup(
-    name = "experiment_properties",
-    srcs = ["src/com/google/idea/common/experiments/experiment.properties"],
-    visibility = SERVICES_EXPERIMENT_SUBPACKAGES,
 )
 
 # includes a test ExperimentService registered in plugin XML. This is required
