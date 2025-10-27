@@ -28,7 +28,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -55,7 +54,6 @@ class PositionableContentLayoutManagerTest {
     ): Map<PositionableContent, Point> = emptyMap()
   }
 
-  @Ignore("b/442899344")
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun relayoutHappened(): Unit = runTest {
