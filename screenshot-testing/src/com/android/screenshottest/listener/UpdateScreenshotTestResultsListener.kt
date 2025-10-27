@@ -15,6 +15,7 @@
  */
 package com.android.screenshottest.listener
 
+import com.android.screenshottest.ui.PreviewDetails
 import com.android.screenshottest.ui.UpdateReferenceImagesDialog
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
@@ -34,8 +35,17 @@ class UpdateScreenshotTestResultsListener(private val dialog: UpdateReferenceIma
       val className = testCase.className
       val methodName = testCase.additionalTestArtifacts["PreviewScreenshot.methodName"]?: " "
       val previewName = testCase.additionalTestArtifacts["PreviewScreenshot.previewName"]?: " "
-      val imagePath = testCase.additionalTestArtifacts["PreviewScreenshot.newImagePath"]
-      dialog.updateDialogWithTestResult(className, methodName, previewName, imagePath)
+      val testId = "$className.$methodName.$previewName"
+      val previewDetails = PreviewDetails(
+        testId = testId,
+        className = className,
+        methodName = methodName,
+        previewName = previewName,
+        destImagePath = testCase.additionalTestArtifacts["PreviewScreenshot.refImagePath"],
+        srcImagePath = testCase.additionalTestArtifacts["PreviewScreenshot.newImagePath"],
+        diffPercent = testCase.additionalTestArtifacts["PreviewScreenshot.diffPercent"]
+      )
+      dialog.updateDialogWithTestResult(previewDetails)
     }
   }
 

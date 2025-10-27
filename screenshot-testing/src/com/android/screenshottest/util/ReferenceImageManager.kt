@@ -15,10 +15,8 @@
  */
 package com.android.screenshottest.util
 
-import com.android.screenshottest.ScreenshotTestBuildSystemAdapter
 import com.android.screenshottest.ui.PreviewDetails
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.LocalFileSystem
 import java.io.File
 import java.io.IOException
@@ -34,8 +32,6 @@ data class ImageData(
 )
 
 private val LOG = Logger.getInstance("com.android.screenshottest.util.ReferenceImageManager")
-private const val SCREENSHOT_TEST_ROOT = "src/screenshotTest"
-private const val REFERENCE_SUBDIRECTORY = "reference"
 
 /**
  * Copies the images from the provided data objects to the appropriate reference image directory.
@@ -45,26 +41,26 @@ private const val REFERENCE_SUBDIRECTORY = "reference"
  * @param imagesToCopy The list of data objects representing the previews to be copied.
  * @return A list of data objects that failed to copy.
  */
-fun copyReferenceImages(module: Module, imagesToCopy: List<ImageData>): List<ImageData> {
+fun copyReferenceImages(imagesToCopy: List<ImageData>): List<ImageData> {
   val failures = mutableListOf<ImageData>()
+  val refreshRoots = mutableSetOf<File>()
   try {
-    val projectSystem = ScreenshotTestBuildSystemAdapter.EP_NAME.extensionList.firstOrNull()
-      ?: throw IllegalStateException("ScreenshotTestBuildSystemAdapter extension not found.")
-    val variantName = projectSystem.getSelectedVariantName(module)
-      ?: throw IllegalStateException("Variant name not found")
-    val modulePathStr = projectSystem.getLinkedExternalProjectPath(module)
-      ?: throw IllegalStateException("Could not determine module project path.")
-
-    val referenceRoot = getReferenceImageRoot(File(modulePathStr), variantName)
-
     imagesToCopy.forEach { imageData ->
+      val destinationPath = imageData.previewData.destImagePath
+      if (destinationPath == null) {
+        LOG.error("Failed to copy screenshot reference image because the destination path is not available for: ${imageData.previewData}")
+        failures.add(imageData)
+        return@forEach // Continue to the next item in the loop
+      }
+
       try {
-        imageData.loadedImagePaths.forEach { (imagePath, simpleClassName) ->
+        imageData.loadedImagePaths.forEach { (imagePath, _) ->
           val sourceFile = File(imagePath)
-          val destinationFile = referenceRoot.resolve(simpleClassName).resolve(sourceFile.name).toFile()
+          val destinationFile = File(destinationPath)
           destinationFile.parentFile.mkdirs()
           sourceFile.copyTo(destinationFile, overwrite = true)
           LOG.info("Copied ${sourceFile.path} to ${destinationFile.path}")
+          destinationFile.parentFile?.let { refreshRoots.add(it) }
         }
       } catch (e: IOException) {
         LOG.error("Failed to copy screenshot reference image due to an I/O error for: ${imageData.previewData}", e)
@@ -72,20 +68,13 @@ fun copyReferenceImages(module: Module, imagesToCopy: List<ImageData>): List<Ima
       }
     }
 
-    LocalFileSystem.getInstance().refreshIoFiles(listOf(referenceRoot.toFile()), true, true, null)
+    if (refreshRoots.isNotEmpty()) {
+      LocalFileSystem.getInstance().refreshIoFiles(refreshRoots, true, true, null)
+    }
   } catch (e: IllegalStateException) {
     LOG.error("Failed to copy screenshot reference images during setup due to invalid project state or configuration.", e)
     // If setup fails, all items are considered failures.
     return imagesToCopy
   }
   return failures
-}
-
-/**
- * Constructs the root path for reference images based on the module and variant.
- * e.g., .../app/src/screenshotTestDebug/reference
- */
-private fun getReferenceImageRoot(modulePath: File, variantName: String): Path {
-  val capitalizedVariant = variantName.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-  return modulePath.toPath().resolve("$SCREENSHOT_TEST_ROOT$capitalizedVariant/$REFERENCE_SUBDIRECTORY")
 }
