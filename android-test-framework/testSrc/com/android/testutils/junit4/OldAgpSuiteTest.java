@@ -93,6 +93,14 @@ public class OldAgpSuiteTest {
     }
   }
 
+  @RunWith(JUnit4.class)
+  @OldAgpTest(agpVersions = "8.12", gradleVersions = "8.13")
+  public static class WrongVersion {
+    @Test
+    public void wrongVersion() {
+    }
+  }
+
   @OldAgpTest
   @RunWith(Parameterized.class)
   public static class ParametrizedAgpTest {
