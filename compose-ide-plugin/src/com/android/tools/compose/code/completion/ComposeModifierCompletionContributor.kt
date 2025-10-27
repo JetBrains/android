@@ -55,6 +55,7 @@ import org.jetbrains.kotlin.idea.completion.impl.k2.lookups.factories.KotlinFirL
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -220,6 +221,13 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     return requireNotNull(newExpression.getChildOfType<KtDotQualifiedExpression>()).lastChild as KtSimpleNameExpression
   }
 
+  private fun isModifierPrefixMatch(prefixMatcher: PrefixMatcher, name: Name): Boolean {
+    // The user types part of `Modifier` we still want to show _all_ our results for Modifier extensions
+    if (COMPOSE_MODIFIER_NAME.startsWith(prefixMatcher.prefix)) return true
+    // If the user types the name of some extension function on Modifier, we want to show it
+    return prefixMatcher.prefixMatches(name.asString())
+  }
+
   @OptIn(KaExperimentalApi::class)
   private fun KaSession.getExtensionFunctionsForModifier(
     nameExpression: KtSimpleNameExpression,
@@ -235,13 +243,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     val visibilityChecker = createUseSiteVisibilityChecker(fileSymbol, receiverExpression, originalPosition)
 
     return KtSymbolFromIndexProvider(file)
-      .getExtensionCallableSymbolsByNameFilter(
-        { name ->
-          val nameAsString = name.asString()
-          prefixMatcher.prefixMatches(nameAsString) || prefixMatcher.prefixMatches("Modifier.$nameAsString")
-        },
-        listOf(receiverType),
-      )
+      .getExtensionCallableSymbolsByNameFilter({ name -> isModifierPrefixMatch(prefixMatcher, name) }, listOf(receiverType))
       .filter(visibilityChecker::isVisible)
       .toList()
   }
