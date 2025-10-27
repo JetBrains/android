@@ -80,7 +80,7 @@ class PreviewItemPanel(
         alignmentX = JComponent.LEFT_ALIGNMENT
       }
     val previewNameLabel =
-      JBLabel(previewData.toString()).apply { alignmentX = JComponent.LEFT_ALIGNMENT }
+      JBLabel(previewData.previewName).apply { alignmentX = JComponent.LEFT_ALIGNMENT }
     detailsPanel.add(matchLabel)
     detailsPanel.add(previewNameLabel)
     // TODO: Add Composable link
