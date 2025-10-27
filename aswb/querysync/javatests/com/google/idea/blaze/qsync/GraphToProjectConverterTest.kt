@@ -634,10 +634,10 @@ class GraphToProjectConverterTest {
   }
 
   @Test
-  fun testActiveLanguages_cc() {
+  fun testCreateProject_cc() {
     val workspaceImportDirectory = TestData.ROOT.resolve("cc")
     val converter =
-      GraphToProjectConvertersForTests.create(projectIncludes = setOf(workspaceImportDirectory))
+      GraphToProjectConvertersForTests.create(projectIncludes = setOf(workspaceImportDirectory), isAndroidWorkspace = false)
 
     val buildGraphData =
       BlazeQueryParser(
@@ -647,9 +647,97 @@ class GraphToProjectConverterTest {
           emptySet(),
         )
         .parse()
+
     val project = converter.createProject(buildGraphData, createEmptyForTests())
 
-    Truth.assertThat(project.activeLanguages).contains(QuerySyncLanguage.CC)
+    val expectedProject = ProjectProto.Project(
+      modules = listOf(
+        ProjectProto.Module(
+          name = ".workspace",
+          contentEntries = mapOf(
+            workspaceRelativeForTests(workspaceImportDirectory) to ProjectProto.ContentEntry(
+              root = workspaceRelativeForTests(workspaceImportDirectory),
+              sourceFolders = listOf(
+                ProjectProto.SourceFolder(
+                  projectPath = workspaceRelativeForTests(workspaceImportDirectory),
+                  packagePrefix = "",
+                  isGenerated = false,
+                  isTest = false
+                )
+              ),
+              excludes = emptyList()
+            )
+          ),
+          androidResourceDirectories = emptyList(),
+          isAndroidModule = false,
+          androidSourcePackages = emptyList(),
+          androidCustomPackages = emptyList(),
+          androidExternalLibraries = emptyList()
+        )
+      ),
+      libraries = emptyMap(),
+      artifactDirectories = ProjectProto.ArtifactDirectories.getDefaultInstance(),
+      ccWorkspace = ProjectProto.CcWorkspace.getDefaultInstance(),
+      activeLanguages = setOf(QuerySyncLanguage.CC)
+    )
+
+    Truth.assertThat(project).isEqualTo(expectedProject)
+  }
+
+  @Test
+  fun testCreateProject_Android() {
+    val workspaceImportDirectory = TestData.ROOT.resolve("android")
+    val converter =
+      GraphToProjectConvertersForTests.create(
+        javaPackagePrefixReader = QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER,
+        projectIncludes = setOf(workspaceImportDirectory),
+        languageClasses = setOf(QuerySyncLanguage.JVM),
+      )
+    val buildGraphData =
+      BlazeQueryParser(
+        TargetPatternCollection.create(emptyList()),
+        QuerySyncTestUtils.getQuerySummary(TestData.ANDROID_LIB_QUERY),
+        QuerySyncTestUtils.NOOP_CONTEXT,
+        emptySet()
+      )
+        .parse()
+
+    val project = converter.createProject(buildGraphData, createEmptyForTests())
+
+    val expectedProject = ProjectProto.Project(
+      modules = listOf(
+        ProjectProto.Module(
+          name = ".workspace",
+          contentEntries = mapOf(
+            workspaceRelativeForTests(workspaceImportDirectory) to ProjectProto.ContentEntry(
+              root = workspaceRelativeForTests(workspaceImportDirectory),
+              sourceFolders = listOf(
+                ProjectProto.SourceFolder(
+                  projectPath = workspaceRelativeForTests(workspaceImportDirectory),
+                  packagePrefix = "com.google.idea.blaze.qsync.testdata.android",
+                  isGenerated = false,
+                  isTest = false
+                )
+              ),
+              excludes = emptyList()
+            )
+          ),
+          androidResourceDirectories = listOf(
+            workspaceRelativeForTests(TestData.ROOT.resolve("android/res"))
+          ),
+          isAndroidModule = true,
+          androidSourcePackages = emptyList(), // Expected to be empty as Build Graph does not contain resource packages
+          androidCustomPackages = emptyList(),
+          androidExternalLibraries = emptyList()
+        )
+      ),
+      libraries = emptyMap(),
+      artifactDirectories = ProjectProto.ArtifactDirectories.getDefaultInstance(),
+      ccWorkspace = ProjectProto.CcWorkspace.getDefaultInstance(),
+      activeLanguages = setOf(QuerySyncLanguage.JVM)
+    )
+
+    Truth.assertThat(project).isEqualTo(expectedProject)
   }
 }
 
