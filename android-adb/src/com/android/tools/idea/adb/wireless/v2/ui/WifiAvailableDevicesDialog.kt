@@ -50,6 +50,11 @@ import com.android.adblib.MdnsTrackServiceInfo
 import com.android.sdklib.deviceprovisioner.SetChange
 import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.adtui.compose.StudioComposePanel
+import com.android.tools.adtui.compose.table.RowFilter
+import com.android.tools.adtui.compose.table.Table
+import com.android.tools.adtui.compose.table.TableColumn
+import com.android.tools.adtui.compose.table.TableColumnWidth
+import com.android.tools.adtui.compose.table.TableTextColumn
 import com.android.tools.idea.adb.wireless.MdnsSupportState
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
 import com.android.tools.idea.adb.wireless.TrackingMdnsService
@@ -57,12 +62,7 @@ import com.android.tools.idea.adb.wireless.Urls
 import com.android.tools.idea.adb.wireless.WiFiPairingService
 import com.android.tools.idea.adb.wireless.needsUpdate
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
-import com.android.tools.idea.adddevicedialog.RowFilter
 import com.android.tools.idea.adddevicedialog.SearchBar
-import com.android.tools.idea.adddevicedialog.Table
-import com.android.tools.idea.adddevicedialog.TableColumn
-import com.android.tools.idea.adddevicedialog.TableColumnWidth
-import com.android.tools.idea.adddevicedialog.TableTextColumn
 import com.android.tools.idea.ui.SimpleDialog
 import com.android.tools.idea.ui.SimpleDialogOptions
 import com.intellij.ide.BrowserUtil

@@ -26,6 +26,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.android.tools.adtui.compose.table.RowAttribute
+import com.android.tools.adtui.compose.table.RowFilter
+import com.android.tools.adtui.compose.table.initialSingleSelectionFilterState
 import com.google.common.collect.Ordering
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf

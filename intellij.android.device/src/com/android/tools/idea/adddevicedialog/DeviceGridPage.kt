@@ -24,6 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
+import com.android.tools.adtui.compose.table.TableColumn
+import com.android.tools.adtui.compose.table.TableSelectionState
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.jewel.ui.component.Text
 

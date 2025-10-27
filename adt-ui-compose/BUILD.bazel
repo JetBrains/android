@@ -76,6 +76,8 @@ jvm_library(
     "//libraries/compose-foundation-desktop-junit",
     "//platform/jewel/markdown/int-ui-standalone-styling",
     "//platform/jewel/int-ui/int-ui-standalone:jewel-intUi-standalone",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
   ],
   exports = [
     "//platform/compose/markdown",
