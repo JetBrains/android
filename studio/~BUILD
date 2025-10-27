@@ -833,6 +833,7 @@ studio_plugin(
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
         "@intellij//:intellij.libraries.compose.foundation.desktop",
+        "@intellij//:intellij.libraries.compose.runtime.desktop",
         "@intellij//:intellij.libraries.lucene.common",
         "@intellij//:intellij.libraries.skiko",
         "@intellij//:intellij.platform.jewel.foundation",
