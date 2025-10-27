@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
-import com.android.ddmlib.testing.FakeAdbRule
+import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.fakeadbserver.DeviceState
 import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidApiLevel
@@ -100,7 +100,7 @@ class ComposeLayoutInspectorClientTest {
     }
 
   private val projectRule = AndroidProjectRule.inMemory()
-  private val adbRule = FakeAdbRule()
+  private val adbRule = FakeAdbServerRule()
   private val devFlagRule = FlagRule(StudioFlags.APP_INSPECTION_USE_DEV_JAR)
   private val devFolderFlagRule =
     FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER)
@@ -117,17 +117,15 @@ class ComposeLayoutInspectorClientTest {
 
   @Before
   fun before() {
-    adbRule.attachDevice(
-      processDescriptor.device.serial,
-      processDescriptor.device.manufacturer,
-      processDescriptor.device.model,
-      processDescriptor.device.version,
-      processDescriptor.device.apiLevel,
-      "arm64-v8a",
-      emptyMap(),
-      DeviceState.HostConnectionType.LOCAL,
-      "myAvd",
-      "/android/avds/myAvd",
+    adbRule.connectDevice(
+      deviceId = processDescriptor.device.serial,
+      manufacturer = processDescriptor.device.manufacturer,
+      deviceModel = processDescriptor.device.model,
+      release = processDescriptor.device.version,
+      sdk = processDescriptor.device.apiLevel,
+      hostConnectionType = DeviceState.HostConnectionType.LOCAL,
+      cpuAbi = "arm64-v8a",
+      properties = emptyMap(),
     )
     ProjectSystemService.getInstance(projectRule.project)
       .replaceProjectSystemForTests(GradleProjectSystem(projectRule.project))
