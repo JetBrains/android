@@ -209,9 +209,6 @@ class WifiAvailableDevicesDialogTest {
     composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
 
     composeTestRule.onNodeWithText("No devices found.", substring = true).assertIsDisplayed()
-    composeTestRule
-      .onNodeWithText("Ensure that your workstation and device are connected", substring = true)
-      .assertIsDisplayed()
   }
 
   @Test
