@@ -46,9 +46,15 @@ import com.google.gct.wizard.WizardState
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.BACKUP_AND_SYNC_EVENT
 import com.google.wireless.android.sdk.stats.BackupAndSyncEvent
 import com.google.wireless.android.sdk.stats.GoogleLoginPluginEvent
+import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.ComponentManager
 import com.intellij.openapi.components.SettingsCategory
+import com.intellij.openapi.extensions.PluginDescriptor
+import com.intellij.openapi.extensions.PluginId
+import com.intellij.openapi.extensions.impl.ExtensionPointImpl
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.IntellijInternalApi
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.settingsSync.core.ServerState
@@ -58,7 +64,9 @@ import com.intellij.settingsSync.core.SettingsSyncPushResult
 import com.intellij.settingsSync.core.SettingsSyncSettings
 import com.intellij.settingsSync.core.SettingsSyncSettings.State
 import com.intellij.settingsSync.core.UpdateResult
+import com.intellij.settingsSync.core.communicator.SettingsSyncCommunicatorBean
 import com.intellij.settingsSync.core.communicator.SettingsSyncCommunicatorProvider
+import com.intellij.settingsSync.core.communicator.getSyncProviderPoint
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
@@ -117,9 +125,20 @@ class WizardFlowTest {
       }
     communicatorProvider = FakeCommunicatorProvider(communicator)
 
-    ExtensionTestUtil.maskExtensions(
-      SettingsSyncCommunicatorProvider.Companion.PROVIDER_EP,
-      listOf(communicatorProvider),
+    @OptIn(IntellijInternalApi::class) // For SettingsSyncCommunicatorProvider.
+    val communicatorProviderBean = object : SettingsSyncCommunicatorBean() {
+      override fun createInstance(componentManager: ComponentManager,
+                                  pluginDescriptor: PluginDescriptor): SettingsSyncCommunicatorProvider {
+        return communicatorProvider
+      }
+    }
+    val pluginManager = PluginManager.getInstance()
+    val androidPluginId = checkNotNull(PluginId.findId("org.jetbrains.android"))
+    val androidPluginDescriptor = checkNotNull(pluginManager.findEnabledPlugin(androidPluginId))
+    communicatorProviderBean.pluginDescriptor = androidPluginDescriptor
+
+    (getSyncProviderPoint() as ExtensionPointImpl).maskAll(
+      listOf(communicatorProviderBean),
       disposableRule.disposable,
       false,
     )
