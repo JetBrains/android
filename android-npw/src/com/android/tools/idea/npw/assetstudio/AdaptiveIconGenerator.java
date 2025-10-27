@@ -130,12 +130,16 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
   }
 
   private @NotNull String generateXmlStringWithMonochromeTag(@NotNull AdaptiveIconOptions options, String foregroundType, String backgroundType) {
-    // Default monochrome type and name should be equal to foreground until we define monochrome icon for the first time.
-    String monochromeLayerName = options.foregroundLayerName;
-    String monochromeType = foregroundType;
-    if(options.monochromeImage != null){
-      monochromeType = options.monochromeImage.isDrawable() ? "drawable" : "mipmap";
-      monochromeLayerName = options.monochromeLayerName;
+    String monochromeLayerName = options.monochromeLayerName;
+    String monochromeType;
+    if(options.monochromeImage != null && options.monochromeImage.isDrawable()) {
+      monochromeType = "drawable";
+    } else if(options.monochromeImage != null && options.monochromeImage.isRasterImage()){
+      monochromeType = "mipmap";
+    } else {
+      // Default monochrome type and name should be equal to foreground if monochrome icons aren't defined yet.
+      monochromeLayerName = options.foregroundLayerName;
+      monochromeType = foregroundType;
     }
     String format = ""
         + "<?xml version=\"1.0\" encoding=\"utf-8\"?>%1$s"
