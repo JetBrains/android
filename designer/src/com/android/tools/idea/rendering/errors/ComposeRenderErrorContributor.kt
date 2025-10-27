@@ -54,6 +54,15 @@ object ComposeRenderErrorContributor {
   fun isViewModelStackTrace(stackTrace: String): Boolean = isViewModelStackTraceInternal(stackTrace)
 
   /**
+   * Returns true if the given [stackTrace] corresponds to a ClassCastException when casting to
+   * Activity. This is used to detect when a @Preview fails to render because layoutlib's
+   * `BridgeContext` can not be cast to an activity.
+   */
+  @JvmStatic
+  fun isClassCastExceptionStackTrace(stackTrace: String): Boolean =
+    isClassCastExceptionInternal(stackTrace)
+
+  /**
    * Analyzes the logged errors and returns a list of [RenderErrorModel.Issue] for Compose-specific
    * problems.
    */
@@ -156,7 +165,9 @@ object ComposeRenderErrorContributor {
       messageTipProvider = { linkManager, _ -> createAddReportBugMessage(linkManager, null) },
     ),
     CLASS_CAST_EXCEPTION(
-      predicate = { throwable -> isClassCastException(throwable) },
+      predicate = { throwable ->
+        throwable is ClassCastException && isClassCastExceptionInternal(throwable.stackTraceToString())
+      },
       severity = HighlightSeverity.ERROR,
       summary = { "Context cannot be cast to Activity in Compose Preview" },
       htmlContentProvider = { linkManager, throwable ->
@@ -249,11 +260,10 @@ object ComposeRenderErrorContributor {
     }
   }
 
-  private fun isClassCastException(throwable: Throwable?): Boolean {
-    if (throwable !is ClassCastException) return false
-    val message = throwable.message ?: return false
-    return message.startsWith(
-      "class com.android.layoutlib.bridge.android.BridgeContext cannot be cast to class android.app.Activity"
+  private fun isClassCastExceptionInternal(stackTrace: String): Boolean {
+    val firstLine = stackTrace.lineSequence().firstOrNull() ?: return false
+    return firstLine.startsWith(
+      "java.lang.ClassCastException: class com.android.layoutlib.bridge.android.BridgeContext cannot be cast to class android.app.Activity"
     )
   }
 
