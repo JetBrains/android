@@ -69,6 +69,7 @@ import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.FlowLayout;
 import java.awt.Insets;
+import java.io.IOException;
 import java.nio.file.ClosedFileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -89,6 +90,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 public class ApkViewPanel implements TreeSelectionListener {
+  private static final Logger LOG = Logger.getInstance(ApkViewPanel.class);
   private JPanel myContainer;
   @SuppressWarnings("unused") // added to the container in the form
   private JComponent myColumnTreePane;
@@ -224,7 +226,7 @@ public class ApkViewPanel implements TreeSelectionListener {
             }
             catch (Exception e) {
               setToZipMode(apkName);
-              Logger.getInstance(ApkViewPanel.class).warn(e);
+              LOG.warn(e);
               return Futures.immediateFailedFuture(e);
             }
           }
@@ -393,7 +395,7 @@ public class ApkViewPanel implements TreeSelectionListener {
     // The only other place that sets the root node is another queued runnable also on the EDT thread.
     // Therefore, there will be no interleaving of operations.
     ApplicationManager.getApplication().invokeLater(() -> setRootNode(null));
-    Logger.getInstance(ApkViewPanel.class).info("Cleared Archive on ApkViewPanel: " + this);
+    LOG.info("Cleared Archive on ApkViewPanel: " + this);
   }
 
   private void setRootNode(@Nullable ArchiveNode root) {
@@ -586,8 +588,15 @@ public class ApkViewPanel implements TreeSelectionListener {
       Path path = entry.getPath();
       Path base = path.getFileName();
       String fileName = base == null ? "" : base.toString();
+      boolean isDirectory = false;
+      try {
+        Files.isDirectory(path);
+      } catch (ClosedFileSystemException e) {
+        // Can happen when the underlying APK is replaced
+        LOG.warn(e);
+      }
 
-      if (!Files.isDirectory(path)) {
+      if (!isDirectory) {
         if (fileName.equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
           return StudioIcons.Shell.Filetree.MANIFEST_FILE;
         }
