@@ -15,7 +15,6 @@
  */
 package com.android.screenshottest.run
 
-import com.android.screenshottest.action.UpdateReferenceImagesAction
 import com.android.tools.idea.projectsystem.isScreenshotTestFile
 import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
@@ -29,6 +28,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionManager
 import org.jetbrains.kotlin.idea.base.util.isUnderKotlinSourceRootTypes
 
 class ScreenshotTestRunLineMarkerContributor: RunLineMarkerContributor() {
@@ -42,7 +42,7 @@ class ScreenshotTestRunLineMarkerContributor: RunLineMarkerContributor() {
 
     val declaration = element.getStrictParentOfType<KtNamedDeclaration>()?.takeIf { it.nameIdentifier == element } ?: return null
     if (isValidKtMethodIdentifier(declaration) || isValidKtTestClassIdentifier(declaration)) {
-      val actions = arrayOf(*ExecutorAction.getActions(), UpdateReferenceImagesAction())
+      val actions = arrayOf(*ExecutorAction.getActions(), ActionManager.getInstance().getAction("com.android.screenshottest.action.UpdateReferenceImagesAction"))
       return Info(AllIcons.RunConfigurations.TestState.Run, actions) { "Run screenshot tests" }
     }
     return null

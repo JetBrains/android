@@ -14,7 +14,28 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-<!--  TODO: Add run configurations producers-->
-  <application-components>
-  </application-components>
+  <actions>
+    <action
+        id="com.android.screenshottest.action.UpdateReferenceImagesAction"
+        class="com.android.screenshottest.action.UpdateReferenceImagesAction"
+        text="Add/Update Reference Images"
+        description="Add/Update reference images from gutter icon">
+    </action>
+    <group id="Android.UpdateScreenshotReferenceImagesGroup">
+      <action
+          id="com.android.screenshottest.action.UpdateReferenceImagesInClassAction"
+          class="com.android.screenshottest.action.UpdateReferenceImagesInClassAction"
+          text="Add/Update Reference Images"
+          description="Add/Update reference images for all screenshot tests in class">
+      </action>
+      <action
+          id="com.android.screenshottest.action.UpdateReferenceImagesInDirectoryAction"
+          class="com.android.screenshottest.action.UpdateReferenceImagesInDirectoryAction"
+          text="Add/Update Reference Images"
+          description="Add/Update reference images for all screenshot tests in directory">
+      </action>
+      <separator/>
+      <add-to-group group-id="RunContextGroup" anchor="last"/>
+    </group>
+  </actions>
 </idea-plugin>
