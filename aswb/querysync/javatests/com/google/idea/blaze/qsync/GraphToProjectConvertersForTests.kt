@@ -29,6 +29,7 @@ object GraphToProjectConvertersForTests {
     languageClasses: Set<QuerySyncLanguage> = emptySet(),
     testSources: Set<String> = emptySet(),
     systemExcludes: Set<Path> = emptySet(),
+    isAndroidWorkspace: Boolean = true,
   ): GraphToProjectConverter {
     return GraphToProjectConverter(
       javaPackagePrefixReader = javaPackagePrefixReader,
@@ -38,7 +39,7 @@ object GraphToProjectConvertersForTests {
         projectExcludes = projectExcludes,
         deriveTargetsFromDirectories = false,
         targetPatterns = emptyList(),
-        isAndroidWorkspace = true,
+        isAndroidWorkspace = isAndroidWorkspace,
         languageClasses = languageClasses,
         testSources = testSources,
         systemExcludes = systemExcludes
