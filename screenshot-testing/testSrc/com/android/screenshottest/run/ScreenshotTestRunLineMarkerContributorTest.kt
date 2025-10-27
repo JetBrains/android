@@ -17,12 +17,15 @@ package com.android.screenshottest.run
 
 
 import com.android.flags.junit.FlagRule
-import com.android.screenshottest.action.UpdateReferenceImagesAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
 import com.android.utils.FileUtils
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.impl.ActionManagerImpl
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.psi.PsiElement
@@ -36,14 +39,13 @@ import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
-
 
 class ScreenshotTestRunLineMarkerContributorTest {
   @get:Rule
@@ -54,6 +56,12 @@ class ScreenshotTestRunLineMarkerContributorTest {
 
   private val contributor = ScreenshotTestRunLineMarkerContributor()
   private var file: PsiFile? = null
+
+  private val ACTION_ID = "com.android.screenshottest.action.UpdateReferenceImagesAction"
+
+  val updateReferenceImagesAction: AnAction = object : AnAction("Add/Update Reference Images...") {
+    override fun actionPerformed(e: AnActionEvent) {}
+  }
 
   private val SRC_FILE_HEADER = """
       package com.example.runlinemarker;
@@ -70,6 +78,16 @@ class ScreenshotTestRunLineMarkerContributorTest {
     stubComposeAnnotation()
     stubPreviewAnnotation()
     stubPreviewTestAnnotation()
+    val actionManager = ActionManager.getInstance() as ActionManagerImpl
+    actionManager.registerAction(ACTION_ID, updateReferenceImagesAction)
+  }
+
+  @After
+  fun tearDown() {
+    val actionManager = ActionManager.getInstance()
+    if (actionManager.getAction(ACTION_ID) != null) {
+      actionManager.unregisterAction(ACTION_ID)
+    }
   }
 
   @Test
@@ -143,8 +161,8 @@ class ScreenshotTestRunLineMarkerContributorTest {
     assertNotNull(fun1Info)
     assertNotNull(fun2Info)
     assertNotNull(classInfo)
-    assertTrue(lastAction1 is UpdateReferenceImagesAction)
-    assertTrue(lastAction2 is UpdateReferenceImagesAction)
+    assertEquals(updateReferenceImagesAction, lastAction1)
+    assertEquals(updateReferenceImagesAction, lastAction2)
     assertEquals("Add/Update Reference Images...", lastAction1!!.templateText)
     assertEquals("Add/Update Reference Images...", lastAction2!!.templateText)
   }
@@ -217,8 +235,8 @@ class ScreenshotTestRunLineMarkerContributorTest {
     assertNotNull(fun1Info)
     assertNotNull(fun2Info)
     assertNotNull(classInfo)
-    assertTrue(lastAction1 is UpdateReferenceImagesAction)
-    assertTrue(lastAction2 is UpdateReferenceImagesAction)
+    assertEquals(updateReferenceImagesAction, lastAction1)
+    assertEquals(updateReferenceImagesAction, lastAction2)
     assertEquals("Add/Update Reference Images...", lastAction1!!.templateText)
     assertEquals("Add/Update Reference Images...", lastAction2!!.templateText)
   }
@@ -253,7 +271,7 @@ class ScreenshotTestRunLineMarkerContributorTest {
 
     assertNotNull(fun1Info)
     assertNotNull(classInfo)
-    assertTrue(lastAction1 is UpdateReferenceImagesAction)
+    assertEquals(updateReferenceImagesAction, lastAction1)
     assertEquals("Add/Update Reference Images...", lastAction1!!.templateText)
   }
 
