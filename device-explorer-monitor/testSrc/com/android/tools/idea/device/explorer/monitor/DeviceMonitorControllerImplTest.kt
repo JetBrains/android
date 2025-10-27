@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.device.explorer.monitor
 
+import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
+import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.ddmlib.ClientData
-import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.ClientState
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
@@ -67,12 +68,16 @@ class DeviceMonitorControllerImplTest {
 
   private val commandHandler =  TestCommandHandler()
 
-  private val fakeAdbRule = FakeAdbRule().apply {
-    withDeviceCommandHandler(commandHandler)
+  private val fakeAdbRule = FakeAdbServerRule {
+    installDefaultCommandHandlers()
+    addDeviceHandler(commandHandler)
   }
 
+  private val initAndroidDebugBridgeRule =
+    InitAndroidDebugBridgeRule(alsoCreateBridge = true) { fakeAdbRule.adbServer.port }
+
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(androidProjectRule).around(fakeAdbRule)
+  val ruleChain: RuleChain = RuleChain.outerRule(androidProjectRule).around(fakeAdbRule).around(initAndroidDebugBridgeRule)
 
   private lateinit var model: DeviceMonitorModel
   private lateinit var service: AdbDeviceService
@@ -99,7 +104,8 @@ class DeviceMonitorControllerImplTest {
     model = DeviceMonitorModel(processService, packageNameProvider)
     mockView = MockDeviceMonitorView(project, model)
     mockView.setup()
-    testDevice1 = fakeAdbRule.attachDevice("test_device_01", "Google", "Pix3l", "versionX", AndroidApiLevel(29))
+    testDevice1 = fakeAdbRule.connectDevice("test_device_01", "Google", "Pix3l", "versionX", AndroidApiLevel(29), DeviceState.HostConnectionType.USB)
+      .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
     testDeviceHandle1 = MockDeviceHandle(mock(CoroutineScope::class.java), testDevice1.deviceId)
     addClient(testDevice1, 5)
   }
@@ -143,7 +149,9 @@ class DeviceMonitorControllerImplTest {
     checkMockViewInitialState()
 
     // Act
-    val testDevice2 = fakeAdbRule.attachDevice("test_device_02", "Google", "Pix3l", "versionX", AndroidApiLevel(29))
+    val testDevice2 = fakeAdbRule.connectDevice("test_device_02", "Google", "Pix3l", "versionX", AndroidApiLevel(29), DeviceState.HostConnectionType.USB)
+      .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
+    waitForServiceToRetrieveDevice(testDevice2.deviceId)
     val testDeviceHandle2 = MockDeviceHandle(mock(CoroutineScope::class.java), testDevice2.deviceId)
     controller.setActiveConnectedDevice(testDeviceHandle2)
     addClient(testDevice2, 10)
@@ -234,7 +242,8 @@ class DeviceMonitorControllerImplTest {
     checkMockViewInitialState()
 
     // Act
-    val testDevice2 = fakeAdbRule.attachDevice("test_device_02", "Google", "Pix3l", "versionX", AndroidApiLevel(29))
+    val testDevice2 = fakeAdbRule.connectDevice("test_device_02", "Google", "Pix3l", "versionX", AndroidApiLevel(29), DeviceState.HostConnectionType.USB)
+      .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
     val testDeviceHandle2 = MockDeviceHandle(mock(CoroutineScope::class.java), testDevice2.deviceId)
     controller.setActiveConnectedDevice(testDeviceHandle2)
 
@@ -361,9 +370,13 @@ class DeviceMonitorControllerImplTest {
   }
 
   private suspend fun waitForServiceToRetrieveInitialDevice() {
+    waitForServiceToRetrieveDevice(testDevice1.deviceId)
+  }
+
+  private suspend fun waitForServiceToRetrieveDevice(deviceId: String) {
     waitForCondition(
-      "Service failed to retrieve initial device"
-    ) { service.getIDeviceFromSerialNumber(testDevice1.deviceId) != null }
+      "Service failed to retrieve device: $deviceId"
+    ) { service.getIDeviceFromSerialNumber(deviceId) != null }
   }
 
   private fun addClient(fakeDevice: DeviceState, pid: Int): ClientState {
