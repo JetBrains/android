@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.SdkConstants
 import com.android.adblib.DeviceSelector
-import com.android.ddmlib.testing.FakeAdbRule
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
@@ -568,8 +567,6 @@ class DeviceViewPanelTest {
   @get:Rule val edtRule = EdtRule()
 
   @get:Rule val projectRule = ProjectRule()
-
-  @get:Rule val adbRule = FakeAdbRule()
 
   private val deviceProvisionerService: DeviceProvisionerService = mock()
 
