@@ -425,7 +425,8 @@ class BuildGraphDataImplTest {
       .containsExactly(
         Label.of("//$TESTDATA_ROOT/android:TestAndroidClass.java"),
         Label.of("//$TESTDATA_ROOT/android:BUILD"),
-        Label.of("//$TESTDATA_ROOT/android:AndroidManifest.xml")
+        Label.of("//$TESTDATA_ROOT/android:AndroidManifest.xml"),
+        Label.of("//$TESTDATA_ROOT/android:res/values/strings.xml")
       )
     assertThat(graph.getJavaSourceFiles())
       .containsExactly(TESTDATA_ROOT.resolve("android/TestAndroidClass.java"))
