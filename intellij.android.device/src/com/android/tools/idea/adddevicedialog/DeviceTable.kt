@@ -45,6 +45,13 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.android.tools.adtui.compose.table.DefaultSortableTableColumn
+import com.android.tools.adtui.compose.table.Table
+import com.android.tools.adtui.compose.table.TableColumn
+import com.android.tools.adtui.compose.table.TableColumnWidth
+import com.android.tools.adtui.compose.table.TableSelectionState
+import com.android.tools.adtui.compose.table.TableSortState
+import com.android.tools.adtui.compose.table.TableTextColumn
 import icons.StudioIconsCompose
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.Orientation

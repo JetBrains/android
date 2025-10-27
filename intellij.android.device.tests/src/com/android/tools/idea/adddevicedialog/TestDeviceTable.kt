@@ -16,6 +16,10 @@
 package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.runtime.Composable
+import com.android.tools.adtui.compose.table.SetFilter
+import com.android.tools.adtui.compose.table.SetFilterState
+import com.android.tools.adtui.compose.table.SingleSelectionDropdown
+import com.android.tools.adtui.compose.table.uniqueValuesOf
 import kotlinx.collections.immutable.persistentListOf
 
 class TestDeviceFilterState : DeviceFilterState<TestDevice>() {

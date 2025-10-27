@@ -117,6 +117,8 @@ jvm_library(
         "//platform/jewel/markdown/int-ui-standalone-styling:int-ui-standalone-styling_test_lib",
         "//platform/jewel/int-ui/int-ui-standalone:jewel-intUi-standalone",
         "//platform/jewel/int-ui/int-ui-standalone:jewel-intUi-standalone_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.adt.ui.compose` end

@@ -40,6 +40,13 @@ import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardButton
 import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.adtui.compose.initializeComposeMainDispatcherChecker
+import com.android.tools.adtui.compose.table.SingleSelectionRadioButtons
+import com.android.tools.adtui.compose.table.TableColumn
+import com.android.tools.adtui.compose.table.TableColumnWidth
+import com.android.tools.adtui.compose.table.TableSelectionState
+import com.android.tools.adtui.compose.table.TableSortState
+import com.android.tools.adtui.compose.table.TableTextColumn
+import com.android.tools.adtui.compose.table.uniqueValuesOf
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adddevicedialog.DeviceFilterState
 import com.android.tools.idea.adddevicedialog.DeviceGridPage
@@ -48,13 +55,6 @@ import com.android.tools.idea.adddevicedialog.DeviceTable
 import com.android.tools.idea.adddevicedialog.DeviceTableColumns
 import com.android.tools.idea.adddevicedialog.DeviceTableShowDetailsState
 import com.android.tools.idea.adddevicedialog.FormFactor
-import com.android.tools.idea.adddevicedialog.SingleSelectionRadioButtons
-import com.android.tools.idea.adddevicedialog.TableColumn
-import com.android.tools.idea.adddevicedialog.TableColumnWidth
-import com.android.tools.idea.adddevicedialog.TableSelectionState
-import com.android.tools.idea.adddevicedialog.TableSortState
-import com.android.tools.idea.adddevicedialog.TableTextColumn
-import com.android.tools.idea.adddevicedialog.uniqueValuesOf
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.checkAcceleration
 import com.android.tools.idea.avdmanager.ui.CloneDeviceAction
