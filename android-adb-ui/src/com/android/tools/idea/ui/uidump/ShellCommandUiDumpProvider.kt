@@ -57,6 +57,6 @@ class ShellCommandUiDumpProvider {
       thisLogger().warn("Failed to clean up $DUMP_COMMAND: ${shellOutput.stderr}")
     }
 
-    return result
+    return postProcess(result)
   }
 }
