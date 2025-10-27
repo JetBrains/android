@@ -17,6 +17,7 @@ package com.android.tools.idea.settingssync
 
 import com.android.tools.idea.settingssync.onboarding.USER_EMAIL
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.IntellijInternalApi
 import com.intellij.settingsSync.core.AbstractServerCommunicator
 import com.intellij.settingsSync.core.FileState
 import com.intellij.settingsSync.core.InvalidVersionIdException
@@ -151,6 +152,7 @@ internal class FakeRemoteCommunicator(override val userId: String) : AbstractSer
   override fun dispose() = Unit
 }
 
+@OptIn(IntellijInternalApi::class) // For SettingsSyncCommunicatorProvider.
 internal class FakeCommunicatorProvider(
   private val remoteCommunicator: SettingsSyncRemoteCommunicator,
   override val authService: SettingsSyncAuthService =
