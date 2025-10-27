@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.ddmlib.testing.FakeAdbRule
+import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.fakeadbserver.DeviceState
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
@@ -298,18 +298,21 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
 
   @get:Rule val disposableRule = DisposableRule()
 
-  @get:Rule val adbRule = FakeAdbRule()
+  @get:Rule val adbRule = FakeAdbServerRule()
 
   @Test
   fun testResetSelectedProcessAfterProjectIsClosed() = runBlocking {
     val device = MODERN_DEVICE
-    adbRule.attachDevice(
-      device.serial,
-      device.manufacturer,
-      device.model,
-      device.version,
-      device.apiLevel,
-    )
+    adbRule
+      .connectDevice(
+        device.serial,
+        device.manufacturer,
+        device.model,
+        device.version,
+        device.apiLevel,
+        DeviceState.HostConnectionType.USB,
+      )
+      .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
     ApplicationManager.getApplication()
       .replaceService(AppInspectionDiscoveryService::class.java, mock(), disposableRule.disposable)
     val service = AppInspectionDiscoveryService.instance
@@ -341,10 +344,7 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
         deviceViewPanel.flatten(false).first { it is DeviceViewContentPanel }
           as DeviceViewContentPanel
       val processes = deviceViewPanel.layoutInspector.processModel!!
-      RecentProcess.set(
-        project,
-        RecentProcess(adbRule.bridge.devices.first().serialNumber, MODERN_PROCESS.name),
-      )
+      RecentProcess.set(project, RecentProcess(device.serial, MODERN_PROCESS.name))
 
       val modelUpdatedLatch = ReportingCountDownLatch(1)
       deviceViewContentPanel.inspectorModel.addModificationListener { _, _, _ ->
