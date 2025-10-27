@@ -14,15 +14,15 @@ jvm_library(
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True),
   resources = [":lang_resources"],
   deps = [
-    "@lib//:studio-platform-provided",
-    "//libraries/guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinc-analysis-api-provided",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:studio-platform-provided",
+    "//libraries/guava",
     "//android/artwork",
-    "//android/android-common:common",
     "//android/project-system",
+    "//android/android-common:common",
     "//java/java-analysis-impl:analysis-impl",
     "//java/java-frontback-impl:frontback-impl",
     "//java/java-frontback-psi-api:frontback-psi",
@@ -30,6 +30,7 @@ jvm_library(
     "//java/java-indexing-api:indexing",
     "//java/java-psi-api:psi",
     "//java/java-psi-impl:psi-impl",
+    "//plugins/kotlin/base/util",
     "//platform/analysis-api:analysis",
     "//platform/analysis-impl",
     "//platform/core-api:core",
@@ -51,7 +52,6 @@ jvm_library(
     "//platform/util/base",
     "//platform/util-rt",
     "//platform/util:util-ui",
-    "//plugins/kotlin/base/util",
   ]
 )
 ### auto-generated section `build intellij.android.lang` end

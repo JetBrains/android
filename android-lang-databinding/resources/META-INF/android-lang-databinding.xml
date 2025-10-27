@@ -14,7 +14,6 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <depends>org.intellij.intelliLang</depends>
   <extensions defaultExtensionNs="com.intellij">
     <completion.contributor implementationClass="com.android.tools.idea.lang.databinding.completion.DataBindingCompletionContributor" language="AndroidDataBinding"/>
     <fileType name="AndroidDataBinding" language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.config.DbFileType" extensions="android_data_binding" fieldName="INSTANCE"/>

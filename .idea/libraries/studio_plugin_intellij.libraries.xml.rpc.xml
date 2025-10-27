@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-intellij.platform.images.copyright">
+  <library name="studio-plugin-intellij.libraries.xml.rpc">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/modules/intellij.platform.images.copyright.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/modules/intellij.libraries.xml.rpc.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

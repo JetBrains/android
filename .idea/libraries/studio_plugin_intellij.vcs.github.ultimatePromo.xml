@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-intellij.libraries.kotlinx.io">
+  <library name="studio-plugin-intellij.vcs.github.ultimatePromo">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/modules/intellij.libraries.kotlinx.io.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/vcs-github/lib/modules/intellij.vcs.github.ultimatePromo.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="studio-plugin-intellij.vcs.gitlab.yaml">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/vcs-gitlab-IC/lib/modules/intellij.vcs.gitlab.yaml.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/vcs-gitlab/lib/modules/intellij.vcs.gitlab.yaml.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

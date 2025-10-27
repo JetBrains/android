@@ -17,7 +17,6 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin",
-        "@intellij//:org.intellij.intelliLang",
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/adt/idea/artwork:intellij.android.artwork",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
