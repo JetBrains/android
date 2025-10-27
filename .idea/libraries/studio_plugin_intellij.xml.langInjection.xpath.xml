@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-intellij.platform.vcs.impl.backend">
+  <library name="studio-plugin-intellij.xml.langInjection.xpath">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/modules/intellij.platform.vcs.impl.backend.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/modules/intellij.xml.langInjection.xpath.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

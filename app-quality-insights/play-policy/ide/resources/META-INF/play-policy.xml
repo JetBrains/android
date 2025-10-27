@@ -14,7 +14,6 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <depends>org.intellij.intelliLang</depends>
 
   <actions>
     <action id="InspectPlayPolicyCode" class="com.android.tools.idea.play.PlayPolicyCodeInspectionAction" text="Inspect for Play Policy Insights...">

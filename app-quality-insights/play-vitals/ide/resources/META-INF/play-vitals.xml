@@ -14,7 +14,6 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <depends>org.intellij.intelliLang</depends>
   <extensions defaultExtensionNs="com.android.tools.idea.insights.ui">
     <appInsightsTabProvider implementation="com.android.tools.idea.vitals.ui.VitalsTabProvider" />
   </extensions>

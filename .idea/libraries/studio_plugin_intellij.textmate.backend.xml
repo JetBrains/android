@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-intellij.platform.ml.logs">
+  <library name="studio-plugin-intellij.textmate.backend">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/modules/intellij.platform.ml.logs.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/textmate-plugin/lib/modules/intellij.textmate.backend.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

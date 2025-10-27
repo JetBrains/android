@@ -15,8 +15,6 @@
   -->
 <idea-plugin>
 
-  <depends>org.intellij.intelliLang</depends>
-
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.lang.androidSql.contextProvider"
                     interface="com.android.tools.idea.lang.androidSql.AndroidSqlContext$Provider"/>

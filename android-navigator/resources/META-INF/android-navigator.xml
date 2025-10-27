@@ -15,7 +15,6 @@
   -->
 <idea-plugin>
 
-  <depends>org.intellij.intelliLang</depends>
 
   <extensions defaultExtensionNs="com.intellij">
     <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>

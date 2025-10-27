@@ -14,7 +14,6 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <depends>org.intellij.intelliLang</depends>
   <extensions defaultExtensionNs="com.intellij">
     <applicationService
         serviceInterface="com.android.tools.idea.appinspection.ide.InspectorArtifactService"
