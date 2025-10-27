@@ -23,6 +23,7 @@ import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.module.generateBuildConfigurationLanguageRow
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
+import com.android.tools.idea.npw.ui.createWarningLabel
 import com.android.tools.idea.npw.validator.ModuleSelectedValidator
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.ui.SelectedItemProperty
@@ -32,26 +33,16 @@ import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.JBColor
-import com.intellij.ui.RoundedLineBorder
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.BottomGap
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.scale.JBUIScale
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders.empty
-import icons.StudioIcons.Common.WARNING
-import java.awt.Component
-import javax.swing.Box
-import javax.swing.BoxLayout
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
 import javax.swing.JTextField
 import org.jetbrains.android.util.AndroidBundle
 
@@ -125,35 +116,10 @@ class ConfigureDynamicModuleStep(model: DynamicFeatureModel, basePackage: String
 
   override fun getPreferredFocusComponent(): JComponent? = moduleName
 
-  private fun createDeprecationWarningPanel(): JPanel {
-    return JPanel().apply {
-      layout = BoxLayout(this, BoxLayout.X_AXIS)
-
-      val darkBackground = 0x3D3223
-      val darkBorder = 0xD6AE58
-      val lightBackground = 0xFFFAEB
-      val lightBorder = 0xC27D04
-
-      background = JBColor(lightBackground, darkBackground)
-      border =
-        JBUI.Borders.compound(
-          RoundedLineBorder(JBColor(lightBorder, darkBorder), JBUIScale.scale(8), 1),
-          empty(JBUIScale.scale(8)),
-        )
-
-      val iconLabel = JLabel(WARNING).apply { alignmentY = Component.TOP_ALIGNMENT }
-      add(iconLabel)
-
-      add(Box.createHorizontalStrut(JBUIScale.scale(8)))
-
-      val warningTextLabel =
-        JLabel(
-            "<html>Instant Apps support will be removed by Google Play in December 2025. " +
-              "Publishing and all Google Play Instant APIs will no longer work. " +
-              "Tooling support will be removed in Android Studio Otter Feature Drop.</html>"
-          )
-          .apply { alignmentY = Component.TOP_ALIGNMENT }
-      add(warningTextLabel)
-    }
-  }
+  private fun createDeprecationWarningPanel() =
+    createWarningLabel(
+      "<html>Instant Apps support will be removed by Google Play in December 2025. " +
+        "Publishing and all Google Play Instant APIs will no longer work. " +
+        "Tooling support will be removed in Android Studio Otter Feature Drop.</html>"
+    )
 }
