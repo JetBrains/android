@@ -20,6 +20,7 @@ import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceError
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.EmptyIcon
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.testing.AndroidExecutorsRule
@@ -33,6 +34,7 @@ import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.RuleChain
 import icons.StudioIcons
+import javax.swing.SwingUtilities
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.cancel
@@ -44,7 +46,6 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.SwingUtilities
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StartStopButtonTest {
@@ -79,9 +80,18 @@ class StartStopButtonTest {
               icon = EmptyIcon.DEFAULT
             },
         )
+      assertThat(handle.state).isInstanceOf(DeviceState.Disconnected::class.java)
       handle.activationAction.presentation.update { it.copy(enabled = true) }
       handle.deactivationAction.presentation.update { it.copy(enabled = false) }
-      val button = StartStopButton(handle, handle.activationAction, handle.deactivationAction, null)
+      handle.pairGlassesAction.presentation.update { it.copy(enabled = false) }
+      val button =
+        StartStopButton(
+          handle,
+          handle.activationAction,
+          handle.deactivationAction,
+          null,
+          handle.pairGlassesAction,
+        )
 
       assertThat(button.isEnabled).isTrue()
       assertThat(button.baseIcon).isEqualTo(StudioIcons.Avd.RUN)
@@ -131,7 +141,14 @@ class StartStopButtonTest {
       handle.activationAction.exception = DeviceActionException("Activation error")
       handle.deactivationAction.presentation.update { it.copy(enabled = false) }
 
-      val button = StartStopButton(handle, handle.activationAction, handle.deactivationAction, null)
+      val button =
+        StartStopButton(
+          handle,
+          handle.activationAction,
+          handle.deactivationAction,
+          null,
+          handle.pairGlassesAction,
+        )
 
       val dialog = TestMessagesDialog(Messages.OK)
       TestDialogManager.setTestDialog(dialog)
@@ -140,6 +157,46 @@ class StartStopButtonTest {
       advanceUntilIdle()
 
       assertThat(dialog.displayedMessage).isEqualTo("Activation error")
+      handle.scope.cancel()
+    }
+
+  @Test
+  fun pairableDevice() =
+    testScope.runTest {
+      val handle =
+        FakeDeviceHandle(
+          this.createChildScope(),
+          initialProperties =
+            DeviceProperties.buildForTest {
+              isVirtual = true
+              deviceType = DeviceType.AI_GLASSES
+              icon = EmptyIcon.DEFAULT
+            },
+        )
+      assertThat(handle.state).isInstanceOf(DeviceState.Disconnected::class.java)
+      handle.activationAction.presentation.update { it.copy(enabled = true) }
+      handle.deactivationAction.presentation.update { it.copy(enabled = false) }
+      handle.pairGlassesAction.presentation.update { it.copy(enabled = true) }
+
+      val button =
+        StartStopButton(
+          handle,
+          handle.activationAction,
+          handle.deactivationAction,
+          null,
+          handle.pairGlassesAction,
+        )
+
+      advanceUntilIdle()
+      SwingUtilities.invokeAndWait {}
+
+      assertThat(button.isEnabled).isTrue()
+      assertThat(button.baseIcon).isEqualTo(StudioIcons.Common.LINK)
+
+      SwingUtilities.invokeAndWait { button.doClick() }
+      advanceUntilIdle()
+
+      assertThat(handle.pairGlassesAction.invoked).isEqualTo(1)
       handle.scope.cancel()
     }
 
@@ -154,6 +211,7 @@ class StartStopButtonTest {
           handle.activationAction,
           handle.deactivationAction,
           handle.repairDeviceAction,
+          handle.pairGlassesAction,
         )
       // Disable activation, since StartStopButton favors it over repair
       handle.activationAction.presentation.update { it.copy(enabled = false) }

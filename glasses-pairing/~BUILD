@@ -5,8 +5,18 @@ iml_module(
     name = "glasses-pairing",
     srcs = ["src"],
     iml_files = ["glasses-pairing.iml"],
+    kotlin_use_compose = True,
     resources = ["resources"],
-    test_deps = ["//tools/adt/idea/.idea/libraries:junit4"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "@intellij//:test-framework",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose.tests",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -27,5 +37,8 @@ iml_module(
         "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:intellij-sdk",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
+        "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
+        "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
     ],
 )

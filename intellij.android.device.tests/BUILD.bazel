@@ -33,7 +33,7 @@ jvm_library(
     "//libraries/kotlinx/coroutines/core",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     "//android/adt-ui-compose",
-    "//android/adt-ui-compose:adt-ui-compose_test_lib",
+    "//android/adt-ui-compose:adt-ui-compose-tests_test_lib",
     "//android/android:core",
     "//platform/core-api:core",
     "//platform/testFramework",

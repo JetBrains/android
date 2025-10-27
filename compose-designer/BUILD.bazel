@@ -263,7 +263,6 @@ jvm_library(
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-ui-compose",
-    "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/adt-ui-model",
     "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/deploy",
