@@ -78,8 +78,8 @@ class ScreenshotImage(
     val w = image.width
     val h = image.height
     val skin = skinDefinition.createScaledLayout(w, h, screenshotOrientationQuadrants)
-    val arcWidth = skin.displayCornerSize.width
-    val arcHeight = skin.displayCornerSize.height
+    val arcWidth = 2 * skin.displayCornerSize.width
+    val arcHeight = 2 * skin.displayCornerSize.height
     if (drawFrame) {
       val frameRectangle = skin.frameRectangle
       @Suppress("UndesirableClassUsage")

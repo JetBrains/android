@@ -22,8 +22,6 @@ import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.webp.WebpMetadata
 import com.android.utils.HashCodes
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
-import org.junit.Test
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
@@ -39,6 +37,8 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.test.fail
+import org.junit.Before
+import org.junit.Test
 
 /**
  * Tests for [SkinDefinition] and related classes.
@@ -265,8 +265,6 @@ class SkinDefinitionTest {
       "wearos_large_round", // TODO: Remove exclusion when the skin is fixed.
       "wearos_small_round", // TODO: Remove exclusion when the skin is fixed.
       "wearos_square",
-      // TODO(b/450843829): remove this once the recommended corner_radius doesn't protrude
-      "wearos_xl_round",
     )
     val skinProblems = mutableListOf<String>()
     val dir = getRootSkinFolder()
