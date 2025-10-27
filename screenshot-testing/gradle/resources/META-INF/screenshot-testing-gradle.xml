@@ -14,10 +14,7 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <extensions defaultExtensionNs="com.android.screenshottest">
-    <screenshotTestResultListenerToken implementation="com.android.screenshottest.gradle.ScreenshotTestResultListenerGradleToken"/>
-  </extensions>
-  <extensions defaultExtensionNs="com.android.screenshottest">
-    <screenshotTestProjectSystem implementation="com.android.screenshottest.gradle.GradleScreenshotTestBuildSystemAdapter"/>
-  </extensions>
+<!--  TODO: Add run configurations producers-->
+  <application-components>
+  </application-components>
 </idea-plugin>
