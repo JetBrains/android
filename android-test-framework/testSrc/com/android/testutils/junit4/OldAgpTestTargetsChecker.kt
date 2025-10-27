@@ -15,6 +15,7 @@
  */
 package com.android.testutils.junit4
 
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -96,7 +97,30 @@ class OldAgpTestTargetsChecker(
 
     if (definedVersionPairTargets.none { it == "${versionsPair.agpVersion}@${versionsPair.gradleVersion}"}
         && appliedLocations.any { !ignoreLocations.contains(it) }) {
-      Assert.fail("$versionsPair is not covered by old_agp_test targets but requested in:\n" + appliedLocations.joinToString(separator = "\n"))
+      val messageBuilder = StringBuilder()
+      messageBuilder.appendLine("$versionsPair is not covered by old_agp_test targets but requested in:\n" + appliedLocations.joinToString(separator = "\n"))
+
+      val knownAgpVersions = AgpVersionSoftwareEnvironmentDescriptor.entries.mapNotNull { it.agpVersion }.toSet()
+      val knownGradleVersions = AgpVersionSoftwareEnvironmentDescriptor.entries.mapNotNull { it.gradleVersion }.toSet()
+
+      listOf(
+        Triple("AGP versions", knownAgpVersions, versionsPair.agpVersion),
+        Triple("Gradle versions", knownGradleVersions, versionsPair.gradleVersion),
+      ).onEach { (name, knownVersions, declaredVersion) ->
+        if (!knownVersions.contains(declaredVersion)) {
+          val similar = knownVersions.filter { it.contains(declaredVersion) }
+          messageBuilder.append("Please note that '$declaredVersion' is not amongst $name " +
+                                "found in AgpVersionSoftwareEnvironmentDescriptor.")
+          if (similar.size == 1) {
+            messageBuilder.append(" Did you mean '${similar.first()}'?")
+          } else if (similar.isNotEmpty()) {
+            messageBuilder.append(" Did you mean any of these: ${similar.joinToString { "'$it'" }}?")
+          }
+          messageBuilder.appendLine()
+        }
+      }
+
+      Assert.fail(messageBuilder.toString())
     }
   }
 

@@ -16,6 +16,7 @@
 package com.android.testutils.junit4
 
 import com.google.common.truth.Truth
+import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.After
 import org.junit.Test
 
@@ -30,6 +31,7 @@ class OldAgpTestTargetsCheckerTest {
         OldAgpSuiteTest.InvalidAnnotation::class.java,
         OldAgpSuiteTest.MissingAnnotation::class.java,
         OldAgpSuiteTest.MissingVersions::class.java,
+        OldAgpSuiteTest.WrongVersion::class.java,
         OldAgpSuiteTest.ParametrizedAgpTest::class.java,
       )
     )
@@ -53,6 +55,9 @@ class OldAgpTestTargetsCheckerTest {
         "com.android.testutils.junit4.OldAgpSuiteTest\$OverrideAgpTest#shouldRunAgpOnly42",
         "com.android.testutils.junit4.OldAgpSuiteTest\$MethodOnly#shouldRun"
       ),
+      OldAgpTestTargetsChecker.OldAgpTestVersionsPair("8.12", "8.13") to listOf(
+        "com.android.testutils.junit4.OldAgpSuiteTest\$WrongVersion"
+      )
     ).toTestString())
   }
 
@@ -82,6 +87,26 @@ class OldAgpTestTargetsCheckerTest {
       OldAgpTestTargetsChecker.OldAgpTestVersionsPair("4.2", "4.2"),
       listOf("com.android.testutils.junit4.OldAgpSuiteTest\$AgpTestMultiple")
     ).check()
+  }
+
+  @Test
+  fun testAgpVersionsMistyped() {
+    System.setProperty("agp.gradle.version.pair.targets", "8.12.0@8.13")
+    assertThrows(AssertionError::class.java,
+                 "Please note that '8.12' is not amongst AGP versions found in AgpVersionSoftwareEnvironmentDescriptor. Did you mean '8.12.0'?") {
+      OldAgpTestTargetsChecker(OldAgpTestTargetsChecker.OldAgpTestVersionsPair("8.12", "8.13"),
+                               listOf("com.android.testutils.junit4.OldAgpSuiteTest\$WrongVersion")).check()
+    }
+  }
+
+  @Test
+  fun testGradleVersionsMistyped() {
+    System.setProperty("agp.gradle.version.pair.targets", "8.12.0@8.13")
+    assertThrows(AssertionError::class.java,
+                 "Please note that '8.13.0' is not amongst Gradle versions found in AgpVersionSoftwareEnvironmentDescriptor.") {
+      OldAgpTestTargetsChecker(OldAgpTestTargetsChecker.OldAgpTestVersionsPair("8.12.0", "8.13.0"),
+                               listOf("com.android.testutils.junit4.OldAgpSuiteTest\$WrongVersion")).check()
+    }
   }
 
   @After
