@@ -23,7 +23,6 @@ import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
@@ -55,7 +54,6 @@ import javax.swing.tree.TreePath
  */
 class UpdateReferenceImagesDialog(
   private val project: Project?,
-  private val module: Module,
   private val logger: Logger = Logger.getInstance(UpdateReferenceImagesDialog::class.java)
 ) : DialogWrapper(project) {
 
@@ -91,14 +89,16 @@ class UpdateReferenceImagesDialog(
     }
   }
 
-  fun updateDialogWithTestResult(className: String, methodName: String, previewName: String, imagePath: String?) {
+  fun updateDialogWithTestResult(previewDetails: PreviewDetails) {
     ApplicationManager.getApplication().invokeLater {
       if (!isFirstTestDiscovered) {
         isFirstTestDiscovered = true
         populateCenterPanel()
       }
+
+      val (testId, className, methodName, previewName, destImagePath, srcImagePath) = previewDetails
+
       if(methodName.isNotBlank() && previewName.isNotBlank()) {
-        val testId = "$className.$methodName.$previewName"
 
         val root = tree.model.root as CheckedTreeNode
         val model = tree.model as DefaultTreeModel
@@ -120,17 +120,16 @@ class UpdateReferenceImagesDialog(
           newNode
         }
 
-        val details = PreviewDetails(testId, className, methodName, previewName)
-        val leafNode = CheckedTreeNode(details)
+        val leafNode = CheckedTreeNode(previewDetails)
         leafNode.isChecked = true
         model.insertNodeInto(leafNode, methodNode, methodNode.childCount)
         tree.expandPath(TreePath(methodNode.path))
 
-        val panel = PreviewItemPanel(previewData = details, onImageLoaded = { onImageLoadedSuccessfully() })
+        val panel = PreviewItemPanel(previewData = previewDetails, onImageLoaded = { onImageLoadedSuccessfully() })
         imagePanelMap[testId] = panel
 
-        if (imagePath != null) {
-          panel.loadImage(imagePath, testId)
+        if (srcImagePath != null) {
+          panel.loadImage(srcImagePath, testId)
         }
         else {
           panel.showError("Test did not produce an image")
@@ -312,7 +311,7 @@ class UpdateReferenceImagesDialog(
       val imagesToCopy = panelsToCopy.map {
         ImageData(it.previewData, it.loadedImagePaths)
       }
-      val failures = copyReferenceImages(module, imagesToCopy)
+      val failures = copyReferenceImages(imagesToCopy)
 
       ApplicationManager.getApplication().invokeLater {
         if (failures.isEmpty()) {
@@ -344,5 +343,8 @@ data class PreviewDetails(
   val testId: String,
   val className: String,
   val methodName: String,
-  val previewName: String
+  val previewName: String,
+  val destImagePath: String? = null,
+  val srcImagePath: String? = null,
+  val diffPercent: String? = null
 )

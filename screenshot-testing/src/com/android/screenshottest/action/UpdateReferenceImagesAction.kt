@@ -23,19 +23,9 @@ import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.execution.impl.RunManagerImpl
 import com.android.screenshottest.ui.UpdateReferenceImagesDialog
 import com.android.screenshottest.listener.UpdateScreenshotTestResultsListener
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.Module
-import com.intellij.psi.PsiMethod
-import com.intellij.psi.util.PsiTreeUtil
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.uast.UMethod
-import org.jetbrains.uast.toUElement
 
 /**
  * Action to add or update the reference images for screenshot tests.
@@ -50,7 +40,6 @@ class UpdateReferenceImagesAction : AnAction(
   override fun actionPerformed(e: AnActionEvent) {
     val context = ConfigurationContext.getFromEvent(e)
     val project = context.project ?: return
-    val module = context.module ?: return
 
     val validateRunconfigSettings = context.createConfigurationsFromContext()?.firstOrNull()?.configurationSettings
                            ?: return
@@ -59,7 +48,7 @@ class UpdateReferenceImagesAction : AnAction(
     updateRunconfigSettings.isActivateToolWindowBeforeRun = false
     val executor = ExecutorRegistry.getInstance().getExecutorById(DefaultRunExecutor.EXECUTOR_ID) ?: return
 
-    val dialog = UpdateReferenceImagesDialog(project, module)
+    val dialog = UpdateReferenceImagesDialog(project)
 
     project.messageBus.connect(dialog.disposable).subscribe(AndroidTestSuiteView.ANDROID_TEST_SUITE_TOPIC, UpdateScreenshotTestResultsListener(dialog))
     ExecutionUtil.runConfiguration(updateRunconfigSettings, executor)
