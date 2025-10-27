@@ -32,8 +32,6 @@ import com.android.tools.idea.layoutinspector.resource.data.createReference
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.write
-import org.jetbrains.kotlin.idea.core.script.v1.readString
-import org.jetbrains.kotlin.idea.core.script.v1.writeString
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -43,6 +41,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import javax.imageio.ImageIO
 import layoutinspector.snapshots.Metadata
+import org.jetbrains.kotlin.idea.core.script.v1.readString
+import org.jetbrains.kotlin.idea.core.script.v1.writeString
 
 class LegacySnapshotLoader : SnapshotLoader {
   override val propertiesProvider = LegacyPropertiesProvider()

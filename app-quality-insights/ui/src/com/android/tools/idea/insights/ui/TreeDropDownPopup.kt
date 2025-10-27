@@ -305,8 +305,8 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
       treeTable,
       object : CheckboxTree.CheckboxTreeCellRenderer(true) {
         override fun customizeRenderer(
-          tree: JTree?,
-          value: Any?,
+          tree: JTree,
+          value: Any,
           selected: Boolean,
           expanded: Boolean,
           leaf: Boolean,
