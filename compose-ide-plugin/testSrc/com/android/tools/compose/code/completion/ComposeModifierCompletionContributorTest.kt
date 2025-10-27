@@ -33,6 +33,10 @@ import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider.Companion.isK2Mode
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFunction
@@ -52,6 +56,15 @@ class ComposeModifierCompletionContributorTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
+
+  @OptIn(KaAllowAnalysisOnEdt::class, KaAllowAnalysisFromWriteAction::class)
+  private fun typeFromEDT(s: String) {
+    allowAnalysisOnEdt {
+      allowAnalysisFromWriteAction {
+        myFixture.type(s)
+      }
+    }
+  }
 
   @Before
   fun setUp() {
@@ -283,7 +296,57 @@ class ComposeModifierCompletionContributorTest {
     // to check that we still suggest "Modifier.extensionFunction" when prefix doesn't much with
     // function name and only with "Modifier".
     // See [ComposeModifierCompletionContributor.ModifierLookupElement.getAllLookupStrings]
-    myFixture.type("M")
+    typeFromEDT("M")
+
+    checkArgumentCompletion()
+
+    // Check that extension functions are completed if part of `Modifier` is the prefix
+    myFixture.loadNewFile(
+      "src/com/example/Test2.kt",
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun myWidget() {
+          myWidgetWithModifier(Modi<caret>
+      }
+      """
+        .trimIndent(),
+    )
+
+    myFixture.completeBasic()
+
+    lookupStrings = myFixture.lookupElementStrings!!
+    assertThat(lookupStrings).contains("Modifier.extensionFunction")
+    assertThat(lookupStrings).doesNotContain("Modifier.extensionFunctionReturnsNonModifier")
+    assertThat(lookupStrings.indexOf("Modifier.extensionFunction")).isEqualTo(0)
+
+    checkArgumentCompletion()
+
+    // Check that extension functions are completed without `Modifier` prefix
+    myFixture.loadNewFile(
+      "src/com/example/Test2.kt",
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun myWidget() {
+          myWidgetWithModifier(e<caret>
+      }
+      """
+        .trimIndent(),
+    )
+
+    myFixture.completeBasic()
+
+    lookupStrings = myFixture.lookupElementStrings!!
+    assertThat(lookupStrings).contains("Modifier.extensionFunction")
+    assertThat(lookupStrings).doesNotContain("Modifier.extensionFunctionReturnsNonModifier")
+    assertThat(lookupStrings.indexOf("Modifier.extensionFunction")).isEqualTo(0)
 
     checkArgumentCompletion()
 
@@ -410,7 +473,7 @@ class ComposeModifierCompletionContributorTest {
     // If user didn't type Modifier don't suggest extensions that doesn't return Modifier.
     assertThat(lookupStrings).doesNotContain("Modifier.extensionFunctionReturnsNonModifier")
 
-    myFixture.type("extensionFunction\t")
+    typeFromEDT("extensionFunction\t")
 
     myFixture.checkResult(
       """
@@ -500,7 +563,7 @@ class ComposeModifierCompletionContributorTest {
     // If user didn't type Modifier don't suggest extensions that doesn't return Modifier.
     assertThat(lookupStrings).doesNotContain("Modifier.extensionFunctionReturnsNonModifier")
 
-    myFixture.type("extensionFunction\t")
+    typeFromEDT("extensionFunction\t")
 
     // K1 imports `Modifier` for `Modifier.extensionFunction()` below, but we already have
     // `Modifier1`, so we don't actually need it. K2 fixes this issue.
