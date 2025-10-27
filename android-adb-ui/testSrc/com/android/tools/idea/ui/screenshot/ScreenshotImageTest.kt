@@ -17,11 +17,10 @@ package com.android.tools.idea.ui.screenshot
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.adtui.ImageUtils
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.awt.Color
 import java.awt.image.BufferedImage
+import org.junit.Test
 
 /** Tests for [ScreenshotImage]. */
 class ScreenshotImageTest {
@@ -36,7 +35,7 @@ class ScreenshotImageTest {
   }
 
   private fun createTestImage(width: Int, height: Int, color: Color): BufferedImage {
-    val image = ImageUtils.createDipImage(width, height, BufferedImage.TYPE_INT_ARGB)
+    val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics()
     graphics.paint = color
     graphics.fillRect(0, 0, image.width, image.height)
