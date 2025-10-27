@@ -42,7 +42,8 @@ internal class ShellCommandUiDumpProviderTest {
     get() = projectRule.project
 
   companion object {
-    private const val UI_DUMP_OUTPUT = "<node>THINGS</node>"
+    private const val UI_DUMP_OUTPUT_RAW = "<node clickable=\"false\">THINGS</node>"
+    private const val UI_DUMP_OUTPUT_EXPECTED = "<node>THINGS</node>"
   }
 
   @Before
@@ -53,11 +54,11 @@ internal class ShellCommandUiDumpProviderTest {
   fun successDump() {
     deviceServices.configureShellCommand(device, DUMP_COMMAND,
                                          "UI hierarchy dumped to: $TMP_DUMP_FILE")
-    deviceServices.configureShellCommand(device, READ_COMMAND, UI_DUMP_OUTPUT)
+    deviceServices.configureShellCommand(device, READ_COMMAND, UI_DUMP_OUTPUT_RAW)
     deviceServices.configureShellCommand(device, CLEANUP_COMMAND, "")
 
     val dump = runBlockingWithTimeout { uiDumpProvider.uiDump(project, serialNumber) }
-    assertEquals(UI_DUMP_OUTPUT, dump)
+    assertEquals(UI_DUMP_OUTPUT_EXPECTED, dump)
   }
 
   @Test
