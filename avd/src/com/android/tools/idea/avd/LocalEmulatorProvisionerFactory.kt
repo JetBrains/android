@@ -18,6 +18,7 @@ package com.android.tools.idea.avd
 import com.android.adblib.AdbSession
 import com.android.sdklib.deviceprovisioner.DeviceIcons
 import com.android.sdklib.deviceprovisioner.DeviceProvisionerPlugin
+import com.android.sdklib.deviceprovisioner.LocalEmulatorDeviceHandle
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.RunningAvd
 import com.android.sdklib.internal.avd.AvdInfo
@@ -31,8 +32,10 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerFactory
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
+import com.android.tools.idea.glassespairing.GlassesPairingWizard
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.intellij.ide.actions.RevealFileAction
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
@@ -40,6 +43,8 @@ import icons.StudioIcons
 import java.awt.Component
 import java.nio.file.Path
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 
@@ -101,6 +106,30 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
 //
 //  override suspend fun editAvd(parent: Component?, avdInfo: AvdInfo): Boolean {
 //    return EditVirtualDeviceDialog.show(project, parent, avdInfo, Mode.EDIT)
+//  }
+//
+//  override suspend fun pairGlasses(
+//    parent: Component?,
+//    glassesHandle: LocalEmulatorDeviceHandle,
+//    devices: Flow<List<LocalEmulatorDeviceHandle>>,
+//  ) {
+//    val pairedPhone =
+//      withContext(Dispatchers.EDT) {
+//        GlassesPairingWizard.show(
+//          parent,
+//          project = project,
+//          devicesFlow = devices,
+//          glassesHandle = glassesHandle,
+//        ) as? LocalEmulatorDeviceHandle
+//      }
+//    if (pairedPhone != null) {
+//      glassesHandle.updatePairedPhone(pairedPhone)
+//      pairedPhone.updatePairedGlasses(glassesHandle)
+//    }
+//  }
+//
+//  override suspend fun unpairGlasses(handle: LocalEmulatorDeviceHandle) {
+//    // TODO(b/458470193): Implement unpairing
 //  }
 //
 //  override suspend fun duplicateAvd(parent: Component?, avdInfo: AvdInfo) {

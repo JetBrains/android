@@ -47,5 +47,7 @@ iml_module(
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer",
         "//tools/adt/idea/avd:intellij.android.avd",
         "//tools/adt/idea/intellij.android.device",
+        "//tools/adt/idea/glasses-pairing",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
     ],
 )

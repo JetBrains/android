@@ -114,6 +114,7 @@
     <orderEntry type="module" module-name="intellij.kotlin.projectWizard.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.compose.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.ml-api" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.visual-lint" scope="TEST" />

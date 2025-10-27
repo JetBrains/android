@@ -446,6 +446,7 @@ constructor(
   override fun uiDataSnapshot(sink: DataSink) {
     sink[DEVICE_MANAGER_PANEL_KEY] = this
     sink[DEVICE_MANAGER_COROUTINE_SCOPE_KEY] = panelScope
+    sink[DEVICE_HANDLES_FLOW_KEY] = devices
   }
 }
 
@@ -479,6 +480,8 @@ private fun Flow<DeviceState>.pairWithConnectionState():
 private const val TOOLBAR_ID = "DeviceManager2"
 
 internal val DEVICE_MANAGER_PANEL_KEY = DataKey.create<DeviceManagerPanel>("DeviceManagerPanel")
+internal val DEVICE_HANDLES_FLOW_KEY =
+  DataKey.create<StateFlow<List<DeviceHandle>>>("DeviceHandleFlow")
 internal val DEVICE_MANAGER_COROUTINE_SCOPE_KEY =
   DataKey.create<CoroutineScope>("DeviceManagerCoroutineScope")
 

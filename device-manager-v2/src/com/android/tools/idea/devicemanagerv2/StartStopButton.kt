@@ -19,6 +19,7 @@ import com.android.sdklib.deviceprovisioner.ActivationAction
 import com.android.sdklib.deviceprovisioner.DeactivationAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceState.Disconnected
+import com.android.sdklib.deviceprovisioner.PairGlassesAction
 import com.android.sdklib.deviceprovisioner.RepairDeviceAction
 import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -41,11 +42,13 @@ internal class StartStopButton(
   activationAction: ActivationAction,
   deactivationAction: DeactivationAction,
   repairDeviceAction: RepairDeviceAction?,
+  pairGlassesAction: PairGlassesAction?,
 ) : IconButton(StudioIcons.Avd.RUN) {
   init {
     val activationPresentation = activationAction.presentation
     val deactivationPresentation = deactivationAction.presentation
     val repairPresentation = repairDeviceAction?.presentation
+    val pairGlassesPresentation = pairGlassesAction?.presentation
 
     addActionListener {
       val project = projectFromComponentContext(this@StartStopButton)
@@ -76,6 +79,14 @@ internal class StartStopButton(
             }
           }
         }
+        pairGlassesPresentation?.value?.icon -> {
+          handle.scope.launch {
+            runCatchingDeviceActionException(project, handle.state.properties.title) {
+              // TODO android merge
+              //pairGlassesAction?.pairGlasses(this@StartStopButton, handle)
+            }
+          }
+        }
         else -> {}
       }
     }
@@ -88,12 +99,25 @@ internal class StartStopButton(
         combine(
             when {
               state.error != null && repairPresentation != null ->
-                listOf(activationPresentation, repairPresentation, deactivationPresentation)
-              state is Disconnected -> listOf(activationPresentation, deactivationPresentation)
-              else -> listOf(deactivationPresentation, activationPresentation)
+                listOf(
+                  activationPresentation,
+                  repairPresentation,
+                  deactivationPresentation,
+                  // This is listed again so that if nothing is enabled, we show a disabled
+                  // activation icon.
+                  activationPresentation,
+                )
+              state is Disconnected ->
+                listOfNotNull(pairGlassesPresentation, activationPresentation)
+              else ->
+                listOfNotNull(
+                  deactivationPresentation,
+                  pairGlassesPresentation,
+                  deactivationPresentation,
+                )
             }
           ) {
-            it.firstOrNull { it.enabled } ?: it.first()
+            it.firstOrNull { it.enabled } ?: it.last()
           }
           .distinctUntilChanged()
           .collect {

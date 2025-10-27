@@ -265,6 +265,8 @@ jvm_library(
         "@lib//:zxing-core",
         "//android/adt-ui-compose",
         "//android/adt-ui-compose:adt-ui-compose_test_lib",
+        "//android/adt-ui-compose:adt-ui-compose-tests",
+        "//android/adt-ui-compose:adt-ui-compose-tests_test_lib",
         "//android/android-adb:adb-testUtil",
         "//android/android-adb:adb-testUtil_test_lib",
         "//android/adt-testutils",

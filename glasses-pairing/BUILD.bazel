@@ -1,7 +1,14 @@
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.glasses-pairing` start
+
+create_kotlinc_options(
+    name = "custom_glasses-pairing",
+    x_context_parameters = True,
+    x_sam_conversions = "class",
+)
 
 jvm_library(
     name = "glasses-pairing",
@@ -13,6 +20,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
+    kotlinc_opts = ":custom_glasses-pairing",
     module_name = "intellij.android.glasses-pairing",
     resource_strip_prefix = "resources",
     resources = glob(
@@ -22,16 +30,22 @@ jvm_library(
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
-        "//platform/util",
         "//platform/core-api:core",
         "//platform/projectModel-api:projectModel",
+        "//platform/util",
+        "//platform/util:util-ui",
+        "//platform/platform-api:ide",
+        "//platform/ide-core",
         "//android/android-adb:adb",
         "//android/adt-ui",
+        "//android/adt-ui-compose",
         "//android/artwork",
         "//android/android-common:common",
         "//android/android:core",
         "//android/observable",
         "//android/project-system",
+        "//android/artwork-compose",
+        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "@lib//:studio-platform-provided",
     ],
 )
@@ -48,21 +62,36 @@ jvm_library(
         allow_empty = True,
     ),
     associates = [":glasses-pairing"],
+    kotlinc_opts = ":custom_glasses-pairing",
     visibility = ["//visibility:public"],
+    runtime_deps = ["//platform/ide-core:ide-core_test_lib"],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
-        "//platform/util",
-        "//platform/util:util_test_lib",
+        "@lib//:junit4",
         "//platform/core-api:core",
         "//platform/core-api:core_test_lib",
         "//platform/projectModel-api:projectModel",
         "//platform/projectModel-api:projectModel_test_lib",
-        "@lib//:junit4",
+        "//platform/util",
+        "//platform/util:util_test_lib",
+        "//platform/util:util-ui",
+        "//platform/util:util-ui_test_lib",
+        "//platform/platform-api:ide",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/ide-core",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
         "//android/android-adb:adb",
         "//android/android-adb:adb_test_lib",
         "//android/adt-ui",
         "//android/adt-ui:adt-ui_test_lib",
+        "//android/adt-ui-compose",
+        "//android/adt-ui-compose:adt-ui-compose_test_lib",
+        "//android/adt-ui-compose:adt-ui-compose-tests",
+        "//android/adt-ui-compose:adt-ui-compose-tests_test_lib",
+        "//android/adt-testutils",
+        "//android/adt-testutils:adt-testutils_test_lib",
         "//android/artwork",
         "//android/artwork:artwork_test_lib",
         "//android/android-common:common",
@@ -73,7 +102,15 @@ jvm_library(
         "//android/observable:observable_test_lib",
         "//android/project-system",
         "//android/project-system:project-system_test_lib",
+        "//android/artwork-compose",
+        "//android/artwork-compose:artwork-compose_test_lib",
+        "//libraries/kotlinx/coroutines/test",
+        "//libraries/kotlinx/coroutines/test:test_test_lib",
+        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
         "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:truth",
     ],
 )
 ### auto-generated section `build intellij.android.glasses-pairing` end

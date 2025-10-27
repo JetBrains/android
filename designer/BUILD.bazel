@@ -573,6 +573,8 @@ jvm_library(
         "//android/intellij.android.compose-common:compose-common_test_lib",
         "//android/adt-ui-compose",
         "//android/adt-ui-compose:adt-ui-compose_test_lib",
+        "//android/adt-ui-compose:adt-ui-compose-tests",
+        "//android/adt-ui-compose:adt-ui-compose-tests_test_lib",
         "//android/ml-api",
         "//android/ml-api:ml-api_test_lib",
         "@lib//:mockito-kotlin",

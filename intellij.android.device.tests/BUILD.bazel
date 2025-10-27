@@ -56,6 +56,8 @@ jvm_library(
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
         "//android/adt-ui-compose",
         "//android/adt-ui-compose:adt-ui-compose_test_lib",
+        "//android/adt-ui-compose:adt-ui-compose-tests",
+        "//android/adt-ui-compose:adt-ui-compose-tests_test_lib",
         "//android/android:core",
         "//android/android:core_test_lib",
         "//platform/core-api:core",

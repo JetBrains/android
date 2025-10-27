@@ -66,14 +66,14 @@ class AndroidJdiHelperClassLoader : JdiHelperClassLoader {
       vmProxy.getOrCreateUserData(AndroidHelperClassCache.ANDROID_HELPER_CLASS_CACHE_KEY) {
         AndroidHelperClassCache()
       }
-    cache.classToJDIType[cls]?.let {
+    cache?.classToJDIType[cls]?.let {
       return it
     }
 
     val inMemoryClassLoader = findOrLoadInMemoryClassLoaderSafe(context) ?: return null
     val loadedClass = loadClasses(cls, context, inMemoryClassLoader, *additionalClassesToLoad)
     if (loadedClass != null) {
-      cache.classToJDIType[cls] = loadedClass
+      cache?.classToJDIType[cls] = loadedClass
     }
     return loadedClass
   }
