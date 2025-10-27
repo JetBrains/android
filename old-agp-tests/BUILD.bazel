@@ -86,6 +86,8 @@ jvm_library(
         "//platform/refactoring:refactoring_test_lib",
         "//xml/xml-psi-api:psi",
         "//xml/xml-psi-api:psi_test_lib",
+        "//plugins/kotlin/gradle/gradle-tooling/impl",
+        "//plugins/kotlin/gradle/gradle-tooling/impl:impl_test_lib",
         "//android/android-test-framework:testFramework",
         "//android/android-test-framework:testFramework_test_lib",
         "//platform/testFramework",
