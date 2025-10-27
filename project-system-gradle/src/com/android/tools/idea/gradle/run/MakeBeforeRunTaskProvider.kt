@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationRes
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.gradle.project.model.gradleModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildProjectModels
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
@@ -73,18 +74,16 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import icons.StudioIcons
-import org.jetbrains.kotlin.idea.base.externalSystem.findAll
-import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStreamWriter
@@ -153,15 +152,8 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     return true
   }
 
-  private fun createAvailableTasks(project: Project): List<String> {
-    val moduleManager = ModuleManager.getInstance(project)
-    val gradleTasks: MutableList<String> = ArrayList()
-    for (module in moduleManager.modules) {
-      CachedModuleDataFinder.findModuleData(module)?.findAll(ProjectKeys.TASK)?.forEach {
-        gradleTasks.add(it.data.name)
-      }
-    }
-    return gradleTasks
+  private fun createAvailableTasks(project: Project): List<String> = project.modules.flatMap {
+    it.gradleModuleModel?.allTasks.orEmpty()
   }
 
   override fun canExecuteTask(configuration: RunConfiguration, task: MakeBeforeRunTask): Boolean = task.isValid
