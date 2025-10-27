@@ -55,7 +55,9 @@ object DefaultBuildManager : ProjectSystemBuildManager {
     buildListener: ProjectSystemBuildManager.BuildListener,
   ) {
     listeners.add(buildListener)
-    Disposer.register(parentDisposable) { listeners.remove(buildListener) }
+    if (!Disposer.tryRegister(parentDisposable) { listeners.remove(buildListener) }) {
+      listeners.remove(buildListener)
+    }
   }
 
   @get:UiThread override var isBuilding = false
