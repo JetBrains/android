@@ -40,9 +40,9 @@ import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardDialogScope
 import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.adtui.compose.catchAndShowErrors
+import com.android.tools.adtui.compose.table.TableSelectionState
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
-import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.avdmanager.SkinUtils
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.concurrency.AndroidDispatchers
