@@ -24,7 +24,6 @@ import sun.nio.ch.DirectBuffer
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 
-
 class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HProfEventBasedParser) :
   AbstractHProfNavigatorReadBuffer(parser) {
   private val bufferSize = 10_000_000L
