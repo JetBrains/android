@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.res
 
-import com.android.ddmlib.testing.FakeAdbRule
 import com.android.ide.common.resources.configuration.LocaleQualifier
-import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
@@ -50,8 +48,6 @@ class AppLanguageServiceImplTest {
       AndroidModuleModelBuilder(":two", "debug", createApp("com.example.two")),
     ).onEdt()
 
-  private val adbRule = FakeAdbRule()
-
   private val pseudoLocalesToken = object : PseudoLocalesToken {
     override fun isPseudoLocalesEnabled(applicationProjectContext: ApplicationProjectContext): PseudoLocalesToken.PseudoLocalesState =
       when (applicationProjectContext.applicationId) {
@@ -64,9 +60,7 @@ class AppLanguageServiceImplTest {
   }
 
   @get:Rule
-  val ruleChain = RuleChain(projectRule, adbRule, EdtRule())
-
-  private val serialNumber = "42"
+  val ruleChain = RuleChain(projectRule, EdtRule())
 
   @Before
   fun before() {
@@ -77,9 +71,6 @@ class AppLanguageServiceImplTest {
     val extensionPoint = ApplicationManager.getApplication().extensionArea.getExtensionPoint(PseudoLocalesToken.EP_NAME)
     extensionPoint.unregisterExtension(GradlePseudoLocalesToken::class.java)
     extensionPoint.registerExtension(pseudoLocalesToken, projectRule.testRootDisposable)
-    val state = adbRule.attachDevice(serialNumber, "Google", "Pixel6", "versionX", AndroidApiLevel(33))
-    state.startClient(12, 24, "com.example.one", isWaiting = true)
-    state.startClient(14, 28, "com.example.two", isWaiting = true)
   }
 
   private fun createStringsFile(helloTranslation: String): String {
