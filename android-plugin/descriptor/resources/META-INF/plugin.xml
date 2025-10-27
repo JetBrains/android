@@ -24,8 +24,11 @@
     <plugin id="com.intellij.modules.json"/>
     <module name="intellij.platform.lvcs.impl"/>
     <module name="intellij.platform.vcs.impl"/>
-    <module name="intellij.platform.vcs.dvcs.impl"/>
+    <module name="intellij.platform.vcs.impl.shared"/>
+    <module name="intellij.platform.vcs.log"/>
     <module name="intellij.platform.vcs.log.impl"/>
+    <module name="intellij.platform.vcs.dvcs.impl"/>
+    <module name="intellij.platform.vcs.dvcs"/>
     <module name="intellij.properties.backend.psi"/>
     <module name="intellij.spellchecker"/>
     <module name="intellij.spellchecker.xml"/>

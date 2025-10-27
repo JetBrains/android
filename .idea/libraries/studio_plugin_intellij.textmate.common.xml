@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-intellij.cmake.psi">
+  <library name="studio-plugin-intellij.textmate.common">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/cidr-base/lib/modules/intellij.cmake.psi.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/textmate-plugin/lib/modules/intellij.textmate.common.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
