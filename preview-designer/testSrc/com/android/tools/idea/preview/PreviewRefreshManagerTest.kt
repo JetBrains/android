@@ -21,13 +21,14 @@ import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
+import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.getRandomTopic
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.openapi.application.runWriteActionAndWait
+import java.util.Collections
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
@@ -43,25 +44,15 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-private class TestPreviewRefreshTracker : PreviewRefreshTracker {
-  override fun logEvent(event: PreviewRefreshEvent): AndroidStudioEvent.Builder {
-    logList.add(event)
-    return AndroidStudioEvent.newBuilder()
-  }
-
-  companion object {
-    lateinit var logList: MutableList<PreviewRefreshEvent>
-  }
-}
-
 private val testPreviewType = PreviewRefreshEvent.PreviewType.UNKNOWN_TYPE
 
 class PreviewRefreshManagerTest {
   @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
 
+  private val logList = Collections.synchronizedList(mutableListOf<PreviewRefreshEvent>())
   private lateinit var myScope: CoroutineScope
   private lateinit var refreshManager: PreviewRefreshManager
-  private lateinit var refreshTracker: TestPreviewRefreshTracker
+  private lateinit var refreshTracker: PreviewRefreshTracker
   private lateinit var myTopic: RenderingTopic
 
   @Before
@@ -70,8 +61,7 @@ class PreviewRefreshManagerTest {
     myTopic = getRandomTopic()
     refreshManager = PreviewRefreshManager.getInstanceForTest(myScope, myTopic)
     TestPreviewRefreshRequest.log = StringBuilder()
-    refreshTracker = TestPreviewRefreshTracker()
-    TestPreviewRefreshTracker.logList = mutableListOf()
+    refreshTracker = PreviewRefreshTrackerForTest { logList.add(it) }
   }
 
   @Test
@@ -140,13 +130,13 @@ class PreviewRefreshManagerTest {
         .trimIndent(),
       TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
-    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 5 }
-    assertTrue(TestPreviewRefreshTracker.logList.all { it.result == RefreshResult.SUCCESS })
-    assertTrue(TestPreviewRefreshTracker.logList.all { it.hasRefreshTimeMillis() })
-    assertTrue(TestPreviewRefreshTracker.logList.all { it.hasInQueueTimeMillis() })
-    assertTrue(TestPreviewRefreshTracker.logList.all { it.hasPreviewsCount() })
-    assertTrue(TestPreviewRefreshTracker.logList.all { it.hasPreviewsToRefresh() })
-    assertTrue(TestPreviewRefreshTracker.logList.all { it.previewRendersCount > 0 })
+    waitForCondition(5.seconds) { logList.size == 5 }
+    assertTrue(logList.all { it.result == RefreshResult.SUCCESS })
+    assertTrue(logList.all { it.hasRefreshTimeMillis() })
+    assertTrue(logList.all { it.hasInQueueTimeMillis() })
+    assertTrue(logList.all { it.hasPreviewsCount() })
+    assertTrue(logList.all { it.hasPreviewsToRefresh() })
+    assertTrue(logList.all { it.previewRendersCount > 0 })
   }
 
   @Test
@@ -200,13 +190,13 @@ class PreviewRefreshManagerTest {
     assertEquals("start req3-3", lines[8])
     assertEquals("finish req3-3", lines[9])
 
-    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 7 }
+    waitForCondition(5.seconds) { logList.size == 7 }
 
-    val skipped = TestPreviewRefreshTracker.logList.filter { it.result == RefreshResult.SKIPPED }
+    val skipped = logList.filter { it.result == RefreshResult.SKIPPED }
     assertEquals(4, skipped.size)
     assertTrue(skipped.all { it.hasInQueueTimeMillis() })
 
-    val success = TestPreviewRefreshTracker.logList.filter { it.result == RefreshResult.SUCCESS }
+    val success = logList.filter { it.result == RefreshResult.SUCCESS }
     assertEquals(3, success.size)
     assertTrue(success.all { it.hasInQueueTimeMillis() })
     assertTrue(success.all { it.hasRefreshTimeMillis() })
@@ -251,17 +241,14 @@ class PreviewRefreshManagerTest {
       TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
 
-    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 2 }
+    waitForCondition(5.seconds) { logList.size == 2 }
 
-    val cancelled =
-      TestPreviewRefreshTracker.logList.filter {
-        it.result == RefreshResult.AUTOMATICALLY_CANCELLED
-      }
+    val cancelled = logList.filter { it.result == RefreshResult.AUTOMATICALLY_CANCELLED }
     assertEquals(1, cancelled.size)
     assertTrue(cancelled.all { it.hasInQueueTimeMillis() })
     assertTrue(cancelled.all { it.hasRefreshTimeMillis() })
 
-    val success = TestPreviewRefreshTracker.logList.filter { it.result == RefreshResult.SUCCESS }
+    val success = logList.filter { it.result == RefreshResult.SUCCESS }
     assertEquals(1, success.size)
     assertTrue(success.all { it.hasInQueueTimeMillis() })
     assertTrue(success.all { it.hasRefreshTimeMillis() })
@@ -306,17 +293,14 @@ class PreviewRefreshManagerTest {
       TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
 
-    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 2 }
+    waitForCondition(5.seconds) { logList.size == 2 }
 
-    val cancelled =
-      TestPreviewRefreshTracker.logList.filter {
-        it.result == RefreshResult.AUTOMATICALLY_CANCELLED
-      }
+    val cancelled = logList.filter { it.result == RefreshResult.AUTOMATICALLY_CANCELLED }
     assertEquals(1, cancelled.size)
     assertTrue(cancelled.all { it.hasInQueueTimeMillis() })
     assertTrue(cancelled.all { it.hasRefreshTimeMillis() })
 
-    val success = TestPreviewRefreshTracker.logList.filter { it.result == RefreshResult.SUCCESS }
+    val success = logList.filter { it.result == RefreshResult.SUCCESS }
     assertEquals(1, success.size)
     assertTrue(success.all { it.hasInQueueTimeMillis() })
     assertTrue(success.all { it.hasRefreshTimeMillis() })
@@ -361,9 +345,9 @@ class PreviewRefreshManagerTest {
       TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
 
-    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 2 }
+    waitForCondition(5.seconds) { logList.size == 2 }
 
-    val success = TestPreviewRefreshTracker.logList.filter { it.result == RefreshResult.SUCCESS }
+    val success = logList.filter { it.result == RefreshResult.SUCCESS }
     assertEquals(2, success.size)
     assertTrue(success.all { it.hasInQueueTimeMillis() })
     assertTrue(success.all { it.hasRefreshTimeMillis() })
@@ -515,10 +499,9 @@ class PreviewRefreshManagerTest {
       TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
 
-    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 1 }
+    waitForCondition(5.seconds) { logList.size == 1 }
 
-    val cancelled =
-      TestPreviewRefreshTracker.logList.filter { it.result == RefreshResult.USER_CANCELLED }
+    val cancelled = logList.filter { it.result == RefreshResult.USER_CANCELLED }
     assertEquals(1, cancelled.size)
     assertTrue(cancelled.all { it.hasInQueueTimeMillis() })
     assertTrue(cancelled.all { it.hasRefreshTimeMillis() })
@@ -559,7 +542,7 @@ class PreviewRefreshManagerTest {
 
     // wait for the cancel to complete
     TestPreviewRefreshRequest.expectedLogPrintCount.await()
-    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 1 }
+    waitForCondition(5.seconds) { logList.size == 1 }
 
     val renderTopicWasCancelled = renderTopicCancelledLatch.await(5, TimeUnit.SECONDS)
     assertTrue(renderTopicWasCancelled)
@@ -606,7 +589,7 @@ class PreviewRefreshManagerTest {
       )
     )
     TestPreviewRefreshRequest.expectedLogPrintCount.await()
-    waitForCondition(5.seconds) { TestPreviewRefreshTracker.logList.size == 2 }
+    waitForCondition(5.seconds) { logList.size == 2 }
 
     val renderTopicWasCancelled = renderTopicCancelledLatch.await(5, TimeUnit.SECONDS)
     assertTrue(renderTopicWasCancelled)
