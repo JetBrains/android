@@ -44,25 +44,6 @@ class GradleProjectSystemUtilSoftwareVersionsTest {
   }
 
   @Test
-  fun testOlderKotlin() {
-    assumeTrue(GradleVersion.current() < GradleVersion.version("9.0-milestone-1"))
-    /**
-     * TODO update or remove as Kotlin 1.6 is now deprecated.
-     */
-    val preparedProject = projectRule.prepareTestProject(TestProject.KOTLIN_KAPT)
-    val buildGradle = preparedProject.root.resolve("build.gradle")
-    buildGradle.replaceContent { contents ->
-      AndroidGradleTests.replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", "1.6.21")
-    }
-    preparedProject
-      .open { project ->
-        val kotlinVersionInUse = KotlinGradleProjectSystemUtil.getKotlinVersionsInUse(project, project.basePath!!)?.firstOrNull()?.toString()
-        assertThat(kotlinVersionInUse).isNotNull()
-        assertThat(kotlinVersionInUse).isEqualTo("1.6.21")
-      }
-  }
-
-  @Test
   fun testNotKotlinProject() {
     val preparedProject = projectRule.prepareTestProject(TestProject.PURE_JAVA_PROJECT)
     preparedProject
