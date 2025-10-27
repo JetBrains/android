@@ -24,6 +24,7 @@ import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.awt.Component
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.android.refactoring.project
 
 /** Updates the AnActionEvent's presentation from the given DeviceAction's presentation. */
@@ -71,7 +72,11 @@ fun AnActionEvent.updateFromDeviceActionOrDeactivateAction(
 
 fun AnActionEvent.deviceRowData() = DEVICE_ROW_DATA_KEY.getData(dataContext)
 
-internal fun AnActionEvent.deviceManagerPanel() = DEVICE_MANAGER_PANEL_KEY.getData(dataContext)
+internal fun AnActionEvent.deviceManagerPanel(): DeviceManagerPanel? =
+  DEVICE_MANAGER_PANEL_KEY.getData(dataContext)
+
+internal fun AnActionEvent.deviceHandleFlow(): StateFlow<List<DeviceHandle>>? =
+  DEVICE_HANDLES_FLOW_KEY.getData(dataContext)
 
 internal fun AnActionEvent.deviceManagerCoroutineScope(): CoroutineScope? =
   DEVICE_MANAGER_COROUTINE_SCOPE_KEY.getData(dataContext)

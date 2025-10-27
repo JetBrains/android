@@ -141,7 +141,7 @@ jvm_library(
     "@lib//:truth",
     "@lib//:zxing-core",
     "//android/adt-ui-compose",
-    "//android/adt-ui-compose:adt-ui-compose_test_lib",
+    "//android/adt-ui-compose:adt-ui-compose-tests_test_lib",
     "//android/android-adb:adb-testUtil_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",

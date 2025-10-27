@@ -1,5 +1,12 @@
 ### auto-generated section `build intellij.android.glasses-pairing` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+create_kotlinc_options(
+  name = "custom_glasses-pairing",
+  x_context_parameters = True,
+  x_sam_conversions = "class"
+)
 
 resourcegroup(
   name = "glasses-pairing_resources",
@@ -13,44 +20,67 @@ jvm_library(
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   resources = [":glasses-pairing_resources"],
+  kotlinc_opts = ":custom_glasses-pairing",
   deps = [
     "@lib//:kotlin-stdlib",
-    "//platform/util",
     "//platform/core-api:core",
     "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
     "//android/android-adb:adb",
     "//android/adt-ui",
+    "//android/adt-ui-compose",
     "//android/artwork",
     "//android/android-common:common",
     "//android/android:core",
     "//android/observable",
     "//android/project-system",
+    "//android/artwork-compose",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     "@lib//:studio-platform-provided",
-  ]
+  ],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_library(
   name = "glasses-pairing_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  kotlinc_opts = ":custom_glasses-pairing",
   associates = [":glasses-pairing"],
   deps = [
     "@lib//:kotlin-stdlib",
-    "//platform/util",
+    "@lib//:junit4",
     "//platform/core-api:core",
     "//platform/projectModel-api:projectModel",
-    "@lib//:junit4",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
     "//android/android-adb:adb",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
+    "//android/adt-ui-compose",
+    "//android/adt-ui-compose:adt-ui-compose-tests_test_lib",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/artwork",
     "//android/android-common:common",
     "//android/android:core",
     "//android/observable",
     "//android/observable:observable_test_lib",
     "//android/project-system",
+    "//android/artwork-compose",
+    "//libraries/kotlinx/coroutines/test",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     "@lib//:studio-platform-provided",
-  ]
+    "@lib//:studio-test-platform",
+    "@lib//:truth",
+  ],
+  plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.glasses-pairing` end
 

@@ -27,6 +27,7 @@ import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
+import com.android.sdklib.deviceprovisioner.PairGlassesAction
 import com.android.sdklib.deviceprovisioner.RepairDeviceAction
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
@@ -59,6 +60,7 @@ internal class FakeDeviceHandle(
   override val wipeDataAction = FakeWipeDataAction()
   override val deleteAction = FakeDeleteAction()
   override val coldBootAction = FakeColdBootAction()
+  override val pairGlassesAction = FakePairGlassesAction()
 
   /**
    * Updates the state of the device to Connected, using a mock ConnectedDevice.
@@ -79,6 +81,7 @@ internal class FakeDeviceHandle(
     override suspend fun activate() {
       if (presentation.value.enabled) {
         exception?.let { throw it }
+        connectToMockDevice()
         invoked++
       } else throw DeviceActionDisabledException(this)
     }
@@ -103,6 +106,7 @@ internal class FakeDeviceHandle(
 
     override suspend fun deactivate() {
       invoked++
+      stateFlow.update { DeviceState.Disconnected(it.properties) }
     }
 
     override val presentation =
@@ -161,6 +165,16 @@ internal class FakeDeviceHandle(
 
     override val presentation =
       MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
+  }
+
+  inner class FakePairGlassesAction : PairGlassesAction {
+    var invoked = 0
+    override val presentation =
+      MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
+
+    override suspend fun pairGlasses(parent: Component?) {
+      invoked++
+    }
   }
 }
 

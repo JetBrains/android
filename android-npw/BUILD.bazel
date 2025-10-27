@@ -193,7 +193,6 @@ jvm_library(
     "//plugins/kotlin/gradle/code-insight-common:kotlin-gradle-codeInsight-common",
     "//libraries/compose-runtime-desktop",
     "//android/adt-ui-compose",
-    "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/ml-api",
     "//android/jps-model",
     "//android/project-system-gradle:projectSystem-gradle-tests_test_lib",

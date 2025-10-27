@@ -79,7 +79,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "//android/android:core",
     "//android/adt-ui-compose",
-    "//android/adt-ui-compose:adt-ui-compose_test_lib",
+    "//android/adt-ui-compose:adt-ui-compose-tests_test_lib",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
