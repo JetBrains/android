@@ -14,7 +14,7 @@ parts {
             height  480
             x       0
             y       0
-            corner_radius 420
+            corner_radius 210
         }
     }
 }

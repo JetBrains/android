@@ -611,15 +611,17 @@ class EmulatorView(
     val g = createAdjustedGraphicsContext(graphics)
 
     var savedClip: Shape? = null
+    val scaleX = displayRect.width.toDouble() / screenshotShape.width
+    val scaleY = displayRect.height.toDouble() / screenshotShape.height
     if (skin?.isDisplayRounded == true) {
       savedClip = g.clip
       g.clip(Area(RoundRectangle2D.Double(displayRect.x.toDouble(), displayRect.y.toDouble(),
                                           displayRect.width.toDouble(), displayRect.height.toDouble(),
-                                          skin.displayCornerSize.width.toDouble(), skin.displayCornerSize.height.toDouble())))
+                                          2 * skin.displayCornerSize.width * scaleX, 2 * skin.displayCornerSize.height * scaleY)))
     }
     // Draw display.
     displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
-    displayTransform.scale(displayRect.width.toDouble() / screenshotShape.width, displayRect.height.toDouble() / screenshotShape.height)
+    displayTransform.scale(scaleX, scaleY)
     g.drawImage(screenshot.image, displayTransform, null)
 
     frameNumber = screenshotShape.frameNumber
