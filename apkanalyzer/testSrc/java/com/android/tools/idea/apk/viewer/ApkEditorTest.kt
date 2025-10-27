@@ -72,7 +72,10 @@ import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 import org.junit.runners.Parameterized
 
-private val TIMEOUT = 3.seconds
+
+// Flakiness note: The prior value of 3 seconds was occasionally too low, causing tests to fail.
+// This was observed on Windows.
+private val TIMEOUT = 6.seconds
 
 /**
  * Tests for [ApkEditor]
