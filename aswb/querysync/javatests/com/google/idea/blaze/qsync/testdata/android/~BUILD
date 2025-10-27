@@ -8,5 +8,6 @@ android_library(
         "8",
     ],
     manifest = "AndroidManifest.xml",
+    resource_files = glob(["res/**"]),
     visibility = ["//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata:__subpackages__"],
 )
