@@ -37,7 +37,6 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestStep
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
-import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestResultsRow
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.state.AndroidTestResultsUserPreferencesManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
@@ -60,6 +59,7 @@ import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.openapi.util.text.Formats
@@ -107,7 +107,6 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.JTableHeader
 import javax.swing.table.TableCellRenderer
 import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 import kotlin.math.max
 
@@ -285,6 +284,14 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   @UiThread
   fun createNavigateToNextFailedTestAction(): AnAction {
     return CommonActionsManager.getInstance().createNextOccurenceAction(failedTestsNavigator)
+  }
+
+  /**
+   * Expands all rows in the table.
+   */
+  @UiThread
+  fun expandAllRows() {
+    TreeUtil.expandAll(myTableView.tree)
   }
 
   /**
@@ -943,6 +950,7 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
     myRowFilter = {
       when(it) {
         is AndroidTestResultsRow -> filter(it)
+        is TestStepRow -> filter(it)
         is AggregationRow -> it.childCount > 0
         else -> true
       }
@@ -964,8 +972,9 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
     fun doSort(node: AggregationRow) {
       node.sort(comparator)
       node.children().asSequence().forEach {
-        if (it is AggregationRow) {
-          doSort(it)
+        when (it) {
+          is AggregationRow -> doSort(it)
+          is AndroidTestResultsRow -> it.sort()
         }
       }
     }
@@ -1263,39 +1272,21 @@ private class AndroidTestResultsRow(override val methodName: String,
       acc.addTestCaseResult(getTestCaseResult(device))
     }
   }
-}
-
-private open class FilterableTreeNode : DefaultMutableTreeNode() {
-  private var invisibleNodes: List<TreeNode> = listOf()
-  val allChildren: Sequence<TreeNode>
-    get() = sequence {
-      // In JDK 8 DefaultMutableTreeNode.children() returns a raw Vector but as of JDK 11 the generic type matches
-      // and this assignment is no longer unchecked.
-      @Suppress("UNCHECKED_CAST") // In JDK 11 the cast is no longer needed.
-      children?.let { yieldAll(it as Vector<TreeNode>) }
-      yieldAll(invisibleNodes)
-    }
 
   /**
-   * Applies a filter to show or hide rows.
-   *
-   * @param filter a predicate which returns false for an item to be hidden
+   * Ensures the children test steps are always sorted by index, as they may be added out of order
+   * after filters are applied/removed.
    */
-  fun applyFilter(filter: (Any) -> Boolean) {
-    if (children == null) {
+  fun sort() {
+    if (children == null) return
+
+    if (children.filterIsInstance<TestStepRow>().size != children.size) {
+      thisLogger().warn("AndroidTestResultsRow should not have children other than TestStepRow")
       return
     }
-    children.addAll(invisibleNodes)
-    children.forEach {
-      if (it is FilterableTreeNode) {
-        it.applyFilter(filter)
-      }
-    }
-    // In JDK 8 DefaultMutableTreeNode.children() returns a raw Vector but as of JDK 11 the generic type matches
-    // and this assignment is no longer unchecked.
-    @Suppress("UNCHECKED_CAST") // In JDK 11 the cast is no longer needed.
-    invisibleNodes = children.filterNot(filter) as List<TreeNode>
-    children.retainAll(filter)
+
+    @Suppress("UNCHECKED_CAST")
+    (children as Vector<TestStepRow>).sortBy { it.testStep.index }
   }
 }
 

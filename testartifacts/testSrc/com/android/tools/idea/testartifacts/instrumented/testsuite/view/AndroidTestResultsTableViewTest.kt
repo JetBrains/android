@@ -601,6 +601,54 @@ class AndroidTestResultsTableViewTest {
   }
 
   @Test
+  fun filteringWorksForTestSteps() {
+    val table = AndroidTestResultsTableView(
+      mockListener, mockJavaPsiFacade, mockModule, mockTestArtifactSearchScopes, mockLogger, mockAndroidTestResultsUserPreferencesManager)
+    val device = device("deviceId", "deviceName")
+    val testcase1 = AndroidTestCase("testid1", "method1", "class1", "package1", result = AndroidTestCaseResult.FAILED)
+    val testcase1step1 = AndroidTestStep("testid1.step1", 0, "case1 step1", result = AndroidTestCaseResult.PASSED)
+    val testcase1step2 = AndroidTestStep("testid1.step2", 1, "case1 step2", result = AndroidTestCaseResult.FAILED)
+    val testcase2 = AndroidTestCase("testid2", "method2", "class2", "package2", result = AndroidTestCaseResult.SKIPPED)
+    val testcase2step1 = AndroidTestStep("testid2.step1", 0, "case2 step1", result = AndroidTestCaseResult.SKIPPED)
+
+    table.addDevice(device)
+    table.addTestCase(device, testcase1)
+    table.addTestStep(device, testcase1, testcase1step1)
+    table.addTestStep(device, testcase1, testcase1step2)
+    table.addTestCase(device, testcase2)
+    table.addTestStep(device, testcase2, testcase2step1)
+
+    // Apply filter
+    table.setRowFilter { results ->
+      results.getTestResultSummary() == AndroidTestCaseResult.FAILED
+    }
+
+    // Verify that the only the FAILED test is shown
+    var view = table.getTableViewForTesting()
+    assertThat(view.rowCount).isEqualTo(4)
+    assertThat(view.getItem(0).getFullTestCaseName()).isEqualTo("")
+    assertThat(view.getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
+    assertThat(view.getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method1")
+    assertThat(view.getItem(3).getFullTestCaseName()).isEqualTo("case1 step2")
+
+    // Remove filter
+    table.setRowFilter { _ -> true }
+    table.expandAllRows()
+
+    // Verify that all the tests are shown again
+    view = table.getTableViewForTesting()
+    assertThat(view.rowCount).isEqualTo(8)
+    assertThat(view.getItem(0).getFullTestCaseName()).isEqualTo("")
+    assertThat(view.getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
+    assertThat(view.getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method1")
+    assertThat(view.getItem(3).getFullTestCaseName()).isEqualTo("case1 step1")
+    assertThat(view.getItem(4).getFullTestCaseName()).isEqualTo("case1 step2")
+    assertThat(view.getItem(5).getFullTestCaseName()).isEqualTo("package2.class2.")
+    assertThat(view.getItem(6).getFullTestCaseName()).isEqualTo("package2.class2.method2")
+    assertThat(view.getItem(7).getFullTestCaseName()).isEqualTo("case2 step1")
+  }
+
+  @Test
   fun setColumnFilter() {
     val table = AndroidTestResultsTableView(
       mockListener, mockJavaPsiFacade, mockModule, mockTestArtifactSearchScopes, mockLogger, mockAndroidTestResultsUserPreferencesManager)
