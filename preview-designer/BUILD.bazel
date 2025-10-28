@@ -76,6 +76,7 @@ jvm_library(
     "//android/preview-fast-compile",
     "//android/completion",
     "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-analysis-api-platform-interface-provided",
     "//platform/util-ex",
     "//java/java-analysis-impl:analysis-impl",
     "//plugins/kotlin/base/code-insight",
