@@ -2439,6 +2439,21 @@ public final class StudioFlags {
                     "Enable using device tools",
                     "Enables a set of tools allowing the agent to list and activate devices.");
 
+  public static final Flag<Boolean> STUDIOBOT_LOGCAT_TOOL =
+    new BooleanFlag(STUDIOBOT, "include.logcat.tool",
+                    "Enable the Logcat tool",
+                    "Enables a tool allowing the agent to read from Logcat.");
+
+  public static final Flag<Boolean> STUDIOBOT_SCREENSHOT_TOOL =
+    new BooleanFlag(STUDIOBOT, "include.screenshot.tool",
+                    "Enable the Screenshot tool",
+                    "Enables a tool allowing the agent to take a screenshot.");
+
+  public static final Flag<Boolean> STUDIOBOT_UI_STATE_TOOLS =
+    new BooleanFlag(STUDIOBOT, "include.ui.state.tools",
+                    "Enable the UI State and UI Input tool",
+                    "Enables a tool providing the agent a description of the UI and allowing it to provide input.");
+
   public static final Flag<Boolean> GEMINI_AGENT_MODE =
     new BooleanFlag(STUDIOBOT, "agent.mode",
                     "Enable agent mode.",
