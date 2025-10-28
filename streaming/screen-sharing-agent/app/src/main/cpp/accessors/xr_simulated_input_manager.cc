@@ -40,7 +40,7 @@ void XrSimulatedInputManager::InitializeStatics(Jni jni) {
           RTrim(ExecuteShellCommand("getprop persist.device_config.com_android_xr.com.android.xr.flags.enable_xr_simulated_env"));
       const char* message = value != "true" && value != "1" ?
           "The property persist.device_config.com_android_xr.com.android.xr.flags.enable_xr_simulated_env is not set to true" :
-          "The \"xrsimulatedinputmanager\" service is not running. Run 'adb shell stop && adb shell start' to start it.";
+          "The \"xrsimulatedinputmanager\" service is not running. Run 'adb shell reboot' to start it.";
       Log::Fatal(XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING, "%s", message);
     }
     JClass clazz = xr_simulated_input_manager_.GetClass();
