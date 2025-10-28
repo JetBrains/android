@@ -123,9 +123,10 @@ public final class ImageAsset extends BaseAsset {
    * @param file the default image path
    */
   @UiThread
-  public void setDefaultImagePath(@Nullable File file) {
+  public void setDefaultImagePath(@Nullable Path file) {
+    File ioFile = file == null ? null : file.toFile();
     boolean wasDefault = FileUtil.filesEqual(myImagePath.getValueOrNull(), myDefaultImagePath);
-    myDefaultImagePath = file;
+    myDefaultImagePath = ioFile;
     if (wasDefault) {
       myImagePath.setNullableValue(myDefaultImagePath);
     }

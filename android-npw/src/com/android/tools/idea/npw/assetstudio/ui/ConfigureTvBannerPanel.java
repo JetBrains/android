@@ -66,7 +66,6 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
@@ -85,8 +84,7 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -271,7 +269,7 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
     AndroidVersion buildSdkVersion = androidModuleInfo.getBuildSdkVersion();
     myBuildSdkVersion = buildSdkVersion != null ? buildSdkVersion : new AndroidVersion(26);
 
-    File defaultForeGroundImage = AssetStudioUtils.getBundledImage(DEFAULT_ASSET_STUDIO, DEFAULT_FOREGROUND_IMAGE);
+    Path defaultForeGroundImage = AssetStudioUtils.getBundledImage(DEFAULT_ASSET_STUDIO, DEFAULT_FOREGROUND_IMAGE);
     myForegroundImageAssetBrowser.getAsset().setDefaultImagePath(defaultForeGroundImage);
 
     myIconGenerator = new TvBannerGenerator(facet.getModule().getProject(), androidModuleInfo.getMinSdkVersion().getApiLevel(), renderer);
@@ -306,7 +304,7 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
       }
     });
 
-    myForegroundImageAssetBrowser.getAsset().imagePath().setValue(defaultForeGroundImage);
+    myForegroundImageAssetBrowser.getAsset().imagePath().setValue(defaultForeGroundImage.toFile());
 
     // Call "setLabelFor" in code instead of designer since designer is so inconsistent about
     // valid targets.

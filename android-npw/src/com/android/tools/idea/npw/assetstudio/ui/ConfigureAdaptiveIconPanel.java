@@ -84,7 +84,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -396,8 +396,8 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
         new TvChannelIconGenerator(facet.getModule().getProject(), androidModuleInfo.getMinSdkVersion().getApiLevel(), renderer);
     myValidatorPanel = validatorPanel;
 
-    File defaultForegroundImage = getBundledImage(DEFAULT_ASSET_STUDIO, DEFAULT_FOREGROUND_IMAGE);
-    File defaultBackgroundImage = getBundledImage(DEFAULT_ASSET_STUDIO, DEFAULT_BACKGROUND_IMAGE);
+    Path defaultForegroundImage = getBundledImage(DEFAULT_ASSET_STUDIO, DEFAULT_FOREGROUND_IMAGE);
+    Path defaultBackgroundImage = getBundledImage(DEFAULT_ASSET_STUDIO, DEFAULT_BACKGROUND_IMAGE);
 
     myForegroundImageAssetBrowser.getAsset().setDefaultImagePath(defaultForegroundImage);
     myForegroundTextAssetEditor.getAsset().setDefaultText("Aa");
@@ -447,8 +447,8 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
       ForegroundAssetType.TEXT, myForegroundTextAssetEditor);
 
     // Set default properties for the background, foreground and monochrome assets.
-    myForegroundImageAssetBrowser.getAsset().imagePath().setValue(defaultForegroundImage);
-    myBackgroundImageAssetBrowser.getAsset().imagePath().setValue(defaultBackgroundImage);
+    myForegroundImageAssetBrowser.getAsset().imagePath().setValue(defaultForegroundImage.toFile());
+    myBackgroundImageAssetBrowser.getAsset().imagePath().setValue(defaultBackgroundImage.toFile());
 
     // Call "setLabelFor" in code instead of designer since designer is so inconsistent about
     // valid targets.

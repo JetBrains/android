@@ -22,6 +22,7 @@ package com.android.tools.idea.npw.assetstudio
 import com.android.ide.common.util.AssetUtil
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.util.StudioPathManager
 import com.google.common.base.CaseFormat
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
@@ -29,10 +30,9 @@ import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
-import java.io.File
-import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.io.path.exists
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -146,27 +146,25 @@ fun toLowerCamelCase(enumValue: Enum<*>): String =
 fun toUpperCamelCase(enumValue: Enum<*>): String =
   CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, enumValue.name)
 
-/** Returns a file pointing to a resource inside template. */
-fun getBundledImage(dir: String, fileName: String): File {
-  val homePath = Paths.get(PathManager.getHomePath())
-  val releaseImagesDir = homePath.resolve("plugins/android/resources/images/$dir")
-  val devImagesDir =
-    homePath.resolve("../../../../../../tools/adt/idea/android/resources/images/$dir")
-  val releaseImage = releaseImagesDir.resolve(fileName)
-  val devImage = devImagesDir.resolve(fileName)
+/** Returns a file pointing to a resource bundled with Studio. */
+fun getBundledImage(dir: String, fileName: String): Path {
+  val imageFile =
+    when {
+      StudioPathManager.isRunningFromSources() ->
+        StudioPathManager.resolvePathFromSourcesRoot(
+          "tools/adt/idea/android/resources/images/$dir/$fileName"
+        )
+      else ->
+        Paths.get(PathManager.getHomePath())
+          .resolve("plugins/android/resources/images/$dir/$fileName")
+    }
 
-  val root =
-    listOf(releaseImage, devImage, releaseImagesDir, devImagesDir, homePath)
-      .firstOrNull { it.exists() }
-      ?.toFile() ?: throw IOException("Studio root dir '$homePath' is not readable")
-
-  if (root.isDirectory) {
-    LOG.error(
-      "Bundled image file $fileName is not found neither in $releaseImagesDir not $devImagesDir"
-    )
+  if (!Files.exists(imageFile)) {
+    LOG.error("Missing bundled image file $imageFile")
+  } else if (Files.isDirectory(imageFile)) {
+    LOG.error("Bundled image file $imageFile is a directory")
   }
-
-  return root
+  return imageFile ?: Paths.get("/")
 }
 
 /**
