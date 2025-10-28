@@ -147,7 +147,7 @@ class LayoutlibSceneRenderer(
       try {
         oldTask?.dispose()
       } catch (t: Throwable) {
-        Logger.getInstance(LayoutlibSceneManager::class.java).warn(t)
+        log.warn(t)
       }
     }
 
@@ -287,13 +287,16 @@ class LayoutlibSceneRenderer(
   ): RenderRequest? {
     // TODO(b/405340706): remove once the root cause of the early facet disposal is fixed
     if (isDisposed.get()) {
-      Logger.getInstance(LayoutlibSceneManager::class.java)
-        .warn("requesting render after LayoutlibSceneManager has been disposed")
+      log.warn("requesting render after LayoutlibSceneRenderer has been disposed")
       return null
     }
     // Mutex is needed to guarantee that requests are sent to the channel in order of their
     // requestTime
-    return requestsLock.withLock { RenderRequest(trigger).also { requestsChannel.send(it) } }
+    return requestsLock.withLock {
+      RenderRequest(trigger)
+        .takeIf { requestsChannel.trySend(it).isSuccess }
+        .also { if (it == null) log.warn("Failed to send render request to channel") }
+    }
   }
 
   /**
