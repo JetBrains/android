@@ -266,6 +266,30 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     }
 
   @CanIgnoreReturnValue
+  fun reapplyProjectStructure(
+    querySyncActionStats: QuerySyncActionStatsScope,
+  ): ListenableFuture<Boolean> {
+    return runOperation(
+      querySyncActionStats,
+      TaskOrigin.USER_ACTION,
+      reapplyProjectStructureOperation()
+    )
+  }
+
+  private fun reapplyProjectStructureOperation(): QuerySyncOperation =
+    operation(
+      title = "Updating project structure",
+      subTitle = "Re-applying project structure",
+      operationType = OperationType.SYNC
+    ) { context ->
+      lastProjectUpdateFromArtifactState = ArtifactTracker.State.EMPTY
+      lastProjectUpdateFromSnapshot = QuerySyncProjectSnapshot.EMPTY
+      updateCurrentSnapshot(context) {
+        copy(project = ProjectProto.Project.getDefaultInstance())
+      }
+    }
+
+  @CanIgnoreReturnValue
   fun fullSync(
     querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
