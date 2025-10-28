@@ -23,11 +23,13 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts.ContextType
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
+import com.android.tools.idea.lint.common.DependencyUpdateProvider
 import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.lint.common.LintIdeSupport.AgpUpgradeInfo
 import com.android.tools.lint.checks.GradleDetector
 import com.android.tools.lint.detector.api.Incident
+import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
@@ -81,6 +83,18 @@ class AndroidLintAndroidGradlePluginVersionInspection :
       endElement: PsiElement,
       contextType: ContextType,
     ): Boolean = true
+  }
+
+  override fun getIntentions(
+    startElement: PsiElement,
+    endElement: PsiElement,
+  ): Array<out IntentionAction>? {
+    val actions = DependencyUpdateProvider.EP_NAME.extensionList.map { it.getUpdateProvider() }
+    if (actions.isNotEmpty()) {
+      return actions.toTypedArray()
+    }
+
+    return super.getIntentions(startElement, endElement)
   }
 }
 
