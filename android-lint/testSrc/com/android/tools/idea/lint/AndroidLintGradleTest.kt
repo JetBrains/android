@@ -61,7 +61,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.fail
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -304,7 +303,6 @@ class AndroidLintGradleTest {
     )
   }
 
-  @Ignore("b/429552260 - With Gradle 9.0.0 the first of three expected string is not found")
   @Test
   fun testWrongGradleMethod() {
     projectRule.loadProject(TestProjectPaths.TEST_LINT_DSL_ERRORS)
@@ -326,11 +324,11 @@ class AndroidLintGradleTest {
                     ~~~~~~~~~~~~
             Fix: Suppress WrongGradleMethod with a comment
         """,
-      "kotlin|Options { // Wrong place: options" to
+      "kot|lin { // Wrong place: options" to
         """
-        Error: Suspicious receiver type; this does not apply to the current receiver of type `ApplicationDefaultConfig`. This will apply to a receiver of type `BaseAppModuleExtension`, found in one of the enclosing lambdas. Make sure it's declared in the right place in the file.
-                kotlinOptions { // Wrong place: options
-                ~~~~~~~~~~~~~
+        Error: Suspicious receiver type; this does not apply to the current receiver of type `ApplicationDefaultConfig`. This will apply to a receiver of type `Project`, found in one of the enclosing lambdas. Make sure it's declared in the right place in the file.
+                kotlin { // Wrong place: options
+                ~~~~~~
             Fix: Suppress WrongGradleMethod with a comment
         """,
       "dep|endencies { // OK" to
