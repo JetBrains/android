@@ -295,4 +295,56 @@ class DesignerCommonIssuePanelTest {
       assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
     }
   }
+
+  @RunsInEdt
+  @Test
+  fun testNavigationToLine() {
+    rule.projectRule.replaceService(DataManager::class.java, DataManagerImpl())
+
+    val file = rule.fixture.addFileToProject("src/main/MyClass.kt", "")
+
+    val throwable = Throwable()
+    throwable.stackTrace =
+      arrayOf(StackTraceElement("com.example.MyClass", "myMethod", "MyClass.kt", 10))
+    val fileIssue =
+      TestIssue(
+        source = IssueSourceWithFile(file.virtualFile, "my_layout"),
+        description = "layout issue",
+        throwable = throwable,
+      )
+
+    val model = DesignerCommonIssueModel()
+    Disposer.register(rule.testRootDisposable, model)
+    val panel =
+      DesignerCommonIssuePanel(
+        rule.testRootDisposable,
+        rule.project,
+        false,
+        "name",
+        SHARED_ISSUE_PANEL_TAB_ID,
+        { LayoutValidationNodeFactory },
+        EmptyFilter,
+        { "" },
+      )
+    // Make sure the Tree is added into DesignerCommonIssuePanel.
+    IdeEventQueue.getInstance().flushQueue()
+    val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
+
+    rule.project.messageBus
+      .syncPublisher(IssueProviderListener.TOPIC)
+      .issueUpdated(this, listOf(fileIssue))
+    tree.isRootVisible = false
+    tree.expandRow(0)
+
+    // Test IssueNode: fileIssue
+    tree.setSelectionRow(1)
+    val context = DataManager.getInstance().getDataContext(tree)
+
+    val navigatable = context.getData(CommonDataKeys.NAVIGATABLE)
+    assertInstanceOf<OpenFileDescriptor>(navigatable)
+    val descriptor = navigatable as OpenFileDescriptor
+    assertEquals(rule.project, descriptor.project)
+    assertEquals(file.virtualFile, descriptor.file)
+    assertEquals(9, descriptor.line) // Line numbers are 0-indexed
+  }
 }
