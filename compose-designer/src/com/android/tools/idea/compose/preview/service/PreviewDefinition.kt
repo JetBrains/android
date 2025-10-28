@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.service
 
+import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
@@ -32,4 +34,22 @@ data class PreviewDefinition(
   val displayName: String,
   val functionPointer: SmartPsiElementPointer<KtNamedFunction>,
   val annotationPointer: SmartPsiElementPointer<KtAnnotationEntry>,
-)
+) {
+  companion object {
+    @RequiresReadLock
+    fun create(
+      function: KtNamedFunction,
+      leafAnnotation: KtAnnotationEntry,
+      leafName: String?,
+    ): PreviewDefinition {
+      val smartPointerManager = SmartPointerManager.getInstance(function.project)
+      val functionName = function.name ?: "UnknownFunction"
+      val displayName = if (leafName.isNullOrEmpty()) functionName else "$functionName:$leafName"
+      return PreviewDefinition(
+        displayName = displayName,
+        functionPointer = smartPointerManager.createSmartPsiElementPointer(function),
+        annotationPointer = smartPointerManager.createSmartPsiElementPointer(leafAnnotation),
+      )
+    }
+  }
+}
