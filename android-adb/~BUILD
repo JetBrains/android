@@ -109,6 +109,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
+        "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility",
     ],
     test_srcs = ["testUtil"],
     test_tags = ["manual"],  # testUtil is TEST scoped but contains no runnable tests

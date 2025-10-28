@@ -18,7 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.adblib.ConnectedDevice
 import com.android.adblib.DeviceInfo
 import com.android.adblib.DeviceState.ONLINE
-import com.android.ddmlib.testing.FakeAdbRule
+import com.android.adblib.ddmlibcompatibility.testutils.AdbLibApplicationServiceRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.ShellV2Protocol
@@ -30,7 +30,6 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState as ProvisionerDeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.Resolution
-import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.util.StudioPathManager
@@ -38,6 +37,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import icons.StudioIcons
 import java.awt.Dimension
 import java.net.Socket
@@ -51,11 +51,11 @@ import kotlinx.coroutines.runBlocking
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP8
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_find_encoder
 import org.junit.rules.ExternalResource
-import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import org.junit.rules.TestRule
 
 /**
  * Allows tests to use [FakeScreenSharingAgent] instead of the real one.
@@ -64,7 +64,7 @@ class FakeScreenSharingAgentRule : TestRule {
   private var deviceCounter = 0
   private val devices = mutableListOf<FakeDevice>()
   private val projectRule = ProjectRule()
-  val fakeAdbRule: FakeAdbRule = createFakeAdbRule()
+  val adbLibApplicationServiceRule = AdbLibApplicationServiceRule(configureFakeAdbServer())
   private val testEnvironment = object : ExternalResource() {
 
     override fun before() {
@@ -82,6 +82,7 @@ class FakeScreenSharingAgentRule : TestRule {
       }
     }
   }
+  val ruleChain = RuleChain(projectRule, adbLibApplicationServiceRule, testEnvironment)
 
   val disposable: Disposable
     get() = projectRule.disposable
@@ -95,18 +96,13 @@ class FakeScreenSharingAgentRule : TestRule {
   }
 
   override fun apply(base: Statement, description: Description): Statement {
-    return projectRule.apply(
-      InitAdbLibApplicationServiceRule().apply(
-        fakeAdbRule.apply(
-          testEnvironment.apply(base, description),
-          description),
-        description),
-      description)
+    return ruleChain.apply(base, description)
   }
 
-  private fun createFakeAdbRule(): FakeAdbRule {
-    return FakeAdbRule().apply {
-      withDeviceCommandHandler(object : DeviceCommandHandler("shell,v2") {
+  private fun configureFakeAdbServer():
+    (FakeAdbServer.Builder.() -> FakeAdbServer.Builder) = {
+      installDefaultCommandHandlers()
+      addDeviceHandler(object : DeviceCommandHandler("shell,v2") {
         override fun invoke(server: FakeAdbServer, socketScope: CoroutineScope, socket: Socket, device: DeviceState, args: String) {
           if (args.contains("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME")) {
             val fakeDevice = devices.find { it.serialNumber == device.deviceId }!!
@@ -130,7 +126,7 @@ class FakeScreenSharingAgentRule : TestRule {
           }
         }
       })
-      withDeviceCommandHandler(object : DeviceCommandHandler("reverse") {
+      addDeviceHandler(object : DeviceCommandHandler("reverse") {
         override fun invoke(server: FakeAdbServer, socketScope: CoroutineScope, socket: Socket, device: DeviceState, args: String) {
           val fakeDevice = devices.find { it.serialNumber == device.deviceId }!!
           if (args.startsWith("forward:")) {
@@ -147,7 +143,6 @@ class FakeScreenSharingAgentRule : TestRule {
         }
       })
     }
-  }
 
   fun connectDevice(model: String,
                     apiLevel: Int,
@@ -161,8 +156,14 @@ class FakeScreenSharingAgentRule : TestRule {
                     hostConnectionType: DeviceState.HostConnectionType = DeviceState.HostConnectionType.USB): FakeDevice {
     val serialNumber = (++deviceCounter).toString()
     val release = "Sweet dessert"
-    val deviceState = fakeAdbRule.attachDevice(serialNumber, manufacturer, model, release, AndroidApiLevel(apiLevel), abi,
-                                               additionalDeviceProperties, hostConnectionType)
+    val deviceState = adbLibApplicationServiceRule.connectDevice(
+      serialNumber, manufacturer, model,
+      release, AndroidApiLevel(apiLevel),
+      cpuAbi = abi, properties = additionalDeviceProperties, hostConnectionType = hostConnectionType)
+      .also {
+        it.deviceStatus = DeviceState.DeviceStatus.ONLINE
+      }
+
     val device = FakeDevice(serialNumber, displaySize, deviceState, roundDisplay = roundDisplay, foldedSize = foldedSize,
                             screenDensity = screenDensity)
     devices.add(device)
@@ -170,7 +171,7 @@ class FakeScreenSharingAgentRule : TestRule {
   }
 
   fun disconnectDevice(device: FakeDevice) {
-    fakeAdbRule.disconnectDevice(device.serialNumber)
+    adbLibApplicationServiceRule.disconnectDevice(device.serialNumber)
     Disposer.dispose(device.agent)
     devices.remove(device)
   }
