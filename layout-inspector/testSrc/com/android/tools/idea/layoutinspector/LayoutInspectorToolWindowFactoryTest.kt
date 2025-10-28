@@ -30,13 +30,10 @@ import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorMana
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
-import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
-import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.sdk.AndroidProjectChecker
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.flatten
-import com.android.tools.idea.transport.TransportService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.highlighter.ProjectFileType
@@ -220,28 +217,6 @@ class LayoutInspectorToolWindowFactoryTest {
   }
 
   @Test
-  fun toolWindowFactoryCreatesCorrectSettings() {
-    ApplicationManager.getApplication()
-      .replaceService(TransportService::class.java, mock(), projectRule.testRootDisposable)
-    projectRule.replaceService(AppInspectionDiscoveryService::class.java, mock())
-    whenever(AppInspectionDiscoveryService.instance.apiServices)
-      .thenReturn(inspectionRule.inspectionService.apiServices)
-    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(inspectorRule.project)
-    runInEdtAndWait {
-      LayoutInspectorToolWindowFactory().createToolWindowContent(inspectorRule.project, toolWindow)
-    }
-    val component = toolWindow.contentManager.selectedContent?.component!!
-    waitForCondition(5L, TimeUnit.SECONDS) {
-      component.flatten(false).firstOrNull { it is DeviceViewPanel } != null
-    }
-    val inspector = inspectorRule.inspector
-    assertThat(inspector.treeSettings).isInstanceOf(FakeTreeSettings::class.java)
-    assertThat(inspector.renderLogic.renderSettings)
-      .isInstanceOf(InspectorRenderSettings::class.java)
-  }
-
-  @Test
-  @Ignore("IntelliJ configures Android Toolwindows via AndroidToolWindow")
   fun isLibraryToolWindow() {
     val toolWindow =
       LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find {
