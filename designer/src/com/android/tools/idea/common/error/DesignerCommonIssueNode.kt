@@ -380,7 +380,13 @@ open class IssueNode(
     if (navigatable == null) {
       val targetFile = getVirtualFile()
       if (project != null && targetFile != null) {
-        navigatable = OpenFileDescriptor(project, targetFile, -1)
+        val line =
+          issue.throwable
+            ?.stackTrace
+            ?.firstOrNull { it.fileName?.endsWith(targetFile.name) == true }
+            ?.lineNumber
+            ?.let { it - 1 } ?: -1
+        navigatable = OpenFileDescriptor(project, targetFile, line, -1)
       }
     }
     if (navigatable is OpenFileDescriptor) {
@@ -489,7 +495,8 @@ private class MyOpenFileDescriptor(openFileDescriptor: OpenFileDescriptor) :
   OpenFileDescriptor(
     openFileDescriptor.project,
     openFileDescriptor.file,
-    openFileDescriptor.offset,
+    openFileDescriptor.line,
+    openFileDescriptor.column,
   ) {
 
   /**

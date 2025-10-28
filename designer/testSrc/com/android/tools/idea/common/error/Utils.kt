@@ -34,6 +34,7 @@ internal data class TestIssue(
   override val severity: HighlightSeverity = HighlightSeverity.WARNING,
   override val source: IssueSource = EmptyIssueSource,
   override val category: String = "",
+  override val throwable: Throwable? = null,
   val fixList: List<Fix> = emptyList(),
   override val hyperlinkListener: HyperlinkListener? = null,
 ) : Issue() {
