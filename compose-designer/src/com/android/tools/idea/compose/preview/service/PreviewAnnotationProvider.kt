@@ -18,24 +18,21 @@
 package com.android.tools.idea.compose.preview.service
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
+import com.android.tools.idea.preview.flow.createKotlinModificationFlow
+import com.android.tools.idea.preview.flow.createModuleRootListenerFlow
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ModuleRootEvent
-import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import kotlin.system.measureTimeMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.merge
@@ -44,12 +41,6 @@ import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaPlatformInterface
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.platform.analysisMessageBus
-import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinGlobalSourceModuleStateModificationEvent
-import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinGlobalSourceOutOfBlockModificationEvent
-import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationEvent
-import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationEventListener
-import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModuleOutOfBlockModificationEvent
 import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KaTypeRendererForSource
 import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
@@ -230,46 +221,4 @@ class PreviewAnnotationProvider(private val project: Project, scope: CoroutineSc
     }
     return allPreviewFqns
   }
-}
-
-/**
- * Creates a [Flow] that emits a [Unit] value whenever the module roots of the project change.
- *
- * This flow is used to detect changes in the project's dependencies, which could affect the
- * availability of the `@Preview` annotation.
- */
-private fun createModuleRootListenerFlow(project: Project): Flow<Unit> = callbackFlow {
-  val connection = project.messageBus.connect(this)
-  connection.subscribe(
-    ModuleRootListener.TOPIC,
-    object : ModuleRootListener {
-      override fun rootsChanged(event: ModuleRootEvent) {
-        trySend(Unit)
-      }
-    },
-  )
-  awaitClose { connection.disconnect() }
-}
-
-/**
- * Creates a [Flow] that emits a [Unit] value for any relevant Kotlin code modification.
- *
- * It specifically listens for "out-of-block" modifications, which include changes to top-level
- * declarations, class signatures, and annotations.
- */
-@OptIn(KaPlatformInterface::class)
-private fun createKotlinModificationFlow(project: Project): Flow<Unit> = callbackFlow {
-  val connection = project.analysisMessageBus.connect(this)
-  connection.subscribe(
-    KotlinModificationEvent.TOPIC,
-    KotlinModificationEventListener { event ->
-      when (event) {
-        is KotlinModuleOutOfBlockModificationEvent,
-        KotlinGlobalSourceModuleStateModificationEvent,
-        KotlinGlobalSourceOutOfBlockModificationEvent -> trySend(Unit)
-        else -> {}
-      }
-    },
-  )
-  awaitClose { connection.disconnect() }
 }
