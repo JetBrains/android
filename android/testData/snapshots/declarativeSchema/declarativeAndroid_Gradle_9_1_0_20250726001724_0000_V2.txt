@@ -190,7 +190,7 @@ Projects:
                       Property SimpleType           : STRING
                     - PropertyName                  : testNamespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension
+                Supertypes                    : com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension
             com.android.build.api.dsl.ApplicationProductFlavor
                 Name                          : com.android.build.api.dsl.ApplicationProductFlavor
                 MemberFunctions
@@ -337,7 +337,7 @@ Projects:
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
-                Supertypes                    : kotlin.Any
+                Supertypes                    : org.gradle.api.plugins.ExtensionAware,kotlin.Any
             com.android.build.api.dsl.CompileOptions
                 Name                          : com.android.build.api.dsl.CompileOptions
                 MemberFunctions
@@ -558,7 +558,7 @@ Projects:
                       Property SimpleType           : STRING
                     - PropertyName                  : testNamespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.TestedExtension
+                Supertypes                    : com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.TestedExtension
             com.android.build.api.dsl.LibraryProductFlavor
                 Name                          : com.android.build.api.dsl.LibraryProductFlavor
                 MemberFunctions
@@ -845,7 +845,7 @@ Projects:
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalLibraryExtension,com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
+                Supertypes                    : com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalLibraryExtension,com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
             com.android.build.gradle.LibraryExtensionInternal
                 Name                          : com.android.build.gradle.LibraryExtensionInternal
                 MemberFunctions
@@ -900,7 +900,7 @@ Projects:
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.gradle.LibraryExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalLibraryExtension,com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
+                Supertypes                    : com.android.build.gradle.LibraryExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalLibraryExtension,com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
             com.android.build.gradle.TestedAndroidConfig
                 Name                          : com.android.build.gradle.TestedAndroidConfig
                 MemberFunctions
@@ -1040,7 +1040,7 @@ Projects:
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.gradle.AppExtension,com.android.build.gradle.AbstractAppExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalApplicationExtension,com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,com.android.build.api.dsl.ApkExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
+                Supertypes                    : com.android.build.gradle.AppExtension,com.android.build.gradle.AbstractAppExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalApplicationExtension,com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,com.android.build.api.dsl.ApkExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
             com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                 Name                          : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                 MemberFunctions
@@ -1095,7 +1095,7 @@ Projects:
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.gradle.internal.dsl.BaseAppModuleExtension,com.android.build.gradle.AppExtension,com.android.build.gradle.AbstractAppExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalApplicationExtension,com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,com.android.build.api.dsl.ApkExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
+                Supertypes                    : com.android.build.gradle.internal.dsl.BaseAppModuleExtension,com.android.build.gradle.AppExtension,com.android.build.gradle.AbstractAppExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalApplicationExtension,com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,com.android.build.api.dsl.ApkExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
             com.android.build.gradle.internal.dsl.BaseFlavor
                 Name                          : com.android.build.gradle.internal.dsl.BaseFlavor
                 MemberFunctions
@@ -1287,7 +1287,7 @@ Projects:
                       Property SimpleType           : STRING
                     - PropertyName                  : testNamespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.gradle.internal.dsl.Lockable
+                Supertypes                    : com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.InternalBuildType
                 Name                          : com.android.build.gradle.internal.dsl.InternalBuildType
                 MemberFunctions
@@ -1339,7 +1339,7 @@ Projects:
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable
+                Supertypes                    : com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.InternalLibraryExtension
                 Name                          : com.android.build.gradle.internal.dsl.InternalLibraryExtension
                 MemberFunctions
@@ -1376,7 +1376,7 @@ Projects:
                       Property SimpleType           : STRING
                     - PropertyName                  : testNamespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.gradle.internal.dsl.Lockable
+                Supertypes                    : com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.InternalSigningConfig
                 Name                          : com.android.build.gradle.internal.dsl.InternalSigningConfig
                 MemberFunctions
@@ -1414,7 +1414,7 @@ Projects:
                       Property SimpleType           : STRING
                     - PropertyName                  : testNamespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.TestedExtension,kotlin.Any,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.api.dsl.CommonExtension,com.android.build.gradle.internal.dsl.Lockable
+                Supertypes                    : com.android.build.api.dsl.TestedExtension,kotlin.Any,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.Lockable
                 Name                          : com.android.build.gradle.internal.dsl.Lockable
                 MemberFunctions
@@ -2745,7 +2745,7 @@ Settings:
                       Property SimpleType           : STRING
                     - PropertyName                  : testNamespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension
+                Supertypes                    : com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension
             com.android.build.api.dsl.ApplicationProductFlavor
                 Name                          : com.android.build.api.dsl.ApplicationProductFlavor
                 MemberFunctions
@@ -2892,7 +2892,7 @@ Settings:
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
-                Supertypes                    : kotlin.Any
+                Supertypes                    : org.gradle.api.plugins.ExtensionAware,kotlin.Any
             com.android.build.api.dsl.CompileOptions
                 Name                          : com.android.build.api.dsl.CompileOptions
                 MemberFunctions
@@ -3113,7 +3113,7 @@ Settings:
                       Property SimpleType           : STRING
                     - PropertyName                  : testNamespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.TestedExtension
+                Supertypes                    : com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.TestedExtension
             com.android.build.api.dsl.LibraryProductFlavor
                 Name                          : com.android.build.api.dsl.LibraryProductFlavor
                 MemberFunctions
@@ -3400,7 +3400,7 @@ Settings:
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalLibraryExtension,com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
+                Supertypes                    : com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalLibraryExtension,com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
             com.android.build.gradle.LibraryExtensionInternal
                 Name                          : com.android.build.gradle.LibraryExtensionInternal
                 MemberFunctions
@@ -3455,7 +3455,7 @@ Settings:
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.gradle.LibraryExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalLibraryExtension,com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
+                Supertypes                    : com.android.build.gradle.LibraryExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalLibraryExtension,com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
             com.android.build.gradle.TestedAndroidConfig
                 Name                          : com.android.build.gradle.TestedAndroidConfig
                 MemberFunctions
@@ -3595,7 +3595,7 @@ Settings:
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.gradle.AppExtension,com.android.build.gradle.AbstractAppExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalApplicationExtension,com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,com.android.build.api.dsl.ApkExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
+                Supertypes                    : com.android.build.gradle.AppExtension,com.android.build.gradle.AbstractAppExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalApplicationExtension,com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,com.android.build.api.dsl.ApkExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
             com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                 Name                          : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                 MemberFunctions
@@ -3650,7 +3650,7 @@ Settings:
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.gradle.internal.dsl.BaseAppModuleExtension,com.android.build.gradle.AppExtension,com.android.build.gradle.AbstractAppExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalApplicationExtension,com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,com.android.build.api.dsl.ApkExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
+                Supertypes                    : com.android.build.gradle.internal.dsl.BaseAppModuleExtension,com.android.build.gradle.AppExtension,com.android.build.gradle.AbstractAppExtension,com.android.build.gradle.TestedExtension,com.android.build.gradle.BaseExtension,com.android.build.gradle.AndroidConfig,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable,com.android.build.gradle.TestedAndroidConfig,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalApplicationExtension,com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,com.android.build.api.dsl.ApkExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension
             com.android.build.gradle.internal.dsl.BaseFlavor
                 Name                          : com.android.build.gradle.internal.dsl.BaseFlavor
                 MemberFunctions
@@ -3842,7 +3842,7 @@ Settings:
                       Property SimpleType           : STRING
                     - PropertyName                  : testNamespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.gradle.internal.dsl.Lockable
+                Supertypes                    : com.android.build.api.dsl.ApplicationExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.ApkExtension,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.InternalBuildType
                 Name                          : com.android.build.gradle.internal.dsl.InternalBuildType
                 MemberFunctions
@@ -3894,7 +3894,7 @@ Settings:
                       Property SimpleType           : BOOLEAN
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable
+                Supertypes                    : com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.InternalLibraryExtension
                 Name                          : com.android.build.gradle.internal.dsl.InternalLibraryExtension
                 MemberFunctions
@@ -3931,7 +3931,7 @@ Settings:
                       Property SimpleType           : STRING
                     - PropertyName                  : testNamespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.gradle.internal.dsl.Lockable
+                Supertypes                    : com.android.build.api.dsl.LibraryExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,kotlin.Any,com.android.build.api.dsl.TestedExtension,com.android.build.gradle.internal.dsl.InternalTestedExtension,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.InternalSigningConfig
                 Name                          : com.android.build.gradle.internal.dsl.InternalSigningConfig
                 MemberFunctions
@@ -3969,7 +3969,7 @@ Settings:
                       Property SimpleType           : STRING
                     - PropertyName                  : testNamespace
                       Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.TestedExtension,kotlin.Any,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.api.dsl.CommonExtension,com.android.build.gradle.internal.dsl.Lockable
+                Supertypes                    : com.android.build.api.dsl.TestedExtension,kotlin.Any,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.api.dsl.CommonExtension,org.gradle.api.plugins.ExtensionAware,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.Lockable
                 Name                          : com.android.build.gradle.internal.dsl.Lockable
                 MemberFunctions
