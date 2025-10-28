@@ -35,17 +35,10 @@ import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.intellij.util.containers.orNull
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicInteger
+import org.jetbrains.annotations.VisibleForTesting
 
 /** Adds C/C++ compilation information and headers to the project proto. */
 class ConfigureCcCompilation: ProjectProtoUpdateOperation {
-
-  /* Map from toolchain ID -> language -> flags for that toolchain & language. */
-  private val toolchainLanguageFlags: MutableMap<String, Map<CcLanguage, List<CcCompilerFlag>>> = hashMapOf()
-
-  /* Map of unique sets of compiler flags to an ID to identify them.
-   * We do this as the downstream code turns each set of flags into a CidrCompilerSwitches instance
-   * which can have a large memory footprint. */
-  private val uniqueFlagSetIds: MutableMap<Set<CcCompilerFlag>, String> = hashMapOf()
 
   override fun update(
     update: ProjectProtoUpdate,
@@ -71,6 +64,14 @@ class ConfigureCcCompilation: ProjectProtoUpdateOperation {
     private val workspaceUpdater: ProjectProtoUpdate.CcWorkspaceUpdater,
     private val externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
+    /* Map from toolchain ID -> language -> flags for that toolchain & language. */
+    private val toolchainLanguageFlags: MutableMap<String, Map<CcLanguage, List<CcCompilerFlag>>> = hashMapOf()
+
+    /* Map of unique sets of compiler flags to an ID to identify them.
+     * We do this as the downstream code turns each set of flags into a CidrCompilerSwitches instance
+     * which can have a large memory footprint. */
+    private val uniqueFlagSetIds: MutableMap<Set<CcCompilerFlag>, String> = hashMapOf()
+
 
     fun visitToolchainMap(toolchainInfoMap: Map<String, CcToolchain>) {
       toolchainInfoMap.values.forEach(this::visitToolchain)
@@ -156,6 +157,15 @@ class ConfigureCcCompilation: ProjectProtoUpdateOperation {
   }
 
   companion object {
+    /**
+     * Resets the next flag set id to 1 to allow repeatable tests. This should not be done
+     * in the production since ProjectProto.Project can be combined from pieces.
+     */
+    @VisibleForTesting
+    fun resetFlagIdsForTestingOnly() {
+      nextFlagSetId.set(0)
+    }
+
     private val nextFlagSetId = AtomicInteger(0)
   }
 }

@@ -266,6 +266,57 @@ class ConfigureCcCompilationTest {
   }
 
   @Test
+  fun repeatedApplication() {
+    val original = syncRunner.sync(TestData.CC_LIBRARY_QUERY)
+
+    val ccTargetLabel = TestData.CC_LIBRARY_QUERY.assumedLabels.single()
+    val compilationInfo =
+      CcCompilationInfoOuterClass.CcCompilationInfo.newBuilder()
+        .addToolchains(
+          CcCompilationInfoOuterClass.CcToolchainInfo.newBuilder()
+            .setId("//my/cc_toolchain")
+            .setCompiler("clang")
+            .setCompilerExecutable("workspace/path/to/clang")
+            .setCpu("k8")
+            .setTargetName("k8-debug")
+            .build()
+        )
+        .addTargets(
+          CcCompilationInfoOuterClass.CcTargetInfo.newBuilder()
+            .setLabel(ccTargetLabel.toString())
+            .setToolchainId("//my/cc_toolchain")
+        )
+        .build()
+
+    val configureCcCompilation = ConfigureCcCompilation()
+
+    val project1 = let {
+      val update = ProjectProtoUpdate(original.project)
+      configureCcCompilation.update(
+        update,
+        toArtifactState(compilationInfo),
+        context,
+        ProjectPath.ExternalRepositoryFinder.createFailingForTests()
+      )
+      update.build()
+    }
+
+    ConfigureCcCompilation.resetFlagIdsForTestingOnly()
+    val project2 = let {
+      val update = ProjectProtoUpdate(original.project)
+      configureCcCompilation.update(
+        update,
+        toArtifactState(compilationInfo),
+        context,
+        ProjectPath.ExternalRepositoryFinder.createFailingForTests()
+      )
+      update.build()
+    }
+
+    assertThat(project1).isEqualTo(project2)
+  }
+
+  @Test
   fun multi_srcs_share_flagset() {
     val original = syncRunner.sync(TestData.CC_MULTISRC_QUERY)
     val update = ProjectProtoUpdate(original.project)

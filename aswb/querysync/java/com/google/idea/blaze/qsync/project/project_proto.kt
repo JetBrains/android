@@ -171,6 +171,21 @@ class ProjectProto {
   ): ProjectProtoModel {
     val isEmpty: Boolean get() = targets.values.all { it.isEssentiallyEmpty() } && flagSets.isEmpty()
 
+    init {
+      targets.forEach { target ->
+        target.value.contexts.values.forEach { context ->
+          context.languageToCompilerSettings.values.forEach { settings ->
+            val flagSetId = settings.flagSetId
+            if (flagSetId.isNotEmpty()) {
+              if (flagSets[flagSetId] == null) {
+                error("Invalid CcWorkspace(Target: ${target.value.target}): Flagset $flagSetId not found")
+              }
+            }
+          }
+        }
+      }
+    }
+
     companion object {
       @JvmStatic
       fun getDefaultInstance(): CcWorkspace = CcWorkspace(mapOf(), mapOf())
