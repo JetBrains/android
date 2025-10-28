@@ -35,6 +35,7 @@ public class StudioCrashDetails {
     UNKNOWN = new StudioCrashDetails("<unknown>", false, -1, "", "", "", "", "", "");
   private final static String JVM_CRASH_FILE_STRING_FORMAT =
     System.getProperty("user.home") + File.separator + "java_error_in_studio_%d.log";
+  private final static int MAX_REPORT_SIZE = 300 * 1024;
 
   private final String myDescription;
   private final boolean myJvmCrash;
@@ -138,7 +139,10 @@ public class StudioCrashDetails {
               }
             }
           }
-          sanitizedCrashLog = JVMReportSanitizer.sanitize(record);
+          String sanitizedFullReport = JVMReportSanitizer.sanitize(record);
+          final TruncatingStringBuilder builder = new TruncatingStringBuilder(MAX_REPORT_SIZE, "\n...report truncated...");
+          builder.append(sanitizedFullReport);
+          sanitizedCrashLog = builder.toString();
         }
       }
     }
