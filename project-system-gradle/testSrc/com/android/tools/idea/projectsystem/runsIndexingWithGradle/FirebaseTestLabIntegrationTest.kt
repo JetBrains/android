@@ -57,7 +57,7 @@ class FirebaseTestLabIntegrationTest {
     root.resolve("build.gradle").replaceContent { content ->
       content.replace(
         "classpath 'com.android.tools.build:gradle:",
-        "classpath 'com.google.firebase.testlab:testlab-gradle-plugin:0.0.1-alpha11'\nclasspath 'com.android.tools.build:gradle:"
+        "classpath 'com.google.firebase.testlab:testlab-gradle-plugin:0.0.1-alpha12'\nclasspath 'com.android.tools.build:gradle:"
       )
     }
     root.resolve("app/build.gradle").replaceContent {
