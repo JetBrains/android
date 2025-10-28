@@ -86,6 +86,7 @@ private fun createBenchmarkTestRule(projectName: String,
     .maybeDisableLibraryConstraints(project)
     .maybeDisableBuiltInKotlin(project)
     .maybeDisableNewDsl(project)
+    .maybeDisableRuntimeClasspath(project)
     .around(ConfigurePhasedSyncFlagsRule())
     .maybeAddCaptureJfrRule(projectSetupRule)
   return object : BenchmarkTestRule,
@@ -108,6 +109,12 @@ fun RuleChain.maybeDisableBuiltInKotlin(project: BenchmarkProject): RuleChain = 
 
 fun RuleChain.maybeDisableNewDsl(project: BenchmarkProject): RuleChain = if (project == BenchmarkProject.KMP_2000) {
   this.around(DisableNewDslRule())
+} else {
+  this
+}
+
+fun RuleChain.maybeDisableRuntimeClasspath(project: BenchmarkProject): RuleChain = if (project == BenchmarkProject.KMP_2000) {
+  this.around(DisableRuntimeClasspath())
 } else {
   this
 }
