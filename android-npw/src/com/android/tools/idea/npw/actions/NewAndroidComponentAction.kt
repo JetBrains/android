@@ -16,8 +16,8 @@
 package com.android.tools.idea.npw.actions
 
 import com.android.AndroidProjectTypes
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.StudioAndroidModuleInfo
@@ -31,6 +31,7 @@ import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.npw.project.getPackageForPath
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateResolver
+import com.android.tools.idea.projectsystem.AndroidModulePathsImpl
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testartifacts.testsuite.runconfiguration.TestSuiteUtils
@@ -266,7 +267,27 @@ constructor(
     val templates = facet.getModuleTemplates(targetDirectory)
 
     return if (includeTemplatesWithoutSourceRoot) {
-      templates
+      templates.map {
+        // The [ModuleTemplateDataBuilder] class expects non-null `srcRoot` and `resDirectories`
+        // values. We hardcode them here to ensure the Journeys template doesn't crash when adding
+        // Journeys to an existing test suite module.
+        // TODO(455814541): Undo these changes once Journeys has been moved out of
+        // [NewAndroidComponentAction]
+        NamedModuleTemplate(
+          it.name,
+          AndroidModulePathsImpl(
+            moduleRoot = it.paths.moduleRoot,
+            manifestDirectory = it.paths.manifestDirectory,
+            srcRoot = it.paths.getSrcDirectory(null) ?: File(it.paths.moduleRoot, "src"),
+            unitTestRoot = it.paths.getUnitTestDirectory(null),
+            testRoot = it.paths.getTestDirectory(null),
+            aidlRoot = it.paths.getAidlDirectory(null),
+            resDirectories =
+              it.paths.resDirectories.ifEmpty { listOf(File(it.paths.moduleRoot, "res")) },
+            mlModelsDirectories = it.paths.mlModelsDirectories,
+          ),
+        )
+      }
     } else {
       templates.filter {
         // Do not allow to create Android Components from the templates into source sets without a
