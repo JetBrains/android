@@ -19,7 +19,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -47,16 +46,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.JourneyActionArtifacts
 import icons.StudioIconsCompose
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -64,9 +62,9 @@ import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Icon
+import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
-import java.io.File
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -80,9 +78,7 @@ fun JourneysResultsView(
   Row(modifier = modifier.height(320.dp).padding(horizontal = 16.dp)) {
     val path = artifact.screenshotImage
     if (path != null) {
-      DoubleClickableWrapper(modifier = Modifier, onDoubleClick = onImageDoubleClicked) {
-        JourneyScreenshot(modifier = Modifier, path = path)
-      }
+      JourneyScreenshot(modifier = Modifier, path = path, onImageDoubleClicked = onImageDoubleClicked)
     }
     else {
       Tooltip(modifier = Modifier, tooltip = { Text("No screenshot available") }) {
@@ -146,16 +142,7 @@ fun JourneysResultsViewCompact(
     Row(modifier = Modifier.weight(1f, fill = true)) {
       val path = artifact.screenshotImage
       if (path != null) {
-        if (onImageDoubleClicked != null) {
-          DoubleClickableWrapper(
-            modifier = Modifier.fillMaxHeight(),
-            onDoubleClick = onImageDoubleClicked,
-          ) {
-            JourneyScreenshot(modifier = Modifier.widthIn(max = 160.dp), path = path)
-          }
-        } else {
-          JourneyScreenshot(modifier = Modifier.widthIn(min = 0.dp, max = 160.dp), path = path)
-        }
+        JourneyScreenshot(modifier = Modifier.widthIn(max = 160.dp), path = path, onImageDoubleClicked = onImageDoubleClicked)
         Spacer(modifier = Modifier.width(20.dp))
       }
 
@@ -194,53 +181,15 @@ fun JourneysResultsViewCompact(
   }
 }
 
-@Composable
-fun DoubleClickableWrapper(
-  modifier: Modifier,
-  onDoubleClick: () -> Unit,
-  content: @Composable () -> Unit,
-) {
-  val interactionSource = remember { MutableInteractionSource() }
-  val isHovered by interactionSource.collectIsHoveredAsState()
-  Box(
-    modifier =
-      modifier
-        .pointerInput(onDoubleClick) {
-          detectTapGestures(
-            onDoubleTap = { onDoubleClick() },
-          )
-        }
-        .hoverable(interactionSource = interactionSource)
-  ) {
-    content()
-    if (isHovered) {
-      Box(
-        modifier = Modifier
-        .matchParentSize()
-        .background(Color(red = 255, green = 255, blue = 255, alpha = 240))
-        .padding(2.dp),
-        contentAlignment = Alignment.Center,
-      ) {
-        Text(
-          text = "Double click to open",
-          style = TextStyle(
-            fontWeight = FontWeight(500),
-            color = JewelTheme.globalColors.text.info,
-            textAlign = TextAlign.Center
-          ),
-        )
-      }
-    }
-  }
-}
-
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun JourneyScreenshot(modifier: Modifier, path: String) {
+fun JourneyScreenshot(modifier: Modifier, path: String, onImageDoubleClicked: (() -> Unit)? = null) {
   var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
   var isLoading by remember { mutableStateOf(true) }
   var error by remember { mutableStateOf(false) }
   val file = File(path)
+  val interactionSource = remember { MutableInteractionSource() }
+  val isHovered by interactionSource.collectIsHoveredAsState()
 
   LaunchedEffect(path) {
     isLoading = true
@@ -258,7 +207,10 @@ fun JourneyScreenshot(modifier: Modifier, path: String) {
     }
   }
   val bitmap = imageBitmap
-  Box(modifier = modifier, contentAlignment = Alignment.Center) {
+  Box(
+    modifier = modifier.hoverable(interactionSource = interactionSource).testTag("Screenshot"),
+    contentAlignment = Alignment.Center
+  ) {
     when {
       isLoading -> LoadingPlaceholder(modifier = Modifier)
       error -> ScreenshotError(modifier = Modifier, screenshotPath = path)
@@ -268,6 +220,20 @@ fun JourneyScreenshot(modifier: Modifier, path: String) {
           bitmap = bitmap,
           contentDescription = "Screenshot of app prior to action",
         )
+    }
+
+    if (!isLoading && !error && isHovered && onImageDoubleClicked != null) {
+      Box(
+        modifier = Modifier
+          .matchParentSize()
+          .background(Color(red = 255, green = 255, blue = 255, alpha = 200))
+          .testTag("OpenScreenshotButton"),
+        contentAlignment = Alignment.Center,
+      ) {
+        OutlinedButton(onClick = onImageDoubleClicked) {
+          Text("Open Screenshot")
+        }
+      }
     }
   }
 }
