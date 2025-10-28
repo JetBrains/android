@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.qsync.cc
 
-import com.google.common.collect.Iterables
 import com.google.common.truth.Truth.assertThat
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
@@ -136,8 +135,7 @@ class ConfigureCcCompilationTest {
     val original = syncRunner.sync(TestData.CC_LIBRARY_QUERY)
     val update = ProjectProtoUpdate(original.project)
 
-    val ccTargetLabel =
-      Iterables.getOnlyElement(TestData.CC_LIBRARY_QUERY.assumedLabels)
+    val ccTargetLabel = TestData.CC_LIBRARY_QUERY.assumedLabels.single()
     val compilationInfo =
       CcCompilationInfoOuterClass.CcCompilationInfo.newBuilder()
         .addToolchains(
@@ -191,11 +189,10 @@ class ConfigureCcCompilationTest {
 
     assertThat(project.activeLanguages).contains(QuerySyncLanguage.CC)
     val workspace = project.ccWorkspace
-    val ccTarget = Iterables.getOnlyElement(workspace.targets.values)
-    val context =
-      Iterables.getOnlyElement(ccTarget.contexts.values)
+    val ccTarget = workspace.targets.values.single()
+    val context = ccTarget.contexts.values.single()
     assertThat(context.humanReadableName).isNotEmpty()
-    val sourceFile = Iterables.getOnlyElement(ccTarget.sources.values)
+    val sourceFile = ccTarget.sources.values.single()
     assertThat<ProjectProto.CcLanguage>(sourceFile.language)
       .isEqualTo(ProjectProto.CcLanguage.CPP)
     assertThat(sourceFile.workspacePath)
@@ -272,8 +269,7 @@ class ConfigureCcCompilationTest {
   fun multi_srcs_share_flagset() {
     val original = syncRunner.sync(TestData.CC_MULTISRC_QUERY)
     val update = ProjectProtoUpdate(original.project)
-    val pkgPath =
-      Iterables.getOnlyElement(TestData.CC_MULTISRC_QUERY.relativeSourcePaths)
+    val pkgPath = TestData.CC_MULTISRC_QUERY.relativeSourcePaths.single()
     val labels =
       listOf(
         fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, pkgPath, "testclass"),
@@ -315,10 +311,8 @@ class ConfigureCcCompilationTest {
 
     val workspace = project.ccWorkspace
 
-    val context1 =
-      Iterables.getOnlyElement(workspace.targets[labels[0]]!!.contexts.values)
-    val context2 =
-      Iterables.getOnlyElement(workspace.targets[labels[1]]!!.contexts.values)
+    val context1 = workspace.targets[labels[0]]!!.contexts.values.single()
+    val context2 = workspace.targets[labels[1]]!!.contexts.values.single()
     // Assert that both compilation contexts share a flagset ID (since the two targets share the
     // same flags):
     assertThat(
