@@ -1,0 +1,2 @@
+Align the 'Allow bloom to access your camera and microphone' text to the left margin
+com.ibm.google.onboardingandauthentication.ui.screen.PermissionScreenKt.PermissionScreenPreview

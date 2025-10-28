@@ -1,0 +1,30 @@
+Subject: [PATCH] Decrease font size of 'Welcome to bloom' by 10sp.
+---
+Index: onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/LogoHeadlineSection.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/LogoHeadlineSection.kt b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/LogoHeadlineSection.kt
+--- a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/LogoHeadlineSection.kt	(revision 83d9644fffce800965f3b282e9da0ac53f289f43)
++++ b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/LogoHeadlineSection.kt	(date 1755848789356)
+@@ -18,6 +18,7 @@
+ import androidx.compose.ui.text.style.TextAlign
+ import androidx.compose.ui.tooling.preview.Preview
+ import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
+ import com.ibm.google.onboardingandauthentication.R
+ import com.ibm.google.onboardingandauthentication.ui.theme.OnBoardingAndAuthenticationTheme
+ 
+@@ -50,7 +51,10 @@
+         )
+         Text(
+             text = headline,
+-            style = MaterialTheme.typography.headlineMedium.copy(color = MaterialTheme.colorScheme.onSurface),
++            style = MaterialTheme.typography.headlineMedium.copy(
++                color = MaterialTheme.colorScheme.onSurface,
++                fontSize = MaterialTheme.typography.headlineMedium.fontSize.value.minus(10).sp
++            ),
+             textAlign = TextAlign.Center,
+             modifier = Modifier.padding(top = 24.dp)
+         )

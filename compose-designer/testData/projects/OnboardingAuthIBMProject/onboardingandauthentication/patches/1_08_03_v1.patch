@@ -1,0 +1,19 @@
+Subject: [PATCH] Align the 'Allow bloom to access your camera and microphone' text to the left margin.
+---
+Index: onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt
+--- a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt	(revision 83d9644fffce800965f3b282e9da0ac53f289f43)
++++ b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt	(date 1755855365902)
+@@ -76,7 +76,7 @@
+                         .fillMaxWidth()
+                         .padding(horizontal = 32.dp, vertical = 24.dp),
+                     text = stringResource(R.string.allow_bloom_to_access_your_camera),
+-                    textAlign = TextAlign.Center,
++                    textAlign = TextAlign.Start,
+                     style = MaterialTheme.typography.headlineMedium,
+                     color = MaterialTheme.colorScheme.onSurface
+                 )

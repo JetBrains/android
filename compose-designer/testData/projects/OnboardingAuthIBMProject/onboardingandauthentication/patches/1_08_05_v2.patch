@@ -1,0 +1,27 @@
+Subject: [PATCH] For 'Allow Permissions' button, set its width to 200dp.
+---
+Index: onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt
+--- a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt	(revision 83d9644fffce800965f3b282e9da0ac53f289f43)
++++ b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt	(date 1755865384655)
+@@ -8,6 +8,7 @@
+ import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.foundation.layout.fillMaxWidth
+ import androidx.compose.foundation.layout.padding
++import androidx.compose.foundation.layout.width
+ import androidx.compose.foundation.rememberScrollState
+ import androidx.compose.foundation.verticalScroll
+ import androidx.compose.material.icons.Icons
+@@ -84,7 +85,7 @@
+                 RoundedFilledButton(
+                     modifier = Modifier
+                         .padding(top = 32.dp)
+-                        .fillMaxWidth(),
++                        .width(200.dp),
+                     label = stringResource(R.string.allow_permissions),
+                     onClick = onAllowClick
+                 )

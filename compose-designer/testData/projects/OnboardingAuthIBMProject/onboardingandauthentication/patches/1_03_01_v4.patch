@@ -1,0 +1,22 @@
+Subject: [PATCH] Increase left margin spacing by 20px
+---
+Index: onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/TermsAndConditionsScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/TermsAndConditionsScreen.kt b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/TermsAndConditionsScreen.kt
+--- a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/TermsAndConditionsScreen.kt	(revision 83d9644fffce800965f3b282e9da0ac53f289f43)
++++ b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/TermsAndConditionsScreen.kt	(date 1755860047711)
+@@ -80,7 +80,10 @@
+                 .background(MaterialTheme.colorScheme.surface)
+                 .padding(innerPadding)
+                 .fillMaxSize()
+-                .padding(horizontal = 16.dp),
++                .padding(
++                    start = 36.dp,
++                    end = 16.dp
++                ),
+             onAcceptButtonClick = onAcceptButtonClick
+         )
+     }

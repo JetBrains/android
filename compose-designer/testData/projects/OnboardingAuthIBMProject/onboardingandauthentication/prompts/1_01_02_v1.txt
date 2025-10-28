@@ -1,0 +1,2 @@
+Change the color of the 'Get Started' button from dark green (current color) to bright green [meaning, a BRIGHTER shade of green].
+com.ibm.google.onboardingandauthentication.ui.screen.WelcomeScreenKt.WelcomeScreenPreview

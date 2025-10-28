@@ -1,0 +1,2 @@
+Change the 'I would like daily reminders' slider-switch color from green to hex code #3153FF (bright blue).
+com.ibm.google.onboardingandauthentication.ui.screen.ProfileScreenKt.ProfileScreenPreview

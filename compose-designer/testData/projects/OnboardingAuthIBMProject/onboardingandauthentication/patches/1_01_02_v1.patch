@@ -1,0 +1,35 @@
+Subject: [PATCH] Change the color of the 'Get Started' button from dark green (current color) to bright green [meaning, a BRIGHTER shade of green].
+---
+Index: onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/RoundedFilledButton.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/RoundedFilledButton.kt b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/RoundedFilledButton.kt
+--- a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/RoundedFilledButton.kt	(revision 83d9644fffce800965f3b282e9da0ac53f289f43)
++++ b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/RoundedFilledButton.kt	(date 1755847233351)
+@@ -1,10 +1,12 @@
+ package com.ibm.google.onboardingandauthentication.ui.component
+ 
+ import androidx.compose.material3.Button
++import androidx.compose.material3.ButtonDefaults
+ import androidx.compose.material3.MaterialTheme
+ import androidx.compose.material3.Text
+ import androidx.compose.runtime.Composable
+ import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.text.TextStyle
+ import androidx.compose.ui.tooling.preview.Preview
+ import com.ibm.google.onboardingandauthentication.ui.theme.OnBoardingAndAuthenticationTheme
+@@ -30,7 +32,10 @@
+         onClick = onClick,
+         shape = MaterialTheme.shapes.extraLarge,
+         enabled = shouldButtonEnabled,
+-        modifier = modifier
++        modifier = modifier,
++        colors = ButtonDefaults.buttonColors(
++            containerColor = Color(0xFF66FF00)
++        )
+     ) {
+         Text(
+             text = label,

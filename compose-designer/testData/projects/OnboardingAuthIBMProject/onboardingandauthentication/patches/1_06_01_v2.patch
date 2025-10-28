@@ -1,0 +1,39 @@
+Subject: [PATCH] Change the 'I would like daily reminders' slider-switch color from green to RGB (239, 8, 45) (pantone red)
+---
+Index: onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/TextSwitchRow.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/TextSwitchRow.kt b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/TextSwitchRow.kt
+--- a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/TextSwitchRow.kt	(revision 83d9644fffce800965f3b282e9da0ac53f289f43)
++++ b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/TextSwitchRow.kt	(date 1755849678582)
+@@ -16,6 +16,7 @@
+ import androidx.compose.runtime.Composable
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.tooling.preview.Preview
+ import androidx.compose.ui.unit.dp
+@@ -44,7 +45,7 @@
+         Text(
+             text = label,
+             style = MaterialTheme.typography.bodyMedium.copy(
+-                color = MaterialTheme.colorScheme.onSurface,
++                color = Color(0xFFEF082D),
+                 fontWeight = FontWeight.W400
+             )
+         )
+@@ -57,7 +58,10 @@
+                     contentDescription = null, //Decorative Icon
+                     modifier = Modifier.size(SwitchDefaults.IconSize)
+                 )
+-            }
++            },
++            colors = SwitchDefaults.colors(
++                checkedTrackColor = Color(0xFFEF082D),
++            )
+         )
+     }
+ }

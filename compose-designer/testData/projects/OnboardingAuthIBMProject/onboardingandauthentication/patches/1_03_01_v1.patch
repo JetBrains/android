@@ -1,0 +1,18 @@
+Subject: [PATCH] Increase right margin spacing [example: let's say it's already 5px] by 20% [so that the outcome is 5px + 20%]
+---
+Index: onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/TermsAndConditionsScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/TermsAndConditionsScreen.kt b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/TermsAndConditionsScreen.kt
+--- a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/TermsAndConditionsScreen.kt	(revision 83d9644fffce800965f3b282e9da0ac53f289f43)
++++ b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/TermsAndConditionsScreen.kt	(date 1755859517594)
+@@ -105,6 +105,7 @@
+     ) {
+         Column(
+             modifier = Modifier
++                .padding(end = 19.2.dp)
+                 .fillMaxWidth(maxWidth())
+                 .fillMaxHeight()
+         ) {

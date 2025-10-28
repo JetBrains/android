@@ -1,0 +1,2 @@
+Align the 'bloom' logo with the left side of the screen.
+com.ibm.google.onboardingandauthentication.ui.screen.PermissionScreenKt.PermissionScreenPreview

@@ -1,0 +1,27 @@
+Subject: [PATCH] For 'Allow Permissions' button, change its shape to a rectangle with sharp corners
+---
+Index: onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/RoundedFilledButton.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/RoundedFilledButton.kt b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/RoundedFilledButton.kt
+--- a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/RoundedFilledButton.kt	(revision 83d9644fffce800965f3b282e9da0ac53f289f43)
++++ b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/RoundedFilledButton.kt	(date 1755861659587)
+@@ -5,6 +5,7 @@
+ import androidx.compose.material3.Text
+ import androidx.compose.runtime.Composable
+ import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.RectangleShape
+ import androidx.compose.ui.text.TextStyle
+ import androidx.compose.ui.tooling.preview.Preview
+ import com.ibm.google.onboardingandauthentication.ui.theme.OnBoardingAndAuthenticationTheme
+@@ -28,7 +29,7 @@
+ ) {
+     Button(
+         onClick = onClick,
+-        shape = MaterialTheme.shapes.extraLarge,
++        shape = RectangleShape,
+         enabled = shouldButtonEnabled,
+         modifier = modifier
+     ) {

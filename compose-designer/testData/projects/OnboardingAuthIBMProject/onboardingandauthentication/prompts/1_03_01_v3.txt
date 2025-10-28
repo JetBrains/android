@@ -1,0 +1,2 @@
+Increase left margin spacing by 5%
+com.ibm.google.onboardingandauthentication.ui.screen.TermsAndConditionsScreenKt.TermsAndConditionsPreview

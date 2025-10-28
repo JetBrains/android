@@ -1,0 +1,2 @@
+Change the background color from light yellow to hex color #EFFDFF (azure, light blue).
+com.ibm.google.onboardingandauthentication.ui.screen.PermissionScreenKt.PermissionScreenPreview

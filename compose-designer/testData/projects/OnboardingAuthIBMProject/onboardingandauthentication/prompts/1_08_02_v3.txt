@@ -1,0 +1,2 @@
+Change the background color from light yellow to HSB (30, 50, 98) (fawn, light orange).
+com.ibm.google.onboardingandauthentication.ui.screen.PermissionScreenKt.PermissionScreenPreview

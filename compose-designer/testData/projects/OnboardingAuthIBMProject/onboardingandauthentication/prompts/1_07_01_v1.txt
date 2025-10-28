@@ -1,0 +1,2 @@
+Within the carousel, exchange the positions of the 'musical notes' image and the 'sunrise' image.
+com.ibm.google.onboardingandauthentication.ui.screen.WalkthroughTutorialScreenKt.WalkthroughTutorialScreenPreview

@@ -1,0 +1,2 @@
+Change the 'I would like daily reminders' slider-switch color from green to HSB (35, 100, 100) (Princeton orange).
+com.ibm.google.onboardingandauthentication.ui.screen.ProfileScreenKt.ProfileScreenPreview
