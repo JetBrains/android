@@ -45,6 +45,7 @@ import com.intellij.openapi.util.ActiveRunnable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.ColorUtil
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.NonOpaquePanel
 import com.intellij.ui.tabs.JBTabs
@@ -202,8 +203,10 @@ class DetailsViewContentView(
     rootPanel = JPanel(BorderLayout()).apply {
       // The header panel now uses BorderLayout to ensure the button is always visible.
       add(JPanel(BorderLayout()).apply {
-        GuiUtils.setStandardLineBorderToPanel(this, 0, 0, 1, 0)
-        border = JBUI.Borders.empty(10)
+        border = JBUI.Borders.compound(
+          JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0),
+          JBUI.Borders.empty(10)
+        )
 
         // The labels are placed in a sub-panel in the center.
         // This allows them to take up the remaining space and truncate if necessary.
