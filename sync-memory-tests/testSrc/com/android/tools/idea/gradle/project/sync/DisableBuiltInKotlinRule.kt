@@ -32,3 +32,11 @@ class DisableNewDslRule : ExternalResource() {
     }
   }
 }
+
+class DisableRuntimeClasspath : ExternalResource() {
+  override fun before() {
+    mutateGradleProperties {
+      this.properties.setProperty("android.kmp.disable.runtime.classpath", true.toString())
+    }
+  }
+}
