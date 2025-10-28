@@ -22,10 +22,9 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestStep
 import java.time.Duration
-import javax.swing.tree.DefaultMutableTreeNode
 import kotlin.math.max
 
-class TestStepRow(val testStep: AndroidTestStep) : AndroidTestResults, DefaultMutableTreeNode() {
+class TestStepRow(val testStep: AndroidTestStep) : AndroidTestResults, FilterableTreeNode() {
 
   private val myTestSteps = mutableMapOf<String, AndroidTestStep>()
 
