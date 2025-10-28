@@ -216,5 +216,6 @@ class SceneViewErrorsPanelTest {
       override val severity: HighlightSeverity = HighlightSeverity.ERROR
       override val source: IssueSource = IssueSource.NONE
       override val category: String = "Render Error"
+      override val throwable: Throwable = throwable
     }
 }
