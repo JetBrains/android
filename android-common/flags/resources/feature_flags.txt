@@ -223,6 +223,7 @@ studiobot.mcp.host.enabled=COMPLETE:2025
 studiobot.mcp.settings.enabled=PREVIEW
 studiobot.mcp.ui.servers.enabled=INTERNAL
 studiobot.message.queue.enabled=PREVIEW
+studiobot.new.project.agent=PREVIEW
 studiobot.open.files.context=PREVIEW
 studiobot.project.facts.context.enabled=INTERNAL
 studiobot.prompt.library.chat.lookup=COMPLETE:2025
