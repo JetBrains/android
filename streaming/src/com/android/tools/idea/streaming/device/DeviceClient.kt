@@ -272,8 +272,10 @@ class DeviceClient(
   }
 
   fun setMaxVideoResolution(requester: Any, displayId: Int, maxOutputSize: Dimension) {
-    synchronized(videoStreams) {
-      videoStreams[displayId]?.setMaxVideoResolution(requester, maxOutputSize)
+    clientScope.launch( Dispatchers.IO.limitedParallelism(1)) {
+      synchronized(videoStreams) {
+        videoStreams[displayId]?.setMaxVideoResolution(requester, maxOutputSize)
+      }
     }
   }
 
