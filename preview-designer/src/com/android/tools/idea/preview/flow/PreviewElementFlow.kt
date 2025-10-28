@@ -22,16 +22,26 @@ import com.android.tools.preview.PreviewElement
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ModuleRootEvent
+import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.PsiModificationTracker
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import org.jetbrains.kotlin.analysis.api.KaPlatformInterface
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinGlobalSourceModuleStateModificationEvent
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinGlobalSourceOutOfBlockModificationEvent
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationEvent
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationEventListener
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModuleOutOfBlockModificationEvent
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 
@@ -97,4 +107,45 @@ fun <T : PreviewElement<SmartPsiElementPointer<PsiElement>>> previewElementsOnFi
       }
     }
     .distinctUntilChanged()
+}
+
+/**
+ * Creates a [Flow] that emits a [Unit] value whenever the module roots of the project change.
+ *
+ * This flow is used to detect changes in the project's dependencies.
+ */
+fun createModuleRootListenerFlow(project: Project): Flow<Unit> = callbackFlow {
+  val connection = project.messageBus.connect(this)
+  connection.subscribe(
+    ModuleRootListener.TOPIC,
+    object : ModuleRootListener {
+      override fun rootsChanged(event: ModuleRootEvent) {
+        trySend(Unit)
+      }
+    },
+  )
+  awaitClose { connection.disconnect() }
+}
+
+/**
+ * Creates a [Flow] that emits a [Unit] value for any relevant Kotlin code modification.
+ *
+ * It specifically listens for "out-of-block" modifications, which include changes to top-level
+ * declarations, class signatures, and annotations.
+ */
+@OptIn(KaPlatformInterface::class)
+fun createKotlinModificationFlow(project: Project): Flow<Unit> = callbackFlow {
+  val connection = project.messageBus.connect(this)
+  connection.subscribe(
+    KotlinModificationEvent.TOPIC,
+    KotlinModificationEventListener { event ->
+      when (event) {
+        is KotlinModuleOutOfBlockModificationEvent,
+        is KotlinGlobalSourceModuleStateModificationEvent,
+        is KotlinGlobalSourceOutOfBlockModificationEvent -> trySend(Unit)
+        else -> {}
+      }
+    },
+  )
+  awaitClose { connection.disconnect() }
 }
