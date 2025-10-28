@@ -26,6 +26,9 @@ class ComposePreviewTestSuite : IdeaTestSuiteBase() {
       linkIntoOfflineMavenRepo(
         "tools/adt/idea/compose-designer/testData/simple_compose_application_test_deps.manifest"
       )
+      linkIntoOfflineMavenRepo(
+        "tools/adt/idea/compose-designer/testData/onboarding_auth_ibm_project_dep.manifest"
+      )
       unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
       linkIntoOfflineMavenRepo(
         "tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest"

@@ -17,6 +17,7 @@ package com.android.tools.idea.compose
 
 const val TEST_DATA_PATH = "tools/adt/idea/compose-designer/testData"
 const val SIMPLE_COMPOSE_PROJECT_PATH = "projects/SimpleComposeApplication"
+const val ONBOARDING_AUTH_IBM_PROJECT_PATH = "projects/OnboardingAuthIBMProject"
 
 /**
  * Relative paths to some useful files in the SimpleComposeApplication (

@@ -1,0 +1,27 @@
+Subject: [PATCH] Change the background color from light yellow to HSB (30, 50, 98) (fawn, light orange).
+---
+Index: onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt
+--- a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt	(revision 83d9644fffce800965f3b282e9da0ac53f289f43)
++++ b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt	(date 1755852395284)
+@@ -21,6 +21,7 @@
+ import androidx.compose.runtime.Composable
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.layout.ContentScale
+ import androidx.compose.ui.res.painterResource
+ import androidx.compose.ui.res.stringResource
+@@ -50,7 +51,7 @@
+ ) {
+     Scaffold(
+         modifier = modifier,
+-        containerColor = MaterialTheme.colorScheme.surface
++        containerColor = Color(0xFFF9B87D)
+     ) { innerPadding ->
+         Box(
+             modifier = Modifier.fillMaxSize(),

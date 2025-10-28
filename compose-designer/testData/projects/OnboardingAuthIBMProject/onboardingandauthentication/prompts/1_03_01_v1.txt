@@ -1,0 +1,2 @@
+Increase right margin spacing [example: let's say it's already 5px] by 20% [so that the outcome is 5px + 20%]
+com.ibm.google.onboardingandauthentication.ui.screen.TermsAndConditionsScreenKt.TermsAndConditionsPreview

@@ -1,0 +1,2 @@
+Increase right margin spacing by 16px.
+com.ibm.google.onboardingandauthentication.ui.screen.TermsAndConditionsScreenKt.TermsAndConditionsPreview

@@ -114,6 +114,7 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/compose-designer/testData:classloader",
         "//tools/adt/idea/compose-designer/testData:glassespreview",
+        "//tools/adt/idea/compose-designer/testData:onboarding_auth_ibm_project_dep",
         "//tools/adt/idea/compose-designer/testData:simple_compose_application_test_deps",
         "//tools/adt/idea/compose-designer/testData:test_projects",
         "//tools/adt/idea/compose-ide-plugin/testData",

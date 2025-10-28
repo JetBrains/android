@@ -1,0 +1,15 @@
+This project splits the files into the following directories:
+
+Prompts
+for each prompt file:
+  - The first line contains the prompt which should be given to the model.
+  - The second line contains the preview fully qualified name of a method annotated with both @Composable and @Preview that this prompt refers to.
+
+Screenshots
+- Contains screenshots from the preview after applying the user prompt.
+
+Patches
+- Contains the source code diff which the model should use when applying the prompt.
+
+Src
+- Contains the source code.

@@ -1,0 +1,21 @@
+Subject: [PATCH] Align the 'bloom' logo with the left side of the screen.
+---
+Index: onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt
+--- a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt	(revision 83d9644fffce800965f3b282e9da0ac53f289f43)
++++ b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/screen/PermissionScreen.kt	(date 1755850432861)
+@@ -66,7 +66,9 @@
+                 horizontalAlignment = Alignment.CenterHorizontally
+             ) {
+                 Image(
+-                    modifier = Modifier.padding(top = 52.dp),
++                    modifier = Modifier
++                        .padding(top = 52.dp)
++                        .align(Alignment.Start),
+                     painter = painterResource(R.drawable.ic_bloom_leaves),
+                     contentDescription = stringResource(R.string.app_logo),
+                     contentScale = ContentScale.Crop

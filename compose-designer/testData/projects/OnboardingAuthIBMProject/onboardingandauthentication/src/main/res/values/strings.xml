@@ -1,0 +1,132 @@
+<resources>
+    <string name="app_name">OnboardingAndAuthentication</string>
+    // social login
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="sign_in_with_apple">Sign in with Apple</string>
+    // permission request
+    <string name="how_you_will_use_this">How you’ll use this</string>
+    <string name="to_record_videos_or_audio_within_the_app">To record videos or audio within the app.</string>
+    <string name="privacy">Privacy</string>
+    <string name="we_do_not_record_without_your_direction_action_within_a_feature">We don’t record without your direction action within a feature.</string>
+    <string name="allow_bloom_to_access_your_camera">Allow bloom to access your camera and microphone</string>
+    <string name="your_control">Your Control</string>
+    <string name="you_can_manage_these_permissions_from_your_device_settings">You can manage these permissions anytime in your device settings.</string>
+    <string name="app_logo">App logo</string>
+    //Button Labels
+    <string name="get_started">Get Started</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="sign_in">Sign In</string>
+    <string name="send_reset_link">Send reset link</string>
+    <string name="verify">Verify</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="start_my_journey">Start My Journey</string>
+    <string name="allow_permissions">Allow Permissions</string>
+    //chip items
+    <array name="chip_items">
+        <item>Stress Relief</item>
+        <item>Focus And Concentration</item>
+        <item>Self-Compassion</item>
+        <item>Emotional Balance</item>
+        <item>General Well-Being</item>
+        <item>Other</item>
+    </array>
+    //Segmented Button labels
+    <string-array name="segmented_button_labels">
+        <item>@string/sign_in</item>
+        <item>@string/sign_up</item>
+    </string-array>
+    //Checkbox with terms and conditions label
+    <string name="agree_to">I agree to</string>
+    <string name="terms_and_conditions">Terms and Conditions </string>
+    // text buttons
+    <string name="already_have_an_account">Already have an account?</string>
+    <string name="login">Log In</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="not_now">Not now</string>
+    <string name="i_am_not_robot">I’m not a robot</string>
+    // welcome screen
+    <string name="grow_your_inner_peace">"Grow Your Inner Peace."</string>
+    <string name="welcome_illustration_content_description">Illustration of a woman meditating surrounded by greenery</string>
+    <string name="green_logo_titled_bloom">Green logo titled “bloom”</string>
+    //Two factor authentication screen
+    <string name="verify_your_login">Verify Your Login</string>
+    <string name="we_have_sent">We’ve sent a one-time 6-digit code to your phone number ending in XX-XX</string>
+    <string name="enter_verification_code">Enter Verification Code</string>
+    <string name="did_not_get_code">Didn’t get the code?</string>
+    <string name="resend_in">Resend in %1$s:%2$s</string>
+    <string name="the_password_you_entered">The password you entered does not match our records.</string>
+    // Account Verification Screen
+    <string name="navigate_back">Navigate back</string>
+    <string name="recaptcha_icon">Recaptcha</string>
+    <string name="verify_your_email">Verify Your Email</string>
+    <string name="verification_message">We’ve sent a 6-digit verification code to your email at jdoe@gmail.com</string>
+    <string name="verify_email">Verify Email</string>
+    <string name="enter_valid_verification_code">Please enter a valid verification code</string>">
+    // Social login screen
+    <string name="welcome_back_to_bloom">Welcome back to bloom</string>
+    <string name="ready_to_find_your_calm_again">Ready to find your calm again?</string>
+    <string name="email">Email</string>
+    <string name="email_error">Please enter a valid email address.</string>
+    <string name="password">Password</string>
+    <string name="password_error">The password you entered does not match our records.</string>
+    // Profile Screen
+    <string name="welcome_to_bloom">Welcome to bloom</string>
+    <string name="lets_personalize_your_experience">Let’s personalize your experience.</string>
+    <string name="your_name">Your Name</string>
+    <string name="enter_a_short_bio">Enter a short bio (Optional)</string>
+    <string name="what_brings_you_to_mindfulness">What brings you to mindfulness?</string>
+    <string name="daily_remainders">I would like daily mindfulness reminders</string>
+    <string name="ready_to_calm_again">Ready to find your calm again?</string>">
+    <string name="please_enter_valid_email">Please enter a valid email address.</string>">
+    //Terms and conditions
+    <string name="terms_and_conditions_heading">Terms &amp; Conditions</string>
+    <string name="last_updates">Last updated 15 April 2025</string>
+    <string name="agreement_to_tnc">1. Agreement to Terms</string>
+    <string name="use_of_service">2. Use of the Service</string>
+    <string name="updates">3. Updates</string>
+    <string name="please_read">Please read these terms and conditions carefully before using bloom mobile application.</string>
+    <string name="by_accessing">By accessing or using our app (bloom), you agree to be bound by these Terms and Conditions. If you do not agree to these Terms, you may not access or use the Service.</string>
+    <string-array name="service_array">
+        <item>Eligibility: You represent and warrant that you are at least [age] years old and have the legal capacity to enter into these Terms.</item>
+        <item>Account Registration (if applicable): If you create an account, you are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to provide accurate, current, and complete information during the registration process.</item>
+        <item>Acceptable Use: You agree to use the Service only for lawful purposes and in a manner that does not infringe the rights of, restrict, or inhibit anyone else\'s use and enjoyment of the Service. Prohibited conduct includes, but is not limited to:</item>
+        <item>Violating any applicable laws or regulations.</item>
+        <item>Infringing upon the intellectual property rights of others.</item>
+        <item>Transmitting any harmful, offensive, or illegal content.</item>
+        <item>Interfering with or disrupting the operation of the Service.</item>
+        <item>Attempting to gain unauthorized access to the Service or related systems.</item>
+    </string-array>
+    <string-array name="updates_array">
+        <item>Because our app is always improving and sometimes the law changes, we might need to update these Terms of Service from time to time.</item>
+        <item>How we will let you know: We will do our best to keep you informed about any significant changes. This might include showing a notification within the app, sending an email to the address associated with your account (if applicable), posting a notice on our website, etc.</item>
+        <item>Your Responsibility: It\'s a good idea to check these Terms periodically for any updates. By continuing to use bloom after we have made changes, you are agreeing to the new Terms. If you don\'st agree with the updated Terms, you may need to stop using the app.</item>
+        <item>If you have any questions about our Terms or any updates, please don\'t hesitate to contact us through our support channels.</item>
+    </string-array>
+    <string name="accept">Accept</string>
+    //Signup
+    <string name="ready_to_find">Ready to find your calm? Create an account to access guided meditations, mindful exercises and more.</string>
+    <string name="contact_details">Contact Details</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="address">Address</string>
+    <string name="signup_date_format">MM/DD/YYYY</string>
+    <string name="personal_details">Personal Details</string>
+    <string name="date_of_birth">Date of birth</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="password_you_have_entered">The password you have entered does not match.</string>
+    <string name="account_information">Account Information</string>
+    <string name="i_agree_to_the">I agree to the</string>
+    // sign up screen
+    <string name="dob">Date of Birth</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    // WalkThrough Screen
+    <string name="find_your_inner_calm">Find your Inner Calm with bloom</string>
+    <string name="daily_reminders_to_take_a_moment_to_unwind">Daily reminders to take a moment to unwind</string>
+    <string name="navigate_forward">Navigate forward</string>
+    <string name="select_date">Select Date</string>
+    <string name="clear">Clear</string>
+    <string name="error">Error</string>
+    <string name="setting_content_description">Settings</string>
+    <string name="edit_content_description">Edit</string>
+</resources>
