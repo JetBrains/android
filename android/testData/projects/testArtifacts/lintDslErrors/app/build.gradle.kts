@@ -9,8 +9,10 @@ android {
     compileSdkVersion(34)
 
     defaultConfig {
-        kotlinOptions { // Wrong place: options
-            jvmTarget = "11"
+        kotlin { // Wrong place: options
+          compilerOptions {
+            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget("11")
+          }
         }
         applicationId = "com.example.myapplication.id"
         minSdk = 24
