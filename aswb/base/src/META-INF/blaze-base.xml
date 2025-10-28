@@ -199,6 +199,7 @@
       <action internal="true" id="Blaze.QSync.ReloadProject" class="com.google.idea.blaze.base.qsync.action.ReloadProject" text="QSync - Reload project" />
       <action internal="true" id="Blaze.QSync.CleanBuildCache" class="com.google.idea.blaze.base.qsync.action.CleanBuildCacheAction" text="QSync - Clean Build Cache" />
       <action internal="true" id="Blaze.QSync.PurgeBuildCache" class="com.google.idea.blaze.base.qsync.action.PurgeBuildCacheAction" text="QSync - Purge Build Cache" />
+      <action internal="true" id="Blaze.QSync.ReapplyProjectStructure" class="com.google.idea.blaze.base.qsync.action.ReapplyProjectStructureAction" text="QSync - Re-apply Project Structure" />
       <action internal="true" id="Blaze.QSync.DumpProject" class="com.google.idea.blaze.base.qsync.action.DumpProjectProtoAction" text = "QSync - Dump Project Proto" />
       <action internal="true" id="Blaze.QSync.ShowPromo" class="com.google.idea.blaze.base.qsync.action.ShowPromoAction" text="Show qsync promo" />
       <action internal="true" id="Blaze.VFS.DumpVfsDirs" class="com.google.idea.blaze.base.actions.internal.AswbDumpVfs" text="ASwB - Dump VFS Dirs"/>
