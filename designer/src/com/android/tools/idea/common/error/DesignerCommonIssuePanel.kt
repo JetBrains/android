@@ -236,12 +236,6 @@ class DesignerCommonIssuePanel(
     }
   }
 
-  private fun getDataInBackground(dataId: String, node: DesignerCommonIssueNode): Any? =
-    when (dataId) {
-      CommonDataKeys.NAVIGATABLE.name -> node.getNavigatable()
-      else -> null
-    }
-
   override fun uiDataSnapshot(sink: DataSink) {
     super.uiDataSnapshot(sink)
     sink[DESIGNER_COMMON_ISSUE_PANEL] = this
