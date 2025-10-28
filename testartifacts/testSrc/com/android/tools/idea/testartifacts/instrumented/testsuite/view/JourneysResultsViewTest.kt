@@ -18,12 +18,16 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.doubleClick
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performMouseInput
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.JourneyActionArtifacts
+import java.awt.Color
+import java.awt.image.BufferedImage
+import java.io.File
+import javax.imageio.ImageIO
 import org.junit.Assume
 import org.junit.Rule
 import org.junit.Test
@@ -82,40 +86,45 @@ class JourneysResultsViewTest {
   }
 
   @Test
-  fun onImageDoubleClickedUsesMostRecentCallback() {
+  fun onOpenScreenshotClickedUsesMostRecentCallback() {
     // TODO(414800489): Fix on Windows
     Assume.assumeFalse(System.getProperty("os.name").startsWith("Windows"))
 
     val initialCallback: () -> Unit = mock()
     val updatedCallback: () -> Unit = mock()
     val currentCallbackState = mutableStateOf(initialCallback)
-    val invalidScreenshotPath = "invalid/path/for/double_click_test.png"
+    val screenshotPath = createTempScreenshotFile()
+
     composeTestRule.setContent {
       JourneysResultsView(
-        artifact = JourneyActionArtifacts("Performed an action", "This is a test", screenshotImage = invalidScreenshotPath),
+        artifact = JourneyActionArtifacts("Performed an action", "This is a test", screenshotImage = screenshotPath),
         index = 0,
         numEntries = 1,
         onImageDoubleClicked = currentCallbackState.value
       )
     }
 
-    val clickableNode = composeTestRule.onNodeWithTag("ScreenshotError", useUnmergedTree = true)
-    clickableNode.assertIsDisplayed()
+    val screenshotNode = composeTestRule.onNodeWithTag("Screenshot", useUnmergedTree = true)
 
-    // Double-click on the screenshot
-    clickableNode.performTouchInput {
-      doubleClick()
-    }
+    // Hover over the screenshot
+    screenshotNode.performMouseInput { moveTo(center) }
+    composeTestRule.waitForIdle()
+
+    // Find and click the "Open Screenshot" button
+    val openScreenshotButton = composeTestRule.onNodeWithText("Open Screenshot")
+    openScreenshotButton.performClick()
     composeTestRule.waitForIdle()
 
     // Update the callback
     currentCallbackState.value = updatedCallback
     composeTestRule.waitForIdle()
 
-    // Double-click on the screenshot
-    clickableNode.performTouchInput {
-      doubleClick()
-    }
+    // Hover again to make the button visible
+    screenshotNode.performMouseInput { moveTo(center) }
+    composeTestRule.waitForIdle()
+
+    // Open the screenshot again
+    openScreenshotButton.performClick()
     composeTestRule.waitForIdle()
 
     // Verify the both callbacks were invoked
@@ -123,6 +132,18 @@ class JourneysResultsViewTest {
       verify(initialCallback, times(1)).invoke()
       verify(updatedCallback, times(1)).invoke()
     }
+  }
+
+  internal fun createTempScreenshotFile(): String {
+    val bufferedImage = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB).apply {
+      with(createGraphics()) {
+        color = Color(0x012345)
+        fillRect(0, 0, 100, 100)
+      }
+    }
+    return File.createTempFile("screenshot", ".png").apply {
+      ImageIO.write(bufferedImage, "png", this)
+    }.absolutePath
   }
 
   // TODO(414753403): Write more tests
