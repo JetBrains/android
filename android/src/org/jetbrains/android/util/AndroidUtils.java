@@ -329,7 +329,7 @@ public class AndroidUtils extends CommonAndroidUtil {
    * @param builder   The {@link HtmlBuilder} to which the HTML representation of the stack trace will be appended.
    * @return The {@link HtmlBuilder} instance with the stack trace appended.
    */
-  private static HtmlBuilder getClickablestackTrace(Throwable throwable, HtmlBuilder builder) {
+  private static HtmlBuilder getClickableStackTrace(Throwable throwable, HtmlBuilder builder) {
     int indent = 2;
     builder.addHtml(StringUtil.replace(throwable.toString(), "\n", "<BR/>")).newline();
     StackTraceElement[] frames = throwable.getStackTrace();
@@ -374,7 +374,7 @@ public class AndroidUtils extends CommonAndroidUtil {
       if (!htmlBuilder.toString().isEmpty()) {
         htmlBuilder.add("\n\n");
       }
-      htmlBuilder = getClickablestackTrace(t, htmlBuilder);
+      htmlBuilder = getClickableStackTrace(t, htmlBuilder);
     }
     htmlBuilder.closeHtmlBody();
     HtmlBuilder finalHtmlBuilder = htmlBuilder;
