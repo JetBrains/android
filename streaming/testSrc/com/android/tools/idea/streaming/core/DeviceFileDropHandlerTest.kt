@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.streaming.core
 
-import com.android.ddmlib.testing.FakeAdbRule
+import com.android.adblib.ddmlibcompatibility.testutils.AdbLibApplicationServiceRule
+import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
-import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.FakeEmulator
@@ -62,10 +62,11 @@ class DeviceFileDropHandlerTest {
 
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
-  private val adbRule = FakeAdbRule()
+
+  private val adbLibApplicationServiceRule = AdbLibApplicationServiceRule()
+
   @get:Rule
-  val ruleChain = RuleChain(projectRule, InitAdbLibApplicationServiceRule(), adbRule,
-                            emulatorRule, EdtRule())
+  val ruleChain = RuleChain(projectRule, adbLibApplicationServiceRule, emulatorRule, EdtRule())
   @get:Rule
   val tempDirRule = TemporaryDirectoryRule()
 
@@ -127,8 +128,18 @@ class DeviceFileDropHandlerTest {
     assertThat(device.getFile("/sdcard/Download/${file2.fileName}")?.permission).isEqualTo(420)
   }
 
-  private fun attachDevice() =
-      adbRule.attachDevice("emulator-${emulator.serialPort}", "Google", "Pixel 3 XL", "Sweet dessert", AndroidApiLevel(29))
+  private fun attachDevice(): DeviceState {
+    return adbLibApplicationServiceRule.connectDevice(
+      deviceId = "emulator-${emulator.serialPort}",
+      manufacturer = "Google",
+      deviceModel = "Pixel 3 XL",
+      release = "Sweet dessert",
+      sdk = AndroidApiLevel(29),
+      hostConnectionType = DeviceState.HostConnectionType.USB)
+      .also {
+        it.deviceStatus = DeviceState.DeviceStatus.ONLINE
+      }
+  }
 
   private fun createDropTarget(): DnDTarget {
     var nullableTarget: DnDTarget? = null
