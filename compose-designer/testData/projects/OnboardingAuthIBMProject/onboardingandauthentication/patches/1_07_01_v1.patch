@@ -1,0 +1,31 @@
+Subject: [PATCH] prompt v1: "Within the carousel, exchange the positions of the 'musical notes' image and the 'sunrise' image."
+---
+Index: onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/WalkthroughHorizontalImageCarousel.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/WalkthroughHorizontalImageCarousel.kt b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/WalkthroughHorizontalImageCarousel.kt
+--- a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/WalkthroughHorizontalImageCarousel.kt	(revision a2f4d0f0024a9e7b91a51bbb1fe89f75cdaa1812)
++++ b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/WalkthroughHorizontalImageCarousel.kt	(date 1755841699455)
+@@ -81,16 +81,16 @@
+     override val values: Sequence<List<WalkthroughStepModel>> = sequenceOf(
+         listOf(
+             WalkthroughStepModel(
+-                imageId = R.drawable.ic_walkthrough_music,
+-                description = "Listen to relaxing music"
++                imageId = R.drawable.ic_walkthrough_sun,
++                description = "Go outside and get some sunshine"
+             ),
+             WalkthroughStepModel(
+                 imageId = R.drawable.ic_walkthrough_blooming,
+                 description = "Take a moment to breathe and unwind"
+             ),
+             WalkthroughStepModel(
+-                imageId = R.drawable.ic_walkthrough_sun,
+-                description = "Go outside and get some sunshine"
++                imageId = R.drawable.ic_walkthrough_music,
++                description = "Listen to relaxing music"
+             )
+         )
+     )

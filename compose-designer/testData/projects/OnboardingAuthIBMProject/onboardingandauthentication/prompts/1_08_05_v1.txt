@@ -1,0 +1,2 @@
+For 'Allow Permissions' button, increase its width by 30%"
+com.ibm.google.onboardingandauthentication.ui.screen.PermissionScreenKt.PermissionScreenPreview

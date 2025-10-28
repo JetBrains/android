@@ -1,0 +1,2 @@
+Add a shadow effect to the 'bloom' logo.
+com.ibm.google.onboardingandauthentication.ui.screen.WelcomeScreenKt.WelcomeScreenPreview

@@ -1,0 +1,22 @@
+Subject: [PATCH] Increase font size of 'Welcome to bloom' by 30%
+---
+Index: onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/LogoHeadlineSection.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/LogoHeadlineSection.kt b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/LogoHeadlineSection.kt
+--- a/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/LogoHeadlineSection.kt	(revision 83d9644fffce800965f3b282e9da0ac53f289f43)
++++ b/onboardingandauthentication/src/main/java/com/ibm/google/onboardingandauthentication/ui/component/LogoHeadlineSection.kt	(date 1755848010826)
+@@ -50,7 +50,10 @@
+         )
+         Text(
+             text = headline,
+-            style = MaterialTheme.typography.headlineMedium.copy(color = MaterialTheme.colorScheme.onSurface),
++            style = MaterialTheme.typography.headlineMedium.copy(
++                color = MaterialTheme.colorScheme.onSurface,
++                fontSize = MaterialTheme.typography.headlineMedium.fontSize * 1.3f
++            ),
+             textAlign = TextAlign.Center,
+             modifier = Modifier.padding(top = 24.dp)
+         )
