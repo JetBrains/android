@@ -29,7 +29,6 @@ import com.google.idea.blaze.base.bazel.BuildSystemProvider
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope
 import com.google.idea.blaze.base.projectview.ProjectViewManager
-import com.google.idea.blaze.base.projectview.section.sections.EnableCodeAnalysisOnSyncSection
 import com.google.idea.blaze.base.qsync.ProjectStatsLogger.logSyncStats
 import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore
 import com.google.idea.blaze.base.scope.BlazeContext
@@ -138,6 +137,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     project.service<BuildArtifactCache>(),
     FileRefresher(project)
   )
+  private val userPreferences: QuerySyncUserPreferences get() =
+    QuerySyncUserPreferencesProvider.getInstance(ideProject).userPreferences
 
   /** An enum represent the origin of a task performed by the [QuerySyncManager]  */
   enum class TaskOrigin {
@@ -255,8 +256,15 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.SYNC
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(context)
-      syncStatsScope(context) { context ->
-        syncQueryData(context, result.existingPostQuerySyncData)
+      val existingPostQuerySyncData = result.existingPostQuerySyncData
+      if (existingPostQuerySyncData == null || userPreferences.refreshQueryDataOnStartup) {
+        syncStatsScope(context) { context ->
+          syncQueryData(context, existingPostQuerySyncData)
+        }
+      } else {
+        updateCurrentSnapshot(context) {
+          applySyncResult(assertProjectLoaded().analyzePostQuerySyncData(context, existingPostQuerySyncData))
+        }
       }
       autoEnableCodeAnalysis(context, startup = true)
     }
@@ -504,10 +512,9 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
 
   private fun autoEnableCodeAnalysis(context: BlazeContext, startup: Boolean = false) {
     val project = loadedProject ?: return
-    val enableCodeAnalysisOnSyncEnabled = QuerySyncUserPreferencesProvider.getInstance(ideProject).userPreferences.enableCodeAnalysisOnSync
     // Checking the state of the tracker directly as the snapshot has not been yet updated.
     val codeAnalysisHasBeenEnabled = this.loadedProject?.artifactTracker?.stateSnapshot?.targets()?.isNotEmpty() ?: false
-    if (enableCodeAnalysisOnSyncEnabled && !(codeAnalysisHasBeenEnabled && startup)) {
+    if (userPreferences.enableCodeAnalysisOnSync && !(codeAnalysisHasBeenEnabled && startup)) {
       project.buildDependencies(context, DependencyTracker.DependencyBuildRequest.wholeProject())
     }
   }
