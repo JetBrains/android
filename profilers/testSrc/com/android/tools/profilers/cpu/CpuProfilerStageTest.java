@@ -45,6 +45,7 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.android.tools.profilers.event.FakeEventService;
+import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.tasks.TaskFinishedState;
 import java.io.File;
 import java.io.IOException;
@@ -780,6 +781,34 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.CAPTURE_START_FAILURE_TRACER_ALREADY_RUNNING);
+  }
+
+  @Test
+  public void startCapturingFailureEndsSessionAndSetsFailedState() throws InterruptedException {
+    // A new stage is needed because the one in setUp is created with Task-Based UX disabled,
+    // so its recordingScreenModel is null.
+    myServices.enableTaskBasedUx(true);
+    myStage = new CpuProfilerStage(myStage.getStudioProfilers());
+    myStage.getStudioProfilers().setStage(myStage);
+
+    SessionsManager sessionsManager = myStage.getStudioProfilers().getSessionsManager();
+    assertThat(sessionsManager.getProfilingSession()).isNotEqualTo(Common.Session.getDefaultInstance());
+
+    // Simulate a start capture failure scenario.
+    CpuProfilerTestUtils.startCapturing(myStage,
+                                        myTransportService,
+                                        Trace.TraceStartStatus.ErrorCode.TRACER_ALREADY_RUNNING_UNABLE_RUN_PERFETTO);
+
+
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // Verify that the session was reset.
+    assertThat(sessionsManager.getProfilingSession()).isEqualTo(Common.Session.getDefaultInstance());
+
+    assertThat(myStage.getRecordingModel().isRecording()).isFalse();
+    assertThat(myStage.getRecordingScreenModel()).isNotNull();
+    assertThat(myStage.getRecordingScreenModel().isRecordingFailed().getValue()).isTrue();
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
   }
 
   @Test
