@@ -46,7 +46,8 @@ class BlazeAndroidQuerySyncPlugin : BlazeQuerySyncPlugin {
       return
     }
     val androidSdkPlatform =
-      AndroidSdkFromProjectView.getAndroidSdkPlatform(context, projectViewSet) ?: error("Android SDK platform not found. See build output.")
+      AndroidSdkFromProjectView.getAndroidSdkPlatform(context, project, projectViewSet)
+      ?: error("Android SDK platform not found. See build output.")
     val sdk = BlazeSdkProvider.getInstance().findSdk(androidSdkPlatform.androidSdk)
               ?: error("Cannot find SDK entry for ${androidSdkPlatform.androidSdk}")
     val javaLanguageLevel = JavaLanguageLevelSection.getLanguageLevel(projectViewSet, LanguageLevel.JDK_21)
@@ -70,7 +71,7 @@ class BlazeAndroidQuerySyncPlugin : BlazeQuerySyncPlugin {
 
     // Set AndroidModel for this AndroidFacet
     val projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet()
-    val androidSdkPlatform = AndroidSdkFromProjectView.getAndroidSdkPlatform(context, projectViewSet)
+    val androidSdkPlatform = AndroidSdkFromProjectView.getAndroidSdkPlatform(context, project, projectViewSet)
 
     val androidModel =
       BlazeAndroidModel(
