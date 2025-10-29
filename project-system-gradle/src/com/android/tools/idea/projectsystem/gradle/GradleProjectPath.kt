@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.utils.FileUtils
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalModuleType
@@ -82,7 +83,8 @@ private fun Module.getGradleBuildIdentityPath(): String? {
 
   return CachedValuesManager.getManager(this.project).getCachedValue(this) {
     CachedValueProvider.Result.create(
-      computeValue(), ProjectRootModificationTracker.getInstance(this.project)
+      computeValue(),
+      gradleProjectPathModificationTrackers(this.project)
     )
   }
 }
@@ -123,7 +125,7 @@ private fun Project.findGradleBuildRoot(externalRootProjectPath: String, gradleB
 
     CachedValueProvider.Result.create(
       moduleMap,
-      ProjectRootModificationTracker.getInstance(this)
+      gradleProjectPathModificationTrackers(this)
     )
   }[externalRootProjectPath + gradleBuildRootIdentityPath]
 }
@@ -155,7 +157,7 @@ fun Module.getGradleProjectPath(): GradleProjectPath? {
   return CachedValuesManager.getManager(project).getCachedValue(this) {
     CachedValueProvider.Result.create(
       internalGetGradleProjectPath(),
-      ProjectRootModificationTracker.getInstance(project)
+      gradleProjectPathModificationTrackers(project)
     )
   }
 }
@@ -170,9 +172,14 @@ fun Project.findModule(gradleProjectPath: GradleProjectPath): Module? {
       .toMap()
     CachedValueProvider.Result.create(
       moduleMap,
-      ProjectRootModificationTracker.getInstance(this)
+      gradleProjectPathModificationTrackers(this)
     )
   }[gradleProjectPath]
 }
 
 fun GradleProjectPath.resolveIn(project: Project): Module? = project.findModule(this)
+
+private fun gradleProjectPathModificationTrackers(project: Project) = listOf(
+  ProjectRootModificationTracker.getInstance(project),
+  ProjectSyncModificationTracker.getInstance(project)
+)
