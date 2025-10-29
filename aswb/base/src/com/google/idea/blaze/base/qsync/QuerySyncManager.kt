@@ -216,7 +216,6 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       loadedProject
         ?.takeUnless {
           val currentProjectViewSet = BlazeImportSettingsManager.getInstance(ideProject).projectViewSet
-          it.projectViewSet != currentProjectViewSet ||
           it.projectDefinition != loader.loadProjectDefinition(currentProjectViewSet).definition
         }
       ?: runCatching { loader.loadProject() }.getOrElse { throw BuildException("Failed to load project", it) }

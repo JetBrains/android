@@ -67,6 +67,7 @@ import com.google.idea.blaze.qsync.java.ParallelPackageReader;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectDirectoryConfigurator;
 import com.google.idea.blaze.qsync.project.ProjectPath;
+import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation;
 import com.google.idea.blaze.qsync.query.QuerySpec.QueryStrategy;
 import com.google.idea.common.experiments.BoolExperiment;
@@ -109,7 +110,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
   public record QuerySyncProjectDeps(BlazeImportSettings importSettings,
                                      WorkspaceRoot workspaceRoot,
                                      WorkspacePathResolver workspacePathResolver,
-                                     ProjectViewSet projectViewSet,
                                      QuerySyncLanguageSettings languageSettings,
                                      BuildSystem buildSystem,
                                      WorkspaceLanguageSettings workspaceLanguageSettings,
@@ -166,7 +166,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
           result.projectQuerier(),
           result.projectBuilder(),
           result.latestProjectDef(),
-          result.projectViewSet(),
           result.languageSettings(),
           result.workspacePathResolver(),
           result.projectPathResolver(),
@@ -195,15 +194,15 @@ public class ProjectLoaderImpl implements ProjectLoader {
     // optimizations?
     ProjectDefinition projectDefinition =
       createProjectDefinition(workspaceRoot, importSettings.getBuildSystem(), projectViewSet);
-    WorkspaceLanguageSettings workspaceLanguageSettings =
-      LanguageSupport.createWorkspaceLanguageSettings(projectViewSet);
+    WorkspaceLanguageSettings workspaceLanguageSettings = LanguageSupport.createWorkspaceLanguageSettings(projectViewSet);
+    QuerySyncLanguageSettings languageSettings = QuerySyncLanguageSettings.from(projectViewSet, workspaceLanguageSettings);
     // TODO: solodkyy - read from the project view.
     BuildSystemProvider buildSystemProvider = BuildSystemProvider.getBuildSystemProvider(importSettings.getBuildSystem());
     BuildSystem buildSystem = buildSystemProvider.getBuildSystem();
     ProjectDirectoryConfigurator projectDirectoryConfigurator = buildSystemProvider.getProjectDirectoryConfigurator(project);
 
-    return new ProjectToLoadDefinition(workspaceRoot, projectDirectoryConfigurator, buildSystem, projectDefinition, projectViewSet,
-                                       workspaceLanguageSettings);
+    return new ProjectToLoadDefinition(workspaceRoot, projectDirectoryConfigurator, buildSystem, projectDefinition,
+                                       workspaceLanguageSettings, languageSettings);
   }
 
   private QuerySyncProjectDeps instantiateDeps() {
@@ -212,14 +211,13 @@ public class ProjectLoaderImpl implements ProjectLoader {
             BlazeImportSettingsManager.getInstance(project).getImportSettings());
 
     final var projectToLoad = loadProjectDefinition(BlazeImportSettingsManager.getInstance(project).getProjectViewSet());
-    final var projectViewSet = projectToLoad.projectViewSet();
     final var workspaceRoot = projectToLoad.workspaceRoot();
     final var latestProjectDef = projectToLoad.definition();
     final var buildSystem = projectToLoad.buildSystem();
     final var projectDirectoryConfigurator = projectToLoad.projectDirectoryConfigurator();
 
     WorkspaceLanguageSettings workspaceLanguageSettings = projectToLoad.workspaceLanguageSettings();
-    QuerySyncLanguageSettings languageSettings = QuerySyncLanguageSettings.from(projectViewSet, workspaceLanguageSettings);
+    QuerySyncLanguageSettings languageSettings = projectToLoad.languageSettings();
 
     ImmutableSet<String> handledRules = getHandledRuleKinds();
     Optional<BlazeVcsHandler> vcsHandler =
@@ -292,7 +290,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
             vcsHandler,
             new BazelVersionHandler(buildSystem, buildSystem.getBuildInvoker(project)));
     QuerySyncSourceToTargetMap sourceToTargetMap = new QuerySyncSourceToTargetMap(snapshotHolder, workspaceRoot.path());
-    return new QuerySyncProjectDeps(importSettings, workspaceRoot, new WorkspacePathResolverImpl(workspaceRoot), projectViewSet,
+    return new QuerySyncProjectDeps(importSettings, workspaceRoot, new WorkspacePathResolverImpl(workspaceRoot),
                                     languageSettings, buildSystem, workspaceLanguageSettings, latestProjectDef, projectPathResolver,
                                     projectTransformRegistry, snapshotHolder, artifactCache, artifactTracker, renderJarArtifactTracker,
                                     appInspectorArtifactTracker, appInspectorTracker, dependencyBuilder, dependencyTracker, snapshotBuilder,
