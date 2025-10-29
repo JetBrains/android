@@ -1,5 +1,6 @@
 """A macro for running @OldAgpTests using OldAgpSuite."""
 
+load("//tools/base/bazel:bazel.bzl", "get_xbootclasspath_jvm_flags")
 load("//tools/base/bazel:coverage.bzl", "coverage_java_test")
 
 def old_agp_test(
@@ -36,6 +37,9 @@ def old_agp_test(
     # Sets the system property for MavenRepoRule
     maven_repo_paths = ["$(location %s)" % maven_dep for maven_dep in maven_deps]
     jvm_flags.append("-Dtest.suite.repos=%s" % ",".join(maven_repo_paths))
+
+    # IntelliJ 2025.1+ requires nio-fs.jar on the bootclasspath, even for tests.
+    jvm_flags = jvm_flags + get_xbootclasspath_jvm_flags()
 
     data = kwargs.pop("data", [])
     data.append(test_jar)
