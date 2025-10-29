@@ -15,15 +15,29 @@
  */
 package com.android.tools.idea.compose.preview.util
 
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 
 open class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
 
   private fun fakeAction(text: String): AnAction {
     return object : AnAction(text) {
       override fun actionPerformed(e: AnActionEvent) {}
+    }
+  }
+
+  private fun fakeDefaultActionGroup(text: String): DefaultActionGroup {
+    return DefaultActionGroup(text, listOf(fakeAction(text)))
+  }
+
+  private fun fakeDropDownAction(text: String): DropDownAction {
+    return object : DropDownAction(text, null, null) {
+      init {
+        add(fakeAction(text))
+      }
     }
   }
 
@@ -35,7 +49,9 @@ open class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
 
   override fun fixComposeRenderIssueAction() = fakeAction("fixComposeRender")
 
-  override fun previewAgentsDropDownAction(): AnAction = fakeAction("previewAgents")
+  override fun previewAgentsDropDownAction(): DropDownAction = fakeDropDownAction("previewAgents")
+
+  override fun previewAgentsActionGroup() = fakeDefaultActionGroup("previewAgents")
 
   override fun screenshotToCodeAction(): AnAction {
     return fakeAction("Generate Code From Screenshot")

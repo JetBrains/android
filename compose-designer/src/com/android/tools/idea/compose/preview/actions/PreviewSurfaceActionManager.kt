@@ -69,29 +69,8 @@ internal class PreviewSurfaceActionManager(
     // Toggle Resize Panel (only in focus mode)
     actionGroup.add(ToggleResizePanelVisibilityAction().visibleOnlyInFocus())
     // Add toolbar actions in the context-menu as a redundant entry point
-    getSceneViewContextToolbarOverflowActions()
-      .takeIf { it.isNotEmpty() }
-      ?.forEach { actionGroup.add(it) }
-    StudioFlags.COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN.ifEnabled {
-      ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.let {
-        it.previewAgentsDropDownAction()?.visibleOnlyInStaticPreview()?.let { action ->
-          actionGroup.add(action)
-        }
-      }
-    }
-    // Add action to transform UI with AI directly to the context-menu if the dropdown menu
-    // is not enabled.
-    if (
-      StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.get() &&
-        !StudioFlags.COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN.get()
-    ) {
-      ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.let {
-        it.transformPreviewAction()?.let { action ->
-          actionGroup.add(action.visibleOnlyInStaticPreview())
-        }
-      }
-    }
-
+    getPreviewActions().takeIf { it.isNotEmpty() }?.forEach { actionGroup.add(it) }
+    getAiActionGroup(shouldShowInDropDown = true)?.let { actionGroup.add(it) }
     return actionGroup
   }
 
@@ -100,7 +79,13 @@ internal class PreviewSurfaceActionManager(
       StudioFlags.COMPOSE_PREVIEW_AI_GLASSES_PREVIEW.ifEnabled { GlassesBlendDropdownAction() }
     )
 
-  override fun getSceneViewContextToolbarOverflowActions(): List<AnAction> =
+  override fun getSceneViewContextToolbarOverflowActions(): List<AnAction> {
+    val aiActionGroup = getAiActionGroup(shouldShowInDropDown = false)
+    val previewActions = getPreviewActions()
+    return previewActions + listOfNotNull(aiActionGroup)
+  }
+
+  private fun getPreviewActions(): List<AnAction> =
     listOf(Separator()) +
       listOfNotNull(
           SavePreviewInNewSizeAction().visibleOnlyInFocus(),
@@ -116,4 +101,22 @@ internal class PreviewSurfaceActionManager(
         .visibleOnlyInStaticPreview() +
       listOf(BackNavigationAction().visibleOnlyInInteractive())
         .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
+
+  private fun getAiActionGroup(shouldShowInDropDown: Boolean): AnAction? {
+    val factory = ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()
+    return if (StudioFlags.COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN.get()) {
+        if (shouldShowInDropDown) {
+          factory?.previewAgentsDropDownAction()
+        } else {
+          factory?.previewAgentsActionGroup()
+        }
+      } else {
+        // Add action to transform UI with AI directly to the context-menu if the dropdown menu is
+        // not enabled.
+        StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.ifEnabled {
+          factory?.transformPreviewAction()
+        }
+      }
+      ?.visibleOnlyInStaticPreview()
+  }
 }

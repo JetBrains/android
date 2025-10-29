@@ -27,6 +27,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnActionWrapper
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.psi.PsiFile
@@ -166,10 +167,11 @@ class PreviewSurfaceActionManagerTest {
     assertThat(backNavigationAction).isInstanceOf(BackNavigationAction::class.java)
 
     // AI actions
-    val aiActionsDropdown =
+    val aiActionsDefaultGroup =
       (actions[8] as ShowGroupUnderConditionWrapper).getChildren(null).single()
-    assertThat(aiActionsDropdown.templatePresentation.text)
+    assertThat(aiActionsDefaultGroup.templatePresentation.text)
       .isEqualTo(if (aiActionsDropdownEnabled) "previewAgents" else "transformPreview")
+    assertThat(aiActionsDefaultGroup is DefaultActionGroup)
   }
 
   @Test

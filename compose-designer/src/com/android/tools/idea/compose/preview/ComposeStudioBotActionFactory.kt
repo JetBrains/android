@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.adtui.actions.DropDownAction
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.extensions.ExtensionPointName
 
 interface ComposeStudioBotActionFactory {
@@ -43,11 +45,17 @@ interface ComposeStudioBotActionFactory {
   fun fixComposeRenderIssueAction(): AnAction?
 
   /**
-   * Dropdown action to list Gemini agent-based actions that are not specific to a single existing
+   * [DropdownAction] to list AI agent-based actions that are not specific to a single existing
    * previews. It's expected to be displayed in the surface toolbar as opposed to individual preview
    * toolbars.
    */
-  fun previewAgentsDropDownAction(): AnAction?
+  fun previewAgentsDropDownAction(): DropDownAction?
+
+  /**
+   * [DefaultActionGroup] to list AI agent-based actions that are not specific to a single existing
+   * preview. It's expected to be displayed in the surface toolbar as opposed to individual preview
+   */
+  fun previewAgentsActionGroup(): DefaultActionGroup?
 
   /** Action to generate Compose code from a screenshot of a UI. */
   fun screenshotToCodeAction(): AnAction
