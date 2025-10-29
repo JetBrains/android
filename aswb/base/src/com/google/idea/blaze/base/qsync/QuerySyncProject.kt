@@ -24,7 +24,6 @@ import com.google.idea.blaze.base.bazel.BuildSystem
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.plugin.BuildSystemVersionChecker
-import com.google.idea.blaze.base.projectview.ProjectViewSet
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.settings.BlazeImportSettings
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings
@@ -133,6 +132,13 @@ class QuerySyncProject(
         projectQuerier.fullQuery(projectDefinition, context)
       else
         projectQuerier.update(projectDefinition, lastQuery, context)
+    return analyzePostQuerySyncData(context, postQuerySyncData)
+  }
+
+  fun analyzePostQuerySyncData(
+    context: BlazeContext,
+    postQuerySyncData: PostQuerySyncData,
+  ): CoreSyncResult {
     val graph = buildGraphData(postQuerySyncData, context)
     return CoreSyncResult(postQuerySyncData, graph)
   }

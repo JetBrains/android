@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.qsync
 
 import com.google.idea.blaze.base.projectview.ProjectViewManager
 import com.google.idea.blaze.base.projectview.section.sections.EnableCodeAnalysisOnSyncSection
+import com.google.idea.common.experiments.BoolExperiment
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -24,7 +25,10 @@ import kotlin.jvm.optionals.getOrDefault
 
 interface QuerySyncUserPreferences {
   val enableCodeAnalysisOnSync: Boolean
+  val refreshQueryDataOnStartup: Boolean
 }
+
+private val skipRefreshQueryDataOnStartup = BoolExperiment("aswb.query.sync.skip.query.on.startup", true)
 
 @Service(Service.Level.PROJECT)
 class QuerySyncUserPreferencesProvider(private val project: Project) {
@@ -33,6 +37,8 @@ class QuerySyncUserPreferencesProvider(private val project: Project) {
       get() =
         ProjectViewManager.getInstance(project).projectViewSet?.getScalarValue(EnableCodeAnalysisOnSyncSection.KEY)?.getOrDefault(false)
         ?: false
+    override val refreshQueryDataOnStartup: Boolean
+      get() = !skipRefreshQueryDataOnStartup.value
   }
 
   companion object {
