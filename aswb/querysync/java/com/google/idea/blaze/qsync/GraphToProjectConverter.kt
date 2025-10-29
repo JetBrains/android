@@ -27,7 +27,6 @@ import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
-import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
@@ -69,7 +68,6 @@ class GraphToProjectConverter(
    * is evidently not true for the general case, but even the most complex projects in our
    * repository follow this rule. And this is a rule, easy to workaround by a user if it doesn't
    * hold on their project.
-   *
    * <pre>
    * The algorithm works as follows:
    *   1.- The top-most source files (most one per directory) is chosen per blaze package.
@@ -83,7 +81,7 @@ class GraphToProjectConverter(
    * @param srcFiles all the files that should be included.
    * @param packages the BUILD files to create source roots for.
    * @return the content roots in the following form : Content Root -> Source Root -> package
-   *     prefix. A content root contains multiple source roots, each one with a package prefix.
+   *   prefix. A content root contains multiple source roots, each one with a package prefix.
    */
   @VisibleForTesting
   @Throws(BuildException::class)
@@ -92,7 +90,9 @@ class GraphToProjectConverter(
     sourceFiles: Collection<Path>,
     packages: PackageSet,
   ): Map<Path, Map<Path, String>> {
-    val prefixes = runBlocking { javaPackagePrefixReader.readPrefixes(context, packages, sourceFiles) }
+    val prefixes = runBlocking {
+      javaPackagePrefixReader.readPrefixes(context, packages, sourceFiles)
+    }
 
     // All packages split by their content roots
     val rootToPrefix = splitByRoot(prefixes)
@@ -106,7 +106,7 @@ class GraphToProjectConverter(
    *
    * @param nonJavaSrcFiles all the sources in the project, excluding java.
    * @return mapping of content roots (project includes) to directories (relative to the content
-   *     root) containing proto files.
+   *   root) containing proto files.
    */
   @VisibleForTesting
   fun nonJavaSourceFolders(nonJavaSrcFiles: Collection<Path>): Map<Path, Collection<Path>> {
@@ -115,7 +115,10 @@ class GraphToProjectConverter(
       .mapNotNull { it.parent }
       .distinct()
       .mapNotNull {
-        SourceFolder(root = it, contentRoot = projectDefinition.getIncludingContentRoot(it) ?: return@mapNotNull null)
+        SourceFolder(
+          root = it,
+          contentRoot = projectDefinition.getIncludingContentRoot(it) ?: return@mapNotNull null,
+        )
       }
       .groupBy({ it.contentRoot }, { it.contentRoot.relativize(it.root) })
   }
@@ -159,9 +162,8 @@ class GraphToProjectConverter(
     }
 
     /**
-     * Merges source roots that are compatible. Consider the following example, where source roots are
-     * written like "directory" ["prefix"]:
-     *
+     * Merges source roots that are compatible. Consider the following example, where source roots
+     * are written like "directory" ["prefix"]:
      * <pre>
      *   1.- Two sibling roots:
      *     "a/b/c/d" ["com.google.d"]
@@ -176,36 +178,37 @@ class GraphToProjectConverter(
      *     "a/b/c" ["com.google"]
      * </pre>
      *
-     * This function works by trying to move a source root up as far as possible (until it reaches the
-     * content root). When it finds a source root above, there can be two scenarios: a) the parent
-     * source root is compatible (like example 2 above), in which case they are merged. b) the parent
-     * root is not compatible, in which case it needs to stop there and cannot be moved further up.
-     * This is true even if the parent source root is later moved up.
+     * This function works by trying to move a source root up as far as possible (until it reaches
+     * the content root). When it finds a source root above, there can be two scenarios: a) the
+     * parent source root is compatible (like example 2 above), in which case they are merged. b)
+     * the parent root is not compatible, in which case it needs to stop there and cannot be moved
+     * further up. This is true even if the parent source root is later moved up.
      */
     @VisibleForTesting
     @JvmStatic
-    fun mergeCompatibleSourceRoots(srcRoots: Map<Path, Map<Path, String>>): Map<Path, Map<Path, String>> {
+    fun mergeCompatibleSourceRoots(
+      srcRoots: Map<Path, Map<Path, String>>
+    ): Map<Path, Map<Path, String>> {
       return srcRoots.mapValues { mergeSourceRoots(it.value) }
     }
 
     /**
-     * Given directory to package mappings known to be true from the source code builds finds the root
-     * mappings that are sufficient for the IDE to derive the provided mappings, i.e. having
-     *
+     * Given directory to package mappings known to be true from the source code builds finds the
+     * root mappings that are sufficient for the IDE to derive the provided mappings, i.e. having
      * <pre>
      *   java/src/com/google/app => com.google.app
      *   java/src/com/google/lib => com.google.lib
      *   java/src/com/google/sample/else => com.example.else
      * </pre>
-     *
      * <p>produces:
-     *
      * <pre>
      *   java/src => ""
      *   java/src/com/google/sample => com.example
      * </pre>
      */
-    private fun mergeSourceRoots(expectedDirectoryToPackageMap: Map<Path, String>): ImmutableMap<Path, String> {
+    private fun mergeSourceRoots(
+      expectedDirectoryToPackageMap: Map<Path, String>
+    ): ImmutableMap<Path, String> {
       val dirWants = addPossibleParentMatches(expectedDirectoryToPackageMap)
       val dirAllResult = chooseFinalMappings(expectedDirectoryToPackageMap, dirWants)
       return selectEssentialMappings(dirAllResult)
@@ -217,7 +220,6 @@ class GraphToProjectConverter(
      * that can be derived from them.
      *
      * <p>i.e.
-     *
      * <pre>
      *   src/ => ""
      *   src/com/ => com
@@ -225,22 +227,24 @@ class GraphToProjectConverter(
      *   src/com/google/lib => com.google.lib
      *   src/com/google/else => smth.else
      * </pre>
-     *
      * <p>results in
-     *
      * <pre>
      *   src/ => ""
      *   src/com/google/else => smth.else
      * </pre>
      */
-    private fun selectEssentialMappings(dirAllResult: ImmutableMap<Path, String>): ImmutableMap<Path, String> {
+    private fun selectEssentialMappings(
+      dirAllResult: ImmutableMap<Path, String>
+    ): ImmutableMap<Path, String> {
       val result: ImmutableMap.Builder<Path, String> = ImmutableMap.builder()
       for (entry in dirAllResult.entries) {
         val parentPath = relativeParentOf(entry.key)
         val existingParentPkg = dirAllResult.get(parentPath)
-        if (existingParentPkg == null
-            || !appendPackage(existingParentPkg, entry.key.getFileName().toString())
-            .equals(entry.value)) {
+        if (
+          existingParentPkg == null ||
+            !appendPackage(existingParentPkg, entry.key.getFileName().toString())
+              .equals(entry.value)
+        ) {
           result.put(entry.key, entry.value)
         }
       }
@@ -251,11 +255,10 @@ class GraphToProjectConverter(
      * Given expanded directory to package mappings and the originally expected directory to package
      * map builds an unambiguous map from directories to packages.
      *
-     * <p>If the expanded map contains conflicting entries (result of local package mapping and parent
-     * expansion) they are ignored and the local package mapping is used, if present.
+     * <p>If the expanded map contains conflicting entries (result of local package mapping and
+     * parent expansion) they are ignored and the local package mapping is used, if present.
      *
      * <p>For example, in the following structure:
-     *
      * <pre>
      *   src/ => ""
      *   src/com/ => com
@@ -263,7 +266,6 @@ class GraphToProjectConverter(
      *   src/com/google/lib => com.google.lib
      *   src/com/google/else => smth.else
      * </pre>
-     *
      * <p>`src/com/google/ => com.google; smth` is resolved as `com.google` if it is also a local
      * mapping, which would later result in a new source folder created for `src/com/google/else =>
      * smth.else`.
@@ -275,12 +277,12 @@ class GraphToProjectConverter(
       val dirAllResult: ImmutableMap.Builder<Path, String> = ImmutableMap.builder()
       for (directory in TreeSet(dirWants.keys)) {
         val wants = dirWants.get(directory)
-        val pkg = if (wants != null && wants.size == 1) {
-          wants.iterator().next()
-        }
-        else {
-          expectedDirectoryToPackageMap.get(directory)
-        }
+        val pkg =
+          if (wants != null && wants.size == 1) {
+            wants.iterator().next()
+          } else {
+            expectedDirectoryToPackageMap.get(directory)
+          }
         if (pkg != null) {
           dirAllResult.put(directory, pkg)
         }
@@ -293,10 +295,11 @@ class GraphToProjectConverter(
      * from parent directories.
      *
      * <p>i.e. in the presence of `src/com/google/smth => com.google.smth` add mappings like `src =>
-     * ""`, `src/com => com`, `src/com/google => com.google`, but stop if there is a mismatch between
-     * directory names and package names, i.e. when `java/src/smth => com.google.smth` is present
-     * expand it only to `java/src => com.google` as it would still correctly map sub-directories and
-     * when multiple similar sub-directories are present this is a preferred configuration.
+     * ""`, `src/com => com`, `src/com/google => com.google`, but stop if there is a mismatch
+     * between directory names and package names, i.e. when `java/src/smth => com.google.smth` is
+     * present expand it only to `java/src => com.google` as it would still correctly map
+     * sub-directories and when multiple similar sub-directories are present this is a preferred
+     * configuration.
      */
     private fun addPossibleParentMatches(sourceRoots: Map<Path, String>): Map<Path, Set<String>> {
       val directories: Set<Path> = TreeSet(sourceRoots.keys)
@@ -305,9 +308,9 @@ class GraphToProjectConverter(
         val prefix = sourceRoots.get(directory)
         var dir: Path? = directory
         var pref = prefix
-        while (dir != null
-               && pref != null
-               && dir.getFileName().toString().equals(lastSubpackageOf(pref))) {
+        while (
+          dir != null && pref != null && dir.getFileName().toString().equals(lastSubpackageOf(pref))
+        ) {
           val wants = dirWants.computeIfAbsent(dir) { hashSetOf() }
           wants.add(pref)
           dir = relativeParentOf(dir)
@@ -325,8 +328,9 @@ class GraphToProjectConverter(
     }
 
     /**
-     * Heuristic for determining Android resource directories, by searching for .xml source files with
-     * /res/ somewhere in the path under a build package. To be replaced by a more robust implementation.
+     * Heuristic for determining Android resource directories, by searching for .xml source files
+     * with /res/ somewhere in the path under a build package. To be replaced by a more robust
+     * implementation.
      */
     @VisibleForTesting
     @JvmStatic
@@ -334,11 +338,14 @@ class GraphToProjectConverter(
       val directories = hashSetOf<Path>()
       for (sourceFile in sourceFiles) {
         if (sourceFile.name.endsWith(".xml")) {
-          @SuppressWarnings("PathAsIterable")
-          val pathParts = sourceFile.getNamePath().toList()
+          @SuppressWarnings("PathAsIterable") val pathParts = sourceFile.getNamePath().toList()
           val resPos = pathParts.indexOf(Path.of("res"))
           if (resPos >= 0) {
-            directories.add(sourceFile.getBuildPackagePath().resolve(sourceFile.getNamePath().subpath(0, resPos + 1)))
+            directories.add(
+              sourceFile
+                .getBuildPackagePath()
+                .resolve(sourceFile.getNamePath().subpath(0, resPos + 1))
+            )
           }
         }
       }
@@ -347,18 +354,26 @@ class GraphToProjectConverter(
   }
 
   @Throws(BuildException::class)
-  fun createProject(graph: BuildGraphData, externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder, update: ProjectProtoUpdate) {
+  fun createProject(
+    graph: BuildGraphData,
+    externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
+    update: ProjectProtoUpdate,
+  ) {
     update.module(Label.of("@aswb_workspace_module//")) {
       createModule(graph, externalRepositoryFinder)
     }
   }
 
-  fun ProjectProtoUpdate.ModuleUpdater.createModule(graph: BuildGraphData, externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder) {
+  fun ProjectProtoUpdate.ModuleUpdater.createModule(
+    graph: BuildGraphData,
+    externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
+  ) {
     if (projectDefinition.isAndroidWorkspace) {
       markAsAndroidModule()
     }
 
-    val javaSourceRoots = calculateJavaRootSources(context, graph.getJavaSourceFiles(), graph.packages())
+    val javaSourceRoots =
+      calculateJavaRootSources(context, graph.getJavaSourceFiles(), graph.packages())
     val rootToNonJavaSource =
       nonJavaSourceFolders(
         graph
@@ -373,16 +388,13 @@ class GraphToProjectConverter(
     // top level res dir:
     val resList = graph.getAndroidResourceFiles()
     val androidResDirs =
-      resList
-        .map(Path::getParent)
-        .distinct()
-        .map(Path::getParent)
-        .distinct()
-        .toSet()
+      resList.map(Path::getParent).distinct().map(Path::getParent).distinct().toSet()
 
     context.output(PrintOutput.log("%-10d Android resource directories", androidResDirs.size))
 
-    addAndroidResourceDirectories(androidResDirs.map { ProjectPath.workspaceRelative(it, externalRepositoryFinder) })
+    addAndroidResourceDirectories(
+      androidResDirs.map { ProjectPath.workspaceRelative(it, externalRepositoryFinder) }
+    )
     graph.getAllCustomPackages().forEach { addAndroidCustomPackage(it) }
 
     val excludesByRootDirectory = projectDefinition.excludesByRootDirectory
@@ -396,11 +408,15 @@ class GraphToProjectConverter(
             root = ProjectPath.workspaceRelative(path, externalRepositoryFinder),
             isGenerated = false,
             isTest = testSourceGlobMatcher.matches(path),
-            javaPackage = entry.value
+            javaPackage = entry.value,
           )
         }
         rootToNonJavaSource[dir]?.forEach { nonJavaDirPath ->
-          if (javaSourceRoots[dir].orEmpty().keys.none { it.toString().isEmpty() || nonJavaDirPath.startsWith(it) }) {
+          if (
+            javaSourceRoots[dir].orEmpty().keys.none {
+              it.toString().isEmpty() || nonJavaDirPath.startsWith(it)
+            }
+          ) {
             val path = dir.resolve(nonJavaDirPath)
             // TODO(b/305743519): make java source properties like package prefix specific to java
             // source folders only.
@@ -408,12 +424,15 @@ class GraphToProjectConverter(
               root = ProjectPath.workspaceRelative(path, externalRepositoryFinder),
               isGenerated = false,
               isTest = testSourceGlobMatcher.matches(path),
-              javaPackage = ""
+              javaPackage = "",
             )
           }
         }
         addExcludes(
-          excludesByRootDirectory[dir]?.map { exclude -> ProjectPath.workspaceRelative(exclude, externalRepositoryFinder) }.orEmpty())
+          excludesByRootDirectory[dir]
+            ?.map { exclude -> ProjectPath.workspaceRelative(exclude, externalRepositoryFinder) }
+            .orEmpty()
+        )
       }
     }
 
@@ -436,21 +455,20 @@ class GraphToProjectConverter(
     // where k1 is a prefix of k2, then k2 is checked before k1. We check by string length to ensure
     // the empty path is checked last.
     val sortedRootToPrefix: Map<Path, List<Map.Entry<Path, String>>> =
-      rootToPrefix
-        .mapValues { entry ->
-          val sourceDirs: Map<Path, String> = entry.value
-          val sortedEntries: List<Map.Entry<Path, String>> =
-            sourceDirs.entries.sortedWith(Collections.reverseOrder(
-              comparingInt { e -> e.key.toString().length }))
-          sortedEntries
-        }
+      rootToPrefix.mapValues { entry ->
+        val sourceDirs: Map<Path, String> = entry.value
+        val sortedEntries: List<Map.Entry<Path, String>> =
+          sourceDirs.entries.sortedWith(
+            Collections.reverseOrder(comparingInt { e -> e.key.toString().length })
+          )
+        sortedEntries
+      }
 
     for (androidSourceFile in androidSourceFiles) {
       var found = false
       for (root in sortedRootToPrefix.entries) {
         if (androidSourceFile.startsWith(root.key)) {
-          val inRoot =
-            androidSourceFile.toString().substring(root.key.toString().length + 1)
+          val inRoot = androidSourceFile.toString().substring(root.key.toString().length + 1)
           val sourceDirs = root.value
           for (prefixes in sourceDirs) {
             if (inRoot.startsWith(prefixes.key.toString())) {
@@ -480,7 +498,9 @@ class GraphToProjectConverter(
       if (!found) {
         context.output(
           PrintOutput.log(
-            String.format("Android source %s not found in any root", androidSourceFile)))
+            String.format("Android source %s not found in any root", androidSourceFile)
+          )
+        )
       }
     }
     return androidSourcePackages.build()

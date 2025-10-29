@@ -29,12 +29,12 @@ import java.io.IOException
 import java.util.Optional
 
 /**
- * Builds a [QuerySyncProjectSnapshot] for a test project by running the logic from the
- * various sync stages on the testdata query output.
+ * Builds a [QuerySyncProjectSnapshot] for a test project by running the logic from the various sync
+ * stages on the testdata query output.
  */
 class TestDataSyncRunner(
   private val context: Context<*>,
-  private val javaPackagePrefixReader: JavaPackagePrefixReader
+  private val javaPackagePrefixReader: JavaPackagePrefixReader,
 ) {
   @Throws(IOException::class, BuildException::class)
   fun sync(testProject: TestData): QuerySyncProjectSnapshot {
@@ -59,31 +59,38 @@ class TestDataSyncRunner(
         .build()
     val buildGraphData =
       BlazeQueryParser(
-        projectDefinition.effectiveTargetPatterns,
-        querySummary,
-        context,
-        ImmutableSet.of()
-      ).parse()
+          projectDefinition.effectiveTargetPatterns,
+          querySummary,
+          context,
+          ImmutableSet.of(),
+        )
+        .parse()
     val converter =
       GraphToProjectConverter(
         javaPackagePrefixReader = javaPackagePrefixReader,
         context = context,
-        projectDefinition = projectDefinition
+        projectDefinition = projectDefinition,
       )
     val update = ProjectProtoUpdate(existingProject = ProjectProto.Project.getDefaultInstance())
-    converter.createProject(buildGraphData, ProjectPath.ExternalRepositoryFinder.createEmptyForTests(), update)
+    converter.createProject(
+      buildGraphData,
+      ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
+      update,
+    )
     val project = update.build()
     return QuerySyncProjectSnapshot(
       queryData = pqsd,
-      graph = BlazeQueryParser(
-        projectDefinition.effectiveTargetPatterns,
-        querySummary,
-        context,
-        ImmutableSet.of()
-      ).parse(),
+      graph =
+        BlazeQueryParser(
+            projectDefinition.effectiveTargetPatterns,
+            querySummary,
+            context,
+            ImmutableSet.of(),
+          )
+          .parse(),
       artifactState = ArtifactTracker.State.EMPTY,
       project = project,
-      incompleteTargets = emptySet()
+      incompleteTargets = emptySet(),
     )
   }
 }
