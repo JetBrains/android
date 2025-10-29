@@ -28,7 +28,6 @@ import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.CurrentTheme.Banner
-import fleet.util.takeTillFirst
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Graphics
@@ -41,6 +40,7 @@ import javax.swing.JTextArea
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.launch
 
 class ServiceUnsupportedPanel(
@@ -77,6 +77,13 @@ class ServiceUnsupportedPanel(
       border = JBUI.Borders.empty()
       minimumSize = Dimension(0, 0)
       preferredSize = Dimension(JBUI.scale(20), 0)
+    }
+
+  inline fun <T> Flow<T>.takeTillFirst(crossinline predicate: (T) -> Boolean): Flow<T> {
+      return this@takeTillFirst.transformWhile {
+          emit(it)
+          !predicate(it)
+        }
     }
 
   private fun createContentPanel() =

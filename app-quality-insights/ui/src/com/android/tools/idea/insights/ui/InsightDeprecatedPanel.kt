@@ -34,7 +34,6 @@ import com.intellij.util.ui.HTMLEditorKitBuilder
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
-import fleet.util.takeTillFirst
 import java.awt.BorderLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -45,6 +44,7 @@ import javax.swing.SwingConstants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.launch
 
 class InsightDeprecatedPanel(
@@ -74,6 +74,13 @@ class InsightDeprecatedPanel(
     scope.launch {
       visibilityFlow.takeTillFirst { it }.collect()
       logEvent(userNotified = true)
+    }
+  }
+
+  inline fun <T> Flow<T>.takeTillFirst(crossinline predicate: (T) -> Boolean): Flow<T> {
+    return this@takeTillFirst.transformWhile {
+      emit(it)
+      !predicate(it)
     }
   }
 
