@@ -114,21 +114,14 @@ class UpdateReferenceImagesDialog(
     return "com.android.screenshottest.ui.UpdateReferenceImagesDialog"
   }
 
-  private fun onImageLoadedSuccessfully() {
-    if (successfulLoads.incrementAndGet() == 1) {
-      logger.info("First image loaded successfully, enabling 'Add' button.")
-      okAction.isEnabled = true
-    }
-  }
-
-  fun updateDialogWithTestResult(previewDetails: PreviewDetails) {
+  fun updateDialogWithTestResult(previewDetails: PreviewDetails, isChecked: Boolean) {
     ApplicationManager.getApplication().invokeLater {
       if (!isFirstTestDiscovered) {
         isFirstTestDiscovered = true
         populateCenterPanel()
       }
 
-      val (testId, className, methodName, previewName) = previewDetails
+      val (testId, className, methodName, previewName, destImagePath, srcImagePath) = previewDetails
 
       if(methodName.isNotBlank() && previewName.isNotBlank()) {
 
@@ -153,13 +146,19 @@ class UpdateReferenceImagesDialog(
         }
 
         val leafNode = CheckedTreeNode(previewDetails)
-        leafNode.isChecked = true
+        leafNode.isChecked = isChecked
         model.insertNodeInto(leafNode, methodNode, methodNode.childCount)
         tree.expandPath(TreePath(methodNode.path))
 
-        val panel = PreviewItemPanel(previewData = previewDetails, onImageLoaded = { onImageLoadedSuccessfully() })
+        val panel = PreviewItemPanel(previewData = previewDetails)
         imagePanelMap[testId] = panel
 
+        if (srcImagePath != null) {
+          panel.loadImage(srcImagePath, testId)
+        }
+        else {
+          panel.showError("Test did not produce an image")
+        }
         updateRightPane(tree)
       } else {
         logger.warn("Missing methodName or previewName for tests in class $className")
@@ -174,6 +173,8 @@ class UpdateReferenceImagesDialog(
       if (!isFirstTestDiscovered) {
         close(CANCEL_EXIT_CODE)
         Messages.showErrorDialog(project, "Error while generating screenshots", "Failed to generate screenshots")
+      } else {
+        okAction.isEnabled = true
       }
     }
   }
@@ -379,7 +380,7 @@ class UpdateReferenceImagesDialog(
 
       ApplicationManager.getApplication().invokeLater {
         if (failures.isEmpty()) {
-          // Log the UPDATE_CLICKED event for analytics on successful copy of reference images.
+          //Log the UPDATE_CLICKED event for analytics on successful copy of reference images.
           UsageTracker.log(
             AndroidStudioEvent.newBuilder().apply {
               kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW

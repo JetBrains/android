@@ -122,6 +122,7 @@ class AndroidTestResultsTableViewTest {
       override fun getRetentionInfo(device: AndroidDevice): File? = null
       override fun getRetentionSnapshot(device: AndroidDevice): File? = null
       override fun getAdditionalTestArtifacts(device: AndroidDevice): Map<String, String> = mapOf()
+      override fun getAllTestCases(): List<AndroidTestCase> = emptyList()
     }
   }
 

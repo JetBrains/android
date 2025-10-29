@@ -1256,6 +1256,10 @@ private class AndroidTestResultsRow(override val methodName: String,
     }
   }
 
+  override fun getAllTestCases(): List<AndroidTestCase> {
+    return myTestCases.values.toList()
+  }
+
   override fun getResultStats(device: AndroidDevice): AndroidTestResultStats {
     val stats = AndroidTestResultStats()
     return stats.addTestCaseResult(getTestCaseResult(device))
@@ -1305,6 +1309,12 @@ private class AggregationRow(override val packageName: String = "",
   }
 
   override val methodName: String = ""
+
+  override fun getAllTestCases(): List<AndroidTestCase> {
+    return allChildren.flatMap {
+      (it as? AndroidTestResults)?.getAllTestCases() ?: emptyList()
+    }.toList()
+  }
 
   override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult {
     val result = myTestSuiteResult[device.id]

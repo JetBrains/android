@@ -35,7 +35,6 @@ import java.io.File
 import java.io.IOException
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
-import javax.swing.JComponent
 import javax.swing.JPanel
 
 // Define constraints for the image panel size.
@@ -46,7 +45,6 @@ private const val MAX_IMAGE_SIZE = 200
  */
 class PreviewItemPanel(
   val previewData: PreviewDetails,
-  private val onImageLoaded: () -> Unit,
   private val showDetails: Boolean = true,
   private val logger: Logger = Logger.getInstance(PreviewItemPanel::class.java)
 ) : JPanel() {
@@ -84,10 +82,10 @@ class PreviewItemPanel(
     val matchLabel = JBLabel(matchPercentage ?: "0.00%").apply {
       foreground = if (previewData.testResult == AndroidTestCaseResult.PASSED) JBColor.GREEN.darker() else JBColor.RED
       font = font.deriveFont(Font.BOLD)
-      alignmentX = JComponent.LEFT_ALIGNMENT
+      alignmentX = LEFT_ALIGNMENT
     }
     val previewNameLabel =
-      JBLabel(previewData.previewName).apply { alignmentX = JComponent.LEFT_ALIGNMENT }
+      JBLabel(previewData.previewName).apply { alignmentX = LEFT_ALIGNMENT }
     detailsPanel.add(matchLabel)
     detailsPanel.add(previewNameLabel)
     // TODO: Add Composable link
@@ -159,7 +157,6 @@ class PreviewItemPanel(
           repaint()
 
           isLoadedSuccessfully = true
-          onImageLoaded()
         } else {
           showError("Couldn't load image")
         }

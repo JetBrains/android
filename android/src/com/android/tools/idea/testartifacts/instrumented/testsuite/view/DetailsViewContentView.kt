@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
-import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.UpdateReferenceImagesFromTestPanelAction
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
@@ -33,10 +32,9 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionUiKind
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
@@ -61,8 +59,6 @@ import java.awt.Dimension
 import java.util.Arrays
 import java.util.Locale
 import javax.swing.BoxLayout
-import javax.swing.JButton
-import javax.swing.JComponent
 import javax.swing.JPanel
 
 /**
@@ -72,6 +68,7 @@ class DetailsViewContentView(
   parentDisposable: Disposable,
   private val project: Project,
   logger: AndroidTestSuiteLogger,
+  headerActions: List<AnAction>,
   messageBus: MessageBus = ApplicationManager.getApplication().messageBus
 ) : Disposable {
 
@@ -92,7 +89,6 @@ class DetailsViewContentView(
   @VisibleForTesting var myScreenshotAttributesTab: TabInfo
   private val myScreenshotAttributesView: ScreenshotAttributesView
   val myJourneysResultsPanel: JourneysResultsPanel
-  @VisibleForTesting val updateReferenceButton: JComponent
 
   @VisibleForTesting
   val myJourneyScreenshotsTab: TabInfo
@@ -182,29 +178,13 @@ class DetailsViewContentView(
     myDeviceInfoTab.setTooltipText("Show device information")
     tabs.addTab(myDeviceInfoTab)
 
-    // Create a standard JButton and wire it to the AnAction.
-    val action = UpdateReferenceImagesFromTestPanelAction()
-    updateReferenceButton = JButton(action.templatePresentation.text).apply {
-      addActionListener {
+    rootPanel = JPanel(BorderLayout())
+    val actionGroup = DefaultActionGroup()
+    actionGroup.addAll(headerActions)
+    val toolbar = ActionManager.getInstance().createActionToolbar("AndroidTestSuite.DetailsView.Header", actionGroup, true)
+    toolbar.targetComponent = rootPanel
 
-        val dataContext = DataContext { dataId ->
-          if (CommonDataKeys.PROJECT.name == dataId) project else null
-        }
-        val event = AnActionEvent.createEvent(
-          dataContext,
-          action.templatePresentation.clone(),
-          "AndroidTestSuite.DetailsView.Header",
-          ActionUiKind.NONE,
-          null
-        )
-        action.actionPerformed(event)
-      }
-
-      // The button is hidden by default and only shown when screenshot results are available.
-      isVisible = false
-    }
-
-    rootPanel = JPanel(BorderLayout()).apply {
+    rootPanel.apply {
       // The header panel now uses BorderLayout to ensure the button is always visible.
       add(JPanel(BorderLayout()).apply {
         border = JBUI.Borders.compound(
@@ -225,7 +205,7 @@ class DetailsViewContentView(
         // with a BorderLayout and placed at the NORTH to prevent it from stretching vertically
         // when the label text wraps to a new line.
         add(NonOpaquePanel(BorderLayout()).apply {
-          add(updateReferenceButton, BorderLayout.NORTH)
+          add(toolbar.component, BorderLayout.NORTH)
         }, BorderLayout.EAST)
       }, BorderLayout.NORTH)
       add(tabs.component, BorderLayout.CENTER)
@@ -301,13 +281,11 @@ class DetailsViewContentView(
     val diffPercent: Double? = diffPercentString?.toDoubleOrNull()
 
     val shouldButtonBeVisible = (newImage != null || refImage != null || diffImage != null)
-    val visibilityChanged = (updateReferenceButton.isVisible != shouldButtonBeVisible)
 
     if (shouldButtonBeVisible) {
       myScreenshotAttributesTab.isHidden = false
       myScreenshotTab.isHidden = false
       myDeviceInfoTab.isHidden = true
-      updateReferenceButton.isVisible = true
       myScreenshotResultView.newImagePath = newImage ?: ""
       myScreenshotResultView.refImagePath = refImage ?: ""
       myScreenshotResultView.diffImagePath = diffImage ?: ""
@@ -324,18 +302,11 @@ class DetailsViewContentView(
     } else {
       myScreenshotTab.isHidden = true
       myScreenshotAttributesTab.isHidden = true
-      updateReferenceButton.isVisible = false
     }
 
     val journeyActionArtifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
     myJourneysResultsPanel.updateArtifacts(journeyActionArtifacts)
     myJourneyScreenshotsTab.isHidden = journeyActionArtifacts.isEmpty()
-
-    // Only re-layout and repaint if the button's visibility has actually changed.
-    if (visibilityChanged) {
-      rootPanel.revalidate()
-      rootPanel.repaint()
-    }
 
     updateSelectedTab()
   }

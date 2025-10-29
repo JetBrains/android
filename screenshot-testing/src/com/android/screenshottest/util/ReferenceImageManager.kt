@@ -20,8 +20,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.LocalFileSystem
 import java.io.File
 import java.io.IOException
-import java.nio.file.Path
-import java.util.Locale
 
 /**
  * A simple data class to pass information from the UI layer to the file management layer.
