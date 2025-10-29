@@ -133,7 +133,7 @@ public class BlazeAndroidSyncPlugin implements BlazeSyncPlugin {
     }
 
     AndroidSdkPlatform androidSdkPlatform =
-        AndroidSdkFromProjectView.getAndroidSdkPlatform(context, projectViewSet);
+        AndroidSdkFromProjectView.getAndroidSdkPlatform(context, project, projectViewSet);
 
     BlazeImportInput inputs =
         BlazeImportInput.forProject(
@@ -171,7 +171,7 @@ public class BlazeAndroidSyncPlugin implements BlazeSyncPlugin {
       // the androidSdkPlatform directly from project view if the project SDK is not yet set.
       // This ensures the android SDK is available even if the initial project sync fails or simply
       // takes too long.
-      androidSdkPlatform = AndroidSdkFromProjectView.getAndroidSdkPlatform(context, projectViewSet);
+      androidSdkPlatform = AndroidSdkFromProjectView.getAndroidSdkPlatform(context, project, projectViewSet);
     }
     if (androidSdkPlatform == null) {
       IssueOutput.error(
@@ -280,7 +280,7 @@ public class BlazeAndroidSyncPlugin implements BlazeSyncPlugin {
       return true;
     }
 
-    if (AndroidSdkFromProjectView.getAndroidSdkPlatform(context, projectViewSet) == null) {
+    if (AndroidSdkFromProjectView.getAndroidSdkPlatform(context, project, projectViewSet) == null) {
       return false;
     }
     return true;
