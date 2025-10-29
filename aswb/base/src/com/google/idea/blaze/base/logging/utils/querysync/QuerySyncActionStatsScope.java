@@ -23,6 +23,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.logging.EventLoggingService;
 import com.google.idea.blaze.base.logging.QuerySyncActionStats;
 import com.google.idea.blaze.base.logging.QuerySyncActionStats.Result;
+import com.google.idea.blaze.base.model.primitives.WorkspacePath;
+import com.google.idea.blaze.base.projectview.ProjectViewManager;
+import com.google.idea.blaze.base.projectview.section.sections.ImportSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.BlazeScope;
 import com.google.idea.blaze.common.TimeSource;
@@ -87,7 +90,19 @@ public class QuerySyncActionStatsScope implements BlazeScope {
       @Nullable AnActionEvent event,
       ImmutableCollection<Path> requestFiles,
       TimeSource timeSource) {
-    return new QuerySyncActionStatsScope(project, actionClass, event, requestFiles, timeSource);
+    QuerySyncActionStatsScope scope =
+      new QuerySyncActionStatsScope(project, actionClass, event, requestFiles, timeSource);
+    final var projectViewManager = ProjectViewManager.getInstance(project); // null in unit tests.
+    final var projectViewSet = projectViewManager != null ? projectViewManager.getProjectViewSet() : null;
+    if (projectViewSet != null) {
+      scope
+        .getProjectInfoStatsBuilder()
+        .setBlazeProjectFiles(
+          projectViewSet.listScalarItems(ImportSection.KEY).stream()
+            .map(WorkspacePath::asPath)
+            .collect(toImmutableSet()));
+    }
+    return scope;
   }
 
   @VisibleForTesting
