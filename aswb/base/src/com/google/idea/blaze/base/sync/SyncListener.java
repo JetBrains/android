@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.sync.SyncScope.SyncCanceledException;
@@ -55,7 +54,6 @@ public interface SyncListener {
       Project project,
       BlazeContext context,
       BlazeImportSettings importSettings,
-      ProjectViewSet projectViewSet,
       ImmutableSet<Integer> buildIds,
       BlazeProjectData blazeProjectData,
       SyncMode syncMode,

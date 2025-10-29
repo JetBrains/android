@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
+import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
@@ -45,11 +45,11 @@ class WorkspaceFileFinderImpl implements SyncListener, WorkspaceFileFinder {
       Project project,
       BlazeContext context,
       BlazeImportSettings importSettings,
-      ProjectViewSet projectViewSet,
       ImmutableSet<Integer> buildIds,
       BlazeProjectData blazeProjectData,
       SyncMode syncMode,
       SyncResult syncResult) {
+    final var projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
     importRoots =
         ImportRoots.builder(
                 WorkspaceRoot.fromProjectSafe(project), Blaze.getBuildSystemName(project))

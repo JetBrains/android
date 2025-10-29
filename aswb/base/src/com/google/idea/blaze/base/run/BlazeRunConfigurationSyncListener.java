@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
+import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.section.sections.RunConfigurationsSection;
 import com.google.idea.blaze.base.projectview.section.sections.TargetSection;
@@ -57,11 +58,11 @@ public class BlazeRunConfigurationSyncListener implements SyncListener {
       Project project,
       BlazeContext context,
       BlazeImportSettings importSettings,
-      ProjectViewSet projectViewSet,
       ImmutableSet<Integer> buildIds,
       BlazeProjectData blazeProjectData,
       SyncMode syncMode,
       SyncResult syncResult) {
+    final var projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
     updateExistingRunConfigurations(project);
     removeInvalidRunConfigurations(project);
     if (syncMode == SyncMode.STARTUP || syncMode == SyncMode.NO_BUILD) {

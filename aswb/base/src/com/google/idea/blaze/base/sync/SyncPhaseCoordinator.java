@@ -805,7 +805,6 @@ final class SyncPhaseCoordinator {
           project,
           context,
           BlazeImportSettingsManager.getInstance(project).getImportSettings(),
-          projectViewSet,
           buildIds,
           blazeProjectData,
           syncParams.syncMode(),

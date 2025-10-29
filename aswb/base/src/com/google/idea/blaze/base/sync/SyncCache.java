@@ -19,7 +19,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.idea.blaze.base.model.BlazeProjectData;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
@@ -74,7 +73,6 @@ public class SyncCache {
         Project project,
         BlazeContext context,
         BlazeImportSettings importSettings,
-        ProjectViewSet projectViewSet,
         ImmutableSet<Integer> buildIds,
         BlazeProjectData blazeProjectData,
         SyncMode syncMode,
