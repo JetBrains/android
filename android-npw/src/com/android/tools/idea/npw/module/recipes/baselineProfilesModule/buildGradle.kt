@@ -57,7 +57,7 @@ fun baselineProfilesBuildGradle(
               ${if (useGradleKts) "val" else "def"} artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
               v.instrumentationRunnerArguments.put(
                   "targetAppId",
-                  v.testedApplicationId
+                  v.testedApks.map { artifactsLoader.load(it)?.applicationId }
               )
           }
       }

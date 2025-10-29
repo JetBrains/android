@@ -305,7 +305,7 @@ androidComponents {
         def artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
         v.instrumentationRunnerArguments.put(
             "targetAppId",
-            v.testedApplicationId
+            v.testedApks.map { artifactsLoader.load(it)?.applicationId }
         )
     }
 }
@@ -363,7 +363,7 @@ androidComponents {
         val artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
         v.instrumentationRunnerArguments.put(
             "targetAppId",
-            v.testedApplicationId
+            v.testedApks.map { artifactsLoader.load(it)?.applicationId }
         )
     }
 }
