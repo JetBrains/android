@@ -102,7 +102,15 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
   }
 
   override fun isAndroidProject(): Boolean {
-    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+    return CachedValuesManager.getManager(project).getCachedValue(project) {
+      CachedValueProvider.Result.create(
+        project.modules.any { GradleAndroidModel.get(it) != null },
+        // potentially triggered by sync phases
+        ProjectRootModificationTracker.getInstance(project),
+        // triggered after full sync finishes
+        ProjectSyncModificationTracker.getInstance(project)
+      )
+    }
   }
 
   override fun isAndroidProjectViewSupported(): Boolean = true
