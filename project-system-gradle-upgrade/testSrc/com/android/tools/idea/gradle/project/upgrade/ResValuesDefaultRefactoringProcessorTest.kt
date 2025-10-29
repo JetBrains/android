@@ -44,8 +44,7 @@ class ResValuesDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
     }
   }
 
-  //@Test
-  // TODO (b/370068502): enable this test after redirect has been added
+  @Test
   fun testReadMoreUrl() {
     val processor = ResValuesDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0"))
     assertEquals("https://developer.android.com/r/tools/upgrade-assistant/res-values-default", processor.getReadMoreUrl())

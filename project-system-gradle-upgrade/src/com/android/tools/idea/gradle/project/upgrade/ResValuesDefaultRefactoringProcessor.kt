@@ -31,8 +31,7 @@ class ResValuesDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefac
   override val insertPropertyText = AgpUpgradeBundle.message("resValuesDefaultRefactoringProcessor.enable.usageType")
   override val tooltip = AgpUpgradeBundle.message("resValuesBuildFeature.enable.tooltipText")
   override val usageViewHeader = AgpUpgradeBundle.message("resValuesDefaultRefactoringProcessor.usageView.header")
-  // TODO (b/370068502): add redirect and enable
-  //override val readMoreUrlRedirect = ReadMoreUrlRedirect("res-values-default")
+  override val readMoreUrlRedirect = ReadMoreUrlRedirect("res-values-default")
 
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.resValuesDefault"
   override fun getCommandName() = AgpUpgradeBundle.message("resValuesDefaultRefactoringProcessor.commandName")
