@@ -31,8 +31,8 @@ import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import java.nio.file.Path
 
 /**
- * Project refresher creates an appropriate [RefreshOperation] based on the project and
- * current VCS state.
+ * Project refresher creates an appropriate [RefreshOperation] based on the project and current VCS
+ * state.
  */
 class ProjectBuilder(
   private val executor: ListeningExecutorService,
@@ -42,9 +42,9 @@ class ProjectBuilder(
 ) {
 
   /**
-   * Creates a [QuerySyncProjectSnapshot], which includes an expected IDE project structure,
-   * from the `postQuerySyncData` and a function `applyBuiltDependenciesTransform` that
-   * applies transformations required to account for any currently synced(i.e. built) dependencies.
+   * Creates a [QuerySyncProjectSnapshot], which includes an expected IDE project structure, from
+   * the `postQuerySyncData` and a function `applyBuiltDependenciesTransform` that applies
+   * transformations required to account for any currently synced(i.e. built) dependencies.
    */
   @Throws(BuildException::class)
   fun createBlazeProjectStructure(
@@ -64,9 +64,10 @@ class ProjectBuilder(
       GraphToProjectConverter(
         javaPackagePrefixReader = javaPackagePrefixReader,
         context = context,
-        projectDefinition = postQuerySyncData.projectDefinition()
+        projectDefinition = postQuerySyncData.projectDefinition(),
       )
-    val externalRepositoryFinder = ProjectPath.ExternalRepositoryFinder.createAndPrepare(workspaceRoot)
+    val externalRepositoryFinder =
+      ProjectPath.ExternalRepositoryFinder.createAndPrepare(workspaceRoot)
 
     val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
     graphToProjectConverter.createProject(graph, externalRepositoryFinder, update)

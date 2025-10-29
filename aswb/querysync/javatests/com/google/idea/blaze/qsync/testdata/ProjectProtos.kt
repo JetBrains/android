@@ -28,9 +28,8 @@ import java.io.IOException
 /**
  * Test utility class to build simple project proto instances based on a [TestData] project.
  *
- *
- * The returned project protos may not be fully valid and should be relied upon only to provide
- * the basic structure.
+ * The returned project protos may not be fully valid and should be relied upon only to provide the
+ * basic structure.
  */
 object ProjectProtos {
   @Throws(IOException::class, BuildException::class)
@@ -40,22 +39,23 @@ object ProjectProtos {
       GraphToProjectConverter(
         javaPackagePrefixReader = QuerySyncTestUtils.EMPTY_PREFIX_READER,
         context = QuerySyncTestUtils.NOOP_CONTEXT,
-        projectDefinition = ProjectDefinition(
-          projectIncludes = setOf(workspaceImportDirectory),
-          projectExcludes = emptySet(),
-          targetPatterns = emptyList(),
-          systemExcludes = emptySet(),
-          testSources = emptySet(),
-          isAndroidWorkspace = true,
-          languageClasses = setOf(QuerySyncLanguage.JVM),
-          deriveTargetsFromDirectories = false,
-        )
+        projectDefinition =
+          ProjectDefinition(
+            projectIncludes = setOf(workspaceImportDirectory),
+            projectExcludes = emptySet(),
+            targetPatterns = emptyList(),
+            systemExcludes = emptySet(),
+            testSources = emptySet(),
+            isAndroidWorkspace = true,
+            languageClasses = setOf(QuerySyncLanguage.JVM),
+            deriveTargetsFromDirectories = false,
+          ),
       )
     val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
     converter.createProject(
       BuildGraphs.forTestProject(project),
       ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
-      update
+      update,
     )
     return update.build()
   }

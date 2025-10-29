@@ -110,9 +110,7 @@ class GraphToProjectConverterTest {
         )
       )
     Truth.assertThat(split.get(Path.of("javatests")))
-      .isEqualTo(
-        mapOf(Path.of("com/one") to "prefix.com", Path.of("com/two") to "other.prefix")
-      )
+      .isEqualTo(mapOf(Path.of("com/one") to "prefix.com", Path.of("com/two") to "other.prefix"))
   }
 
   @Test
@@ -637,7 +635,10 @@ class GraphToProjectConverterTest {
   fun testCreateProject_cc() {
     val workspaceImportDirectory = TestData.ROOT.resolve("cc")
     val converter =
-      GraphToProjectConvertersForTests.create(projectIncludes = setOf(workspaceImportDirectory), isAndroidWorkspace = false)
+      GraphToProjectConvertersForTests.create(
+        projectIncludes = setOf(workspaceImportDirectory),
+        isAndroidWorkspace = false,
+      )
 
     val buildGraphData =
       BlazeQueryParser(
@@ -650,36 +651,41 @@ class GraphToProjectConverterTest {
 
     val project = converter.createProject(buildGraphData, createEmptyForTests())
 
-    val expectedProject = ProjectProto.Project(
-      modules = listOf(
-        ProjectProto.Module(
-          name = ".workspace",
-          contentEntries = mapOf(
-            workspaceRelativeForTests(workspaceImportDirectory) to ProjectProto.ContentEntry(
-              root = workspaceRelativeForTests(workspaceImportDirectory),
-              sourceFolders = listOf(
-                ProjectProto.SourceFolder(
-                  projectPath = workspaceRelativeForTests(workspaceImportDirectory),
-                  packagePrefix = "",
-                  isGenerated = false,
-                  isTest = false
-                )
-              ),
-              excludes = emptyList()
+    val expectedProject =
+      ProjectProto.Project(
+        modules =
+          listOf(
+            ProjectProto.Module(
+              name = ".workspace",
+              contentEntries =
+                mapOf(
+                  workspaceRelativeForTests(workspaceImportDirectory) to
+                    ProjectProto.ContentEntry(
+                      root = workspaceRelativeForTests(workspaceImportDirectory),
+                      sourceFolders =
+                        listOf(
+                          ProjectProto.SourceFolder(
+                            projectPath = workspaceRelativeForTests(workspaceImportDirectory),
+                            packagePrefix = "",
+                            isGenerated = false,
+                            isTest = false,
+                          )
+                        ),
+                      excludes = emptyList(),
+                    )
+                ),
+              androidResourceDirectories = emptyList(),
+              isAndroidModule = false,
+              androidSourcePackages = emptyList(),
+              androidCustomPackages = emptyList(),
+              androidExternalLibraries = emptyList(),
             )
           ),
-          androidResourceDirectories = emptyList(),
-          isAndroidModule = false,
-          androidSourcePackages = emptyList(),
-          androidCustomPackages = emptyList(),
-          androidExternalLibraries = emptyList()
-        )
-      ),
-      libraries = emptyMap(),
-      artifactDirectories = ProjectProto.ArtifactDirectories.getDefaultInstance(),
-      ccWorkspace = ProjectProto.CcWorkspace.getDefaultInstance(),
-      activeLanguages = setOf(QuerySyncLanguage.CC)
-    )
+        libraries = emptyMap(),
+        artifactDirectories = ProjectProto.ArtifactDirectories.getDefaultInstance(),
+        ccWorkspace = ProjectProto.CcWorkspace.getDefaultInstance(),
+        activeLanguages = setOf(QuerySyncLanguage.CC),
+      )
 
     Truth.assertThat(project).isEqualTo(expectedProject)
   }
@@ -695,47 +701,53 @@ class GraphToProjectConverterTest {
       )
     val buildGraphData =
       BlazeQueryParser(
-        TargetPatternCollection.create(emptyList()),
-        QuerySyncTestUtils.getQuerySummary(TestData.ANDROID_LIB_QUERY),
-        QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
-      )
+          TargetPatternCollection.create(emptyList()),
+          QuerySyncTestUtils.getQuerySummary(TestData.ANDROID_LIB_QUERY),
+          QuerySyncTestUtils.NOOP_CONTEXT,
+          emptySet(),
+        )
         .parse()
 
     val project = converter.createProject(buildGraphData, createEmptyForTests())
 
-    val expectedProject = ProjectProto.Project(
-      modules = listOf(
-        ProjectProto.Module(
-          name = ".workspace",
-          contentEntries = mapOf(
-            workspaceRelativeForTests(workspaceImportDirectory) to ProjectProto.ContentEntry(
-              root = workspaceRelativeForTests(workspaceImportDirectory),
-              sourceFolders = listOf(
-                ProjectProto.SourceFolder(
-                  projectPath = workspaceRelativeForTests(workspaceImportDirectory),
-                  packagePrefix = "com.google.idea.blaze.qsync.testdata.android",
-                  isGenerated = false,
-                  isTest = false
-                )
-              ),
-              excludes = emptyList()
+    val expectedProject =
+      ProjectProto.Project(
+        modules =
+          listOf(
+            ProjectProto.Module(
+              name = ".workspace",
+              contentEntries =
+                mapOf(
+                  workspaceRelativeForTests(workspaceImportDirectory) to
+                    ProjectProto.ContentEntry(
+                      root = workspaceRelativeForTests(workspaceImportDirectory),
+                      sourceFolders =
+                        listOf(
+                          ProjectProto.SourceFolder(
+                            projectPath = workspaceRelativeForTests(workspaceImportDirectory),
+                            packagePrefix = "com.google.idea.blaze.qsync.testdata.android",
+                            isGenerated = false,
+                            isTest = false,
+                          )
+                        ),
+                      excludes = emptyList(),
+                    )
+                ),
+              androidResourceDirectories =
+                listOf(workspaceRelativeForTests(TestData.ROOT.resolve("android/res"))),
+              isAndroidModule = true,
+              androidSourcePackages =
+                emptyList(), // Expected to be empty as Build Graph does not contain resource
+                             // packages
+              androidCustomPackages = emptyList(),
+              androidExternalLibraries = emptyList(),
             )
           ),
-          androidResourceDirectories = listOf(
-            workspaceRelativeForTests(TestData.ROOT.resolve("android/res"))
-          ),
-          isAndroidModule = true,
-          androidSourcePackages = emptyList(), // Expected to be empty as Build Graph does not contain resource packages
-          androidCustomPackages = emptyList(),
-          androidExternalLibraries = emptyList()
-        )
-      ),
-      libraries = emptyMap(),
-      artifactDirectories = ProjectProto.ArtifactDirectories.getDefaultInstance(),
-      ccWorkspace = ProjectProto.CcWorkspace.getDefaultInstance(),
-      activeLanguages = setOf(QuerySyncLanguage.JVM)
-    )
+        libraries = emptyMap(),
+        artifactDirectories = ProjectProto.ArtifactDirectories.getDefaultInstance(),
+        ccWorkspace = ProjectProto.CcWorkspace.getDefaultInstance(),
+        activeLanguages = setOf(QuerySyncLanguage.JVM),
+      )
 
     Truth.assertThat(project).isEqualTo(expectedProject)
   }
