@@ -89,7 +89,6 @@ class QuerySyncProject(
   override val workspaceRoot: WorkspaceRoot,
   val artifactTracker: ArtifactTracker<*>,
   val buildArtifactCache: BuildArtifactCache,
-  val renderJarArtifactTracker: RenderJarArtifactTracker, // TODO: delete
   val dependencyTracker: DependencyTracker,
   private val appInspectorTracker: AppInspectorTracker,
   private val projectQuerier: ProjectQuerier,
