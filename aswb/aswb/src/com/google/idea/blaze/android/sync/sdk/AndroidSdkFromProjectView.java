@@ -23,13 +23,16 @@ import com.google.idea.blaze.android.projectview.AndroidMinSdkSection;
 import com.google.idea.blaze.android.projectview.AndroidSdkPlatformSection;
 import com.google.idea.blaze.android.sdk.BlazeSdkProvider;
 import com.google.idea.blaze.android.sync.model.AndroidSdkPlatform;
+import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.ProjectViewSet.ProjectViewFile;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.sync.BlazeSyncManager;
 import com.google.idea.blaze.common.Context;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.pom.Navigatable;
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -47,8 +50,18 @@ public final class AndroidSdkFromProjectView {
           + "to download missing SDK platforms.";
 
   @Nullable
-  public static AndroidSdkPlatform getAndroidSdkPlatform(
-      Context<?> context, ProjectViewSet projectViewSet) {
+  public static AndroidSdkPlatform getAndroidSdkPlatform(Context<?> context, Project project, ProjectViewSet projectViewSet) {
+    String androidSdk = projectViewSet.getScalarValue(AndroidSdkPlatformSection.KEY).orElse(null);
+    Integer androidMinSdk = projectViewSet.getScalarValue(AndroidMinSdkSection.KEY).orElse(null);
+
+    return getAndroidSdkPlatform(context, project, androidSdk, androidMinSdk);
+  }
+
+  @Nullable
+  public static AndroidSdkPlatform getAndroidSdkPlatform(Context<?> context,
+                                                         Project project,
+                                                         @Nullable String androidSdk,
+                                                         @Nullable Integer androidMinSdk) {
     List<Sdk> sdks = BlazeSdkProvider.getInstance().getAllAndroidSdks();
     if (sdks.isEmpty()) {
       String msg = "No Android SDK configured. Please use the SDK manager to configure.";
@@ -74,22 +87,16 @@ public final class AndroidSdkFromProjectView {
       BlazeSyncManager.printAndLogError(msg, context);
       return null;
     }
-    if (projectViewSet == null) {
-      return null;
-    }
-
-    String androidSdk = projectViewSet.getScalarValue(AndroidSdkPlatformSection.KEY).orElse(null);
-    Integer androidMinSdk = projectViewSet.getScalarValue(AndroidMinSdkSection.KEY).orElse(null);
+    final var projectViewFile = getProjectViewFileForUserMessagesOnly(project);
 
     if (androidSdk == null) {
-      ProjectViewFile projectViewFile = projectViewSet.getTopLevelProjectViewFile();
       String msg =
           "No android platform configured, please select one using the `android_sdk_platform`"
               + " flag in the project view file. Available android_sdk_platforms are: "
               + getAvailableTargetHashesAsList(sdks)
               + ". To install more android SDKs, use the SDK manager.";
       IssueOutput.error(msg)
-          .inFile(projectViewFile != null ? projectViewFile.projectViewFile : null)
+          .inFile(projectViewFile)
           .submit(context);
       BlazeSyncManager.printAndLogError(msg, context);
       return null;
@@ -97,10 +104,9 @@ public final class AndroidSdkFromProjectView {
 
     Sdk sdk = BlazeSdkProvider.getInstance().findSdk(androidSdk);
     if (sdk == null) {
-      ProjectViewFile projectViewFile = projectViewSet.getTopLevelProjectViewFile();
       String msg = String.format(NO_SDK_ERROR_TEMPLATE, androidSdk, getAllAvailableTargetHashes());
       IssueOutput.error(msg)
-          .inFile(projectViewFile != null ? projectViewFile.projectViewFile : null)
+          .inFile(projectViewFile)
           .submit(context);
       BlazeSyncManager.printAndLogError(msg, context);
       return null;
@@ -110,6 +116,14 @@ public final class AndroidSdkFromProjectView {
       androidMinSdk = getAndroidSdkApiLevel(sdk);
     }
     return new AndroidSdkPlatform(androidSdk, androidMinSdk);
+  }
+
+  @Nullable
+  private static File getProjectViewFileForUserMessagesOnly(Project project) {
+    final var projectViewManager = ProjectViewManager.getInstance(project); // may be null in some unit tests.
+    final var projectViewFileSet = projectViewManager != null ? projectViewManager.getProjectViewSet() : null;
+    final var topLevelProjectViewFile = projectViewFileSet != null ? projectViewFileSet.getTopLevelProjectViewFile() : null;
+    return topLevelProjectViewFile != null ? topLevelProjectViewFile.projectViewFile : null;
   }
 
   public static List<String> getAvailableSdkTargetHashes(Collection<Sdk> sdks) {
