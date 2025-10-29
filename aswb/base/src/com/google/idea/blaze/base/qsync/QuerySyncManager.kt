@@ -237,9 +237,6 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
 
   fun assertProjectLoaded() = checkNotNull(loadedProject) { "Project not loaded yet" }
 
-  val renderJarArtifactTracker: RenderJarArtifactTracker
-    get() = assertProjectLoaded().renderJarArtifactTracker
-
   val sourceToTargetMap: SourceToTargetMap
     get() = assertProjectLoaded().sourceToTargetMap
 

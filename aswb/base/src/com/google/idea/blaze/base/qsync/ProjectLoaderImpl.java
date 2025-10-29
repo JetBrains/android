@@ -17,7 +17,9 @@ package com.google.idea.blaze.base.qsync;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory.*;
+import static com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory.BAZEL_ARTIFACTS;
+import static com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory.BAZEL_SYSTEM;
+import static com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory.EXTERNAL_REPOSITORIES;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -158,7 +160,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
           result.workspaceRoot(),
           result.artifactTracker(),
           result.artifactCache(),
-          result.renderJarArtifactTracker(),
           result.dependencyTracker(),
           result.appInspectorTracker(),
           result.projectQuerier(),
