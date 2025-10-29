@@ -15,12 +15,9 @@
  */
 package com.google.idea.blaze.kotlin.qsync
 
-import com.google.idea.blaze.base.model.primitives.LanguageClass
-import com.google.idea.blaze.base.projectview.ProjectViewSet
 import com.google.idea.blaze.base.qsync.BlazeQuerySyncPlugin
-import com.google.idea.blaze.base.sync.projectview.LanguageSupport
+import com.google.idea.blaze.base.qsync.QuerySyncLanguageSettings
 import com.google.idea.blaze.common.Context
-import com.google.idea.blaze.java.projectview.JavaLanguageLevelSection
 import com.intellij.openapi.project.Project
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.kotlin.cli.common.arguments.unfrozen
@@ -28,14 +25,13 @@ import org.jetbrains.kotlin.idea.compiler.configuration.Kotlin2JvmCompilerArgume
 
 /** Supports Kotlin.  */
 class BlazeKotlinQuerySyncPlugin : BlazeQuerySyncPlugin {
-  override fun updateProjectSettingsForQuerySync(project: Project, context: Context<*>, projectViewSet: ProjectViewSet) {
-    if (!isKotlinProject(projectViewSet)) {
+  override fun updateProjectSettingsForQuerySync(project: Project, context: Context<*>, languageSettings: QuerySyncLanguageSettings) {
+    if (languageSettings.kotlin == QuerySyncLanguageSettings.Kotlin.NotSupported) {
       return
     }
 
     // Set jvm-target from java language level
-    val javaLanguageLevel =
-      JavaLanguageLevelSection.getLanguageLevel(projectViewSet, LanguageLevel.JDK_21)
+    val javaLanguageLevel = languageSettings.java.languageLevel
     setProjectJvmTarget(project, javaLanguageLevel)
   }
 
@@ -46,12 +42,6 @@ class BlazeKotlinQuerySyncPlugin : BlazeQuerySyncPlugin {
       val javaVersion = javaLanguageLevel.toJavaVersion().toString()
       k2JVMCompilerArguments.jvmTarget = javaVersion
       Kotlin2JvmCompilerArgumentsHolder.getInstance(project).settings = k2JVMCompilerArguments
-    }
-
-    private fun isKotlinProject(projectViewSet: ProjectViewSet): Boolean {
-      val workspaceLanguageSettings =
-        LanguageSupport.createWorkspaceLanguageSettings(projectViewSet)
-      return workspaceLanguageSettings.isLanguageActive(LanguageClass.KOTLIN)
     }
   }
 }

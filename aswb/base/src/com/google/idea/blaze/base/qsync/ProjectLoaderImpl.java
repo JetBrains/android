@@ -110,6 +110,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
                                      WorkspaceRoot workspaceRoot,
                                      WorkspacePathResolver workspacePathResolver,
                                      ProjectViewSet projectViewSet,
+                                     QuerySyncLanguageSettings languageSettings,
                                      BuildSystem buildSystem,
                                      WorkspaceLanguageSettings workspaceLanguageSettings,
                                      ProjectDefinition latestProjectDef,
@@ -166,6 +167,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
           result.projectBuilder(),
           result.latestProjectDef(),
           result.projectViewSet(),
+          result.languageSettings(),
           result.workspacePathResolver(),
           result.projectPathResolver(),
           result.workspaceLanguageSettings(),
@@ -217,6 +219,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
     final var projectDirectoryConfigurator = projectToLoad.projectDirectoryConfigurator();
 
     WorkspaceLanguageSettings workspaceLanguageSettings = projectToLoad.workspaceLanguageSettings();
+    QuerySyncLanguageSettings languageSettings = QuerySyncLanguageSettings.from(projectViewSet, workspaceLanguageSettings);
 
     ImmutableSet<String> handledRules = getHandledRuleKinds();
     Optional<BlazeVcsHandler> vcsHandler =
@@ -288,12 +291,11 @@ public class ProjectLoaderImpl implements ProjectLoader {
             queryRunner,
             vcsHandler,
             new BazelVersionHandler(buildSystem, buildSystem.getBuildInvoker(project)));
-    QuerySyncSourceToTargetMap sourceToTargetMap =
-        new QuerySyncSourceToTargetMap(snapshotHolder, workspaceRoot.path());
-    return new QuerySyncProjectDeps(importSettings, workspaceRoot, new WorkspacePathResolverImpl(workspaceRoot), projectViewSet, buildSystem,
-                                    workspaceLanguageSettings, latestProjectDef,  projectPathResolver, projectTransformRegistry,
-                                    snapshotHolder, artifactCache, artifactTracker, renderJarArtifactTracker, appInspectorArtifactTracker,
-                                    appInspectorTracker,  dependencyBuilder, dependencyTracker, snapshotBuilder,
+    QuerySyncSourceToTargetMap sourceToTargetMap = new QuerySyncSourceToTargetMap(snapshotHolder, workspaceRoot.path());
+    return new QuerySyncProjectDeps(importSettings, workspaceRoot, new WorkspacePathResolverImpl(workspaceRoot), projectViewSet,
+                                    languageSettings, buildSystem, workspaceLanguageSettings, latestProjectDef, projectPathResolver,
+                                    projectTransformRegistry, snapshotHolder, artifactCache, artifactTracker, renderJarArtifactTracker,
+                                    appInspectorArtifactTracker, appInspectorTracker, dependencyBuilder, dependencyTracker, snapshotBuilder,
                                     projectQuerier, sourceToTargetMap, handledRules);
   }
 

@@ -65,6 +65,7 @@ interface ReadonlyQuerySyncProject {
   val buildSystem: BuildSystem
   val projectDefinition: ProjectDefinition
   val projectViewSet: ProjectViewSet
+  val languageSettings: QuerySyncLanguageSettings
   val workspaceRoot: WorkspaceRoot
   val projectPathResolver: ProjectPath.Resolver
   val projectData: QuerySyncProjectData
@@ -95,6 +96,7 @@ class QuerySyncProject(
   private val projectBuilder: ProjectBuilder,
   override val projectDefinition: ProjectDefinition,
   override val projectViewSet: ProjectViewSet,
+  override val languageSettings: QuerySyncLanguageSettings,
   // TODO(mathewi) only one of these two should strictly be necessary:
   val workspacePathResolver: WorkspacePathResolver,
   override val projectPathResolver: ProjectPath.Resolver,

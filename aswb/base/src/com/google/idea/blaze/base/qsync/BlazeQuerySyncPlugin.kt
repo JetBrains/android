@@ -16,8 +16,6 @@
 package com.google.idea.blaze.base.qsync
 
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
-import com.google.idea.blaze.base.projectview.ProjectViewSet
-import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings
 import com.google.idea.blaze.common.Context
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
@@ -26,7 +24,7 @@ import com.intellij.openapi.project.Project
 /** Can plug into the blaze sync system.  */
 interface BlazeQuerySyncPlugin {
   /** Updates the sdk and language settings for the project  */
-  fun updateProjectSettingsForQuerySync(project: Project, context: Context<*>, projectViewSet: ProjectViewSet ) = Unit
+  fun updateProjectSettingsForQuerySync(project: Project, context: Context<*>, languageSettings: QuerySyncLanguageSettings) = Unit
 
   /** Modifies the IDE project structure  */
   fun updateProjectStructureForQuerySync(
@@ -35,7 +33,7 @@ interface BlazeQuerySyncPlugin {
     workspaceRoot: WorkspaceRoot,
     workspaceModule: Module,
     androidSourcePackages: Set<String>,
-    workspaceLanguageSettings: WorkspaceLanguageSettings
+    languageSettings: QuerySyncLanguageSettings
   ) = Unit
 
   companion object {
