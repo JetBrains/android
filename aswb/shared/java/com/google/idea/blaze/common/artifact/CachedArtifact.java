@@ -19,6 +19,7 @@ import com.google.common.io.ByteSource;
 import com.google.common.io.MoreFiles;
 import com.google.errorprone.annotations.MustBeClosed;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.zip.ZipFile;
 
@@ -46,5 +47,10 @@ public class CachedArtifact {
   @MustBeClosed
   public ZipFile openAsZipFile() throws IOException {
     return new ZipFile(path.toFile());
+  }
+
+  public void createHardLink(Path dest) throws IOException {
+    Files.createLink(dest, path);
+    dest.toFile().setReadOnly();
   }
 }
