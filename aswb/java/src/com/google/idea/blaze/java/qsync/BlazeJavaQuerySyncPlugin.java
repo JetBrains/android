@@ -15,14 +15,10 @@
  */
 package com.google.idea.blaze.java.qsync;
 
-import com.google.idea.blaze.base.model.primitives.WorkspaceType;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.qsync.BlazeQuerySyncPlugin;
+import com.google.idea.blaze.base.qsync.QuerySyncLanguageSettings;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
-import com.google.idea.blaze.base.sync.projectview.LanguageSupport;
-import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import com.google.idea.blaze.common.Context;
-import com.google.idea.blaze.java.projectview.JavaLanguageLevelSection;
 import com.google.idea.blaze.java.sync.projectstructure.Jdks;
 import com.google.idea.common.util.Transactions;
 import com.intellij.openapi.project.Project;
@@ -37,15 +33,13 @@ public class BlazeJavaQuerySyncPlugin implements BlazeQuerySyncPlugin {
 
   @Override
   public void updateProjectSettingsForQuerySync(
-      Project project, Context<?> context, ProjectViewSet projectViewSet) {
-    WorkspaceLanguageSettings workspaceLanguageSettings =
-        LanguageSupport.createWorkspaceLanguageSettings(projectViewSet);
-    if (!workspaceLanguageSettings.isWorkspaceType(WorkspaceType.JAVA)) {
+      Project project, Context<?> context, QuerySyncLanguageSettings languageSettings) {
+
+    if (!languageSettings.getJava().isJavaWorkspace()) {
       return;
     }
 
-    LanguageLevel javaLanguageLevel =
-        JavaLanguageLevelSection.getLanguageLevel(projectViewSet, LanguageLevel.JDK_21);
+    LanguageLevel javaLanguageLevel = languageSettings.getJava().getLanguageLevel();
     Sdk currentSdk = ProjectRootManager.getInstance(project).getProjectSdk();
     Sdk sdk = Jdks.chooseOrCreateJavaSdk(currentSdk, javaLanguageLevel);
 

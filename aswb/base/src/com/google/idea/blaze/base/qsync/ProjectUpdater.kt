@@ -4,7 +4,6 @@ import com.android.AndroidProjectTypes
 import com.google.idea.blaze.base.qsync.ProjectUpdater.IdeaUrl.Companion.findFileByUrl
 import com.google.idea.blaze.base.qsync.ProjectUpdater.IdeaUrl.Companion.getOrCreateFromUrl
 import com.google.idea.blaze.base.qsync.entity.BazelEntitySource
-import com.google.idea.blaze.base.sync.projectview.LanguageSupport
 import com.google.idea.blaze.base.util.UrlUtil
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
@@ -408,12 +407,10 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
   private fun updateProjectModel(querySyncProject: ReadonlyQuerySyncProject, spec: ProjectProto.Project, context: Context<*>) {
     Transactions.submitWriteActionTransactionAndWait {
       for (syncPlugin in BlazeQuerySyncPlugin.EP_NAME.extensions) {
-        syncPlugin.updateProjectSettingsForQuerySync(project, context, querySyncProject.projectViewSet)
+        syncPlugin.updateProjectSettingsForQuerySync(project, context, querySyncProject.languageSettings)
       }
       for (moduleSpec in spec.modules) {
         val module = ModuleManager.getInstance(project).findModuleByName(moduleSpec.name)!!
-        val workspaceLanguageSettings =
-          LanguageSupport.createWorkspaceLanguageSettings(querySyncProject.projectViewSet)
         for (syncPlugin in BlazeQuerySyncPlugin.EP_NAME.extensions) {
           // TODO update ProjectProto.Module and updateProjectStructure() to allow a more
           // suitable
@@ -425,7 +422,7 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
             querySyncProject.workspaceRoot,
             module,
             moduleSpec.androidSourcePackages.toSet() + moduleSpec.androidCustomPackages.toSet(),
-            workspaceLanguageSettings
+            querySyncProject.languageSettings
           )
         }
         ProjectRootManagerEx.getInstanceEx(project).makeRootsChange(

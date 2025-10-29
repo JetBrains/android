@@ -99,6 +99,7 @@ private val readonlyQuerySyncProjectStub = object : ReadonlyQuerySyncProject {
   override val workspaceRoot: WorkspaceRoot get() = notExpected()
   override val projectPathResolver: ProjectPath.Resolver get() = notExpected()
   override val projectData: QuerySyncProjectData get() = notExpected()
+  override val languageSettings: QuerySyncLanguageSettings get() = notExpected()
   override fun getWorkingSet(create: BlazeContext): Set<Path> = notExpected()
   override fun dependsOnAnyOf_DO_NOT_USE_BROKEN(target: Label, deps: Set<Label>): Boolean = notExpected()
   override fun containsPath(absolutePath: Path): Boolean = notExpected()

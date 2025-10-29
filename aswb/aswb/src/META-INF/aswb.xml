@@ -55,6 +55,8 @@
     <applicationService serviceImplementation="com.google.idea.blaze.android.settings.BlazeAndroidUserSettings"/>
     <applicationService serviceInterface="com.google.idea.blaze.android.sdk.BlazeSdkProvider"
       serviceImplementation="com.google.idea.blaze.android.sdk.BlazeSdkProviderImpl"/>
+    <applicationService serviceInterface="com.google.idea.blaze.base.qsync.QuerySyncLanguageSettings$Provider"
+        serviceImplementation="com.google.idea.blaze.android.qsync.QuerySyncLanguageSettingsProvider"/>
     <applicationService serviceInterface="com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService"
         serviceImplementation="com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService$DefaultImpl"/>
     <dom.fileMetaData implementation="com.google.idea.blaze.android.resources.BlazeResourcesDomFileDescription" rootTagName="resources"/>
