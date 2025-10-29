@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.MoreFiles;
 import com.google.idea.blaze.common.artifact.CachedArtifact;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.common.experiments.BoolExperiment;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -17,9 +18,15 @@ public interface FileTransform {
   ImmutableSet<Path> copyWithTransform(CachedArtifact src, Path dest)
       throws BuildException, IOException;
 
+  BoolExperiment hardlinkArtifacts = new BoolExperiment("qsync.artifact.hardlink.enabled", true);
+
   FileTransform COPY =
       (src, dest) -> {
-        src.byteSource().copyTo(MoreFiles.asByteSink(dest));
+        if (hardlinkArtifacts.getValue()) {
+          src.createHardLink(dest);
+        } else {
+          src.byteSource().copyTo(MoreFiles.asByteSink(dest));
+        }
         return ImmutableSet.of(dest);
       };
 

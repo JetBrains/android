@@ -18,8 +18,8 @@ package com.google.idea.blaze.qsync.artifacts
 import com.google.common.collect.ImmutableList
 import com.google.common.io.Closer
 import com.google.common.truth.Truth
-import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.common.Label
+import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.qsync.project.ProjectProto
 import java.io.FileOutputStream
 import java.io.IOException
@@ -43,6 +43,7 @@ import org.junit.runners.JUnit4
 class ArtifactDirectoryUpdateTest {
   @get:Rule
   var tmpDir: TemporaryFolder = TemporaryFolder()
+
   val buildTimestamp = Instant.now()
 
   lateinit var root: Path
@@ -83,6 +84,33 @@ class ArtifactDirectoryUpdateTest {
 
     Truth.assertThat(readContents()).containsExactly(Path.of("somefile.txt"))
     Truth.assertThat(Files.readAllLines(root.resolve("somefile.txt"))).containsExactly("abcde")
+  }
+
+  @Test
+  @Throws(IOException::class)
+  fun copy_creates_hardlink() {
+    val update =
+      ArtifactDirectoryUpdate(
+        "name",
+        cache,
+        root,
+        ProjectProto.ArtifactDirectoryContents(
+          contents = mapOf(
+            "somefile.txt" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("abcde"),
+              fromBuild = buildTimestamp,
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+            )
+          )
+        ),
+      )
+    update.update(NoopContext())
+
+    Truth.assertThat(readContents()).containsExactly(Path.of("somefile.txt"))
+    val expectedCachePath = cacheDir!!.resolve("abcde")
+    Truth.assertThat(Files.isSameFile(expectedCachePath, root.resolve("somefile.txt"))).isTrue()
+    Truth.assertThat(root.resolve("somefile.txt").toFile().canWrite()).isFalse()
   }
 
   @Test
