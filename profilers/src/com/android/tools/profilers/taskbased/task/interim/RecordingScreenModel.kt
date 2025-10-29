@@ -42,6 +42,9 @@ class RecordingScreenModel<T>(stage: T) : AspectObserver(), Updatable where T : 
   private val _isStopButtonClicked = MutableStateFlow(false)
   val isStopButtonClicked = _isStopButtonClicked.asStateFlow()
 
+  private val _isRecordingFailed = MutableStateFlow(false)
+  val isRecordingFailed = _isRecordingFailed.asStateFlow()
+
   private val _elapsedNs = MutableStateFlow(0L)
   val elapsedNs = _elapsedNs.asStateFlow()
 
@@ -60,6 +63,10 @@ class RecordingScreenModel<T>(stage: T) : AspectObserver(), Updatable where T : 
   fun onStopRecordingButtonClick() {
     _isStopButtonClicked.value = true
     stopRecordingAction.run()
+  }
+
+  fun setRecordingFailed() {
+    _isRecordingFailed.value = true
   }
 
   private fun setCanRecordingStop(canStop: Boolean) {

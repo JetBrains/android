@@ -44,43 +44,57 @@ import org.jetbrains.jewel.ui.component.Text
 fun RecordingScreen(recordingScreenModel: RecordingScreenModel<*>) {
   val elapsedNs by recordingScreenModel.elapsedNs.collectAsState()
   val isStopButtonClicked by recordingScreenModel.isStopButtonClicked.collectAsState()
+  val isRecordingFailed by recordingScreenModel.isRecordingFailed.collectAsState()
   val canRecordingStop by recordingScreenModel.canRecordingStop.collectAsState()
   val isUserStoppable = recordingScreenModel.isUserStoppable
   Column(modifier = Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.Center,
          horizontalAlignment = Alignment.CenterHorizontally) {
-    Column {
-      Row(modifier = Modifier.padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(5.dp),
-          verticalAlignment = Alignment.CenterVertically) {
-        if (!isStopButtonClicked) {
-          Icon(
-            key = StudioIconsCompose.Profiler.Toolbar.StopRecording,
-            contentDescription = TaskBasedUxStrings.RECORDING_IN_PROGRESS,
-            modifier = Modifier.size(20.dp),
-          )
+    if (isRecordingFailed) {
+      Text(
+        text = String.format(TaskBasedUxStrings.FAILED_TO_RECORD_TITLE, recordingScreenModel.taskName),
+        fontSize = TextUnit(18f, TextUnitType.Sp), fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.testTag("RecordingErrorMessage")
+      )
+      Text(
+        text = TaskBasedUxStrings.FAILED_TO_RECORD_MESSAGE,
+        modifier = Modifier.padding(top = 8.dp)
+      )
+    }
+    else {
+      Column {
+        Row(modifier = Modifier.padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+          if (!isStopButtonClicked) {
+            Icon(
+              key = StudioIconsCompose.Profiler.Toolbar.StopRecording,
+              contentDescription = TaskBasedUxStrings.RECORDING_IN_PROGRESS,
+              modifier = Modifier.size(20.dp),
+            )
+          }
+          val ongoingTaskName = recordingScreenModel.taskName.lowercase()
+          Text(
+            text = if (isStopButtonClicked) TaskBasedUxStrings.STOPPING_IN_PROGRESS
+            else if (isUserStoppable) TaskBasedUxStrings.RECORDING_IN_PROGRESS
+            else "Saving a $ongoingTaskName...",
+            fontSize = TextUnit(18f, TextUnitType.Sp), fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.testTag("RecordingScreenMessage"))
         }
-        val ongoingTaskName = recordingScreenModel.taskName.lowercase()
-        Text(
-          text = if (isStopButtonClicked) TaskBasedUxStrings.STOPPING_IN_PROGRESS
-          else if (isUserStoppable) TaskBasedUxStrings.RECORDING_IN_PROGRESS
-          else "Saving a $ongoingTaskName...",
-          fontSize = TextUnit(18f, TextUnitType.Sp), fontWeight = FontWeight.SemiBold,
-          modifier = Modifier.testTag("RecordingScreenMessage"))
       }
-    }
-    Box(modifier = Modifier.padding(bottom = 24.dp)) {
-      if (isStopButtonClicked) {
-        Text(TaskBasedUxStrings.STOPPING_TIME_WARNING, fontStyle = FontStyle.Italic)
+      Box(modifier = Modifier.padding(bottom = 24.dp)) {
+        if (isStopButtonClicked) {
+          Text(TaskBasedUxStrings.STOPPING_TIME_WARNING, fontStyle = FontStyle.Italic)
+        }
+        else {
+          Text(RecordingScreenModel.formatElapsedTime(elapsedNs))
+        }
       }
-      else {
-        Text(RecordingScreenModel.formatElapsedTime(elapsedNs))
-      }
-    }
-    if (isUserStoppable) {
-      DefaultButton(onClick = { recordingScreenModel.onStopRecordingButtonClick() },
-                    enabled = canRecordingStop && !isStopButtonClicked,
-                    modifier = Modifier.testTag("StopRecordingButton"))
-      {
-        Text(TaskBasedUxStrings.STOP_RECORDING)
+      if (isUserStoppable) {
+        DefaultButton(onClick = { recordingScreenModel.onStopRecordingButtonClick() },
+                      enabled = canRecordingStop && !isStopButtonClicked,
+                      modifier = Modifier.testTag("StopRecordingButton"))
+        {
+          Text(TaskBasedUxStrings.STOP_RECORDING)
+        }
       }
     }
   }
