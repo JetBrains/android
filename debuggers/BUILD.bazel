@@ -72,7 +72,7 @@ jvm_library(
     "//java/openapi:java",
     "//android/project-system",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
-    "//platform/xdebugger-impl/shared",
+    "//platform/xdebugger-impl/rpc",
   ]
 )
 ### auto-generated section `build intellij.android.debuggers` end
