@@ -26,7 +26,6 @@ import com.google.idea.blaze.base.projectview.section.sections.RunConfigurations
 import com.google.idea.blaze.base.projectview.section.sections.TargetSection;
 import com.google.idea.blaze.base.run.exporter.RunConfigurationSerializer;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.sync.SyncListener;
 import com.google.idea.blaze.base.sync.SyncMode;
 import com.google.idea.blaze.base.sync.SyncResult;
@@ -57,7 +56,6 @@ public class BlazeRunConfigurationSyncListener implements SyncListener {
   public void onSyncComplete(
       Project project,
       BlazeContext context,
-      BlazeImportSettings importSettings,
       ImmutableSet<Integer> buildIds,
       BlazeProjectData blazeProjectData,
       SyncMode syncMode,

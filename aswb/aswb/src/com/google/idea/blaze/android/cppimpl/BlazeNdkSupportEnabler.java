@@ -27,7 +27,6 @@ import com.google.idea.blaze.base.qsync.QuerySyncProjectListener;
 import com.google.idea.blaze.base.qsync.QuerySyncProjectListenerProvider;
 import com.google.idea.blaze.base.qsync.ReadonlyQuerySyncProject;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.sync.SyncListener;
 import com.google.idea.blaze.base.sync.SyncMode;
 import com.google.idea.blaze.base.sync.SyncResult;
@@ -48,7 +47,6 @@ final class BlazeNdkSupportEnabler implements SyncListener, QuerySyncProjectList
   public void onSyncComplete(
       Project project,
       BlazeContext context,
-      BlazeImportSettings importSettings,
       ImmutableSet<Integer> buildIds,
       BlazeProjectData blazeProjectData,
       SyncMode syncMode,

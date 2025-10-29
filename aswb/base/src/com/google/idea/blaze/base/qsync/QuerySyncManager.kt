@@ -467,7 +467,6 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
               syncListener.onSyncComplete(
                 project,
                 context,
-                querySyncProject.importSettings,
                 ImmutableSet.of(),
                 querySyncProject.projectData,
                 SyncMode.FULL,
