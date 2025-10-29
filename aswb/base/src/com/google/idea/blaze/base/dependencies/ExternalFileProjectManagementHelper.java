@@ -261,7 +261,6 @@ public class ExternalFileProjectManagementHelper
     public void onSyncComplete(
         Project project,
         BlazeContext context,
-        BlazeImportSettings importSettings,
         ImmutableSet<Integer> buildIds,
         BlazeProjectData blazeProjectData,
         SyncMode syncMode,
