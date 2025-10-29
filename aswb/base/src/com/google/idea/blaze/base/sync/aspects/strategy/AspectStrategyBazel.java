@@ -19,8 +19,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.settings.BuildSystemName;
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.openapi.extensions.PluginId;
 import java.io.File;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -72,9 +72,9 @@ public class AspectStrategyBazel extends AspectStrategy {
   }
 
   private static File findAspectDirectory() {
-    IdeaPluginDescriptor plugin =
-        PluginManager.getPlugin(PluginManager.getPluginByClassName(AspectStrategy.class.getName()));
-    return new File(plugin.getPath(), "aspect");
+    return new File(
+        PluginManager.getPluginByClass(AspectStrategy.class).getPluginPath().toFile(),
+        "aspect");
   }
 
   private String getAspectRepositoryOverrideFlag() {
