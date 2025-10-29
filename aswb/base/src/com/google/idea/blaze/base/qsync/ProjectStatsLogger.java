@@ -15,12 +15,8 @@
  */
 package com.google.idea.blaze.base.qsync;
 
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
-import com.google.idea.blaze.base.model.primitives.WorkspacePath;
-import com.google.idea.blaze.base.projectview.section.sections.ImportSection;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
@@ -38,17 +34,12 @@ public class ProjectStatsLogger {
     if (querySyncProject == null || instance == null) {
       return;
     }
-    final var projectViewSet = querySyncProject.getProjectViewSet();
     Optional.ofNullable(context.getScope(QuerySyncActionStatsScope.class))
         .ifPresent(
             scope -> {
               scope
                   .getProjectInfoStatsBuilder()
                   .setLanguagesActive(ImmutableSet.copyOf(instance.getQueryData().projectDefinition().getLanguageClasses()))
-                  .setBlazeProjectFiles(
-                      projectViewSet.listScalarItems(ImportSection.KEY).stream()
-                          .map(WorkspacePath::asPath)
-                          .collect(toImmutableSet()))
                   .setProjectTargetCount(instance.getGraph().getProjectSupportedTargetCountForStatsOnly())
                   .setExternalDependencyCount(instance.getGraph().getExternalDependencyCountForStatsOnly());
               scope
