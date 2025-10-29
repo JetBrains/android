@@ -17,8 +17,8 @@ public interface ProjectLoader {
     ProjectDirectoryConfigurator projectDirectoryConfigurator,
     BuildSystem buildSystem,
     ProjectDefinition definition,
-    ProjectViewSet projectViewSet,
-    WorkspaceLanguageSettings workspaceLanguageSettings) {
+    WorkspaceLanguageSettings workspaceLanguageSettings,
+    QuerySyncLanguageSettings languageSettings) {
   }
 
   /**
