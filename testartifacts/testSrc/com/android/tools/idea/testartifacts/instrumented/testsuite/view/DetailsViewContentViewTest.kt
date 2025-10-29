@@ -30,6 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -60,6 +61,7 @@ class DetailsViewContentViewTest {
 
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
+  private val headerActions = emptyList<AnAction>()
   @Mock lateinit var mockLogger: AndroidTestSuiteLogger
 
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
@@ -77,7 +79,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun testResultLabelOnPassing() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(AndroidTestCaseResult.PASSED)
 
@@ -90,7 +92,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun testResultLabelOnFailing() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(AndroidTestCaseResult.FAILED)
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
@@ -104,7 +106,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun testResultLabelOnFailingWithErrorStackTrace() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(AndroidTestCaseResult.FAILED)
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("ErrorStackTrace")
@@ -118,7 +120,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun testResultLabelHtmlEscaping() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "<device name>")
     whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(AndroidTestCaseResult.FAILED)
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("<ErrorStackTrace>")
@@ -132,7 +134,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun testResultLabelOnRunning() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(AndroidTestCaseResult.IN_PROGRESS)
 
@@ -144,7 +146,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun testResultLabelNoTestStatus() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(null)
 
@@ -156,7 +158,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logsView() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
@@ -169,7 +171,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logsViewWithErrorStackTrace() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
@@ -182,7 +184,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logsViewWithNoLogsAndErrorStackTrace() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
 
@@ -194,7 +196,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logsViewWithNoMessage() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
 
     view.setResults(testDevice, mockTestResults)
@@ -206,7 +208,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logsViewShouldClearPreviousMessage() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
 
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message")
@@ -224,7 +226,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logsViewShouldShouldNotRefreshWhenMessageUnchanged() {
-    val view = spy(DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger))
+    val view = spy(DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions))
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
@@ -239,7 +241,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun benchmarkTab() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput("test benchmark message"))
 
@@ -253,7 +255,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun benchmarkTabIsHiddenIfNoOutput() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput.Empty)
 
@@ -266,7 +268,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logging() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     verify(mockLogger).addImpressionWhenDisplayed(view.myLogsView.component,
                                                   ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW)
     verify(mockLogger).addImpressionWhenDisplayed(view.myDeviceInfoTableView.getComponent(),
@@ -275,17 +277,16 @@ class DetailsViewContentViewTest {
 
   @Test
   fun screenshotTabsHiddenByDefault() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
 
     assertThat(view.myScreenshotTab.isHidden).isTrue()
     assertThat(view.myScreenshotAttributesTab.isHidden).isTrue()
-    assertThat(view.updateReferenceButton.isVisible).isFalse()
     assertThat(view.myDeviceInfoTab.isHidden).isFalse()
   }
 
   @Test
   fun screenshotTabsDisplayedForScreenshotTests() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(
       mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
@@ -294,13 +295,12 @@ class DetailsViewContentViewTest {
 
     assertThat(view.myScreenshotTab.isHidden).isFalse()
     assertThat(view.myScreenshotAttributesTab.isHidden).isFalse()
-    assertThat(view.updateReferenceButton.isVisible).isTrue()
     assertThat(view.myDeviceInfoTab.isHidden).isTrue()
   }
 
   @Test
   fun screenshotLogsTabAlwaysDisplayedForScreenshotTests() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(
       mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
@@ -312,7 +312,6 @@ class DetailsViewContentViewTest {
 
     assertThat(view.myScreenshotTab.isHidden).isFalse()
     assertThat(view.myScreenshotAttributesTab.isHidden).isFalse()
-    assertThat(view.updateReferenceButton.isVisible).isTrue()
     assertThat(view.logsTab.isHidden).isFalse()
     assertThat(view.myLogsView.text).isEqualTo("No logs available")
     assertThat(view.myDeviceInfoTab.isHidden).isTrue()
@@ -320,14 +319,14 @@ class DetailsViewContentViewTest {
 
   @Test
   fun journeysResultsTabHiddenByDefault() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
 
     assertThat(view.myJourneyScreenshotsTab.isHidden).isTrue()
   }
 
   @Test
   fun journeysResultsTabDisplayedWhenJourneyArtifactsExist() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(
       mapOf(
@@ -342,7 +341,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logsTabIsSelectedWhenErrorProvidedAndUserHasNotYetSelectedATab() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("This is a test\n")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
@@ -356,7 +355,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logsAreAutomaticallyScrolledToTheEnd() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("This is a test\n".repeat(100))
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
@@ -372,7 +371,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun logsTabIsNotSelectedWhenErrorProvidedAndUserHasAlreadySelectedADifferentTab() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     view.tabs.select(view.myDeviceInfoTab, false)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
@@ -385,7 +384,7 @@ class DetailsViewContentViewTest {
 
   @Test
   fun journeysTabIsSelectedByDefaultWhenUserHasntSelectedATabYet() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(
       mapOf(
@@ -428,7 +427,7 @@ class DetailsViewContentViewTest {
   @Test
   fun `dispose cleans up resources`() {
     val parentDisposable = Disposer.newDisposable(disposableRule.disposable)
-    val view = DetailsViewContentView(parentDisposable, projectRule.project, mockLogger)
+    val view = DetailsViewContentView(parentDisposable, projectRule.project, mockLogger, headerActions)
 
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message")

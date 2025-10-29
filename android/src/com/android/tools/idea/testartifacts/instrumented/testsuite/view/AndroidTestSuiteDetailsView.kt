@@ -31,7 +31,9 @@ import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.OnePixelSplitter
@@ -64,7 +66,7 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
                                                         controller: AndroidTestSuiteViewController,
                                                         listener: AndroidTestSuiteDetailsViewListener,
                                                         project: Project,
-                                                        logger: AndroidTestSuiteLogger) {
+                                                        logger: AndroidTestSuiteLogger, headerActions: List<AnAction>) {
   /**
    * An interface to listen events occurred in AndroidTestSuiteDetailsView.
    */
@@ -100,7 +102,7 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
     addActionListener(ActionListener { listener.onAndroidTestSuiteDetailsViewCloseButtonClicked() })
   }
 
-  @get:VisibleForTesting val contentView: DetailsViewContentView = DetailsViewContentView(parentDisposable, project, logger)
+  @get:VisibleForTesting val contentView: DetailsViewContentView = DetailsViewContentView(parentDisposable, project, logger, headerActions)
 
   val rawTestLogConsoleView: ConsoleViewImpl = ConsoleViewImpl(project, /*viewer=*/true).apply {
     Disposer.register(parentDisposable, this)

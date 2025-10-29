@@ -19,6 +19,8 @@
       interface="com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.instrumented.testsuite.api.testResultsPsiElementProvider"
         interface="com.android.tools.idea.testartifacts.instrumented.testsuite.api.TestResultsPsiElementProvider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.instrumented.testsuite.AndroidTestSuiteActionProvider"
+                    interface="com.android.tools.idea.testartifacts.instrumented.testsuite.actions.AndroidTestSuiteDetailsActionProvider"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.tools.idea.testartifacts.instrumented.testsuite.api">

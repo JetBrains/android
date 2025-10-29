@@ -16,15 +16,17 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -51,6 +53,8 @@ class AndroidTestSuiteDetailsViewTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
 
+  private val headerActions = emptyList<AnAction>()
+
   @get:Rule val rules: RuleChain = RuleChain
     .outerRule(projectRule)
     .around(EdtRule())
@@ -67,7 +71,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun setAndroidTestResultsShouldUpdateUiComponents() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
     view.addDevice(AndroidDevice("id", "deviceName", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED))
 
@@ -79,7 +83,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun setAndroidTestResultsShouldUpdateUiComponentsNoTestResultAvailable() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
     view.addDevice(AndroidDevice("id", "deviceName", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
 
     view.setAndroidTestResults(createTestResults(null))
@@ -91,7 +95,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun setAndroidTestResultsWithNoMethodName() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED, ""))
 
     assertThat(view.titleTextView.text).isEqualTo("packageName.className")
@@ -99,7 +103,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun setAndroidTestResultsWithNoClassName() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED, "", "", ""))
 
     assertThat(view.titleTextView.text).isEqualTo("Test Results")
@@ -107,7 +111,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun clickOnCloseButtonShouldInvokeListener() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
 
     view.closeButton.doClick()
 
@@ -138,6 +142,7 @@ class AndroidTestSuiteDetailsViewTest {
       override fun getRetentionInfo(device: AndroidDevice): File? = null
       override fun getRetentionSnapshot(device: AndroidDevice): File? = null
       override fun getAdditionalTestArtifacts(device: AndroidDevice): Map<String, String> = mapOf()
+      override fun getAllTestCases() = emptyList<AndroidTestCase>()
     }
   }
 }

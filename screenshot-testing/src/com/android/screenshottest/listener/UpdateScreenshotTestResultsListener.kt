@@ -47,7 +47,7 @@ class UpdateScreenshotTestResultsListener(private val dialog: UpdateReferenceIma
         diffImagePath = testCase.additionalTestArtifacts["PreviewScreenshot.diffImagePath"],
         diffPercent = testCase.additionalTestArtifacts["PreviewScreenshot.diffPercent"]
       )
-      dialog.updateDialogWithTestResult(previewDetails)
+      dialog.updateDialogWithTestResult(previewDetails, true)
     }
   }
 

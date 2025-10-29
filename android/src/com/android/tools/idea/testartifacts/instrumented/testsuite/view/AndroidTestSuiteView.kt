@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ExportAndroidTestResultsAction
+import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.AndroidTestSuiteDetailsActionProvider
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestGroup
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestsFromFileAction
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
@@ -330,7 +331,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
 
     myComponentsSplitter.firstComponent = contentPanel
-    myDetailsView = AndroidTestSuiteDetailsView(this, this, this, myProject, myLogger).apply {
+    val headerActions = AndroidTestSuiteDetailsActionProvider.getDetailsViewHeaderActions(runConfiguration, myResultsTableView.rootResultsNode.results)
+    myDetailsView = AndroidTestSuiteDetailsView(this, this, this, myProject, myLogger, headerActions).apply {
       isDeviceSelectorListVisible = false
       rootPanel.isVisible = false
       rootPanel.minimumSize = Dimension()
