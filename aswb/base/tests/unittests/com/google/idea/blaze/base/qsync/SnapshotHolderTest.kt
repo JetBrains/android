@@ -95,7 +95,6 @@ private val readonlyQuerySyncProjectStub = object : ReadonlyQuerySyncProject {
   private fun notExpected(): Nothing = throw AssertionError("not expected")
   override val buildSystem: BuildSystem get() = notExpected()
   override val projectDefinition: ProjectDefinition get() = notExpected()
-  override val projectViewSet: ProjectViewSet get() = notExpected()
   override val workspaceRoot: WorkspaceRoot get() = notExpected()
   override val projectPathResolver: ProjectPath.Resolver get() = notExpected()
   override val projectData: QuerySyncProjectData get() = notExpected()
