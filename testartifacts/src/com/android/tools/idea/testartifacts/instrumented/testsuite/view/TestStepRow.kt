@@ -19,6 +19,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getSummaryResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestStep
 import java.time.Duration
@@ -118,5 +119,9 @@ class TestStepRow(val testStep: AndroidTestStep) : AndroidTestResults, Filterabl
   fun addTestStep(testStep: AndroidTestStep, device: AndroidDevice) {
     myTestSteps[device.id] = testStep
   }
-}
 
+  /**
+   * Returns a list of all test cases. A test step does not contain test cases, so this is always empty.
+   */
+  override fun getAllTestCases(): List<AndroidTestCase> = emptyList()
+}

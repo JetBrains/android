@@ -38,4 +38,12 @@
       <add-to-group group-id="RunContextGroup" anchor="last"/>
     </group>
   </actions>
+  <actions>
+    <action id="com.android.screenshottest.action.UpdateReferenceImagesFromTestPanelAction"
+            class="com.android.screenshottest.action.UpdateReferenceImagesFromTestPanelAction"
+            text="Update Reference Images..."/>
+  </actions>
+  <extensions defaultExtensionNs="com.android.tools.idea.testartifacts.instrumented.testsuite">
+    <AndroidTestSuiteActionProvider implementation="com.android.screenshottest.action.ScreenshotTestActionProvider"/>
+  </extensions>
 </idea-plugin>

@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.api
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.google.common.truth.Truth.assertThat
@@ -128,4 +129,5 @@ class TestAndroidTestResults(override val methodName: String,
 
   override fun getAdditionalTestArtifacts(device: AndroidDevice) = emptyMap<String, String>()
 
+  override fun getAllTestCases(): List<AndroidTestCase> = emptyList()
 }

@@ -66,5 +66,4 @@ class ScreenshotTestRunLineMarkerContributor: RunLineMarkerContributor() {
       (annotation.toUElement() as? UAnnotation)?.javaPsi?.let { it.qualifiedName == "com.android.tools.screenshot.PreviewTest" } ?: false
     }
   }
-
 }

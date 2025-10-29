@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.api
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import java.io.File
 import java.time.Duration
@@ -112,6 +113,10 @@ interface AndroidTestResults {
    */
   fun getRetentionSnapshot(device: AndroidDevice): File? = null
 
+  /**
+   * Returns a list of all test cases.
+   */
+  fun getAllTestCases(): List<AndroidTestCase>
   /**
    * Returns the additional test artifacts.
    */
