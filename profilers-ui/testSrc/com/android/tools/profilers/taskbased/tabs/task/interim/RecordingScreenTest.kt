@@ -205,6 +205,28 @@ class RecordingScreenTest {
     composeTestRule.onNodeWithText(TaskBasedUxStrings.STOPPING_TIME_WARNING).assertIsDisplayed()
   }
 
+  @Test
+  fun `recording failed state shows error message`() {
+    val stage = CpuProfilerStage(myProfilers)
+    val recordingScreenModel = stage.recordingScreenModel!!
+    recordingScreenModel.setRecordingFailed()
+
+    composeTestRule.setContent {
+      // A session needs to be active for the task name to be resolved.
+      setupRecording(isStoppable = true)
+      RecordingScreen(recordingScreenModel)
+    }
+
+    val expectedTitle = String.format(TaskBasedUxStrings.FAILED_TO_RECORD_TITLE, recordingScreenModel.taskName)
+    composeTestRule.onNodeWithTag("RecordingErrorMessage").assertExists()
+    composeTestRule.onNodeWithText(expectedTitle).assertExists()
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.FAILED_TO_RECORD_MESSAGE).assertExists()
+
+    // Verify that the regular recording components are not displayed.
+    composeTestRule.onNodeWithTag("RecordingScreenMessage").assertDoesNotExist()
+    composeTestRule.onNodeWithTag("StopRecordingButton").assertDoesNotExist()
+  }
+
   private fun setupRecording(isStoppable: Boolean) {
     TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer,
                                       if (isStoppable) Common.ProfilerTaskType.SYSTEM_TRACE else Common.ProfilerTaskType.HEAP_DUMP)

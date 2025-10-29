@@ -385,8 +385,8 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
       getLogger().warn("Unable to start tracing: " + status.getStatus() + " due to error code " + status.getErrorCode());
       getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.getCaptureStartFailure(status.getErrorCode()));
 
-      // Return to IDLE state and set the current capture to null
-      setCaptureState(CaptureState.IDLE);
+      cleanupFailedCapture();
+
       if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
         TaskEventTrackerUtils.trackStartTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
                                                    new TaskStartFailedMetadata(status, null, null));
@@ -630,6 +630,34 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
     refreshRecordingConfigurations();
     myRecordingOptionsModel.selectOptionBy(
       recordingOption -> recordingOption.getTitle().equals(myProfilerConfigModel.getProfilingConfiguration().getName()));
+  }
+
+  /**
+   * Performs cleanup after a trace fails to start.
+   *
+   *  A failed start can create a "zombie" session: {@link com.android.tools.profilers.sessions.SessionsManager} incorrectly assumes
+   * a session is live, but since trace failed to capture no session end event is received from perfd.
+   * This causes a problem if the user tries to record again, as the UI will try to stop the
+   * non-existent recording and wait for a confirmation that never arrives.
+   *
+   * Calling {@link com.android.tools.profilers.sessions.SessionsManager#endCurrentSession()} terminates the zombie session
+   * allowing a new, clean session to be started.
+   */
+  private void cleanupFailedCapture() {
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      if (getStudioProfilers().getSessionsManager().isSessionAlive()) {
+        getStudioProfilers().getSessionsManager().endCurrentSession();
+      }
+
+      if (myRecordingScreenModel != null) {
+        myRecordingScreenModel.setRecordingFailed();
+      }
+    }
+
+    myRecordingOptionsModel.setFinished();
+
+    // Return to IDLE state and set the current capture to null
+    setCaptureState(CaptureState.IDLE);
   }
 
   /**

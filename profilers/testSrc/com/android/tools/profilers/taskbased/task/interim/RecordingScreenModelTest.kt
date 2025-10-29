@@ -111,6 +111,13 @@ class RecordingScreenModelTest {
     assertThat(cpuRecordingScreenModel.canRecordingStop.value).isEqualTo(true)
   }
 
+  @Test
+  fun `setRecordingFailed sets recording failed to true`() {
+    assertThat(cpuRecordingScreenModel.isRecordingFailed.value).isFalse()
+    cpuRecordingScreenModel.setRecordingFailed()
+    assertThat(cpuRecordingScreenModel.isRecordingFailed.value).isTrue()
+  }
+
   companion object {
     /**
      * Creates a "valid" (see: RecordingOptionsModel#isValid) RecordingOption, selects it, and then sets isRecording is true, fulfilling

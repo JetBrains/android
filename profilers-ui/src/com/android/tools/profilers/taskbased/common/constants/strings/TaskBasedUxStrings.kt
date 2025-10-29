@@ -37,6 +37,8 @@ object TaskBasedUxStrings {
   const val STOPPING_TIME_WARNING = "It might take up to a few minutes for the recording to stop."
   const val ACTION_BAR_RECORDING = "Recording:"
   const val ACTION_BAR_STOP_RECORDING = "Stop Recording"
+  const val FAILED_TO_RECORD_TITLE = "%s failed to record"
+  const val FAILED_TO_RECORD_MESSAGE = "An unexpected error occurred. Please close this tab and try again."
 
   // Icon description strings
   const val TASK_CONFIG_DIALOG_DESC = "Task Configurations"
