@@ -6,6 +6,7 @@ load(
     "api_version_txt",
 )
 load("//tools/adt/idea/studio:studio.bzl", "PluginInfo")
+load("//tools/base/bazel:bazel.bzl", "get_xbootclasspath_jvm_flags")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 
 ADD_OPENS = [
@@ -128,6 +129,9 @@ def intellij_unit_test_suite(
         "-Dblaze.idea.api.version.file=$(location %s)" % api_version_txt_name,
     ])
     jvm_flags.extend(ADD_OPENS)
+
+    # IntelliJ 2025.1+ requires nio-fs.jar on the bootclasspath, even for tests.
+    jvm_flags = jvm_flags + get_xbootclasspath_jvm_flags()
 
     _generate_test_suite(
         name = suite_class_name,
@@ -289,6 +293,9 @@ def intellij_integration_test_suite(
 
     if required_plugins:
         jvm_flags.append("-Didea.required.plugins.id=" + required_plugins)
+
+    # IntelliJ 2025.1+ requires nio-fs.jar on the bootclasspath, even for tests.
+    jvm_flags = jvm_flags + get_xbootclasspath_jvm_flags()
 
     tags = kwargs.pop("tags", [])
     tags.append("notsan")
