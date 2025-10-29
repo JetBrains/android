@@ -77,9 +77,10 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.common.ThreadLeakTracker
 import com.intellij.testFramework.IndexingTestUtil
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
@@ -115,6 +116,8 @@ class AndroidRunConfigurationExecutorTest {
 
   val closeables = CloseablesRule()
 
+  val disposableRule = DisposableRule()
+
   val fakeAdb = FakeAdbTestRule()
 
   val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
@@ -133,6 +136,7 @@ class AndroidRunConfigurationExecutorTest {
     .around(closeables)
     .around(usageTrackerRule)
     .around(projectRule)
+    .around(disposableRule)
     .around(fakeAdb)
     .around(FlagRule(StudioFlags.BACKUP_ENABLED, true))
 
@@ -143,7 +147,7 @@ class AndroidRunConfigurationExecutorTest {
     // InnocuousThread- is needed because adblib's AsynchronousChannelGroup is reusing IJ's background threads.
     ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "InnocuousThread-")
 
-    projectRule.replaceProjectService(BackupManager::class.java, mockBackupManager)
+    projectRule.project.registerOrReplaceServiceInstance(BackupManager::class.java, mockBackupManager, disposableRule.disposable)
     runBlocking {
       whenever(mockBackupManager.isInstalled(any(), any())).thenReturn(true)
       whenever(mockBackupManager.getRestoreRunConfigSection(any()))
@@ -790,11 +794,11 @@ class AndroidRunConfigurationExecutorTest {
 
       val mockRunContentManager = mock<RunContentManager>()
       whenever(mockRunContentManager.findContentDescriptor(eq(env.executor), eq(processHandlerForSwap))).thenReturn(runContentDescriptor)
-      projectRule.project.replaceService(RunContentManager::class.java, mockRunContentManager, projectRule.testRootDisposable)
+      projectRule.project.registerOrReplaceServiceInstance(RunContentManager::class.java, mockRunContentManager, disposableRule.disposable)
 
       val mockExecutionManager = mock<ExecutionManagerImpl>()
       whenever(mockExecutionManager.getRunningDescriptors(any())).thenReturn(listOf(runContentDescriptor!!))
-      projectRule.project.replaceService(ExecutionManager::class.java, mockExecutionManager, projectRule.testRootDisposable)
+      projectRule.project.registerOrReplaceServiceInstance(ExecutionManager::class.java, mockExecutionManager, disposableRule.disposable)
     }
     AndroidSessionInfo.create(processHandlerForSwap, listOf(device), APPLICATION_ID)
     return runContentDescriptor!!
