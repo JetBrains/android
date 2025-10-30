@@ -2244,6 +2244,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - androidVariantNames         : debug
                         - androidVariantNames         : release
                         kotlinSourceSetName           : androidMain
+                    isManagedByComAndroidLibraryPlugin      : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2291,6 +2292,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     useFirLT                      : true
                 - declaredSourceSets          : androidMain (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
+                isManagedByComAndroidLibraryPlugin      : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
@@ -2313,6 +2315,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         androidSourceSetName          : androidTest
                         - androidVariantNames         : debugAndroidTest
                         kotlinSourceSetName           : androidInstrumentedTest
+                    isManagedByComAndroidLibraryPlugin      : true
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2362,6 +2365,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     useFirLT                      : true
                 - declaredSourceSets          : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
+                isManagedByComAndroidLibraryPlugin      : true
                 isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
@@ -2383,6 +2387,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - androidVariantNames         : debugUnitTest
                         - androidVariantNames         : releaseUnitTest
                         kotlinSourceSetName           : androidUnitTest
+                    isManagedByComAndroidLibraryPlugin      : true
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2434,6 +2439,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     useFirLT                      : true
                 - declaredSourceSets          : androidUnitTest (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
+                isManagedByComAndroidLibraryPlugin      : true
                 isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
@@ -2445,6 +2451,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     resourcesDir                  : <ROOT>/module2/build/processedResources/android/debugUnitTest [-]
                 platform                      : ANDROID
             disambiguationClassifier      : android
+            isManagedByComAndroidLibraryPlugin      : true
             platform                      : ANDROID
             presetName                    : android
             - testRunTasks                : KotlinTestRunTaskImpl
