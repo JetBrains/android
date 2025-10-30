@@ -1928,12 +1928,12 @@ PROJECT                       : Kotlin Multiplatform
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.jvmMain
             Scope                         : Test
         BUILD_TASKS
-    MODULE                        : kotlin.scripts.KotlinBuildScript.androidLib:build.gradle.kts
-        LinkedProjectId               : kotlin.scripts.KotlinBuildScript.androidLib:build.gradle.kts
+    MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.androidLib:build.gradle.kts
+        LinkedProjectId               : kotlin.scripts.KotlinProjectScriptTemplate.androidLib:build.gradle.kts
         RootProjectPath               : kotlin-scripts:<PROJECT> [-]
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlin.scripts.KotlinBuildScript.androidLib:build.gradle.kts [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlin.scripts.KotlinBuildScript.androidLib:build.gradle.kts [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlin.scripts.KotlinProjectScriptTemplate.androidLib:build.gradle.kts [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlin.scripts.KotlinProjectScriptTemplate.androidLib:build.gradle.kts [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    :  [-]
@@ -1943,12 +1943,12 @@ PROJECT                       : Kotlin Multiplatform
             HomePath                      : <JDK_PATH>
             VersionString                 : <JDK_VERSION>
         BUILD_TASKS
-    MODULE                        : kotlin.scripts.KotlinBuildScript.app:build.gradle.kts
-        LinkedProjectId               : kotlin.scripts.KotlinBuildScript.app:build.gradle.kts
+    MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.app:build.gradle.kts
+        LinkedProjectId               : kotlin.scripts.KotlinProjectScriptTemplate.app:build.gradle.kts
         RootProjectPath               : kotlin-scripts:<PROJECT> [-]
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlin.scripts.KotlinBuildScript.app:build.gradle.kts [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlin.scripts.KotlinBuildScript.app:build.gradle.kts [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlin.scripts.KotlinProjectScriptTemplate.app:build.gradle.kts [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlin.scripts.KotlinProjectScriptTemplate.app:build.gradle.kts [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    :  [-]
@@ -1958,12 +1958,12 @@ PROJECT                       : Kotlin Multiplatform
             HomePath                      : <JDK_PATH>
             VersionString                 : <JDK_VERSION>
         BUILD_TASKS
-    MODULE                        : kotlin.scripts.KotlinBuildScript.kmpFirstLib:build.gradle.kts
-        LinkedProjectId               : kotlin.scripts.KotlinBuildScript.kmpFirstLib:build.gradle.kts
+    MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.kmpFirstLib:build.gradle.kts
+        LinkedProjectId               : kotlin.scripts.KotlinProjectScriptTemplate.kmpFirstLib:build.gradle.kts
         RootProjectPath               : kotlin-scripts:<PROJECT> [-]
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlin.scripts.KotlinBuildScript.kmpFirstLib:build.gradle.kts [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlin.scripts.KotlinBuildScript.kmpFirstLib:build.gradle.kts [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlin.scripts.KotlinProjectScriptTemplate.kmpFirstLib:build.gradle.kts [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlin.scripts.KotlinProjectScriptTemplate.kmpFirstLib:build.gradle.kts [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    :  [-]
@@ -1973,12 +1973,12 @@ PROJECT                       : Kotlin Multiplatform
             HomePath                      : <JDK_PATH>
             VersionString                 : <JDK_VERSION>
         BUILD_TASKS
-    MODULE                        : kotlin.scripts.KotlinBuildScript.kmpJvmOnly:build.gradle.kts
-        LinkedProjectId               : kotlin.scripts.KotlinBuildScript.kmpJvmOnly:build.gradle.kts
+    MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.kmpJvmOnly:build.gradle.kts
+        LinkedProjectId               : kotlin.scripts.KotlinProjectScriptTemplate.kmpJvmOnly:build.gradle.kts
         RootProjectPath               : kotlin-scripts:<PROJECT> [-]
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlin.scripts.KotlinBuildScript.kmpJvmOnly:build.gradle.kts [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlin.scripts.KotlinBuildScript.kmpJvmOnly:build.gradle.kts [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlin.scripts.KotlinProjectScriptTemplate.kmpJvmOnly:build.gradle.kts [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlin.scripts.KotlinProjectScriptTemplate.kmpJvmOnly:build.gradle.kts [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    :  [-]
@@ -1988,12 +1988,12 @@ PROJECT                       : Kotlin Multiplatform
             HomePath                      : <JDK_PATH>
             VersionString                 : <JDK_VERSION>
         BUILD_TASKS
-    MODULE                        : kotlin.scripts.KotlinBuildScript.kmpSecondLib:build.gradle.kts
-        LinkedProjectId               : kotlin.scripts.KotlinBuildScript.kmpSecondLib:build.gradle.kts
+    MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.kmpSecondLib:build.gradle.kts
+        LinkedProjectId               : kotlin.scripts.KotlinProjectScriptTemplate.kmpSecondLib:build.gradle.kts
         RootProjectPath               : kotlin-scripts:<PROJECT> [-]
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlin.scripts.KotlinBuildScript.kmpSecondLib:build.gradle.kts [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlin.scripts.KotlinBuildScript.kmpSecondLib:build.gradle.kts [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlin.scripts.KotlinProjectScriptTemplate.kmpSecondLib:build.gradle.kts [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlin.scripts.KotlinProjectScriptTemplate.kmpSecondLib:build.gradle.kts [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    :  [-]
