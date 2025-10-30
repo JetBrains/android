@@ -21,10 +21,8 @@ import com.android.SdkConstants;
 import com.android.resources.ScreenOrientation;
 import com.android.tools.idea.util.StudioPathManager;
 import com.android.utils.XmlUtils;
-import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -32,13 +30,14 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -59,27 +58,23 @@ public class DeviceArtDescriptor {
   private OrientationData myPortrait;
   private OrientationData myLandscape;
 
-  @NonNls private static final String FN_BASE = "device-art-resources";
-  @NonNls private static final String FN_DESCRIPTOR = "device-art.xml";
-
-  /** Returns the absolute path to {@link #FN_BASE} folder, or null if it couldn't be located. */
-  @Nullable
-  public static File getBundledDescriptorsFolder() {
-    // In the IDE distribution, this should be in plugins/android/resources/FN_BASE
-    String base = FileUtil.join(PathManager.getHomePath(), "plugins", "android", "resources");
-    if (StudioPathManager.isRunningFromSources()) {
-      base = StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/artwork/resources").toString();
-    }
-    File dir = new File(base, FN_BASE);
-    if (dir.exists() && dir.isDirectory()) {
-      return dir;
+  /**
+   * Returns the absolute path to the device-art-resources folder, or null if it couldn't be located.
+   * In the IDE distribution, this folder is located under plugins/android/resources.
+   */
+  public static @Nullable File getBundledDescriptorsFolder() {
+    // In the IDE distribution, this should be in plugins/android/resources/device-art-resources
+    Path dir = StudioPathManager.isRunningFromSources() ?
+                StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/artwork/resources/device-art-resources") :
+                Paths.get(PathManager.getHomePath()).resolve("plugins/android/resources/device-art-resources");
+    if (Files.isDirectory(dir)) {
+      return dir.toFile();
     }
     return null;
   }
 
-  @Nullable
-  private static File getDescriptorFile(@NotNull File folder) {
-    File file = new File(folder, FN_DESCRIPTOR);
+  private static @Nullable File getDescriptorFile(@NotNull File folder) {
+    File file = new File(folder, "device-art.xml");
     return file.isFile() ? file : null;
   }
 
@@ -112,7 +107,7 @@ public class DeviceArtDescriptor {
 
     for (File file : files)
       try {
-        String xml = Files.asCharSource(file, StandardCharsets.UTF_8).read();
+        String xml = Files.readString(file.toPath());
         Document document = XmlUtils.parseDocumentSilently(xml, false);
         if (document != null) {
           File baseFolder = file.getParentFile();
