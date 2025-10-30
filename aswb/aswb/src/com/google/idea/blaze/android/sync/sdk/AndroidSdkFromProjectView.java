@@ -120,7 +120,7 @@ public final class AndroidSdkFromProjectView {
 
   @Nullable
   private static File getProjectViewFileForUserMessagesOnly(Project project) {
-    final var projectViewManager = ProjectViewManager.getInstance(project); // may be null in some unit tests.
+    final var projectViewManager = project != null ? ProjectViewManager.getInstance(project) : null; // may be null in some unit tests.
     final var projectViewFileSet = projectViewManager != null ? projectViewManager.getProjectViewSet() : null;
     final var topLevelProjectViewFile = projectViewFileSet != null ? projectViewFileSet.getTopLevelProjectViewFile() : null;
     return topLevelProjectViewFile != null ? topLevelProjectViewFile.projectViewFile : null;
