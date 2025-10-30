@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.base.qsync;
 
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import java.util.Set;
@@ -28,4 +29,13 @@ public interface HandledRulesProvider {
       ExtensionPointName.create("com.google.idea.blaze.base.qsync.HandledRulesProvider");
 
   Set<String> handledRuleKinds(Project project);
+  Set<String> excludeRuleKinds(Set<String> ruleKinds);
+
+  static ImmutableSet<String> getNotHandledRuleKinds(Set<String> handledRuleKinds) {
+    ImmutableSet.Builder<String> defaultRules = ImmutableSet.builder();
+    for (HandledRulesProvider ep : EP_NAME.getExtensionList()) {
+      defaultRules.addAll(ep.excludeRuleKinds(handledRuleKinds));
+    }
+    return defaultRules.build();
+  }
 }

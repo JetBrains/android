@@ -19,10 +19,11 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 
 import com.android.annotations.TestOnly;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
+import com.google.common.collect.Sets;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.PrintOutput;
@@ -35,37 +36,47 @@ import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.blaze.qsync.query.QueryData;
 import com.google.idea.blaze.qsync.query.QuerySummary;
+import com.google.idea.common.experiments.BoolExperiment;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
  * A class that parses the proto output from a `blaze query --output=streamed_proto` invocation, and
- * yields a {@link BuildGraphDataImpl} instance derived from it. Instances of this class are single use.
+ * yields a {@link BuildGraphDataImpl} instance derived from it. Instances of this class are single
+ * use.
  */
 public class BlazeQueryParser {
+
+  public static final BoolExperiment usesAlwaysBuildRuleKinds =
+      new BoolExperiment("qsync.build.use.always.build.rule.kinds", true);
 
   // Rules that will need to be built, whether or not the target is included in the
   // project.
   public static final ImmutableSet<String> ALWAYS_BUILD_RULE_KINDS =
-    ImmutableSet.of(
-      "_java_grpc_library",
-      "_java_lite_grpc_library",
-      "_java_spanner_proto_library_rule",
-      "aar_import",
-      "af_internal_soyinfo_generator",
-      "java_import",
-      "java_lite_proto_library",
-      "java_mutable_proto_library",
-      "java_proto_library",
-      "java_stubby_library",
-      "kt_grpc_library_helper",
-      "kt_proto_library_helper", // Underlying rule for kt_jvm_lite_proto_library and kt_jvm_proto_library
-      "kt_stubby_library_helper");
+      ImmutableSet.of(
+          "_java_grpc_library",
+          "_java_lite_grpc_library",
+          "_java_spanner_proto_library_rule",
+          "aar_import",
+          "af_internal_soyinfo_generator",
+          "java_import",
+          "java_lite_proto_library",
+          "java_mutable_proto_library",
+          "java_proto_library",
+          "java_stubby_library",
+          "kt_grpc_library_helper",
+          "kt_proto_library_helper", // Underlying rule for kt_jvm_lite_proto_library and
+          // kt_jvm_proto_library
+          "kt_stubby_library_helper");
 
   private final TargetPatternCollection targetPatterns;
   private final Context<?> context;
+
   private final SetView<String> alwaysBuildRuleKinds;
+
+  private final Set<String> supportedRuleKinds;
 
   private final QuerySummary query;
 
@@ -74,12 +85,15 @@ public class BlazeQueryParser {
   // An aggregation of all the dependencies of java rules
   private final Set<Label> javaDeps = new HashSet<>();
 
-
   public static class RuleVisitors {
 
     @FunctionalInterface
     interface RuleVisitor {
-      void visit(BlazeQueryParser parser, Label label, QueryData.Rule rule, ProjectTarget.Builder targetBuilder);
+      void visit(
+          BlazeQueryParser parser,
+          Label label,
+          QueryData.Rule rule,
+          ProjectTarget.Builder targetBuilder);
     }
 
     private final ImmutableMap<String, RuleVisitor> myVisitorsByRuleClass;
@@ -93,7 +107,11 @@ public class BlazeQueryParser {
       myVisitorsByRuleClass = builder.buildOrThrow();
     }
 
-    public void visit(BlazeQueryParser parser, Label label, QueryData.Rule rule, ProjectTarget.Builder targetBuilder) {
+    public void visit(
+        BlazeQueryParser parser,
+        Label label,
+        QueryData.Rule rule,
+        ProjectTarget.Builder targetBuilder) {
       String ruleClass = rule.ruleClass();
       final var visitor = myVisitorsByRuleClass.get(ruleClass);
       if (visitor != null) {
@@ -101,9 +119,8 @@ public class BlazeQueryParser {
       }
     }
 
-    private static void register(ImmutableMap.Builder<String, RuleVisitor> builder,
-                                 Set<String> kinds,
-                                 RuleVisitor visitor) {
+    private static void register(
+        ImmutableMap.Builder<String, RuleVisitor> builder, Set<String> kinds, RuleVisitor visitor) {
       for (String kind : kinds) {
         builder.put(kind, visitor);
       }
@@ -111,20 +128,47 @@ public class BlazeQueryParser {
   }
 
   /**
-   * Returns the list of all rule classes directly supported by the current query sync configuration.
+   * Returns the list of all rule classes directly supported by the current query sync
+   * configuration.
    *
-   * <p>This information is only supposed ot be used to refine the Bazel query that query sync issues.
+   * <p>This information is only supposed ot be used to refine the Bazel query that query sync
+   * issues.
    */
   public static ImmutableSet<String> getAllSupportedRuleClasses() {
     return new RuleVisitors().myVisitorsByRuleClass.keySet();
   }
 
+  /**
+   * Returns all rule kinds that are known and not listed in notHandledRuleKinds. It would be empty
+   * when usesAlwaysBuildRuleKinds is enabled.
+   */
+  public static ImmutableSet<String> getAllKnownRuleClasses(Set<String> notHandledRuleKinds) {
+    if (usesAlwaysBuildRuleKinds.getValue()) {
+      return ImmutableSet.of();
+    }
+    return new RuleVisitors()
+        .myVisitorsByRuleClass.keySet().stream()
+            .filter(rule -> !notHandledRuleKinds.contains(rule))
+            .collect(toImmutableSet());
+  }
+
+  @VisibleForTesting
   public BlazeQueryParser(
     TargetPatternCollection targetPatterns, QuerySummary query, Context<?> context, Set<String> handledRuleKinds) {
+    this(targetPatterns, query, context, handledRuleKinds, ImmutableSet.of());
+  }
+
+  public BlazeQueryParser(
+      TargetPatternCollection targetPatterns,
+      QuerySummary query,
+      Context<?> context,
+      Set<String> handledRuleKinds,
+      Set<String> notHandledRuleKinds) {
     this.targetPatterns = targetPatterns;
     this.context = context;
-    this.alwaysBuildRuleKinds = Sets.difference(ALWAYS_BUILD_RULE_KINDS, handledRuleKinds);
     this.query = query;
+    this.alwaysBuildRuleKinds = Sets.difference(ALWAYS_BUILD_RULE_KINDS, handledRuleKinds);
+    this.supportedRuleKinds =  getAllKnownRuleClasses(notHandledRuleKinds);
   }
 
   public BuildGraphData parse() {
@@ -182,7 +226,8 @@ public class BlazeQueryParser {
     long elapsedMs = (System.nanoTime() - now) / 1000000L;
     context.output(PrintOutput.log("%-10d Targets (%d ms):", nTargets, elapsedMs));
 
-    BuildGraphDataImpl graph = graphBuilder.build(targetPatterns, alwaysBuildRuleKinds);
+    BuildGraphDataImpl graph =
+        graphBuilder.build(targetPatterns, alwaysBuildRuleKinds, supportedRuleKinds);
 
     graph.outputStats(context);
     context.output(PrintOutput.log("%-10d Dependencies", javaDeps.size()));
@@ -192,7 +237,8 @@ public class BlazeQueryParser {
     return graph;
   }
 
-  private void visitProtoRule(Label unused, QueryData.Rule rule, ProjectTarget.Builder targetBuilder) {
+  private void visitProtoRule(
+      Label unused, QueryData.Rule rule, ProjectTarget.Builder targetBuilder) {
     targetBuilder
         .sourceLabelsBuilder()
         .putAll(SourceType.REGULAR_PROTO, expandFileGroupValues(rule.sources()));
@@ -219,9 +265,7 @@ public class BlazeQueryParser {
 
     if (RuleKinds.isAndroid(rule.ruleClass())) {
       if (rule.manifest() != null) {
-        targetBuilder
-            .sourceLabelsBuilder()
-            .put(SourceType.ANDROID_MANIFEST, rule.manifest());
+        targetBuilder.sourceLabelsBuilder().put(SourceType.ANDROID_MANIFEST, rule.manifest());
       }
     }
   }

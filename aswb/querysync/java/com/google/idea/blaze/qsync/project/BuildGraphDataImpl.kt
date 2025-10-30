@@ -52,16 +52,13 @@ data class BuildGraphDataImpl private constructor(
   private val sourceOwners: Map<Label, List<Label>>,
   private val alwaysBuildTargets: Set<Label>,
 ) : BuildGraphData {
-
   private val rdeps: Map<Label, Deps<out Label>> = computeRdeps(storage)
   private val packages: PackageSet = computePackages(storage)
   override val externalDependencyCountForStatsOnly: Int = computeExternalDependencyCount(storage)
 
-
   class Deps<T> (val deps: MutableSet<T> = mutableSetOf())
 
   override fun packages(): PackageSet = packages
-
   override fun getProjectTarget(label: Label): ProjectTarget? = storage.targetMap[label]
   override fun allLoadedTargets(): Collection<Label> = storage.targetMap.keys
 
@@ -121,7 +118,7 @@ data class BuildGraphDataImpl private constructor(
    */
   override fun getFirstReverseDepsOfType(sourcePath: Path, ruleKinds: Set<String>): Collection<ProjectTarget> {
     val targetOwners = getSourceFileOwners(sourcePath).takeUnless { it.isEmpty() } ?: return emptyList()
-    val result =  mutableListOf<ProjectTarget>()
+    val result = mutableListOf<ProjectTarget>()
 
     val toVisit: Queue<Label> = Queues.newArrayDeque(targetOwners)
     val visited: MutableSet<Label> = HashSet()
@@ -166,7 +163,7 @@ data class BuildGraphDataImpl private constructor(
    * paths is of a kind contained in {@param ruleKinds}, the method will return true.
    */
   override fun doesDependencyPathContainRules(
-    sourcePath: Path, consumingSourcePath: Path, ruleKinds: Set<String>
+    sourcePath: Path, consumingSourcePath: Path, ruleKinds: Set<String>,
   ): Boolean {
     val sourceTargets = getSourceFileOwners(sourcePath).takeUnless { it.isEmpty() } ?: return false
     val consumingTargetLabels = getSourceFileOwners(consumingSourcePath).takeUnless { it.isEmpty() } ?: return false
@@ -209,7 +206,7 @@ data class BuildGraphDataImpl private constructor(
   // TODO: b/397649793 - Remove this method when fixed.
   override fun dependsOnAnyOf_DO_NOT_USE_BROKEN(
     projectTarget: Label,
-    deps: Set<Label>
+    deps: Set<Label>,
   ): Boolean {
     val projectTargetSingleton = listOf(projectTarget)
     val queue = ArrayDeque(projectTargetSingleton)
@@ -237,12 +234,12 @@ data class BuildGraphDataImpl private constructor(
   data class Storage(
     val sourceFileLabels: Set<Label>,
     val targetMap: Map<Label, ProjectTarget>,
-    val allSupportedTargets: TargetTree
+    val allSupportedTargets: TargetTree,
   ) {
     constructor(
       sourceFileLabels: Set<Label>,
       targetMap: Map<Label, ProjectTarget>,
-      allSupportedTargetLabels: Set<Label>
+      allSupportedTargetLabels: Set<Label>,
     ) : this(sourceFileLabels, targetMap, TargetTree.create(allSupportedTargetLabels))
 
     /**
@@ -253,10 +250,14 @@ data class BuildGraphDataImpl private constructor(
       private val targetMapBuilder = mutableMapOf<Label, ProjectTarget>()
       private val allTargetLabelsBuilder = mutableSetOf<Label>()
 
-      fun build(projectDefinitionTargetPatterns: TargetPatternCollection, alwaysBuildRules: Set<String>): BuildGraphDataImpl {
+      fun build(
+        projectDefinitionTargetPatterns: TargetPatternCollection,
+        alwaysBuildRules: Set<String>,
+        supportedBuildRules: Set<String>,
+      ): BuildGraphDataImpl {
         val storage = Storage(sourceFileLabelsBuilder, targetMapBuilder, allTargetLabelsBuilder)
         val sourceOwners = computeSourceOwners(storage)
-        val alwaysBuildTargets = computeAlwaysBuildTargets(storage, sourceOwners, alwaysBuildRules)
+        val alwaysBuildTargets = computeAlwaysBuildTargets(storage, sourceOwners, alwaysBuildRules, supportedBuildRules)
         return BuildGraphDataImpl(
           projectDefinitionTargetPatterns,
           storage,
@@ -296,13 +297,18 @@ data class BuildGraphDataImpl private constructor(
           storage: Storage,
           sourceOwners: Map<Label, List<Label>>,
           alwaysBuildRules: Set<String>,
+          supportedBuildRules: Set<String>,
         ): Set<Label> {
           return storage.targetMap.values
             .filter { target ->
               val sourceLabels = target.sourceLabels()
-              return@filter target.kind() in alwaysBuildRules ||
-                            sourceLabels[SourceType.AIDL].isNotEmpty() ||
-                            sourceLabels.values().any { !sourceOwners.containsKey(it) }
+              return@filter (if (supportedBuildRules.isEmpty()) {
+                target.kind() in alwaysBuildRules
+              } else {
+                target.kind() !in supportedBuildRules
+              }) ||
+              sourceLabels[SourceType.AIDL].isNotEmpty() ||
+              sourceLabels.values().any { !sourceOwners.containsKey(it) }
             }
             .map { it.label() }
             .toSet()
@@ -371,7 +377,7 @@ data class BuildGraphDataImpl private constructor(
   }
 
   override fun getSourceFilesByRuleKindAndType(
-    ruleKindPredicate: (String) -> Boolean, vararg sourceTypes: SourceType
+    ruleKindPredicate: (String) -> Boolean, vararg sourceTypes: SourceType,
   ): Map<Label, List<Path>> {
     return storage.targetMap.values.asSequence()
       .filter { ruleKindPredicate(it.kind()) }
@@ -424,7 +430,7 @@ data class BuildGraphDataImpl private constructor(
    * the set of all targets defined in all build packages within the directory (recursively).
    */
   override fun getProjectTargets(
-    workspaceRelativePath: Path
+    workspaceRelativePath: Path,
   ): TargetsToBuild {
     // TODO: relativize here.
     // TODO: support Bazel.
