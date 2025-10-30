@@ -48,6 +48,7 @@ jvm_library(
         "//platform/ide-core",
         "//platform/editor-ui-api:editor-ui",
         "//platform/core-ui",
+        "//fleet/util/core",
         ":plugins_maven_artifactResolver-m31_provided",
     ],
 )
@@ -135,6 +136,8 @@ jvm_library(
         "//platform/core-ui:core-ui_test_lib",
         "//platform/testFramework",
         "//platform/testFramework:testFramework_test_lib",
+        "//fleet/util/core",
+        "//fleet/util/core:core_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.profilers` end
