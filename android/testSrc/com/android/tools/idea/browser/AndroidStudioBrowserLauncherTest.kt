@@ -126,4 +126,11 @@ class AndroidStudioBrowserLauncherTest {
     val input = "mailto:user@example.com"
     assertThat(addUtmParameters(input)).isEqualTo(input)
   }
+
+  @Test
+  fun addUrlParams_shortDomain_addsBothUtmParams() {
+    val input = "https://d.android.com"
+    val expected = "https://d.android.com?utm_source=android-studio-app&utm_medium=app"
+    assertThat(addUtmParameters(input)).isEqualTo(expected)
+  }
 }
