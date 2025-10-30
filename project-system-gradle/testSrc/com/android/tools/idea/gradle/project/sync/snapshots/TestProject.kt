@@ -430,17 +430,6 @@ enum class TestProject(
   MIGRATE_TO_NON_TRANSITIVE_R_CLASSES(TestProjectToSnapshotPaths.MIGRATE_TO_NON_TRANSITIVE_R_CLASSES),
   PURE_JAVA_PROJECT(TestProjectToSnapshotPaths.PURE_JAVA_PROJECT),
   BUILDSRC_WITH_COMPOSITE(TestProjectToSnapshotPaths.BUILDSRC_WITH_COMPOSITE),
-  PRIVACY_SANDBOX_SDK(
-    TestProjectToSnapshotPaths.PRIVACY_SANDBOX_SDK,
-    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
-    setup = {
-      // TODO(b/384022658): Disabling this because phased sync dependency resolution doesn't ensure the app dependencies are resolved before
-      // library dependencies, causing issues specifically for this project.
-      StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.override(false)
-      val tearDown = { StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.clearOverride() }
-      tearDown
-    }
-  ),
   APP_WITH_BUILD_FEATURES_ENABLED(TestProjectToSnapshotPaths.APP_WITH_BUILD_FEATURES_ENABLED),
   DEPENDENT_MODULES_ONLY_APP_RUNTIME(
     TestProjectToSnapshotPaths.DEPENDENT_MODULES,

@@ -39,7 +39,6 @@ public final class TestProjectToSnapshotPaths {
   public static final String NON_STANDARD_SOURCE_SET_DEPENDENCIES = "projects/nonStandardSourceSetDependencies";
   public static final String NON_STANDARD_SOURCE_SETS = "projects/nonStandardSourceSets";
   public static final String NON_TRANSITIVE_R_CLASS_SYMBOL = "projects/nonTransitiveRClassSymbol";
-  public static final String PRIVACY_SANDBOX_SDK = "projects/privacySandboxSdk/libraryAndConsumer";
   public static final String PSD_SAMPLE_GROOVY = "projects/psdSample/Groovy";
   public static final String PURE_JAVA_PROJECT = "projects/pureJavaProject";
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";

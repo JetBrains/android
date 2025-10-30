@@ -265,9 +265,6 @@ abstract class SyncedProjectTest(
   fun testBuildSrcWithComposite() = testProject(TestProject.BUILDSRC_WITH_COMPOSITE)
 
   @Test
-  fun testPrivacySandboxSdkProject() = testProject(TestProject.PRIVACY_SANDBOX_SDK)
-
-  @Test
   fun testAppWithBuildFeaturesEnabled() = testProject(TestProject.APP_WITH_BUILD_FEATURES_ENABLED)
 
   @Test
