@@ -17,14 +17,22 @@ package com.google.idea.blaze.base.syncstatus;
 
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
+import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
+import com.google.idea.blaze.base.sync.SyncListener;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.ide.projectView.PresentationData;
+import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ProjectViewNodeDecorator;
+import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
+import com.intellij.ide.projectView.PresentationData;
+import com.intellij.ide.projectView.ProjectViewNode;
+import com.intellij.ide.projectView.ProjectViewNodeDecorator;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packageDependencies.ui.PackageDependenciesNode;
@@ -33,6 +41,7 @@ import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import java.util.Set;
+
 
 /** Shows the number of external dependencies that need to be build for a source file. */
 public class QuerySyncNodeDecorator implements ProjectViewNodeDecorator {
@@ -52,11 +61,11 @@ public class QuerySyncNodeDecorator implements ProjectViewNodeDecorator {
       data.clearText();
       data.addText(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
       data.addText(" (syncing...)", SimpleTextAttributes.GRAY_ATTRIBUTES);
-    }
-    if (ENABLED.getValue()) {
+    } else if (ENABLED.getValue()) {
       VirtualFile vf = node.getVirtualFile();
 
-      // Tree nodes may be KtClassOrObjectTreeNodes, for which Virtual Files can be determined via the
+      // Tree nodes may be KtClassOrObjectTreeNodes, for which Virtual Files can be determined via
+      // the
       // associated PsiElement
       if (vf == null && node.getValue() instanceof PsiElement) {
         vf = PsiUtilCore.getVirtualFile((PsiElement) node.getValue());
@@ -83,4 +92,29 @@ public class QuerySyncNodeDecorator implements ProjectViewNodeDecorator {
 
   @Override
   public void decorate(PackageDependenciesNode node, ColoredTreeCellRenderer cellRenderer) {}
+
+  static class Listener implements SyncListener {
+    private void updatePane(Project project) {
+      ApplicationManager.getApplication().invokeLater(
+        ()-> {
+          AbstractProjectViewPane currentPane =
+            ProjectView.getInstance(project).getCurrentProjectViewPane();
+          if (currentPane != null) {
+            // This tells the active pane to rebuild its tree structure from the root.
+            currentPane.updateFromRoot(true);
+          }
+        }
+      );
+    }
+
+    @Override
+    public void onQuerySyncStart(Project project, BlazeContext context) {
+      updatePane(project);
+    }
+
+    @Override
+    public void afterQuerySync(Project project, BlazeContext context) {
+      updatePane(project);
+    }
+  }
 }
