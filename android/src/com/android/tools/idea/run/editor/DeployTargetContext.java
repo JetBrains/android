@@ -42,7 +42,7 @@ public class DeployTargetContext implements JDOMExternalizable {
   }
 
   @VisibleForTesting
-  DeployTargetContext(@NotNull Collection<DeployTargetProvider> deployTargetProviders) {
+  public DeployTargetContext(@NotNull Collection<DeployTargetProvider> deployTargetProviders) {
     myDeployTargetProviders = deployTargetProviders;
 
     // noinspection UnstableApiUsage
