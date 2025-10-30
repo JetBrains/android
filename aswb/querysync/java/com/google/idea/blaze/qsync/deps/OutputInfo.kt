@@ -36,10 +36,12 @@ interface OutputInfo {
   val ccTargets: Map<Label, CcTargetInfo>
   val ccToolchains: Map<String, CcToolchainInfo>
   val jars: List<OutputArtifact>
+  val externalTransitiveRuntimeJars: List<OutputArtifact>
   val aars: List<OutputArtifact>
   val generatedSources: List<OutputArtifact>
   val allJavaArtifacts: Collection<OutputArtifact>
   val ccGeneratedHeaders: List<OutputArtifact>
+  val ccInfoFile: List<OutputArtifact>
 
   val isEmpty: Boolean
   val exitCode: Int
@@ -71,12 +73,16 @@ interface OutputInfo {
       get() = OutputGroup.entries.filter { it.usedBySymbolResolution }.flatMap { artifacts[it].orEmpty() }
     override val jars: List<OutputArtifact>
       get() = artifacts[OutputGroup.JARS].orEmpty()
+    override val externalTransitiveRuntimeJars: List<OutputArtifact>
+      get() = artifacts[OutputGroup.EXTERNAL_TRANSITIVE_RUNTIME_JARS].orEmpty()
     override val aars: List<OutputArtifact>
       get() = artifacts[OutputGroup.AARS].orEmpty()
     override val generatedSources: List<OutputArtifact>
       get() = artifacts[OutputGroup.GENSRCS].orEmpty()
     override val ccGeneratedHeaders: List<OutputArtifact>
       get() = artifacts[OutputGroup.CC_GEN_HEADERS].orEmpty()
+    override val ccInfoFile: List<OutputArtifact>
+      get() = artifacts[OutputGroup.CC_INFO_FILE].orEmpty()
     override val isEmpty: Boolean
       get() = artifacts.isEmpty() && ccTargets.isEmpty() && ccToolchains.isEmpty()
 

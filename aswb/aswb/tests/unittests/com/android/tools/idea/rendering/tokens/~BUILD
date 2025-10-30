@@ -19,7 +19,10 @@ load("//tools/adt/idea/aswb/testing:test_defs.bzl", "intellij_integration_test_s
 intellij_integration_test_suite(
     name = "tests",
     size = "large",
-    srcs = ["BazelBuildServicesTest.java"],
+    srcs = [
+        "BazelBuildServicesTest.java",
+        "ExternalTransitiveRuntimeJarsTest.java",
+    ],
     data = [
         "//prebuilts/studio/jdk:jdk21",
         "//prebuilts/studio/jdk/jbr-next:bundle",
@@ -37,7 +40,10 @@ intellij_integration_test_suite(
     deps = [
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/aswb/aswb/src/com/android/tools/idea/rendering/tokens",
+        "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
+        "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
+        "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common/artifact",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:query_sync_integration_test_rules",
