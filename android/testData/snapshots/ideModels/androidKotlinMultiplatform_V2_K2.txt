@@ -3457,8 +3457,8 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib.commonMain
 MODULE                        : Kotlin_Multiplatform.kmpSecondLib.commonTest
 MODULE                        : Kotlin_Multiplatform.kmpSecondLib.jvmMain
 MODULE                        : Kotlin_Multiplatform.kmpSecondLib.jvmTest
-MODULE                        : kotlin.scripts.KotlinBuildScript.androidLib:build.gradle.kts
-MODULE                        : kotlin.scripts.KotlinBuildScript.app:build.gradle.kts
-MODULE                        : kotlin.scripts.KotlinBuildScript.kmpFirstLib:build.gradle.kts
-MODULE                        : kotlin.scripts.KotlinBuildScript.kmpJvmOnly:build.gradle.kts
-MODULE                        : kotlin.scripts.KotlinBuildScript.kmpSecondLib:build.gradle.kts
+MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.androidLib:build.gradle.kts
+MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.app:build.gradle.kts
+MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.kmpFirstLib:build.gradle.kts
+MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.kmpJvmOnly:build.gradle.kts
+MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.kmpSecondLib:build.gradle.kts
