@@ -70,6 +70,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.accessibility.Accessible;
 import javax.accessibility.AccessibleContext;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
@@ -628,7 +629,9 @@ public class StudioInteractionService {
       return allContext;
     }
     for (int i = 0; i < context.getAccessibleChildrenCount(); i++) {
-      AccessibleContext c = context.getAccessibleChild(i).getAccessibleContext();
+      Accessible child = context.getAccessibleChild(i);
+      if (child == null) continue; // It can happen sometimes, see b/456533108.
+      AccessibleContext c = child.getAccessibleContext();
       allContext.addAll(getAllAccessibleContext(c));
     }
     return allContext;
