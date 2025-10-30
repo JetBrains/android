@@ -37,9 +37,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import javax.swing.JLabel
-import javax.swing.JPanel
 import javax.swing.JScrollPane
-import javax.swing.JToggleButton
 
 class ScreenshotResultViewTest {
 
@@ -96,38 +94,6 @@ class ScreenshotResultViewTest {
   }
 
   @Test
-  fun initialTabIsSelected() = runInEdtAndWait {
-    val tabBar = findComponent<JPanel>(view.myView) { it.components.any { c -> c is JToggleButton } }!!
-    val allButton = findComponent<JToggleButton>(tabBar) { it.text == "All" }!!
-    val newButton = findComponent<JToggleButton>(tabBar) { it.text == "New" }!!
-
-    assertThat(allButton.isSelected).isTrue()
-    assertThat(allButton.font.isBold).isTrue()
-    assertThat(newButton.isSelected).isFalse()
-    assertThat(newButton.font.isBold).isFalse()
-  }
-
-  @Test
-  fun clickingTabChangesSelection() = runInEdtAndWait {
-    val tabBar = findComponent<JPanel>(view.myView) { it.components.any { c -> c is JToggleButton } }!!
-    val allButton = findComponent<JToggleButton>(tabBar) { it.text == "All" }!!
-    val newButton = findComponent<JToggleButton>(tabBar) { it.text == "New" }!!
-
-    // Initial state check
-    assertThat(allButton.isSelected).isTrue()
-    assertThat(newButton.isSelected).isFalse()
-
-    // Click "New" tab
-    newButton.doClick()
-
-    // After click state check
-    assertThat(allButton.isSelected).isFalse()
-    assertThat(allButton.font.isBold).isFalse()
-    assertThat(newButton.isSelected).isTrue()
-    assertThat(newButton.font.isBold).isTrue()
-  }
-
-  @Test
   fun placeholderIsDisplayedWhenPathIsInvalid() = runInEdtAndWait {
     view.newImagePath = "invalid/path/does/not/exist.png"
     view.updateView()
@@ -140,6 +106,23 @@ class ScreenshotResultViewTest {
 
     assertThat(viewportView.text).isEqualTo("No Preview Image")
     assertThat(viewportView.icon).isNull()
+  }
+
+  @Test
+  fun initialTabIsSelected() = runInEdtAndWait {
+    assertThat(view.selectedTab).isEqualTo(ScreenshotResultView.ScreenshotViewType.ALL.displayText)
+  }
+
+  @Test
+  fun clickingTabChangesSelection() = runInEdtAndWait {
+    // Initial state check
+    assertThat(view.selectedTab).isEqualTo(ScreenshotResultView.ScreenshotViewType.ALL.displayText)
+
+    // "Click" the "New" tab
+    view.selectTab(ScreenshotResultView.ScreenshotViewType.NEW.displayText)
+
+    // After click state check
+    assertThat(view.selectedTab).isEqualTo(ScreenshotResultView.ScreenshotViewType.NEW.displayText)
   }
 
   @Test
