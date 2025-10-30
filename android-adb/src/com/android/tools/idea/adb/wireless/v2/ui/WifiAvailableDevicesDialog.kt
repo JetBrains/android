@@ -391,6 +391,19 @@ class WifiAvailableDevicesDialog(
 
   private val columns =
     listOf<TableColumn<MdnsTlsService>>(
+      TableColumn<MdnsTlsService>("", TableColumnWidth.Fixed(16.dp)) { device, _ ->
+        if (device.service.needsUpdate()) {
+          Tooltip(
+            tooltip = { Text("Check for device software updates to improve Wi-Fi pairing.") },
+            modifier = Modifier.testTag(WARNING_TOOLTIP_TEST_TAG),
+          ) {
+            Icon(
+              StudioIconsCompose.Common.Warning,
+              contentDescription = "device needs update warning icon",
+            )
+          }
+        }
+      },
       TableTextColumn<MdnsTlsService>(
         "Name",
         TableColumnWidth.Weighted(2f),
@@ -407,44 +420,27 @@ class WifiAvailableDevicesDialog(
         attribute = { it.service.buildVersionSdkFull ?: "Unknown" },
       ),
       TableColumn("", TableColumnWidth.Weighted(1f)) { device, _ ->
-        val button =
-          @Composable {
-            OutlinedButton(
-              onClick = {
-                val controller =
-                  PairDevicesUsingWiFiService.getInstance(project)
-                    .createPairingDialogController(
-                      TrackingMdnsService(
-                        serviceName = device.service.serviceInstanceName.instance,
-                        ipv4 = device.service.ipv4,
-                        port = device.service.port.toString(),
-                        deviceName = buildDeviceName(device.service),
-                        mdnsServiceVersion = device.service.mdnsServiceVersion,
-                      )
-                    )
-                controller.showDialog()
-              }
-            ) {
-              Row {
-                Icon(
-                  if (device.service.needsUpdate()) {
-                    StudioIconsCompose.Common.Warning
-                  } else {
-                    StudioIconsCompose.Avd.PairOverWifi
-                  },
-                  contentDescription = "pair device over wifi",
+        OutlinedButton(
+          onClick = {
+            val controller =
+              PairDevicesUsingWiFiService.getInstance(project)
+                .createPairingDialogController(
+                  TrackingMdnsService(
+                    serviceName = device.service.serviceInstanceName.instance,
+                    ipv4 = device.service.ipv4,
+                    port = device.service.port.toString(),
+                    deviceName = buildDeviceName(device.service),
+                    mdnsServiceVersion = device.service.mdnsServiceVersion,
+                  )
                 )
-                Spacer(Modifier.width(4.dp))
-                Text("Pair")
-              }
-            }
+            controller.showDialog()
           }
-        Tooltip(
-          tooltip = { Text("Check for device software updates to improve Wi-Fi pairing.") },
-          modifier = Modifier.testTag(WARNING_TOOLTIP_TEST_TAG),
-          enabled = device.service.needsUpdate(),
         ) {
-          button()
+          Row {
+            Icon(StudioIconsCompose.Avd.PairOverWifi, contentDescription = "pair device over wifi")
+            Spacer(Modifier.width(4.dp))
+            Text("Pair")
+          }
         }
       },
     )
