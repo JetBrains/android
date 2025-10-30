@@ -8,10 +8,7 @@ iml_module(
     iml_files = ["intellij.android.preview-fast-compile.iml"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "@intellij//:intellij-sdk",
-        "//tools/base/environment-services:studio.intellij.android.environment-services",
-    ],
+    deps = ["@intellij//:intellij-sdk"],
 )
 
 # Build target to verify that preview-fast-compile builds for tools/base

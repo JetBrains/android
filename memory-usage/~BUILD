@@ -14,7 +14,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:com.intellij.java",
-        "//tools/base/annotations:studio.android.sdktools.android-annotations",
         "@intellij//:intellij-sdk",
     ],
 )
