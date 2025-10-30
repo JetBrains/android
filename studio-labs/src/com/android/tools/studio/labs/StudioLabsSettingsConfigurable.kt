@@ -153,14 +153,14 @@ class StudioLabsSettingsConfigurable :
           ),
           StudioLabsFeaturePanelUi(
             flag = StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI,
-            heading = "Transform UI with AI",
+            heading = "Transform Compose UI",
             description =
               """
-              Allows the transformation of existing UI within the Compose Preview environment using Gemini.
+              Allows the transformation of existing UI within the Compose Preview environment using AI.
             """
                 .trimIndent(),
             imageKey = StudioLabsIcons.Features.TransformComposePreview,
-            imageDescription = "Transform UI with Gemini action",
+            imageDescription = "Transform Compose UI action",
           ),
           /*
           Disabled pending move to agent
