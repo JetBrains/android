@@ -30,7 +30,7 @@ import com.google.common.html.HtmlEscapers
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.ui.ConsoleViewContentType
-import com.intellij.largeFilesEditor.GuiUtils
+import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUiKind
@@ -38,6 +38,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ActionCallback
@@ -51,6 +53,7 @@ import com.intellij.ui.components.panels.NonOpaquePanel
 import com.intellij.ui.tabs.JBTabs
 import com.intellij.ui.tabs.JBTabsFactory.createTabs
 import com.intellij.ui.tabs.TabInfo
+import com.intellij.util.messages.MessageBus
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -68,7 +71,8 @@ import javax.swing.JPanel
 class DetailsViewContentView(
   parentDisposable: Disposable,
   private val project: Project,
-  logger: AndroidTestSuiteLogger
+  logger: AndroidTestSuiteLogger,
+  messageBus: MessageBus = ApplicationManager.getApplication().messageBus
 ) : Disposable {
 
   /**
@@ -230,6 +234,15 @@ class DetailsViewContentView(
     tabs.setSelectionChangeHandler (MyTabSelectionHandler(this))
 
     updateSelectedTab()
+
+    // We are using a HTML formatted string to set the colors of the test status, so we need to
+    // refresh the colors when the theme changes
+    val connection = messageBus.connect(this)
+    connection.subscribe(LafManagerListener.TOPIC, LafManagerListener {
+      invokeLater {
+        refreshTestResultLabel()
+      }
+    })
   }
 
   private fun setAndroidDevice(androidDevice: AndroidDevice) {
@@ -336,7 +349,8 @@ class DetailsViewContentView(
     setAdditionalTestArtifacts(testResults.getAdditionalTestArtifacts(androidDevice), testResults)
   }
 
-  private fun refreshTestResultLabel() {
+  @VisibleForTesting
+  fun refreshTestResultLabel() {
     val device = myAndroidDevice
     if (device == null) {
       myTestResultLabel.text = "No test status available"
