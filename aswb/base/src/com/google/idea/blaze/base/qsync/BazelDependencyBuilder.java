@@ -124,6 +124,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
       ImmutableList<String> include,
       ImmutableList<String> exclude,
       ImmutableList<String> alwaysBuildRules,
+      ImmutableList<String> supportedBuildRules,
       boolean generateIdlClasses,
       boolean useGeneratedSrcJars) {}
 
@@ -243,13 +244,14 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
             .map(path -> "//" + path)
             .collect(toImmutableList());
     ImmutableList<String> alwaysBuildRules =
-        ImmutableList.copyOf(
-            Sets.difference(BlazeQueryParser.ALWAYS_BUILD_RULE_KINDS, handledRuleKinds));
+      ImmutableList.copyOf(
+        Sets.difference(BlazeQueryParser.ALWAYS_BUILD_RULE_KINDS, handledRuleKinds));
     final var parameters =
         new BuildDependencyParameters(
             includes,
             excludes,
             alwaysBuildRules,
+            BlazeQueryParser.getAllKnownRuleClasses(HandledRulesProvider.getNotHandledRuleKinds(handledRuleKinds)).asList(),
             true,
             buildGeneratedSrcJars.getValue());
 
@@ -409,6 +411,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     appendStringList(result, "include", parameters.include);
     appendStringList(result, "exclude", parameters.exclude);
     appendStringList(result, "always_build_rules", parameters.alwaysBuildRules);
+    appendStringList(result, "supported_build_rules", parameters.supportedBuildRules);
     appendBoolean(result, "generate_aidl_classes", parameters.generateIdlClasses);
     appendBoolean(result, "use_generated_srcjars", parameters.useGeneratedSrcJars);
     result.append(")\n");

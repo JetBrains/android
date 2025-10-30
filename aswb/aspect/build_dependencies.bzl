@@ -446,13 +446,18 @@ def _collect_own_java_artifacts(
         target,
         ctx,
         always_build_rules,
+        supported_build_rules,
         generate_aidl_classes,
         use_generated_srcjars,
         target_is_within_project_scope):
     rule = ctx.rule
 
+    is_not_supported_build_rules = (
+        rule.kind not in supported_build_rules if supported_build_rules else rule.kind in always_build_rules
+    )
+
     must_build_main_artifacts = (
-        not target_is_within_project_scope or rule.kind in always_build_rules
+        not target_is_within_project_scope or is_not_supported_build_rules
     )
 
     own_jar_files = []
@@ -636,6 +641,7 @@ def _collect_own_and_dependency_java_artifacts(
         ctx,
         dependency_infos,
         always_build_rules,
+        supported_build_rules,
         generate_aidl_classes,
         use_generated_srcjars,
         target_is_within_project_scope):
@@ -643,6 +649,7 @@ def _collect_own_and_dependency_java_artifacts(
         target,
         ctx,
         always_build_rules,
+        supported_build_rules,
         generate_aidl_classes,
         use_generated_srcjars,
         target_is_within_project_scope,
@@ -780,6 +787,7 @@ def _collect_java_dependencies_core_impl(
         ctx,
         dependency_infos,
         params.always_build_rules,
+        params.supported_build_rules,
         params.generate_aidl_classes,
         params.use_generated_srcjars,
         target_is_within_project_scope,
