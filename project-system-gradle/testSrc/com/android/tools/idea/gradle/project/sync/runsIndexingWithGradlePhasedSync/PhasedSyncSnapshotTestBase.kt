@@ -90,7 +90,6 @@ abstract class PhasedSyncSnapshotTestBase {
       TestProject.LIGHT_SYNC_REFERENCE,
       TestProject.NON_STANDARD_SOURCE_SETS,
       TestProject.BUILDSRC_WITH_COMPOSITE,
-      TestProject.PRIVACY_SANDBOX_SDK,
       TestProject.APP_WITH_BUILD_FEATURES_ENABLED,
       TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME,
       TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED,
@@ -255,4 +254,3 @@ internal class ModelDumpSyncContributor: GradleSyncListener {
     intermediateDump = context.project.dumpModules(knownAndroidPaths)
   }
 }
-

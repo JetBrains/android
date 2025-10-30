@@ -137,7 +137,6 @@ data class IdeModelSnapshotComparisonTestDefinition(
         v1toV2PropertiesToSkip = setOf("provided")
       ), // Skip __wrapped_aars__.
       IdeModelSnapshotComparisonTestDefinition(TestProject.BASIC),
-      IdeModelSnapshotComparisonTestDefinition(TestProject.PRIVACY_SANDBOX_SDK, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.INDEPENDENT_MODULES_ONLY_RUNTIME, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED),

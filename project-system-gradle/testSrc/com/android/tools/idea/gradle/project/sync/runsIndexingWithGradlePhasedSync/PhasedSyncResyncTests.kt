@@ -65,7 +65,6 @@ private fun getProjectSpecificIdeModelResyncIssues(testProject: TestProject) = w
   )
 
   else -> when (testProject) {
-    TestProject.PRIVACY_SANDBOX_SDK,
     TestProject.COMPATIBILITY_TESTS_AS_36,
     TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML -> setOf(
       // TODO(b/384022658): Manifest index affects these values so they fail to populate correctly in some cases
@@ -131,8 +130,6 @@ class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTe
     @Parameterized.Parameters(name = "{0}")
     fun testParameters(): Collection<*>  = phasedSyncTestProjects.filterNot {
       setOf(
-        // TODO(b/384022658): Excluded for now as dependency resolution is disabled for this project
-        TestProject.PRIVACY_SANDBOX_SDK,
         // TODO(b/384022658): There is an issue regarding the full sync regarding this project, it seems to create duplicate
         //  library dependencies for some modules. Probably has to do with module libraries.
         TestProject.KOTLIN_MULTIPLATFORM_WITHJS,
