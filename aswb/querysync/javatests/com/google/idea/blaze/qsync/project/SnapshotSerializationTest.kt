@@ -74,6 +74,7 @@ class SnapshotSerializationTest {
           )
         )
         .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
+        .setBazelVersion(Optional.of("1.2.3"))
         .build()
     val serialized = SnapshotSerializer().visit(original).toProto().toByteArray()
     val deserialized: PostQuerySyncData? =
@@ -99,6 +100,7 @@ class SnapshotSerializationTest {
           )
         )
         .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
+        .setBazelVersion(Optional.of("1.2.3"))
         .build()
     val serialized = SnapshotSerializer().visit(original).toProto().toByteArray()
     val deserialized: PostQuerySyncData? =
