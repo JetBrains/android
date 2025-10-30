@@ -1557,12 +1557,6 @@ public final class StudioFlags {
     "If enabled, Live Edit uses the Min SDK information from the build system. Otherwise, use the information from the DEX marker"
   );
 
-  public static final Flag<Boolean> LIVE_EDIT_COMPACT_STATUS_BUTTON = new BooleanFlag(
-    COMPOSE, "deploy.live.edit.compact.status.button",
-    "LiveEdit: Use a Single Button to Display Live Edit Status in the Toolbar of the Running Devices Window",
-    "If enabled, no status text will be displayed in the toolbar of the Running Devices window"
-  );
-
   public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = new BooleanFlag(
     COMPOSE, "preview.debug.bounds",
     "Enable the debug bounds switch controls",
