@@ -38,6 +38,7 @@ jvm_library(
     "//platform/ide-core",
     "//platform/editor-ui-api:editor-ui",
     "//platform/core-ui",
+    "//fleet/util/core",
     ":plugins_maven_artifactResolver-m31_provided",
   ]
 )
@@ -94,6 +95,7 @@ jvm_library(
     "//platform/core-ui",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
+    "//fleet/util/core",
     ":plugins_maven_artifactResolver-m31_provided",
   ]
 )

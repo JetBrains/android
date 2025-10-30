@@ -91,7 +91,8 @@ open class ProfilersTestBase {
     // Enabling profiler task-based ux and verbose logs behind the flag.
     system.installation.addVmOption("-Dprofiler.task.based.ux=true")
     system.installation.addVmOption("-Dprofiler.testing.mode=true")
-
+    // Enabling LeakCanary task for LeakCanaryTaskTest
+    system.installation.addVmOption("-Dprofiler.leakcanary=true")
     // Open android project, and set a fixed distribution
     val project = AndroidProject(projectPath)
 
@@ -267,6 +268,10 @@ open class ProfilersTestBase {
 
   protected fun selectCallstackSampleTask(studio: AndroidStudio) {
     studio.executeAction("Android.SelectCallstackSampleTask")
+  }
+
+  protected fun selectLeakCanaryTask(studio: AndroidStudio) {
+    studio.executeAction("Android.SelectLeakCanaryTask")
   }
 
   protected fun selectNativeAllocationsTask(studio: AndroidStudio) {
