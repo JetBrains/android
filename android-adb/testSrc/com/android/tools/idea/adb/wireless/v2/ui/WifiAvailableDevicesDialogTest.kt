@@ -281,7 +281,7 @@ class WifiAvailableDevicesDialogTest {
   }
 
   @Test
-  fun deviceUpToDate_dontShowWarningTooltip() = runTest {
+  fun deviceUpToDate_dontShowWarning() = runTest {
     whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
     whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
     val deviceUpToDate =
@@ -299,10 +299,6 @@ class WifiAvailableDevicesDialogTest {
 
     composeTestRule
       .onNode(hasTestTag(WARNING_TOOLTIP_TEST_TAG), useUnmergedTree = true)
-      .lingerMouseHover(composeTestRule)
-
-    composeTestRule
-      .onNodeWithText("Check for device software updates to improve Wi-Fi pairing.")
       .assertDoesNotExist()
   }
 
