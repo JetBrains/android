@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.ThreeState;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.gradle.util.GradleVersion;
@@ -83,9 +84,9 @@ public class GradleVersions {
         }
       }
       else if (distributionType == LOCAL) {
-        String gradleHome = gradleSettings.getGradleHome();
-        if (isNotEmpty(gradleHome)) {
-          File gradleHomePath = new File(gradleHome);
+        Path gradleHome = gradleSettings.getGradleHomePath();
+        if (gradleHome != null) {
+          File gradleHomePath = gradleHome.toFile();
           return getGradleVersion(gradleHomePath);
         }
       }
