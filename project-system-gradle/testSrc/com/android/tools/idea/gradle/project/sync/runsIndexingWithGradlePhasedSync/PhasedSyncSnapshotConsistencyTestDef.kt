@@ -141,7 +141,6 @@ private fun getProjectSpecificIdeModelIssues(testProject: TestProject) = when(te
     "Classpath/module (<PROJECT>-:common-commonMain)"
   )
   else -> when(testProject) {
-  TestProject.PRIVACY_SANDBOX_SDK,
   TestProject.COMPATIBILITY_TESTS_AS_36,
   TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML -> setOf(
     // TODO(b/384022658): Manifest index affects these values so they fail to populate correctly in some cases
@@ -229,8 +228,6 @@ data class PhasedSyncSnapshotConsistencyTestDef(
   companion object {
     val tests = phasedSyncTestProjects.filterNot {
       setOf(
-      // TODO(b/384022658): Excluded for now as dependency resolution is disabled for this project
-      TestProject.PRIVACY_SANDBOX_SDK,
       // TODO(b/384022658): Handle spaces in the root project name (settings.gradle) correctly
       TestProject.TWO_JARS,
       TestProject.ANDROID_KOTLIN_MULTIPLATFORM,
@@ -238,4 +235,3 @@ data class PhasedSyncSnapshotConsistencyTestDef(
     }.map { PhasedSyncSnapshotConsistencyTestDef(it) }
   }
 }
-
