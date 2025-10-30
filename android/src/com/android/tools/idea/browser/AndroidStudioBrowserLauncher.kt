@@ -22,6 +22,10 @@ import com.intellij.openapi.project.Project
 import java.net.URISyntaxException
 import org.apache.http.client.utils.URIBuilder
 
+private val SUPPORTED_SCHEMES = setOf("http", "https")
+private val SUPPORTED_HOSTS = setOf("developer.android.com", "d.android.com")
+private val EXISTING_UTM_PARAMS = setOf("utm_source", "utm_medium", "utm_content")
+
 class AndroidStudioBrowserLauncher : BrowserLauncherImpl() {
   override fun browse(url: String, browser: WebBrowser?, project: Project?) {
     super.browse(addUtmParameters(url), browser, project)
@@ -38,16 +42,16 @@ class AndroidStudioBrowserLauncher : BrowserLauncherImpl() {
       }
 
       val scheme = uriBuilder.scheme
-      if (scheme !in listOf("http", "https")) {
+      if (scheme !in SUPPORTED_SCHEMES) {
         return urlString
       }
 
-      if (uriBuilder.host != "developer.android.com") {
+      if (uriBuilder.host !in SUPPORTED_HOSTS) {
         return urlString
       }
 
       val queryParams = uriBuilder.queryParams
-      if (queryParams.any { it.name in listOf("utm_source", "utm_medium", "utm_content") }) {
+      if (queryParams.any { it.name in EXISTING_UTM_PARAMS }) {
         return urlString
       }
 
