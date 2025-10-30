@@ -71,6 +71,7 @@ private class ObserveNodeAction(
     } else {
       model.observeNode(topNode)
     }
+    LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.observingSingleNodeSelected()
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -92,6 +93,7 @@ private class ObserveSubtreeAction(
     } else {
       model.observeSubtree(topNode)
     }
+    LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.observingSubTreeSelected()
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -107,6 +109,7 @@ private class ObserveAllAction(private val model: InspectorStateReadModel) :
   AnAction("Observe All") {
   override fun actionPerformed(event: AnActionEvent) {
     model.observeAll()
+    LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.observingAllSelected()
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -120,6 +123,7 @@ private class ObserveNoneAction(private val model: InspectorStateReadModel) :
   AnAction("Observe None") {
   override fun actionPerformed(event: AnActionEvent) {
     model.observeNone()
+    LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.observingNoneSelected()
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces.UNKNOWN
 import com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
@@ -62,16 +63,20 @@ internal fun createStateInspectionPanel(
 ): StateInspectionPanel {
   val inspectorModel = layoutInspector.inspectorModel
   val project = inspectorModel.project
+  val stats = layoutInspector.currentClient.stats
   val model =
-    StateInspectionModelImpl(inspectorModel, layoutInspector.coroutineScope, parentDisposable)
+    StateInspectionModelImpl(inspectorModel, layoutInspector.coroutineScope, parentDisposable) {
+      stats.stateReadsShown()
+    }
   val uiScope = parentDisposable.createCoroutineScope(extraContext = Dispatchers.EDT)
-  return StateInspectionPanel(model, project, uiScope, parentDisposable)
+  return StateInspectionPanel(model, project, stats, uiScope, parentDisposable)
 }
 
 /** A panel to display state reads for recompositions. */
 internal class StateInspectionPanel(
   model: StateInspectionModel,
   project: Project,
+  stats: SessionStatistics,
   scope: CoroutineScope,
   parentDisposable: Disposable,
 ) : AdtSecondaryPanel(BorderLayout()) {
@@ -96,6 +101,7 @@ internal class StateInspectionPanel(
             InnerStateInspectionPanel(
               this@StateInspectionPanel,
               model,
+              stats,
               project,
               scope,
               parentDisposable,
@@ -112,6 +118,7 @@ internal class StateInspectionPanel(
 private class InnerStateInspectionPanel(
   private val parent: StateInspectionPanel,
   model: StateInspectionModel,
+  stats: SessionStatistics,
   project: Project,
   parentScope: CoroutineScope,
   parentDisposable: Disposable,
@@ -127,7 +134,8 @@ private class InnerStateInspectionPanel(
   private val recompositionText = JBLabel().apply { name = RECOMPOSITION_TEXT_LABEL_NAME }
   private val stateReadCountText = JBLabel().apply { name = STATE_READ_TEXT_LABEL_NAME }
   private val editor = createStateReadEditor(project, this)
-  private val hyperlinkDetector = StateInspectionHyperLinkDetector(project, editor, scope, this)
+  private val hyperlinkDetector =
+    StateInspectionHyperLinkDetector(project, editor, stats, scope, this)
   private val foldingDetector = StateInspectionFoldingDetector(editor, scope)
 
   init {
