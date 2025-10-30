@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.stateinspection
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.getDescendant
+import com.android.tools.idea.layoutinspector.FakeSessionStats
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
@@ -46,6 +47,7 @@ class StateInspectionPanelTest {
   @get:Rule val chain = RuleChain(projectRule, EdtRule())
 
   private val model = TestStateInspectionModel()
+  private val stats = FakeSessionStats()
   private val testDispatcher = StandardTestDispatcher()
   private val testScope = TestScope(testDispatcher)
   private lateinit var disposable: Disposable
@@ -57,7 +59,7 @@ class StateInspectionPanelTest {
 
   @Test
   fun testNoEditorCreatedInitially() {
-    val panel = StateInspectionPanel(model, projectRule.project, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
     testDispatcher.scheduler.advanceUntilIdle()
     assertThat(panel.componentCount).isEqualTo(0)
     assertThat(panel.getUserData(STATE_READ_EDITOR_KEY)).isNull()
@@ -66,7 +68,7 @@ class StateInspectionPanelTest {
 
   @Test
   fun testEditorDestroyedWhenHidden() {
-    val panel = StateInspectionPanel(model, projectRule.project, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
     assertThat(panel.componentCount).isEqualTo(0)
     assertThat(panel.getUserData(STATE_READ_EDITOR_KEY)).isNull()
     testDispatcher.scheduler.advanceUntilIdle()
@@ -84,7 +86,7 @@ class StateInspectionPanelTest {
 
   @Test
   fun testRecompositionText() {
-    val panel = StateInspectionPanel(model, projectRule.project, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
     model.show.value = true
     testDispatcher.scheduler.advanceUntilIdle()
     val label = panel.getDescendant<JLabel> { it.name == RECOMPOSITION_TEXT_LABEL_NAME }
@@ -97,7 +99,7 @@ class StateInspectionPanelTest {
 
   @Test
   fun testStateReadText() {
-    val panel = StateInspectionPanel(model, projectRule.project, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
     model.show.value = true
     testDispatcher.scheduler.advanceUntilIdle()
     val label = panel.getDescendant<JLabel> { it.name == STATE_READ_TEXT_LABEL_NAME }
@@ -110,7 +112,7 @@ class StateInspectionPanelTest {
 
   @Test
   fun testStackTraceText() {
-    val panel = StateInspectionPanel(model, projectRule.project, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
     model.show.value = true
     testDispatcher.scheduler.advanceUntilIdle()
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
@@ -140,7 +142,7 @@ class StateInspectionPanelTest {
 
   @Test
   fun testStateInspectionData() {
-    val panel = StateInspectionPanel(model, projectRule.project, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
     model.show.value = true
     testDispatcher.scheduler.advanceUntilIdle()
     val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
@@ -153,7 +155,7 @@ class StateInspectionPanelTest {
   }
 
   private fun testButton(buttonAction: TestAction) {
-    val panel = StateInspectionPanel(model, projectRule.project, testScope, disposable)
+    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
     model.show.value = true
     testDispatcher.scheduler.advanceUntilIdle()
     val button = panel.getDescendant<ActionButton> { it.action == buttonAction }

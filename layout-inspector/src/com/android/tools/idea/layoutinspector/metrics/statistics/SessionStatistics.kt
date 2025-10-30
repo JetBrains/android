@@ -81,6 +81,33 @@ interface SessionStatistics {
 
   fun isXr(isXr: Boolean)
 
+  /** Observing no composable for state reads selected */
+  fun observingNoneSelected()
+
+  /** Observing all composable for state reads selected */
+  fun observingAllSelected()
+
+  /** Observing single node composable for state reads selected */
+  fun observingSingleNodeSelected()
+
+  /** Observing subtree of composable for state reads selected */
+  fun observingSubTreeSelected()
+
+  /** State read page is shown */
+  fun stateReadsShown()
+
+  /** State read for the next recomposition is selected */
+  fun nextRecompositionChosen()
+
+  /** State read for the next recomposition is selected */
+  fun prevRecompositionChosen()
+
+  /** User clicked on a stacktrace from state reads panel */
+  fun stateReadsGotoSourceFromStackTrace()
+
+  /** User clicked on Explain with AI from state reads panel */
+  fun stateReadsExplainWithAiClicked()
+
   /** Live mode changed. */
   var currentModeIsLive: Boolean
 
@@ -124,6 +151,7 @@ class SessionStatisticsImpl(
   private val compose = ComposeStatistics()
   private val system = SystemViewToggleStatistics()
   private val goto = GotoDeclarationStatistics()
+  private val stateReads = StateReadStatistics()
 
   private var hasFoldEvent = false
 
@@ -134,6 +162,7 @@ class SessionStatisticsImpl(
     compose.start()
     system.start()
     goto.start()
+    stateReads.start()
   }
 
   override fun save(data: DynamicLayoutInspectorSession.Builder) {
@@ -143,7 +172,7 @@ class SessionStatisticsImpl(
     compose.save { data.composeBuilder }
     system.save { data.systemBuilder }
     goto.save { data.gotoDeclarationBuilder }
-
+    stateReads.save { data.stateReadsBuilder }
     data.hasFoldEvent = hasFoldEvent
   }
 
@@ -219,6 +248,42 @@ class SessionStatisticsImpl(
 
   override fun isXr(isXr: Boolean) {
     attach.isXr(isXr)
+  }
+
+  override fun observingNoneSelected() {
+    stateReads.observingNoneSelected()
+  }
+
+  override fun observingAllSelected() {
+    stateReads.observingAllSelected()
+  }
+
+  override fun observingSingleNodeSelected() {
+    stateReads.observingSingleNodeSelected()
+  }
+
+  override fun observingSubTreeSelected() {
+    stateReads.observingSubTreeSelected()
+  }
+
+  override fun stateReadsShown() {
+    stateReads.stateReadsShown()
+  }
+
+  override fun nextRecompositionChosen() {
+    stateReads.nextRecompositionChosen()
+  }
+
+  override fun prevRecompositionChosen() {
+    stateReads.prevRecompositionChosen()
+  }
+
+  override fun stateReadsGotoSourceFromStackTrace() {
+    stateReads.gotoSourceFromStackTrace()
+  }
+
+  override fun stateReadsExplainWithAiClicked() {
+    stateReads.explainWithAiClicked()
   }
 
   override var currentModeIsLive: Boolean

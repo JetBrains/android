@@ -50,6 +50,7 @@ class SessionStatisticsTest {
     stats.frameReceived()
     stats.save(data)
     val result = data.build()
+    assertThat(result.hasStateReads()).isFalse()
     assertThat(result.hasLive()).isFalse()
     assertThat(result.hasRotation()).isFalse()
     assertThat(result.hasMemory()).isFalse()
@@ -99,9 +100,12 @@ class SessionStatisticsTest {
 
     stats.foldInfoReceived()
 
+    stats.observingAllSelected()
+
     val data = DynamicLayoutInspectorSession.newBuilder()
     stats.save(data)
     val result = data.build()
+    assertThat(result.hasStateReads()).isTrue()
     assertThat(result.hasLive()).isTrue()
     assertThat(result.hasRotation()).isTrue()
     assertThat(result.hasCompose()).isTrue()
@@ -109,6 +113,7 @@ class SessionStatisticsTest {
     assertThat(result.hasGotoDeclaration()).isTrue()
     assertThat(result.hasAttach()).isTrue()
 
+    assertThat(result.stateReads.observingAllSelected).isEqualTo(1)
     assertThat(result.live.clicksWithoutLiveUpdates).isEqualTo(1)
     assertThat(result.rotation.componentTreeClicksIn2D).isEqualTo(1)
     assertThat(result.compose.componentTreeClicks).isEqualTo(1)

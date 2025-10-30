@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Par
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadData
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult
 import com.android.tools.idea.layoutinspector.properties.PropertyType
+import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -83,6 +84,7 @@ internal class StateInspectionModelImpl(
   private val model: InspectorModel,
   parentScope: CoroutineScope,
   parentDisposable: Disposable,
+  private val resultShown: () -> Unit,
 ) : StateInspectionModel {
   private val scope = parentScope.createChildScope(parentDisposable = parentDisposable)
   private var currentNode: ComposeViewNode? = null
@@ -178,6 +180,7 @@ internal class StateInspectionModelImpl(
     _stackTraceText.value = generateStackTraces(result.reads)
     _composableInspected.value = ComposableDefinition(node.qualifiedName, node.composeFilename)
     _updates.value += 1
+    resultShown()
   }
 
   private fun loadRecompositionStateReads(
@@ -222,14 +225,16 @@ internal class StateInspectionModelImpl(
     _updates.value += 1
   }
 
-  private fun gotoPrevRecomposition() {
+  private fun gotoPrevRecomposition(event: AnActionEvent) {
     val node = currentNode ?: return
     loadRecompositionStateReads(node, currentRecomposition - 1)
+    LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.prevRecompositionChosen()
   }
 
-  private fun gotoNextRecomposition() {
+  private fun gotoNextRecomposition(event: AnActionEvent) {
     val node = currentNode ?: return
     loadRecompositionStateReads(node, currentRecomposition + 1)
+    LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.nextRecompositionChosen()
   }
 
   private fun hasPrevComposition(): Boolean {
@@ -354,13 +359,13 @@ internal class StateInspectionModelImpl(
   private fun createAction(
     icon: Icon,
     descriptionKey: String,
-    action: () -> Unit,
+    action: (AnActionEvent) -> Unit,
     enabled: () -> Boolean = { true },
   ): AnAction {
     val description = LayoutInspectorBundle.message(descriptionKey)
     return object : DumbAwareAction(description, null, icon) {
       override fun actionPerformed(event: AnActionEvent) {
-        action()
+        action(event)
       }
 
       override fun update(event: AnActionEvent) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.stateinspection
 
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.intellij.execution.filters.CompositeFilter
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkSupport
@@ -35,6 +36,7 @@ import org.jetbrains.annotations.TestOnly
 internal class StateInspectionHyperLinkDetector(
   private val project: Project,
   private val editor: EditorEx,
+  private val stats: SessionStatistics,
   scope: CoroutineScope,
   parentDisposable: Disposable,
 ) {
@@ -68,6 +70,16 @@ internal class StateInspectionHyperLinkDetector(
 
         filters.forEach { filter.addFilter(it) }
       }
+
+    // addEditorHyperlinkListener is marked @ApiStatus.Internal, but there doesn't seem
+    // to be a different way to track these hyperlink events.
+    editorHyperlinkSupport.addEditorHyperlinkListener { linkInfo ->
+      if (linkInfo is LayoutInspectorExplainWithAIHyperLinkInfo) {
+        stats.stateReadsExplainWithAiClicked()
+      } else {
+        stats.stateReadsGotoSourceFromStackTrace()
+      }
+    }
   }
 
   fun detectHyperlinks() {
