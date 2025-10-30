@@ -2014,10 +2014,6 @@ public final class StudioFlags {
                     "Add a new tab to display missing URLs and help users fix them.");
   // endregion App Links Assistant
 
-  // region NEW_COLLECT_LOGS_DIALOG
-  private static final FlagGroup NEW_COLLECT_LOGS_DIALOG = new FlagGroup(FLAGS, "new.collect.logs", "New Collect Logs Dialog");
-  // endregion NEW_COLLECT_LOGS_DIALOG
-
   // region TargetSDKVersion Upgrade Assistant
   private static final FlagGroup TSDKVUA = new FlagGroup(FLAGS, "tsdkvua", "Android SDK Upgrade Assistant");
   public static final Flag<Boolean> TSDKVUA_FILTERS_ONSTART =
