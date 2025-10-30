@@ -20,11 +20,13 @@ import com.android.tools.profilers.SupportLevel
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.leakcanary.LeakCanaryTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.SingleArtifactTaskHandler
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
+import fleet.util.logging.logger
 
+private val logger = logger<LeakCanaryTaskHandler>()
 class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager): SingleArtifactTaskHandler<LeakCanaryModel>(sessionsManager) {
 
   override fun setupStage() {
@@ -34,6 +36,12 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager): Singl
     studioProfilers.stage = stage
     // Set the new stage to be this task handler's stage, which can now be used ot start and stop captures.
     super.stage = stage
+  }
+
+  override fun enter(args: TaskArgs): Boolean {
+    setupStage()
+    logEnterStage()
+    return super.enter(args)
   }
 
   override fun startCapture(stage: LeakCanaryModel) {
@@ -80,5 +88,12 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager): Singl
       return null
     }
     return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
+  }
+
+  /**
+   * Log a message, indicating the entering of a profiler stage for E2E testing.
+   */
+  private fun logEnterStage() {
+    logger.info("Entering LeakCanary stage")
   }
 }

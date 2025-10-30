@@ -65,6 +65,8 @@
     </action>
     <action id="Android.SelectCallstackSampleTask" class="com.android.tools.idea.profilers.actions.SelectCallstackSampleTaskAction">
     </action>
+    <action id="Android.SelectLeakCanaryTask" class="com.android.tools.idea.profilers.actions.SelectLeakCanaryTaskAction">
+    </action>
     <action id="Android.SelectNativeAllocationsTask" class="com.android.tools.idea.profilers.actions.SelectNativeAllocationsTaskAction">
     </action>
     <action id="Android.SelectLiveViewTask" class="com.android.tools.idea.profilers.actions.SelectLiveViewTaskAction">
