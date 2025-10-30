@@ -26,6 +26,7 @@ import com.google.idea.blaze.qsync.project.SnapshotProto.WorkspaceSnapshot;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import com.google.protobuf.AbstractMessageLite;
 import java.nio.file.Path;
+import java.util.Optional;
 
 /** Serializes a {@link PostQuerySyncData} instance to a proto message. */
 public class SnapshotSerializer {
@@ -54,6 +55,7 @@ public class SnapshotSerializer {
     visitProjectDefinition(snapshot.projectDefinition());
     snapshot.vcsState().ifPresent(this::visitVcsState);
     visitQuerySummary(snapshot.querySummary());
+    visitBazelVersion(snapshot.bazelVersion());
     return this;
   }
 
@@ -101,5 +103,9 @@ public class SnapshotSerializer {
 
   private void visitQuerySummary(QuerySummary summary) {
     proto.setQuerySummary(summary.protoForSerializationOnly());
+  }
+
+  private void visitBazelVersion(Optional<String> value) {
+    value.ifPresent(proto::setBazelVersion);
   }
 }
