@@ -129,17 +129,20 @@ class StateInspectionModelTest {
 
   @Test
   fun testDefaults() = runTestWithDisposable { disposable ->
-    val model = StateInspectionModelImpl(inspectorModel, this, disposable)
+    var results = 0
+    val model = StateInspectionModelImpl(inspectorModel, this, disposable) { results++ }
     assertThat(model.show.value).isFalse()
     assertThat(model.recompositionText.value).isEqualTo("")
     assertThat(model.stateReadsText.value).isEqualTo("")
     assertThat(model.stackTraceText.value).isEqualTo("")
     assertThat(model.composableInspected.value).isEqualTo(null)
+    assertThat(results).isEqualTo(0)
   }
 
   @Test
   fun testNodeSelection() = runTestWithDisposable { disposable ->
-    val model = StateInspectionModelImpl(inspectorModel, this, disposable)
+    var results = 0
+    val model = StateInspectionModelImpl(inspectorModel, this, disposable) { results++ }
     inspectorModel.stateReadsModel.observeNode(compose1)
     inspectorModel.stateReadsModel.requestStateReadFor(compose1)
     testScheduler.advanceUntilIdle()
@@ -154,6 +157,7 @@ class StateInspectionModelTest {
     assertThat(model.prevAction.isEnabled()).isFalse()
     assertThat(model.nextAction.isEnabled()).isFalse()
     assertThat(model.minimizeAction.isEnabled()).isTrue()
+    assertThat(results).isEqualTo(0)
 
     // The result is received from the agent:
     inspectorModel.stateReadsModel.stateReads.emit(read2Anchor1.convert(compose1, 2))
@@ -178,11 +182,13 @@ class StateInspectionModelTest {
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isFalse()
     assertThat(model.minimizeAction.isEnabled()).isTrue()
+    assertThat(results).isEqualTo(1)
 
     // Selecting the same node should not cause updates:
     inspectorModel.setSelection(compose1, SelectionOrigin.INTERNAL)
     testScheduler.advanceUntilIdle()
     assertThat(model.updates.value).isEqualTo(3)
+    assertThat(results).isEqualTo(1)
 
     // Selecting a non observed composable:
     inspectorModel.setSelection(compose2, SelectionOrigin.INTERNAL)
@@ -238,11 +244,13 @@ class StateInspectionModelTest {
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isFalse()
     assertThat(model.minimizeAction.isEnabled()).isTrue()
+    assertThat(results).isEqualTo(2)
   }
 
   @Test
   fun testPrevAndNext() = runTestWithDisposable { disposable ->
-    val model = StateInspectionModelImpl(inspectorModel, this, disposable)
+    var results = 0
+    val model = StateInspectionModelImpl(inspectorModel, this, disposable) { results++ }
     assertThat(model.updates.value).isEqualTo(1)
 
     // Select compose1 for showing state reads:
@@ -257,6 +265,7 @@ class StateInspectionModelTest {
     assertThat(model.recompositionText.value).isEqualTo("Recomposition 2")
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isFalse()
+    assertThat(results).isEqualTo(1)
 
     // Emulate an update that adds 1 recomposition for compose1.
     // Expect the next action to become enabled.
@@ -301,6 +310,7 @@ class StateInspectionModelTest {
     assertThat(model.recompositionText.value).isEqualTo("Recomposition 3")
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isFalse()
+    assertThat(results).isEqualTo(2)
 
     model.prevAction.perform()
     testScheduler.advanceUntilIdle()
@@ -317,6 +327,7 @@ class StateInspectionModelTest {
     assertThat(model.recompositionText.value).isEqualTo("Recomposition 2")
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isTrue()
+    assertThat(results).isEqualTo(3)
 
     model.prevAction.perform()
     testScheduler.advanceUntilIdle()
@@ -335,21 +346,25 @@ class StateInspectionModelTest {
     assertThat(model.recompositionText.value).isEqualTo("Recomposition 1")
     assertThat(model.prevAction.isEnabled()).isFalse()
     assertThat(model.nextAction.isEnabled()).isTrue()
+    assertThat(results).isEqualTo(4)
   }
 
   @Test
   fun testMinimize() = runTestWithDisposable { disposable ->
-    val model = StateInspectionModelImpl(inspectorModel, this, disposable)
+    var results = 0
+    val model = StateInspectionModelImpl(inspectorModel, this, disposable) { results++ }
     assertThat(model.show.value).isFalse()
 
     inspectorModel.stateReadsModel.requestStateReadFor(compose1)
     testScheduler.advanceUntilIdle()
     assertThat(model.show.value).isTrue()
+    assertThat(results).isEqualTo(0)
 
     // The result is received from the agent:
     inspectorModel.stateReadsModel.stateReads.emit(read2Anchor1.convert(compose1, 2))
     testScheduler.advanceUntilIdle()
     assertThat(model.show.value).isTrue()
+    assertThat(results).isEqualTo(1)
 
     model.minimizeAction.perform()
     testScheduler.advanceUntilIdle()

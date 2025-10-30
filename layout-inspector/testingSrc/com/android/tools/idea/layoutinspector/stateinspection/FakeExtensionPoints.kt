@@ -26,7 +26,10 @@ private const val EXPLAIN_WITH_AI = "(Explain with AI)"
 
 /** Installs 2 EP for state inspection that simulates the presence of ML. */
 fun installFakeExtensionPoints(disposable: Disposable) {
-  val hyperLinkInfo = HyperlinkInfo {}
+  val hyperLinkInfo =
+    object : HyperlinkInfo, LayoutInspectorExplainWithAIHyperLinkInfo {
+      override fun navigate(project: Project) {}
+    }
   val provider = FakeFilterProvider(hyperLinkInfo)
   ExtensionTestUtil.maskExtensions(
     LayoutInspectorStateInspectionFilterProvider.EP_NAME,

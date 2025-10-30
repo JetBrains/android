@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.stateinspection
 import com.android.adblib.DeviceSelector
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.swing.EditorUtils.cleanUpListenersFromEditorMouseHoverPopupManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
@@ -36,6 +37,8 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.FakeInspect
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
+import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.ui.getUserData
@@ -49,6 +52,7 @@ import javax.swing.JLabel
 import javax.swing.SwingUtilities
 import kotlin.io.path.readText
 import kotlin.time.Duration.Companion.seconds
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -56,6 +60,8 @@ import org.junit.Test
 private val MODERN_PROCESS =
   MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/stateinspection"
+private const val LINK_OFFSET_X = 50
+private const val LINK_OFFSET_Y = 6
 
 /**
  * Integration test that involves: [StateInspectionPanel], [StateInspectionModel],
@@ -85,10 +91,21 @@ class StateInspectionPanelIntegrationTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
     installFakeExtensionPoints(projectRule.testRootDisposable)
+    projectRule.fixture.addFileToProject("src/java/androidx/compose/material3/Text.kt", "")
+    projectRule.fixture.addFileToProject(
+      "src/java/com/example/recompositiontest/MainActivity.kt",
+      "",
+    )
+  }
+
+  @After
+  fun after() {
+    cleanUpListenersFromEditorMouseHoverPopupManager()
   }
 
   @Test
   fun testPanelWithStateReads() {
+    imitateObserveAllMode()
     val state = FakeInspectorStateReads(inspectionRule.composeInspector)
     state.createFakeStateReads()
 
@@ -133,6 +150,7 @@ class StateInspectionPanelIntegrationTest {
     waitForCondition(10.seconds) { next.isEnabled }
     state.lateStateReadsKnown = true
 
+    imitateObserveByIdMode()
     ui.click(next)
     waitForCondition(10.seconds) { recompositionText.text == "Recomposition 102" }
     panel.checkContent("state_reads_1_102.txt")
@@ -140,11 +158,55 @@ class StateInspectionPanelIntegrationTest {
     assertThat(prev.isEnabled).isFalse() // The cache will remove elements before the found gap
     assertThat(next.isEnabled).isTrue()
 
+    waitForPendingFilters(panel)
+    clickOnStackTrace(ui, panel)
+    clickOnAILink(ui, panel)
+
     assertThat(SwingUtilities.isDescendingFrom(recompositionText, panel)).isTrue()
     assertThat(minimize.isEnabled).isTrue()
     ui.click(minimize)
     waitForCondition(10.seconds) { !panel.isVisible }
     assertThat(SwingUtilities.isDescendingFrom(recompositionText, panel)).isFalse()
+
+    val data = DynamicLayoutInspectorSession.newBuilder()
+    inspectorRule.inspectorClient.stats.save(data)
+    assertThat(data.stateReads.prevRecompositionChosen).isEqualTo(1)
+    assertThat(data.stateReads.nextRecompositionChosen).isEqualTo(2)
+    assertThat(data.stateReads.pagesShownObservingAll).isEqualTo(3)
+    assertThat(data.stateReads.pagesShownObservingById).isEqualTo(1)
+    assertThat(data.stateReads.stackTraceLinksClicked).isEqualTo(2)
+    assertThat(data.stateReads.aiLinksClicked).isEqualTo(1)
+  }
+
+  private fun imitateObserveAllMode() {
+    inspectorRule.inspectorClient.stats.observingAllSelected()
+  }
+
+  private fun imitateObserveByIdMode() {
+    inspectorRule.inspectorClient.stats.observingSingleNodeSelected()
+  }
+
+  private fun waitForPendingFilters(panel: StateInspectionPanel) {
+    val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
+    val editorHyperlinkSupport = EditorHyperlinkSupport.get(editor)
+    editorHyperlinkSupport.waitForPendingFilters(10.seconds.inWholeMilliseconds)
+  }
+
+  private fun clickOnStackTrace(ui: FakeUi, panel: StateInspectionPanel) {
+    clickOnFirstMatch(ui, panel, "Text.kt:")
+    clickOnFirstMatch(ui, panel, "MainActivity.kt:")
+  }
+
+  private fun clickOnAILink(ui: FakeUi, panel: StateInspectionPanel) {
+    clickOnFirstMatch(ui, panel, "(Explain with AI)")
+  }
+
+  private fun clickOnFirstMatch(ui: FakeUi, panel: StateInspectionPanel, searchText: String) {
+    val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
+    val offset = editor.document.text.indexOf(searchText)
+    val point = editor.offsetToXY(offset)
+    val xy = SwingUtilities.convertPoint(editor.component, point, panel)
+    ui.mouse.click(xy.x + LINK_OFFSET_X, xy.y + LINK_OFFSET_Y)
   }
 
   private fun StateInspectionPanel.checkContent(dataFile: String) {
