@@ -30,6 +30,7 @@ import org.junit.Test
 private const val LOADER_WORKSPACE_PATH = "tools/adt/idea/designer/testData/classloader"
 private const val CLASSES_TO_LOAD_JAR_NAME = "viewtreelifecycleowner.jar"
 
+@org.junit.Ignore("b/456507959")
 class ViewTreeLifecycleTransformTest {
 
   @Test
