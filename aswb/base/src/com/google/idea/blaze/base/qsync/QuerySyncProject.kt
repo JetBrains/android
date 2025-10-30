@@ -217,7 +217,8 @@ class QuerySyncProject(
       postQuerySyncData.projectDefinition().effectiveTargetPatterns,
       postQuerySyncData.querySummary(),
       context,
-      ImmutableSet.copyOf(handledRuleKinds)
+      ImmutableSet.copyOf(handledRuleKinds),
+      HandledRulesProvider.getNotHandledRuleKinds(handledRuleKinds),
     ).parse()
   }
 

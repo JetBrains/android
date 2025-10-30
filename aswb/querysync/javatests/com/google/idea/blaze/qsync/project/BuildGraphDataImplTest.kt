@@ -59,7 +59,7 @@ class BuildGraphDataImplTest {
       .addSupportedTargetLabel(Label.of("//nested:nested"))
       .addSupportedTargetLabel(Label.of("//nested/inner:inner"))
 
-    val graph: BuildGraphData = builder.build(emptyTargetCollection, emptySet())
+    val graph: BuildGraphData = builder.build(emptyTargetCollection, emptySet(), emptySet())
     expect.that(graph.pathToLabel(Path.of("abc.txt"))).isEqualTo(Label.of("//:abc.txt"))
     expect.that(graph.pathToLabel(Path.of("BUILD"))).isEqualTo(Label.of("//:BUILD"))
     expect.that(graph.pathToLabel(Path.of("nested/abc.txt"))).isEqualTo(Label.of("//nested:abc.txt"))
@@ -81,7 +81,7 @@ class BuildGraphDataImplTest {
 
   @Test
   fun valueEquality() {
-    assert(builder().build(emptyTargetCollection, emptySet()) == builder().build(emptyTargetCollection, emptySet()))
+    assert(builder().build(emptyTargetCollection, emptySet(), emptySet()) == builder().build(emptyTargetCollection, emptySet(), emptySet()))
   }
 
   @Test
@@ -99,7 +99,7 @@ class BuildGraphDataImplTest {
       .addSupportedTargetLabel(Label.of("//nested:nested"))
       .addSupportedTargetLabel(Label.of("//nested/inner:inner"))
 
-    val graph: BuildGraphData = builder.build(emptyTargetCollection, emptySet())
+    val graph: BuildGraphData = builder.build(emptyTargetCollection, emptySet(), emptySet())
     expect.that(graph.sourceFileToLabel(Path.of("abc.txt"))).isNull()
     expect.that(graph.sourceFileToLabel(Path.of("BUILD"))).isEqualTo(Label.of("//:BUILD"))
     expect.that(graph.sourceFileToLabel(Path.of("nested/abc.txt"))).isNull()
@@ -230,7 +230,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_PROTO_DEP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        setOf("java_proto_library"),
       )
         .parseForTesting()
     assertThat(
