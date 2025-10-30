@@ -400,12 +400,9 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
             taskOrigin,
             BlazeUserSettings.getInstance()
           ) { context ->
-            withSyncEventsPublished(context) {
               context.push(ProgressIndicatorScope(indicator))
               context.addCancellationHandler { indicator.cancel() }
               runBlockingCancellable { operation(context) }
-              logSyncStats(context, loadedProject, currentSnapshot.getOrNull()) // Not logging new project stats on exception.
-            }
           }
         }
     }
@@ -453,6 +450,9 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     val fileListenerSyncCompleter = fileListener.syncStarted();
     val previousQueryInstant = lastQueryInstant
     try {
+      for (syncListener in SyncListener.EP_NAME.extensions) {
+        syncListener.onQuerySyncStart(project, context)
+      }
       return block()
         .also {
           // On success only.
