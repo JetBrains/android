@@ -27,7 +27,9 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.profilers.ProfilerColors
-import com.android.tools.profilers.ProfilerCombobox
+import com.android.tools.profilers.ProfilerDropDownComponent
+import com.android.tools.profilers.ProfilerFlows
+import com.android.tools.profilers.Selection
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.CapturePanelTabContainer
 import com.android.tools.profilers.memory.CaptureSelectionAspect
@@ -36,48 +38,63 @@ import com.android.tools.profilers.memory.MemoryCaptureSelection
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSet
 import com.android.tools.profilers.memory.chart.MemoryVisualizationModel.XAxisFilter
+import com.android.tools.profilers.selectionOf
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.util.concurrent.TimeUnit
-import javax.swing.ComboBoxModel
-import javax.swing.DefaultComboBoxModel
-import javax.swing.JComboBox
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * Class that manages the memory HTreeChart (CallChart). The UI has a dropdown that allows the user to change the X axis of the
  * chart. This class is responsible for rebuilding the chart when the dropdown changes or a filter is applied.
  */
-class MemoryVisualizationView(private val selection: MemoryCaptureSelection,
-                              private val profilersView: StudioProfilersView) : AspectObserver(), CapturePanelTabContainer {
+class MemoryVisualizationView @VisibleForTesting
+internal constructor(private val selection: MemoryCaptureSelection,
+                     private val profilersView: StudioProfilersView,
+                     @get:VisibleForTesting val model: MemoryVisualizationModel) : AspectObserver(), CapturePanelTabContainer {
   private val panel: JPanel = JPanel(BorderLayout())
-  private val orderingDropdown: JComboBox<XAxisFilter> = ProfilerCombobox()
-  private val model = MemoryVisualizationModel()
+  private val axisFilterFlow: MutableStateFlow<Selection<XAxisFilter>> = ProfilerFlows.createMutableStateFlow(selectionOf(model.axisFilter))
+  private val axisFilterDropDown: JComponent
   private var initialClassGrouping: ClassGrouping? = null
 
+  constructor(selection: MemoryCaptureSelection, profilersView: StudioProfilersView) : this(selection,
+                                                                                            profilersView,
+                                                                                            MemoryVisualizationModel())
+
   init {
-    orderingDropdown.addActionListener { e: ActionEvent? ->
-      val item = orderingDropdown.selectedItem
-      if (item is XAxisFilter) {
-        model.axisFilter = item
+    axisFilterDropDown = ProfilerDropDownComponent(
+      model.axisFilter.toString(),
+      "View by",
+      null,
+      axisFilterFlow,
+      null,
+      { filter ->
+        model.axisFilter = filter
+        axisFilterFlow.value = axisFilterFlow.value.select(filter)
         rebuildUI()
-      }
-    }
-    val comboBoxModel: ComboBoxModel<XAxisFilter> = DefaultComboBoxModel(XAxisFilter.values())
-    orderingDropdown.model = comboBoxModel
-    orderingDropdown.selectedIndex = XAxisFilter.ALLOC_SIZE.ordinal
+      },
+      { it.toString() })
   }
 
   val toolbarComponents: List<Component>
     get() {
       val components: MutableList<Component> = ArrayList()
-      components.add(orderingDropdown)
+      val viewByLabel = JLabel("View by:").apply {
+        foreground = UIUtil.getLabelDisabledForeground()
+        border = JBUI.Borders.empty(1, 12, 0, 0)
+      }
+      components.add(viewByLabel)
+      components.add(axisFilterDropDown)
       return components
     }
 

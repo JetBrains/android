@@ -196,7 +196,12 @@ public interface CaptureObject extends MemoryObject {
   void unload();
 
   @NotNull
-  default Set<CaptureObjectInstanceFilter> getSupportedInstanceFilters() {
+  default Set<CaptureObjectInstanceFilter> getSupportedClassTypeFilters() {
+    return Collections.EMPTY_SET;
+  }
+
+  @NotNull
+  default Set<CaptureObjectInstanceFilter> getSupportedIssueTypeFilters() {
     return Collections.EMPTY_SET;
   }
 
@@ -223,22 +228,11 @@ public interface CaptureObject extends MemoryObject {
     return Collections.EMPTY_SET;
   }
 
-  default ListenableFuture<Void> addInstanceFilter(@NotNull CaptureObjectInstanceFilter filter,
-                                                   @NotNull Executor analyzeJoiner) {
+  default ListenableFuture<Void> setClassTypeFilter(@Nullable CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {
     return Utils.makeEmptyTask();
   }
 
-  default ListenableFuture<Void> removeInstanceFilter(@NotNull CaptureObjectInstanceFilter filter,
-                                                      @NotNull Executor analyzeJoiner) {
-    return Utils.makeEmptyTask();
-  }
-
-  default ListenableFuture<Void> setSingleFilter(@NotNull CaptureObjectInstanceFilter filter,
-                                                 @NotNull Executor analyzeJoiner) {
-    return Utils.makeEmptyTask();
-  }
-
-  default ListenableFuture<Void> removeAllFilters(@NotNull Executor analyzeJoiner) {
+  default ListenableFuture<Void> setIssueTypeFilter(@Nullable CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {
     return Utils.makeEmptyTask();
   }
 

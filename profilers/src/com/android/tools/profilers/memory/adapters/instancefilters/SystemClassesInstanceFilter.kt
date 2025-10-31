@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,27 +19,27 @@ import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.memory.adapters.InstanceObject
 
 /**
- * A filter to locate all instances of classes that directly belong to the currently opened project (excluding dependent libraries).
+ * A filter to locate all instances of classes that do not belong to the currently opened project (e.g. framework or library classes).
  */
-class ProjectClassesInstanceFilter(ideProfilerServices: IdeProfilerServices)
-  : CaptureObjectInstanceFilter(
-  "Project classes",
-  "Show instances of classes from only the current project.",
-  null,
-  null,
-  makeProjectClassTest(ideProfilerServices))
+class SystemClassesInstanceFilter(ideProfilerServices: IdeProfilerServices) : CaptureObjectInstanceFilter(
+  displayName = "System classes",
+  summaryDescription = "Show instances of classes from outside the current project.",
+  detailedDescription = null,
+  documentationLink = null,
+  instanceTest = makeSystemClassTest(ideProfilerServices)
+)
 
-private fun makeProjectClassTest(ideProfilerServices: IdeProfilerServices) : (InstanceObject) -> Boolean {
+private fun makeSystemClassTest(ideProfilerServices: IdeProfilerServices): (InstanceObject) -> Boolean {
+  // Lazily initialize the set of project classes only once.
   val projectClasses by lazy { ideProfilerServices.allProjectClasses }
   return { inst ->
     var className = inst.classEntry.className
 
-    // Ignore inner classes since they can contain lambdas (e.g. topLevelClass$1). All inner classes should be included anyway if
-    // the top-level class belongs to the project.
+    // Ignore inner classes since they can contain lambdas (e.g. topLevelClass$1).
     val innerClassStartIndex = className.indexOf("$")
     if (innerClassStartIndex != -1) {
-      className = className.substring(0, innerClassStartIndex)
+      className = className.take(innerClassStartIndex)
     }
-    projectClasses.contains(className)
+    !projectClasses.contains(className)
   }
 }

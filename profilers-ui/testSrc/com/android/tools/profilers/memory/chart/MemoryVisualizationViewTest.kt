@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,20 +27,22 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.ProfilerDropDownComponent
 import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.ClassGrouping
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.MemoryCaptureObjectTestUtils
+import com.android.tools.profilers.selectItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import javax.swing.JComponent
+import javax.swing.JLabel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JComboBox
-import javax.swing.JComponent
 
 class MemoryVisualizationViewTest {
   private val timer = FakeTimer()
@@ -71,11 +73,10 @@ class MemoryVisualizationViewTest {
   }
 
   @Test
-  fun toolbarComponentContainsComboboxOfFilter() {
-    assertThat(visualizationView.toolbarComponents).hasSize(1)
-    assertThat(visualizationView.toolbarComponents[0]).isInstanceOf(JComboBox::class.java)
-    val comboBox = visualizationView.toolbarComponents[0] as JComboBox<*>
-    assertThat(comboBox.model.size).isEqualTo(MemoryVisualizationModel.XAxisFilter.values().size)
+  fun toolbarComponentContainsDropdownOfFilter() {
+    assertThat(visualizationView.toolbarComponents).hasSize(2)
+    assertThat(visualizationView.toolbarComponents[0]).isInstanceOf(JLabel::class.java)
+    assertThat(visualizationView.toolbarComponents[1]).isInstanceOf(ProfilerDropDownComponent::class.java)
   }
 
   @Test
@@ -136,14 +137,18 @@ class MemoryVisualizationViewTest {
   }
 
   @Test
-  fun axisComponentSizeMatchsFilterSize() {
+  fun axisComponentSizeMatchesFilterSize() {
     val component = visualizationView.component
     val heapSet = MemoryCaptureObjectTestUtils.createAndSelectHeapSet(stage)
     visualizationView.onSelectionChanged(true)
     var axis = TreeWalker(component).descendants().filterIsInstance<AxisComponent>().first()
     assertThat(axis.model.dataRange).isWithin(.002).of((heapSet.allocationSize).toDouble())
-    (visualizationView.toolbarComponents[0] as JComboBox<MemoryVisualizationModel.XAxisFilter>).selectedItem =
+    // Select the "Total Count" filter from the dropdown to simulate a user click.
+    selectItem(
+      visualizationView.toolbarComponents[1] as ProfilerDropDownComponent<MemoryVisualizationModel.XAxisFilter>,
       MemoryVisualizationModel.XAxisFilter.TOTAL_COUNT
+    )
+
     axis = TreeWalker(component).descendants().filterIsInstance<AxisComponent>().first()
     assertThat(axis.model.dataRange).isWithin(.002).of(heapSet.totalObjectCount.toDouble())
   }
