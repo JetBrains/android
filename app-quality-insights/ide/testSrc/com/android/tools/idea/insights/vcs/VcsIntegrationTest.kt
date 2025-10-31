@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.vcs
 
+import com.android.tools.adtui.swing.EditorUtils.cleanUpListenersFromEditorMouseHoverPopupManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.insights.AppVcsInfo
@@ -22,7 +23,6 @@ import com.android.tools.idea.insights.InsightsTestProject
 import com.android.tools.idea.insights.PROJECT_ROOT_PREFIX
 import com.android.tools.idea.insights.RepoInfo
 import com.android.tools.idea.insights.VCS_CATEGORY
-import com.android.tools.idea.insights.ui.cleanUpListenersFromEditorMouseHoverPopupManager
 import com.android.tools.idea.insights.ui.initConsoleWithFilters
 import com.android.tools.idea.insights.ui.printAndHighlight
 import com.android.tools.idea.insights.ui.vcs.ContextDataForDiff
