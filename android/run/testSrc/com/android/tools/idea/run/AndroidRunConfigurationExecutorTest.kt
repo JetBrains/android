@@ -787,7 +787,7 @@ class AndroidRunConfigurationExecutorTest {
   private fun setSwapInfo(env: ExecutionEnvironment, device: IDevice): RunContentDescriptor {
     val processHandlerForSwap = AndroidProcessHandler(APPLICATION_ID).apply { addTargetDevice(device) }
     processHandlerForSwap.startNotify()
-    Disposer.register(projectRule.project) {
+    Disposer.register(projectRule.testRootDisposable) {
       processHandlerForSwap.detachProcess()
     }
     var runContentDescriptor: RunContentDescriptor? = null
@@ -795,6 +795,7 @@ class AndroidRunConfigurationExecutorTest {
       runContentDescriptor = showRunContent(DefaultExecutionResult(EmptyTestConsoleView(), processHandlerForSwap), env)!!.apply {
         setAttachedContent(mock())
       }
+      Disposer.register(projectRule.testRootDisposable, runContentDescriptor)
 
       val mockRunContentManager = mock<RunContentManager>()
       whenever(mockRunContentManager.findContentDescriptor(eq(env.executor), eq(processHandlerForSwap))).thenReturn(runContentDescriptor)
