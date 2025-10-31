@@ -242,13 +242,13 @@ public class HeapDumpCaptureObjectTest {
 
     long allInstanceCount = capture.getInstances().count();
     Truth.assertThat(allInstanceCount).isGreaterThan(7L);
-    Set<CaptureObjectInstanceFilter> filters = capture.getSupportedInstanceFilters();
+    Set<CaptureObjectInstanceFilter> filters = capture.getSupportedIssueTypeFilters();
     Optional<CaptureObjectInstanceFilter> leakFilter =
       filters.stream().filter(filter -> filter instanceof ActivityFragmentLeakInstanceFilter).findAny();
     Truth.assertThat(leakFilter.isPresent()).isTrue();
 
     CountDownLatch addFilterLatch = new CountDownLatch(1);
-    capture.addInstanceFilter(leakFilter.get(), Runnable::run);
+    capture.setIssueTypeFilter(leakFilter.get(), Runnable::run);
     // Wait for the filter to finish running on the off-main-thread executor.
     capture.getInstanceFilterExecutor().execute(addFilterLatch::countDown);
     addFilterLatch.await();
@@ -262,7 +262,7 @@ public class HeapDumpCaptureObjectTest {
       instance -> instance.getClassEntry().getSimpleClassName().equals("ImageDetailFragment")).count()).isEqualTo(5);
 
     CountDownLatch removeFilterLatch = new CountDownLatch(1);
-    capture.removeInstanceFilter(leakFilter.get(), Runnable::run);
+    capture.setIssueTypeFilter(null, Runnable::run);
     // Wait for the filter to finish running on the off-main-thread executor.
     capture.getInstanceFilterExecutor().execute(removeFilterLatch::countDown);
     removeFilterLatch.await();
