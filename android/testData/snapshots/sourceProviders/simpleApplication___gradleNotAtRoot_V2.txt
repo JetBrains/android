@@ -17,8 +17,8 @@ MODULE: gradle_project.app
             JavaDirectories:
                 file://./gradle_project/app/src/main/java
             KotlinDirectoryUrls:
-                file://./gradle_project/app/src/main/kotlin
                 file://./gradle_project/app/src/main/java
+                file://./gradle_project/app/src/main/kotlin
             KotlinDirectories:
                 file://./gradle_project/app/src/main/java
             JniLibsDirectoryUrls:
@@ -38,8 +38,8 @@ MODULE: gradle_project.app
             JavaDirectories:
                 ./gradle_project/app/src/main/java
             KotlinDirectories:
-                ./gradle_project/app/src/main/kotlin
                 ./gradle_project/app/src/main/java
+                ./gradle_project/app/src/main/kotlin
             JniLibsDirectories:
                 ./gradle_project/app/src/main/jniLibs
             ResDirectories:
@@ -57,8 +57,8 @@ MODULE: gradle_project.app
                 JavaDirectories:
                     ./gradle_project/app/src/main/java
                 KotlinDirectories:
-                    ./gradle_project/app/src/main/kotlin
                     ./gradle_project/app/src/main/java
+                    ./gradle_project/app/src/main/kotlin
                 JniLibsDirectories:
                     ./gradle_project/app/src/main/jniLibs
                 ResDirectories:
@@ -75,8 +75,8 @@ MODULE: gradle_project.app
                 JavaDirectories:
                     ./gradle_project/app/src/debug/java
                 KotlinDirectories:
-                    ./gradle_project/app/src/debug/kotlin
                     ./gradle_project/app/src/debug/java
+                    ./gradle_project/app/src/debug/kotlin
                 JniLibsDirectories:
                     ./gradle_project/app/src/debug/jniLibs
                 ResDirectories:
@@ -94,8 +94,8 @@ MODULE: gradle_project.app
                 JavaDirectories:
                     ./gradle_project/app/src/main/java
                 KotlinDirectories:
-                    ./gradle_project/app/src/main/kotlin
                     ./gradle_project/app/src/main/java
+                    ./gradle_project/app/src/main/kotlin
                 JniLibsDirectories:
                     ./gradle_project/app/src/main/jniLibs
                 ResDirectories:
@@ -112,8 +112,8 @@ MODULE: gradle_project.app
                 JavaDirectories:
                     ./gradle_project/app/src/debug/java
                 KotlinDirectories:
-                    ./gradle_project/app/src/debug/kotlin
                     ./gradle_project/app/src/debug/java
+                    ./gradle_project/app/src/debug/kotlin
                 JniLibsDirectories:
                     ./gradle_project/app/src/debug/jniLibs
                 ResDirectories:
@@ -130,8 +130,8 @@ MODULE: gradle_project.app
                 JavaDirectories:
                     ./gradle_project/app/src/release/java
                 KotlinDirectories:
-                    ./gradle_project/app/src/release/kotlin
                     ./gradle_project/app/src/release/java
+                    ./gradle_project/app/src/release/kotlin
                 JniLibsDirectories:
                     ./gradle_project/app/src/release/jniLibs
                 ResDirectories:
@@ -150,8 +150,8 @@ MODULE: gradle_project.app
                     JavaDirectories:
                         ./gradle_project/app/src/test/java
                     KotlinDirectories:
-                        ./gradle_project/app/src/test/kotlin
                         ./gradle_project/app/src/test/java
+                        ./gradle_project/app/src/test/kotlin
                     JniLibsDirectories:
                         ./gradle_project/app/src/test/jniLibs
                     ResDirectories:
@@ -168,8 +168,8 @@ MODULE: gradle_project.app
                     JavaDirectories:
                         ./gradle_project/app/src/testDebug/java
                     KotlinDirectories:
-                        ./gradle_project/app/src/testDebug/kotlin
                         ./gradle_project/app/src/testDebug/java
+                        ./gradle_project/app/src/testDebug/kotlin
                     JniLibsDirectories:
                         ./gradle_project/app/src/testDebug/jniLibs
                     ResDirectories:
@@ -188,8 +188,8 @@ MODULE: gradle_project.app
                     JavaDirectories:
                         ./gradle_project/app/src/androidTest/java
                     KotlinDirectories:
-                        ./gradle_project/app/src/androidTest/kotlin
                         ./gradle_project/app/src/androidTest/java
+                        ./gradle_project/app/src/androidTest/kotlin
                     JniLibsDirectories:
                         ./gradle_project/app/src/androidTest/jniLibs
                     ResDirectories:
@@ -206,8 +206,8 @@ MODULE: gradle_project.app
                     JavaDirectories:
                         ./gradle_project/app/src/androidTestDebug/java
                     KotlinDirectories:
-                        ./gradle_project/app/src/androidTestDebug/kotlin
                         ./gradle_project/app/src/androidTestDebug/java
+                        ./gradle_project/app/src/androidTestDebug/kotlin
                     JniLibsDirectories:
                         ./gradle_project/app/src/androidTestDebug/jniLibs
                     ResDirectories:
@@ -242,10 +242,10 @@ MODULE: gradle_project.app
                 JavaDirectories:
                     file://./gradle_project/app/src/main/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/main/kotlin
                     file://./gradle_project/app/src/main/java
-                    file://./gradle_project/app/src/debug/kotlin
+                    file://./gradle_project/app/src/main/kotlin
                     file://./gradle_project/app/src/debug/java
+                    file://./gradle_project/app/src/debug/kotlin
                 KotlinDirectories:
                     file://./gradle_project/app/src/main/java
                 JniLibsDirectoryUrls:
@@ -279,10 +279,10 @@ MODULE: gradle_project.app
                 JavaDirectories:
                     file://./gradle_project/app/src/test/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/test/kotlin
                     file://./gradle_project/app/src/test/java
-                    file://./gradle_project/app/src/testDebug/kotlin
+                    file://./gradle_project/app/src/test/kotlin
                     file://./gradle_project/app/src/testDebug/java
+                    file://./gradle_project/app/src/testDebug/kotlin
                 KotlinDirectories:
                     file://./gradle_project/app/src/test/java
                 JniLibsDirectoryUrls:
@@ -314,10 +314,10 @@ MODULE: gradle_project.app
                 JavaDirectories:
                     file://./gradle_project/app/src/androidTest/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/androidTest/kotlin
                     file://./gradle_project/app/src/androidTest/java
-                    file://./gradle_project/app/src/androidTestDebug/kotlin
+                    file://./gradle_project/app/src/androidTest/kotlin
                     file://./gradle_project/app/src/androidTestDebug/java
+                    file://./gradle_project/app/src/androidTestDebug/kotlin
                 KotlinDirectories:
                     file://./gradle_project/app/src/androidTest/java
                 JniLibsDirectoryUrls:
@@ -369,8 +369,8 @@ MODULE: gradle_project.app
                 JavaDirectories:
                     file://./gradle_project/app/src/main/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/main/kotlin
                     file://./gradle_project/app/src/main/java
+                    file://./gradle_project/app/src/main/kotlin
                 KotlinDirectories:
                     file://./gradle_project/app/src/main/java
                 JniLibsDirectoryUrls:
@@ -396,8 +396,8 @@ MODULE: gradle_project.app
                 JavaDirectories:
                     file://./gradle_project/app/src/androidTest/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/androidTest/kotlin
                     file://./gradle_project/app/src/androidTest/java
+                    file://./gradle_project/app/src/androidTest/kotlin
                 KotlinDirectories:
                     file://./gradle_project/app/src/androidTest/java
                 JniLibsDirectoryUrls:
@@ -417,8 +417,8 @@ MODULE: gradle_project.app
                 JavaDirectoryUrls:
                     file://./gradle_project/app/src/androidTestDebug/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/androidTestDebug/kotlin
                     file://./gradle_project/app/src/androidTestDebug/java
+                    file://./gradle_project/app/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./gradle_project/app/src/androidTestDebug/jniLibs
                 ResDirectoryUrls:
@@ -436,8 +436,8 @@ MODULE: gradle_project.app
                 JavaDirectoryUrls:
                     file://./gradle_project/app/src/debug/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/debug/kotlin
                     file://./gradle_project/app/src/debug/java
+                    file://./gradle_project/app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./gradle_project/app/src/debug/jniLibs
                 ResDirectoryUrls:
@@ -455,8 +455,8 @@ MODULE: gradle_project.app
                 JavaDirectoryUrls:
                     file://./gradle_project/app/src/release/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/release/kotlin
                     file://./gradle_project/app/src/release/java
+                    file://./gradle_project/app/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./gradle_project/app/src/release/jniLibs
                 ResDirectoryUrls:
@@ -478,8 +478,8 @@ MODULE: gradle_project.app
                 JavaDirectories:
                     file://./gradle_project/app/src/test/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/test/kotlin
                     file://./gradle_project/app/src/test/java
+                    file://./gradle_project/app/src/test/kotlin
                 KotlinDirectories:
                     file://./gradle_project/app/src/test/java
                 JniLibsDirectoryUrls:
@@ -499,8 +499,8 @@ MODULE: gradle_project.app
                 JavaDirectoryUrls:
                     file://./gradle_project/app/src/testDebug/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/testDebug/kotlin
                     file://./gradle_project/app/src/testDebug/java
+                    file://./gradle_project/app/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./gradle_project/app/src/testDebug/jniLibs
                 ResDirectoryUrls:
@@ -525,8 +525,8 @@ MODULE: gradle_project.app
                 JavaDirectories:
                     file://./gradle_project/app/src/main/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/main/kotlin
                     file://./gradle_project/app/src/main/java
+                    file://./gradle_project/app/src/main/kotlin
                 KotlinDirectories:
                     file://./gradle_project/app/src/main/java
                 JniLibsDirectoryUrls:
@@ -548,8 +548,8 @@ MODULE: gradle_project.app
                 JavaDirectoryUrls:
                     file://./gradle_project/app/src/debug/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/debug/kotlin
                     file://./gradle_project/app/src/debug/java
+                    file://./gradle_project/app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./gradle_project/app/src/debug/jniLibs
                 ResDirectoryUrls:
@@ -567,8 +567,8 @@ MODULE: gradle_project.app
                 JavaDirectoryUrls:
                     file://./gradle_project/app/src/release/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/release/kotlin
                     file://./gradle_project/app/src/release/java
+                    file://./gradle_project/app/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./gradle_project/app/src/release/jniLibs
                 ResDirectoryUrls:
@@ -593,8 +593,8 @@ MODULE: gradle_project.app
                 JavaDirectories:
                     file://./gradle_project/app/src/main/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/main/kotlin
                     file://./gradle_project/app/src/main/java
+                    file://./gradle_project/app/src/main/kotlin
                 KotlinDirectories:
                     file://./gradle_project/app/src/main/java
                 JniLibsDirectoryUrls:
@@ -616,8 +616,8 @@ MODULE: gradle_project.app
                 JavaDirectoryUrls:
                     file://./gradle_project/app/src/debug/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/debug/kotlin
                     file://./gradle_project/app/src/debug/java
+                    file://./gradle_project/app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./gradle_project/app/src/debug/jniLibs
                 ResDirectoryUrls:
@@ -640,8 +640,8 @@ MODULE: gradle_project.app
                 JavaDirectories:
                     file://./gradle_project/app/src/test/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/test/kotlin
                     file://./gradle_project/app/src/test/java
+                    file://./gradle_project/app/src/test/kotlin
                 KotlinDirectories:
                     file://./gradle_project/app/src/test/java
                 JniLibsDirectoryUrls:
@@ -661,8 +661,8 @@ MODULE: gradle_project.app
                 JavaDirectoryUrls:
                     file://./gradle_project/app/src/testDebug/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/testDebug/kotlin
                     file://./gradle_project/app/src/testDebug/java
+                    file://./gradle_project/app/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./gradle_project/app/src/testDebug/jniLibs
                 ResDirectoryUrls:
@@ -685,8 +685,8 @@ MODULE: gradle_project.app
                 JavaDirectories:
                     file://./gradle_project/app/src/androidTest/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/androidTest/kotlin
                     file://./gradle_project/app/src/androidTest/java
+                    file://./gradle_project/app/src/androidTest/kotlin
                 KotlinDirectories:
                     file://./gradle_project/app/src/androidTest/java
                 JniLibsDirectoryUrls:
@@ -706,8 +706,8 @@ MODULE: gradle_project.app
                 JavaDirectoryUrls:
                     file://./gradle_project/app/src/androidTestDebug/java
                 KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/androidTestDebug/kotlin
                     file://./gradle_project/app/src/androidTestDebug/java
+                    file://./gradle_project/app/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./gradle_project/app/src/androidTestDebug/jniLibs
                 ResDirectoryUrls:

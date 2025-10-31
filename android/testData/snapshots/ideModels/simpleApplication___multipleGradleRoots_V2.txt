@@ -134,8 +134,8 @@ MODULE                        : gradle_project_1.app
             Name                          : main
             Manifest                      : <ROOT>/gradle_project_1/app/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/gradle_project_1/app/src/main/java
-            KotlinDirectories             : <ROOT>/gradle_project_1/app/src/main/kotlin [-]
             KotlinDirectories             : <ROOT>/gradle_project_1/app/src/main/java
+            KotlinDirectories             : <ROOT>/gradle_project_1/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/gradle_project_1/app/src/main/resources [-]
             ResDirectories                : <ROOT>/gradle_project_1/app/src/main/res
             AssetsDirectories             : <ROOT>/gradle_project_1/app/src/main/assets [-]
@@ -148,8 +148,8 @@ MODULE                        : gradle_project_1.app
                     Name                          : androidTest
                     Manifest                      : <ROOT>/gradle_project_1/app/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/gradle_project_1/app/src/androidTest/java
-                    KotlinDirectories             : <ROOT>/gradle_project_1/app/src/androidTest/kotlin [-]
                     KotlinDirectories             : <ROOT>/gradle_project_1/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/gradle_project_1/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_1/app/src/androidTest/resources [-]
                     ResDirectories                : <ROOT>/gradle_project_1/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_1/app/src/androidTest/assets [-]
@@ -161,8 +161,8 @@ MODULE                        : gradle_project_1.app
                     Name                          : test
                     Manifest                      : <ROOT>/gradle_project_1/app/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/gradle_project_1/app/src/test/java
-                    KotlinDirectories             : <ROOT>/gradle_project_1/app/src/test/kotlin [-]
                     KotlinDirectories             : <ROOT>/gradle_project_1/app/src/test/java
+                    KotlinDirectories             : <ROOT>/gradle_project_1/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_1/app/src/test/resources [-]
                     ResDirectories                : <ROOT>/gradle_project_1/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_1/app/src/test/assets [-]
@@ -182,8 +182,8 @@ MODULE                        : gradle_project_1.app
             Name                          : debug
             Manifest                      : <ROOT>/gradle_project_1/app/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/gradle_project_1/app/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/gradle_project_1/app/src/debug/kotlin [-]
             KotlinDirectories             : <ROOT>/gradle_project_1/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/gradle_project_1/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/gradle_project_1/app/src/debug/resources [-]
             ResDirectories                : <ROOT>/gradle_project_1/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/gradle_project_1/app/src/debug/assets [-]
@@ -196,8 +196,8 @@ MODULE                        : gradle_project_1.app
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/gradle_project_1/app/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/gradle_project_1/app/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/gradle_project_1/app/src/androidTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/gradle_project_1/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/gradle_project_1/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_1/app/src/androidTestDebug/resources [-]
                     ResDirectories                : <ROOT>/gradle_project_1/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_1/app/src/androidTestDebug/assets [-]
@@ -210,8 +210,8 @@ MODULE                        : gradle_project_1.app
                     Name                          : testDebug
                     Manifest                      : <ROOT>/gradle_project_1/app/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/gradle_project_1/app/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/gradle_project_1/app/src/testDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/gradle_project_1/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/gradle_project_1/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_1/app/src/testDebug/resources [-]
                     ResDirectories                : <ROOT>/gradle_project_1/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_1/app/src/testDebug/assets [-]
@@ -232,8 +232,8 @@ MODULE                        : gradle_project_1.app
             Name                          : release
             Manifest                      : <ROOT>/gradle_project_1/app/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/gradle_project_1/app/src/release/java [-]
-            KotlinDirectories             : <ROOT>/gradle_project_1/app/src/release/kotlin [-]
             KotlinDirectories             : <ROOT>/gradle_project_1/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/gradle_project_1/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/gradle_project_1/app/src/release/resources [-]
             ResDirectories                : <ROOT>/gradle_project_1/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/gradle_project_1/app/src/release/assets [-]
@@ -1284,8 +1284,8 @@ MODULE                        : gradle_project_name.app
             Name                          : main
             Manifest                      : <ROOT>/gradle_project_2/app/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/gradle_project_2/app/src/main/java
-            KotlinDirectories             : <ROOT>/gradle_project_2/app/src/main/kotlin [-]
             KotlinDirectories             : <ROOT>/gradle_project_2/app/src/main/java
+            KotlinDirectories             : <ROOT>/gradle_project_2/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/gradle_project_2/app/src/main/resources [-]
             ResDirectories                : <ROOT>/gradle_project_2/app/src/main/res
             AssetsDirectories             : <ROOT>/gradle_project_2/app/src/main/assets [-]
@@ -1298,8 +1298,8 @@ MODULE                        : gradle_project_name.app
                     Name                          : androidTest
                     Manifest                      : <ROOT>/gradle_project_2/app/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/gradle_project_2/app/src/androidTest/java
-                    KotlinDirectories             : <ROOT>/gradle_project_2/app/src/androidTest/kotlin [-]
                     KotlinDirectories             : <ROOT>/gradle_project_2/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/gradle_project_2/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_2/app/src/androidTest/resources [-]
                     ResDirectories                : <ROOT>/gradle_project_2/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_2/app/src/androidTest/assets [-]
@@ -1311,8 +1311,8 @@ MODULE                        : gradle_project_name.app
                     Name                          : test
                     Manifest                      : <ROOT>/gradle_project_2/app/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/gradle_project_2/app/src/test/java
-                    KotlinDirectories             : <ROOT>/gradle_project_2/app/src/test/kotlin [-]
                     KotlinDirectories             : <ROOT>/gradle_project_2/app/src/test/java
+                    KotlinDirectories             : <ROOT>/gradle_project_2/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_2/app/src/test/resources [-]
                     ResDirectories                : <ROOT>/gradle_project_2/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_2/app/src/test/assets [-]
@@ -1332,8 +1332,8 @@ MODULE                        : gradle_project_name.app
             Name                          : debug
             Manifest                      : <ROOT>/gradle_project_2/app/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/gradle_project_2/app/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/gradle_project_2/app/src/debug/kotlin [-]
             KotlinDirectories             : <ROOT>/gradle_project_2/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/gradle_project_2/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/gradle_project_2/app/src/debug/resources [-]
             ResDirectories                : <ROOT>/gradle_project_2/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/gradle_project_2/app/src/debug/assets [-]
@@ -1346,8 +1346,8 @@ MODULE                        : gradle_project_name.app
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/gradle_project_2/app/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/gradle_project_2/app/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/gradle_project_2/app/src/androidTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/gradle_project_2/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/gradle_project_2/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_2/app/src/androidTestDebug/resources [-]
                     ResDirectories                : <ROOT>/gradle_project_2/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_2/app/src/androidTestDebug/assets [-]
@@ -1360,8 +1360,8 @@ MODULE                        : gradle_project_name.app
                     Name                          : testDebug
                     Manifest                      : <ROOT>/gradle_project_2/app/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/gradle_project_2/app/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/gradle_project_2/app/src/testDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/gradle_project_2/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/gradle_project_2/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_2/app/src/testDebug/resources [-]
                     ResDirectories                : <ROOT>/gradle_project_2/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_2/app/src/testDebug/assets [-]
@@ -1382,8 +1382,8 @@ MODULE                        : gradle_project_name.app
             Name                          : release
             Manifest                      : <ROOT>/gradle_project_2/app/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/gradle_project_2/app/src/release/java [-]
-            KotlinDirectories             : <ROOT>/gradle_project_2/app/src/release/kotlin [-]
             KotlinDirectories             : <ROOT>/gradle_project_2/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/gradle_project_2/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/gradle_project_2/app/src/release/resources [-]
             ResDirectories                : <ROOT>/gradle_project_2/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/gradle_project_2/app/src/release/assets [-]
