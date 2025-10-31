@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectPro
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.execution.println
-import com.android.tools.idea.run.configuration.execution.printlnError
 import com.android.tools.idea.run.editor.AndroidTestExtraParam.Companion.parseFromString
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
@@ -48,6 +47,7 @@ import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -139,7 +139,7 @@ class GradleConnectedAndroidTestInvoker(
           outputLineProcessor.append(text)
         }
         else {
-          androidTestSuiteView.printlnError(text)
+          androidTestSuiteView.print(text, ConsoleViewContentType.ERROR_OUTPUT)
         }
       }
 
