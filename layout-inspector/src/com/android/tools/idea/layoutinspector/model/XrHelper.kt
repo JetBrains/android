@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAndroidWindow
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import java.awt.Polygon
 import java.awt.Rectangle
@@ -26,12 +25,13 @@ import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Rearrange the coordinates of the [ViewNode]s inside each window so that windows are rendered on a
- * grid
+ * grid. This is useful when the app is being rendered across multiple displays (like for glasses)
+ * or in the case of XR when the app can have multiple windows in space.
  */
-fun reLayoutWindowsForXr(writeAccess: ViewNode.WriteAccess, windows: List<AndroidWindow>) {
-  val hasXr = windows.filterIsInstance<ViewAndroidWindow>().find { it.isXr } != null
-
-  if (!hasXr || LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+fun reLayoutWindowsAsGrid(writeAccess: ViewNode.WriteAccess, windows: List<AndroidWindow>) {
+  if (LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+    // In embedded Layout Inspector it doesn't make sense to re-layout each window in a grid, since
+    // everything needs to be overlaid to the device ui.
     return
   }
 
