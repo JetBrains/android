@@ -27,7 +27,7 @@ import com.android.tools.profilers.memory.adapters.InstanceObject
 class BitmapDuplicationInstanceFilter(
   private val duplicateBitmapSet: Set<InstanceObject>
 ) : CaptureObjectInstanceFilter(
-  "duplicate bitmaps",
+  "Duplicate Bitmaps",
   "Show duplicate Bitmap instances",
   "Shows all Bitmap instances that have the same dimensions and pixel content as at least one other Bitmap instance.",
   null,

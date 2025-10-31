@@ -28,7 +28,9 @@ import com.android.tools.profilers.memory.adapters.FieldObject
 import com.android.tools.profilers.memory.adapters.InstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
+import com.android.tools.profilers.memory.adapters.instancefilters.AllClassTypeFilter
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
+import com.android.tools.profilers.memory.adapters.instancefilters.NoneFilter
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.Objects
 import java.util.concurrent.Executor
@@ -39,7 +41,7 @@ import java.util.concurrent.Executor
 class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
   val aspect = AspectModel<CaptureSelectionAspect>()
 
-  val classGroupingModel = ConditionalEnumComboBoxModel(ClassGrouping::class.java) {grouping ->
+  val classGroupingModel = ConditionalEnumComboBoxModel(ClassGrouping::class.java) { grouping ->
     selectedCapture?.isGroupingSupported(grouping) ?: true
   }
   val filterHandler = object : FilterHandler() {
@@ -87,7 +89,20 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
         aspect.changed(CaptureSelectionAspect.CURRENT_FIELD_PATH)
       }
     }
-
+  var selectedClassTypeFilter: CaptureObjectInstanceFilter? = null
+    private set(filter) {
+      if (field !== filter) {
+        field = filter
+        aspect.changed(CaptureSelectionAspect.CURRENT_CLASS_TYPE_FILTER)
+      }
+    }
+  var selectedIssueTypeFilter: CaptureObjectInstanceFilter? = null
+    private set(filter) {
+      if (field !== filter) {
+        field = filter
+        aspect.changed(CaptureSelectionAspect.CURRENT_ISSUE_TYPE_FILTER)
+      }
+    }
   var classGrouping = ClassGrouping.ARRANGE_BY_CLASS
     set(newGrouping) {
       if (field != newGrouping) {
@@ -115,6 +130,8 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
     selectedCapture = captureEntry?.captureObject
     classGroupingModel.update()
     classGrouping = classGroupingModel.getElementAt(0)
+    selectedClassTypeFilter = AllClassTypeFilter
+    selectedIssueTypeFilter = NoneFilter
     aspect.changed(CaptureSelectionAspect.CURRENT_LOADING_CAPTURE)
     return true
   }
@@ -190,6 +207,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
             selectInstanceObject(prevInst)
             selectFieldObjectPath(prevFields)
           }
+
           null -> selectInstanceObject(null)
         }
       }
@@ -216,26 +234,25 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
     return false
   }
 
-  fun addInstanceFilter(filter: CaptureObjectInstanceFilter, joiner: Executor) =
-    runCaptureInstanceFilter(joiner) { it.addInstanceFilter(filter, joiner) }
-
-  fun removeInstanceFilter(filter: CaptureObjectInstanceFilter, joiner: Executor) =
-    runCaptureInstanceFilter(joiner) { it.removeInstanceFilter(filter, joiner) }
-
-  fun setFilter(filter: CaptureObjectInstanceFilter, joiner: Executor) =
-    runCaptureInstanceFilter(joiner) { it.setSingleFilter(filter, joiner) }
-
-  fun removeAllFilters(joiner: Executor) =
-    runCaptureInstanceFilter(joiner) { it.removeAllFilters(joiner) }
-
-  private fun runCaptureInstanceFilter(joiner: Executor, update: (CaptureObject) -> ListenableFuture<Void>) {
-    aspect.changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATING)
-    update(selectedCapture!!).addListener(Runnable {
-      aspect.changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATED)
-      refreshSelectedHeap()
-    }, joiner)
+  fun setClassTypeFilter(filter: CaptureObjectInstanceFilter?, joiner: Executor) {
+    selectedClassTypeFilter = filter
+    runCaptureInstanceFilter(joiner) { it.setClassTypeFilter(filter, joiner) }
   }
 
+  fun setIssueTypeFilter(filter: CaptureObjectInstanceFilter?, joiner: Executor) {
+    selectedIssueTypeFilter = filter
+    runCaptureInstanceFilter(joiner) { it.setIssueTypeFilter(filter, joiner) }
+  }
+
+  private fun runCaptureInstanceFilter(joiner: Executor, update: (CaptureObject) -> ListenableFuture<Void?>) {
+    selectedCapture?.let { capture ->
+      aspect.changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATING)
+      update(capture).addListener({
+                                    aspect.changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATED)
+                                    refreshSelectedHeap()
+                                  }, joiner)
+    }
+  }
 
   private fun selectCaptureFilter(filter: Filter) {
     // Only track filter usage when filter has been updated.
@@ -260,7 +277,8 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
       ClassGrouping.ARRANGE_BY_PACKAGE -> filterMetadata.view = FilterMetadata.View.MEMORY_PACKAGE
       ClassGrouping.ARRANGE_BY_CALLSTACK -> filterMetadata.view = FilterMetadata.View.MEMORY_CALLSTACK
       ClassGrouping.NATIVE_ARRANGE_BY_ALLOCATION_METHOD,
-      ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK -> {}
+      ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK -> {
+      }
     }
     filterMetadata.setFeaturesUsed(filter.isMatchCase, filter.isRegex)
     selectedHeapSet?.let {
@@ -284,14 +302,17 @@ enum class CaptureSelectionAspect {
   CURRENT_CLASS,
   CURRENT_INSTANCE,
   CURRENT_FIELD_PATH,
-  CURRENT_FILTER
+  CURRENT_FILTER,
+  CURRENT_CLASS_TYPE_FILTER,
+  CURRENT_ISSUE_TYPE_FILTER,
 }
 
 enum class ClassGrouping(val label: String) {
-  ARRANGE_BY_CLASS("Arrange by class"),
-  ARRANGE_BY_PACKAGE("Arrange by package"),
-  ARRANGE_BY_CALLSTACK("Arrange by callstack"),
-  NATIVE_ARRANGE_BY_ALLOCATION_METHOD("Arrange by allocation method"),
-  NATIVE_ARRANGE_BY_CALLSTACK("Arrange by callstack");
+  ARRANGE_BY_CLASS("Class"),
+  ARRANGE_BY_PACKAGE("Package"),
+  ARRANGE_BY_CALLSTACK("Callstack"),
+  NATIVE_ARRANGE_BY_ALLOCATION_METHOD("Allocation method"),
+  NATIVE_ARRANGE_BY_CALLSTACK("Callstack");
+
   override fun toString() = label
 }

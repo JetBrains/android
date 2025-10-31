@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory.adapters
 
 import com.android.tools.adtui.model.Range
-import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.perflib.heap.ClassObj
 import com.android.tools.perflib.heap.Instance
 import com.android.tools.perflib.heap.Snapshot
@@ -29,6 +28,7 @@ import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.analytics.trackLoading
+import com.android.tools.profilers.memory.BitmapDuplicationAnalyzer
 import com.android.tools.profilers.memory.ClassGrouping
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.MemoryProfiler.Companion.saveHeapDumpToFile
@@ -39,12 +39,15 @@ import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttri
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.SHALLOW_SIZE
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute
 import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet
-import com.android.tools.profilers.memory.BitmapDuplicationAnalyzer
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter
+import com.android.tools.profilers.memory.adapters.instancefilters.AllClassTypeFilter
+import com.android.tools.profilers.memory.adapters.instancefilters.AllIssuesInstanceFilter
 import com.android.tools.profilers.memory.adapters.instancefilters.BitmapDuplicationInstanceFilter
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
+import com.android.tools.profilers.memory.adapters.instancefilters.NoneFilter
 import com.android.tools.profilers.memory.adapters.instancefilters.ProjectClassesInstanceFilter
+import com.android.tools.profilers.memory.adapters.instancefilters.SystemClassesInstanceFilter
 import com.android.tools.proguard.ProguardMap
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
@@ -53,11 +56,10 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Loading
 import it.unimi.dsi.fastutil.Hash
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
-import java.io.OutputStream
 import java.io.File
+import java.io.OutputStream
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
-import java.util.stream.Collectors
 import java.util.stream.Stream
 
 open class HeapDumpCaptureObject(private val client: ProfilerClient,
@@ -84,9 +86,15 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   private val activityFragmentLeakFilter = ActivityFragmentLeakInstanceFilter(classDb)
   private val bitmapDuplicationAnalyzer = BitmapDuplicationAnalyzer()
   private lateinit var bitmapDuplicationFilter: BitmapDuplicationInstanceFilter
-  private lateinit var supportedInstanceFilters: Set<CaptureObjectInstanceFilter> // To be initialized after bitmap filter
+  private var supportedClassTypeFilters = setOf(
+    AllClassTypeFilter,
+    ProjectClassesInstanceFilter(ideProfilerServices),
+    SystemClassesInstanceFilter(ideProfilerServices),
+  )
+  private lateinit var supportedIssueTypeFilters: Set<CaptureObjectInstanceFilter> // To be initialized after bitmap filter
+  private var classTypeFilter: CaptureObjectInstanceFilter? = null
+  private var issueTypeFilter: CaptureObjectInstanceFilter? = null
 
-  private val currentInstanceFilters = mutableSetOf<CaptureObjectInstanceFilter>()
   private val executorService = MoreExecutors.listeningDecorator(
     Executors.newSingleThreadExecutor(ThreadFactoryBuilder().setNameFormat("memory-heapdump-instancefilters").build())
   )
@@ -171,8 +179,12 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
     // Run analysis after all instances are loaded into instanceIndex
     bitmapDuplicationAnalyzer.analyze(allInstances)
     bitmapDuplicationFilter = BitmapDuplicationInstanceFilter(bitmapDuplicationAnalyzer.getDuplicateInstances())
-    // Initialize supportedInstanceFilters now that bitmapDuplicationFilter is ready
-    supportedInstanceFilters = setOf(activityFragmentLeakFilter, ProjectClassesInstanceFilter(ideProfilerServices), bitmapDuplicationFilter)
+    // Initialize supportedIssueTypeFilters now that bitmapDuplicationFilter is ready
+    supportedIssueTypeFilters = setOf(NoneFilter,
+                                     AllIssuesInstanceFilter(activityFragmentLeakFilter, bitmapDuplicationFilter),
+                                     activityFragmentLeakFilter,
+                                     bitmapDuplicationFilter
+    )
   }
 
   private fun addInstance(heapSet: HeapSet, id: Long, instObj: InstanceObject) {
@@ -210,41 +222,29 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
 
   override fun getActivityFragmentLeakFilter() = activityFragmentLeakFilter
   override fun getBitmapDuplicationFilter() = bitmapDuplicationFilter
-  override fun getSupportedInstanceFilters() = supportedInstanceFilters
-  override fun getSelectedInstanceFilters() = currentInstanceFilters
+  override fun getSupportedClassTypeFilters() = supportedClassTypeFilters
+  override fun getSupportedIssueTypeFilters() = supportedIssueTypeFilters
+  override fun getSelectedInstanceFilters(): Set<CaptureObjectInstanceFilter> = setOfNotNull(classTypeFilter, issueTypeFilter)
 
-  override fun addInstanceFilter(filterToAdd: CaptureObjectInstanceFilter, analyzeJoiner: Executor): ListenableFuture<Void?> {
-    assert(supportedInstanceFilters.contains(filterToAdd))
-    currentInstanceFilters.add(filterToAdd)
+  override fun setClassTypeFilter(filter: CaptureObjectInstanceFilter?, analyzeJoiner: Executor): ListenableFuture<Void?> {
+    assert(filter == null || filter in supportedClassTypeFilters)
+    classTypeFilter = filter
+    return applyFilters(analyzeJoiner)
+  }
+
+  override fun setIssueTypeFilter(filter: CaptureObjectInstanceFilter?, analyzeJoiner: Executor): ListenableFuture<Void?> {
+    assert(filter == null || filter in supportedIssueTypeFilters)
+    issueTypeFilter = filter
+    return applyFilters(analyzeJoiner)
+  }
+
+  private fun applyFilters(analyzeJoiner: Executor): ListenableFuture<Void?> {
+    val filtersToApply = selectedInstanceFilters
     return executorService.submit<Void?> {
-      // Run the analyzers on the currently existing InstanceObjects in the HeapSets.
-      val currentInstances = _heapSets.values.stream().flatMap { it.instancesStream }.collect(Collectors.toSet())
-      refreshInstances(filterToAdd.filter(currentInstances), analyzeJoiner)
+      val instancesToShow = filtersToApply.fold(allInstances) { instances, filter -> filter.filter(instances) }
+      // The refreshInstances call needs to block until the UI work is complete, so we wait for the result of the future it returns.
+      refreshInstances(instancesToShow, analyzeJoiner)
     }
-  }
-
-  override fun removeInstanceFilter(filterToRemove: CaptureObjectInstanceFilter, analyzeJoiner: Executor): ListenableFuture<Void?> = when {
-    // Filter is not set in the first place so nothing needs to be done.
-    !currentInstanceFilters.contains(filterToRemove) -> CaptureObject.Utils.makeEmptyTask()
-    else -> {
-      currentInstanceFilters.remove(filterToRemove)
-      executorService.submit<Void?> {
-        // Run the remaining analyzers on the full instance set, since we don't know that the instances that have been removed from the
-        // HeapSets using the filter that we are removing.
-        refreshInstances(currentInstanceFilters.fold(allInstances) { instances, filter -> filter.filter(instances) }, analyzeJoiner)
-      }
-    }
-  }
-
-  override fun setSingleFilter(filter: CaptureObjectInstanceFilter, analyzeJoiner: Executor): ListenableFuture<Void?> {
-    currentInstanceFilters.clear()
-    currentInstanceFilters.add(filter)
-    return executorService.submit<Void?> { refreshInstances(filter.filter(allInstances), analyzeJoiner) }
-  }
-
-  override fun removeAllFilters(analyzeJoiner: Executor): ListenableFuture<Void?> {
-    currentInstanceFilters.clear()
-    return executorService.submit<Void?> { refreshInstances(allInstances, analyzeJoiner) }
   }
 
   private fun refreshInstances(instances: Set<InstanceObject>, executor: Executor): Void? {

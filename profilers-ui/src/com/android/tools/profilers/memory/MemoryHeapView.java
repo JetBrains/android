@@ -17,11 +17,12 @@ package com.android.tools.profilers.memory;
 
 import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 
+import android.databinding.tool.util.StringUtils;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.profilers.ProfilerCombobox;
-import com.android.tools.profilers.ProfilerComboboxCellRenderer;
+import com.android.tools.profilers.ProfilerDropDownComponent;
+import com.android.tools.profilers.ProfilerFlows;
+import com.android.tools.profilers.Selection;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Collection;
@@ -34,30 +35,56 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import kotlin.Unit;
+import kotlinx.coroutines.flow.MutableStateFlow;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MemoryHeapView extends AspectObserver {
   @NotNull private final MemoryCaptureSelection mySelection;
 
-  @NotNull private JPanel myHeapToolbar = new JPanel(createToolbarLayout());
-  @NotNull private JComboBox<HeapSet> myHeapComboBox = new ProfilerCombobox<>();
+  @NotNull private final JPanel myHeapToolbar = new JPanel(createToolbarLayout());
+  @NotNull private final ProfilerDropDownComponent<HeapSet> myHeapDropDownComponent;
+  @NotNull private final MutableStateFlow<Selection<HeapSet>> myHeapSelectionFlow;
 
   @Nullable private CaptureObject myCaptureObject = null;
+  @Nullable private List<HeapSet> myHeaps = null;
 
   MemoryHeapView(@NotNull MemoryCaptureSelection selection) {
     mySelection = selection;
 
+    myHeapSelectionFlow = ProfilerFlows.createMutableStateFlow(Selection.Companion.emptySelection());
     mySelection.getAspect().addDependency(this)
       .onChange(CaptureSelectionAspect.CURRENT_LOADING_CAPTURE, this::setNewCapture)
       .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, this::updateCaptureState)
       .onChange(CaptureSelectionAspect.CURRENT_HEAP, this::refreshHeap);
 
-    myHeapComboBox.addActionListener(e -> {
-      Object item = myHeapComboBox.getSelectedItem();
-      if (item instanceof HeapSet) {
-        mySelection.selectHeapSet((HeapSet)item);
-      }
-    });
-    myHeapToolbar.add(myHeapComboBox);
+    JLabel heapLabel = new JLabel("Heap:");
+    heapLabel.setForeground(UIUtil.getLabelDisabledForeground());
+    heapLabel.setBorder(JBUI.Borders.empty(1, 12, 0, 0));
+    myHeapToolbar.add(heapLabel);
+
+    myHeapDropDownComponent = new ProfilerDropDownComponent<>(
+      StringUtils.capitalize(CaptureObject.APP_HEAP_NAME),
+      "Select heap",
+      null,
+      myHeapSelectionFlow,
+      null,
+      heap -> {
+        mySelection.selectHeapSet(heap);
+        return Unit.INSTANCE;
+      },
+      this::getHeapDisplayName
+    );
+    myHeapToolbar.add(myHeapDropDownComponent);
 
     setNewCapture();
     refreshHeap();
@@ -70,54 +97,35 @@ public class MemoryHeapView extends AspectObserver {
 
   @VisibleForTesting
   @NotNull
-  JComboBox<HeapSet> getHeapComboBox() {
-    return myHeapComboBox;
+  ProfilerDropDownComponent<HeapSet> getHeapDropDown() {
+    return myHeapDropDownComponent;
   }
 
   private void setNewCapture() {
     myCaptureObject = mySelection.getSelectedCapture();
-    myHeapComboBox.setModel(new DefaultComboBoxModel<>());
-    myHeapComboBox.setRenderer(new HeapListCellRenderer());
-    mySelection.selectHeapSet(null); // Clear the heap such that views lower in the hierarchy has a chance to repopulate themselves.
+    if (myCaptureObject == null) {
+      myHeaps = null;
+      return; // Loading probably failed.
+    }
+    mySelection.selectHeapSet(null);
+    myHeaps = new ArrayList<>(myCaptureObject.getHeapSets());
+    refreshHeap();
   }
 
   private void updateCaptureState() {
-    CaptureObject captureObject = mySelection.getSelectedCapture();
-    if (myCaptureObject != captureObject) {
-      return;
-    }
-
-    myCaptureObject = captureObject;
-    if (myCaptureObject == null) {
-      return; // Loading probably failed.
-    }
-
-    Collection<HeapSet> heaps = myCaptureObject.getHeapSets();
-    HeapSet[] heapsArray = heaps.toArray(new HeapSet[heaps.size()]);
-    ComboBoxModel<HeapSet> comboBoxModel = new DefaultComboBoxModel<>(heapsArray);
-    myHeapComboBox.setModel(comboBoxModel);
-
+    setNewCapture();
   }
 
-  void refreshHeap() {
+  private void refreshHeap() {
     HeapSet heapSet = mySelection.getSelectedHeapSet();
-    Object selectedObject = myHeapComboBox.getSelectedItem();
-    if (!Objects.equals(heapSet, selectedObject)) {
-      myHeapComboBox.setSelectedItem(heapSet);
-    }
+    List<HeapSet> heaps = myHeaps == null ? Collections.emptyList() : myHeaps;
+    myHeapSelectionFlow.setValue(new Selection<>(heapSet, heaps));
   }
 
-  private static final class HeapListCellRenderer extends ProfilerComboboxCellRenderer<HeapSet> {
-
-    @Override
-    protected void customizeCellRenderer(@NotNull JList<? extends HeapSet> list,
-                                         HeapSet value,
-                                         int index,
-                                         boolean selected,
-                                         boolean hasFocus) {
-      if (value != null) {
-        append("View " + (value instanceof AllHeapSet ? "all heaps" : value.getName() + " heap"));
-      }
+  private String getHeapDisplayName(HeapSet value) {
+    if (value != null) {
+      return StringUtils.capitalize(value.getName());
     }
+    return StringUtils.capitalize(CaptureObject.APP_HEAP_NAME);
   }
 }

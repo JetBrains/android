@@ -24,7 +24,7 @@ import com.google.common.annotations.VisibleForTesting
  */
 class ActivityFragmentLeakInstanceFilter(classDatabase: ClassDb)
   : CaptureObjectInstanceFilter(
-  "activity/fragment leaks",
+  "Activity/Fragment leaks",
   "Show Activities and Fragments that are potentially causing memory leaks.",
   "Activity/Fragment leaks may include false positives.",
   "https://developer.android.com/r/studio-ui/profiler-memory-leak-detection",

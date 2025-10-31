@@ -32,12 +32,14 @@ import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
+import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.android.tools.profilers.memory.chart.MemoryVisualizationView
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -109,7 +111,8 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
                              private val profilersView: StudioProfilersView)
   : JPanel(BorderLayout()) {
   private val observer = AspectObserver()
-  private val instanceFilterMenu = MemoryInstanceFilterMenu(selection)
+  private val classTypeFilterMenu = ClassTypeFilterMenu(selection)
+  private val issueTypeFilterMenu = IssueTypeFilterMenu(selection)
   private val toolbarTabPanels = mutableMapOf<String, ToolbarComponents>()
   private val tabListeners = mutableListOf<CapturePanelTabContainer>()
   private val visualizationView = MemoryVisualizationView(selection, profilersView)
@@ -174,15 +177,18 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
   }
 
   private fun toolbarDefaults() = mutableListOf<Component>().apply {
-    if (!(selection.selectedCapture is NativeAllocationSampleCaptureObject)) {
+    if (selection.selectedCapture !is NativeAllocationSampleCaptureObject) {
       add(heapView.component)
+    }
+    if (selection.selectedCapture is HeapDumpCaptureObject) {
+      add(classTypeFilterMenu.component)
+      add(issueTypeFilterMenu.component)
     }
     add(classGrouping.component)
     addAll(toolbarCore())
   }
 
   private fun toolbarCore() = mutableListOf<Component>().apply {
-    add(instanceFilterMenu.component)
     add(filterComponent)
     add(captureInfoMessage)
   }
@@ -198,8 +204,8 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
       StatLabel(0L, desc, numFont = ProfilerFonts.H2_FONT, descFont = AdtUiUtils.DEFAULT_FONT.biggerOn(1f), action = action)
 
     val totalClassLabel = mkLabel("Classes")
-    val totalLeakLabel = mkLabel("Leaks", action = Runnable(::showLeaks))
-    val totalBitmapDuplicatesLabel = mkLabel("Duplicates", action = Runnable(::showBitmapDuplicates))
+    val totalLeakLabel = mkLabel("Leaks")
+    val totalBitmapDuplicatesLabel = mkLabel("Duplicates")
     val totalCountLabel = mkLabel("Count")
     val totalNativeSizeLabel = mkLabel("Native Size")
     val totalShallowSizeLabel = mkLabel("Shallow Size")
@@ -224,26 +230,25 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
         totalShallowSizeLabel.numValue = heap.totalShallowSize
         totalRetainedSizeLabel.numValue = heap.totalRetainedSize
 
-        selection.selectedCapture?.let { capture ->
-          isVisible = capture is HeapDumpCaptureObject
-          when (val filter = capture.activityFragmentLeakFilter) {
-            null -> totalLeakLabel.isVisible = false
-            else -> totalLeakLabel.apply {
-              val leakCount = heap.getInstanceFilterMatchCount(filter).toLong()
-              isVisible = true
-              numValue = leakCount
-              icon = if (leakCount > 0) StudioIcons.Common.WARNING else null
-            }
-          }
-          when (val filter = capture.bitmapDuplicationFilter) {
-            null -> totalBitmapDuplicatesLabel.isVisible = false
-            else -> totalBitmapDuplicatesLabel.apply {
-              val duplicateCount = heap.getInstanceFilterMatchCount(filter).toLong()
-              isVisible = true
-              numValue = duplicateCount
-              icon = if (duplicateCount > 0) StudioIcons.Common.WARNING else null
-            }
-          }
+        val capture = selection.selectedCapture
+        isVisible = capture is HeapDumpCaptureObject
+        if (capture !is HeapDumpCaptureObject) {
+          totalLeakLabel.isVisible = false
+          totalBitmapDuplicatesLabel.isVisible = false
+          return@let
+        }
+
+        totalLeakLabel.apply {
+          val leakFilter = capture.activityFragmentLeakFilter
+          numValue = getFilteredInstanceCount(heap, selection.selectedClassTypeFilter, leakFilter)
+          isVisible = true
+          icon = if (numValue > 0) StudioIcons.Common.WARNING else null
+        }
+        totalBitmapDuplicatesLabel.apply {
+          val dupeFilter = capture.bitmapDuplicationFilter
+          numValue = getFilteredInstanceCount(heap, selection.selectedClassTypeFilter, dupeFilter)
+          isVisible = true
+          icon = if (numValue > 0) StudioIcons.Common.WARNING else null
         }
       }
     }
@@ -263,15 +268,18 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
     alignmentX = Component.LEFT_ALIGNMENT
   }
 
-  private fun showLeaks() {
-    selection.selectedCapture?.activityFragmentLeakFilter?.let {
-      instanceFilterMenu.component.selectedItem = it
-    }
-  }
-
-  private fun showBitmapDuplicates() {
-    (selection.selectedCapture as? HeapDumpCaptureObject)?.getBitmapDuplicationFilter()?.let {
-      instanceFilterMenu.component.selectedItem = it
-    }
+  /**
+   * Calculates the number of instances that match a filter, after first applying the currently active class type filter.
+   *
+   * @param heapSet The set of instances to be queried (e.g., the currently selected heap).
+   * @param classTypeFilter The currently active class type filter (e.g., "Project Classes"), which may be null.
+   * @param instanceFilter The instance filter to apply (e.g., the leak or duplicate filter).
+   * @return The total count of matching instances.
+   */
+  private fun getFilteredInstanceCount(heapSet: ClassifierSet,
+                                       classTypeFilter: CaptureObjectInstanceFilter?,
+                                       instanceFilter: CaptureObjectInstanceFilter): Long {
+    val baseStream = classTypeFilter?.let { heapSet.instancesStream.filter{classTypeFilter.instanceTest(it)} } ?: heapSet.instancesStream
+    return baseStream.filter{instanceFilter.instanceTest(it)}.count()
   }
 }

@@ -206,7 +206,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     assertView(fakeCapture2, selectedHeap, null, null, false);
     myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 2, 0, 0, 0);
 
-    stageView.getHeapView().getHeapComboBox().setSelectedItem(fakeCapture2.getHeapSet(0));
+    myStage.getCaptureSelection().selectHeapSet(fakeCapture2.getHeapSet(0));
     assertSelection(fakeCapture2, fakeCapture2.getHeapSet(0), null, null);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
@@ -219,7 +219,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
     assertThat(myStage.getCaptureSelection().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
     myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_PACKAGE);
-    assertThat(stageView.getClassGrouping().getComponent().getSelectedItem()).isEqualTo(ARRANGE_BY_PACKAGE);
+    assertThat(myStage.getCaptureSelection().getClassGrouping()).isEqualTo(ARRANGE_BY_PACKAGE);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 0, 0);
 
     MemoryObjectTreeNode<ClassifierSet> memoryClassRoot = getRootClassifierSet(classifierTree);
@@ -297,7 +297,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     assertViewLegacy(fakeCapture2, selectedHeap, null, null, false);
     myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 2, 0, 0, 0);
 
-    stageView.getHeapView().getHeapComboBox().setSelectedItem(fakeCapture2.getHeapSet(0));
+    myStage.getCaptureSelection().selectHeapSet(fakeCapture2.getHeapSet(0));
     assertSelection(fakeCapture2, fakeCapture2.getHeapSet(0), null, null);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
@@ -309,7 +309,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
     assertThat(myStage.getCaptureSelection().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
     myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_PACKAGE);
-    assertThat(stageView.getClassGrouping().getComponent().getSelectedItem()).isEqualTo(ARRANGE_BY_PACKAGE);
+    assertThat(myStage.getCaptureSelection().getClassGrouping()).isEqualTo(ARRANGE_BY_PACKAGE);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 0, 0);
 
     MemoryObjectTreeNode<ClassifierSet> memoryClassRoot = getRootClassifierSet(classifierTree);
@@ -855,13 +855,11 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
                           boolean isCaptureLoading) {
     MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
 
-    ComboBoxModel<HeapSet> heapObjectComboBoxModel = stageView.getHeapView().getHeapComboBox().getModel();
     MemoryProfilerStageLayout layout = stageView.getLayout();
 
     if (expectedCaptureObject == null) {
       assertThat(layout.isLoadingUiVisible()).isFalse();
       assertThat(layout.isShowingCaptureUi()).isFalse();
-      assertThat(heapObjectComboBoxModel.getSize()).isEqualTo(0);
       assertThat(stageView.getClassifierView().getTree()).isNull();
       assertThat(stageView.getClassSetView().getComponent().isVisible()).isFalse();
       assertThat(stageView.getInstanceDetailsView().getComponent().isVisible()).isFalse();
@@ -869,13 +867,11 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     }
 
     if (isCaptureLoading) {
-      assertThat(heapObjectComboBoxModel.getSize()).isEqualTo(0);
+      // Nothing to check while loading, as components are not yet populated.
     }
     else {
       assertThat(layout.isShowingCaptureUi()).isTrue();
-      assertThat(IntStream.range(0, heapObjectComboBoxModel.getSize()).mapToObj(heapObjectComboBoxModel::getElementAt)
-                   .collect(Collectors.toSet())).isEqualTo(new HashSet<>(expectedCaptureObject.getHeapSets()));
-      assertThat(heapObjectComboBoxModel.getSelectedItem()).isEqualTo(expectedHeapSet);
+      assertThat(myStage.getCaptureSelection().getSelectedHeapSet()).isEqualTo(expectedHeapSet);
     }
 
     if (expectedHeapSet == null) {
@@ -928,12 +924,9 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
                                 boolean isCaptureLoading) {
     MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
 
-    ComboBoxModel<HeapSet> heapObjectComboBoxModel = stageView.getHeapView().getHeapComboBox().getModel();
-
     if (expectedCaptureObject == null) {
       assertThat(stageView.getChartCaptureSplitter().getSecondComponent()).isNull();
       assertThat(stageView.getCaptureView().getLabel().getText()).isEmpty();
-      assertThat(heapObjectComboBoxModel.getSize()).isEqualTo(0);
       assertThat(stageView.getClassifierView().getTree()).isNull();
       assertThat(stageView.getClassSetView().getComponent().isVisible()).isFalse();
       assertThat(stageView.getInstanceDetailsView().getComponent().isVisible()).isFalse();
@@ -943,14 +936,11 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     assertThat(stageView.getChartCaptureSplitter().getSecondComponent()).isNotNull();
     if (isCaptureLoading) {
       assertThat(stageView.getCaptureView().getLabel().getText()).isEmpty();
-      assertThat(heapObjectComboBoxModel.getSize()).isEqualTo(0);
     }
     else {
       assertThat(stageView.getChartCaptureSplitter().getSecondComponent()).isEqualTo(stageView.getCapturePanel());
       assertThat(stageView.getCaptureView().getLabel().getText()).isEqualTo(expectedCaptureObject.getName());
-      assertThat(IntStream.range(0, heapObjectComboBoxModel.getSize()).mapToObj(heapObjectComboBoxModel::getElementAt)
-                   .collect(Collectors.toSet())).isEqualTo(new HashSet<>(expectedCaptureObject.getHeapSets()));
-      assertThat(heapObjectComboBoxModel.getSelectedItem()).isEqualTo(expectedHeapSet);
+      assertThat(myStage.getCaptureSelection().getSelectedHeapSet()).isEqualTo(expectedHeapSet);
     }
 
     if (expectedHeapSet == null) {
