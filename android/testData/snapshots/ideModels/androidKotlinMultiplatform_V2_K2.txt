@@ -932,11 +932,11 @@ MODULE                        : Kotlin_Multiplatform
                     - taskArtifacts               : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
                     configurationArtifacts
                         - androidApiElements-published          : <ROOT>/kmpFirstLib/build/outputs/aar/kmpFirstLib.aar [-]
-                        - androidRuntimeElements-published      : <ROOT>/kmpFirstLib/build/outputs/aar/kmpFirstLib.aar [-]
-                        - androidSourcesElements-published      : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-android-sources.jar [-]
                         - archives                    : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
-                        - metadataApiElements         : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
+                        - androidSourcesElements-published      : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-android-sources.jar [-]
                         - metadataSourcesElements     : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-kotlin-sources.jar [-]
+                        - androidRuntimeElements-published      : <ROOT>/kmpFirstLib/build/outputs/aar/kmpFirstLib.aar [-]
+                        - metadataApiElements         : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
                     - additionalArtifacts         : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
@@ -959,16 +959,16 @@ MODULE                        : Kotlin_Multiplatform
                     - taskArtifacts               : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-metadata.jar [-]
                     - taskArtifacts               : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
                     configurationArtifacts
-                        - archives                    : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
-                        - archives                    : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-metadata.jar [-]
-                        - jvmApiElements              : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
                         - jvmApiElements-published    : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
                         - jvmRuntimeElements          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
-                        - jvmRuntimeElements-published          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
+                        - jvmApiElements              : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
+                        - archives                    : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
+                        - archives                    : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-metadata.jar [-]
+                        - metadataSourcesElements     : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-kotlin-sources.jar [-]
+                        - metadataApiElements         : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-metadata.jar [-]
                         - jvmSourcesElements          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm-sources.jar [-]
                         - jvmSourcesElements-published          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm-sources.jar [-]
-                        - metadataApiElements         : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-metadata.jar [-]
-                        - metadataSourcesElements     : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-kotlin-sources.jar [-]
+                        - jvmRuntimeElements-published          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
                     sourceSets
                         jvmMain
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1046,19 +1046,19 @@ MODULE                        : Kotlin_Multiplatform
                     - taskArtifacts               : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
                     - taskArtifacts               : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                     configurationArtifacts
+                        - jvmApiElements-published    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                         - androidApiElements-published          : <ROOT>/kmpSecondLib/build/outputs/aar/kmpSecondLib.aar [-]
-                        - androidRuntimeElements-published      : <ROOT>/kmpSecondLib/build/outputs/aar/kmpSecondLib.aar [-]
-                        - androidSourcesElements-published      : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-android-sources.jar [-]
                         - archives                    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                         - archives                    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
-                        - jvmApiElements              : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
-                        - jvmApiElements-published    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
-                        - jvmRuntimeElements          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
-                        - jvmRuntimeElements-published          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                         - jvmSourcesElements          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm-sources.jar [-]
                         - jvmSourcesElements-published          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm-sources.jar [-]
-                        - metadataApiElements         : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
+                        - jvmRuntimeElements-published          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                        - androidSourcesElements-published      : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-android-sources.jar [-]
+                        - jvmRuntimeElements          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                        - jvmApiElements              : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                         - metadataSourcesElements     : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-kotlin-sources.jar [-]
+                        - androidRuntimeElements-published      : <ROOT>/kmpSecondLib/build/outputs/aar/kmpSecondLib.aar [-]
+                        - metadataApiElements         : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
                     sourceSets
                         jvmMain
                             sourceCompatibility           : 11
@@ -3457,3 +3457,8 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib.commonMain
 MODULE                        : Kotlin_Multiplatform.kmpSecondLib.commonTest
 MODULE                        : Kotlin_Multiplatform.kmpSecondLib.jvmMain
 MODULE                        : Kotlin_Multiplatform.kmpSecondLib.jvmTest
+MODULE                        : kotlin.scripts.KotlinBuildScript.androidLib:build.gradle.kts
+MODULE                        : kotlin.scripts.KotlinBuildScript.app:build.gradle.kts
+MODULE                        : kotlin.scripts.KotlinBuildScript.kmpFirstLib:build.gradle.kts
+MODULE                        : kotlin.scripts.KotlinBuildScript.kmpJvmOnly:build.gradle.kts
+MODULE                        : kotlin.scripts.KotlinBuildScript.kmpSecondLib:build.gradle.kts
