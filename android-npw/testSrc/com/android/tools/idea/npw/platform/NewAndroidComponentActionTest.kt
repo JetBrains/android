@@ -177,6 +177,18 @@ class NewAndroidComponentActionTest {
   }
 
   @Test
+  fun noAndroidModulePresentationShouldBeDisabled() {
+    val dataContext = SimpleDataContext.builder().build()
+    val actionEvent = TestActionEvent.createTestEvent(dataContext)
+    NewAndroidComponentAction(Category.Other, "templateName", 0).update(actionEvent)
+
+    assertThat(actionEvent.presentation.isVisible).isFalse()
+    assertThat(actionEvent.presentation.isEnabled).isFalse()
+    assertThat(actionEvent.presentation.text)
+      .isEqualTo("templateName (Disabled - No Android module found)")
+  }
+
+  @Test
   fun nonInstantAppPresentationShouldBeEnabled() {
     NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent)
 
