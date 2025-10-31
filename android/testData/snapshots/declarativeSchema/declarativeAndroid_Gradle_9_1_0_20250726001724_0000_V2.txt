@@ -326,10 +326,6 @@ Projects:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Function ReferenceType        : java.io.File
-                    - MemberFunctionName            : lint
-                      Receiver ReferenceType        : com.android.build.api.dsl.CommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.Lint
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -1272,10 +1268,6 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalApplicationExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
-                    - MemberFunctionName            : signingConfigs
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalApplicationExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -1324,14 +1316,6 @@ Projects:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Function ReferenceType        : java.io.File
-                    - MemberFunctionName            : lint
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalCommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.Lint
-                    - MemberFunctionName            : signingConfigs
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalCommonExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -1361,10 +1345,6 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalLibraryExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_Prefab
-                    - MemberFunctionName            : signingConfigs
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalLibraryExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -1395,14 +1375,6 @@ Projects:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Function ReferenceType        : java.io.File
-                    - MemberFunctionName            : lint
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalTestedExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.Lint
-                    - MemberFunctionName            : signingConfigs
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalTestedExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -2881,10 +2853,6 @@ Settings:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Function ReferenceType        : java.io.File
-                    - MemberFunctionName            : lint
-                      Receiver ReferenceType        : com.android.build.api.dsl.CommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.Lint
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -3827,10 +3795,6 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalApplicationExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
-                    - MemberFunctionName            : signingConfigs
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalApplicationExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -3879,14 +3843,6 @@ Settings:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Function ReferenceType        : java.io.File
-                    - MemberFunctionName            : lint
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalCommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.Lint
-                    - MemberFunctionName            : signingConfigs
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalCommonExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -3916,10 +3872,6 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalLibraryExtension
                       Parameters
                       Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_Prefab
-                    - MemberFunctionName            : signingConfigs
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalLibraryExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -3950,14 +3902,6 @@ Settings:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Function ReferenceType        : java.io.File
-                    - MemberFunctionName            : lint
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalTestedExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.Lint
-                    - MemberFunctionName            : signingConfigs
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalTestedExtension
-                      Parameters
-                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
