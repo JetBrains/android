@@ -332,6 +332,29 @@ class LeakDetailsPanelTest : WithFakeTimer {
     composeTestRule.onAllNodesWithText("Go to declaration").assertCountEquals(2)  // Only 2 nodes are expanded and clickable
   }
 
+  @Test
+  fun `test GcRootNode is displayed`() {
+    val leaks = getSampleLeak()
+    val selectedLeak = leaks[0]
+
+    composeTestRule.setContent {
+      val traceNodes = selectedLeak.displayedLeakTrace.firstOrNull()?.nodes ?: emptyList()
+      var openStates by remember(selectedLeak) { mutableStateOf(List(traceNodes.size) { false }) }
+      LeakDetailsPanel(
+        selectedLeak = selectedLeak,
+        gotoDeclaration = leakCanaryModel::goToDeclaration,
+        isRecording = true,
+        isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
+        openStates = openStates,
+        onOpenStatesChange = { openStates = it }
+      )
+    }
+
+    // Check if the GC Root node text is displayed correctly.
+    val gcRootDescription = selectedLeak.displayedLeakTrace[0].gcRootType.description
+    composeTestRule.onNodeWithText("${TaskBasedUxStrings.LEAKCANARY_GC_ROOT} ($gcRootDescription)").assertIsDisplayed()
+  }
+
   private fun getLeakWithNavigatableAndNonNavigatableNode(): List<Leak> {
     val applicationLeakText = """
             2200 bytes retained by leaking objects

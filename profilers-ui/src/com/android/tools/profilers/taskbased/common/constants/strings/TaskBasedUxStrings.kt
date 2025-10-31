@@ -96,6 +96,7 @@ object TaskBasedUxStrings {
   // For LeakCanary task
   // LeakList Strings
   const val LEAKCANARY_LEAK_HEADER_TEXT = "Leak"
+  const val LEAKCANARY_GC_ROOT = "GC Root"
   const val LEAKCANARY_OCCURRENCES_HEADER_TEXT = "Occurrences"
   const val LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT = "Total leaked"
   const val LEAKCANARY_LEAK_LIST_EMPTY_INITIAL_MESSAGE = "Try to reproduce leaks by triggering potentially " +

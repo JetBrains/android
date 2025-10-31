@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails
 import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,17 +39,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.android.tools.leakcanarylib.data.Leak
+import com.android.tools.leakcanarylib.data.LeakTrace
 import com.android.tools.leakcanarylib.data.Node
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_CLOSE
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_GC_ROOT
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_GO_TO_DECLARATION
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_NO_DECLARATION_FOUND
@@ -90,6 +97,9 @@ fun LeakDetailsPanel(selectedLeak: Leak?,
       Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(10.dp)) {
         // If displayedLeakTrace is empty, use empty list for the leak nodes.
         val traceNodes = if (selectedLeak.displayedLeakTrace.isNotEmpty()) selectedLeak.displayedLeakTrace[0].nodes else listOf()
+        if(traceNodes.isNotEmpty()){
+          GcRootNodeView(selectedLeak.displayedLeakTrace[0])
+        }
         traceNodes.forEachIndexed { index, currNode ->
           LeakTraceNodeView(
             node = currNode,
@@ -110,6 +120,39 @@ fun LeakDetailsPanel(selectedLeak: Leak?,
         modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
       )
     }
+  }
+}
+
+/**
+ * Renders the special "GC Root" node at the top of the leak trace.
+ *
+ * This composable displays the GC root type in a bordered box and draws a vertical line
+ * to connect it visually to the first element of the leak trace below it.
+ *
+ * @param leakTrace The LeakTrace object, used to get the GC root description and the status of the first node.
+ */
+@Composable
+fun GcRootNodeView(leakTrace: LeakTrace) {
+    Column(modifier = Modifier.padding(start = 10.dp)) {
+      Text(
+        text = buildAnnotatedString {
+          withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+            append(LEAKCANARY_GC_ROOT)
+          }
+          append(" (${leakTrace.gcRootType.description})")
+        },
+        modifier = Modifier
+          .border(
+            width = 1.dp,
+            color = Color.Gray,
+            shape = RoundedCornerShape(4.dp)
+          )
+          .padding(horizontal = 8.dp, vertical = 4.dp)
+      )
+      Row(modifier = Modifier.height(16.dp)) {
+        Spacer(Modifier.padding(9.dp))
+        VerticalLeakStatusLine(leakTrace.nodes[0].leakingStatus)
+      }
   }
 }
 
