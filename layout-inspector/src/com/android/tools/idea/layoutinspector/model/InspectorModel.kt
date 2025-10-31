@@ -138,6 +138,11 @@ class InspectorModel(
       return windows.values.filterIsInstance<ViewAndroidWindow>().find { it.isXr } != null
     }
 
+  val hasMultipleDisplays: Boolean
+    get() {
+      return resourceLookup.displays.size > 1
+    }
+
   enum class Posture {
     HALF_OPEN,
     FLAT,
@@ -359,8 +364,9 @@ class InspectorModel(
           }
         }
 
-        if (isXr) {
-          reLayoutWindowsForXr(this, windows.values.toList())
+        if (isXr || hasMultipleDisplays) {
+          // Re-layout as grid, otherwise all the windows will overlap with each other.
+          reLayoutWindowsAsGrid(this, windows.values.toList())
         }
 
         updateRoot(allIds)
