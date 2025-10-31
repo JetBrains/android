@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.ui
 
+import com.android.tools.adtui.swing.EditorUtils.cleanUpListenersFromEditorMouseHoverPopupManager
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.ISSUE1
