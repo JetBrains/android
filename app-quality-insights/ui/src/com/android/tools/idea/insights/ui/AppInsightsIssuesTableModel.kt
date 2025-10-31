@@ -21,7 +21,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import java.awt.Component
 import javax.swing.BorderFactory
-import javax.swing.JLabel
 import javax.swing.JTable
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
@@ -68,7 +67,7 @@ class AppInsightsIssuesTableModel(renderer: AppInsightsTableCellRenderer) :
 
 private object NumberColumnRenderer : DefaultTableCellRenderer() {
   init {
-    horizontalAlignment = JLabel.RIGHT
+    horizontalAlignment = RIGHT
   }
 
   override fun getTableCellRendererComponent(

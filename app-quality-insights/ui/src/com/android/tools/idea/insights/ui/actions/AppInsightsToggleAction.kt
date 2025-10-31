@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.Icon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 /** A ToggleAction that gets its state from the provided [flow]. */

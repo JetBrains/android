@@ -340,7 +340,7 @@ class AppInsightsCacheImpl(val source: InsightsProvider, private val maxIssuesCo
     compositeIssuesCache.get(firebaseConnection) { createNew(MAXIMUM_ISSUES_CACHE_SIZE) }
 
   private fun <K, V> createNew(maximumSize: Long): Cache<K, V> {
-    // TODO(peterx): consider adding back weak keys support, which does not
+    // TODO: consider adding back weak keys support, which does not
     // work with kotlin String keys.
     return Caffeine.newBuilder().maximumSize(maximumSize).build()
   }

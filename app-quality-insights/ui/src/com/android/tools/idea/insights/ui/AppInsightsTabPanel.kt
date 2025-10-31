@@ -36,7 +36,7 @@ class AppInsightsTabPanel : JPanel(BorderLayout()), Disposable {
         remove(field)
       }
       if (value != null) {
-        super<JPanel>.add(value, BorderLayout.NORTH)
+        super.add(value, BorderLayout.NORTH)
       }
       revalidate()
       field = value
@@ -51,7 +51,7 @@ class AppInsightsTabPanel : JPanel(BorderLayout()), Disposable {
     if (component is Disposable) {
       Disposer.register(this, component)
     }
-    deprecatedBanner?.let { super<JPanel>.add(it, BorderLayout.NORTH) }
+    deprecatedBanner?.let { super.add(it, BorderLayout.NORTH) }
     super.add(component, BorderLayout.CENTER)
   }
 

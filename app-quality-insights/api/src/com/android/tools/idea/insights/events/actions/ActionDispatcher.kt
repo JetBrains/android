@@ -244,7 +244,7 @@ class ActionDispatcher(
     return scope
       .launch {
         if (state.mode == ConnectionMode.OFFLINE) {
-          // TODO(peterx): fetch cached detailed if available.
+          // TODO: fetch cached detailed if available.
           eventEmitter(
             IssueDetailsChanged(
               action.id,
@@ -399,7 +399,7 @@ class ActionDispatcher(
     scope.launch {
       var pendingValue = initialValue
       while (true) {
-        select<Unit> {
+        select {
           onReceive { pendingValue = fold(pendingValue, it) }
           onTimeout(timeout) {
             if (pendingValue == initialValue) return@onTimeout
