@@ -32,6 +32,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
@@ -623,5 +624,40 @@ class GradleConnectedAndroidTestInvokerTest {
     }
 
     verify(mockBuildToolWindow, never()).show()
+  }
+
+  @Test
+  fun processStdErrOutput() {
+    val errorText = "This is an error line1\nThis is an error line2"
+
+    whenever(mockGradleTaskManager.executeTasks(
+      anyString(),
+      any(),
+      any(),
+      any()
+    )).then {
+      val externalTaskId: ExternalSystemTaskId = it.getArgument(1)
+      val listener: ExternalSystemTaskNotificationListener = it.getArgument(3)
+
+      // Simulate STDERR output.
+      listener.onTaskOutput(externalTaskId, errorText, /*stdOut=*/false)
+
+      null
+    }
+
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.runGradleTask(
+      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView,
+      mockAndroidModuleModel, waitForDebugger = false,
+      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
+      extraInstrumentationOptions = "")
+
+    runInEdtAndWait {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
+
+    verify(mockAndroidTestSuiteView).print("Running tests\n", ConsoleViewContentType.NORMAL_OUTPUT)
+    verify(mockAndroidTestSuiteView).print(errorText, ConsoleViewContentType.ERROR_OUTPUT)
   }
 }
