@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileByteArray
 import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
@@ -36,9 +36,10 @@ import kotlin.test.assertEquals
 @RunWith(JUnit4::class)
 class IncompatibleChangeCompileTest {
   private var projectRule = AndroidProjectRule.inMemory().withKotlin()
-  private val fakeAdb: FakeAdbTestRule = FakeAdbTestRule("30")
+  private val fakeAdbRule = FakeAdbServerAdbLibRule()
+
   @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(fakeAdb)
+  val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
 
   @Before
   fun setUp() {
