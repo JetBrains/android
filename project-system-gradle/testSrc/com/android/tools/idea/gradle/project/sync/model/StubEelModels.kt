@@ -26,7 +26,6 @@ import com.intellij.platform.eel.ExecuteProcessException
 import com.intellij.platform.eel.path.EelPath
 import com.intellij.platform.eel.provider.LocalPosixEelApi
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
 import org.jetbrains.annotations.NonNls
 
 // TODO KMT-1388
@@ -35,8 +34,8 @@ class StubLocalPosixEelApi(private val envVariables: Map<String, String>) : EelE
     ExecuteProcessException(errno = 12345, message = "mock result")
   }
   override val descriptor: EelDescriptor get() = throw UnsupportedOperationException()
-  override fun environmentVariables(opts: EelExecApi.EnvironmentVariablesOptions): Deferred<Map<String, String>> =
-    CompletableDeferred(envVariables)
+  override fun environmentVariables(opts: EelExecApi.EnvironmentVariablesOptions): EelExecApi.EnvironmentVariablesDeferred =
+    EelExecApi.EnvironmentVariablesDeferred(CompletableDeferred(envVariables))
   override suspend fun findExeFilesInPath(binaryName: String): List<EelPath> {
     return emptyList()
   }
