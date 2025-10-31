@@ -154,8 +154,8 @@ MODULE                        : project_sm_src.app
             Name                          : main
             Manifest                      : <ROOT>_sm_src/app/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>_sm_src/app/src/main/java
-            KotlinDirectories             : <ROOT>_sm_src/app/src/main/kotlin [-]
             KotlinDirectories             : <ROOT>_sm_src/app/src/main/java
+            KotlinDirectories             : <ROOT>_sm_src/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>_sm_src/app/src/main/resources [-]
             ResDirectories                : <ROOT>_sm_src/app/src/main/res
             AssetsDirectories             : <ROOT>_sm_src/app/src/main/assets [-]
@@ -168,8 +168,8 @@ MODULE                        : project_sm_src.app
                     Name                          : androidTest
                     Manifest                      : <ROOT>_sm_src/app/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>_sm_src/app/src/androidTest/java
-                    KotlinDirectories             : <ROOT>_sm_src/app/src/androidTest/kotlin [-]
                     KotlinDirectories             : <ROOT>_sm_src/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>_sm_src/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>_sm_src/app/src/androidTest/resources [-]
                     ResDirectories                : <ROOT>_sm_src/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>_sm_src/app/src/androidTest/assets [-]
@@ -181,8 +181,8 @@ MODULE                        : project_sm_src.app
                     Name                          : test
                     Manifest                      : <ROOT>_sm_src/app/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>_sm_src/app/src/test/java
-                    KotlinDirectories             : <ROOT>_sm_src/app/src/test/kotlin [-]
                     KotlinDirectories             : <ROOT>_sm_src/app/src/test/java
+                    KotlinDirectories             : <ROOT>_sm_src/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>_sm_src/app/src/test/resources [-]
                     ResDirectories                : <ROOT>_sm_src/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>_sm_src/app/src/test/assets [-]
@@ -202,8 +202,8 @@ MODULE                        : project_sm_src.app
             Name                          : debug
             Manifest                      : <ROOT>_sm_src/app/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>_sm_src/app/src/debug/java [-]
-            KotlinDirectories             : <ROOT>_sm_src/app/src/debug/kotlin [-]
             KotlinDirectories             : <ROOT>_sm_src/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>_sm_src/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>_sm_src/app/src/debug/resources [-]
             ResDirectories                : <ROOT>_sm_src/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>_sm_src/app/src/debug/assets [-]
@@ -216,8 +216,8 @@ MODULE                        : project_sm_src.app
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>_sm_src/app/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>_sm_src/app/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>_sm_src/app/src/androidTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>_sm_src/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>_sm_src/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>_sm_src/app/src/androidTestDebug/resources [-]
                     ResDirectories                : <ROOT>_sm_src/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>_sm_src/app/src/androidTestDebug/assets [-]
@@ -230,8 +230,8 @@ MODULE                        : project_sm_src.app
                     Name                          : testDebug
                     Manifest                      : <ROOT>_sm_src/app/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>_sm_src/app/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>_sm_src/app/src/testDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>_sm_src/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>_sm_src/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>_sm_src/app/src/testDebug/resources [-]
                     ResDirectories                : <ROOT>_sm_src/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>_sm_src/app/src/testDebug/assets [-]
@@ -252,8 +252,8 @@ MODULE                        : project_sm_src.app
             Name                          : release
             Manifest                      : <ROOT>_sm_src/app/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>_sm_src/app/src/release/java [-]
-            KotlinDirectories             : <ROOT>_sm_src/app/src/release/kotlin [-]
             KotlinDirectories             : <ROOT>_sm_src/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>_sm_src/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>_sm_src/app/src/release/resources [-]
             ResDirectories                : <ROOT>_sm_src/app/src/release/res [-]
             AssetsDirectories             : <ROOT>_sm_src/app/src/release/assets [-]
