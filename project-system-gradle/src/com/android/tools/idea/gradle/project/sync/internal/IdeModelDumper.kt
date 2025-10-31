@@ -72,6 +72,7 @@ import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.android.tools.idea.projectsystem.gradle.isLinkedAndroidModule
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.util.toIoFile
+import com.intellij.gradle.toolingExtension.impl.model.sourceSetModel.DefaultGradleSourceSetModel
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -229,6 +230,29 @@ private val jbModelDumpers = listOf(
     }
   },
   SpecializedDumper(property = K2JVMCompilerArguments::configurator),
+  // Custom dumper to avoid configurations with empty artifacts being printed
+  SpecializedDumper<DefaultGradleSourceSetModel> { gradleSourceSet ->
+    prop(propertyName, gradleSourceSet::class.simpleName)
+    nest {
+      prop("sourceCompatibility", gradleSourceSet.sourceCompatibility)
+      prop("targetCompatibility", gradleSourceSet.targetCompatibility)
+      prop("taskArtifacts", gradleSourceSet.taskArtifacts)
+      if (gradleSourceSet.configurationArtifacts.values.any { it.isNotEmpty() }) {
+        head("configurationArtifacts")
+        nest {
+          gradleSourceSet.configurationArtifacts
+            .filter { it.value.isNotEmpty() }
+            .forEach {
+              prop(it.key, it.value)
+            }
+        }
+      } else if (gradleSourceSet.configurationArtifacts.isNotEmpty()) {
+        prop("configurationArtifacts", "<CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>")
+      }
+      prop("additionalArtifacts", gradleSourceSet.additionalArtifacts)
+      prop("sourceSets", gradleSourceSet.sourceSets)
+    }
+  },
   SpecializedDumper<DefaultExternalSourceSet> { externalSourceSet ->
     head(propertyName)
     nest {
