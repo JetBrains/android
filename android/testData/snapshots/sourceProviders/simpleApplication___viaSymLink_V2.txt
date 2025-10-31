@@ -17,8 +17,8 @@ MODULE: project_sm_src.app
             JavaDirectories:
                 file://._sm_src/app/src/main/java
             KotlinDirectoryUrls:
-                file://._sm_src/app/src/main/kotlin
                 file://._sm_src/app/src/main/java
+                file://._sm_src/app/src/main/kotlin
             KotlinDirectories:
                 file://._sm_src/app/src/main/java
             JniLibsDirectoryUrls:
@@ -38,8 +38,8 @@ MODULE: project_sm_src.app
             JavaDirectories:
                 ._sm_src/app/src/main/java
             KotlinDirectories:
-                ._sm_src/app/src/main/kotlin
                 ._sm_src/app/src/main/java
+                ._sm_src/app/src/main/kotlin
             JniLibsDirectories:
                 ._sm_src/app/src/main/jniLibs
             ResDirectories:
@@ -57,8 +57,8 @@ MODULE: project_sm_src.app
                 JavaDirectories:
                     ._sm_src/app/src/main/java
                 KotlinDirectories:
-                    ._sm_src/app/src/main/kotlin
                     ._sm_src/app/src/main/java
+                    ._sm_src/app/src/main/kotlin
                 JniLibsDirectories:
                     ._sm_src/app/src/main/jniLibs
                 ResDirectories:
@@ -75,8 +75,8 @@ MODULE: project_sm_src.app
                 JavaDirectories:
                     ._sm_src/app/src/debug/java
                 KotlinDirectories:
-                    ._sm_src/app/src/debug/kotlin
                     ._sm_src/app/src/debug/java
+                    ._sm_src/app/src/debug/kotlin
                 JniLibsDirectories:
                     ._sm_src/app/src/debug/jniLibs
                 ResDirectories:
@@ -94,8 +94,8 @@ MODULE: project_sm_src.app
                 JavaDirectories:
                     ._sm_src/app/src/main/java
                 KotlinDirectories:
-                    ._sm_src/app/src/main/kotlin
                     ._sm_src/app/src/main/java
+                    ._sm_src/app/src/main/kotlin
                 JniLibsDirectories:
                     ._sm_src/app/src/main/jniLibs
                 ResDirectories:
@@ -112,8 +112,8 @@ MODULE: project_sm_src.app
                 JavaDirectories:
                     ._sm_src/app/src/debug/java
                 KotlinDirectories:
-                    ._sm_src/app/src/debug/kotlin
                     ._sm_src/app/src/debug/java
+                    ._sm_src/app/src/debug/kotlin
                 JniLibsDirectories:
                     ._sm_src/app/src/debug/jniLibs
                 ResDirectories:
@@ -130,8 +130,8 @@ MODULE: project_sm_src.app
                 JavaDirectories:
                     ._sm_src/app/src/release/java
                 KotlinDirectories:
-                    ._sm_src/app/src/release/kotlin
                     ._sm_src/app/src/release/java
+                    ._sm_src/app/src/release/kotlin
                 JniLibsDirectories:
                     ._sm_src/app/src/release/jniLibs
                 ResDirectories:
@@ -150,8 +150,8 @@ MODULE: project_sm_src.app
                     JavaDirectories:
                         ._sm_src/app/src/test/java
                     KotlinDirectories:
-                        ._sm_src/app/src/test/kotlin
                         ._sm_src/app/src/test/java
+                        ._sm_src/app/src/test/kotlin
                     JniLibsDirectories:
                         ._sm_src/app/src/test/jniLibs
                     ResDirectories:
@@ -168,8 +168,8 @@ MODULE: project_sm_src.app
                     JavaDirectories:
                         ._sm_src/app/src/testDebug/java
                     KotlinDirectories:
-                        ._sm_src/app/src/testDebug/kotlin
                         ._sm_src/app/src/testDebug/java
+                        ._sm_src/app/src/testDebug/kotlin
                     JniLibsDirectories:
                         ._sm_src/app/src/testDebug/jniLibs
                     ResDirectories:
@@ -188,8 +188,8 @@ MODULE: project_sm_src.app
                     JavaDirectories:
                         ._sm_src/app/src/androidTest/java
                     KotlinDirectories:
-                        ._sm_src/app/src/androidTest/kotlin
                         ._sm_src/app/src/androidTest/java
+                        ._sm_src/app/src/androidTest/kotlin
                     JniLibsDirectories:
                         ._sm_src/app/src/androidTest/jniLibs
                     ResDirectories:
@@ -206,8 +206,8 @@ MODULE: project_sm_src.app
                     JavaDirectories:
                         ._sm_src/app/src/androidTestDebug/java
                     KotlinDirectories:
-                        ._sm_src/app/src/androidTestDebug/kotlin
                         ._sm_src/app/src/androidTestDebug/java
+                        ._sm_src/app/src/androidTestDebug/kotlin
                     JniLibsDirectories:
                         ._sm_src/app/src/androidTestDebug/jniLibs
                     ResDirectories:
@@ -242,10 +242,10 @@ MODULE: project_sm_src.app
                 JavaDirectories:
                     file://._sm_src/app/src/main/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/main/kotlin
                     file://._sm_src/app/src/main/java
-                    file://._sm_src/app/src/debug/kotlin
+                    file://._sm_src/app/src/main/kotlin
                     file://._sm_src/app/src/debug/java
+                    file://._sm_src/app/src/debug/kotlin
                 KotlinDirectories:
                     file://._sm_src/app/src/main/java
                 JniLibsDirectoryUrls:
@@ -279,10 +279,10 @@ MODULE: project_sm_src.app
                 JavaDirectories:
                     file://._sm_src/app/src/test/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/test/kotlin
                     file://._sm_src/app/src/test/java
-                    file://._sm_src/app/src/testDebug/kotlin
+                    file://._sm_src/app/src/test/kotlin
                     file://._sm_src/app/src/testDebug/java
+                    file://._sm_src/app/src/testDebug/kotlin
                 KotlinDirectories:
                     file://._sm_src/app/src/test/java
                 JniLibsDirectoryUrls:
@@ -314,10 +314,10 @@ MODULE: project_sm_src.app
                 JavaDirectories:
                     file://._sm_src/app/src/androidTest/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/androidTest/kotlin
                     file://._sm_src/app/src/androidTest/java
-                    file://._sm_src/app/src/androidTestDebug/kotlin
+                    file://._sm_src/app/src/androidTest/kotlin
                     file://._sm_src/app/src/androidTestDebug/java
+                    file://._sm_src/app/src/androidTestDebug/kotlin
                 KotlinDirectories:
                     file://._sm_src/app/src/androidTest/java
                 JniLibsDirectoryUrls:
@@ -369,8 +369,8 @@ MODULE: project_sm_src.app
                 JavaDirectories:
                     file://._sm_src/app/src/main/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/main/kotlin
                     file://._sm_src/app/src/main/java
+                    file://._sm_src/app/src/main/kotlin
                 KotlinDirectories:
                     file://._sm_src/app/src/main/java
                 JniLibsDirectoryUrls:
@@ -396,8 +396,8 @@ MODULE: project_sm_src.app
                 JavaDirectories:
                     file://._sm_src/app/src/androidTest/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/androidTest/kotlin
                     file://._sm_src/app/src/androidTest/java
+                    file://._sm_src/app/src/androidTest/kotlin
                 KotlinDirectories:
                     file://._sm_src/app/src/androidTest/java
                 JniLibsDirectoryUrls:
@@ -417,8 +417,8 @@ MODULE: project_sm_src.app
                 JavaDirectoryUrls:
                     file://._sm_src/app/src/androidTestDebug/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/androidTestDebug/kotlin
                     file://._sm_src/app/src/androidTestDebug/java
+                    file://._sm_src/app/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://._sm_src/app/src/androidTestDebug/jniLibs
                 ResDirectoryUrls:
@@ -436,8 +436,8 @@ MODULE: project_sm_src.app
                 JavaDirectoryUrls:
                     file://._sm_src/app/src/debug/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/debug/kotlin
                     file://._sm_src/app/src/debug/java
+                    file://._sm_src/app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://._sm_src/app/src/debug/jniLibs
                 ResDirectoryUrls:
@@ -455,8 +455,8 @@ MODULE: project_sm_src.app
                 JavaDirectoryUrls:
                     file://._sm_src/app/src/release/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/release/kotlin
                     file://._sm_src/app/src/release/java
+                    file://._sm_src/app/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://._sm_src/app/src/release/jniLibs
                 ResDirectoryUrls:
@@ -478,8 +478,8 @@ MODULE: project_sm_src.app
                 JavaDirectories:
                     file://._sm_src/app/src/test/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/test/kotlin
                     file://._sm_src/app/src/test/java
+                    file://._sm_src/app/src/test/kotlin
                 KotlinDirectories:
                     file://._sm_src/app/src/test/java
                 JniLibsDirectoryUrls:
@@ -499,8 +499,8 @@ MODULE: project_sm_src.app
                 JavaDirectoryUrls:
                     file://._sm_src/app/src/testDebug/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/testDebug/kotlin
                     file://._sm_src/app/src/testDebug/java
+                    file://._sm_src/app/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://._sm_src/app/src/testDebug/jniLibs
                 ResDirectoryUrls:
@@ -525,8 +525,8 @@ MODULE: project_sm_src.app
                 JavaDirectories:
                     file://._sm_src/app/src/main/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/main/kotlin
                     file://._sm_src/app/src/main/java
+                    file://._sm_src/app/src/main/kotlin
                 KotlinDirectories:
                     file://._sm_src/app/src/main/java
                 JniLibsDirectoryUrls:
@@ -548,8 +548,8 @@ MODULE: project_sm_src.app
                 JavaDirectoryUrls:
                     file://._sm_src/app/src/debug/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/debug/kotlin
                     file://._sm_src/app/src/debug/java
+                    file://._sm_src/app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://._sm_src/app/src/debug/jniLibs
                 ResDirectoryUrls:
@@ -567,8 +567,8 @@ MODULE: project_sm_src.app
                 JavaDirectoryUrls:
                     file://._sm_src/app/src/release/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/release/kotlin
                     file://._sm_src/app/src/release/java
+                    file://._sm_src/app/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://._sm_src/app/src/release/jniLibs
                 ResDirectoryUrls:
@@ -593,8 +593,8 @@ MODULE: project_sm_src.app
                 JavaDirectories:
                     file://._sm_src/app/src/main/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/main/kotlin
                     file://._sm_src/app/src/main/java
+                    file://._sm_src/app/src/main/kotlin
                 KotlinDirectories:
                     file://._sm_src/app/src/main/java
                 JniLibsDirectoryUrls:
@@ -616,8 +616,8 @@ MODULE: project_sm_src.app
                 JavaDirectoryUrls:
                     file://._sm_src/app/src/debug/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/debug/kotlin
                     file://._sm_src/app/src/debug/java
+                    file://._sm_src/app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://._sm_src/app/src/debug/jniLibs
                 ResDirectoryUrls:
@@ -640,8 +640,8 @@ MODULE: project_sm_src.app
                 JavaDirectories:
                     file://._sm_src/app/src/test/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/test/kotlin
                     file://._sm_src/app/src/test/java
+                    file://._sm_src/app/src/test/kotlin
                 KotlinDirectories:
                     file://._sm_src/app/src/test/java
                 JniLibsDirectoryUrls:
@@ -661,8 +661,8 @@ MODULE: project_sm_src.app
                 JavaDirectoryUrls:
                     file://._sm_src/app/src/testDebug/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/testDebug/kotlin
                     file://._sm_src/app/src/testDebug/java
+                    file://._sm_src/app/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://._sm_src/app/src/testDebug/jniLibs
                 ResDirectoryUrls:
@@ -685,8 +685,8 @@ MODULE: project_sm_src.app
                 JavaDirectories:
                     file://._sm_src/app/src/androidTest/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/androidTest/kotlin
                     file://._sm_src/app/src/androidTest/java
+                    file://._sm_src/app/src/androidTest/kotlin
                 KotlinDirectories:
                     file://._sm_src/app/src/androidTest/java
                 JniLibsDirectoryUrls:
@@ -706,8 +706,8 @@ MODULE: project_sm_src.app
                 JavaDirectoryUrls:
                     file://._sm_src/app/src/androidTestDebug/java
                 KotlinDirectoryUrls:
-                    file://._sm_src/app/src/androidTestDebug/kotlin
                     file://._sm_src/app/src/androidTestDebug/java
+                    file://._sm_src/app/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://._sm_src/app/src/androidTestDebug/jniLibs
                 ResDirectoryUrls:
