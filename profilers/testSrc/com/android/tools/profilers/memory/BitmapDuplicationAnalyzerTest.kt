@@ -123,6 +123,30 @@ class BitmapDuplicationAnalyzerTest {
     assertThat(duplicates).isEmpty()
   }
 
+  @Test
+  fun testAnalyze_withMultipleDumpDataInstances() {
+    val fakeCapture = FakeCaptureObject.Builder().build()
+    val bufferContent = byteArrayOf(1, 2, 3, 4)
+    val otherBufferContent = byteArrayOf(5, 6, 7, 8)
+
+    // Create two separate DumpData instances. The old implementation would only find the first one.
+    val dumpData1 = createDumpDataInstance(fakeCapture, listOf(100L), listOf(bufferContent.copyOf()))
+    val dumpData2 = createDumpDataInstance(fakeCapture, listOf(200L, 300L), listOf(bufferContent.copyOf(), otherBufferContent.copyOf()))
+
+    // bmp1 and bmp2 should be duplicates because they have the same dimensions and buffer content,
+    // even though their buffer information comes from different DumpData instances.
+    val bmp1 = createBitmapInstance(fakeCapture, 1L, 10, 10, 100L) // Uses dumpData1
+    val bmp2 = createBitmapInstance(fakeCapture, 2L, 10, 10, 200L) // Uses dumpData2
+    val bmp3 = createBitmapInstance(fakeCapture, 3L, 20, 20, 300L) // Uses dumpData2, not a duplicate
+
+    // Add all instances to the capture
+    fakeCapture.addInstanceObjects(setOf(dumpData1, dumpData2, bmp1, bmp2, bmp3))
+    analyzer.analyze(fakeCapture.instances.toList())
+
+    val duplicates = analyzer.getDuplicateInstances()
+    assertThat(duplicates).containsExactly(bmp1, bmp2)
+  }
+
   /** Creates a fake `android.graphics.Bitmap` instance for testing. */
   private fun createBitmapInstance(
     capture: FakeCaptureObject,
