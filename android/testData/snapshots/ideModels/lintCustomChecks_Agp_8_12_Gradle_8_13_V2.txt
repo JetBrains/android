@@ -62,123 +62,7 @@ MODULE                        : project
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                    configurationArtifacts
-                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
-                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                        _internal-unified-test-platform-android-test-plugin         : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                        _internal-unified-test-platform-core    : <empty>
-                        _internal-unified-test-platform-launcher          : <empty>
-                        androidApis                   : <empty>
-                        androidJdkImage               : <empty>
-                        androidTestAnnotationProcessor          : <empty>
-                        androidTestCompileOnly        : <empty>
-                        androidTestDebugAnnotationProcessor     : <empty>
-                        androidTestDebugCompileOnly   : <empty>
-                        androidTestDebugImplementation          : <empty>
-                        androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
-                        androidTestImplementation     : <empty>
-                        androidTestReleaseAnnotationProcessor   : <empty>
-                        androidTestReleaseCompileOnly : <empty>
-                        androidTestReleaseImplementation        : <empty>
-                        androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
-                        androidTestRuntimeOnly        : <empty>
-                        androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
-                        annotationProcessor           : <empty>
-                        api                           : <empty>
-                        archives                      : <empty>
-                        compileOnly                   : <empty>
-                        compileOnlyApi                : <empty>
-                        coreLibraryDesugaring         : <empty>
-                        debugAndroidTestAnnotationProcessorClasspath      : <empty>
-                        debugAndroidTestCompileClasspath        : <empty>
-                        debugAndroidTestRuntimeClasspath        : <empty>
-                        debugAnnotationProcessor      : <empty>
-                        debugAnnotationProcessorClasspath       : <empty>
-                        debugApi                      : <empty>
-                        debugApiElements              : <empty>
-                        debugCompileClasspath         : <empty>
-                        debugCompileOnly              : <empty>
-                        debugCompileOnlyApi           : <empty>
-                        debugImplementation           : <empty>
-                        debugReverseMetadataValues    : <empty>
-                        debugRuntimeClasspath         : <empty>
-                        debugRuntimeElements          : <empty>
-                        debugRuntimeOnly              : <empty>
-                        debugUnitTestAnnotationProcessorClasspath         : <empty>
-                        debugUnitTestCompileClasspath : <empty>
-                        debugUnitTestRuntimeClasspath : <empty>
-                        debugWearApp                  : <empty>
-                        debugWearBundling             : <empty>
-                        default                       : <empty>
-                        implementation                : <empty>
-                        lintChecks                    : <empty>
-                        lintPublish                   : <empty>
-                        releaseAnnotationProcessor    : <empty>
-                        releaseAnnotationProcessorClasspath     : <empty>
-                        releaseApi                    : <empty>
-                        releaseApiElements            : <empty>
-                        releaseCompileClasspath       : <empty>
-                        releaseCompileOnly            : <empty>
-                        releaseCompileOnlyApi         : <empty>
-                        releaseImplementation         : <empty>
-                        releaseReverseMetadataValues  : <empty>
-                        releaseRuntimeClasspath       : <empty>
-                        releaseRuntimeElements        : <empty>
-                        releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseWearApp                : <empty>
-                        releaseWearBundling           : <empty>
-                        runtimeOnly                   : <empty>
-                        testAnnotationProcessor       : <empty>
-                        testCompileOnly               : <empty>
-                        testDebugAnnotationProcessor  : <empty>
-                        testDebugCompileOnly          : <empty>
-                        testDebugImplementation       : <empty>
-                        testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
-                        testFixturesAnnotationProcessor         : <empty>
-                        testFixturesApi               : <empty>
-                        testFixturesCompileOnly       : <empty>
-                        testFixturesCompileOnlyApi    : <empty>
-                        testFixturesDebugAnnotationProcessor    : <empty>
-                        testFixturesDebugApi          : <empty>
-                        testFixturesDebugCompileOnly  : <empty>
-                        testFixturesDebugCompileOnlyApi         : <empty>
-                        testFixturesDebugImplementation         : <empty>
-                        testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
-                        testFixturesImplementation    : <empty>
-                        testFixturesReleaseAnnotationProcessor  : <empty>
-                        testFixturesReleaseApi        : <empty>
-                        testFixturesReleaseCompileOnly          : <empty>
-                        testFixturesReleaseCompileOnlyApi       : <empty>
-                        testFixturesReleaseImplementation       : <empty>
-                        testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
-                        testFixturesRuntimeOnly       : <empty>
-                        testFixturesWearApp           : <empty>
-                        testImplementation            : <empty>
-                        testReleaseAnnotationProcessor          : <empty>
-                        testReleaseCompileOnly        : <empty>
-                        testReleaseImplementation     : <empty>
-                        testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
-                        testRuntimeOnly               : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
+                    configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -199,119 +83,7 @@ MODULE                        : project
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                    configurationArtifacts
-                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
-                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                        _internal-unified-test-platform-android-test-plugin         : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                        _internal-unified-test-platform-core    : <empty>
-                        _internal-unified-test-platform-launcher          : <empty>
-                        androidApis                   : <empty>
-                        androidJdkImage               : <empty>
-                        androidTestAnnotationProcessor          : <empty>
-                        androidTestCompileOnly        : <empty>
-                        androidTestDebugAnnotationProcessor     : <empty>
-                        androidTestDebugCompileOnly   : <empty>
-                        androidTestDebugImplementation          : <empty>
-                        androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
-                        androidTestImplementation     : <empty>
-                        androidTestReleaseAnnotationProcessor   : <empty>
-                        androidTestReleaseCompileOnly : <empty>
-                        androidTestReleaseImplementation        : <empty>
-                        androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
-                        androidTestRuntimeOnly        : <empty>
-                        androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
-                        annotationProcessor           : <empty>
-                        api                           : <empty>
-                        archives                      : <empty>
-                        compileOnly                   : <empty>
-                        compileOnlyApi                : <empty>
-                        coreLibraryDesugaring         : <empty>
-                        debugAndroidTestAnnotationProcessorClasspath      : <empty>
-                        debugAndroidTestCompileClasspath        : <empty>
-                        debugAndroidTestRuntimeClasspath        : <empty>
-                        debugAnnotationProcessor      : <empty>
-                        debugAnnotationProcessorClasspath       : <empty>
-                        debugApi                      : <empty>
-                        debugApiElements              : <empty>
-                        debugCompileClasspath         : <empty>
-                        debugCompileOnly              : <empty>
-                        debugCompileOnlyApi           : <empty>
-                        debugImplementation           : <empty>
-                        debugRuntimeClasspath         : <empty>
-                        debugRuntimeElements          : <empty>
-                        debugRuntimeOnly              : <empty>
-                        debugUnitTestAnnotationProcessorClasspath         : <empty>
-                        debugUnitTestCompileClasspath : <empty>
-                        debugUnitTestRuntimeClasspath : <empty>
-                        debugWearApp                  : <empty>
-                        default                       : <empty>
-                        implementation                : <empty>
-                        lintChecks                    : <empty>
-                        lintPublish                   : <empty>
-                        releaseAnnotationProcessor    : <empty>
-                        releaseAnnotationProcessorClasspath     : <empty>
-                        releaseApi                    : <empty>
-                        releaseApiElements            : <empty>
-                        releaseCompileClasspath       : <empty>
-                        releaseCompileOnly            : <empty>
-                        releaseCompileOnlyApi         : <empty>
-                        releaseImplementation         : <empty>
-                        releaseRuntimeClasspath       : <empty>
-                        releaseRuntimeElements        : <empty>
-                        releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseWearApp                : <empty>
-                        runtimeOnly                   : <empty>
-                        testAnnotationProcessor       : <empty>
-                        testCompileOnly               : <empty>
-                        testDebugAnnotationProcessor  : <empty>
-                        testDebugCompileOnly          : <empty>
-                        testDebugImplementation       : <empty>
-                        testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
-                        testFixturesAnnotationProcessor         : <empty>
-                        testFixturesApi               : <empty>
-                        testFixturesCompileOnly       : <empty>
-                        testFixturesCompileOnlyApi    : <empty>
-                        testFixturesDebugAnnotationProcessor    : <empty>
-                        testFixturesDebugApi          : <empty>
-                        testFixturesDebugCompileOnly  : <empty>
-                        testFixturesDebugCompileOnlyApi         : <empty>
-                        testFixturesDebugImplementation         : <empty>
-                        testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
-                        testFixturesImplementation    : <empty>
-                        testFixturesReleaseAnnotationProcessor  : <empty>
-                        testFixturesReleaseApi        : <empty>
-                        testFixturesReleaseCompileOnly          : <empty>
-                        testFixturesReleaseCompileOnlyApi       : <empty>
-                        testFixturesReleaseImplementation       : <empty>
-                        testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
-                        testFixturesRuntimeOnly       : <empty>
-                        testFixturesWearApp           : <empty>
-                        testImplementation            : <empty>
-                        testReleaseAnnotationProcessor          : <empty>
-                        testReleaseCompileOnly        : <empty>
-                        testReleaseImplementation     : <empty>
-                        testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
-                        testRuntimeOnly               : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
+                    configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -333,120 +105,8 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
-                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                        _internal-unified-test-platform-android-test-plugin         : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                        _internal-unified-test-platform-core    : <empty>
-                        _internal-unified-test-platform-launcher          : <empty>
-                        androidApis                   : <empty>
-                        androidJdkImage               : <empty>
-                        androidTestAnnotationProcessor          : <empty>
-                        androidTestCompileOnly        : <empty>
-                        androidTestDebugAnnotationProcessor     : <empty>
-                        androidTestDebugCompileOnly   : <empty>
-                        androidTestDebugImplementation          : <empty>
-                        androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
-                        androidTestImplementation     : <empty>
-                        androidTestReleaseAnnotationProcessor   : <empty>
-                        androidTestReleaseCompileOnly : <empty>
-                        androidTestReleaseImplementation        : <empty>
-                        androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
-                        androidTestRuntimeOnly        : <empty>
-                        androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
-                        annotationProcessor           : <empty>
-                        api                           : <empty>
-                        archives                      : <empty>
-                        compileOnly                   : <empty>
-                        compileOnlyApi                : <empty>
-                        coreLibraryDesugaring         : <empty>
-                        debugAndroidTestAnnotationProcessorClasspath      : <empty>
-                        debugAndroidTestCompileClasspath        : <empty>
-                        debugAndroidTestRuntimeClasspath        : <empty>
-                        debugAnnotationProcessor      : <empty>
-                        debugAnnotationProcessorClasspath       : <empty>
-                        debugApi                      : <empty>
-                        debugApiElements              : <empty>
-                        debugCompileClasspath         : <empty>
-                        debugCompileOnly              : <empty>
-                        debugCompileOnlyApi           : <empty>
-                        debugImplementation           : <empty>
-                        debugRuntimeClasspath         : <empty>
-                        debugRuntimeElements          : <empty>
-                        debugRuntimeOnly              : <empty>
-                        debugUnitTestAnnotationProcessorClasspath         : <empty>
-                        debugUnitTestCompileClasspath : <empty>
-                        debugUnitTestRuntimeClasspath : <empty>
-                        debugWearApp                  : <empty>
-                        default                       : <empty>
-                        implementation                : <empty>
-                        lintChecks                    : <empty>
-                        lintPublish                   : <empty>
-                        releaseAnnotationProcessor    : <empty>
-                        releaseAnnotationProcessorClasspath     : <empty>
-                        releaseApi                    : <empty>
-                        releaseApiElements            : <empty>
-                        releaseCompileClasspath       : <empty>
-                        releaseCompileOnly            : <empty>
-                        releaseCompileOnlyApi         : <empty>
-                        releaseImplementation         : <empty>
-                        releaseRuntimeClasspath       : <empty>
-                        releaseRuntimeElements        : <empty>
-                        releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        - releaseVariantReleaseApiPublication   : <ROOT>/library-remote/build/outputs/aar/library-remote-release.aar [-]
                         - releaseVariantReleaseRuntimePublication         : <ROOT>/library-remote/build/outputs/aar/library-remote-release.aar [-]
-                        releaseWearApp                : <empty>
-                        runtimeOnly                   : <empty>
-                        testAnnotationProcessor       : <empty>
-                        testCompileOnly               : <empty>
-                        testDebugAnnotationProcessor  : <empty>
-                        testDebugCompileOnly          : <empty>
-                        testDebugImplementation       : <empty>
-                        testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
-                        testFixturesAnnotationProcessor         : <empty>
-                        testFixturesApi               : <empty>
-                        testFixturesCompileOnly       : <empty>
-                        testFixturesCompileOnlyApi    : <empty>
-                        testFixturesDebugAnnotationProcessor    : <empty>
-                        testFixturesDebugApi          : <empty>
-                        testFixturesDebugCompileOnly  : <empty>
-                        testFixturesDebugCompileOnlyApi         : <empty>
-                        testFixturesDebugImplementation         : <empty>
-                        testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
-                        testFixturesImplementation    : <empty>
-                        testFixturesReleaseAnnotationProcessor  : <empty>
-                        testFixturesReleaseApi        : <empty>
-                        testFixturesReleaseCompileOnly          : <empty>
-                        testFixturesReleaseCompileOnlyApi       : <empty>
-                        testFixturesReleaseImplementation       : <empty>
-                        testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
-                        testFixturesRuntimeOnly       : <empty>
-                        testFixturesWearApp           : <empty>
-                        testImplementation            : <empty>
-                        testReleaseAnnotationProcessor          : <empty>
-                        testReleaseCompileOnly        : <empty>
-                        testReleaseImplementation     : <empty>
-                        testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
-                        testRuntimeOnly               : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
+                        - releaseVariantReleaseApiPublication   : <ROOT>/library-remote/build/outputs/aar/library-remote-release.aar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -469,27 +129,12 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     - taskArtifacts               : <ROOT>/lint/build/libs/lint.jar [-]
                     configurationArtifacts
-                        annotationProcessor           : <empty>
-                        api                           : <empty>
-                        - apiElements                 : <ROOT>/lint/build/libs/lint.jar [-]
                         - archives                    : <ROOT>/lint/build/libs/lint.jar [-]
-                        compileClasspath              : <empty>
-                        compileOnly                   : <empty>
-                        compileOnlyApi                : <empty>
-                        default                       : <empty>
-                        implementation                : <empty>
+                        - apiElements                 : <ROOT>/lint/build/libs/lint.jar [-]
+                        - runtimeElements             : <ROOT>/lint/build/libs/lint.jar [-]
+                        - testResultsElementsForTest  : <ROOT>/lint/build/test-results/test/binary [-]
                         - mainSourceElements          : <ROOT>/lint/src/main/resources [-]
                         - mainSourceElements          : <ROOT>/lint/src/main/java
-                        runtimeClasspath              : <empty>
-                        - runtimeElements             : <ROOT>/lint/build/libs/lint.jar [-]
-                        runtimeOnly                   : <empty>
-                        testAnnotationProcessor       : <empty>
-                        testCompileClasspath          : <empty>
-                        testCompileOnly               : <empty>
-                        testImplementation            : <empty>
-                        - testResultsElementsForTest  : <ROOT>/lint/build/test-results/test/binary [-]
-                        testRuntimeClasspath          : <empty>
-                        testRuntimeOnly               : <empty>
                     sourceSets
                         main
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -611,27 +256,12 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     - taskArtifacts               : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                     configurationArtifacts
-                        annotationProcessor           : <empty>
-                        api                           : <empty>
-                        - apiElements                 : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                         - archives                    : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
-                        compileClasspath              : <empty>
-                        compileOnly                   : <empty>
-                        compileOnlyApi                : <empty>
-                        default                       : <empty>
-                        implementation                : <empty>
+                        - apiElements                 : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
+                        - runtimeElements             : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
+                        - testResultsElementsForTest  : <ROOT>/lintpublish/build/test-results/test/binary [-]
                         - mainSourceElements          : <ROOT>/lintpublish/src/main/resources [-]
                         - mainSourceElements          : <ROOT>/lintpublish/src/main/java
-                        runtimeClasspath              : <empty>
-                        - runtimeElements             : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
-                        runtimeOnly                   : <empty>
-                        testAnnotationProcessor       : <empty>
-                        testCompileClasspath          : <empty>
-                        testCompileOnly               : <empty>
-                        testImplementation            : <empty>
-                        - testResultsElementsForTest  : <ROOT>/lintpublish/build/test-results/test/binary [-]
-                        testRuntimeClasspath          : <empty>
-                        testRuntimeOnly               : <empty>
                     sourceSets
                         main
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -721,27 +351,12 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     - taskArtifacts               : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
                     configurationArtifacts
-                        annotationProcessor           : <empty>
-                        api                           : <empty>
-                        - apiElements                 : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
                         - archives                    : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
-                        compileClasspath              : <empty>
-                        compileOnly                   : <empty>
-                        compileOnlyApi                : <empty>
-                        default                       : <empty>
-                        implementation                : <empty>
+                        - apiElements                 : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
+                        - runtimeElements             : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
+                        - testResultsElementsForTest  : <ROOT>/lintpublish-remote/build/test-results/test/binary [-]
                         - mainSourceElements          : <ROOT>/lintpublish-remote/src/main/resources [-]
                         - mainSourceElements          : <ROOT>/lintpublish-remote/src/main/java
-                        runtimeClasspath              : <empty>
-                        - runtimeElements             : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
-                        runtimeOnly                   : <empty>
-                        testAnnotationProcessor       : <empty>
-                        testCompileClasspath          : <empty>
-                        testCompileOnly               : <empty>
-                        testImplementation            : <empty>
-                        - testResultsElementsForTest  : <ROOT>/lintpublish-remote/build/test-results/test/binary [-]
-                        testRuntimeClasspath          : <empty>
-                        testRuntimeOnly               : <empty>
                     sourceSets
                         main
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
