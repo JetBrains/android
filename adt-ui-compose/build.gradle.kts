@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -38,6 +39,7 @@ kotlin { jvmToolchain(21) }
 dependencies {
   intellijPlatform {
     intellijIdeaCommunity(libs.versions.idea)
+    testFramework(TestFrameworkType.Bundled)
     bundledPlugin("org.jetbrains.kotlin")
     // Add dependency on Compose and Jewel modules
     bundledModule("intellij.platform.jewel.foundation")
