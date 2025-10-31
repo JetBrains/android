@@ -120,32 +120,34 @@ class BitmapDuplicationAnalyzer {
    * Builds a map of native pointers to their corresponding byte buffers.
    */
   private fun buildPtrToBufferMap(instances: Iterable<InstanceObject>): Map<Long, ByteArray> {
-    val ptrToBufferMap = mutableMapOf<Long, ByteArray>()
+    return instances.filter { it.classEntry.className == BITMAP_DUMP_DATA_CLASS_NAME && it.depth != Integer.MAX_VALUE }
+      .fold(mutableMapOf()) { acc, dumpDataInstance ->
+        val buffersInstance = getNestedInstanceObject(dumpDataInstance, "buffers")
+        val nativesInstance = getNestedInstanceObject(dumpDataInstance, "natives")
+        if (buffersInstance == null || nativesInstance == null) {
+          return@fold acc
+        }
 
-    val dumpDataInstance = instances.firstOrNull { it.classEntry.className == BITMAP_DUMP_DATA_CLASS_NAME && it.depth != Integer.MAX_VALUE }
-                           ?: return emptyMap()
-    val buffersInstance = getNestedInstanceObject(dumpDataInstance, "buffers") ?: return emptyMap()
-    val nativesInstance = getNestedInstanceObject(dumpDataInstance, "natives") ?: return emptyMap()
+        val buffersFields = buffersInstance.fields
+        val nativesFields = nativesInstance.fields
+        if (buffersFields.size != nativesFields.size) {
+          LOG.warn(
+            String.format(
+              Locale.US, "Mismatch in size between 'buffers' (%d) and 'natives' (%d) fields. Cannot process.",
+              buffersFields.size, nativesFields.size
+            )
+          )
+          return@fold acc
+        }
 
-    val buffersFields = buffersInstance.fields
-    val nativesFields = nativesInstance.fields
-    if (buffersFields.size != nativesFields.size) {
-      LOG.warn(
-        String.format(
-          Locale.US, "Mismatch in size between 'buffers' (%d) and 'natives' (%d) fields. Cannot process.",
-          buffersFields.size, nativesFields.size
-        )
-      )
-      return emptyMap()
-    }
-
-    for (i in nativesFields.indices) {
-      val nativePtr = nativesFields.getOrNull(i)?.value as? Long ?: continue
-      val bufferInstance = buffersFields.getOrNull(i)?.getAsInstance() ?: continue
-      val byteArray = getByteArrayFromInstanceObject(bufferInstance) ?: continue
-      ptrToBufferMap[nativePtr] = byteArray
-    }
-    return ptrToBufferMap
+        for (i in nativesFields.indices) {
+          val nativePtr = nativesFields.getOrNull(i)?.value as? Long ?: continue
+          val bufferInstance = buffersFields.getOrNull(i)?.getAsInstance() ?: continue
+          val byteArray = getByteArrayFromInstanceObject(bufferInstance) ?: continue
+          acc[nativePtr] = byteArray
+        }
+        acc
+      }
   }
 
   private fun getByteArrayFromInstanceObject(instance: InstanceObject): ByteArray? {
