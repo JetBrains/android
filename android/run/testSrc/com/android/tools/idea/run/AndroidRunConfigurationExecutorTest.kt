@@ -18,11 +18,13 @@ package com.android.tools.idea.run
 import com.android.adblib.testingutils.CloseablesRule
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.fakeadbserver.DeviceState
 import com.android.flags.junit.FlagRule
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.waitForCondition
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
@@ -116,23 +118,18 @@ class AndroidRunConfigurationExecutorTest {
     val ACTIVITY_NAME = "google.simpleapplication.MyActivity"
   }
 
-  val closeables = CloseablesRule()
+  private val closeables = CloseablesRule()
 
-  val disposableRule = DisposableRule()
+  private val disposableRule = DisposableRule()
 
-  val fakeAdb = FakeAdbTestRule()
+  private val fakeAdb = FakeAdbServerAdbLibRule()
 
-  val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+  private val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
 
-  val cleaner = MockitoCleanerRule()
+  private val cleaner = MockitoCleanerRule()
 
-  val usageTrackerRule = UsageTrackerRule()
+  private val usageTrackerRule = UsageTrackerRule()
 
-  /**
-   * [FakeAdbTestRule] should follow [AndroidProjectRule], because a call to
-   * `AndroidDebugBridge.preInit` that is made during the project setup needs
-   *  to happen before FakeAdb configuration.
-   */
   @get:Rule
   val chain = RuleChain.outerRule(cleaner)
     .around(closeables)
@@ -808,6 +805,14 @@ class AndroidRunConfigurationExecutorTest {
     AndroidSessionInfo.create(processHandlerForSwap, listOf(device), APPLICATION_ID)
     return runContentDescriptor!!
   }
+
+  private fun FakeAdbServerAdbLibRule.connectAndWaitForDevice() =
+    fakeAdb.connectDevice(deviceId = "test_device_001",
+                                            manufacturer = "Google",
+                                            deviceModel = "Pixel7",
+                                            release = "10.0.0",
+                                            sdk = AndroidApiLevel(26),
+                                            hostConnectionType = DeviceState.HostConnectionType.USB)
 
   @Test
   @Ignore("b/389067070")

@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis
 
-import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Assert.*
-import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -37,10 +36,10 @@ private const val START_REPLACE_GROUP = "startReplaceGroup(I)V"
 
 class ComposeAnalysisTest {
   private var projectRule = AndroidProjectRule.inMemory().withKotlin()
-  private val fakeAdb: FakeAdbTestRule = FakeAdbTestRule("30")
+  private val fakeAdbRule = FakeAdbServerAdbLibRule()
 
   @get:Rule
-  val chain: RuleChain = RuleChain.outerRule(projectRule).around(fakeAdb)
+  val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
 
   @Before
   fun setUp() {

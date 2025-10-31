@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
+import com.android.adblib.ddmlibcompatibility.testutils.waitForOnlineDevice
 import com.android.adblib.testingutils.CloseablesRule
+import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
+import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.fakeadbserver.DeviceState
+import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.MockitoCleanerRule
-import com.android.tools.adblib.testutils.InitAdbLibApplicationServiceRule
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
@@ -45,7 +49,7 @@ abstract class AndroidConfigurationExecutorBaseTest {
   protected val componentName = "com.example.app.Component"
 
   val closeables = CloseablesRule()
-  val fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
+  val fakeAdbRule = FakeAdbServerAdbLibRule()
 
   val projectRule = ProjectRule()
   val cleaner = MockitoCleanerRule()
@@ -55,7 +59,6 @@ abstract class AndroidConfigurationExecutorBaseTest {
     .outerRule(cleaner)
     .around(closeables)
     .around(projectRule)
-    .around(InitAdbLibApplicationServiceRule())
     .around(fakeAdbRule)
 
   val project: Project
@@ -98,4 +101,12 @@ abstract class AndroidConfigurationExecutorBaseTest {
 
     return runContentDescriptor
   }
+
+  protected fun FakeAdbServerRule.connectAndWaitForDevice() =
+    connectDevice(deviceId = "test_device_001",
+                         manufacturer = "Google",
+                         deviceModel = "Pixel7",
+                         release = "10.0.0",
+                         sdk = AndroidApiLevel(26),
+                         hostConnectionType = DeviceState.HostConnectionType.USB)
 }

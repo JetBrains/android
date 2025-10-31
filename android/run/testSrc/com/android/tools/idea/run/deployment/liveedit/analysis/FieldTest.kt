@@ -1,13 +1,13 @@
 package com.android.tools.idea.run.deployment.liveedit.analysis
 
-import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.AnnotationDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.ClassVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.FieldDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.FieldVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAccessFlag
-import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAnnotation
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrField
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAnnotation
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.After
@@ -16,9 +16,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 /**
  * Basic tests for all elements of [IrField]/[FieldDiff] except:
@@ -26,9 +26,10 @@ import kotlin.test.assertTrue
  */
 class FieldTest {
   private var projectRule = AndroidProjectRule.inMemory().withKotlin()
-  private val fakeAdb: FakeAdbTestRule = FakeAdbTestRule("30")
+  private val fakeAdbRule = FakeAdbServerAdbLibRule()
+
   @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(fakeAdb)
+  val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
 
   @Before
   fun setUp() {
