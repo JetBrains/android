@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.configuration.editors
 
-import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.testutils.ignore.IgnoreWithCondition
@@ -73,19 +72,13 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
-import org.junit.rules.RuleChain
 
 class AndroidComplicationConfigurationEditorTest {
   @get:Rule
   val ignoreTestRule = IgnoreTestRule()
 
-  private val projectRule = AndroidProjectRule.inMemory()
-
-  private val fakeAdb = FakeAdbRule()
-
   @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(projectRule).around(fakeAdb)!!
+  val projectRule = AndroidProjectRule.inMemory()
 
   private val fixture
     get() = projectRule.fixture

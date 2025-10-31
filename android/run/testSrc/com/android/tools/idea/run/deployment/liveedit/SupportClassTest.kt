@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit
@@ -41,10 +41,10 @@ class SupportClassTest {
 
   // We don't need ADB in these tests. However, disableLiveEdit() or endableLiveEdit() does trigger calls to the AdbDebugBridge
   // so not having that available causes a NullPointerException when we call it.
-  private val fakeAdb: FakeAdbTestRule = FakeAdbTestRule("30")
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(fakeAdb)
+  private val fakeAdbRule = FakeAdbServerAdbLibRule()
 
+  @get:Rule
+  val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
   @Before
   fun setUp() {
     setUpComposeInProjectFixture(projectRule)
