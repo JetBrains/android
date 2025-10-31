@@ -137,7 +137,6 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
     val project = file.project
 
     return AppInsightsTabProvider.EP_NAME.extensionList
-      .filter { it.isApplicable() }
       .map { tabProvider ->
         val configurationManager = tabProvider.getConfigurationManager(project)
 

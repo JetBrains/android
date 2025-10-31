@@ -17,8 +17,7 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.primaryContentBackground
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CancellableTimeoutException
@@ -31,8 +30,8 @@ import com.android.tools.idea.insights.RevertibleException
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.model.issue.AppInsightsIssue
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.observable.util.addMouseListener
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.TableSpeedSearch
@@ -40,7 +39,6 @@ import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.table.TableView
 import com.intellij.ui.util.preferredWidth
-import com.intellij.util.containers.Convertor
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.TimerUtil
 import com.intellij.util.ui.UIUtil
@@ -53,11 +51,13 @@ import javax.swing.ListSelectionModel
 import javax.swing.UIManager
 import javax.swing.event.ListSelectionListener
 import javax.swing.table.JTableHeader
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
+@Suppress("DialogTitleCapitalization")
 class AppInsightsIssuesTableView(
   model: AppInsightsIssuesTableModel,
   private val controller: AppInsightsProjectLevelController,
@@ -65,25 +65,20 @@ class AppInsightsIssuesTableView(
   tableMouseListener: MouseListener?,
 ) : Disposable {
   val component: JComponent
-  private val speedSearch: TableSpeedSearch
   private val tableHeader: JTableHeader
   private val changeListener: ListSelectionListener
-  private val loadingPanel: JBLoadingPanel
-  val table: IssuesTableView
+  private val loadingPanel: JBLoadingPanel = JBLoadingPanel(TabularLayout("*", "Fit,*"), this)
+  val table: IssuesTableView = IssuesTableView(model)
 
-  private val scope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
+  private val scope = createCoroutineScope(extraContext = Dispatchers.EDT)
 
   init {
-    loadingPanel = JBLoadingPanel(TabularLayout("*", "Fit,*"), this)
-    table = IssuesTableView(model)
 
     tableMouseListener?.let { table.addMouseListener(tableMouseListener) }
 
-    speedSearch =
-      TableSpeedSearch(
-        table,
-        Convertor { if (it is AppInsightsIssue) convertToSearchText(it) else it.toString() },
-      )
+    TableSpeedSearch.installOn(table) {
+      if (it is AppInsightsIssue) convertToSearchText(it) else it.toString()
+    }
     tableHeader = table.tableHeader
     tableHeader.reorderingAllowed = false
     tableHeader.preferredSize = Dimension(0, commonToolbarHeight())
@@ -314,6 +309,7 @@ class AppInsightsIssuesTableView(
     override fun updateUI() {
       super.updateUI()
       renderer.updateRenderer()
+      @Suppress("UNNECESSARY_SAFE_CALL") // this can be called before construction is complete
       tableEmptyText?.setFont(StartupUiUtil.labelFont)
     }
 

@@ -46,7 +46,7 @@ class CodeTransformationImpl(
     if (files.isEmpty()) {
       throw IllegalStateException("Should not call suggestFix on with no target files")
     }
-    return (FixSuggester.Companion.EP_NAME.extensionList.firstOrNull()
+    return (FixSuggester.EP_NAME.extensionList.firstOrNull()
         ?: throw IllegalStateException("Cannot find FixSuggester extension point"))
       .suggestFix(project, instruction, files, this)
   }

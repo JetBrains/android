@@ -27,7 +27,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
 import java.awt.BorderLayout
 import java.awt.CardLayout
-import java.awt.Component
 import java.awt.Graphics
 import javax.swing.BorderFactory
 import javax.swing.Box
@@ -79,13 +78,13 @@ class DistributionsContainerPanel(scope: CoroutineScope, insightsState: Flow<App
       JPanel().apply {
         background = null
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
-        border = JBUI.Borders.empty(0, 8, 0, 0)
+        border = JBUI.Borders.emptyLeft(8)
         add(TitledSeparator("Devices"))
         add(deviceDistributionPanel)
         add(TitledSeparator("Android Versions"))
         add(osDistributionPanel)
         add(Box.createGlue())
-        components.forEach { (it as JComponent).alignmentX = Component.LEFT_ALIGNMENT }
+        components.forEach { (it as JComponent).alignmentX = LEFT_ALIGNMENT }
         scope.launch {
           insightsState
             .map { it.currentIssueDetails }
@@ -158,6 +157,7 @@ class DistributionsContainerPanel(scope: CoroutineScope, insightsState: Flow<App
 
   override fun updateUI() {
     super.updateUI()
+    @Suppress("UNNECESSARY_SAFE_CALL") // this can be called before construction is complete
     emptyText?.setFont(StartupUiUtil.labelFont)
   }
 
