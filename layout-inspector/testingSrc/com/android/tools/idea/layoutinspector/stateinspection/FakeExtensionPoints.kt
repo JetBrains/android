@@ -22,7 +22,7 @@ import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ExtensionTestUtil
 
-private const val ASK_GEMINI = "(Ask Gemini)"
+private const val EXPLAIN_WITH_AI = "(Explain with AI)"
 
 /** Installs 2 EP for state inspection that simulates the presence of ML. */
 fun installFakeExtensionPoints(disposable: Disposable) {
@@ -36,7 +36,7 @@ fun installFakeExtensionPoints(disposable: Disposable) {
   val rewriter =
     object : LayoutInspectorStateReadRewriter {
       override fun rewriteStateRead(project: Project, read: String): String {
-        return "$read $ASK_GEMINI"
+        return "$read $EXPLAIN_WITH_AI"
       }
     }
   ExtensionTestUtil.maskExtensions(
@@ -59,12 +59,12 @@ private class FakeFilterProvider(private val link: HyperlinkInfo) :
 private class FilterForTest(private val link: HyperlinkInfo) : Filter {
   override fun applyFilter(line: String, entireLength: Int): Filter.Result? {
     val offset = entireLength - line.length
-    val start = line.indexOf(ASK_GEMINI)
+    val start = line.indexOf(EXPLAIN_WITH_AI)
     if (start < 0) {
       return null
     }
 
-    val end = start + ASK_GEMINI.length
+    val end = start + EXPLAIN_WITH_AI.length
     val item = Filter.ResultItem(start + offset, end + offset, link)
     return Filter.Result(listOf(item))
   }
