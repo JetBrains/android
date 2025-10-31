@@ -80,7 +80,7 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
 
   private val activeTabFlow = MutableStateFlow("")
 
-  override fun isApplicable(project: Project) =
+  override suspend fun isApplicableAsync(project: Project) =
     !AndroidProjectInfo.getInstance(project).isApkProject
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
@@ -91,26 +91,24 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
   fun createTabs(project: Project, toolWindow: ToolWindow) {
     val contentFactory = ContentFactory.getInstance()
 
-    AppInsightsTabProvider.EP_NAME.extensionList
-      .filter { it.isApplicable() }
-      .forEach { tabProvider ->
-        val tabPanel = AppInsightsTabPanel()
-        tabProvider.populateTab(
-          project,
-          tabPanel,
-          activeTabFlow.map { it == tabProvider.displayName }.distinctUntilChanged(),
-        )
-        val tabContent =
-          contentFactory.createContent(tabPanel, tabProvider.displayName, false).apply {
-            putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
-            icon = tabProvider.icon
-          }
-        tabContent.setDisposer(tabPanel)
-        toolWindow.contentManager.addContent(tabContent)
-        if (tabProvider.displayName == project.service<AppInsightsSettings>().selectedTabId) {
-          toolWindow.contentManager.setSelectedContent(tabContent)
+    AppInsightsTabProvider.EP_NAME.extensionList.forEach { tabProvider ->
+      val tabPanel = AppInsightsTabPanel()
+      tabProvider.populateTab(
+        project,
+        tabPanel,
+        activeTabFlow.map { it == tabProvider.displayName }.distinctUntilChanged(),
+      )
+      val tabContent =
+        contentFactory.createContent(tabPanel, tabProvider.displayName, false).apply {
+          putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
+          icon = tabProvider.icon
         }
+      tabContent.setDisposer(tabPanel)
+      toolWindow.contentManager.addContent(tabContent)
+      if (tabProvider.displayName == project.service<AppInsightsSettings>().selectedTabId) {
+        toolWindow.contentManager.setSelectedContent(tabContent)
       }
+    }
     toolWindow.contentManager.addContentManagerListener(
       object : ContentManagerListener {
         override fun selectionChanged(event: ContentManagerEvent) {

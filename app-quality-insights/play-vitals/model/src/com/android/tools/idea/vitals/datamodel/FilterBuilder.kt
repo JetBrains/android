@@ -37,12 +37,6 @@ private const val API_LEVEL = "apiLevel"
 private const val VERSION_CODE = "versionCode"
 
 /**
- * `deviceBrand`: Matches error issues that occurred in the requested device brands. Example:
- * `deviceBrand = "Google".
- */
-private const val DEVICE_BRAND = "deviceBrand"
-
-/**
  * `deviceModel`: Matches error issues that occurred in the requested devices. Example: `deviceModel
  * = "walleye" OR deviceModel = "marlin"`.
  */
@@ -53,13 +47,6 @@ private const val DEVICE_MODEL = "deviceModel"
  * `ANR`. Example: `errorIssueType = CRASH OR errorIssueType = ANR`.
  */
 private const val ERROR_ISSUE_TYPE = "errorIssueType"
-
-/**
- * `appProcessState`: Matches error issues on the process state of an app, indicating whether an app
- * runs in the foreground (user-visible) or background. Valid candidates: `FOREGROUND`,
- * `BACKGROUND`. Example: `appProcessState = FOREGROUND`.
- */
-private const val APP_PROCESS_STATE = "appProcessState"
 
 /**
  * `isUserPerceived`: Matches error issues that are user-perceived. It is not accompanied by any

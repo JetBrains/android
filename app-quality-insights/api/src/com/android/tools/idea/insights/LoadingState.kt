@@ -141,7 +141,7 @@ sealed class LoadingState<out T> {
   abstract fun <U> map(fn: (T) -> U): LoadingState<U>
 
   /** Gets the ready value or null. */
-  fun valueOrNull() = if (this is LoadingState.Ready) value else null
+  fun valueOrNull() = if (this is Ready) value else null
 
   companion object {
     val Loading = Loading()

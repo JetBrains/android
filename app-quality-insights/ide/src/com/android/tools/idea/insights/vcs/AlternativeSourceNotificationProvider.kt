@@ -19,7 +19,6 @@ import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ui.vcs.ContextDataForDiff
 import com.android.tools.idea.insights.ui.vcs.InsightsDiffVirtualFile
 import com.android.tools.idea.insights.ui.vcs.goToDiff
-import com.android.tools.idea.insights.vcs.AlternativeSourceNotificationProvider.AppScopeMatchResult
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.module.getModule
 import com.intellij.openapi.application.runReadAction

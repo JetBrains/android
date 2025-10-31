@@ -31,7 +31,7 @@ class DistributionPanel : JPanel(TabularLayout("Fit,Fit,*,Fit")) {
   }
 
   fun updateDistribution(stats: IssueStats<Double>, category: String) {
-    val emptyBorder = JBUI.Borders.empty(4, 4, 4, 4)
+    val emptyBorder = JBUI.Borders.empty(4)
     if (stats.groups.isEmpty()) {
       add(
         JLabel("No data available").apply { border = emptyBorder },

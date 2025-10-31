@@ -28,8 +28,6 @@ interface AppInsightsTabProvider {
   /** Populates the provided [tabPanel] with content. */
   fun populateTab(project: Project, tabPanel: AppInsightsTabPanel, activeTabFlow: Flow<Boolean>)
 
-  fun isApplicable(): Boolean = true
-
   /** Returns the active configuration manager for this insights tab for [project]. */
   fun getConfigurationManager(project: Project): AppInsightsConfigurationManager
 

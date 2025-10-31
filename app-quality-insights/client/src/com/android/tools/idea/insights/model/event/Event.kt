@@ -37,8 +37,6 @@ data class Event(
     val EMPTY = Event()
   }
 
-  val eventId = name.split("/").last()
-
   fun isStackTraceEmpty() =
     stacktraceGroup.exceptions.isEmpty() || stacktraceGroup.exceptions.joinToString("").isEmpty()
 }

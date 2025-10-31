@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.vitals.ui
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
@@ -62,7 +62,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
     tabPanel: AppInsightsTabPanel,
     activeTabFlow: Flow<Boolean>,
   ) {
-    val scope = AndroidCoroutineScope(tabPanel)
+    val scope = tabPanel.createCoroutineScope()
     val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
     tabPanel.setComponent(placeholderContent())
 
@@ -120,7 +120,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
         withContext(Dispatchers.IO) { project.service<VitalsConfigurationService>().manager }
       // Combine with active user flow to get the logged out -> logged in + not authorized
       // update
-      val loginService = service<GoogleLoginService>()
+      val loginService = GoogleLoginService.instance
       var shouldRefresh = false
       configManager.configuration
         .combine(loginService.activeUserFlow) { config, _ -> config }
@@ -164,8 +164,6 @@ class VitalsTabProvider : AppInsightsTabProvider {
     } finally {
       populateTabJob = null
     }
-
-  override fun isApplicable(): Boolean = true
 
   override fun getConfigurationManager(project: Project) =
     project.service<VitalsConfigurationService>().manager
@@ -251,7 +249,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
         }
         .apply {
           appendLine("Failed to query for accessible Android Vitals apps.")
-          appendLine("Refresh", SimpleTextAttributes.LINK_ATTRIBUTES) { e ->
+          appendLine("Refresh", SimpleTextAttributes.LINK_ATTRIBUTES) {
             configurationManager.refreshConfiguration()
           }
         }

@@ -19,8 +19,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.getFullReleaseName
 import com.android.tools.adtui.common.WrappedFlowLayout
 import com.android.tools.adtui.common.primaryContentBackground
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.gemini.GeminiPluginApi.RequestSource.PLAY_VITALS
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Connection
@@ -56,7 +55,9 @@ import com.android.tools.idea.insights.ui.transparentPanel
 import com.android.tools.idea.insights.ui.vcs.VcsCommitLabel
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.VerticalFlowLayout
@@ -84,6 +85,7 @@ import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JSeparator
 import javax.swing.ScrollPaneConstants
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -156,8 +158,8 @@ class VitalsIssueDetailsPanel(
   private val project: Project,
   parentDisposable: Disposable,
   private val tracker: AppInsightsTracker,
-) : PanelWithHeaderComponent(), DataProvider {
-  private val scope = AndroidCoroutineScope(parentDisposable)
+) : PanelWithHeaderComponent(), UiDataProvider {
+  private val scope = parentDisposable.createCoroutineScope()
   private val detailsState =
     controller.state
       .map { state ->
@@ -249,7 +251,7 @@ class VitalsIssueDetailsPanel(
     minimumSize = ISSUE_DETAILS_PANEL_MIN_SIZE
     background = primaryContentBackground
     Disposer.register(parentDisposable, stackTraceConsole)
-    scope.launch(AndroidDispatchers.uiThread) {
+    scope.launch(Dispatchers.EDT) {
       detailsState
         .map { it.selectedIssue }
         .distinctUntilChanged()
@@ -266,7 +268,7 @@ class VitalsIssueDetailsPanel(
         }
     }
 
-    scope.launch(AndroidDispatchers.uiThread) {
+    scope.launch(Dispatchers.EDT) {
       detailsState
         .filter { it.selectedIssue != null }
         .collect { state ->
@@ -407,13 +409,11 @@ class VitalsIssueDetailsPanel(
     @Suppress("UNNECESSARY_SAFE_CALL") stackTraceConsole?.updateUI()
   }
 
-  override fun getData(dataId: String): Any? =
-    when {
-      REQUEST_SOURCE_KEY.`is`(dataId) -> PLAY_VITALS
-      // stack trace of sampleEvent can be used for all events
-      SELECTED_EVENT_KEY.`is`(dataId) -> detailsState.value.selectedIssue?.sampleEvent
-      else -> null
-    }
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[REQUEST_SOURCE_KEY] = PLAY_VITALS
+    // stack trace of sampleEvent can be used for all events
+    sink[SELECTED_EVENT_KEY] = detailsState.value.selectedIssue?.sampleEvent
+  }
 
   override fun setHeaderHeight(height: Int) {
     header.preferredSize = Dimension(header.preferredWidth, height)

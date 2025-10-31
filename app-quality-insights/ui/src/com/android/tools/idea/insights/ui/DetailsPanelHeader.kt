@@ -96,9 +96,9 @@ class DetailsPanelHeader(
   private val countsPanel =
     transparentPanel().apply {
       layout = BoxLayout(this, BoxLayout.X_AXIS)
-      add(eventsCountLabel, Box.CENTER_ALIGNMENT)
+      add(eventsCountLabel, CENTER_ALIGNMENT)
       add(Box.createHorizontalStrut(8))
-      add(usersCountLabel, Box.CENTER_ALIGNMENT)
+      add(usersCountLabel, CENTER_ALIGNMENT)
       border = JBUI.Borders.emptyRight(8)
     }
 
