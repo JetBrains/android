@@ -35,6 +35,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.text.selection.DisableSelection
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -93,31 +95,35 @@ fun JourneysResultsView(
     Column {
       val textScrollState = rememberScrollState()
       Box {
-        Column(
-          modifier = Modifier.verticalScroll(textScrollState),
-          verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
-        ) {
-          Row {
-            ArtifactText(
-              modifier = Modifier.weight(1f, fill = true),
-              title = "Action Taken",
-              text = artifact.description ?: "No action",
-            )
-            if (numEntries > 1) {
-              StepCounter(modifier = Modifier, index = index, numEntries = numEntries)
+        SelectionContainer {
+          Column(
+            modifier = Modifier.verticalScroll(textScrollState),
+            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
+          ) {
+            Row {
+              ArtifactText(
+                modifier = Modifier.weight(1f, fill = true),
+                title = "Action Taken",
+                text = artifact.description ?: "No action",
+              )
+              if (numEntries > 1) {
+                DisableSelection {
+                  StepCounter(modifier = Modifier, index = index, numEntries = numEntries)
+                }
+              }
             }
-          }
-          ArtifactText(
-            modifier = Modifier,
-            title = "Reasoning",
-            text = artifact.reasoning ?: "None",
-          )
-          if (artifact.interactions.isNotEmpty()) {
             ArtifactText(
               modifier = Modifier,
-              title = "Commands",
-              text = artifact.interactions.joinToString(",")
+              title = "Reasoning",
+              text = artifact.reasoning ?: "None",
             )
+            if (artifact.interactions.isNotEmpty()) {
+              ArtifactText(
+                modifier = Modifier,
+                title = "Commands",
+                text = artifact.interactions.joinToString(",")
+              )
+            }
           }
         }
         VerticalScrollbar(
@@ -148,20 +154,22 @@ fun JourneysResultsViewCompact(
 
       val textScrollState = rememberScrollState()
       Box {
-        Column(
-          modifier = Modifier.widthIn(max = 400.dp).verticalScroll(textScrollState).padding(vertical = 4.dp),
-          verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
-        ) {
-          ArtifactText(
-            modifier = Modifier,
-            title = "Action Taken",
-            text = artifact.description ?: "No action",
-          )
-          ArtifactText(
-            modifier = Modifier,
-            title = "Reasoning",
-            text = artifact.reasoning ?: "None",
-          )
+        SelectionContainer {
+          Column(
+            modifier = Modifier.widthIn(max = 400.dp).verticalScroll(textScrollState).padding(vertical = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
+          ) {
+            ArtifactText(
+              modifier = Modifier,
+              title = "Action Taken",
+              text = artifact.description ?: "No action",
+            )
+            ArtifactText(
+              modifier = Modifier,
+              title = "Reasoning",
+              text = artifact.reasoning ?: "None",
+            )
+          }
         }
         VerticalScrollbar(
           modifier = Modifier.fillMaxHeight().align(Alignment.TopEnd),
