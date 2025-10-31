@@ -118,11 +118,20 @@ constructor(
 
   @Suppress("DialogTitleCapitalization")
   override fun update(e: AnActionEvent) {
-    val module = PlatformCoreDataKeys.MODULE.getData(e.dataContext) ?: return
-    val moduleInfo = StudioAndroidModuleInfo.getInstance(module) ?: return
     val presentation = e.presentation
-    presentation.isVisible = true
+
+    val module = PlatformCoreDataKeys.MODULE.getData(e.dataContext)
+    val moduleInfo = if (module != null) StudioAndroidModuleInfo.getInstance(module) else null
+    if (module == null || moduleInfo == null) {
+      presentation.isVisible = false
+      presentation.isEnabled = false
+      // The action will sometimes still appear in 'Search everywhere' results when disabled
+      presentation.text = "$templateName (Disabled - No Android module found)"
+      return
+    }
+
     // See also com.android.tools.idea.npw.template.ChooseActivityTypeStep#validateTemplate
+    presentation.isVisible = true
     when {
       minSdkApi > moduleInfo.minSdkVersion.featureLevel -> {
         presentation.text =
