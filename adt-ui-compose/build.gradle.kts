@@ -55,8 +55,8 @@ dependencies {
 dependencies {
   api("androidx.lifecycle:lifecycle-runtime:2.8.7")
   testApi(compose.desktop.uiTestJUnit4)
-  testApi("org.jetbrains.jewel:jewel-int-ui-standalone:0.29.0-252.24604")
-  testApi("org.jetbrains.jewel:jewel-markdown-int-ui-standalone-styling:0.29.0-252.24604")
+  testApi("org.jetbrains.jewel:jewel-int-ui-standalone:0.31.0-252.27409")
+  testApi("org.jetbrains.jewel:jewel-markdown-int-ui-standalone-styling:0.31.0-252.27409")
   testImplementation("com.google.truth:truth:0.42")
 }
 
