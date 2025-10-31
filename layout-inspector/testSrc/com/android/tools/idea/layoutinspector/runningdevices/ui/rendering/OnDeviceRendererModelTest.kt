@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -109,6 +110,7 @@ class OnDeviceRendererModelTest {
       )
   }
 
+  @Ignore("b/456565960")
   @Test
   fun testClientConnectionStartsOnDeviceRendering() {
     val commands = mutableListOf<ByteArray>()
