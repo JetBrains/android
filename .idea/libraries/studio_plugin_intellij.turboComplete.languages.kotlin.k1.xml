@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="studio-plugin-intellij.turboComplete.languages.kotlin.k1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/turboComplete/lib/modules/intellij.turboComplete.languages.kotlin.k1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/android-studio-sources.zip!/" />
+    </SOURCES>
+  </library>
+</component>

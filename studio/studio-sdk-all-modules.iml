@@ -146,6 +146,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.spellchecker.xml" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.toml.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.toml.frontend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.turboComplete.languages.kotlin.k1" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.github.git" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.gitlab.git" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.gitlab.yaml" level="project" />

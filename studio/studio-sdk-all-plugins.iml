@@ -23,6 +23,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.cidr.debugger" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.cidr.lang" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.cidr.lang.clangd" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.completion.ml.ranking" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.compose" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.configurationScript" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.copyright" level="project" />
@@ -37,6 +38,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.plugins.visualstudiokeymap" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.properties" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.tasks" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.turboComplete" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.jetbrains.performancePlugin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.jetbrains.sh" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-hg4idea" level="project" />
@@ -184,6 +186,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.spellchecker.xml" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.toml.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.toml.frontend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.turboComplete.languages.kotlin.k1" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.github.git" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.gitlab.git" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.gitlab.yaml" level="project" />

@@ -116,6 +116,7 @@ public class StartUpTest {
         "Java Stream Debugger",
         "Jetpack Compose",
         "Kotlin",
+        "Machine Learning Code Completion",
         "Markdown",
         "Mercurial",
         "NetBeans Keymap",
@@ -130,6 +131,7 @@ public class StartUpTest {
         "TestNG",
         "TextMate Bundles",
         "Toml",
+        "Turbo Complete",
         "Visual Studio Keymap",
         "WebP Support",
         "YAML"
