@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.editors.liveedit
 
+import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
+import com.android.adblib.ddmlibcompatibility.testutils.waitForOnlineDevice
+import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
+import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.fakeadbserver.DeviceState
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.editors.liveedit.ui.DeviceGetter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditDeviceMap
@@ -50,10 +55,12 @@ import org.mockito.kotlin.whenever
 internal class LiveEditNotificationActionTest {
 
   private val projectRule = AndroidProjectRule.inMemory()
-  private val fakeAdb: FakeAdbTestRule = FakeAdbTestRule("30")
+  private val fakeAdbRule = FakeAdbServerRule()
+  private val initAndroidDebugBridgeRule =
+    InitAndroidDebugBridgeRule(alsoCreateBridge = true) { fakeAdbRule.adbServer.port }
 
   @get:Rule
-  val rule = RuleChain(projectRule, fakeAdb)
+  val rule = RuleChain(projectRule, fakeAdbRule, initAndroidDebugBridgeRule)
 
   private val project
     get() = projectRule.project
@@ -101,7 +108,17 @@ internal class LiveEditNotificationActionTest {
   @Test
   fun `check simple with fake device`() {
     val service = LiveEditService.getInstance(project)
-    fakeAdb.connectAndWaitForDevice()
+    val deviceState = fakeAdbRule.connectDevice(
+      deviceId = "device_id",
+      manufacturer = "mfg",
+      deviceModel = "model",
+      release = "10.0.0",
+      sdk = AndroidApiLevel(30),
+      hostConnectionType = DeviceState.HostConnectionType.USB)
+      .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
+    runBlockingWithTimeout {
+      deviceState.waitForOnlineDevice()
+    }
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val file = fixture.configureByText("A.kt", "")
