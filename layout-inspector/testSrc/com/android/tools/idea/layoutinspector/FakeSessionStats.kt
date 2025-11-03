@@ -74,8 +74,6 @@ class FakeSessionStats : SessionStatistics {
 
   override fun observingSingleNodeSelected() {}
 
-  override fun observingSubTreeSelected() {}
-
   override fun stateReadsShown() {}
 
   override fun nextRecompositionChosen() {}

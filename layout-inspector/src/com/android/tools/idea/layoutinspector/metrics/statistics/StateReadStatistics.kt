@@ -22,8 +22,6 @@ class StateReadStatistics {
   private var observingAllSelected = 0
   /** The number of times the user selected "Start/Stop Observing Node" */
   private var observingNodeByIdSelected = 0
-  /** The number of times the user selected "Start/Stop Observing Subtree" */
-  private var observingSubTreeByIdSelected = 0
   /** The state read pages shown while observing all */
   private var pagesShownObservingAll = 0
   /** The state read pages shown while observing by id */
@@ -48,7 +46,6 @@ class StateReadStatistics {
   fun start() {
     observingAllSelected = 0
     observingNodeByIdSelected = 0
-    observingSubTreeByIdSelected = 0
     pagesShownObservingAll = 0
     pagesShownObservingById = 0
     nextRecompositionChosen = 0
@@ -69,11 +66,6 @@ class StateReadStatistics {
   fun observingSingleNodeSelected() {
     observed = Observed.ById
     observingNodeByIdSelected++
-  }
-
-  fun observingSubTreeSelected() {
-    observed = Observed.ById
-    observingSubTreeByIdSelected++
   }
 
   fun stateReadsShown() {
@@ -104,7 +96,6 @@ class StateReadStatistics {
     if (
       observingAllSelected == 0 &&
         observingNodeByIdSelected == 0 &&
-        observingSubTreeByIdSelected == 0 &&
         pagesShownObservingAll == 0 &&
         pagesShownObservingById == 0 &&
         nextRecompositionChosen == 0 &&
@@ -117,7 +108,6 @@ class StateReadStatistics {
     dataSupplier().let {
       it.observingAllSelected = observingAllSelected
       it.observingNodeByIdSelected = observingNodeByIdSelected
-      it.observingSubTreeByIdSelected = observingSubTreeByIdSelected
       it.pagesShownObservingAll = pagesShownObservingAll
       it.pagesShownObservingById = pagesShownObservingById
       it.nextRecompositionChosen = nextRecompositionChosen

@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
+import com.android.tools.idea.layoutinspector.model.COMPOSE3
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.FakeInspectorState
@@ -83,7 +84,8 @@ class RecompositionStateReadCacheTest {
       .isEqualTo(StateReadSettings.newBuilder().apply { noneBuilder }.build())
     lastCommand = null
 
-    model.stateReadsModel.observeSubtree(model[COMPOSE2] as ComposeViewNode)
+    model.stateReadsModel.observeNode(model[COMPOSE2] as ComposeViewNode)
+    model.stateReadsModel.observeNode(model[COMPOSE3] as ComposeViewNode)
     waitForCondition(10.seconds) {
       lastCommand?.specializedCase == Command.SpecializedCase.UPDATE_SETTINGS_COMMAND
     }
