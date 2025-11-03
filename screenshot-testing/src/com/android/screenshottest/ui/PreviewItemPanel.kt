@@ -15,6 +15,7 @@
  */
 package com.android.screenshottest.ui
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -52,6 +53,7 @@ class PreviewItemPanel(
   var isLoadedSuccessfully: Boolean = false
     private set
   val loadedImagePaths = mutableMapOf<String, String>() // imagePath to simpleClassName
+  val sourceImageToCopy = mutableMapOf<String, String>()
 
   init {
     // Use GridBagLayout to stack components vertically without forcing them to the same width.
@@ -92,13 +94,48 @@ class PreviewItemPanel(
   fun showError(message: String) {
     ApplicationManager.getApplication().invokeLater {
       isLoadedSuccessfully = false
-      imagePanel.showError(message)
+      imagePanel.showText(message)
+    }
+  }
+
+  private fun showPlaceholder(message: String) {
+    ApplicationManager.getApplication().invokeLater {
+      imagePanel.showText(message)
+    }
+  }
+
+  fun showImageForView(viewType: UpdateReferenceImagesDialog.ScreenshotViewType) {
+    when (viewType) {
+      UpdateReferenceImagesDialog.ScreenshotViewType.NEW -> {
+        previewData.srcImagePath?.let { loadImage(it, previewData.testId) } ?: showError("No New Image")
+      }
+      UpdateReferenceImagesDialog.ScreenshotViewType.DIFF -> {
+        val diffPath = previewData.diffImagePath
+        if (diffPath != null && File(diffPath).exists()) {
+          loadImage(diffPath, previewData.testId)
+        } else {
+          val placeholder = if (previewData.testResult == AndroidTestCaseResult.PASSED) "No Difference" else "No Diff Image"
+          showPlaceholder(placeholder)
+        }
+      }
+      UpdateReferenceImagesDialog.ScreenshotViewType.REFERENCE -> {
+        val refPath = previewData.destImagePath
+        if (refPath != null && File(refPath).exists()) {
+          loadImage(refPath, previewData.testId)
+        } else {
+          showPlaceholder("No Reference Image")
+        }
+      }
     }
   }
 
   fun loadImage(newPath: String, testId: String) {
     val simpleClassName = testId.split('.', limit = 2).first()
     loadedImagePaths[newPath] = simpleClassName
+
+    if (sourceImageToCopy.isEmpty()) {
+      previewData.srcImagePath?.let { sourceImageToCopy[it] = simpleClassName }
+    }
 
     ApplicationManager.getApplication().executeOnPooledThread {
       val image = createImageIcon(newPath)
@@ -166,10 +203,10 @@ class PreviewItemPanel(
   private class ImagePanel : JPanel(GridBagLayout()) {
     private var image: JBImageIcon? = null
     private val loadingIcon = AsyncProcessIcon("Waiting for image...")
+    private val initialSize = Dimension(200, 200)
 
     init {
       // Set an initial fixed size for the loading state.
-      val initialSize = Dimension(200, 200)
       preferredSize = initialSize
       maximumSize = initialSize
       border = BorderFactory.createLineBorder(JBColor.border())
@@ -189,9 +226,15 @@ class PreviewItemPanel(
       repaint()
     }
 
-    fun showError(message: String) {
+    fun showText(message: String) {
+      this.image = null
       removeAll()
       add(JBLabel(message).apply { foreground = JBColor.RED })
+
+      // Reset to the initial size to ensure the placeholder text is not clipped.
+      preferredSize = initialSize
+      maximumSize = initialSize
+
       revalidate()
       repaint()
     }
