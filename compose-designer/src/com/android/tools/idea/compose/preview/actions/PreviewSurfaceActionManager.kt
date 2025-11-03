@@ -57,13 +57,13 @@ internal class PreviewSurfaceActionManager(
     // Copy Image
     val actionGroup = DefaultActionGroup().apply { add(copyResultImageAction) }
 
-    val mousePosition = mouseEvent.point
+    val convertedPoint =
+      SwingUtilities.convertPoint(mouseEvent.component, mouseEvent.point, surface.interactionPane)
 
-    SwingUtilities.convertPointFromScreen(mousePosition, surface.interactionPane)
     // Zoom to Selection
-    actionGroup.add(ZoomToSelectionAction(mousePosition.x, mousePosition.y, ::zoomTargetProvider))
+    actionGroup.add(ZoomToSelectionAction(convertedPoint.x, convertedPoint.y, ::zoomTargetProvider))
     // Jump to Definition
-    actionGroup.add(JumpToDefinitionAction(mousePosition.x, mousePosition.y, navigationHandler))
+    actionGroup.add(JumpToDefinitionAction(convertedPoint.x, convertedPoint.y, navigationHandler))
     // View in Focus mode
     actionGroup.add(ViewInFocusModeAction())
     // Toggle Resize Panel (only in focus mode)

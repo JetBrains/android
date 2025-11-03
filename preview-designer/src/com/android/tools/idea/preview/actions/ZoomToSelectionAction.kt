@@ -22,6 +22,7 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -33,8 +34,8 @@ import java.awt.Rectangle
  * Component visible at the position where the mouse is located at the moment the action is created.
  */
 class ZoomToSelectionAction(
-  @SwingCoordinate private val x: Int,
-  @SwingCoordinate private val y: Int,
+  @param:VisibleForTesting @param:SwingCoordinate val x: Int,
+  @param:VisibleForTesting @param:SwingCoordinate val y: Int,
   val zoomTargetProvider: (sceneView: SceneView, x: Int, y: Int, logger: Logger) -> Rectangle?,
 ) : AnAction(message("action.zoom.to.selection")) {
 
