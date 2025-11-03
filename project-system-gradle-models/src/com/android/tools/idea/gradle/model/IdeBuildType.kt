@@ -47,4 +47,10 @@ interface IdeBuildType : IdeBaseConfig {
 
   /** Whether this build type is specified as a default by the user*/
   val isDefault: Boolean?
+
+  /**
+   * Specifies a sorted list of build types that the plugin should try to use when a direct
+   * variant match with a local module dependency is not possible.
+   */
+  val matchingFallbacks: List<String>
 }

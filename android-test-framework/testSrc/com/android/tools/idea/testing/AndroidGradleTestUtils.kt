@@ -876,7 +876,8 @@ fun AndroidProjectStubBuilder.buildDebugBuildTypeStub(): IdeBuildTypeContainerIm
         renderscriptOptimLevel = 1,
         isMinifyEnabled = false,
         isZipAlignEnabled = true,
-        isDefault = null
+        isDefault = null,
+        matchingFallbacks = emptyList()
       ),
       debugSourceProvider,
       listOfNotNull(
@@ -905,7 +906,8 @@ fun AndroidProjectStubBuilder.buildReleaseBuildTypeStub(): IdeBuildTypeContainer
         renderscriptOptimLevel = 1,
         isMinifyEnabled = true,
         isZipAlignEnabled = true,
-        isDefault = null
+        isDefault = null,
+        matchingFallbacks = emptyList()
       ),
       sourceProvider = releaseSourceProvider,
       extraSourceProviders = listOf())
