@@ -284,6 +284,10 @@ public class BazelProjectSystem implements AndroidProjectSystem {
 
   @Override
   public boolean isAndroidProject() {
+    if (Blaze.getProjectType(project).equals(ProjectType.QUERY_SYNC)) {
+      return QuerySyncManager.getInstance(project).getLoadedProject().map(it -> it.getProjectDefinition().isAndroidWorkspace())
+        .orElse(false);
+    }
     return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
   }
 
