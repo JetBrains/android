@@ -113,7 +113,7 @@ class PsProjectImpl(
       WriteCommandAction.writeCommandAction(ideProject).withName("Applying changes to the project structure.").run<RuntimeException> {
         parsedModel.applyChanges()
         if (gradleVersionModified) {
-          GradleWrapper.find(ideProject)?.updateDistributionUrlAndDisplayFailure(newGradleVersion!!)
+          GradleWrapper.find(ideProject)?.updateDistributionOrDisplayFailure(newGradleVersion!!)
         }
         isModified = false
       }

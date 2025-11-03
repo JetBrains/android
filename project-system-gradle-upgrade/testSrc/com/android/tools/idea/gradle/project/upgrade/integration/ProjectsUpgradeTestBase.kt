@@ -211,7 +211,7 @@ abstract class ProjectsUpgradeTestBase {
       val wrapper = GradleWrapper.create(projectRoot, null)
       GradleProjectSystemUtil.findEmbeddedGradleDistributionPath()
         ?.resolve("gradle-${expectedProjectState.gradleVersionString()}-bin.zip")
-        ?.let { file -> wrapper.updateDistributionUrl(file) } ?: error("failed to set expected Gradle path")
+        ?.let { file -> wrapper.updateDistribution(file) } ?: error("failed to set expected Gradle path")
     }
     return temporaryFolder.root
   }
