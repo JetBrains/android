@@ -20,7 +20,7 @@ import com.android.tools.idea.backup.BackupManager.Source.RESTORE_APP_ACTION
 import com.android.tools.idea.backup.RestoreAppAction.Config
 import com.android.tools.idea.backup.testing.FakeActionHelper
 import com.android.tools.idea.backup.testing.FakeBackupManager
-import com.android.tools.idea.backup.testing.FakeBackupManager.RestoreModalInvocation
+import com.android.tools.idea.backup.testing.FakeBackupManager.RestoreInvocation
 import com.android.tools.idea.backup.testing.FakeDialogFactory
 import com.android.tools.idea.backup.testing.FakeDialogFactory.DialogData
 import com.android.tools.idea.backup.testing.waitForRestoreInvocations
@@ -120,7 +120,7 @@ class RestoreAppActionTest {
 
     assertThat(fakeBackupManager.restoreModalInvocations)
       .containsExactly(
-        RestoreModalInvocation("serial", Path.of("file.backup"), RESTORE_APP_ACTION, true)
+        RestoreInvocation("serial", Path.of("file.backup"), RESTORE_APP_ACTION, true)
       )
     assertThat(fakeDialogFactory.dialogs).isEmpty()
   }
@@ -142,7 +142,7 @@ class RestoreAppActionTest {
 
     assertThat(fakeBackupManager.restoreModalInvocations)
       .containsExactly(
-        RestoreModalInvocation("serial", Path.of("file.backup"), RESTORE_APP_ACTION, true)
+        RestoreInvocation("serial", Path.of("file.backup"), RESTORE_APP_ACTION, true)
       )
     assertThat(fakeDialogFactory.dialogs).isEmpty()
   }
