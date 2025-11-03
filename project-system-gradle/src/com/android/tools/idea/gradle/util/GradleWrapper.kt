@@ -13,355 +13,331 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.util;
+package com.android.tools.idea.gradle.util
 
-import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
-import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
-import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
-import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByURL;
-import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
+import com.android.SdkConstants
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.plugin.AgpVersions.newProject
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
+import com.google.common.base.Strings
+import com.google.common.io.Resources
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.impl.PsiManagerEx
+import java.io.File
+import java.io.IOException
+import java.util.Properties
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+import org.gradle.util.GradleVersion
+import org.gradle.wrapper.WrapperExecutor
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.plugin.AgpVersions;
-import com.google.common.base.Strings;
-import com.google.common.io.Resources;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.impl.PsiManagerEx;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.gradle.util.GradleVersion;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+private val LOG = Logger.getInstance(GradleWrapper::class.java)
 
-public final class GradleWrapper {
-  @NonNls public static final String GRADLEW_PROPERTIES_PATH = join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES);
-  private static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*/gradle-([^-]+)(-[^\\/\\\\]+)?-(bin|all).zip");
+class GradleWrapper private constructor(val propertiesFilePath: File, private val project: Project?) {
+  val propertiesFile: VirtualFile?
+    get() = VfsUtil.findFileByIoFile(this.propertiesFilePath, true)
 
-  @NotNull private final File myPropertiesFilePath;
-  @Nullable private final Project myProject;
-
-  @Nullable
-  public static GradleWrapper find(@NotNull Project project) {
-    String basePath = project.getBasePath();
-    if (basePath == null) {
-      // Default project. Unlikely to happen.
-      return null;
+  val gradleVersion: String?
+    get() {
+      val url = this.distributionUrl
+      return getGradleVersion(url)
     }
-    File baseDir = new File(basePath);
-    File propertiesFilePath = getDefaultPropertiesFilePath(baseDir);
-    return propertiesFilePath.isFile() ? new GradleWrapper(propertiesFilePath, project) : null;
-  }
 
-  @NotNull
-  public static GradleWrapper get(@NotNull File propertiesFilePath, @Nullable Project project) {
-    return new GradleWrapper(propertiesFilePath, project);
-  }
+  val distributionUrl: String?
+    get() = properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY)
 
-  /**
-   * Creates the Gradle wrapper in the project at the given directory.
-   *
-   * @param projectPath the project's root directory.
-   * @param project     the project, if available, or null if this is not in the context of an existing project.
-   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created.
-   * @throws IOException any unexpected I/O error.
-   * @see StudioFlags#AGP_VERSION_TO_USE
-   */
-  @NotNull
-  public static GradleWrapper create(@NotNull File projectPath, @Nullable Project project) throws IOException {
-    return create(projectPath, GradleWrapper.getGradleVersionToUse(), project);
-  }
-
-  /**
-   * Creates the Gradle wrapper in the project at the given directory.
-   *
-   * @param projectPath   the project's root directory.
-   * @param gradleVersion the version of Gradle to use.
-   * @param project       the project, if available, or null if this is not in the context of an existing project.
-   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created.
-   * @throws IOException any unexpected I/O error.
-   */
-  @NotNull
-  public static GradleWrapper create(@NotNull File projectPath, @NotNull GradleVersion gradleVersion, @Nullable Project project)
-    throws IOException {
-    VirtualFile projectDirVirtualFile = findFileByIoFile(projectPath, true);
-    if (projectDirVirtualFile == null) throw new IOException("Not existent project path: " + projectPath);
-    return create(projectDirVirtualFile, gradleVersion, project);
-  }
-
-  /**
-   * Creates the Gradle wrapper in the project at the given directory.
-   *
-   * @param projectPath   the project's root directory.
-   * @param gradleVersion the version of Gradle to use.
-   * @param project       the project, if available, or null if this is not in the context of an existing project.
-   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created.
-   * @throws IOException any unexpected I/O error.
-   */
-  @NotNull
-  public static GradleWrapper create(@NotNull VirtualFile projectPath,
-                                     @NotNull GradleVersion gradleVersion,
-                                     @Nullable Project project) throws IOException {
-    WriteAction.computeAndWait(() -> {
-      if (projectPath.findFileByRelativePath(FD_GRADLE_WRAPPER) == null) {
-        VirtualFile wrapperVf = getWrapperLocation();
-        String sourceRootUrl = wrapperVf.getUrl();
-        VfsUtil.copyDirectory(GradleWrapper.class, wrapperVf, projectPath, it ->
-          projectPath.findFileByRelativePath(it.getUrl().substring(sourceRootUrl.length())) == null
-        );
-        VirtualFile gradlewDest = projectPath.findChild(FN_GRADLE_WRAPPER_UNIX);
-        boolean madeExecutable = gradlewDest != null && new File(gradlewDest.getPath()).setExecutable(true);
-        if (!madeExecutable) {
-          Logger.getInstance(GradleWrapper.class).warn("Unable to make gradlew executable");
-        }
-      }
-      return null;
-    });
-    File propertiesFilePath = getDefaultPropertiesFilePath(new File(projectPath.getPath()));
-    GradleWrapper gradleWrapper = get(propertiesFilePath, project);
-    gradleWrapper.updateDistributionUrl(gradleVersion);
-    return gradleWrapper;
-  }
-
-  @NotNull
-  private static VirtualFile getWrapperLocation() {
-    File resource = new File("templates/project/wrapper");
-    String resourceName = "/" + resource.getPath().replace('\\', '/');
-    URL wrapperUrl = Resources.getResource(GradleWrapper.class, resourceName);
-    VirtualFile wrapperVf = findFileByURL(wrapperUrl);
-    assert wrapperVf != null;
-    wrapperVf.refresh(false, true);
-    return wrapperVf;
-  }
-
-  private GradleWrapper(@NotNull File propertiesFilePath, @Nullable Project project) {
-    myProject = project;
-    myPropertiesFilePath = propertiesFilePath;
-  }
-
-  @NotNull
-  public File getPropertiesFilePath() {
-    return myPropertiesFilePath;
-  }
-
-  @Nullable
-  public VirtualFile getPropertiesFile() {
-    return findFileByIoFile(myPropertiesFilePath, true);
-  }
-
-  @NotNull
-  public static File getDefaultPropertiesFilePath(@NotNull File projectPath) {
-    return new File(projectPath, GRADLEW_PROPERTIES_PATH);
-  }
+  private val properties: Properties
+    get() = PropertiesFiles.getProperties(propertiesFilePath)
 
   /**
    * Updates the 'distributionUrl' in the Gradle wrapper properties file. Unexpected errors that occur while updating the file will be
    * displayed in an error dialog.
    *
    * @param gradleVersionString a String representing the Gradle version to update the property to.
-   * @return {@code true} if the property was updated, or {@code false} if no update was necessary because the property already had the
+   * @return `true` if the property was updated, or `false` if no update was necessary because the property already had the
    * correct value.
    */
-  public boolean updateDistributionUrlAndDisplayFailure(@NotNull String gradleVersionString) {
+  fun updateDistributionUrlAndDisplayFailure(gradleVersionString: String): Boolean {
     try {
-      boolean updated = updateDistributionUrl(GradleVersion.version(gradleVersionString));
+      val updated = updateDistributionUrl(GradleVersion.version(gradleVersionString))
       if (updated) {
-        return true;
+        return true
       }
     }
-    catch (IOException e) {
-      String msg = String.format("Unable to update Gradle wrapper to use Gradle %1$s\n", gradleVersionString);
-      msg += e.getMessage();
-      Messages.showErrorDialog(myProject, msg, "Unexpected Error");
+    catch (e: IOException) {
+      val message = with(StringBuilder()) {
+        appendLine("Unable to update Gradle wrapper to use Gradle $gradleVersionString")
+        appendLine(e.message)
+        toString()
+      }
+      Messages.showErrorDialog(project, message, "Unexpected Error")
     }
-    catch (IllegalArgumentException e) {
-      String msg = String.format ("Invalid Gradle version %1$s\n", gradleVersionString);
-      msg += e.getMessage();
-      Messages.showErrorDialog(myProject, msg, "Invalid Gradle Version");
+    catch (e: IllegalArgumentException) {
+      val message = with(StringBuilder()) {
+        appendLine("Invalid Gradle version $gradleVersionString")
+        appendLine(e.message)
+        toString()
+      }
+      Messages.showErrorDialog(project, message, "Invalid Gradle Version")
     }
-    return false;
+    return false
   }
 
   /**
    * Updates the 'distributionUrl' in the given Gradle wrapper properties file.
    *
    * @param gradleVersion the Gradle version to update the property to.
-   * @return {@code true} if the property was updated, or {@code false} if no update was necessary because the property already had the
+   * @return `true` if the property was updated, or `false` if no update was necessary because the property already had the
    * correct value.
-   * @throws IOException if something goes wrong when saving the file.
+   * @throws IOException if something goes wrong when reading or saving the properties file.
    */
-  public boolean updateDistributionUrl(@NotNull GradleVersion gradleVersion) throws IOException {
-    String distributionUrl = getDistributionUrl(gradleVersion, true);
-    String property = getDistributionUrl();
-    if (property != null && property.equals(distributionUrl)) {
-      return false;
+  fun updateDistributionUrl(gradleVersion: GradleVersion): Boolean {
+    val distributionUrl: String = getDistributionUrl(gradleVersion, true)
+    val property = this.distributionUrl
+    if (property != null && property == distributionUrl) {
+      return false
     }
-    Properties properties = getProperties();
-    properties.setProperty(DISTRIBUTION_URL_PROPERTY, distributionUrl);
-    saveProperties(properties, myPropertiesFilePath, myProject);
-    return true;
-  }
-
-  public static GradleVersion getGradleVersionToUse() {
-    return CompatibleGradleVersion.Companion.getCompatibleGradleVersion(AgpVersions.getNewProject()).getVersion();
+    val properties = this.properties
+    properties.setProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, distributionUrl)
+    saveProperties(properties, this.propertiesFilePath, project)
+    return true
   }
 
   /**
    * Updates the 'distributionUrl' in the given Gradle wrapper properties file.
    *
    * @param gradleDistribution A local gradle distribution file.
-   * @return {@code true} if the property was updated, or {@code false} if no update was necessary because the property already had the
+   * @return `true` if the property was updated, or `false` if no update was necessary because the property already had the
    * correct value.
-   * @throws IOException if something goes wrong when saving the file.
+   * @throws IOException if something goes wrong when reading or saving the properties file.
    */
-  public boolean updateDistributionUrl(@NotNull File gradleDistribution) throws IOException {
-    String path = gradleDistribution.getPath();
-    if (!extensionEquals(path, "zip")) {
-      throw new IllegalArgumentException("'" + path + "' should be a zip file");
-    }
-    Properties properties = getProperties();
-    properties.setProperty(DISTRIBUTION_URL_PROPERTY, gradleDistribution.toURI().toURL().toString());
-    saveProperties(properties, myPropertiesFilePath, myProject);
-    return true;
-  }
-
-  @NotNull
-  private Properties getProperties() throws IOException {
-    return PropertiesFiles.getProperties(myPropertiesFilePath);
-  }
-
-  private static void saveProperties(@NotNull Properties properties, @NotNull File file, @Nullable Project project) throws IOException {
-    savePropertiesToFile(properties, file, null);
-    VirtualFile virtualFile = findFileByIoFile(file, false);
-    if (virtualFile != null) {
-      virtualFile.refresh(false, false);
-      if (project != null) {
-        PsiDocumentManager manager = PsiDocumentManager.getInstance(project);
-        PsiFile psiFile = PsiManagerEx.getInstanceEx(project).findFile(virtualFile);
-        if (psiFile != null) {
-          Document document = manager.getDocument(psiFile);
-          if (document != null) {
-            Application app = ApplicationManager.getApplication();
-            app.invokeAndWait(() -> app.runWriteAction(() -> manager.commitDocument(document)));
-          }
-        }
-      }
-    }
-  }
-
-  @Nullable
-  public String getGradleVersion() throws IOException {
-    String url = getDistributionUrl();
-    return getGradleVersion(url);
+  fun updateDistributionUrl(gradleDistribution: File): Boolean {
+    val path = gradleDistribution.getPath()
+    require(FileUtilRt.extensionEquals(path, "zip")) { "'$path' should be a zip file" }
+    val properties = this.properties
+    properties.setProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, gradleDistribution.toURI().toURL().toString())
+    saveProperties(properties, this.propertiesFilePath, project)
+    return true
   }
 
   /**
-   * @param url the URL of the Gradle distribution from which to extract the version of Gradle.
-   * @return the version of Gradle encoded in {@param url}
-   */
-  @Nullable
-  public static String getGradleVersion(@Nullable String url) {
-    if (url != null) {
-      Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
-      if (m.matches()) {
-        return m.group(1) + Strings.nullToEmpty(m.group(2));
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  public String getDistributionUrl() throws IOException {
-    return getProperties().getProperty(DISTRIBUTION_URL_PROPERTY);
-  }
-
-  /**
-   * Return the URL for the distribution of Gradle with version indicated by {@code gradleVersion}, preserving as
+   * Return the URL for the distribution of Gradle with version indicated by `gradleVersion`, preserving as
    * much of the existing distributionUrl property, if any, as possible.
    *
    * @param gradleVersion the Gradle version to update to
    * @param binOnlyIfCurrentlyUnknown indicates default -bin/-all suffix if the current URL is missing or unrecognized.
    * @return a String denoting the new Gradle distribution URL.
    */
-  @NotNull
-  public String getUpdatedDistributionUrl(GradleVersion gradleVersion, boolean binOnlyIfCurrentlyUnknown) throws IOException {
-    String current = getDistributionUrl();
-    return getUpdatedDistributionUrl(current, gradleVersion, binOnlyIfCurrentlyUnknown);
+  fun getUpdatedDistributionUrl(gradleVersion: GradleVersion, binOnlyIfCurrentlyUnknown: Boolean): String {
+    val current = this.distributionUrl
+    return getUpdatedDistributionUrl(current, gradleVersion, binOnlyIfCurrentlyUnknown)
   }
 
-  /**
-   * Return the URL for the distribution of Gradle with version indicated by {@param gradleVersion}, preserving as
-   * much of the existing {@param url} property, if any, as possible.
-   *
-   * @param url the URL of the Gradle distribution to use as a basis.
-   * @param gradleVersion the new Gradle version to use.
-   * @param binOnlyIfCurrentlyUnknown indicates default -bin/-all suffix if {@param url} is null or unrecognized .
-   * @return a String denoting the new Gradle distribution URL.
-   */
-  @NotNull
-  public static String getUpdatedDistributionUrl(@Nullable String url, GradleVersion gradleVersion, boolean binOnlyIfCurrentlyUnknown) {
-    if (url == null) {
-      // No idea about the current URL: return the default URL.
-      return GradleWrapper.getDistributionUrl(gradleVersion, binOnlyIfCurrentlyUnknown);
+  companion object {
+    private val GRADLEW_PROPERTIES_PATH: String = FileUtil.join(SdkConstants.FD_GRADLE_WRAPPER, SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES)
+    private val GRADLE_DISTRIBUTION_URL_PATTERN: Pattern = Pattern.compile(".*/gradle-([^-]+)(-[^\\/\\\\]+)?-(bin|all).zip")
+
+    @JvmStatic
+    fun find(project: Project): GradleWrapper? {
+      val basePath = project.basePath ?: // Default project. Unlikely to happen.
+                     return null
+      val baseDir = File(basePath)
+      val propertiesFilePath: File = getDefaultPropertiesFilePath(baseDir)
+      return if (propertiesFilePath.isFile()) GradleWrapper(propertiesFilePath, project) else null
     }
-    else if (url.contains("://services.gradle.org/")) {
-      Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
+
+    @JvmStatic
+    fun get(propertiesFilePath: File, project: Project?): GradleWrapper {
+      return GradleWrapper(propertiesFilePath, project)
+    }
+
+    /**
+     * Creates the Gradle wrapper in the project at the given directory.
+     *
+     * @param projectPath the project's root directory.
+     * @param project     the project, if available, or null if this is not in the context of an existing project.
+     * @return an instance of `GradleWrapper` if the project already has the wrapper or the wrapper was successfully created.
+     * @throws IOException any unexpected I/O error.
+     * @see StudioFlags.AGP_VERSION_TO_USE
+     */
+    @JvmStatic
+    fun create(projectPath: File, project: Project?): GradleWrapper {
+      return create(projectPath, gradleVersionToUse, project)
+    }
+
+    /**
+     * Creates the Gradle wrapper in the project at the given directory.
+     *
+     * @param projectPath   the project's root directory.
+     * @param gradleVersion the version of Gradle to use.
+     * @param project       the project, if available, or null if this is not in the context of an existing project.
+     * @return an instance of `GradleWrapper` if the project already has the wrapper or the wrapper was successfully created.
+     * @throws IOException any unexpected I/O error.
+     */
+    @JvmStatic
+    fun create(projectPath: File, gradleVersion: GradleVersion, project: Project?): GradleWrapper {
+      val projectDirVirtualFile = VfsUtil.findFileByIoFile(projectPath, true) ?: throw IOException(
+        "Not existent project path: $projectPath")
+      return create(projectDirVirtualFile, gradleVersion, project)
+    }
+
+    /**
+     * Creates the Gradle wrapper in the project at the given directory.
+     *
+     * @param projectPath   the project's root directory.
+     * @param gradleVersion the version of Gradle to use.
+     * @param project       the project, if available, or null if this is not in the context of an existing project.
+     * @return an instance of `GradleWrapper` if the project already has the wrapper or the wrapper was successfully created.
+     * @throws IOException any unexpected I/O error.
+     */
+    fun create(
+      projectPath: VirtualFile,
+      gradleVersion: GradleVersion,
+      project: Project?
+    ): GradleWrapper {
+      WriteAction.computeAndWait<Any?, IOException?>(ThrowableComputable {
+        if (projectPath.findFileByRelativePath(SdkConstants.FD_GRADLE_WRAPPER) == null) {
+          val wrapperVf: VirtualFile = wrapperLocation
+          val sourceRootUrl = wrapperVf.url
+          VfsUtil.copyDirectory(
+            GradleWrapper::class.java,
+            wrapperVf,
+            projectPath
+          ) {
+            projectPath.findFileByRelativePath(
+              it.url.substring(sourceRootUrl.length)
+            ) == null
+          }
+          val gradlewDestination = projectPath.findChild(SdkConstants.FN_GRADLE_WRAPPER_UNIX)
+          val madeExecutable = gradlewDestination != null && File(gradlewDestination.path).setExecutable(true)
+          if (!madeExecutable) {
+            Logger.getInstance(GradleWrapper::class.java).warn("Unable to make gradlew executable")
+          }
+        }
+        null
+      })
+      val propertiesFilePath: File = getDefaultPropertiesFilePath(File(projectPath.getPath()))
+      val gradleWrapper: GradleWrapper = get(propertiesFilePath, project)
+      gradleWrapper.updateDistributionUrl(gradleVersion)
+      return gradleWrapper
+    }
+
+    private val wrapperLocation: VirtualFile
+      get() {
+        val resource = File("templates/project/wrapper")
+        val resourceName = "/" + resource.path.replace('\\', '/')
+        val wrapperUrl = Resources.getResource(GradleWrapper::class.java, resourceName)
+        val wrapperVf = checkNotNull(VfsUtil.findFileByURL(wrapperUrl)) { "Wrapper URL not found: $wrapperUrl" }
+        wrapperVf.refresh(false, true)
+        return wrapperVf
+      }
+
+    @JvmStatic
+    fun getDefaultPropertiesFilePath(projectPath: File): File {
+      return File(projectPath, GRADLEW_PROPERTIES_PATH)
+    }
+
+    @JvmStatic
+    val gradleVersionToUse: GradleVersion
+      get() = getCompatibleGradleVersion(newProject).version
+
+    private fun saveProperties(properties: Properties, file: File, project: Project?) {
+      PropertiesFiles.savePropertiesToFile(properties, file, null)
+      val virtualFile = VfsUtil.findFileByIoFile(file, false)
+      if (virtualFile != null) {
+        virtualFile.refresh(false, false)
+        if (project != null) {
+          val manager = PsiDocumentManager.getInstance(project)
+          val psiFile = PsiManagerEx.getInstanceEx(project).findFile(virtualFile)
+          if (psiFile != null) {
+            val document = manager.getDocument(psiFile)
+            if (document != null) {
+              val app = ApplicationManager.getApplication()
+              app.invokeAndWait(Runnable { app.runWriteAction { manager.commitDocument(document) } })
+            }
+          }
+        }
+      }
+    }
+
+    /**
+     * @param url the URL of the Gradle distribution from which to extract the version of Gradle.
+     * @return the version of Gradle encoded in {@param url}
+     */
+    fun getGradleVersion(url: String?): String? {
+      if (url == null) return null
+      val m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url)
       if (m.matches()) {
-        // Return the canonical URL, preserving the -bin/-all suffix.
-        return GradleWrapper.getDistributionUrl(gradleVersion, "bin".equals(m.group(3)));
+        return m.group(1) + Strings.nullToEmpty(m.group(2))
+      }
+      return null
+    }
+
+    /**
+     * Return the URL for the distribution of Gradle with version indicated by {@param gradleVersion}, preserving as
+     * much of the existing {@param url} property, if any, as possible.
+     *
+     * @param url the URL of the Gradle distribution to use as a basis.
+     * @param gradleVersion the new Gradle version to use.
+     * @param binOnlyIfCurrentlyUnknown indicates default -bin/-all suffix if {@param url} is null or unrecognized .
+     * @return a String denoting the new Gradle distribution URL.
+     */
+    fun getUpdatedDistributionUrl(url: String?, gradleVersion: GradleVersion, binOnlyIfCurrentlyUnknown: Boolean): String {
+      if (url == null) {
+        // No idea about the current URL: return the default URL.
+        return getDistributionUrl(gradleVersion, binOnlyIfCurrentlyUnknown)
+      }
+      else if (url.contains("://services.gradle.org/")) {
+        val m: Matcher = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url)
+        return if (m.matches()) {
+          // Return the canonical URL, preserving the -bin/-all suffix.
+          getDistributionUrl(gradleVersion, "bin" == m.group(3))
+        }
+        else {
+          // The current URL doesn't match; can't update, so return the default URL.
+          getDistributionUrl(gradleVersion, binOnlyIfCurrentlyUnknown)
+        }
       }
       else {
-        // The current URL doesn't match; can't update, so return the default URL.
-        return GradleWrapper.getDistributionUrl(gradleVersion, binOnlyIfCurrentlyUnknown);
+        val m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url)
+        if (m.matches()) {
+          // Return the current URL with the new version number spliced in.
+          val sb = StringBuilder()
+          sb.append(url, 0, m.start(1))
+          sb.append(gradleVersion.version)
+          sb.append(url, if (m.end(2) == -1) m.end(1) else m.end(2), url.length)
+          return sb.toString()
+        }
+        else {
+          // The current URL doesn't match; can't update, so return the default URL.
+          return getDistributionUrl(gradleVersion, binOnlyIfCurrentlyUnknown)
+        }
       }
     }
-    else {
-      Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
-      if (m.matches()) {
-        // Return the current URL with the new version number spliced in.
-        StringBuilder sb = new StringBuilder();
-        sb.append(url, 0, m.start(1));
-        sb.append(gradleVersion.getVersion());
-        sb.append(url, m.end(2) == -1 ? m.end(1) : m.end(2), url.length());
-        return sb.toString();
+
+    @JvmStatic
+    fun getDistributionUrl(gradleVersion: GradleVersion, binOnly: Boolean): String {
+      val suffix = if (binOnly) "bin" else "all"
+      val filename = String.format("gradle-%1\$s-%2\$s.zip", gradleVersion.getVersion(), suffix)
+
+      val localDistributionUrl = StudioFlags.GRADLE_LOCAL_DISTRIBUTION_URL.get()
+      if (!localDistributionUrl.isEmpty()) {
+        return localDistributionUrl + filename
       }
-      else {
-        // The current URL doesn't match; can't update, so return the default URL.
-        return GradleWrapper.getDistributionUrl(gradleVersion, binOnlyIfCurrentlyUnknown);
-      }
+
+      // See https://code.google.com/p/android/issues/detail?id=357944
+      val folderName = if (gradleVersion.isSnapshot()) "distributions-snapshots" else "distributions"
+      return String.format("https://services.gradle.org/%1\$s/%2\$s", folderName, filename)
     }
-  }
-
-  @NotNull
-  public static String getDistributionUrl(@NotNull GradleVersion gradleVersion, boolean binOnly) {
-    String suffix = binOnly ? "bin" : "all";
-    String filename = String.format("gradle-%1$s-%2$s.zip", gradleVersion.getVersion(), suffix);
-
-    String localDistributionUrl = StudioFlags.GRADLE_LOCAL_DISTRIBUTION_URL.get();
-    if (!localDistributionUrl.isEmpty()) {
-      return localDistributionUrl + filename;
-    }
-
-    // See https://code.google.com/p/android/issues/detail?id=357944
-    String folderName = gradleVersion.isSnapshot() ? "distributions-snapshots" : "distributions";
-    return String.format("https://services.gradle.org/%1$s/%2$s", folderName, filename);
   }
 }
