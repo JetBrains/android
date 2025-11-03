@@ -616,22 +616,22 @@ MODULE                        : MultiFlavor
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - firstAbcSecondXyzReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondXyzRelease/apks.zip [-]
-                        - firstAbcSecondXyzDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondXyzDebug/apks.zip [-]
                         - firstAbcSecondAbcDebugAabPublication  : <ROOT>/app/build/outputs/bundle/firstAbcSecondAbcDebug/app-firstAbc-secondAbc-debug.aab [-]
-                        - firstXyzSecondXyzDebugAabPublication  : <ROOT>/app/build/outputs/bundle/firstXyzSecondXyzDebug/app-firstXyz-secondXyz-debug.aab [-]
-                        - firstXyzSecondAbcDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstXyzSecondAbcDebug/apks.zip [-]
-                        - firstXyzSecondAbcReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstXyzSecondAbcRelease/apks.zip [-]
-                        - firstAbcSecondXyzReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstAbcSecondXyzRelease/app-firstAbc-secondXyz-release.aab [-]
+                        - firstAbcSecondAbcDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondAbcDebug/apks.zip [-]
+                        - firstAbcSecondAbcReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstAbcSecondAbcRelease/app-firstAbc-secondAbc-release.aab [-]
                         - firstAbcSecondAbcReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondAbcRelease/apks.zip [-]
                         - firstAbcSecondXyzDebugAabPublication  : <ROOT>/app/build/outputs/bundle/firstAbcSecondXyzDebug/app-firstAbc-secondXyz-debug.aab [-]
-                        - firstAbcSecondAbcDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondAbcDebug/apks.zip [-]
-                        - firstXyzSecondXyzDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstXyzSecondXyzDebug/apks.zip [-]
-                        - firstAbcSecondAbcReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstAbcSecondAbcRelease/app-firstAbc-secondAbc-release.aab [-]
-                        - firstXyzSecondXyzReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstXyzSecondXyzRelease/apks.zip [-]
+                        - firstAbcSecondXyzDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondXyzDebug/apks.zip [-]
+                        - firstAbcSecondXyzReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstAbcSecondXyzRelease/app-firstAbc-secondXyz-release.aab [-]
+                        - firstAbcSecondXyzReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondXyzRelease/apks.zip [-]
                         - firstXyzSecondAbcDebugAabPublication  : <ROOT>/app/build/outputs/bundle/firstXyzSecondAbcDebug/app-firstXyz-secondAbc-debug.aab [-]
-                        - firstXyzSecondXyzReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstXyzSecondXyzRelease/app-firstXyz-secondXyz-release.aab [-]
+                        - firstXyzSecondAbcDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstXyzSecondAbcDebug/apks.zip [-]
                         - firstXyzSecondAbcReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstXyzSecondAbcRelease/app-firstXyz-secondAbc-release.aab [-]
+                        - firstXyzSecondAbcReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstXyzSecondAbcRelease/apks.zip [-]
+                        - firstXyzSecondXyzDebugAabPublication  : <ROOT>/app/build/outputs/bundle/firstXyzSecondXyzDebug/app-firstXyz-secondXyz-debug.aab [-]
+                        - firstXyzSecondXyzDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstXyzSecondXyzDebug/apks.zip [-]
+                        - firstXyzSecondXyzReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstXyzSecondXyzRelease/app-firstXyz-secondXyz-release.aab [-]
+                        - firstXyzSecondXyzReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstXyzSecondXyzRelease/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)

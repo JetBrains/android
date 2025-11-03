@@ -45,10 +45,10 @@ MODULE                        : project_sm_src
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseAabPublication       : <ROOT>_sm_src/app/build/outputs/bundle/release/app-release.aab [-]
                         - debugAabPublication         : <ROOT>_sm_src/app/build/outputs/bundle/debug/app-debug.aab [-]
-                        - releaseApkPublication       : <ROOT>_sm_src/app/build/outputs/apk-zips/release/apks.zip [-]
                         - debugApkPublication         : <ROOT>_sm_src/app/build/outputs/apk-zips/debug/apks.zip [-]
+                        - releaseAabPublication       : <ROOT>_sm_src/app/build/outputs/bundle/release/app-release.aab [-]
+                        - releaseApkPublication       : <ROOT>_sm_src/app/build/outputs/apk-zips/release/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)

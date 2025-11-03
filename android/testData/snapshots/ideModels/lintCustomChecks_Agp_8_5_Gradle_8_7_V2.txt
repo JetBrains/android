@@ -105,8 +105,8 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseVariantReleaseRuntimePublication         : <ROOT>/library-remote/build/outputs/aar/library-remote-release.aar [-]
                         - releaseVariantReleaseApiPublication   : <ROOT>/library-remote/build/outputs/aar/library-remote-release.aar [-]
+                        - releaseVariantReleaseRuntimePublication         : <ROOT>/library-remote/build/outputs/aar/library-remote-release.aar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -129,12 +129,12 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     - taskArtifacts               : <ROOT>/lint/build/libs/lint.jar [-]
                     configurationArtifacts
-                        - archives                    : <ROOT>/lint/build/libs/lint.jar [-]
                         - apiElements                 : <ROOT>/lint/build/libs/lint.jar [-]
-                        - runtimeElements             : <ROOT>/lint/build/libs/lint.jar [-]
-                        - testResultsElementsForTest  : <ROOT>/lint/build/test-results/test/binary [-]
+                        - archives                    : <ROOT>/lint/build/libs/lint.jar [-]
                         - mainSourceElements          : <ROOT>/lint/src/main/resources [-]
                         - mainSourceElements          : <ROOT>/lint/src/main/java
+                        - runtimeElements             : <ROOT>/lint/build/libs/lint.jar [-]
+                        - testResultsElementsForTest  : <ROOT>/lint/build/test-results/test/binary [-]
                     sourceSets
                         main
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -255,12 +255,12 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     - taskArtifacts               : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                     configurationArtifacts
-                        - archives                    : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                         - apiElements                 : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
-                        - runtimeElements             : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
-                        - testResultsElementsForTest  : <ROOT>/lintpublish/build/test-results/test/binary [-]
+                        - archives                    : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                         - mainSourceElements          : <ROOT>/lintpublish/src/main/resources [-]
                         - mainSourceElements          : <ROOT>/lintpublish/src/main/java
+                        - runtimeElements             : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
+                        - testResultsElementsForTest  : <ROOT>/lintpublish/build/test-results/test/binary [-]
                     sourceSets
                         main
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -349,12 +349,12 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     - taskArtifacts               : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
                     configurationArtifacts
-                        - archives                    : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
                         - apiElements                 : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
-                        - runtimeElements             : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
-                        - testResultsElementsForTest  : <ROOT>/lintpublish-remote/build/test-results/test/binary [-]
+                        - archives                    : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
                         - mainSourceElements          : <ROOT>/lintpublish-remote/src/main/resources [-]
                         - mainSourceElements          : <ROOT>/lintpublish-remote/src/main/java
+                        - runtimeElements             : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
+                        - testResultsElementsForTest  : <ROOT>/lintpublish-remote/build/test-results/test/binary [-]
                     sourceSets
                         main
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>

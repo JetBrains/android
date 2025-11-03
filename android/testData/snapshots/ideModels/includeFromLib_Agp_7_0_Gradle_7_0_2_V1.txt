@@ -1036,10 +1036,10 @@ MODULE                        : navgraph
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
                         - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
-                        - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                         - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
+                        - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -1061,14 +1061,14 @@ MODULE                        : navgraph
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
+                        - debugAllApiPublication      : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugAllRuntimePublication  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - releaseAllApiPublication    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         - releaseAllRuntimePublication          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         - releaseApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         - releaseRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseAllApiPublication    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - debugAllRuntimePublication  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - debugAllApiPublication      : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - debugApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)

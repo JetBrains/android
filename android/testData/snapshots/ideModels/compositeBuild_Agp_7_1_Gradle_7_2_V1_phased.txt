@@ -641,9 +641,9 @@ MODULE                        : TestCompositeLib1
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseAabPublication       : <ROOT>/TestCompositeLib1/app/build/outputs/bundle/release/app-release.aab [-]
-                        - debugApkPublication         : <ROOT>/TestCompositeLib1/app/build/outputs/apk-zips/debug/apks.zip [-]
                         - debugAabPublication         : <ROOT>/TestCompositeLib1/app/build/outputs/bundle/debug/app-debug.aab [-]
+                        - debugApkPublication         : <ROOT>/TestCompositeLib1/app/build/outputs/apk-zips/debug/apks.zip [-]
+                        - releaseAabPublication       : <ROOT>/TestCompositeLib1/app/build/outputs/bundle/release/app-release.aab [-]
                         - releaseApkPublication       : <ROOT>/TestCompositeLib1/app/build/outputs/apk-zips/release/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
@@ -666,26 +666,26 @@ MODULE                        : TestCompositeLib1
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseVariantAllRuntimePublication   : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
                         - archives                    : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
                         - archives                    : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseVariantReleaseRuntimePublication         : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseRuntimeElements-published      : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugVariantDebugRuntimePublication   : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
-                        - releaseApiElements-published          : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugSourcesElements-published        : <ROOT>/TestCompositeLib1/lib/build/libs/lib-debug-1.0-sources.jar [-]
                         - debugApiElements-published  : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
                         - debugArchives               : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
-                        - releaseVariantReleaseApiPublication   : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseSourcesElements-published      : <ROOT>/TestCompositeLib1/lib/build/libs/lib-1.0-sources.jar [-]
+                        - debugRuntimeElements-published        : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
                         - debugSourcesElements        : <ROOT>/TestCompositeLib1/lib/build/libs/lib-debug-1.0-sources.jar [-]
-                        - debugVariantDebugApiPublication       : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
-                        - releaseSourcesElements      : <ROOT>/TestCompositeLib1/lib/build/libs/lib-1.0-sources.jar [-]
-                        - releaseVariantAllApiPublication       : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
+                        - debugSourcesElements-published        : <ROOT>/TestCompositeLib1/lib/build/libs/lib-debug-1.0-sources.jar [-]
                         - debugVariantAllApiPublication         : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
                         - debugVariantAllRuntimePublication     : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugVariantDebugApiPublication       : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugVariantDebugRuntimePublication   : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
+                        - releaseApiElements-published          : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
                         - releaseArchives             : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugRuntimeElements-published        : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
+                        - releaseRuntimeElements-published      : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseSourcesElements      : <ROOT>/TestCompositeLib1/lib/build/libs/lib-1.0-sources.jar [-]
+                        - releaseSourcesElements-published      : <ROOT>/TestCompositeLib1/lib/build/libs/lib-1.0-sources.jar [-]
+                        - releaseVariantAllApiPublication       : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseVariantAllRuntimePublication   : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseVariantReleaseApiPublication   : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseVariantReleaseRuntimePublication         : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -2062,9 +2062,9 @@ MODULE                        : TestCompositeLib3
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseAabPublication       : <ROOT>/TestCompositeLib3/app/build/outputs/bundle/release/app-release.aab [-]
-                        - debugApkPublication         : <ROOT>/TestCompositeLib3/app/build/outputs/apk-zips/debug/apks.zip [-]
                         - debugAabPublication         : <ROOT>/TestCompositeLib3/app/build/outputs/bundle/debug/app-debug.aab [-]
+                        - debugApkPublication         : <ROOT>/TestCompositeLib3/app/build/outputs/apk-zips/debug/apks.zip [-]
+                        - releaseAabPublication       : <ROOT>/TestCompositeLib3/app/build/outputs/bundle/release/app-release.aab [-]
                         - releaseApkPublication       : <ROOT>/TestCompositeLib3/app/build/outputs/apk-zips/release/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
@@ -2087,14 +2087,14 @@ MODULE                        : TestCompositeLib3
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseVariantAllRuntimePublication   : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseVariantReleaseRuntimePublication         : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseVariantReleaseApiPublication   : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugVariantDebugRuntimePublication   : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-debug.aar [-]
-                        - debugVariantDebugApiPublication       : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-debug.aar [-]
-                        - releaseVariantAllApiPublication       : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-release.aar [-]
                         - debugVariantAllApiPublication         : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-debug.aar [-]
                         - debugVariantAllRuntimePublication     : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugVariantDebugApiPublication       : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugVariantDebugRuntimePublication   : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-debug.aar [-]
+                        - releaseVariantAllApiPublication       : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseVariantAllRuntimePublication   : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseVariantReleaseApiPublication   : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseVariantReleaseRuntimePublication         : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-release.aar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -3343,8 +3343,8 @@ MODULE                        : TestCompositeLibNested_3.compositeNest
             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             - taskArtifacts               : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
             configurationArtifacts
-                - archives                    : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
                 - apiElements                 : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
+                - archives                    : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
                 - runtimeElements             : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
             sourceSets
                 main
@@ -3416,8 +3416,8 @@ MODULE                        : composite2
             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             - taskArtifacts               : <ROOT>/TestCompositeLib2/build/libs/composite2-1.0.jar [-]
             configurationArtifacts
-                - archives                    : <ROOT>/TestCompositeLib2/build/libs/composite2-1.0.jar [-]
                 - apiElements                 : <ROOT>/TestCompositeLib2/build/libs/composite2-1.0.jar [-]
+                - archives                    : <ROOT>/TestCompositeLib2/build/libs/composite2-1.0.jar [-]
                 - runtimeElements             : <ROOT>/TestCompositeLib2/build/libs/composite2-1.0.jar [-]
             sourceSets
                 main
@@ -3489,8 +3489,8 @@ MODULE                        : composite4
             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             - taskArtifacts               : <ROOT>/TestCompositeLib4/build/libs/composite4-1.0.jar [-]
             configurationArtifacts
-                - archives                    : <ROOT>/TestCompositeLib4/build/libs/composite4-1.0.jar [-]
                 - apiElements                 : <ROOT>/TestCompositeLib4/build/libs/composite4-1.0.jar [-]
+                - archives                    : <ROOT>/TestCompositeLib4/build/libs/composite4-1.0.jar [-]
                 - runtimeElements             : <ROOT>/TestCompositeLib4/build/libs/composite4-1.0.jar [-]
             sourceSets
                 main
@@ -3562,8 +3562,8 @@ MODULE                        : compositeNest
             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             - taskArtifacts               : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
             configurationArtifacts
-                - archives                    : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
                 - apiElements                 : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
+                - archives                    : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
                 - runtimeElements             : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
             sourceSets
                 main
@@ -3639,9 +3639,9 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
-                        - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
                         - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
+                        - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
                         - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
@@ -3667,26 +3667,26 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseVariantAllRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         - archives                    : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - archives                    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseVariantReleaseRuntimePublication         : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugVariantDebugRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugSourcesElements-published        : <ROOT>/lib/build/libs/lib-debug-1.0-sources.jar [-]
                         - debugApiElements-published  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - debugArchives               : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - releaseVariantReleaseApiPublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseSourcesElements-published      : <ROOT>/lib/build/libs/lib-1.0-sources.jar [-]
+                        - debugRuntimeElements-published        : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - debugSourcesElements        : <ROOT>/lib/build/libs/lib-debug-1.0-sources.jar [-]
-                        - debugVariantDebugApiPublication       : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - releaseSourcesElements      : <ROOT>/lib/build/libs/lib-1.0-sources.jar [-]
-                        - releaseVariantAllApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - debugSourcesElements-published        : <ROOT>/lib/build/libs/lib-debug-1.0-sources.jar [-]
                         - debugVariantAllApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - debugVariantAllRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugVariantDebugApiPublication       : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugVariantDebugRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         - releaseArchives             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugRuntimeElements-published        : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseSourcesElements      : <ROOT>/lib/build/libs/lib-1.0-sources.jar [-]
+                        - releaseSourcesElements-published      : <ROOT>/lib/build/libs/lib-1.0-sources.jar [-]
+                        - releaseVariantAllApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseVariantAllRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseVariantReleaseApiPublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseVariantReleaseRuntimePublication         : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)

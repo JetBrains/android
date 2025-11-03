@@ -645,11 +645,11 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
                         - benchmarkAabPublication     : <ROOT>/app/build/outputs/bundle/benchmark/app-benchmark.aab [-]
-                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
-                        - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
-                        - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                         - benchmarkApkPublication     : <ROOT>/app/build/outputs/apk-zips/benchmark/apks.zip [-]
+                        - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
                         - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
+                        - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testBenchmarkUnitTest         : testBenchmarkUnitTest (DefaultExternalTask)

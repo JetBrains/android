@@ -782,16 +782,16 @@ MODULE                        : NonStandardSourceSetDependencies
                     - taskArtifacts               : <ROOT>/common/build/libs/common-metadata.jar [-]
                     - taskArtifacts               : <ROOT>/common/build/libs/common-jvm.jar [-]
                     configurationArtifacts
-                        - jvmApiElements-published    : <ROOT>/common/build/libs/common-jvm.jar [-]
-                        - jvmRuntimeElements          : <ROOT>/common/build/libs/common-jvm.jar [-]
-                        - jvmApiElements              : <ROOT>/common/build/libs/common-jvm.jar [-]
                         - archives                    : <ROOT>/common/build/libs/common-jvm.jar [-]
                         - archives                    : <ROOT>/common/build/libs/common-metadata.jar [-]
-                        - metadataSourcesElements     : <ROOT>/common/build/libs/common-kotlin-sources.jar [-]
-                        - metadataApiElements         : <ROOT>/common/build/libs/common-metadata.jar [-]
+                        - jvmApiElements              : <ROOT>/common/build/libs/common-jvm.jar [-]
+                        - jvmApiElements-published    : <ROOT>/common/build/libs/common-jvm.jar [-]
+                        - jvmRuntimeElements          : <ROOT>/common/build/libs/common-jvm.jar [-]
+                        - jvmRuntimeElements-published          : <ROOT>/common/build/libs/common-jvm.jar [-]
                         - jvmSourcesElements          : <ROOT>/common/build/libs/common-jvm-sources.jar [-]
                         - jvmSourcesElements-published          : <ROOT>/common/build/libs/common-jvm-sources.jar [-]
-                        - jvmRuntimeElements-published          : <ROOT>/common/build/libs/common-jvm.jar [-]
+                        - metadataApiElements         : <ROOT>/common/build/libs/common-metadata.jar [-]
+                        - metadataSourcesElements     : <ROOT>/common/build/libs/common-kotlin-sources.jar [-]
                     sourceSets
                         jvmMain
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -868,15 +868,15 @@ MODULE                        : NonStandardSourceSetDependencies
                     targetCompatibility           : 1.7
                     - taskArtifacts               : <ROOT>/desktop/build/libs/desktop.jar [-]
                     configurationArtifacts
+                        - apiElements                 : <ROOT>/desktop/build/libs/desktop.jar [-]
                         - apiElements-published       : <ROOT>/desktop/build/libs/desktop.jar [-]
                         - archives                    : <ROOT>/desktop/build/libs/desktop.jar [-]
-                        - apiElements                 : <ROOT>/desktop/build/libs/desktop.jar [-]
                         - mainSourceElements          : <ROOT>/desktop/src/main/resources [-]
                         - mainSourceElements          : <ROOT>/desktop/src/main/java
                         - mainSourceElements          : <ROOT>/desktop/src/main/kotlin [-]
                         - runtimeElements             : <ROOT>/desktop/build/libs/desktop.jar [-]
-                        - testResultsElementsForTest  : <ROOT>/desktop/build/test-results/test/binary [-]
                         - runtimeElements-published   : <ROOT>/desktop/build/libs/desktop.jar [-]
+                        - testResultsElementsForTest  : <ROOT>/desktop/build/test-results/test/binary [-]
                     sourceSets
                         main
                             sourceCompatibility           : 1.7
@@ -951,16 +951,16 @@ MODULE                        : NonStandardSourceSetDependencies
                     configurationArtifacts
                         - archives                    : <ROOT>/feature-a/build/outputs/aar/feature-a-debug.aar [-]
                         - archives                    : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
-                        - releaseRuntimeElements-published      : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
-                        - releaseApiElements-published          : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
-                        - debugSourcesElements-published        : <ROOT>/feature-a/build/libs/feature-a-debug-sources.jar [-]
                         - debugApiElements-published  : <ROOT>/feature-a/build/outputs/aar/feature-a-debug.aar [-]
                         - debugArchives               : <ROOT>/feature-a/build/outputs/aar/feature-a-debug.aar [-]
-                        - releaseSourcesElements-published      : <ROOT>/feature-a/build/libs/feature-a-sources.jar [-]
-                        - debugSourcesElements        : <ROOT>/feature-a/build/libs/feature-a-debug-sources.jar [-]
-                        - releaseSourcesElements      : <ROOT>/feature-a/build/libs/feature-a-sources.jar [-]
-                        - releaseArchives             : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
                         - debugRuntimeElements-published        : <ROOT>/feature-a/build/outputs/aar/feature-a-debug.aar [-]
+                        - debugSourcesElements        : <ROOT>/feature-a/build/libs/feature-a-debug-sources.jar [-]
+                        - debugSourcesElements-published        : <ROOT>/feature-a/build/libs/feature-a-debug-sources.jar [-]
+                        - releaseApiElements-published          : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
+                        - releaseArchives             : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
+                        - releaseRuntimeElements-published      : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
+                        - releaseSourcesElements      : <ROOT>/feature-a/build/libs/feature-a-sources.jar [-]
+                        - releaseSourcesElements-published      : <ROOT>/feature-a/build/libs/feature-a-sources.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -983,21 +983,21 @@ MODULE                        : NonStandardSourceSetDependencies
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     - taskArtifacts               : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
                     configurationArtifacts
+                        - androidDebugArchives        : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
                         - androidReleaseArchives      : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
                         - archives                    : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
                         - archives                    : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
                         - archives                    : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
-                        - releaseRuntimeElements-published      : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
-                        - releaseApiElements-published          : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
+                        - debugApiElements-published  : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
+                        - debugRuntimeElements-published        : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
+                        - debugSourcesElements        : <ROOT>/feature-b/build/libs/feature-b-android-debug-sources.jar [-]
                         - debugSourcesElements-published        : <ROOT>/feature-b/build/libs/feature-b-android-debug-sources.jar [-]
                         - metadataApiElements         : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
-                        - debugApiElements-published  : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
-                        - androidDebugArchives        : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
-                        - releaseSourcesElements-published      : <ROOT>/feature-b/build/libs/feature-b-android-sources.jar [-]
-                        - debugSourcesElements        : <ROOT>/feature-b/build/libs/feature-b-android-debug-sources.jar [-]
-                        - releaseSourcesElements      : <ROOT>/feature-b/build/libs/feature-b-android-sources.jar [-]
                         - metadataSourcesElements     : <ROOT>/feature-b/build/libs/feature-b-kotlin-sources.jar [-]
-                        - debugRuntimeElements-published        : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
+                        - releaseApiElements-published          : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
+                        - releaseRuntimeElements-published      : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
+                        - releaseSourcesElements      : <ROOT>/feature-b/build/libs/feature-b-android-sources.jar [-]
+                        - releaseSourcesElements-published      : <ROOT>/feature-b/build/libs/feature-b-android-sources.jar [-]
                     - additionalArtifacts         : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
@@ -1036,15 +1036,15 @@ MODULE                        : NonStandardSourceSetDependencies
                     targetCompatibility           : 1.7
                     - taskArtifacts               : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                     configurationArtifacts
-                        - apiElements-published       : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                         - apiElements                 : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
-                        - runtimeElements             : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
-                        - testResultsElementsForTest  : <ROOT>/javaLibrary/build/test-results/test/binary [-]
-                        - runtimeElements-published   : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
+                        - apiElements-published       : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                         - archives                    : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                         - mainSourceElements          : <ROOT>/javaLibrary/src/main/resources [-]
                         - mainSourceElements          : <ROOT>/javaLibrary/src/main/java
                         - mainSourceElements          : <ROOT>/javaLibrary/src/main/kotlin [-]
+                        - runtimeElements             : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
+                        - runtimeElements-published   : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
+                        - testResultsElementsForTest  : <ROOT>/javaLibrary/build/test-results/test/binary [-]
                     sourceSets
                         main
                             sourceCompatibility           : 1.7
@@ -1165,16 +1165,16 @@ MODULE                        : NonStandardSourceSetDependencies
                             - taskArtifacts               : <ROOT>/kmp-java/sample/build/libs/sample-metadata.jar [-]
                             - taskArtifacts               : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                             configurationArtifacts
-                                - jvmApiElements-published    : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                 - archives                    : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                 - archives                    : <ROOT>/kmp-java/sample/build/libs/sample-metadata.jar [-]
+                                - jvmApiElements              : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                                - jvmApiElements-published    : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                                - jvmRuntimeElements          : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                                - jvmRuntimeElements-published          : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                 - jvmSourcesElements          : <ROOT>/kmp-java/sample/build/libs/sample-jvm-sources.jar [-]
                                 - jvmSourcesElements-published          : <ROOT>/kmp-java/sample/build/libs/sample-jvm-sources.jar [-]
-                                - jvmRuntimeElements-published          : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
-                                - jvmRuntimeElements          : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
-                                - jvmApiElements              : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
-                                - metadataSourcesElements     : <ROOT>/kmp-java/sample/build/libs/sample-kotlin-sources.jar [-]
                                 - metadataApiElements         : <ROOT>/kmp-java/sample/build/libs/sample-metadata.jar [-]
+                                - metadataSourcesElements     : <ROOT>/kmp-java/sample/build/libs/sample-kotlin-sources.jar [-]
                             sourceSets
                                 jvmMain
                                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1332,17 +1332,17 @@ MODULE                        : NonStandardSourceSetDependencies
                         - archives                    : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
                         - archives                    : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-debug.aar [-]
                         - archives                    : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-release.aar [-]
-                        - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-release.aar [-]
-                        - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-release.aar [-]
-                        - debugSourcesElements-published        : <ROOT>/lib/build/libs/manual-test-fixtures-debug-sources.jar [-]
                         - debugApiElements-published  : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-debug.aar [-]
                         - debugArchives               : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-debug.aar [-]
-                        - releaseSourcesElements-published      : <ROOT>/lib/build/libs/manual-test-fixtures-sources.jar [-]
-                        - manualTestFixtures          : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
-                        - debugSourcesElements        : <ROOT>/lib/build/libs/manual-test-fixtures-debug-sources.jar [-]
-                        - releaseSourcesElements      : <ROOT>/lib/build/libs/manual-test-fixtures-sources.jar [-]
-                        - releaseArchives             : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-release.aar [-]
                         - debugRuntimeElements-published        : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-debug.aar [-]
+                        - debugSourcesElements        : <ROOT>/lib/build/libs/manual-test-fixtures-debug-sources.jar [-]
+                        - debugSourcesElements-published        : <ROOT>/lib/build/libs/manual-test-fixtures-debug-sources.jar [-]
+                        - manualTestFixtures          : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
+                        - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-release.aar [-]
+                        - releaseArchives             : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-release.aar [-]
+                        - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-release.aar [-]
+                        - releaseSourcesElements      : <ROOT>/lib/build/libs/manual-test-fixtures-sources.jar [-]
+                        - releaseSourcesElements-published      : <ROOT>/lib/build/libs/manual-test-fixtures-sources.jar [-]
                     - additionalArtifacts         : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks

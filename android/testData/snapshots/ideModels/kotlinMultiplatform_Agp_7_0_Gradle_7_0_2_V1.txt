@@ -633,10 +633,10 @@ MODULE                        : kotlinMultiPlatform
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
                         - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
-                        - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                         - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
+                        - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -659,22 +659,22 @@ MODULE                        : kotlinMultiPlatform
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     - taskArtifacts               : <ROOT>/module2/build/libs/module2-metadata.jar [-]
                     configurationArtifacts
+                        - androidDebugArchives        : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         - androidReleaseArchives      : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                         - archives                    : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         - archives                    : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                         - archives                    : <ROOT>/module2/build/libs/module2-metadata.jar [-]
-                        - debugAllRuntimePublication  : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
-                        - metadataApiElements         : <ROOT>/module2/build/libs/module2-metadata.jar [-]
-                        - releaseAllRuntimePublication          : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
-                        - androidDebugArchives        : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
-                        - releaseApiPublication       : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
-                        - releaseAllApiPublication    : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
-                        - debugRuntimePublication     : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         - debugAllApiPublication      : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
+                        - debugAllRuntimePublication  : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         - debugApiPublication         : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
+                        - debugRuntimePublication     : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         - debugSourcesElements        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
-                        - releaseSourcesElements      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
+                        - metadataApiElements         : <ROOT>/module2/build/libs/module2-metadata.jar [-]
+                        - releaseAllApiPublication    : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
+                        - releaseAllRuntimePublication          : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
+                        - releaseApiPublication       : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                         - releaseRuntimePublication   : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
+                        - releaseSourcesElements      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
                     - additionalArtifacts         : <ROOT>/module2/build/libs/module2-metadata.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks

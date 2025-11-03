@@ -597,16 +597,16 @@ MODULE                        : My_First_App
                             configurationArtifacts
                                 - archives                    : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
                                 - archives                    : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
-                                - releaseRuntimeElements-published      : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
-                                - releaseApiElements-published          : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
-                                - debugSourcesElements-published        : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-debug-sources.jar [-]
                                 - debugApiElements-published  : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
                                 - debugArchives               : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
-                                - releaseSourcesElements-published      : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-sources.jar [-]
-                                - debugSourcesElements        : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-debug-sources.jar [-]
-                                - releaseSourcesElements      : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-sources.jar [-]
-                                - releaseArchives             : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
                                 - debugRuntimeElements-published        : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
+                                - debugSourcesElements        : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-debug-sources.jar [-]
+                                - debugSourcesElements-published        : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-debug-sources.jar [-]
+                                - releaseApiElements-published          : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
+                                - releaseArchives             : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
+                                - releaseRuntimeElements-published      : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
+                                - releaseSourcesElements      : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-sources.jar [-]
+                                - releaseSourcesElements-published      : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-sources.jar [-]
                         taskModel                     : DefaultGradleTaskModel
                             tasks
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
