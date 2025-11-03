@@ -656,10 +656,6 @@ LIBRARY_TABLE
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
         component                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
         - srcJars                     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
     - library                     : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
         artifactAddress               : org.jetbrains:annotations:13.0@jar
@@ -2087,10 +2083,6 @@ MODULE                        : project.app
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                ProvidedDependencies
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                RuntimeOnlyClasses
-                    - class                       : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinGradleModel             : KotlinGradleModelImpl
         additionalVisibleSourceSets
