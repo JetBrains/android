@@ -242,6 +242,7 @@ private val jbModelDumpers = listOf(
         nest {
           gradleSourceSet.configurationArtifacts
             .filter { it.value.isNotEmpty() }
+            .toSortedMap()
             .forEach {
               prop(it.key, it.value)
             }

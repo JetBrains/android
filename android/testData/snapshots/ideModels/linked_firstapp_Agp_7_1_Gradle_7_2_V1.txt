@@ -626,26 +626,26 @@ MODULE                        : My_First_App
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             configurationArtifacts
-                                - releaseVariantAllRuntimePublication   : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
                                 - archives                    : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
                                 - archives                    : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
-                                - releaseVariantReleaseRuntimePublication         : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
-                                - releaseRuntimeElements-published      : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
-                                - debugVariantDebugRuntimePublication   : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
-                                - releaseApiElements-published          : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
-                                - debugSourcesElements-published        : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-debug-sources.jar [-]
                                 - debugApiElements-published  : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
                                 - debugArchives               : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
-                                - releaseVariantReleaseApiPublication   : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
-                                - releaseSourcesElements-published      : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-sources.jar [-]
+                                - debugRuntimeElements-published        : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
                                 - debugSourcesElements        : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-debug-sources.jar [-]
-                                - debugVariantDebugApiPublication       : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
-                                - releaseSourcesElements      : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-sources.jar [-]
-                                - releaseVariantAllApiPublication       : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
+                                - debugSourcesElements-published        : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-debug-sources.jar [-]
                                 - debugVariantAllApiPublication         : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
                                 - debugVariantAllRuntimePublication     : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
+                                - debugVariantDebugApiPublication       : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
+                                - debugVariantDebugRuntimePublication   : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
+                                - releaseApiElements-published          : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
                                 - releaseArchives             : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
-                                - debugRuntimeElements-published        : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
+                                - releaseRuntimeElements-published      : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
+                                - releaseSourcesElements      : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-sources.jar [-]
+                                - releaseSourcesElements-published      : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-sources.jar [-]
+                                - releaseVariantAllApiPublication       : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
+                                - releaseVariantAllRuntimePublication   : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
+                                - releaseVariantReleaseApiPublication   : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
+                                - releaseVariantReleaseRuntimePublication         : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
                         taskModel                     : DefaultGradleTaskModel
                             tasks
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -656,9 +656,9 @@ MODULE                        : My_First_App
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseAabPublication       : <ROOT>/firstapp/app/build/outputs/bundle/release/app-release.aab [-]
-                        - debugApkPublication         : <ROOT>/firstapp/app/build/outputs/apk-zips/debug/apks.zip [-]
                         - debugAabPublication         : <ROOT>/firstapp/app/build/outputs/bundle/debug/app-debug.aab [-]
+                        - debugApkPublication         : <ROOT>/firstapp/app/build/outputs/apk-zips/debug/apks.zip [-]
+                        - releaseAabPublication       : <ROOT>/firstapp/app/build/outputs/bundle/release/app-release.aab [-]
                         - releaseApkPublication       : <ROOT>/firstapp/app/build/outputs/apk-zips/release/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks

@@ -773,15 +773,15 @@ MODULE                        : MainActivity
                     targetCompatibility           : 1.7
                     - taskArtifacts               : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                     configurationArtifacts
-                        - apiElements-published       : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                         - apiElements                 : <ROOT>/javaLib/build/libs/javaLib.jar [-]
-                        - runtimeElements             : <ROOT>/javaLib/build/libs/javaLib.jar [-]
-                        - testResultsElementsForTest  : <ROOT>/javaLib/build/test-results/test/binary [-]
-                        - runtimeElements-published   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
+                        - apiElements-published       : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                         - archives                    : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                         - mainSourceElements          : <ROOT>/javaLib/src/main/resources [-]
                         - mainSourceElements          : <ROOT>/javaLib/src/main/java
                         - mainSourceElements          : <ROOT>/javaLib/src/main/kotlin [-]
+                        - runtimeElements             : <ROOT>/javaLib/build/libs/javaLib.jar [-]
+                        - runtimeElements-published   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
+                        - testResultsElementsForTest  : <ROOT>/javaLib/build/test-results/test/binary [-]
                     sourceSets
                         main
                             sourceCompatibility           : 1.7
@@ -874,16 +874,16 @@ MODULE                        : MainActivity
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugSourcesElements-published        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
                         - debugApiElements-published  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - debugArchives               : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - releaseSourcesElements-published      : <ROOT>/lib/build/libs/lib-sources.jar [-]
-                        - debugSourcesElements        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
-                        - releaseSourcesElements      : <ROOT>/lib/build/libs/lib-sources.jar [-]
-                        - releaseArchives             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         - debugRuntimeElements-published        : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugSourcesElements        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
+                        - debugSourcesElements-published        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
+                        - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseArchives             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseSourcesElements      : <ROOT>/lib/build/libs/lib-sources.jar [-]
+                        - releaseSourcesElements-published      : <ROOT>/lib/build/libs/lib-sources.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)

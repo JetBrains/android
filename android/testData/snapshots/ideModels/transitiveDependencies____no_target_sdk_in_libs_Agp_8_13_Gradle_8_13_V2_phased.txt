@@ -720,12 +720,12 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     - taskArtifacts               : <ROOT>/javalib1/build/libs/javalib1.jar [-]
                     configurationArtifacts
-                        - archives                    : <ROOT>/javalib1/build/libs/javalib1.jar [-]
                         - apiElements                 : <ROOT>/javalib1/build/libs/javalib1.jar [-]
-                        - runtimeElements             : <ROOT>/javalib1/build/libs/javalib1.jar [-]
-                        - testResultsElementsForTest  : <ROOT>/javalib1/build/test-results/test/binary [-]
+                        - archives                    : <ROOT>/javalib1/build/libs/javalib1.jar [-]
                         - mainSourceElements          : <ROOT>/javalib1/src/main/resources [-]
                         - mainSourceElements          : <ROOT>/javalib1/src/main/java
+                        - runtimeElements             : <ROOT>/javalib1/build/libs/javalib1.jar [-]
+                        - testResultsElementsForTest  : <ROOT>/javalib1/build/test-results/test/binary [-]
                     sourceSets
                         main
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -813,12 +813,12 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     - taskArtifacts               : <ROOT>/javalib2/build/libs/javalib2.jar [-]
                     configurationArtifacts
-                        - archives                    : <ROOT>/javalib2/build/libs/javalib2.jar [-]
                         - apiElements                 : <ROOT>/javalib2/build/libs/javalib2.jar [-]
-                        - runtimeElements             : <ROOT>/javalib2/build/libs/javalib2.jar [-]
-                        - testResultsElementsForTest  : <ROOT>/javalib2/build/test-results/test/binary [-]
+                        - archives                    : <ROOT>/javalib2/build/libs/javalib2.jar [-]
                         - mainSourceElements          : <ROOT>/javalib2/src/main/resources [-]
                         - mainSourceElements          : <ROOT>/javalib2/src/main/java
+                        - runtimeElements             : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                        - testResultsElementsForTest  : <ROOT>/javalib2/build/test-results/test/binary [-]
                     sourceSets
                         main
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>

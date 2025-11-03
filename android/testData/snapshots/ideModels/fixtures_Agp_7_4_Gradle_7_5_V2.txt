@@ -779,10 +779,10 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
                         - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
-                        - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                         - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
+                        - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -804,22 +804,22 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseTestFixturesVariantReleaseRuntimePublication       : <ROOT>/lib/build/outputs/aar/lib-release-testFixtures-testFixtures.aar [-]
-                        - releaseVariantAllRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseVariantReleaseRuntimePublication         : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugTestFixturesVariantDebugApiPublication     : <ROOT>/lib/build/outputs/aar/lib-debug-testFixtures-testFixtures.aar [-]
-                        - releaseVariantReleaseApiPublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugVariantDebugRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - debugVariantDebugApiPublication       : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - releaseVariantAllApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         - debugTestFixturesVariantAllApiPublication       : <ROOT>/lib/build/outputs/aar/lib-debug-testFixtures-testFixtures.aar [-]
-                        - debugVariantAllApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - debugTestFixturesVariantAllRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-debug-testFixtures-testFixtures.aar [-]
-                        - releaseTestFixturesVariantAllRuntimePublication : <ROOT>/lib/build/outputs/aar/lib-release-testFixtures-testFixtures.aar [-]
-                        - debugVariantAllRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugTestFixturesVariantDebugApiPublication     : <ROOT>/lib/build/outputs/aar/lib-debug-testFixtures-testFixtures.aar [-]
                         - debugTestFixturesVariantDebugRuntimePublication : <ROOT>/lib/build/outputs/aar/lib-debug-testFixtures-testFixtures.aar [-]
+                        - debugVariantAllApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugVariantAllRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugVariantDebugApiPublication       : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugVariantDebugRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - releaseTestFixturesVariantAllApiPublication     : <ROOT>/lib/build/outputs/aar/lib-release-testFixtures-testFixtures.aar [-]
+                        - releaseTestFixturesVariantAllRuntimePublication : <ROOT>/lib/build/outputs/aar/lib-release-testFixtures-testFixtures.aar [-]
                         - releaseTestFixturesVariantReleaseApiPublication : <ROOT>/lib/build/outputs/aar/lib-release-testFixtures-testFixtures.aar [-]
+                        - releaseTestFixturesVariantReleaseRuntimePublication       : <ROOT>/lib/build/outputs/aar/lib-release-testFixtures-testFixtures.aar [-]
+                        - releaseVariantAllApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseVariantAllRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseVariantReleaseApiPublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseVariantReleaseRuntimePublication         : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)

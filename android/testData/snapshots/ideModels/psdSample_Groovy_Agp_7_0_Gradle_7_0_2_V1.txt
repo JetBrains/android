@@ -785,30 +785,30 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - paidBarSpecialReleaseApkPublication   : <ROOT>/app/build/outputs/apk-zips/paidBarSpecialRelease/apks.zip [-]
-                        - paidOtherBarSpecialReleaseAabPublication        : <ROOT>/app/build/outputs/bundle/paidOtherBarSpecialRelease/app-paid-otherBar-specialRelease.aab [-]
-                        - paidBarDebugAabPublication  : <ROOT>/app/build/outputs/bundle/paidBarDebug/app-paid-bar-debug.aab [-]
-                        - basicBarDebugApkPublication : <ROOT>/app/build/outputs/apk-zips/basicBarDebug/apks.zip [-]
-                        - basicOtherBarSpecialReleaseAabPublication       : <ROOT>/app/build/outputs/bundle/basicOtherBarSpecialRelease/app-basic-otherBar-specialRelease.aab [-]
-                        - paidOtherBarDebugApkPublication       : <ROOT>/app/build/outputs/apk-zips/paidOtherBarDebug/apks.zip [-]
-                        - basicBarSpecialReleaseApkPublication  : <ROOT>/app/build/outputs/apk-zips/basicBarSpecialRelease/apks.zip [-]
-                        - basicBarReleaseAabPublication         : <ROOT>/app/build/outputs/bundle/basicBarRelease/app-basic-bar-release.aab [-]
-                        - paidBarReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/paidBarRelease/apks.zip [-]
-                        - paidOtherBarReleaseApkPublication     : <ROOT>/app/build/outputs/apk-zips/paidOtherBarRelease/apks.zip [-]
-                        - paidOtherBarDebugAabPublication       : <ROOT>/app/build/outputs/bundle/paidOtherBarDebug/app-paid-otherBar-debug.aab [-]
-                        - paidBarReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/paidBarRelease/app-paid-bar-release.aab [-]
-                        - paidBarDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/paidBarDebug/apks.zip [-]
-                        - basicBarReleaseApkPublication         : <ROOT>/app/build/outputs/apk-zips/basicBarRelease/apks.zip [-]
-                        - paidOtherBarSpecialReleaseApkPublication        : <ROOT>/app/build/outputs/apk-zips/paidOtherBarSpecialRelease/apks.zip [-]
-                        - basicOtherBarReleaseApkPublication    : <ROOT>/app/build/outputs/apk-zips/basicOtherBarRelease/apks.zip [-]
-                        - paidOtherBarReleaseAabPublication     : <ROOT>/app/build/outputs/bundle/paidOtherBarRelease/app-paid-otherBar-release.aab [-]
-                        - basicOtherBarSpecialReleaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/basicOtherBarSpecialRelease/apks.zip [-]
                         - basicBarDebugAabPublication : <ROOT>/app/build/outputs/bundle/basicBarDebug/app-basic-bar-debug.aab [-]
-                        - basicOtherBarReleaseAabPublication    : <ROOT>/app/build/outputs/bundle/basicOtherBarRelease/app-basic-otherBar-release.aab [-]
-                        - basicOtherBarDebugApkPublication      : <ROOT>/app/build/outputs/apk-zips/basicOtherBarDebug/apks.zip [-]
+                        - basicBarDebugApkPublication : <ROOT>/app/build/outputs/apk-zips/basicBarDebug/apks.zip [-]
+                        - basicBarReleaseAabPublication         : <ROOT>/app/build/outputs/bundle/basicBarRelease/app-basic-bar-release.aab [-]
+                        - basicBarReleaseApkPublication         : <ROOT>/app/build/outputs/apk-zips/basicBarRelease/apks.zip [-]
                         - basicBarSpecialReleaseAabPublication  : <ROOT>/app/build/outputs/bundle/basicBarSpecialRelease/app-basic-bar-specialRelease.aab [-]
+                        - basicBarSpecialReleaseApkPublication  : <ROOT>/app/build/outputs/apk-zips/basicBarSpecialRelease/apks.zip [-]
                         - basicOtherBarDebugAabPublication      : <ROOT>/app/build/outputs/bundle/basicOtherBarDebug/app-basic-otherBar-debug.aab [-]
+                        - basicOtherBarDebugApkPublication      : <ROOT>/app/build/outputs/apk-zips/basicOtherBarDebug/apks.zip [-]
+                        - basicOtherBarReleaseAabPublication    : <ROOT>/app/build/outputs/bundle/basicOtherBarRelease/app-basic-otherBar-release.aab [-]
+                        - basicOtherBarReleaseApkPublication    : <ROOT>/app/build/outputs/apk-zips/basicOtherBarRelease/apks.zip [-]
+                        - basicOtherBarSpecialReleaseAabPublication       : <ROOT>/app/build/outputs/bundle/basicOtherBarSpecialRelease/app-basic-otherBar-specialRelease.aab [-]
+                        - basicOtherBarSpecialReleaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/basicOtherBarSpecialRelease/apks.zip [-]
+                        - paidBarDebugAabPublication  : <ROOT>/app/build/outputs/bundle/paidBarDebug/app-paid-bar-debug.aab [-]
+                        - paidBarDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/paidBarDebug/apks.zip [-]
+                        - paidBarReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/paidBarRelease/app-paid-bar-release.aab [-]
+                        - paidBarReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/paidBarRelease/apks.zip [-]
                         - paidBarSpecialReleaseAabPublication   : <ROOT>/app/build/outputs/bundle/paidBarSpecialRelease/app-paid-bar-specialRelease.aab [-]
+                        - paidBarSpecialReleaseApkPublication   : <ROOT>/app/build/outputs/apk-zips/paidBarSpecialRelease/apks.zip [-]
+                        - paidOtherBarDebugAabPublication       : <ROOT>/app/build/outputs/bundle/paidOtherBarDebug/app-paid-otherBar-debug.aab [-]
+                        - paidOtherBarDebugApkPublication       : <ROOT>/app/build/outputs/apk-zips/paidOtherBarDebug/apks.zip [-]
+                        - paidOtherBarReleaseAabPublication     : <ROOT>/app/build/outputs/bundle/paidOtherBarRelease/app-paid-otherBar-release.aab [-]
+                        - paidOtherBarReleaseApkPublication     : <ROOT>/app/build/outputs/apk-zips/paidOtherBarRelease/apks.zip [-]
+                        - paidOtherBarSpecialReleaseAabPublication        : <ROOT>/app/build/outputs/bundle/paidOtherBarSpecialRelease/app-paid-otherBar-specialRelease.aab [-]
+                        - paidOtherBarSpecialReleaseApkPublication        : <ROOT>/app/build/outputs/apk-zips/paidOtherBarSpecialRelease/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testBasicBarDebugUnitTest     : testBasicBarDebugUnitTest (DefaultExternalTask)
@@ -872,8 +872,8 @@ MODULE                        : project
                     targetCompatibility           : 1.6
                     - taskArtifacts               : <ROOT>/jav/build/libs/jav.jar [-]
                     configurationArtifacts
-                        - archives                    : <ROOT>/jav/build/libs/jav.jar [-]
                         - apiElements                 : <ROOT>/jav/build/libs/jav.jar [-]
+                        - archives                    : <ROOT>/jav/build/libs/jav.jar [-]
                         - runtimeElements             : <ROOT>/jav/build/libs/jav.jar [-]
                     sourceSets
                         main
@@ -933,14 +933,14 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
+                        - debugAllApiPublication      : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugAllRuntimePublication  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - releaseAllApiPublication    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         - releaseAllRuntimePublication          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         - releaseApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         - releaseRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseAllApiPublication    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - debugAllRuntimePublication  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - debugAllApiPublication      : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - debugApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -974,14 +974,14 @@ MODULE                        : project
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             configurationArtifacts
+                                - debugAllApiPublication      : <ROOT>/nested1/deep/build/outputs/aar/deep-debug.aar [-]
+                                - debugAllRuntimePublication  : <ROOT>/nested1/deep/build/outputs/aar/deep-debug.aar [-]
+                                - debugApiPublication         : <ROOT>/nested1/deep/build/outputs/aar/deep-debug.aar [-]
+                                - debugRuntimePublication     : <ROOT>/nested1/deep/build/outputs/aar/deep-debug.aar [-]
+                                - releaseAllApiPublication    : <ROOT>/nested1/deep/build/outputs/aar/deep-release.aar [-]
                                 - releaseAllRuntimePublication          : <ROOT>/nested1/deep/build/outputs/aar/deep-release.aar [-]
                                 - releaseApiPublication       : <ROOT>/nested1/deep/build/outputs/aar/deep-release.aar [-]
                                 - releaseRuntimePublication   : <ROOT>/nested1/deep/build/outputs/aar/deep-release.aar [-]
-                                - releaseAllApiPublication    : <ROOT>/nested1/deep/build/outputs/aar/deep-release.aar [-]
-                                - debugRuntimePublication     : <ROOT>/nested1/deep/build/outputs/aar/deep-debug.aar [-]
-                                - debugAllRuntimePublication  : <ROOT>/nested1/deep/build/outputs/aar/deep-debug.aar [-]
-                                - debugAllApiPublication      : <ROOT>/nested1/deep/build/outputs/aar/deep-debug.aar [-]
-                                - debugApiPublication         : <ROOT>/nested1/deep/build/outputs/aar/deep-debug.aar [-]
                         taskModel                     : DefaultGradleTaskModel
                             tasks
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -992,14 +992,14 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
+                        - debugAllApiPublication      : <ROOT>/nested1/build/outputs/aar/nested1-debug.aar [-]
+                        - debugAllRuntimePublication  : <ROOT>/nested1/build/outputs/aar/nested1-debug.aar [-]
+                        - debugApiPublication         : <ROOT>/nested1/build/outputs/aar/nested1-debug.aar [-]
+                        - debugRuntimePublication     : <ROOT>/nested1/build/outputs/aar/nested1-debug.aar [-]
+                        - releaseAllApiPublication    : <ROOT>/nested1/build/outputs/aar/nested1-release.aar [-]
                         - releaseAllRuntimePublication          : <ROOT>/nested1/build/outputs/aar/nested1-release.aar [-]
                         - releaseApiPublication       : <ROOT>/nested1/build/outputs/aar/nested1-release.aar [-]
                         - releaseRuntimePublication   : <ROOT>/nested1/build/outputs/aar/nested1-release.aar [-]
-                        - releaseAllApiPublication    : <ROOT>/nested1/build/outputs/aar/nested1-release.aar [-]
-                        - debugRuntimePublication     : <ROOT>/nested1/build/outputs/aar/nested1-debug.aar [-]
-                        - debugAllRuntimePublication  : <ROOT>/nested1/build/outputs/aar/nested1-debug.aar [-]
-                        - debugAllApiPublication      : <ROOT>/nested1/build/outputs/aar/nested1-debug.aar [-]
-                        - debugApiPublication         : <ROOT>/nested1/build/outputs/aar/nested1-debug.aar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -1033,14 +1033,14 @@ MODULE                        : project
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             configurationArtifacts
+                                - debugAllApiPublication      : <ROOT>/nested2/deep/build/outputs/aar/deep-debug.aar [-]
+                                - debugAllRuntimePublication  : <ROOT>/nested2/deep/build/outputs/aar/deep-debug.aar [-]
+                                - debugApiPublication         : <ROOT>/nested2/deep/build/outputs/aar/deep-debug.aar [-]
+                                - debugRuntimePublication     : <ROOT>/nested2/deep/build/outputs/aar/deep-debug.aar [-]
+                                - releaseAllApiPublication    : <ROOT>/nested2/deep/build/outputs/aar/deep-release.aar [-]
                                 - releaseAllRuntimePublication          : <ROOT>/nested2/deep/build/outputs/aar/deep-release.aar [-]
                                 - releaseApiPublication       : <ROOT>/nested2/deep/build/outputs/aar/deep-release.aar [-]
                                 - releaseRuntimePublication   : <ROOT>/nested2/deep/build/outputs/aar/deep-release.aar [-]
-                                - releaseAllApiPublication    : <ROOT>/nested2/deep/build/outputs/aar/deep-release.aar [-]
-                                - debugRuntimePublication     : <ROOT>/nested2/deep/build/outputs/aar/deep-debug.aar [-]
-                                - debugAllRuntimePublication  : <ROOT>/nested2/deep/build/outputs/aar/deep-debug.aar [-]
-                                - debugAllApiPublication      : <ROOT>/nested2/deep/build/outputs/aar/deep-debug.aar [-]
-                                - debugApiPublication         : <ROOT>/nested2/deep/build/outputs/aar/deep-debug.aar [-]
                         taskModel                     : DefaultGradleTaskModel
                             tasks
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -1074,14 +1074,14 @@ MODULE                        : project
                                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                                     configurationArtifacts
+                                        - debugAllApiPublication      : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-debug.aar [-]
+                                        - debugAllRuntimePublication  : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-debug.aar [-]
+                                        - debugApiPublication         : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-debug.aar [-]
+                                        - debugRuntimePublication     : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-debug.aar [-]
+                                        - releaseAllApiPublication    : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-release.aar [-]
                                         - releaseAllRuntimePublication          : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-release.aar [-]
                                         - releaseApiPublication       : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-release.aar [-]
                                         - releaseRuntimePublication   : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-release.aar [-]
-                                        - releaseAllApiPublication    : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-release.aar [-]
-                                        - debugRuntimePublication     : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-debug.aar [-]
-                                        - debugAllRuntimePublication  : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-debug.aar [-]
-                                        - debugAllApiPublication      : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-debug.aar [-]
-                                        - debugApiPublication         : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-debug.aar [-]
                                 taskModel                     : DefaultGradleTaskModel
                                     tasks
                                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -1099,22 +1099,22 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - paidReleaseAllApiPublication          : <ROOT>/nested2/build/outputs/aar/nested2-paid-release.aar [-]
-                        - paidDebugAllApiPublication  : <ROOT>/nested2/build/outputs/aar/nested2-paid-debug.aar [-]
+                        - basicDebugAllApiPublication : <ROOT>/nested2/build/outputs/aar/nested2-basic-debug.aar [-]
                         - basicDebugAllRuntimePublication       : <ROOT>/nested2/build/outputs/aar/nested2-basic-debug.aar [-]
+                        - basicDebugApiPublication    : <ROOT>/nested2/build/outputs/aar/nested2-basic-debug.aar [-]
+                        - basicDebugRuntimePublication          : <ROOT>/nested2/build/outputs/aar/nested2-basic-debug.aar [-]
+                        - basicReleaseAllApiPublication         : <ROOT>/nested2/build/outputs/aar/nested2-basic-release.aar [-]
+                        - basicReleaseAllRuntimePublication     : <ROOT>/nested2/build/outputs/aar/nested2-basic-release.aar [-]
+                        - basicReleaseApiPublication  : <ROOT>/nested2/build/outputs/aar/nested2-basic-release.aar [-]
+                        - basicReleaseRuntimePublication        : <ROOT>/nested2/build/outputs/aar/nested2-basic-release.aar [-]
+                        - paidDebugAllApiPublication  : <ROOT>/nested2/build/outputs/aar/nested2-paid-debug.aar [-]
+                        - paidDebugAllRuntimePublication        : <ROOT>/nested2/build/outputs/aar/nested2-paid-debug.aar [-]
                         - paidDebugApiPublication     : <ROOT>/nested2/build/outputs/aar/nested2-paid-debug.aar [-]
                         - paidDebugRuntimePublication : <ROOT>/nested2/build/outputs/aar/nested2-paid-debug.aar [-]
+                        - paidReleaseAllApiPublication          : <ROOT>/nested2/build/outputs/aar/nested2-paid-release.aar [-]
                         - paidReleaseAllRuntimePublication      : <ROOT>/nested2/build/outputs/aar/nested2-paid-release.aar [-]
-                        - basicDebugRuntimePublication          : <ROOT>/nested2/build/outputs/aar/nested2-basic-debug.aar [-]
-                        - basicDebugAllApiPublication : <ROOT>/nested2/build/outputs/aar/nested2-basic-debug.aar [-]
-                        - paidReleaseRuntimePublication         : <ROOT>/nested2/build/outputs/aar/nested2-paid-release.aar [-]
                         - paidReleaseApiPublication   : <ROOT>/nested2/build/outputs/aar/nested2-paid-release.aar [-]
-                        - paidDebugAllRuntimePublication        : <ROOT>/nested2/build/outputs/aar/nested2-paid-debug.aar [-]
-                        - basicReleaseAllApiPublication         : <ROOT>/nested2/build/outputs/aar/nested2-basic-release.aar [-]
-                        - basicReleaseRuntimePublication        : <ROOT>/nested2/build/outputs/aar/nested2-basic-release.aar [-]
-                        - basicReleaseApiPublication  : <ROOT>/nested2/build/outputs/aar/nested2-basic-release.aar [-]
-                        - basicReleaseAllRuntimePublication     : <ROOT>/nested2/build/outputs/aar/nested2-basic-release.aar [-]
-                        - basicDebugApiPublication    : <ROOT>/nested2/build/outputs/aar/nested2-basic-debug.aar [-]
+                        - paidReleaseRuntimePublication         : <ROOT>/nested2/build/outputs/aar/nested2-paid-release.aar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)

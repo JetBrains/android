@@ -690,10 +690,10 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
                         - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
-                        - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                         - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
+                        - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -716,8 +716,8 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     - taskArtifacts               : <ROOT>/javalib1/build/libs/javalib1.jar [-]
                     configurationArtifacts
-                        - archives                    : <ROOT>/javalib1/build/libs/javalib1.jar [-]
                         - apiElements                 : <ROOT>/javalib1/build/libs/javalib1.jar [-]
+                        - archives                    : <ROOT>/javalib1/build/libs/javalib1.jar [-]
                         - runtimeElements             : <ROOT>/javalib1/build/libs/javalib1.jar [-]
                     sourceSets
                         main
@@ -806,8 +806,8 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     - taskArtifacts               : <ROOT>/javalib2/build/libs/javalib2.jar [-]
                     configurationArtifacts
-                        - archives                    : <ROOT>/javalib2/build/libs/javalib2.jar [-]
                         - apiElements                 : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                        - archives                    : <ROOT>/javalib2/build/libs/javalib2.jar [-]
                         - runtimeElements             : <ROOT>/javalib2/build/libs/javalib2.jar [-]
                     sourceSets
                         main
@@ -867,14 +867,14 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseVariantAllRuntimePublication   : <ROOT>/library1/build/outputs/aar/library1-release.aar [-]
-                        - releaseVariantReleaseRuntimePublication         : <ROOT>/library1/build/outputs/aar/library1-release.aar [-]
-                        - releaseVariantReleaseApiPublication   : <ROOT>/library1/build/outputs/aar/library1-release.aar [-]
-                        - debugVariantDebugRuntimePublication   : <ROOT>/library1/build/outputs/aar/library1-debug.aar [-]
-                        - debugVariantDebugApiPublication       : <ROOT>/library1/build/outputs/aar/library1-debug.aar [-]
-                        - releaseVariantAllApiPublication       : <ROOT>/library1/build/outputs/aar/library1-release.aar [-]
                         - debugVariantAllApiPublication         : <ROOT>/library1/build/outputs/aar/library1-debug.aar [-]
                         - debugVariantAllRuntimePublication     : <ROOT>/library1/build/outputs/aar/library1-debug.aar [-]
+                        - debugVariantDebugApiPublication       : <ROOT>/library1/build/outputs/aar/library1-debug.aar [-]
+                        - debugVariantDebugRuntimePublication   : <ROOT>/library1/build/outputs/aar/library1-debug.aar [-]
+                        - releaseVariantAllApiPublication       : <ROOT>/library1/build/outputs/aar/library1-release.aar [-]
+                        - releaseVariantAllRuntimePublication   : <ROOT>/library1/build/outputs/aar/library1-release.aar [-]
+                        - releaseVariantReleaseApiPublication   : <ROOT>/library1/build/outputs/aar/library1-release.aar [-]
+                        - releaseVariantReleaseRuntimePublication         : <ROOT>/library1/build/outputs/aar/library1-release.aar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -896,14 +896,14 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseVariantAllRuntimePublication   : <ROOT>/library2/build/outputs/aar/library2-release.aar [-]
-                        - releaseVariantReleaseRuntimePublication         : <ROOT>/library2/build/outputs/aar/library2-release.aar [-]
-                        - releaseVariantReleaseApiPublication   : <ROOT>/library2/build/outputs/aar/library2-release.aar [-]
-                        - debugVariantDebugRuntimePublication   : <ROOT>/library2/build/outputs/aar/library2-debug.aar [-]
-                        - debugVariantDebugApiPublication       : <ROOT>/library2/build/outputs/aar/library2-debug.aar [-]
-                        - releaseVariantAllApiPublication       : <ROOT>/library2/build/outputs/aar/library2-release.aar [-]
                         - debugVariantAllApiPublication         : <ROOT>/library2/build/outputs/aar/library2-debug.aar [-]
                         - debugVariantAllRuntimePublication     : <ROOT>/library2/build/outputs/aar/library2-debug.aar [-]
+                        - debugVariantDebugApiPublication       : <ROOT>/library2/build/outputs/aar/library2-debug.aar [-]
+                        - debugVariantDebugRuntimePublication   : <ROOT>/library2/build/outputs/aar/library2-debug.aar [-]
+                        - releaseVariantAllApiPublication       : <ROOT>/library2/build/outputs/aar/library2-release.aar [-]
+                        - releaseVariantAllRuntimePublication   : <ROOT>/library2/build/outputs/aar/library2-release.aar [-]
+                        - releaseVariantReleaseApiPublication   : <ROOT>/library2/build/outputs/aar/library2-release.aar [-]
+                        - releaseVariantReleaseRuntimePublication         : <ROOT>/library2/build/outputs/aar/library2-release.aar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
