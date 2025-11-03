@@ -19,7 +19,10 @@ import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AgpVersions.newProject
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings
+import com.google.common.hash.Hashing
+import com.google.common.io.Files
 import com.google.common.io.Resources
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
@@ -35,6 +38,7 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.impl.PsiManagerEx
 import java.io.File
 import java.io.IOException
+import java.nio.charset.StandardCharsets
 import java.util.Properties
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -54,22 +58,31 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
     }
 
   val distributionUrl: String?
-    get() = properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY)
+    get() = properties?.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY)
 
-  private val properties: Properties
-    get() = PropertiesFiles.getProperties(propertiesFilePath)
+  private val properties: Properties?
+    get() = try {
+      PropertiesFiles.getProperties(propertiesFilePath)
+    } catch (e: IOException) {
+      LOG.error("Cannot read properties", e)
+      null
+    }
+
+  val distributionSha256: String?
+    get() = this.properties?.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM)
 
   /**
-   * Updates the 'distributionUrl' in the Gradle wrapper properties file. Unexpected errors that occur while updating the file will be
-   * displayed in an error dialog.
+   * Updates the distribution (URL and checksum) in the Gradle wrapper properties file.
+   * Unexpected errors that occur while updating the file will be displayed in an error dialog.
    *
    * @param gradleVersionString a String representing the Gradle version to update the property to.
-   * @return `true` if the property was updated, or `false` if no update was necessary because the property already had the
-   * correct value.
+   * @return `true` if the distribution URL and sha256 were updated, or `false` if no update was
+   * necessary because the properties had correct values.
    */
-  fun updateDistributionUrlAndDisplayFailure(gradleVersionString: String): Boolean {
+  fun updateDistributionOrDisplayFailure(gradleVersionString: String): Boolean {
     try {
-      val updated = updateDistributionUrl(GradleVersion.version(gradleVersionString))
+      val version = GradleVersion.version(gradleVersionString)
+      val updated = updateDistribution(version)
       if (updated) {
         return true
       }
@@ -94,40 +107,74 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
   }
 
   /**
-   * Updates the 'distributionUrl' in the given Gradle wrapper properties file.
+   * Updates the 'distributionUrl' & 'distributionSha256Sum' in the given Gradle wrapper properties file.
+   * It will attempt to preserve type of distribution already used (-all/-bin) based on filename.
+   * Update of the checksum is done on a best-effort basis. If no checksum can be found for the new
+   * distribution, there will be no 'distributionSha256Sum' property left after the update.
    *
    * @param gradleVersion the Gradle version to update the property to.
-   * @return `true` if the property was updated, or `false` if no update was necessary because the property already had the
-   * correct value.
-   * @throws IOException if something goes wrong when reading or saving the properties file.
+   * @return `true` if URL property was updated, or `false` if no update was necessary because
+   * the property already had the correct values.
+   * @throws IOException if something goes wrong when reading/saving the properties file.
    */
-  fun updateDistributionUrl(gradleVersion: GradleVersion): Boolean {
-    val property = this.distributionUrl
+  fun updateDistribution(gradleVersion: GradleVersion): Boolean {
+    val urlProperty = this.distributionUrl
     // preserve -all if used, fallback to -bin otherwise.
-    val isUsingSourceAndDocsDistribution = property?.endsWith("-all.zip") == true
-    val distributionUrl: String = getDistributionUrl(gradleVersion, !isUsingSourceAndDocsDistribution)
-    if (property != null && property == distributionUrl) {
+    val isUsingSourceAndDocsDistribution = urlProperty?.endsWith("-all.zip") == true
+
+    val newUrl = getDistributionUrl(gradleVersion, !isUsingSourceAndDocsDistribution)
+    val newDistributionChecksum = getDistributionSha256(gradleVersion, !isUsingSourceAndDocsDistribution)
+
+    val urlUpdateNotRequired = urlProperty != null && urlProperty == newUrl
+    val checksumUpdateNotRequired = this.distributionSha256 == newDistributionChecksum
+    if (urlUpdateNotRequired && checksumUpdateNotRequired) {
       return false
     }
-    val properties = this.properties
-    properties.setProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, distributionUrl)
+    val properties = this.properties ?: throw IOException("Cannot read properties")
+    properties.setProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, newUrl)
+    if (newDistributionChecksum != null) {
+      properties.setProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, newDistributionChecksum)
+    } else {
+      properties.remove(WrapperExecutor.DISTRIBUTION_SHA_256_SUM)
+    }
     saveProperties(properties, this.propertiesFilePath, project)
     return true
   }
 
   /**
-   * Updates the 'distributionUrl' in the given Gradle wrapper properties file.
+   * Updates the 'distributionUrl' and 'distributionSha256Sum' in the given Gradle wrapper properties file.
+   * For standard-named distributions, the SHA-256 hash will first be retrieved from a local list.
+   * If the distribution is a fork, the SHA-256 hash will be calculated instead.
    *
    * @param gradleDistribution A local gradle distribution file.
-   * @return `true` if the property was updated, or `false` if no update was necessary because the property already had the
-   * correct value.
-   * @throws IOException if something goes wrong when reading or saving the properties file.
+   * @return `true` if both properties were updated, or `false` if no update was necessary because
+   *    * the properties already had the correct values.
+   * @throws IOException if something goes wrong when reading/saving the properties file.
    */
-  fun updateDistributionUrl(gradleDistribution: File): Boolean {
-    val path = gradleDistribution.getPath()
+  @VisibleForTesting
+  fun updateDistribution(gradleDistribution: File): Boolean {
+    val path = gradleDistribution.path
     require(FileUtilRt.extensionEquals(path, "zip")) { "'$path' should be a zip file" }
-    val properties = this.properties
+    val properties = this.properties ?: throw IOException("Cannot read properties")
+
+    // if the name matches official distribution - use it
+    val sha256 = if (distributionsChecksums.contains(gradleDistribution.name)) {
+      distributionsChecksums[gradleDistribution.name]
+    } else {
+      // otherwise if filename is not in the list - calculate SHA-256 of the file.
+      try {
+        Files.asByteSource(gradleDistribution).hash(Hashing.sha256()).toString()
+      } catch (e: IOException) {
+        LOG.warn("Cannot read $gradleDistribution for calculating of SHA-256.", e)
+        null
+      }
+    }
     properties.setProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, gradleDistribution.toURI().toURL().toString())
+    if (sha256 != null) {
+      properties.setProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, sha256)
+    } else {
+      properties.remove(WrapperExecutor.DISTRIBUTION_SHA_256_SUM)
+    }
     saveProperties(properties, this.propertiesFilePath, project)
     return true
   }
@@ -140,12 +187,31 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
    * @param binOnlyIfCurrentlyUnknown indicates default -bin/-all suffix if the current URL is missing or unrecognized.
    * @return a String denoting the new Gradle distribution URL.
    */
+  @VisibleForTesting
   fun getUpdatedDistributionUrl(gradleVersion: GradleVersion, binOnlyIfCurrentlyUnknown: Boolean): String {
     val current = this.distributionUrl
     return getUpdatedDistributionUrl(current, gradleVersion, binOnlyIfCurrentlyUnknown)
   }
 
   companion object {
+    /**
+     * A map from Gradle distribution file names (e.g., "gradle-7.5-bin.zip") to their corresponding SHA-256 checksums.
+     * This is used to verify the integrity of the downloaded Gradle distribution.
+     * The checksums are loaded from the `gradle-sha256-list.txt` resource file.
+     */
+    @VisibleForTesting
+    val distributionsChecksums: Map<String, String> by lazy {
+      val bytes = GradleWrapper::class.java.getResourceAsStream("/templates/project/gradle-sha256-list.txt")
+                    ?.readAllBytes() ?: return@lazy emptyMap()
+      val content = String(bytes, StandardCharsets.UTF_8)
+      return@lazy content.lines()
+        .map { it.split(';') }
+        .filter { it.size == 2 }
+        .associate { (sha256, fileName) ->
+          fileName to sha256
+        }
+    }
+
     private val GRADLEW_PROPERTIES_PATH: String = FileUtil.join(SdkConstants.FD_GRADLE_WRAPPER, SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES)
     private val GRADLE_DISTRIBUTION_URL_PATTERN: Pattern = Pattern.compile(".*/gradle-([^-]+)(-[^\\/\\\\]+)?-(bin|all).zip")
 
@@ -230,7 +296,7 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
       })
       val propertiesFilePath: File = getDefaultPropertiesFilePath(File(projectPath.getPath()))
       val gradleWrapper: GradleWrapper = get(propertiesFilePath, project)
-      gradleWrapper.updateDistributionUrl(gradleVersion)
+      gradleWrapper.updateDistribution(gradleVersion)
       return gradleWrapper
     }
 
@@ -344,6 +410,14 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
       // See https://code.google.com/p/android/issues/detail?id=357944
       val folderName = if (gradleVersion.isSnapshot()) "distributions-snapshots" else "distributions"
       return String.format("https://services.gradle.org/%1\$s/%2\$s", folderName, filename)
+    }
+
+    @JvmStatic
+    fun getDistributionSha256(gradleVersion: GradleVersion, useBinaryOnlyDistribution: Boolean): String? {
+      val distributionUrl = getDistributionUrl(gradleVersion, useBinaryOnlyDistribution)
+      val distributionFile = distributionUrl.substringAfterLast("/").takeIf { it.endsWith(".zip") }
+                             ?: return null
+      return distributionsChecksums[distributionFile]
     }
   }
 }

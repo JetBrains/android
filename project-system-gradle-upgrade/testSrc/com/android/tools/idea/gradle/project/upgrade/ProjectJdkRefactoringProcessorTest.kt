@@ -110,7 +110,7 @@ class ProjectJdkRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
   fun testNoUpdateIfProjectUsesDaemonJvmCriteria() {
     Registry.get("gradle.daemon.jvm.criteria").setValue(true)
     project.createDaemonJvmPropertiesFile("21")
-    GradleWrapper.find(project)?.updateDistributionUrl(GradleVersion.version("8.13"))
+    GradleWrapper.find(project)?.updateDistribution(GradleVersion.version("8.13"))
     setGradleInstallationPath(JDK_1_8_PATH)
 
     val processor = ProjectJdkRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))

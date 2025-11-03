@@ -657,12 +657,12 @@ public class AndroidGradleTests {
     if(IdeInfo.getInstance().isAndroidStudio() && syncEnabled) {
       assertThat(path).named("Gradle zip file with version: %s", gradleVersion).isNotNull();
       assertAbout(file()).that(path).named("Gradle distribution path").isFile();
-      wrapper.updateDistributionUrl(path);
+      wrapper.updateDistribution(path);
     } else {
       // if test not about sync - we don't require to have gradle of certain version available
       if (path != null) {
         assertAbout(file()).that(path).named("Gradle distribution path").isFile();
-        wrapper.updateDistributionUrl(path);
+        wrapper.updateDistribution(path);
       }
     }
   }

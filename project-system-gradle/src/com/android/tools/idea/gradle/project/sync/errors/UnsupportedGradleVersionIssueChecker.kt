@@ -153,7 +153,7 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
       val future = CompletableFuture<Any>()
       invokeLater {
         if (gradleWrapper == null) gradleWrapper = GradleWrapper.find(project) ?: return@invokeLater
-        gradleWrapper!!.updateDistributionUrlAndDisplayFailure(gradleVersion)
+        gradleWrapper!!.updateDistributionOrDisplayFailure(gradleVersion)
         // Set the distribution type and request sync.
         val settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)
         if (settings != null) {

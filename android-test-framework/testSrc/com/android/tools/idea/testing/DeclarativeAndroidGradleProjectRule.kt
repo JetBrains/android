@@ -60,7 +60,7 @@ class DeclarativeAndroidGradleProjectRule(val projectRule: AndroidGradleProjectR
     val distribution = TestUtils.resolveWorkspacePath("tools/external/gradle")
     val gradle = distribution.resolve("gradle-9.1.0-bin.zip")
     val wrapper = GradleWrapper.find(project)!!
-    wrapper.updateDistributionUrl(gradle.toFile())
+    wrapper.updateDistribution(gradle.toFile())
   }
 }
 

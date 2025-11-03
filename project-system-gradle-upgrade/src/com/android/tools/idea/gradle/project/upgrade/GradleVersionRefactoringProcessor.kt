@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.gradle.util.BuildFileProcessor
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.utils.FileUtils
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
@@ -36,6 +36,7 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 import org.gradle.util.GradleVersion
 import java.io.File
+import org.gradle.wrapper.WrapperExecutor
 
 class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
@@ -50,7 +51,7 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
   override val necessityInfo = AlwaysNeeded
 
-  private fun List<File?>.forEachGradleVersion(body: (GradleVersion, String, PsiElement) -> Unit) {
+  private fun List<File?>.forEachGradleVersion(body: (GradleVersion, String, PsiElement, PsiElement?) -> Unit) {
     filterNotNull().forEach { ioRoot ->
       val ioFile = GradleWrapper.getDefaultPropertiesFilePath(ioRoot)
       // this is called from within a read action (via BaseRefactoringProcessor.doRun()); we must not trigger Vfs refreshes here.
@@ -63,11 +64,12 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
       //  looking in indexes, which for some reason under some circumstances doesn't actually contain the keys in
       //  gradle-wrapper.properties.  Filtering all the properties of the file ourselves is a workaround for this unexplained
       //  behavior.
-      val property = propertiesFile.properties.firstOrNull { SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY == it.key } ?: return@forEach
-      val currentUrl = property.value?.removeEscapingBackslashes() ?: return@forEach
+      val urlProperty = propertiesFile.properties.firstOrNull { SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY == it.key } ?: return@forEach
+      val currentUrl = urlProperty.value?.removeEscapingBackslashes() ?: return@forEach
       val currentGradleVersion = GradleWrapper.getGradleVersion(currentUrl) ?: return@forEach
       val parsedCurrentGradleVersion = runCatching { GradleVersion.version(currentGradleVersion) }.getOrNull() ?: return@forEach
-      body(parsedCurrentGradleVersion, currentUrl, property.psiElement)
+      val shaProperty = propertiesFile.properties.firstOrNull { it.name == WrapperExecutor.DISTRIBUTION_SHA_256_SUM }
+      body(parsedCurrentGradleVersion, currentUrl, urlProperty.psiElement, shaProperty?.psiElement)
     }
   }
 
@@ -76,11 +78,17 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     // check the project's wrapper(s) for references to no-longer-supported Gradle versions
     project.basePath?.let {
       val projectRootFolders = listOf(File(FileUtils.toSystemDependentPath(it))) + BuildFileProcessor.getCompositeBuildFolderPaths(project)
-      projectRootFolders.forEachGradleVersion { parsedCurrentGradleVersion, currentUrl, psiElement ->
+      projectRootFolders.forEachGradleVersion { parsedCurrentGradleVersion, currentUrl, urlPsiElement, shaPsiElementOrNull ->
         if (compatibleGradleVersion.version > parsedCurrentGradleVersion) {
           val updatedUrl = GradleWrapper.getUpdatedDistributionUrl(currentUrl, compatibleGradleVersion.version, true)
-          val wrappedPsiElement = WrappedPsiElement(psiElement, this, GRADLE_URL_USAGE_TYPE)
-          usages.add(GradleVersionUsageInfo(wrappedPsiElement, compatibleGradleVersion.version, updatedUrl))
+          val wrappedUrlPsiElement = WrappedPsiElement(urlPsiElement, this, GRADLE_URL_USAGE_TYPE)
+          usages.add(GradleVersionUsageInfo(wrappedUrlPsiElement, compatibleGradleVersion.version, updatedUrl))
+          if (shaPsiElementOrNull != null) {
+            val wrappedShaPsiElement = WrappedPsiElement(shaPsiElementOrNull, this, GRADLE_SHA_256_USAGE_TYPE)
+            val isBinaryOnlyDistribution = currentUrl.endsWith("-bin.zip")
+            val updatedSha256 = GradleWrapper.getDistributionSha256(compatibleGradleVersion.version, isBinaryOnlyDistribution)
+            usages.add(GradleSha256UsageInfo(wrappedShaPsiElement, updatedSha256))
+          }
         }
       }
     }
@@ -116,6 +124,9 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
   companion object {
     val GRADLE_URL_USAGE_TYPE =
       UsageType(AgpUpgradeBundle.messagePointer("gradleVersionRefactoringProcessor.gradleUrlUsageType"))
+
+    val GRADLE_SHA_256_USAGE_TYPE =
+      UsageType(AgpUpgradeBundle.messagePointer("gradleVersionRefactoringProcessor.gradleShaUsageType"))
   }
 
   // Handle an apparent annoyance in the Psi PropertiesFile implementation which apparently gives us escaping backslashes
@@ -148,4 +159,22 @@ class GradleVersionUsageInfo(
   }
 
   fun String.escapeColons() = this.replace(":", "\\:")
+}
+
+class GradleSha256UsageInfo(
+  element: WrappedPsiElement,
+  private val sha256: String?
+) : GradleBuildModelUsageInfo(element) {
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("gradleVersionRefactoringProcessor.tooltipText")
+
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    ((element as? WrappedPsiElement)?.realElement as? Property)?.let { property ->
+      if (sha256 != null) {
+        property.setValue(sha256, PropertyKeyValueFormat.FILE)
+      } else {
+        property.delete()
+      }
+      otherAffectedFiles.add(property.containingFile)
+    }
+  }
 }
