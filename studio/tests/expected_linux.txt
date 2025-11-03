@@ -2760,6 +2760,7 @@ android-studio/plugins/cidr-clangd/lib/xtext-xbase.jar
 android-studio/plugins/cidr-debugger/lib/LICENSE.txt
 android-studio/plugins/cidr-debugger/lib/antlr4-runtime.jar
 android-studio/plugins/cidr-debugger/lib/cidr-debugger.jar
+android-studio/plugins/completionMlRanking/lib/completionMlRanking.jar
 android-studio/plugins/compose-ide-plugin/lib/compose-ide-plugin.jar
 android-studio/plugins/compose-ide-plugin/lib/modules/intellij.compose.ide.plugin.gradleTooling.rt.jar
 android-studio/plugins/configurationScript/lib/configurationScript.jar
@@ -3615,6 +3616,8 @@ android-studio/plugins/textmate/lib/textmate.jar
 android-studio/plugins/toml/lib/modules/intellij.toml.backend.jar
 android-studio/plugins/toml/lib/modules/intellij.toml.frontend.jar
 android-studio/plugins/toml/lib/toml.jar
+android-studio/plugins/turboComplete/lib/modules/intellij.turboComplete.languages.kotlin.k1.jar
+android-studio/plugins/turboComplete/lib/turboComplete.jar
 android-studio/plugins/url-assistant/lib/url-assistant.jar
 android-studio/plugins/url-assistant/lib/url-assistant.so.jar
 android-studio/plugins/url-assistant/lib/urlassistant_proto.jar
