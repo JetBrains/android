@@ -34,6 +34,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.PopupMenuListenerAdapter
@@ -80,6 +81,7 @@ fun showViewContextMenu(
             result.add(ShowOnlyParentsAction(inspectorModel, client, viewNode = selectedView))
           }
           result.add(ShowAllAction(inspectorModel))
+          result.add(Separator.create())
         }
         if (
           selectedView is ComposeViewNode &&
