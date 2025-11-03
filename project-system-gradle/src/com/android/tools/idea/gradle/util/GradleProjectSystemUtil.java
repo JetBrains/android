@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.SdkConstants.DOT_DECLARATIVE;
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
-import static com.android.SdkConstants.DOT_DECLARATIVE;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
@@ -44,11 +44,10 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
-import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore;
@@ -76,10 +75,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.impl.ApplicationImpl;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -95,11 +91,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
@@ -107,8 +101,6 @@ import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.gradle.configuration.KotlinGradleSourceSetData;
-import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -326,9 +318,10 @@ public class GradleProjectSystemUtil {
         String gradleVersion = null;
         try {
           String url = gradleWrapper.getDistributionUrl();
-          gradleVersion = getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
-        }
-        catch (IOException e) {
+          if (url != null) {
+            gradleVersion = getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+          }
+        } catch (Exception e) {
           LOG.warn("Failed to read file " + gradleWrapper.getPropertiesFilePath().getPath());
         }
         if (gradleVersion != null &&
