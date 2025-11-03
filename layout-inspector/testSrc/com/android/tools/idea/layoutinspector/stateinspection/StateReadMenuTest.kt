@@ -128,7 +128,7 @@ class StateReadMenuTest {
     stateReadMenu.checkIsEnabled(event)
     val actions = stateReadMenu.children(event)
     assertThat(actions.map { it.templateText })
-      .containsExactly("Observe Node", "Observe Subtree", "Observe All", "Observe None")
+      .containsExactly("Observe Node", "Observe All", "Observe None")
     val observeNode = actions[0]
     observeNode.checkText(event, "Observe Node")
     ActionUtil.performAction(observeNode, event)
@@ -137,21 +137,12 @@ class StateReadMenuTest {
     ActionUtil.performAction(observeNode, event)
     assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(None)
 
-    val observeSubtree = actions[1]
-    observeSubtree.checkText(event, "Observe Subtree")
-    ActionUtil.performAction(observeSubtree, event)
-    assertThat(model.stateReadsModel.observedForStateReads.value)
-      .isEqualTo(Some(setOf(compose2, compose3)))
-    observeSubtree.checkText(event, "Stop Observing Subtree")
-    ActionUtil.performAction(observeSubtree, event)
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(None)
-
-    val observeAll = actions[2]
+    val observeAll = actions[1]
     observeAll.checkText(event, "Observe All")
     ActionUtil.performAction(observeAll, event)
     assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(All)
 
-    val observeNone = actions[3]
+    val observeNone = actions[2]
     observeNone.checkText(event, "Observe None")
     ActionUtil.performAction(observeNone, event)
     assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(None)
@@ -160,7 +151,6 @@ class StateReadMenuTest {
     client.stats.save(data)
     assertThat(data.stateReads.observingAllSelected).isEqualTo(1)
     assertThat(data.stateReads.observingNodeByIdSelected).isEqualTo(2)
-    assertThat(data.stateReads.observingSubTreeByIdSelected).isEqualTo(2)
   }
 }
 

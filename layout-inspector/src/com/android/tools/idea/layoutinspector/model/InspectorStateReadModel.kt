@@ -70,33 +70,6 @@ class InspectorStateReadModel {
       }
   }
 
-  // TODO(b/452847216): How do we handle nodes that appear under [node] after observeSubtree is
-  // called.
-  fun observeSubtree(node: ComposeViewNode) {
-    val current = _observedForStateReads.value
-    val subTree = subTree(node)
-    _observedForStateReads.value =
-      when (current) {
-        is All -> All // Switch from All to Some is not supported
-        is None -> Some(subTree)
-        is Some -> Some(current.nodes + subTree)
-      }
-  }
-
-  fun stopObservingSubtree(node: ComposeViewNode) {
-    val current = _observedForStateReads.value
-    val subTree = subTree(node)
-    _observedForStateReads.value =
-      when (current) {
-        is All -> All // Switch from All to Some is not supported
-        is None -> Some(subTree)
-        is Some ->
-          (current.nodes - subTree).let { remaining ->
-            if (remaining.isEmpty()) None else Some(remaining)
-          }
-      }
-  }
-
   fun observeAll() {
     _observedForStateReads.value = All
   }
@@ -116,15 +89,4 @@ class InspectorStateReadModel {
       is Some -> current.nodes.contains(node)
     }
   }
-
-  fun isSubTreeObserved(node: ComposeViewNode): Boolean {
-    return when (val current = _observedForStateReads.value) {
-      is All -> true
-      is None -> false
-      is Some -> current.nodes.containsAll(subTree(node))
-    }
-  }
-
-  private fun subTree(view: ViewNode): MutableSet<ComposeViewNode> =
-    ViewNode.readAccess { view.flatten().filterIsInstance<ComposeViewNode>() }.toMutableSet()
 }

@@ -90,9 +90,6 @@ interface SessionStatistics {
   /** Observing single node composable for state reads selected */
   fun observingSingleNodeSelected()
 
-  /** Observing subtree of composable for state reads selected */
-  fun observingSubTreeSelected()
-
   /** State read page is shown */
   fun stateReadsShown()
 
@@ -260,10 +257,6 @@ class SessionStatisticsImpl(
 
   override fun observingSingleNodeSelected() {
     stateReads.observingSingleNodeSelected()
-  }
-
-  override fun observingSubTreeSelected() {
-    stateReads.observingSubTreeSelected()
   }
 
   override fun stateReadsShown() {
