@@ -16,6 +16,7 @@
 package com.android.screenshottest.ui
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -75,12 +76,15 @@ class PreviewItemPanel(
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
         border = BorderFactory.createEmptyBorder(8, 0, 0, 0)
       }
-    val matchLabel =
-      JBLabel("New").apply {
-        foreground = JBColor.GREEN.darker()
-        font = font.deriveFont(Font.BOLD)
-        alignmentX = JComponent.LEFT_ALIGNMENT
-      }
+
+    val diffDouble = previewData.diffPercent?.toDoubleOrNull()
+    val matchPercentage = ScreenshotTestUtils.calculateMatchPercentage(diffDouble)
+
+    val matchLabel = JBLabel(matchPercentage ?: "0.00%").apply {
+      foreground = if (previewData.testResult == AndroidTestCaseResult.PASSED) JBColor.GREEN.darker() else JBColor.RED
+      font = font.deriveFont(Font.BOLD)
+      alignmentX = JComponent.LEFT_ALIGNMENT
+    }
     val previewNameLabel =
       JBLabel(previewData.previewName).apply { alignmentX = JComponent.LEFT_ALIGNMENT }
     detailsPanel.add(matchLabel)
