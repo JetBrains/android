@@ -17,13 +17,13 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsTreeNode
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.TestResultsPsiElementProvider
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestCaseName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestClassName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getRoundedTotalDuration
@@ -33,8 +33,8 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.Andro
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestStep
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.state.AndroidTestResultsUserPreferencesManager
@@ -62,9 +62,9 @@ import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.util.ColorProgressBar
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.Formats
 import com.intellij.pom.Navigatable
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ColoredTreeCellRenderer
@@ -83,7 +83,6 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
-import sun.swing.DefaultLookup
 import java.awt.Color
 import java.awt.Component
 import java.awt.KeyboardFocusManager
@@ -109,20 +108,25 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
 import kotlin.math.max
+import sun.swing.DefaultLookup
 
 /**
  * A table to display Android test results. Test results are grouped by device and test case. The column is a device name
  * and the row is a test case.
  */
-class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
-                                  javaPsiFacade: JavaPsiFacade,
-                                  module: Module?,
-                                  scopes: TestArtifactSearchScopes?,
-                                  logger: AndroidTestSuiteLogger,
-                                  androidTestResultsUserPreferencesManager: AndroidTestResultsUserPreferencesManager?) {
+class AndroidTestResultsTableView(
+  listener: AndroidTestResultsTableListener,
+  project: Project,
+  module: Module?,
+  logger: AndroidTestSuiteLogger,
+  androidTestResultsUserPreferencesManager: AndroidTestResultsUserPreferencesManager?,
+  testResultsPsiElementProvider: TestResultsPsiElementProvider?,
+) {
   private val myModel = AndroidTestResultsTableModel()
   private val myTableView =
-    AndroidTestResultsTableViewComponent(myModel, listener, javaPsiFacade, module, scopes, logger, androidTestResultsUserPreferencesManager)
+    AndroidTestResultsTableViewComponent(myModel, listener, project, module, logger,
+                                         androidTestResultsUserPreferencesManager,
+                                         testResultsPsiElementProvider)
   private val myTableViewContainer = JBScrollPane(myTableView)
   private val failedTestsNavigator = FailedTestsNavigator(myTableView)
 
@@ -432,13 +436,15 @@ private val SKIPPED_TEST_TEXT_COLOR = JBColor(Gray._130, Gray._200)
 /**
  * An internal swing view component implementing AndroidTestResults table view.
  */
-private class AndroidTestResultsTableViewComponent(private val model: AndroidTestResultsTableModel,
-                                                   private val listener: AndroidTestResultsTableListener,
-                                                   private val javaPsiFacade: JavaPsiFacade,
-                                                   private val module: Module?,
-                                                   private val scopes: TestArtifactSearchScopes?,
-                                                   private val logger: AndroidTestSuiteLogger,
-                                                   private val androidTestResultsUserPreferencesManager: AndroidTestResultsUserPreferencesManager?)
+private class AndroidTestResultsTableViewComponent(
+  private val model: AndroidTestResultsTableModel,
+  private val listener: AndroidTestResultsTableListener,
+  private val project: Project,
+  private val module: Module?,
+  private val logger: AndroidTestSuiteLogger,
+  private val androidTestResultsUserPreferencesManager: AndroidTestResultsUserPreferencesManager?,
+  private val testResultsPsiElementProvider: TestResultsPsiElementProvider?,
+)
   : TreeTableView(model), UiDataProvider {
 
   private var myLastReportedResults: AndroidTestResults? = null
@@ -586,7 +592,6 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
   }
 
   override fun uiDataSnapshot(sink: DataSink) {
-    val project = javaPsiFacade.project
     sink[CommonDataKeys.PROJECT] = project
     sink[RunConfiguration.DATA_KEY] = AndroidTestRunConfiguration(
       project, AndroidTestRunConfigurationType.getInstance().factory)
@@ -600,22 +605,11 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
   }
 
   private val myPsiElementCache: MutableMap<AndroidTestResults, Lazy<PsiElement?>> = mutableMapOf()
-  private val myParameterizedTestMethodNameRegex: Regex = "\\[.*\\]$".toRegex()
 
   fun getPsiElement(androidTestResults: AndroidTestResults): PsiElement? {
-    val androidTestSourceScope = scopes?.androidTestSourceScope ?: return null
     return myPsiElementCache.getOrPut(androidTestResults) {
-      lazy<PsiElement?> {
-        val testClasses = androidTestResults.getFullTestClassName().let {
-          javaPsiFacade.findClasses(it, androidTestSourceScope)
-        }
-        testClasses.firstNotNullOfOrNull {
-          it.findMethodsByName(androidTestResults.methodName, true).firstOrNull()
-        }
-        ?: testClasses.firstNotNullOfOrNull {
-          it.findMethodsByName(androidTestResults.methodName.replace(myParameterizedTestMethodNameRegex, ""), true).firstOrNull()
-        }
-        ?: testClasses.firstOrNull()
+      lazy {
+        testResultsPsiElementProvider?.getPsiElement(project, androidTestResults, module)
       }
     }.value
   }

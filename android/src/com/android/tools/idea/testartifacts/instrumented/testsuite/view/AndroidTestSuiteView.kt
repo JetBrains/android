@@ -17,7 +17,6 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ExportAndroidTestResultsAction
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestGroup
@@ -27,6 +26,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPla
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsTreeNode
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.TestResultsPsiElementProvider
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.isRootAggregationResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.AndroidTestResultsXmlFormatter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
@@ -86,7 +86,6 @@ import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.util.text.Formats
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.ui.AppUIUtil
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.OnePixelSplitter
@@ -238,11 +237,11 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
     myResultsTableView = AndroidTestResultsTableView(
       this,
-      JavaPsiFacade.getInstance(myProject),
+      myProject,
       module,
-      module?.let { TestArtifactSearchScopes.getInstance(module) },
       myLogger,
-      androidTestResultsUserPreferencesManager
+      androidTestResultsUserPreferencesManager,
+      runConfiguration?.let { TestResultsPsiElementProvider.getProvider(runConfiguration) },
     )
     myResultsTableView.setRowFilter { testResults: AndroidTestResults ->
       if (testResults.isRootAggregationResult()) {

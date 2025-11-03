@@ -86,6 +86,7 @@ jvm_library(
     "//libraries/guava",
     "//libraries/mockito",
     "@lib//:mockito-kotlin",
+    "@lib//:assert_j",
     "@lib//:truth",
     "//libraries/protobuf",
     "//android/android-test-framework:testFramework_test_lib",
@@ -132,6 +133,8 @@ jvm_library(
     "//xml/dom-openapi:dom",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//android/project-system-gradle-sync:projectSystem-gradle-sync",
+    "//platform/testFramework/junit5",
+    "//platform/testFramework/junit5:junit5_test_lib",
   ],
   runtime_deps = [":testartifacts-tests"],
   plugins = ["@lib//:compose-plugin"]
