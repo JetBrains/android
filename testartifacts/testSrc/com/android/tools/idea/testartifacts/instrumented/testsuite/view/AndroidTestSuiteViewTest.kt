@@ -31,9 +31,11 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
+import com.intellij.execution.Platform
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration
+import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -927,6 +929,34 @@ class AndroidTestSuiteViewTest {
     assertThat(tableView.getItem(6).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.PASSED)
     assertThat(tableView.getItem(7).getFullTestCaseName()).isEqualTo("step2")
     assertThat(tableView.getItem(7).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.FAILED)
+  }
+
+  @Test
+  fun printSuppressesEmptyLinesForNormalOutput() {
+    val view = AndroidTestSuiteView (disposableRule.disposable, projectRule.project, null)
+    val newline = Platform.current().lineSeparator
+
+    view.print(newline, ConsoleViewContentType.NORMAL_OUTPUT)
+    view.print(newline, ConsoleViewContentType.NORMAL_OUTPUT)
+    view.print("text", ConsoleViewContentType.NORMAL_OUTPUT)
+    view.print(newline, ConsoleViewContentType.NORMAL_OUTPUT)
+    view.myDetailsView.rawTestLogConsoleView.flushDeferredText()
+
+    assertThat(view.myDetailsView.rawTestLogConsoleView.editor!!.document.text).isEqualTo("\ntext\n")
+  }
+
+  @Test
+  fun printShouldNotSuppressEmptyLinesForErrorOutput() {
+    val view = AndroidTestSuiteView (disposableRule.disposable, projectRule.project, null)
+    val newline = Platform.current().lineSeparator
+
+    view.print(newline, ConsoleViewContentType.ERROR_OUTPUT)
+    view.print(newline, ConsoleViewContentType.ERROR_OUTPUT)
+    view.print("text", ConsoleViewContentType.ERROR_OUTPUT)
+    view.print(newline, ConsoleViewContentType.ERROR_OUTPUT)
+    view.myDetailsView.rawTestLogConsoleView.flushDeferredText()
+
+    assertThat(view.myDetailsView.rawTestLogConsoleView.editor!!.document.text).isEqualTo("\n\ntext\n")
   }
 
   private fun device(id: String, name: String, apiVersion: Int = 28): AndroidDevice {
