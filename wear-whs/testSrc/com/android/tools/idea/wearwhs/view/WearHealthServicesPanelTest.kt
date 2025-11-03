@@ -23,10 +23,10 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.adtui.swing.popup.ActionPopupMenuRule
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.concurrency.mapState
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.ui.FakeActionPopupMenu
 import com.android.tools.idea.wearwhs.EVENT_TRIGGER_GROUPS
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
@@ -36,16 +36,13 @@ import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ex.ActionManagerEx
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.replaceService
 import icons.StudioIcons
 import java.awt.Dimension
 import java.awt.event.KeyEvent
@@ -69,10 +66,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.mockStatic
-import org.mockito.Mockito.spy
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doAnswer
-import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class WearHealthServicesPanelTest {
@@ -82,16 +75,16 @@ class WearHealthServicesPanelTest {
     val TEST_STATE_STALENESS_THRESHOLD = 2.seconds
   }
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.inMemory()
+  private val actionMenuRule = ActionPopupMenuRule()
 
-  @get:Rule val edtRule = EdtRule()
+  @get:Rule val chain = RuleChain(projectRule, actionMenuRule, EdtRule())
 
   private val testDataPath: Path
     get() = TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/wear-whs/testData")
 
   private lateinit var deviceManager: FakeDeviceManager
   private lateinit var stateManager: WearHealthServicesStateManagerImpl
-  private lateinit var fakePopup: FakeActionPopupMenu
   private lateinit var uiScope: CoroutineScope
   private lateinit var workerScope: CoroutineScope
   private val informationLabelFlow = MutableStateFlow("")
@@ -111,16 +104,6 @@ class WearHealthServicesPanelTest {
       )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
         .also { it.serialNumber = "some serial number" }
-
-    val actionManager = spy(ActionManager.getInstance() as ActionManagerEx)
-    doAnswer { invocation ->
-      fakePopup = FakeActionPopupMenu(invocation.getArgument(1))
-      fakePopup
-    }
-      .whenever(actionManager)
-      .createActionPopupMenu(anyString(), any())
-    ApplicationManager.getApplication()
-      .replaceService(ActionManager::class.java, actionManager, projectRule.testRootDisposable)
   }
 
   @Test
@@ -268,7 +251,7 @@ class WearHealthServicesPanelTest {
 
     eventsButton.click()
 
-    val eventTriggerGroups = fakePopup.getActions().mapNotNull { it as? DropDownAction }
+    val eventTriggerGroups = actionMenuRule.lastPopupActions.mapNotNull { it as? DropDownAction }
     assertThat(eventTriggerGroups).hasSize(EVENT_TRIGGER_GROUPS.size)
 
     for (i in EVENT_TRIGGER_GROUPS.indices) {
@@ -479,7 +462,7 @@ class WearHealthServicesPanelTest {
     val fakeUi = FakeUi(whsPanel.component)
 
     fakeUi.clickOnTriggerEvent(
-      { fakePopup },
+      { actionMenuRule.lastPopupActions },
       eventName = message("wear.whs.event.trigger.golf.shot.partial"),
     )
 
