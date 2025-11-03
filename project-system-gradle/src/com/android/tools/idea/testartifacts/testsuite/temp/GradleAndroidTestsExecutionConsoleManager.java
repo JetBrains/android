@@ -20,6 +20,7 @@ import static com.android.tools.idea.flags.StudioFlags.ENABLE_ADDITIONAL_TESTING
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView;
 import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension;
+import com.android.tools.idea.testartifacts.testsuite.runconfiguration.TestSuiteRunConfiguration;
 import com.intellij.build.BuildDescriptor;
 import com.intellij.build.BuildProgressListener;
 import com.intellij.build.BuildViewManager;
@@ -44,6 +45,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTask;
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunConfiguration;
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunConfigurationViewManager;
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemExecuteTaskTask;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
@@ -92,10 +94,13 @@ public final class GradleAndroidTestsExecutionConsoleManager
     }
     if (!(configuration instanceof ExternalSystemRunConfiguration)) return null;
 
+    Module module =
+      configuration instanceof TestSuiteRunConfiguration ? ((TestSuiteRunConfiguration)configuration).getTestSuiteModule() : null;
+
     AndroidTestSuiteView consoleView = new AndroidTestSuiteView(
       project,
       project,
-      null,
+      module,
       null,
       configuration,
       Clock.systemDefaultZone(),
