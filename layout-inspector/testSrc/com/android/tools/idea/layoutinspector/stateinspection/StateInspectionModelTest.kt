@@ -143,13 +143,14 @@ class StateInspectionModelTest {
   fun testNodeSelection() = runTestWithDisposable { disposable ->
     var results = 0
     val model = StateInspectionModelImpl(inspectorModel, this, disposable) { results++ }
+    inspectorModel.setSelection(compose1, SelectionOrigin.INTERNAL)
     inspectorModel.stateReadsModel.observeNode(compose1)
     inspectorModel.stateReadsModel.requestStateReadFor(compose1)
     testScheduler.advanceUntilIdle()
 
     // Nothing to show yet:
     assertThat(model.show.value).isTrue()
-    assertThat(model.updates.value).isEqualTo(2)
+    assertThat(model.updates.value).isEqualTo(3)
     assertThat(model.recompositionText.value).isEqualTo("Waiting for interactions")
     assertThat(model.stateReadsText.value).isEqualTo("")
     assertThat(model.stackTraceText.value).isEqualTo("")
@@ -163,7 +164,7 @@ class StateInspectionModelTest {
     inspectorModel.stateReadsModel.stateReads.emit(read2Anchor1.convert(compose1, 2))
     testScheduler.advanceUntilIdle()
     assertThat(model.show.value).isTrue()
-    assertThat(model.updates.value).isEqualTo(3)
+    assertThat(model.updates.value).isEqualTo(4)
     assertThat(model.recompositionText.value).isEqualTo("Recomposition 2")
     assertThat(model.stateReadsText.value).isEqualTo("State Reads: 1")
     assertThat(model.stackTraceText.value)
@@ -187,24 +188,10 @@ class StateInspectionModelTest {
     // Selecting the same node should not cause updates:
     inspectorModel.setSelection(compose1, SelectionOrigin.INTERNAL)
     testScheduler.advanceUntilIdle()
-    assertThat(model.updates.value).isEqualTo(3)
+    assertThat(model.updates.value).isEqualTo(4)
     assertThat(results).isEqualTo(1)
 
-    // Selecting a non observed composable:
-    inspectorModel.setSelection(compose2, SelectionOrigin.INTERNAL)
-    testScheduler.advanceUntilIdle()
-
-    // There are no state reads for a non observed node:
-    assertThat(model.show.value).isTrue()
-    assertThat(model.updates.value).isEqualTo(4)
-    assertThat(model.recompositionText.value).isEqualTo("Node is not observed")
-    assertThat(model.stateReadsText.value).isEqualTo("")
-    assertThat(model.stackTraceText.value).isEqualTo("")
-    assertThat(model.composableInspected.value).isEqualTo(null)
-    assertThat(model.prevAction.isEnabled()).isFalse()
-    assertThat(model.nextAction.isEnabled()).isFalse()
-    assertThat(model.minimizeAction.isEnabled()).isTrue()
-
+    // Selecting a ViewNode:
     inspectorModel.setSelection(view1, SelectionOrigin.INTERNAL)
     testScheduler.advanceUntilIdle()
 
@@ -245,6 +232,36 @@ class StateInspectionModelTest {
     assertThat(model.nextAction.isEnabled()).isFalse()
     assertThat(model.minimizeAction.isEnabled()).isTrue()
     assertThat(results).isEqualTo(2)
+
+    // Selecting a non observed composable:
+    inspectorModel.setSelection(compose2, SelectionOrigin.INTERNAL)
+    testScheduler.advanceUntilIdle()
+
+    // There are no state reads for a non observed node:
+    assertThat(model.show.value).isTrue()
+    assertThat(model.updates.value).isEqualTo(7)
+    assertThat(model.recompositionText.value).isEqualTo("Node is not observed")
+    assertThat(model.stateReadsText.value).isEqualTo("")
+    assertThat(model.stackTraceText.value).isEqualTo("")
+    assertThat(model.composableInspected.value).isEqualTo(null)
+    assertThat(model.prevAction.isEnabled()).isFalse()
+    assertThat(model.nextAction.isEnabled()).isFalse()
+    assertThat(model.minimizeAction.isEnabled()).isTrue()
+
+    // Make it observable:
+    inspectorModel.stateReadsModel.observeNode(compose2)
+    testScheduler.advanceUntilIdle()
+
+    // We are now waiting for state reads for compose2:
+    assertThat(model.show.value).isTrue()
+    assertThat(model.updates.value).isEqualTo(8)
+    assertThat(model.recompositionText.value).isEqualTo("Waiting for interactions")
+    assertThat(model.stateReadsText.value).isEqualTo("")
+    assertThat(model.stackTraceText.value).isEqualTo("")
+    assertThat(model.composableInspected.value).isEqualTo(null)
+    assertThat(model.prevAction.isEnabled()).isFalse()
+    assertThat(model.nextAction.isEnabled()).isFalse()
+    assertThat(model.minimizeAction.isEnabled()).isTrue()
   }
 
   @Test
@@ -256,12 +273,12 @@ class StateInspectionModelTest {
     // Select compose1 for showing state reads:
     inspectorModel.stateReadsModel.requestStateReadFor(compose1)
     testScheduler.advanceUntilIdle()
-    assertThat(model.updates.value).isEqualTo(2)
+    assertThat(model.updates.value).isEqualTo(3)
 
     // A state read is received from the compose agent:
     inspectorModel.stateReadsModel.stateReads.emit(read2Anchor1.convert(compose1, 2))
     testScheduler.advanceUntilIdle()
-    assertThat(model.updates.value).isEqualTo(3)
+    assertThat(model.updates.value).isEqualTo(4)
     assertThat(model.recompositionText.value).isEqualTo("Recomposition 2")
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isFalse()
@@ -290,7 +307,7 @@ class StateInspectionModelTest {
       }
     inspectorModel.update(updatedRecompositionCounts, listOf(ROOT), 0)
     testScheduler.advanceUntilIdle()
-    assertThat(model.updates.value).isEqualTo(4)
+    assertThat(model.updates.value).isEqualTo(5)
     assertThat(model.recompositionText.value).isEqualTo("Recomposition 2")
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isTrue()
@@ -299,14 +316,14 @@ class StateInspectionModelTest {
     testScheduler.advanceUntilIdle()
     assertThat(inspectorModel.stateReadsModel.stateReadRequested.value)
       .isEqualTo(StateReadKey(compose1, 3))
-    assertThat(model.updates.value).isEqualTo(5)
+    assertThat(model.updates.value).isEqualTo(6)
     assertThat(model.recompositionText.value).isEqualTo("Waiting for interactions")
     assertThat(model.stateReadsText.value).isEqualTo("")
     assertThat(model.stackTraceText.value).isEqualTo("")
 
     inspectorModel.stateReadsModel.stateReads.emit(read3Anchor1.convert(compose1, 3))
     testScheduler.advanceUntilIdle()
-    assertThat(model.updates.value).isEqualTo(6)
+    assertThat(model.updates.value).isEqualTo(7)
     assertThat(model.recompositionText.value).isEqualTo("Recomposition 3")
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isFalse()
@@ -316,14 +333,14 @@ class StateInspectionModelTest {
     testScheduler.advanceUntilIdle()
     assertThat(inspectorModel.stateReadsModel.stateReadRequested.value)
       .isEqualTo(StateReadKey(compose1, 2))
-    assertThat(model.updates.value).isEqualTo(7)
+    assertThat(model.updates.value).isEqualTo(8)
     assertThat(model.recompositionText.value).isEqualTo("Waiting for interactions")
     assertThat(model.stateReadsText.value).isEqualTo("")
     assertThat(model.stackTraceText.value).isEqualTo("")
 
     inspectorModel.stateReadsModel.stateReads.emit(read2Anchor1.convert(compose1, 2))
     testScheduler.advanceUntilIdle()
-    assertThat(model.updates.value).isEqualTo(8)
+    assertThat(model.updates.value).isEqualTo(9)
     assertThat(model.recompositionText.value).isEqualTo("Recomposition 2")
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isTrue()
@@ -333,7 +350,7 @@ class StateInspectionModelTest {
     testScheduler.advanceUntilIdle()
     assertThat(inspectorModel.stateReadsModel.stateReadRequested.value)
       .isEqualTo(StateReadKey(compose1, 1))
-    assertThat(model.updates.value).isEqualTo(9)
+    assertThat(model.updates.value).isEqualTo(10)
     assertThat(model.recompositionText.value).isEqualTo("Waiting for interactions")
     assertThat(model.stateReadsText.value).isEqualTo("")
     assertThat(model.stackTraceText.value).isEqualTo("")
@@ -342,7 +359,7 @@ class StateInspectionModelTest {
       read1Anchor1.convert(compose1, 1, hasPrevious = false)
     )
     testScheduler.advanceUntilIdle()
-    assertThat(model.updates.value).isEqualTo(10)
+    assertThat(model.updates.value).isEqualTo(11)
     assertThat(model.recompositionText.value).isEqualTo("Recomposition 1")
     assertThat(model.prevAction.isEnabled()).isFalse()
     assertThat(model.nextAction.isEnabled()).isTrue()
