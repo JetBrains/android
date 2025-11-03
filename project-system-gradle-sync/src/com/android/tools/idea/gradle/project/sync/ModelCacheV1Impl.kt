@@ -295,7 +295,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       renderscriptOptimLevel = buildType.renderscriptOptimLevel,
       isMinifyEnabled = buildType.isMinifyEnabled,
       isZipAlignEnabled = buildType.isZipAlignEnabled,
-      isDefault = null
+      isDefault = null,
+      matchingFallbacks = emptyList() // TODO: what about this legacy MB ? does it cover this case of older AGPs ?
     )
   }
 

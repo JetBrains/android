@@ -522,7 +522,8 @@ fun modelCacheV2Impl(
       renderscriptOptimLevel = buildType.renderscriptOptimLevel,
       isMinifyEnabled = buildType.isMinifyEnabled,
       isZipAlignEnabled = buildType.isZipAlignEnabled,
-      isDefault = buildType.isDefault
+      isDefault = buildType.isDefault,
+      matchingFallbacks = if (modelVersions[ModelFeature.HAS_MATCHING_FALLBACKS]) buildType.matchingFallbacks else emptyList()
     )
   }
 

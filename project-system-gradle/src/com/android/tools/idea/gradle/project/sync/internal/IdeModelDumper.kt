@@ -832,6 +832,9 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("RenderscriptOptimLevel") { ideBuildTypeContainer.buildType.renderscriptOptimLevel.toString() }
         prop("IsMinifyEnabled") { ideBuildTypeContainer.buildType.isMinifyEnabled.toString() }
         prop("IsZipAlignEnabled") { ideBuildTypeContainer.buildType.isZipAlignEnabled.toString() }
+        ideBuildTypeContainer.buildType.matchingFallbacks.takeIf { !it.isNullOrEmpty() }?.let {
+          prop("MatchingFallbacks") { it.toString() }
+        }
       }
       head("SourceProvider")
       nest {
