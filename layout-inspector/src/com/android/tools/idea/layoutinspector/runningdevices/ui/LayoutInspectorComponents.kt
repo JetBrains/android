@@ -31,7 +31,6 @@ import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_ALPHA_VALUE
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.OverlayActionGroup
 import com.android.tools.idea.layoutinspector.ui.toolbar.createEmbeddedLayoutInspectorToolbar
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.CustomShortcutSet
@@ -52,7 +51,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 private const val WORKBENCH_NAME = "Layout Inspector"
-@VisibleForTesting const val STATE_READ_SPLITTER_NAME = "StateReadSplitter"
+const val STATE_READ_SPLITTER_NAME = "StateReadSplitter"
 
 /** Contains the state of Layout Inspector toolbar actions. */
 class ToolbarState {
