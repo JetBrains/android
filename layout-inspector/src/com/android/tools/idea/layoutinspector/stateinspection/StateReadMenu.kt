@@ -71,6 +71,11 @@ private class ObserveNodeAction(
       model.observeNode(topNode)
     }
     LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.observingSingleNodeSelected()
+
+    // Close the StateInspectionPanel if nothing is observed:
+    if (!model.isObservingAny()) {
+      model.stopShowingStateReads()
+    }
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -101,6 +106,9 @@ private class ObserveNoneAction(private val model: InspectorStateReadModel) :
   override fun actionPerformed(event: AnActionEvent) {
     model.observeNone()
     LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.observingNoneSelected()
+
+    // Close the StateInspectionPanel since nothing is observed:
+    model.stopShowingStateReads()
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
