@@ -730,7 +730,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
 
   override fun print(text: String, contentType: ConsoleViewContentType) {
-    if (detectUnwantedEmptyLine(text)) {
+    if (detectUnwantedEmptyLine(text, contentType)) {
       return
     }
     myDetailsView.rawTestLogConsoleView.print(text, contentType)
@@ -740,7 +740,10 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
    * Copied from [org.jetbrains.plugins.gradle.execution.test.runner.GradleTestsExecutionConsole].
    */
   private var lastMessageWasEmptyLine = false
-  private fun detectUnwantedEmptyLine(s: String): Boolean {
+  private fun detectUnwantedEmptyLine(s: String, contentType: ConsoleViewContentType): Boolean {
+    if (contentType != ConsoleViewContentType.NORMAL_OUTPUT) {
+      return false
+    }
     if (Platform.current().lineSeparator == s) {
       if (lastMessageWasEmptyLine) return true
       lastMessageWasEmptyLine = true
