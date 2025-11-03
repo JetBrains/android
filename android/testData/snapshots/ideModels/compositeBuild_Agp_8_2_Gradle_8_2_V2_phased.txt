@@ -1762,7 +1762,7 @@ MODULE                        : TestCompositeLib1.app
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -2915,7 +2915,7 @@ MODULE                        : TestCompositeLib1.lib
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -4072,7 +4072,7 @@ MODULE                        : TestCompositeLib3.app
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -6594,7 +6594,7 @@ MODULE                        : project.app
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -7714,7 +7714,7 @@ MODULE                        : project.lib
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
