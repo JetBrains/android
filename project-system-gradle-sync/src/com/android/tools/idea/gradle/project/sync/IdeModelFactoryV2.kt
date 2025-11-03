@@ -211,9 +211,13 @@ private data class NonAndroidAndroidArtifactRef(val artifactFile: File) : Artifa
  */
 private fun ProjectInfo.isAndroidComponent(): Boolean = buildType != null || productFlavors.isNotEmpty()
 
-private fun ProjectInfo.isKmpAndroidComponent(): Boolean =
-  attributes["org.jetbrains.kotlin.platform.type"] == "jvm" &&
-  attributes[TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE.name] == TargetJvmEnvironment.ANDROID
+private fun ProjectInfo.isKmpAndroidComponent(): Boolean {
+  // return false if pure android library or kmp library using com.android.library plugin
+  if (isAndroidComponent()) return false
+  val platformType = attributes["org.jetbrains.kotlin.platform.type"]
+  return (platformType == "jvm" || platformType == "androidJvm") &&
+         attributes[TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE.name] == TargetJvmEnvironment.ANDROID
+}
 
 private fun Library.getComponent() = libraryInfo?.let {
   when (it.group) {
