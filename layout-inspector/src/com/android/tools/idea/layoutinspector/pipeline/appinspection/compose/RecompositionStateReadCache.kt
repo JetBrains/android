@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes
 import com.android.tools.idea.layoutinspector.stateinspection.StateReadKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -73,8 +74,13 @@ class RecompositionStateReadCache(
     scope.launch {
       // The ComposeInspectorClient will send an updateSettings command to the agent during creation
       // with the initial observedForStateReads value of None. There is no need to send it again.
-      model.stateReadsModel.observedForStateReads.drop(1).collect {
+      model.stateReadsModel.observedForStateReads.drop(1).collect { observing ->
         client.updateSettings(keepRecompositionCounts = true)
+        when (observing) {
+          is ObservedNodes.None -> clear()
+          is ObservedNodes.Some -> cache.removeAllExcept(observing.nodes.map { it.anchorHash })
+          is ObservedNodes.All -> {}
+        }
       }
     }
     scope.launch {
@@ -271,6 +277,17 @@ class RecompositionStateReadCache(
     // Move this node in front of the LRU cache i.e. less likely to be discarded
     private fun RecompositionStateReadCache.StateReadNode.access(anchorHash: Int) {
       super.get(Key(anchorHash, this.recomposition))
+    }
+
+    fun removeAllExcept(anchorsToKeep: List<Int>) {
+      val anchors = top.keys.toMutableSet()
+      anchors.removeAll(anchorsToKeep.toSet())
+      anchors.forEach { anchorHash ->
+        val topNode = top[anchorHash] ?: return@forEach
+        dropAllPriorTo(anchorHash, topNode)
+        super.remove(Key(anchorHash, topNode.recomposition))
+        top.remove(anchorHash)
+      }
     }
 
     fun dropAllPriorTo(anchorHash: Int, node: RecompositionStateReadCache.StateReadNode) {
