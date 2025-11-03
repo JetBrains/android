@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.qsync.query;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.idea.blaze.qsync.query.QuerySummaryTestUtil.createProtoForPackages;
 
@@ -191,5 +192,29 @@ public class QuerySummaryTest {
 
     assertThat(qs.protoForSerializationOnly().getQueryStrategy())
         .isEqualTo(Query.Summary.QueryStrategy.QUERY_STRATEGY_PLAIN);
+  }
+
+  @Test
+  public void testSymlinks() throws IOException {
+    QuerySummary qs =
+        QuerySummaryImpl.create(
+            QuerySpec.QueryStrategy.PLAIN, TestData.SYMLINKS_QUERY.getQueryOutputPath().toFile());
+    Label testLabel = Label.of(TestData.ROOT_PACKAGE + "/symlinks:test");
+    assertThat(qs.getRulesMap().keySet()).containsExactly(testLabel);
+    QueryData.Rule rule = qs.getRulesMap().get(testLabel);
+    assertThat(rule.ruleClass()).isEqualTo("java_library");
+    assertThat(rule.sources()).hasSize(4);
+    assertThat(rule.sources().stream().map(this::targetName).collect(toImmutableList()))
+        .containsExactly("filelink", "dirlink", "dangling_link", "chained_link");
+    assertThat(rule.deps()).hasSize(1);
+    assertThat(rule.deps())
+        .containsExactly(Label.of(TestData.ROOT_PACKAGE + "/symlinks/testdir:testlib"));
+    assertThat(qs.getSourceFilesMap().keySet())
+        .containsExactly(
+            Label.of(TestData.ROOT_PACKAGE + "/symlinks:BUILD"),
+            Label.of(TestData.ROOT_PACKAGE + "/symlinks:filelink"),
+            Label.of(TestData.ROOT_PACKAGE + "/symlinks:dirlink"),
+            Label.of(TestData.ROOT_PACKAGE + "/symlinks:dangling_link"),
+            Label.of(TestData.ROOT_PACKAGE + "/symlinks:chained_link"));
   }
 }

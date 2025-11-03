@@ -188,6 +188,15 @@ genquery(
     scope = ["//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/empty:BUILD"],
 )
 
+genquery(
+    name = "symlinks_query",
+    expression = "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/symlinks:*",
+    opts = ["--output=streamed_proto"],
+    scope =
+        scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/symlinks:test") +
+        scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/symlinks/testdir:testlib"),
+)
+
 java_library(
     name = "testdata",
     srcs = ["TestData.java"],
@@ -210,6 +219,7 @@ java_library(
         ":java_library_proto_dep_query",
         ":java_library_transitive_dep_query",
         ":java_library_transitive_internal_dep_query",
+        ":symlinks_query",
         ":tags_query",
         ":workspacerootincluded_query",
     ],

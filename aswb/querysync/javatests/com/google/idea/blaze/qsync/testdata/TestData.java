@@ -49,7 +49,8 @@ public enum TestData {
   NESTED_PROTO_QUERY("nestedproto"),
   TAGS_QUERY("tags"),
   EMPTY_QUERY("empty"),
-  WORKSPACE_ROOT_INCLUDED_QUERY("workspacerootincluded");
+  WORKSPACE_ROOT_INCLUDED_QUERY("workspacerootincluded"),
+  SYMLINKS_QUERY("symlinks");
 
   public final ImmutableList<Path> srcPaths;
 
