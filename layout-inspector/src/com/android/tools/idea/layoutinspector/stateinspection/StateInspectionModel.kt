@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.InspectorModel.SelectionListener
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterGroupItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadData
@@ -132,17 +133,7 @@ internal class StateInspectionModelImpl(
     fun message() = LayoutInspectorBundle.message(messageId)
   }
 
-  private val listener = SelectionListener { _, view, _ ->
-    val requested = model.stateReadsModel.stateReadRequested.value
-    if (requested != null) {
-      when {
-        view !is ComposeViewNode -> showInactiveState(InactiveState.VIEW)
-        !model.stateReadsModel.isNodeObserved(view) -> showInactiveState(InactiveState.NOT_OBSERVED)
-        view.anchorHash == currentNode?.anchorHash -> {} // Keep current recomposition
-        else -> loadRecompositionStateReads(view)
-      }
-    }
-  }
+  private val listener = SelectionListener { _, view, _ -> updateStateOfSelection(view) }
 
   private val updateListener =
     InspectorModel.ModificationListener { _, _, _ -> _updates.value += 1 }
@@ -164,9 +155,26 @@ internal class StateInspectionModelImpl(
     scope.launch {
       model.stateReadsModel.stateReads.filterNotNull().collect { result -> showResult(result) }
     }
+    scope.launch {
+      model.stateReadsModel.observedForStateReads.collect {
+        updateStateOfSelection(model.selection)
+      }
+    }
     Disposer.register(parentDisposable) {
       model.removeSelectionListener(listener)
       model.removeModificationListener(updateListener)
+    }
+  }
+
+  private fun updateStateOfSelection(view: ViewNode?) {
+    val requested = model.stateReadsModel.stateReadRequested.value
+    if (requested != null) {
+      when {
+        view !is ComposeViewNode -> showInactiveState(InactiveState.VIEW)
+        !model.stateReadsModel.isNodeObserved(view) -> showInactiveState(InactiveState.NOT_OBSERVED)
+        view.anchorHash == currentNode?.anchorHash -> {} // Keep current recomposition
+        else -> loadRecompositionStateReads(view)
+      }
     }
   }
 
