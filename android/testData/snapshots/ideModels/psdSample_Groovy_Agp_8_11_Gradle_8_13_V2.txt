@@ -814,12 +814,12 @@ MODULE                        : project
                     targetCompatibility           : 1.6
                     - taskArtifacts               : <ROOT>/jav/build/libs/jav.jar [-]
                     configurationArtifacts
-                        - archives                    : <ROOT>/jav/build/libs/jav.jar [-]
                         - apiElements                 : <ROOT>/jav/build/libs/jav.jar [-]
-                        - runtimeElements             : <ROOT>/jav/build/libs/jav.jar [-]
-                        - testResultsElementsForTest  : <ROOT>/jav/build/test-results/test/binary [-]
+                        - archives                    : <ROOT>/jav/build/libs/jav.jar [-]
                         - mainSourceElements          : <ROOT>/jav/src/main/resources [-]
                         - mainSourceElements          : <ROOT>/jav/src/main/java [-]
+                        - runtimeElements             : <ROOT>/jav/build/libs/jav.jar [-]
+                        - testResultsElementsForTest  : <ROOT>/jav/build/test-results/test/binary [-]
                     sourceSets
                         main
                             sourceCompatibility           : 1.6

@@ -75,10 +75,10 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
                         - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
-                        - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                         - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
+                        - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -100,14 +100,14 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseVariantAllRuntimePublication   : <ROOT>/library/build/outputs/aar/library-release.aar [-]
-                        - releaseVariantReleaseRuntimePublication         : <ROOT>/library/build/outputs/aar/library-release.aar [-]
-                        - releaseVariantReleaseApiPublication   : <ROOT>/library/build/outputs/aar/library-release.aar [-]
-                        - debugVariantDebugRuntimePublication   : <ROOT>/library/build/outputs/aar/library-debug.aar [-]
-                        - debugVariantDebugApiPublication       : <ROOT>/library/build/outputs/aar/library-debug.aar [-]
-                        - releaseVariantAllApiPublication       : <ROOT>/library/build/outputs/aar/library-release.aar [-]
                         - debugVariantAllApiPublication         : <ROOT>/library/build/outputs/aar/library-debug.aar [-]
                         - debugVariantAllRuntimePublication     : <ROOT>/library/build/outputs/aar/library-debug.aar [-]
+                        - debugVariantDebugApiPublication       : <ROOT>/library/build/outputs/aar/library-debug.aar [-]
+                        - debugVariantDebugRuntimePublication   : <ROOT>/library/build/outputs/aar/library-debug.aar [-]
+                        - releaseVariantAllApiPublication       : <ROOT>/library/build/outputs/aar/library-release.aar [-]
+                        - releaseVariantAllRuntimePublication   : <ROOT>/library/build/outputs/aar/library-release.aar [-]
+                        - releaseVariantReleaseApiPublication   : <ROOT>/library/build/outputs/aar/library-release.aar [-]
+                        - releaseVariantReleaseRuntimePublication         : <ROOT>/library/build/outputs/aar/library-release.aar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)

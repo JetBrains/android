@@ -59,10 +59,10 @@ MODULE                        : MultiFlavor
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - firstAbcSecondAbcReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstAbcSecondAbcRelease/app-firstAbc-secondAbc-release.aab [-]
                         - firstAbcSecondAbcDebugAabPublication  : <ROOT>/app/build/outputs/bundle/firstAbcSecondAbcDebug/app-firstAbc-secondAbc-debug.aab [-]
-                        - firstAbcSecondAbcReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondAbcRelease/apks.zip [-]
                         - firstAbcSecondAbcDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondAbcDebug/apks.zip [-]
+                        - firstAbcSecondAbcReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstAbcSecondAbcRelease/app-firstAbc-secondAbc-release.aab [-]
+                        - firstAbcSecondAbcReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondAbcRelease/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)

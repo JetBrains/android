@@ -668,10 +668,10 @@ MODULE                        : application
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - releaseAabPublication       : <ROOT>/application/app/build/outputs/bundle/release/app-release.aab [-]
                         - debugAabPublication         : <ROOT>/application/app/build/outputs/bundle/debug/app-debug.aab [-]
-                        - releaseApkPublication       : <ROOT>/application/app/build/outputs/apk-zips/release/apks.zip [-]
                         - debugApkPublication         : <ROOT>/application/app/build/outputs/apk-zips/debug/apks.zip [-]
+                        - releaseAabPublication       : <ROOT>/application/app/build/outputs/bundle/release/app-release.aab [-]
+                        - releaseApkPublication       : <ROOT>/application/app/build/outputs/apk-zips/release/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)

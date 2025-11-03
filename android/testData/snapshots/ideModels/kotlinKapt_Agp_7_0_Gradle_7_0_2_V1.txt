@@ -771,13 +771,13 @@ MODULE                        : MainActivity
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - remoteDebugApkPublication   : <ROOT>/app/build/outputs/apk-zips/remoteDebug/apks.zip [-]
-                        - remoteReleaseAabPublication : <ROOT>/app/build/outputs/bundle/remoteRelease/app-remote-release.aab [-]
                         - localDebugAabPublication    : <ROOT>/app/build/outputs/bundle/localDebug/app-local-debug.aab [-]
                         - localDebugApkPublication    : <ROOT>/app/build/outputs/apk-zips/localDebug/apks.zip [-]
-                        - remoteDebugAabPublication   : <ROOT>/app/build/outputs/bundle/remoteDebug/app-remote-debug.aab [-]
-                        - localReleaseApkPublication  : <ROOT>/app/build/outputs/apk-zips/localRelease/apks.zip [-]
                         - localReleaseAabPublication  : <ROOT>/app/build/outputs/bundle/localRelease/app-local-release.aab [-]
+                        - localReleaseApkPublication  : <ROOT>/app/build/outputs/apk-zips/localRelease/apks.zip [-]
+                        - remoteDebugAabPublication   : <ROOT>/app/build/outputs/bundle/remoteDebug/app-remote-debug.aab [-]
+                        - remoteDebugApkPublication   : <ROOT>/app/build/outputs/apk-zips/remoteDebug/apks.zip [-]
+                        - remoteReleaseAabPublication : <ROOT>/app/build/outputs/bundle/remoteRelease/app-remote-release.aab [-]
                         - remoteReleaseApkPublication : <ROOT>/app/build/outputs/apk-zips/remoteRelease/apks.zip [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
@@ -805,9 +805,9 @@ MODULE                        : MainActivity
                     targetCompatibility           : 1.7
                     - taskArtifacts               : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                     configurationArtifacts
+                        - apiElements                 : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                         - apiElements-published       : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                         - archives                    : <ROOT>/javaLib/build/libs/javaLib.jar [-]
-                        - apiElements                 : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                         - runtimeElements             : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                         - runtimeElements-published   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                     sourceSets
@@ -902,26 +902,26 @@ MODULE                        : MainActivity
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - debugApiElements-published  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - releaseAllRuntimePublication          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugArchives               : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - releaseAllApiPublication    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         - archives                    : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - archives                    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - debugAllRuntimePublication  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - debugAllApiPublication      : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugAllRuntimePublication  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugApiElements-published  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - debugApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseSourcesElements-published      : <ROOT>/lib/build/libs/lib-sources.jar [-]
-                        - debugSourcesElements        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
-                        - releaseSourcesElements      : <ROOT>/lib/build/libs/lib-sources.jar [-]
-                        - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseArchives             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugSourcesElements-published        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
+                        - debugArchives               : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - debugRuntimeElements-published        : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugSourcesElements        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
+                        - debugSourcesElements-published        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
+                        - releaseAllApiPublication    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseAllRuntimePublication          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseArchives             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseSourcesElements      : <ROOT>/lib/build/libs/lib-sources.jar [-]
+                        - releaseSourcesElements-published      : <ROOT>/lib/build/libs/lib-sources.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
