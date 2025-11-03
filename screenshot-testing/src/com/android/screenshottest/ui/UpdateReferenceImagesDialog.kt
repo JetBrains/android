@@ -40,7 +40,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.AnimatedIcon
-import com.intellij.ui.CheckboxTree
+import com.intellij.ui.CheckboxTree 
+import com.intellij.ui.CheckboxTreeListener
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.JBColor
 import com.intellij.ui.OnePixelSplitter
@@ -85,6 +86,7 @@ class UpdateReferenceImagesDialog(
   private val centerPanelCardLayout = CardLayout()
   private val centerPanel = JPanel(centerPanelCardLayout)
   private var isFirstTestDiscovered = false
+  private var isTestSuiteFinished = false
   private val successfulLoads = AtomicInteger(0)
   private lateinit var tree: CheckboxTree
   private val placeholderLabel = JBLabel("Select a node from the left to see its previews.", JBLabel.CENTER)
@@ -174,7 +176,8 @@ class UpdateReferenceImagesDialog(
         close(CANCEL_EXIT_CODE)
         Messages.showErrorDialog(project, "Error while generating screenshots", "Failed to generate screenshots")
       } else {
-        okAction.isEnabled = true
+        isTestSuiteFinished = true
+        updateOkButtonState()
       }
     }
   }
@@ -233,6 +236,11 @@ class UpdateReferenceImagesDialog(
 
     return CheckboxTree(renderer, rootNode).apply {
       isRootVisible = true
+      addCheckboxTreeListener(object : CheckboxTreeListener {
+        override fun nodeStateChanged(node: CheckedTreeNode) {
+          updateOkButtonState()
+        }
+      })
       addTreeSelectionListener { updateRightPane(this) }
       // Select the root node by default when the dialog opens.
       // The tree will be expanded dynamically as nodes are added.
@@ -338,6 +346,11 @@ class UpdateReferenceImagesDialog(
         }
       }
       .toList()
+  }
+
+  private fun updateOkButtonState() {
+    val hasCheckedPreviews = collectCheckedPreviews().isNotEmpty()
+    okAction.isEnabled = hasCheckedPreviews && isTestSuiteFinished
   }
 
   override fun doOKAction() {
