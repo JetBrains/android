@@ -36,7 +36,8 @@ import org.jetbrains.annotations.TestOnly
 class FakeBackupManager : BackupManager {
   var deviceCheckResult: String? = null
   val showBackupDialogInvocations = mutableListOf<ShowBackupDialogInvocation>()
-  val restoreModalInvocations = mutableListOf<RestoreModalInvocation>()
+  val restoreModalInvocations = mutableListOf<RestoreInvocation>()
+  val restoreInvocations = mutableListOf<RestoreInvocation>()
   var backupMetaData: BackupMetadata? = null
 
   @UiThread
@@ -59,7 +60,7 @@ class FakeBackupManager : BackupManager {
     notify: Boolean,
   ): BackupResult {
     assert(EDT.isCurrentThreadEdt())
-    restoreModalInvocations.add(RestoreModalInvocation(serialNumber, backupFile, source, notify))
+    restoreModalInvocations.add(RestoreInvocation(serialNumber, backupFile, source, notify))
     return Success
   }
 
@@ -69,7 +70,10 @@ class FakeBackupManager : BackupManager {
     source: BackupManager.Source,
     listener: BackupProgressListener?,
     notify: Boolean,
-  ): BackupResult = Success
+  ): BackupResult {
+    restoreInvocations.add(RestoreInvocation(serialNumber, backupFile, source, notify))
+    return Success
+  }
 
   @UiThread
   override fun chooseRestoreFile(): Path? {
@@ -110,7 +114,7 @@ class FakeBackupManager : BackupManager {
     val notify: Boolean,
   )
 
-  data class RestoreModalInvocation(
+  data class RestoreInvocation(
     val serialNumber: String,
     val backupFile: Path,
     val source: BackupManager.Source,

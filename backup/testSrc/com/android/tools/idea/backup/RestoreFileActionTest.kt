@@ -21,7 +21,7 @@ import com.android.flags.junit.FlagRule
 import com.android.tools.idea.backup.BackupManager.Source.PROJECT_VIEW
 import com.android.tools.idea.backup.testing.FakeActionHelper
 import com.android.tools.idea.backup.testing.FakeBackupManager
-import com.android.tools.idea.backup.testing.FakeBackupManager.RestoreModalInvocation
+import com.android.tools.idea.backup.testing.FakeBackupManager.RestoreInvocation
 import com.android.tools.idea.backup.testing.FakeDialogFactory
 import com.android.tools.idea.backup.testing.FakeDialogFactory.DialogData
 import com.android.tools.idea.backup.testing.waitForRestoreInvocations
@@ -118,7 +118,7 @@ class RestoreFileActionTest {
 
     fakeBackupManager.waitForRestoreInvocations(1)
     assertThat(fakeBackupManager.restoreModalInvocations)
-      .containsExactly(RestoreModalInvocation("serial", backupFile.toNioPath(), PROJECT_VIEW, true))
+      .containsExactly(RestoreInvocation("serial", backupFile.toNioPath(), PROJECT_VIEW, true))
     assertThat(fakeDialogFactory.dialogs).isEmpty()
   }
 
