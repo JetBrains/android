@@ -20,10 +20,10 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.concurrency.awaitStatus
-import com.android.tools.idea.testing.ui.FakeActionPopupMenu
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.view.WearHealthServicesStateManagerTest.Companion.TEST_MAX_WAIT_TIME_SECONDS
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.TestActionEvent.createTestEvent
 import java.util.concurrent.TimeUnit
@@ -58,14 +58,14 @@ internal fun FakeUi.triggerEventsButton() =
   waitForDescendant<ActionButton> { it.icon == AllIcons.Actions.More }
 
 internal fun FakeUi.clickOnTriggerEvent(
-  fakePopupProvider: () -> FakeActionPopupMenu,
+  fakePopupProvider: () -> List<AnAction>,
   eventName: String? = null,
 ) {
   val triggerEventsButton = triggerEventsButton()
   triggerEventsButton.click()
 
   val triggerEventActions =
-    fakePopupProvider().getActions().flatMap {
+    fakePopupProvider().flatMap {
       (it as? DropDownAction)?.childActionsOrStubs?.toList() ?: emptyList()
     }
 

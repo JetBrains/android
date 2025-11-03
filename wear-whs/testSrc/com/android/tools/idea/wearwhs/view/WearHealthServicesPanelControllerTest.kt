@@ -17,24 +17,21 @@ package com.android.tools.idea.wearwhs.view
 
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.popup.ActionPopupMenuRule
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.ui.FakeActionPopupMenu
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsManager
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ex.ActionManagerEx
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.replaceService
 import com.intellij.ui.awt.RelativePoint
 import java.awt.Point
 import java.util.concurrent.TimeUnit
@@ -45,18 +42,15 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.anyString
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doAnswer
-import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class WearHealthServicesPanelControllerTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
-  @get:Rule val edtRule = EdtRule()
-  @get:Rule val fakePopupRule = JBPopupRule()
+  private val projectRule = AndroidProjectRule.inMemory()
+  private val fakePopupRule = JBPopupRule()
+  private val actionMenuRule = ActionPopupMenuRule()
+
+  @get:Rule val chain = RuleChain(projectRule, fakePopupRule, actionMenuRule, EdtRule())
 
   private val notifications
     get() =
@@ -64,7 +58,6 @@ class WearHealthServicesPanelControllerTest {
         .getNotificationsOfType(Notification::class.java, projectRule.project)
         .toList()
 
-  private lateinit var fakePopup: FakeActionPopupMenu
   private lateinit var uiScope: CoroutineScope
   private lateinit var workerScope: CoroutineScope
   private lateinit var deviceManager: FakeDeviceManager
@@ -98,16 +91,6 @@ class WearHealthServicesPanelControllerTest {
         uiScope = uiScope,
         workerScope = workerScope,
       )
-
-    val actionManager = spy(ActionManager.getInstance() as ActionManagerEx)
-    doAnswer { invocation ->
-        fakePopup = FakeActionPopupMenu(invocation.getArgument(1))
-        fakePopup
-      }
-      .whenever(actionManager)
-      .createActionPopupMenu(anyString(), any())
-    ApplicationManager.getApplication()
-      .replaceService(ActionManager::class.java, actionManager, projectRule.testRootDisposable)
   }
 
   @Test
@@ -278,7 +261,7 @@ class WearHealthServicesPanelControllerTest {
     runBlocking {
       showWhsPopup()
 
-      fakeUi.clickOnTriggerEvent({ fakePopup })
+      fakeUi.clickOnTriggerEvent({ actionMenuRule.lastPopupActions })
 
       // show popup again as clicking on the trigger event button closes it
       showWhsPopup()
@@ -297,7 +280,7 @@ class WearHealthServicesPanelControllerTest {
 
     showWhsPopup()
 
-    fakeUi.clickOnTriggerEvent({ fakePopup })
+    fakeUi.clickOnTriggerEvent({ actionMenuRule.lastPopupActions })
     // show popup again as clicking on the trigger event button closes it
     showWhsPopup()
 
@@ -313,7 +296,7 @@ class WearHealthServicesPanelControllerTest {
     runBlocking {
       showWhsPopup()
 
-      fakeUi.clickOnTriggerEvent({ fakePopup })
+      fakeUi.clickOnTriggerEvent({ actionMenuRule.lastPopupActions })
 
       waitForCondition(2, TimeUnit.SECONDS) {
         notifications.any {
@@ -330,7 +313,7 @@ class WearHealthServicesPanelControllerTest {
 
       deviceManager.failState = true
 
-      fakeUi.clickOnTriggerEvent({ fakePopup })
+      fakeUi.clickOnTriggerEvent({ actionMenuRule.lastPopupActions })
 
       waitForCondition(2, TimeUnit.SECONDS) {
         notifications.any {
