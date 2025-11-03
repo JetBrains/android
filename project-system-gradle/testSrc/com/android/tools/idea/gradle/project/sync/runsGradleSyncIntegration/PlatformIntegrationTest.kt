@@ -33,6 +33,7 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.tools.idea.testing.verifySyncSuccessful
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -206,6 +207,17 @@ class PlatformIntegrationTest {
       |ended: FAILURE
       """.trimMargin()
     )
+  }
+
+  @Test
+  fun testProjectIsRecognizedAsAndroidBeforeStartupActivityOnReopen() {
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    preparedProject.open { project -> verifySyncSuccessful(project, projectRule.testRootDisposable) }
+
+    // re-open now
+    preparedProject.open({ it.copy(onProjectCreated = {
+      assertThat(getProjectSystem().isAndroidProject()).isTrue()
+    })}, {})
   }
 
   class FailingService: AbstractModuleDataService<ModuleData>() {

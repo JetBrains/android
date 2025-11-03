@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeJavaArtifactCore
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
+import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.gradleModuleModel
 import com.android.tools.idea.gradle.run.OutputBuildAction
@@ -76,6 +77,7 @@ import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -105,7 +107,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
   override fun isAndroidProject(): Boolean {
     return CachedValuesManager.getManager(project).getCachedValue(project) {
       CachedValueProvider.Result.create(
-        project.modules.any { GradleAndroidModel.get(it) != null },
+        project.workspaceModel.currentSnapshot.entities(GradleAndroidModelEntity::class.java).any(),
         // potentially triggered by sync phases
         ProjectRootModificationTracker.getInstance(project),
         // triggered after full sync finishes
