@@ -71,15 +71,11 @@ public class GradleVersions {
           try {
             String wrapperVersion = gradleWrapper.getGradleVersion();
             if (wrapperVersion != null) {
-              try {
-                return GradleVersion.version(inferStableGradleVersion(wrapperVersion));
-              }
-              catch (IllegalArgumentException ignored) {
-              }
+              return GradleVersion.version(inferStableGradleVersion(wrapperVersion));
             }
           }
-          catch (IOException e) {
-            Logger.getInstance(getClass()).info("Failed to read Gradle version in wrapper", e);
+          catch (Exception e) {
+            Logger.getInstance(getClass()).info("Failed to read Gradle version in wrapper");
           }
         }
       }
