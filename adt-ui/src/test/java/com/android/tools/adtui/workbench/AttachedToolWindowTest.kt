@@ -19,14 +19,12 @@ import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.common.AdtUiUtils.getActionMask
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.popup.JPopupRule
 import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
@@ -46,40 +44,32 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.TestActionEvent.createTestEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.SearchTextField
 import com.intellij.util.ThrowableRunnable
-import java.awt.Component
 import java.awt.Container
 import java.awt.event.FocusEvent
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.util.Arrays
-import java.util.function.Supplier
 import javax.swing.JComponent
 import javax.swing.JLabel
-import javax.swing.JPopupMenu
 import javax.swing.KeyStroke
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.spy
-import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class AttachedToolWindowTest {
   private val projectRule = ProjectRule()
+  private val popupRule = JPopupRule()
   private val disposableRule = DisposableRule()
   private val edtRule = EdtRule()
 
@@ -89,6 +79,7 @@ class AttachedToolWindowTest {
       edtRule,
       projectRule,
       disposableRule,
+      popupRule,
       FlagRule(StudioFlags.DETACHABLE_ATTACHED_TOOLWINDOWS, true),
     )
 
@@ -104,38 +95,11 @@ class AttachedToolWindowTest {
   private val propertiesComponent: PropertiesComponent = PropertiesComponentMock()
   private lateinit var workBench: WorkBench<String>
   private lateinit var toolWindow: AttachedToolWindow<String>
-  private lateinit var fakePopUp: FakeActionPopupMenu
-  private lateinit var popUp: JPopupMenu
 
   @Before
   fun setUp() {
     ApplicationManager.getApplication()
       .replaceService(PropertiesComponent::class.java, propertiesComponent, disposable)
-
-    val mockActionManager = spy(ActionManager.getInstance())
-    ApplicationManager.getApplication()
-      .replaceService(ActionManager::class.java, mockActionManager, disposable)
-    popUp =
-      object : JPopupMenu() {
-        private var popUpVisible = false
-
-        override fun show(invoker: Component?, x: Int, y: Int) {
-          isVisible = true
-        }
-
-        override fun isVisible() = popUpVisible
-
-        override fun setVisible(b: Boolean) {
-          popUpVisible = b
-        }
-      }
-
-    doAnswer { invocation ->
-        fakePopUp = FakeActionPopupMenu(invocation.getArgument(1), popUp)
-        fakePopUp
-      }
-      .whenever(ActionManager.getInstance())
-      .createActionPopupMenu(ArgumentMatchers.anyString(), any())
 
     workBench = WorkBench(project, "DESIGNER", null, disposable, 0)
     toolWindow = AttachedToolWindow(definition, dragListener, workBench, model, false)
@@ -994,7 +958,7 @@ class AttachedToolWindowTest {
         )
       fireMouseClicked(button, event1)
 
-      return fakePopUp.getActions()
+      return popupRule.lastPopupActions
     }
 
   private val popupMenuFromGearButtonInHeader: List<AnAction>
@@ -1002,7 +966,7 @@ class AttachedToolWindowTest {
       val button = findRequiredButtonByName(toolWindow.component, "More Options")
       runInEdtAndWait { button.click() }
 
-      return fakePopUp.getActions()
+      return popupRule.lastPopupActions
     }
 
   private class SomeAction private constructor(title: String) : AnAction(title) {
@@ -1123,23 +1087,6 @@ class AttachedToolWindowTest {
         ActionUiKind.NONE,
         null,
       )
-    }
-  }
-
-  class FakeActionPopupMenu(private val group: ActionGroup, private val popup: JPopupMenu) :
-    ActionPopupMenu {
-    override fun getComponent(): JPopupMenu = popup
-
-    override fun getActionGroup(): ActionGroup = group
-
-    override fun getPlace(): String = ""
-
-    override fun setTargetComponent(component: JComponent) = Unit
-
-    override fun setDataContext(dataProvider: Supplier<out DataContext>) = Unit
-
-    fun getActions(): List<AnAction> {
-      return group.getChildren(createTestEvent()).toList()
     }
   }
 }
