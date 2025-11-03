@@ -241,6 +241,7 @@ BuildTypes
         RenderscriptOptimLevel        : 3
         IsMinifyEnabled               : false
         IsZipAlignEnabled             : true
+        MatchingFallbacks             : [release, debug]
     SourceProvider
         Name                          : specialRelease
         Manifest                      : <ROOT>/app/src/specialRelease/AndroidManifest.xml [-]

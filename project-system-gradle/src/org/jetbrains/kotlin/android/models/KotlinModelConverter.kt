@@ -417,7 +417,8 @@ class KotlinModelConverter {
         renderscriptOptimLevel = -1,
         isMinifyEnabled = mainAndroidCompilation.mainInfo.minificationEnabled,
         isZipAlignEnabled = false,
-        isDefault = null
+        isDefault = null,
+        matchingFallbacks = emptyList()
       ),
       sourceProvider = null,
       extraSourceProviders = listOf())

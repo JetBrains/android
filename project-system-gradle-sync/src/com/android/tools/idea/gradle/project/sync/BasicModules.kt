@@ -109,6 +109,7 @@ enum class ModelFeature(
   HAS_TEST_SUITES(ModelVersion(16, 0)),
   HAS_R8_MAPPING_FILE_PATH(ModelVersion(18, 0)),
   HAS_R8_PARTITION_FILE_PATH(ModelVersion(19, 0)),
+  HAS_MATCHING_FALLBACKS(ModelVersion(20, 0)),
   ;
 
   init {
