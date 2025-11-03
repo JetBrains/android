@@ -46,7 +46,6 @@ class StateReadsStatisticsTest {
     stateReads.save { data }
     assertThat(data.observingAllSelected).isEqualTo(1)
     assertThat(data.observingNodeByIdSelected).isEqualTo(1)
-    assertThat(data.observingSubTreeByIdSelected).isEqualTo(1)
     assertThat(data.pagesShownObservingAll).isEqualTo(1)
     assertThat(data.pagesShownObservingById).isEqualTo(2)
     assertThat(data.nextRecompositionChosen).isEqualTo(1)
@@ -61,7 +60,6 @@ class StateReadsStatisticsTest {
     stateReads.stateReadsShown()
     stateReads.observingSingleNodeSelected()
     stateReads.stateReadsShown()
-    stateReads.observingSubTreeSelected()
     stateReads.stateReadsShown()
     stateReads.nextRecompositionChosen()
     stateReads.prevRecompositionChosen()

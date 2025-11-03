@@ -53,7 +53,6 @@ fun createStateReadMenuGroup(selected: ComposeViewNode, inspectorModel: Inspecto
       val model = inspectorModel.stateReadsModel
       val result = mutableListOf<AnAction>()
       result.add(ObserveNodeAction(model, selected))
-      result.add(ObserveSubtreeAction(model, selected))
       result.add(ObserveAllAction(model))
       result.add(ObserveNoneAction(model))
       return result.toTypedArray()
@@ -80,28 +79,6 @@ private class ObserveNodeAction(
     event.presentation.isEnabled = !model.isObservingAll()
     event.presentation.text =
       if (model.isNodeObserved(topNode)) "Stop Observing Node" else "Observe Node"
-  }
-}
-
-private class ObserveSubtreeAction(
-  private val model: InspectorStateReadModel,
-  val topNode: ComposeViewNode,
-) : AnAction("Observe Subtree") {
-  override fun actionPerformed(event: AnActionEvent) {
-    if (model.isSubTreeObserved(topNode)) {
-      model.stopObservingSubtree(topNode)
-    } else {
-      model.observeSubtree(topNode)
-    }
-    LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.observingSubTreeSelected()
-  }
-
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-  override fun update(event: AnActionEvent) {
-    event.presentation.isEnabled = !model.isObservingAll()
-    event.presentation.text =
-      if (model.isSubTreeObserved(topNode)) "Stop Observing Subtree" else "Observe Subtree"
   }
 }
 

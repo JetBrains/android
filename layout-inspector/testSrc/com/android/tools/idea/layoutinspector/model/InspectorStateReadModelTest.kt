@@ -57,7 +57,9 @@ class InspectorStateReadModelTest {
     val compose3 = model[COMPOSE3] as ComposeViewNode
     val compose4 = model[COMPOSE4] as ComposeViewNode
     val compose5 = model[COMPOSE5] as ComposeViewNode
-    model.stateReadsModel.observeSubtree(compose2)
+    model.stateReadsModel.observeNode(compose2)
+    model.stateReadsModel.observeNode(compose3)
+    model.stateReadsModel.observeNode(compose4)
     model.stateReadsModel.observeNode(compose5)
     assertThat(model.stateReadsModel.observedForStateReads.value)
       .isEqualTo(Some(setOf(compose2, compose3, compose4, compose5)))
@@ -76,80 +78,19 @@ class InspectorStateReadModelTest {
   }
 
   @Test
-  fun testObserveSubTree() {
-    val model = createModel()
-    val compose2 = model[COMPOSE2] as ComposeViewNode
-    val compose3 = model[COMPOSE3] as ComposeViewNode
-    val compose4 = model[COMPOSE4] as ComposeViewNode
-    val compose7 = model[COMPOSE7] as ComposeViewNode
-    val compose8 = model[COMPOSE8] as ComposeViewNode
-    model.stateReadsModel.observeSubtree(model.node(COMPOSE2))
-    assertThat(model.stateReadsModel.observedForStateReads.value)
-      .isEqualTo(Some(setOf(compose2, compose3, compose4)))
-    assertThat(model.stateReadsModel.isSubTreeObserved(compose2)).isTrue()
-    assertThat(model.stateReadsModel.isSubTreeObserved(compose3)).isTrue()
-    assertThat(model.stateReadsModel.isSubTreeObserved(compose7)).isFalse()
-
-    model.stateReadsModel.observeSubtree(compose3)
-    assertThat(model.stateReadsModel.observedForStateReads.value)
-      .isEqualTo(Some(setOf(compose2, compose3, compose4)))
-    assertThat(model.stateReadsModel.isSubTreeObserved(compose2)).isTrue()
-    assertThat(model.stateReadsModel.isSubTreeObserved(compose3)).isTrue()
-    assertThat(model.stateReadsModel.isSubTreeObserved(compose7)).isFalse()
-
-    model.stateReadsModel.observeSubtree(compose7)
-    assertThat(model.stateReadsModel.observedForStateReads.value)
-      .isEqualTo(Some(setOf(compose2, compose3, compose4, compose7, compose8)))
-    assertThat(model.stateReadsModel.isSubTreeObserved(model.node(COMPOSE2))).isTrue()
-    assertThat(model.stateReadsModel.isSubTreeObserved(model.node(COMPOSE3))).isTrue()
-    assertThat(model.stateReadsModel.isSubTreeObserved(model.node(COMPOSE7))).isTrue()
-  }
-
-  @Test
-  fun testStopObserveSubTree() {
-    val model = createModel()
-    val compose2 = model[COMPOSE2] as ComposeViewNode
-    val compose3 = model[COMPOSE3] as ComposeViewNode
-    val compose4 = model[COMPOSE4] as ComposeViewNode
-    val compose7 = model[COMPOSE7] as ComposeViewNode
-    val compose8 = model[COMPOSE8] as ComposeViewNode
-    model.stateReadsModel.observeSubtree(compose2)
-    model.stateReadsModel.observeSubtree(compose7)
-    assertThat(model.stateReadsModel.observedForStateReads.value)
-      .isEqualTo(Some(setOf(compose2, compose3, compose4, compose7, compose8)))
-    assertThat(model.stateReadsModel.isSubTreeObserved(compose2)).isTrue()
-    assertThat(model.stateReadsModel.isSubTreeObserved(compose3)).isTrue()
-    assertThat(model.stateReadsModel.isSubTreeObserved(compose7)).isTrue()
-
-    model.stateReadsModel.stopObservingSubtree(compose3)
-    assertThat(model.stateReadsModel.observedForStateReads.value)
-      .isEqualTo(Some(setOf(compose2, compose7, compose8)))
-    assertThat(model.stateReadsModel.isSubTreeObserved(compose2)).isFalse()
-    assertThat(model.stateReadsModel.isSubTreeObserved(compose3)).isFalse()
-    assertThat(model.stateReadsModel.isSubTreeObserved(compose7)).isTrue()
-
-    model.stateReadsModel.stopObservingSubtree(compose7)
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(Some(setOf(compose2)))
-    assertThat(model.stateReadsModel.isNodeObserved(compose2)).isTrue()
-    assertThat(model.stateReadsModel.isSubTreeObserved(compose2)).isFalse()
-    assertThat(model.stateReadsModel.isSubTreeObserved(compose3)).isFalse()
-    assertThat(model.stateReadsModel.isSubTreeObserved(compose7)).isFalse()
-  }
-
-  @Test
   fun testObserveAll() {
     val model = createModel()
     model.stateReadsModel.observeAll()
     assertThat(model.stateReadsModel.isObservingAll()).isTrue()
     assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(All)
     assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE3))).isTrue()
-    assertThat(model.stateReadsModel.isSubTreeObserved(model.node(COMPOSE2))).isTrue()
   }
 
   @Test
   fun testObserveNone() {
     val model = createModel()
-    model.stateReadsModel.observeSubtree(model.node(COMPOSE2))
+    model.stateReadsModel.observeNode(model.node(COMPOSE2))
+    model.stateReadsModel.observeNode(model.node(COMPOSE3))
     model.stateReadsModel.observeNone()
     assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(None)
     assertThat(model.stateReadsModel.isObservingAll()).isFalse()
