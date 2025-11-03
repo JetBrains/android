@@ -19,13 +19,11 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.idea.blaze.qsync.query.QuerySummaryTestUtil.createProtoForPackages;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.testdata.TestData;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -40,7 +38,9 @@ public class QuerySummaryTest {
   @Test
   public void testCreate_javaLibrary_noDeps() throws IOException {
     QuerySummary qs =
-        QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getQueryOutputPath().toFile());
+        QuerySummaryImpl.create(
+            QuerySpec.QueryStrategy.PLAIN,
+            TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getQueryOutputPath().toFile());
     Label nodeps = Label.of(TestData.ROOT_PACKAGE + "/nodeps:nodeps");
     assertThat(qs.getRulesMap().keySet()).containsExactly(nodeps);
     QueryData.Rule rule = qs.getRulesMap().get(nodeps);
@@ -57,7 +57,9 @@ public class QuerySummaryTest {
 
   @Test
   public void testCreate_ccLibrary_noDeps() throws Exception {
-    QuerySummary qs = QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, TestData.CC_LIBRARY_QUERY.getQueryOutputPath().toFile());
+    QuerySummary qs =
+        QuerySummaryImpl.create(
+            QuerySpec.QueryStrategy.PLAIN, TestData.CC_LIBRARY_QUERY.getQueryOutputPath().toFile());
     Label cc = Label.of(TestData.ROOT_PACKAGE + "/cc:cc");
     assertThat(qs.getRulesMap().keySet()).containsExactly(cc);
     QueryData.Rule rule = Preconditions.checkNotNull(qs.getRulesMap().get(cc));
@@ -77,17 +79,20 @@ public class QuerySummaryTest {
 
   @Test
   public void testCreate_androidLibrary_manifest() throws IOException {
-    QuerySummary qs = QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, TestData.ANDROID_LIB_QUERY.getQueryOutputPath().toFile());
+    QuerySummary qs =
+        QuerySummaryImpl.create(
+            QuerySpec.QueryStrategy.PLAIN,
+            TestData.ANDROID_LIB_QUERY.getQueryOutputPath().toFile());
     Label android = Label.of(TestData.ROOT_PACKAGE + "/android:android");
     assertThat(qs.getRulesMap().keySet()).contains(android);
     QueryData.Rule rule = qs.getRulesMap().get(android);
-    assertThat(rule.manifest())
-        .isEqualTo(android.siblingWithName("AndroidManifest.xml"));
+    assertThat(rule.manifest()).isEqualTo(android.siblingWithName("AndroidManifest.xml"));
   }
 
   @Test
   public void testGetPackages_singleRule() {
-    QuerySummary summary = QuerySummaryImpl.create(createProtoForPackages("//my/build/package:rule"));
+    QuerySummary summary =
+        QuerySummaryImpl.create(createProtoForPackages("//my/build/package:rule"));
     assertThat(summary.getPackages().asPathSet()).containsExactly(Path.of("my/build/package"));
   }
 
@@ -115,50 +120,51 @@ public class QuerySummaryTest {
   @Test
   public void testBuildIncludes() throws IOException {
     QuerySummary qs =
-        QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, TestData.BUILDINCLUDES_QUERY.getQueryOutputPath().toFile());
+        QuerySummaryImpl.create(
+            QuerySpec.QueryStrategy.PLAIN,
+            TestData.BUILDINCLUDES_QUERY.getQueryOutputPath().toFile());
     Label buildLabel = Label.of(TestData.ROOT_PACKAGE + "/buildincludes:BUILD");
     assertThat(qs.getSourceFilesMap()).containsKey(buildLabel);
     QueryData.SourceFile buildSrc = qs.getSourceFilesMap().get(buildLabel);
     assertThat(buildSrc.subincliudes())
         .containsExactly(
-          Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes.bzl"),
-          Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes2.bzl")
-        );
+            Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes.bzl"),
+            Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes2.bzl"));
     assertThat(qs.getReverseSubincludeMap())
         .containsExactly(
-          TestData.ROOT.resolve("buildincludes/sub/includes/includes.bzl"),
-          ImmutableSet.of(TestData.ROOT.resolve("buildincludes/sub/includes/BUILD"),
-                           TestData.ROOT.resolve("buildincludes/sub/BUILD"),
-                           TestData.ROOT.resolve("buildincludes/BUILD")),
-          TestData.ROOT.resolve("buildincludes/sub/includes/includes2.bzl"),
-          ImmutableSet.of(
-            TestData.ROOT.resolve("buildincludes/BUILD")
-          )
-        );
+            TestData.ROOT.resolve("buildincludes/sub/includes/includes.bzl"),
+            ImmutableSet.of(
+                TestData.ROOT.resolve("buildincludes/sub/includes/BUILD"),
+                TestData.ROOT.resolve("buildincludes/sub/BUILD"),
+                TestData.ROOT.resolve("buildincludes/BUILD")),
+            TestData.ROOT.resolve("buildincludes/sub/includes/includes2.bzl"),
+            ImmutableSet.of(TestData.ROOT.resolve("buildincludes/BUILD")));
   }
 
   @Test
   public void testBuildAllIncludes() throws IOException {
     QuerySummary qs =
-        QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, TestData.BUILDINCLUDES_QUERY.getQueryOutputPath().toFile());
+        QuerySummaryImpl.create(
+            QuerySpec.QueryStrategy.PLAIN,
+            TestData.BUILDINCLUDES_QUERY.getQueryOutputPath().toFile());
     Label buildLabel = Label.of(TestData.ROOT_PACKAGE + "/buildincludes:BUILD");
     assertThat(qs.getSourceFilesMap()).containsKey(buildLabel);
     QueryData.SourceFile buildSrc = qs.getSourceFilesMap().get(buildLabel);
     assertThat(buildSrc.subincliudes())
         .containsExactly(
-          Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes.bzl"),
-          Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes2.bzl")
-        );
+            Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes.bzl"),
+            Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes2.bzl"));
     assertThat(qs.getAllBuildIncludedFiles())
         .containsExactly(
-          Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes.bzl"),
-          Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes2.bzl")
-        );
+            Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes.bzl"),
+            Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes2.bzl"));
   }
 
   @Test
   public void getPackages_withEmptyPackage_containsEmptyPackage() throws IOException {
-    QuerySummary qs = QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, TestData.EMPTY_QUERY.getQueryOutputPath().toFile());
+    QuerySummary qs =
+        QuerySummaryImpl.create(
+            QuerySpec.QueryStrategy.PLAIN, TestData.EMPTY_QUERY.getQueryOutputPath().toFile());
     assertThat(qs.getRulesMap()).isEmpty();
     assertThat(qs.getSourceFilesMap().keySet())
         .containsExactly(Label.of(TestData.ROOT_PACKAGE + "/empty:BUILD"));
@@ -169,16 +175,21 @@ public class QuerySummaryTest {
   @Test
   public void testCreate_proto() throws IOException {
     QuerySummary qs =
-      QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getQueryOutputPath().toFile());
+        QuerySummaryImpl.create(
+            QuerySpec.QueryStrategy.PLAIN,
+            TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getQueryOutputPath().toFile());
 
-    assertThat(qs.protoForSerializationOnly().getQueryStrategy()).isEqualTo(Query.Summary.QueryStrategy.QUERY_STRATEGY_PLAIN);
+    assertThat(qs.protoForSerializationOnly().getQueryStrategy())
+        .isEqualTo(Query.Summary.QueryStrategy.QUERY_STRATEGY_PLAIN);
   }
 
   @Test
   public void testDifferentAttributeTypes() throws IOException {
     QuerySummary qs =
-      QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, TestData.CUSTOMRULE_QUERY.getQueryOutputPath().toFile());
+        QuerySummaryImpl.create(
+            QuerySpec.QueryStrategy.PLAIN, TestData.CUSTOMRULE_QUERY.getQueryOutputPath().toFile());
 
-    assertThat(qs.protoForSerializationOnly().getQueryStrategy()).isEqualTo(Query.Summary.QueryStrategy.QUERY_STRATEGY_PLAIN);
+    assertThat(qs.protoForSerializationOnly().getQueryStrategy())
+        .isEqualTo(Query.Summary.QueryStrategy.QUERY_STRATEGY_PLAIN);
   }
 }
