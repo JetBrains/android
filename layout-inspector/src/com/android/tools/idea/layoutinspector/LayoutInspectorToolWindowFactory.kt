@@ -22,8 +22,11 @@ import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
+import com.android.tools.idea.layoutinspector.runningdevices.SPLITTER_KEY
+import com.android.tools.idea.layoutinspector.runningdevices.ui.STATE_READ_SPLITTER_NAME
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.stateinspection.createStateInspectionPanel
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
@@ -42,6 +45,8 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.EditorNotificationPanel
+import com.intellij.ui.OnePixelSplitter
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.JPanel
@@ -105,7 +110,15 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         )
       }
 
-    val rootPanel = LayoutInspectorRootPanel(workbench, layoutInspector)
+    val splitPanel =
+      OnePixelSplitter(true, SPLITTER_KEY, 0.65f).apply {
+        name = STATE_READ_SPLITTER_NAME
+        firstComponent = workbench
+        secondComponent = createStateInspectionPanel(layoutInspector, disposable)
+        setBlindZone { JBUI.insets(0, 1) }
+      }
+
+    val rootPanel = LayoutInspectorRootPanel(splitPanel, layoutInspector)
 
     val contentPanel =
       JPanel(BorderLayout()).apply {
