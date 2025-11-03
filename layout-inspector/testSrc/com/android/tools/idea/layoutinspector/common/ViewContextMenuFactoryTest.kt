@@ -143,7 +143,7 @@ class ViewContextMenuFactoryTest {
     model.hideSubtree(model[VIEW3]!!)
     showViewContextMenu(null, listOf(), model, source!!, 123, 456)
     val actions = createdGroup?.children(event)
-    assertThat(actions?.size).isEqualTo(2)
+    assertThat(actions?.size).isEqualTo(3)
     val createdAction = actions?.get(0)!!
     assertThat(createdAction.templateText).isEqualTo("Show All")
     ActionUtil.performAction(createdAction, event)
@@ -163,6 +163,7 @@ class ViewContextMenuFactoryTest {
         "Show Only Subtree",
         "Show Only Parents",
         "Show All",
+        null, // Separator
         "Go To Declaration",
       )
       .inOrder()
@@ -217,6 +218,7 @@ class ViewContextMenuFactoryTest {
         "Show Only Subtree",
         "Show Only Parents",
         "Show All",
+        null, // Separator
         "State Reads",
         "Go To Declaration",
       )
@@ -260,6 +262,7 @@ class ViewContextMenuFactoryTest {
         "Show Only Subtree",
         "Show Only Parents",
         "Show All",
+        null, // Separator
         "Go To Declaration",
       )
       .inOrder()
@@ -289,6 +292,7 @@ class ViewContextMenuFactoryTest {
         "Show Only Subtree",
         "Show Only Parents",
         "Show All",
+        null, // Separator
         "Go To Declaration",
       )
       .inOrder()
@@ -312,6 +316,7 @@ class ViewContextMenuFactoryTest {
         "Show Only Subtree",
         "Show Only Parents",
         "Show All",
+        null, // Separator
         "Go To Declaration",
       )
       .inOrder()
