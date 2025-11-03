@@ -2771,6 +2771,7 @@ Android Studio Preview.app/Contents/plugins/cidr-clangd/lib/xtext-xbase.jar
 Android Studio Preview.app/Contents/plugins/cidr-debugger/lib/LICENSE.txt
 Android Studio Preview.app/Contents/plugins/cidr-debugger/lib/antlr4-runtime.jar
 Android Studio Preview.app/Contents/plugins/cidr-debugger/lib/cidr-debugger.jar
+Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/completionMlRanking.jar
 Android Studio Preview.app/Contents/plugins/compose-ide-plugin/lib/compose-ide-plugin.jar
 Android Studio Preview.app/Contents/plugins/compose-ide-plugin/lib/modules/intellij.compose.ide.plugin.gradleTooling.rt.jar
 Android Studio Preview.app/Contents/plugins/configurationScript/lib/configurationScript.jar
@@ -3626,6 +3627,8 @@ Android Studio Preview.app/Contents/plugins/textmate/lib/textmate.jar
 Android Studio Preview.app/Contents/plugins/toml/lib/modules/intellij.toml.backend.jar
 Android Studio Preview.app/Contents/plugins/toml/lib/modules/intellij.toml.frontend.jar
 Android Studio Preview.app/Contents/plugins/toml/lib/toml.jar
+Android Studio Preview.app/Contents/plugins/turboComplete/lib/modules/intellij.turboComplete.languages.kotlin.k1.jar
+Android Studio Preview.app/Contents/plugins/turboComplete/lib/turboComplete.jar
 Android Studio Preview.app/Contents/plugins/url-assistant/lib/url-assistant.jar
 Android Studio Preview.app/Contents/plugins/url-assistant/lib/url-assistant.so.jar
 Android Studio Preview.app/Contents/plugins/url-assistant/lib/urlassistant_proto.jar
