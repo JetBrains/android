@@ -20,9 +20,16 @@ import com.android.tools.idea.gradle.model.IdeTestSuiteSource
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY
+import com.android.tools.idea.projectsystem.gradle.getHolderModule
+import com.android.tools.idea.projectsystem.gradle.getTestSuiteModules
+import com.android.tools.idea.projectsystem.gradle.isTestSuiteModule
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
@@ -133,4 +140,53 @@ object TestSuiteUtils {
     return null
   }
 
+  /**
+   * Returns the root directory [File] for the given [testSuiteModule].
+   */
+  fun getTestSuiteRoot(testSuiteModule: Module): File? {
+    if (!testSuiteModule.isTestSuiteModule()) return null
+
+    val appModule = testSuiteModule.getHolderModule()
+    val testSuiteName = testSuiteModule.name.substringAfterLast("${appModule.name}.")
+    val testSuite = GradleAndroidModel.get(testSuiteModule)?.testSuites?.find { it.name == testSuiteName } ?: return null
+
+    return getTestSuiteRoot(testSuite)
+  }
+
+  /**
+   * Returns the [Module] for the test suite associated with the given [runConfiguration].
+   */
+  fun getTestSuiteModule(runConfiguration: TestSuiteRunConfiguration): Module? {
+    val appModule = runReadAction {
+      val file = VfsUtil.findFileByIoFile(File(runConfiguration.settings.externalProjectPath), false) ?: return@runReadAction null
+      ProjectFileIndex.getInstance(runConfiguration.project).getModuleForFile(file, false)
+    } ?: return null
+
+    val testTaskName = runConfiguration.getTaskNames().firstOrNull() ?: return null
+    val androidModel = GradleAndroidModel.get(appModule) ?: return null
+    val testSuiteName = getTestSuiteNameWithTestTaskName(androidModel.variants, testTaskName)
+
+    return appModule.getTestSuiteModules().find { it.name == "${appModule.name}.$testSuiteName" }
+  }
+
+  /**
+   * Returns the test suite name associated with the given [testTaskName].
+   *
+   * This is an N^3 solution, so pretty in-efficient, but it is currently the only way to get the
+   * test suite name from a run configuration - since the user can manually change the task name.
+   * TODO(b/458035847): Replace with a more efficient lookup when the test suite name, variant and
+   * target are stored against the run configuration.
+   */
+  private fun getTestSuiteNameWithTestTaskName(variants: List<IdeVariantCore>, testTaskName: String): String? {
+    for (variant in variants) {
+      for (testSuiteArtifact in variant.testSuiteArtifacts) {
+        for (target in testSuiteArtifact.targets) {
+          if (target.testTaskName == testTaskName) {
+            return testSuiteArtifact.suiteName
+          }
+        }
+      }
+    }
+    return null
+  }
 }

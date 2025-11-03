@@ -32,6 +32,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.createMainSourceProviderForDefaultTestProjectStructure
 import com.android.tools.idea.util.toIoFile
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.guessProjectDir
@@ -163,14 +164,13 @@ class TestSuiteUtilsTest {
     )
 
   lateinit var testFile: PsiFile
+  lateinit var testSuiteModule: Module
   lateinit var gradleAndroidModel: GradleAndroidModel
 
   @Before
   fun setUp() {
     testFile = rule.fixture.addFileToProject("app/src/myTestSuite/assets/test.xml", "")
-
-    val testSuiteModule: Module =
-      ModuleUtilCore.findModuleForFile(testFile.virtualFile, rule.project)!!
+    testSuiteModule = ModuleUtilCore.findModuleForFile(testFile.virtualFile, rule.project)!!
     gradleAndroidModel = GradleAndroidModel.get(testSuiteModule)!!
   }
 
@@ -268,6 +268,22 @@ class TestSuiteUtilsTest {
   }
 
   @Test
+  fun getTestSuiteRoot_returnsTestSuiteRoot() {
+    val testSuiteRoot = TestSuiteUtils.getTestSuiteRoot(testSuiteModule)
+
+    assertNotNull(testSuiteRoot)
+    assertEquals(rule.fixture.project.guessProjectDir()!!.resolveFromRootOrRelative("app/src/myTestSuite")!!.toIoFile(), testSuiteRoot)
+  }
+
+  @Test
+  fun getTestSuiteRoot_returnsNull_whenModuleIsNotTestSuiteModule() {
+    val appModule = ModuleUtilCore.findModuleForFile(testFile.virtualFile.parent.parent.parent, rule.project)!!
+    val testSuiteRoot = TestSuiteUtils.getTestSuiteRoot(appModule)
+
+    assertNull(testSuiteRoot)
+  }
+
+  @Test
   fun getTestSuiteTargets_returnsSingleTarget() {
     val targets = TestSuiteUtils.getTestSuiteTargets(gradleAndroidModel.selectedVariant, "myTestSuite")
 
@@ -306,5 +322,51 @@ class TestSuiteUtilsTest {
     val targets = TestSuiteUtils.getTestSuiteTargets(gradleAndroidModel.selectedVariant, "myTestSuiteWithNonTargetedVariant")
 
     assertTrue(targets.isEmpty())
+  }
+
+  @Test
+  fun getTestSuiteModule_returnsModule() {
+    val runConfiguration = TestSuiteRunConfiguration(
+      rule.project,
+      TestSuiteRunConfigurationType().configurationFactories[0],
+      "Test Suite Config"
+    )
+    runConfiguration.addTaskName("myTestSuiteTaskName")
+    runConfiguration.settings.externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(testSuiteModule)!!
+
+    val module = TestSuiteUtils.getTestSuiteModule(runConfiguration)
+
+    assertNotNull(module)
+    assertEquals(testSuiteModule, module)
+  }
+
+  @Test
+  fun getTestSuiteModule_returnsNull_whenTaskNameNotFound() {
+    val runConfiguration = TestSuiteRunConfiguration(
+      rule.project,
+      TestSuiteRunConfigurationType().configurationFactories[0],
+      "Test Suite Config"
+    )
+    runConfiguration.addTaskName("unknownTaskName")
+    runConfiguration.settings.externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(testSuiteModule)!!
+
+    val module = TestSuiteUtils.getTestSuiteModule(runConfiguration)
+
+    assertNull(module)
+  }
+
+  @Test
+  fun getTestSuiteModule_returnsNull_whenExternalProjectPathNotFound() {
+    val runConfiguration = TestSuiteRunConfiguration(
+      rule.project,
+      TestSuiteRunConfigurationType().configurationFactories[0],
+      "Test Suite Config"
+    )
+    runConfiguration.addTaskName("myTestSuiteTaskName")
+    runConfiguration.settings.externalProjectPath = "/unknown/path"
+
+    val module = TestSuiteUtils.getTestSuiteModule(runConfiguration)
+
+    assertNull(module)
   }
 }

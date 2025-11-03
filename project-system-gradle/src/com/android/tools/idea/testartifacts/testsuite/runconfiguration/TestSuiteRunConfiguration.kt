@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.testsuite.runconfiguration
 import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jdom.Element
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
@@ -96,6 +97,8 @@ class TestSuiteRunConfiguration(project: Project, factory: ConfigurationFactory,
   fun showsResultsInAndroidTestMatrix(): Boolean {
     return getUserData<Boolean>(GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey) == true
   }
+
+  fun getTestSuiteModule(): Module? = TestSuiteUtils.getTestSuiteModule(this)
 
   override fun writeExternal(element: Element) {
     super.writeExternal(element)
