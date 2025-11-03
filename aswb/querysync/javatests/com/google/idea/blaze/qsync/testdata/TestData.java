@@ -27,7 +27,6 @@ import java.nio.file.Path;
 import java.util.Locale;
 
 public enum TestData {
-
   ANDROID_AIDL_SOURCE_QUERY("aidl"),
   ANDROID_LIB_QUERY("android"),
   DOES_DEPENDENCY_PATH_CONTAIN_RULES("deppathkinds"),
@@ -61,8 +60,7 @@ public enum TestData {
   private static final String WORKSPACE_NAME = "_main";
 
   public static final Path ROOT =
-      Path.of(
-          "tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata");
+      Path.of("tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata");
 
   public static final String ROOT_PACKAGE = "//" + ROOT;
 
