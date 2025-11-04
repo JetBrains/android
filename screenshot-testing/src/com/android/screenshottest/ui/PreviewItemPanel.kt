@@ -42,15 +42,15 @@ import javax.swing.JPanel
 private const val MAX_IMAGE_SIZE = 200
 
 /**
- * A UI panel that displays a single screenshot test preview, including its image and details.
+ * A UI panel that displays a single screenshot test preview image.
  */
 class PreviewItemPanel(
   val previewData: PreviewDetails,
   private val onImageLoaded: () -> Unit,
+  private val showDetails: Boolean = true,
   private val logger: Logger = Logger.getInstance(PreviewItemPanel::class.java)
 ) : JPanel() {
   private val imagePanel: ImagePanel
-  private val detailsPanel: JPanel
   var isLoadedSuccessfully: Boolean = false
     private set
   val loadedImagePaths = mutableMapOf<String, String>() // imagePath to simpleClassName
@@ -71,11 +71,12 @@ class PreviewItemPanel(
     c.gridy = 0
     add(imagePanel, c)
 
-    detailsPanel =
-      JPanel().apply {
-        layout = BoxLayout(this, BoxLayout.Y_AXIS)
-        border = BorderFactory.createEmptyBorder(8, 0, 0, 0)
-      }
+    if (showDetails) {
+      val detailsPanel =
+        JPanel().apply {
+          layout = BoxLayout(this, BoxLayout.Y_AXIS)
+          border = BorderFactory.createEmptyBorder(8, 0, 0, 0)
+        }
 
     val diffDouble = previewData.diffPercent?.toDoubleOrNull()
     val matchPercentage = ScreenshotTestUtils.calculateMatchPercentage(diffDouble)
@@ -91,8 +92,9 @@ class PreviewItemPanel(
     detailsPanel.add(previewNameLabel)
     // TODO: Add Composable link
 
-    c.gridy = 1
-    add(detailsPanel, c)
+      c.gridy = 1
+      add(detailsPanel, c)
+    }
   }
 
   fun showError(message: String) {
@@ -110,6 +112,8 @@ class PreviewItemPanel(
 
   fun showImageForView(viewType: UpdateReferenceImagesDialog.ScreenshotViewType) {
     when (viewType) {
+      UpdateReferenceImagesDialog.ScreenshotViewType.ALL -> {
+      }
       UpdateReferenceImagesDialog.ScreenshotViewType.NEW -> {
         previewData.srcImagePath?.let { loadImage(it, previewData.testId) } ?: showError("No New Image")
       }
@@ -118,7 +122,7 @@ class PreviewItemPanel(
         if (diffPath != null && File(diffPath).exists()) {
           loadImage(diffPath, previewData.testId)
         } else {
-          val placeholder = if (previewData.testResult == AndroidTestCaseResult.PASSED) "No Difference" else "No Diff Image"
+          val placeholder = if (previewData.testResult == com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult.PASSED) "No Difference" else "No Diff Image"
           showPlaceholder(placeholder)
         }
       }
