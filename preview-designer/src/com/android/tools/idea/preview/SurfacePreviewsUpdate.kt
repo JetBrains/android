@@ -31,7 +31,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.module.module
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
-import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
+import com.android.tools.idea.preview.navigation.AbstractPreviewNavigationHandler
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -125,7 +125,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   progressIndicator: ProgressIndicator,
   previewElementModelAdapter: PreviewElementModelAdapter<T, NlModel>,
   modelUpdater: NlModelUpdaterInterface,
-  navigationHandler: PreviewNavigationHandler,
+  navigationHandler: AbstractPreviewNavigationHandler,
   configureLayoutlibSceneManager:
     (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
   refreshEventBuilder: PreviewRefreshEventBuilder?,

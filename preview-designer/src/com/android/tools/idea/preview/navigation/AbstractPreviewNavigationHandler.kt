@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.PreviewNavigatableWrapper
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PsiNavigationSupport
@@ -31,39 +32,39 @@ import java.util.WeakHashMap
 import kotlinx.coroutines.withContext
 
 /**
+ * Data class for holding the default navigation location.
+ *
+ * @param fileName the name of the file to navigate to.
+ * @param navigatable the [Navigatable] to the default location.
+ */
+data class DefaultLocation(val fileName: String, val navigatable: Navigatable)
+
+/**
  * Navigation handler that defaults navigation from a [SceneView] to a particular predefined (via
  * [setDefaultLocation]) position in a file. However, it prioritizes the result of
- * [componentNavigationDelegate] if that find a better match (usually used for subcomponents
+ * [findNavigatableComponents] if that find a better match (usually used for subcomponents
  * navigation).
  */
-open class DefaultNavigationHandler(
-  private val componentNavigationDelegate:
-    (
-      sceneView: SceneView,
-      hitX: Int,
-      hitY: Int,
-      requestFocus: Boolean,
-      fileName: String,
-      shouldFindAllNavigatables: Boolean,
-    ) -> List<PreviewNavigatableWrapper>,
-  private val componentNavigationDelegateTwo:
-    (sceneView: SceneView, fileName: String, lineNumber: Int) -> List<java.awt.Rectangle>,
-) : PreviewNavigationHandler {
-  private val LOG = Logger.getInstance(DefaultNavigationHandler::class.java)
+abstract class AbstractPreviewNavigationHandler : NavigationHandler {
+  private val LOG = Logger.getInstance(AbstractPreviewNavigationHandler::class.java)
   // Default location to use when components are not found
-  @VisibleForTesting val defaultNavigationMap = WeakHashMap<NlModel, Pair<String, Navigatable>>()
+  @VisibleForTesting val defaultNavigationMap = WeakHashMap<NlModel, DefaultLocation>()
+
+  private fun getDefaultLocation(model: NlModel): DefaultLocation? = defaultNavigationMap[model]
 
   /** Add default navigation location for model. */
-  override fun setDefaultLocation(model: NlModel, psiFile: PsiFile, offset: Int) {
+  fun setDefaultLocation(model: NlModel, psiFile: PsiFile, offset: Int) {
     LOG.debug { "Default location set to ${psiFile.name}:$offset" }
     defaultNavigationMap[model] =
-      psiFile.name to
+      DefaultLocation(
+        psiFile.name,
         PsiNavigationSupport.getInstance()
-          .createNavigatable(model.project, psiFile.virtualFile!!, offset)
+          .createNavigatable(model.project, psiFile.virtualFile!!, offset),
+      )
   }
 
   override suspend fun handleNavigate(sceneView: SceneView, requestFocus: Boolean): Boolean {
-    return (defaultNavigationMap[sceneView.sceneManager.model]?.second?.apply {
+    return (getDefaultLocation(sceneView.sceneManager.model)?.navigatable?.apply {
         withContext(uiThread) { navigate(requestFocus) }
       } != null)
       .also { LOG.debug { "Navigated to default? $it" } }
@@ -76,17 +77,32 @@ open class DefaultNavigationHandler(
     requestFocus: Boolean,
     isOptionDown: Boolean,
   ): List<PreviewNavigatableWrapper> {
-    val fileName = defaultNavigationMap[sceneView.sceneManager.model]?.first ?: ""
-    return componentNavigationDelegate(sceneView, hitX, hitY, requestFocus, fileName, isOptionDown)
+    val fileName = getDefaultLocation(sceneView.sceneManager.model)?.fileName ?: ""
+    return findNavigatableComponents(sceneView, hitX, hitY, requestFocus, fileName, isOptionDown)
   }
 
   override suspend fun findBoundsOfComponents(
     sceneView: SceneView,
     lineNumber: Int,
   ): List<Rectangle> {
-    val fileName = defaultNavigationMap[sceneView.sceneManager.model]?.first ?: ""
-    return componentNavigationDelegateTwo(sceneView, fileName, lineNumber)
+    val fileName = getDefaultLocation(sceneView.sceneManager.model)?.fileName ?: ""
+    return findBoundsOfComponentsInFile(sceneView, fileName, lineNumber)
   }
+
+  protected abstract fun findNavigatableComponents(
+    sceneView: SceneView,
+    hitX: Int,
+    hitY: Int,
+    requestFocus: Boolean,
+    fileName: String,
+    shouldFindAllNavigatables: Boolean,
+  ): List<PreviewNavigatableWrapper>
+
+  protected abstract fun findBoundsOfComponentsInFile(
+    sceneView: SceneView,
+    fileName: String,
+    lineNumber: Int,
+  ): List<Rectangle>
 
   override suspend fun navigateTo(
     sceneView: SceneView,
