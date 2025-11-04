@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw
 
+import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -47,15 +49,28 @@ internal fun hasComposeMinAgpVersion(project: Project): Boolean {
   return hasMinAgpVersion(project, COMPOSE_MIN_AGP_VERSION)
 }
 
-// TODO(b/448352524): Update to 9.0.0 when released
-internal const val TEST_SUITE_MIN_AGP_VERSION = "9.0.0-alpha09"
-
 /**
  * Checks if the project's AGP version is new enough to support Test Suite. If we can't determine
  * it, assume that it is.
  */
 internal fun hasTestSuiteMinAgpVersion(project: Project): Boolean {
-  return hasMinAgpVersion(project, TEST_SUITE_MIN_AGP_VERSION)
+  return hasMinAgpVersion(project, getMinimumAgpVersionForTestSuiteSupport())
+}
+
+/**
+ * Test suites in AGP are supported from AGP 9.0.0-alpha13 onwards. However, if there is a more
+ * recent alpha version available, or a stable 9.0.0 version, we should use that instead.
+ */
+fun getMinimumAgpVersionForTestSuiteSupport(
+  latestKnownVersion: AgpVersion = AgpVersions.latestKnown
+): String {
+  return if (latestKnownVersion >= AgpVersion.parse("9.0.0")) {
+    "9.0.0"
+  } else if (latestKnownVersion >= AgpVersion.parse("9.0.0-alpha13")) {
+    latestKnownVersion.toString()
+  } else {
+    "9.0.0-alpha13"
+  }
 }
 
 /**

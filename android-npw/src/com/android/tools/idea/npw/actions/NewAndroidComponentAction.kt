@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.npw.COMPOSE_MIN_AGP_VERSION
-import com.android.tools.idea.npw.TEST_SUITE_MIN_AGP_VERSION
 import com.android.tools.idea.npw.hasComposeMinAgpVersion
 import com.android.tools.idea.npw.hasTestSuiteMinAgpVersion
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
