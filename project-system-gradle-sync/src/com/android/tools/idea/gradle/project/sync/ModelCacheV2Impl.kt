@@ -351,6 +351,7 @@ fun modelCacheV2Impl(
       testInstrumentationRunner = flavor.testInstrumentationRunner?.deduplicate(),
       testFunctionalTest = flavor.testFunctionalTest,
       testHandleProfiling = flavor.testHandleProfiling,
+      matchingFallbacks = if (modelVersions[ModelFeature.HAS_MATCHING_FALLBACKS]) flavor.matchingFallbacks else emptyList(),
       isDefault = flavor.isDefault
     )
   }
@@ -439,6 +440,7 @@ fun modelCacheV2Impl(
       testInstrumentationRunner = testInstrumentationRunner,
       testFunctionalTest = testFunctionalTest,
       testHandleProfiling = testHandleProfiling,
+      matchingFallbacks = emptyList(), // We never need to merge the fallbacks.
       isDefault = null
     )
   }

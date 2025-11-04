@@ -395,6 +395,7 @@ class KotlinModelConverter {
       testFunctionalTest = null,
       resourceConfigurations = emptyList(),
       vectorDrawables = null,
+      matchingFallbacks = emptyList(),
       isDefault = null
     )
   }

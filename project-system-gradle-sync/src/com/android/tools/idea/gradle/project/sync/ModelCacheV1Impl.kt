@@ -234,6 +234,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       testInstrumentationRunner = flavor.testInstrumentationRunner,
       testFunctionalTest = flavor.testFunctionalTest,
       testHandleProfiling = flavor.testHandleProfiling,
+      matchingFallbacks = emptyList(),
       isDefault = null
     )
   }

@@ -851,6 +851,7 @@ fun AndroidProjectStubBuilder.buildDefaultConfigStub() = IdeProductFlavorContain
     proguardFiles = emptyList(),
     resValues = emptyMap(),
     versionNameSuffix = null,
+    matchingFallbacks = emptyList(),
     isDefault = null
   ),
   sourceProvider = mainSourceProvider,

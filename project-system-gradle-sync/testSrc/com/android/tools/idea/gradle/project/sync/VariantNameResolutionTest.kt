@@ -69,6 +69,7 @@ class VariantNameResolutionTest {
                   testFunctionalTest = null,
                   resourceConfigurations = emptyList(),
                   vectorDrawables = null,
+                  matchingFallbacks = emptyList(),
                   isDefault = null
                 )
               )

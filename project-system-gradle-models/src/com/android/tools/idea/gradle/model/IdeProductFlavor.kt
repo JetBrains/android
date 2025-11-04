@@ -48,6 +48,12 @@ interface IdeProductFlavor : IdeBaseConfig {
   val maxSdkVersion: Int?
 
   /**
+   * Specifies a sorted list of product flavors that the plugin should try to use when a direct
+   * variant match with a local module dependency is not possible.
+   */
+  val matchingFallbacks: List<String>
+
+  /**
    * The test application id. This is only the value set on this product flavor.
    */
   val testApplicationId: String?
