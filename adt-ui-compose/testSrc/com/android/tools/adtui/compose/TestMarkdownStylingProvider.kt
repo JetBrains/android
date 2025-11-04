@@ -98,7 +98,6 @@ class TestMarkdownStylingProvider(private val isDark: Boolean) : MarkdownStyling
       emphasis = emphasis.merge(other.emphasis),
       strongEmphasis = strongEmphasis.merge(other.strongEmphasis),
       inlineHtml = inlineHtml.merge(other.inlineHtml),
-      renderInlineHtml = renderInlineHtml,
     )
   }
 

@@ -74,6 +74,7 @@ import com.android.tools.adtui.compose.IntUiPaletteDefaults
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.bridge.retrieveColorOrUnspecified
 import org.jetbrains.jewel.foundation.modifier.onHover
+import org.jetbrains.jewel.foundation.modifier.thenIf
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalContentColor
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
@@ -86,7 +87,6 @@ import org.jetbrains.jewel.ui.component.scrollbarContentSafePadding
 import org.jetbrains.jewel.ui.component.styling.ScrollbarStyle
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 import org.jetbrains.jewel.ui.theme.scrollbarStyle
-import org.jetbrains.jewel.ui.util.thenIf
 
 /** A column of a [Table]; determines its name, size, order, and content. */
 data class TableColumn<in T>(
