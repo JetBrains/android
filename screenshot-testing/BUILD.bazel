@@ -210,10 +210,12 @@ jvm_library(
         "@lib//:studio-platform-provided",
         "//platform/lang-core",
         "//platform/lang-core:lang-core_test_lib",
-        "//plugins/gradle",
-        "//plugins/gradle:gradle_test_lib",
         "//platform/external-system-api:externalSystem",
         "//platform/external-system-api:externalSystem_test_lib",
+        "//plugins/gradle",
+        "//plugins/gradle:gradle_test_lib",
+        "//android/testartifacts",
+        "//android/testartifacts:testartifacts_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.screenshot-test.tests` end
