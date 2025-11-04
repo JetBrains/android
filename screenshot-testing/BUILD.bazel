@@ -109,6 +109,7 @@ jvm_library(
     "//platform/lang-core",
     "//platform/external-system-api:externalSystem",
     "//plugins/gradle",
+    "//android/testartifacts",
   ],
   runtime_deps = [":screenshot-test-tests"],
   plugins = ["@lib//:compose-plugin"]

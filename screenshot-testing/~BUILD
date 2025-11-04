@@ -57,6 +57,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "long",
