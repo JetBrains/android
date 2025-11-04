@@ -83,9 +83,8 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
 
     Properties properties = getProperties(wrapperFilePath);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("https://services.gradle.org/distributions/gradle-1.9-bin.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.9-all.zip", distributionUrl);
   }
-
 
   public void testUpdateDistributionUrlLeavesGradleWrapperAloneBin() throws IOException {
     // Ensure that if we already have the right version, we don't replace a -bin.zip with a -all.zip
@@ -110,7 +109,7 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
   }
 
   public void testUpdateDistributionUrlReplacesGradleWrapper() throws IOException {
-    // Test that when we replace to a new version we use -all.zip
+    // Test that when we replace to a new version we preserve the existing -bin
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
     writeWrapperProperties(
@@ -119,16 +118,16 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
       "distributionPath=wrapper/dists\n" +
       "zipStoreBase=GRADLE_USER_HOME\n" +
       "zipStorePath=wrapper/dists\n" +
-      "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip",
+      "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.6-bin.zip",
       wrapperFilePath
     );
 
     GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath, myProject);
-    gradleWrapper.updateDistributionUrlAndDisplayFailure("1.6");
+    gradleWrapper.updateDistributionUrlAndDisplayFailure("1.9");
 
     Properties properties = getProperties(wrapperFilePath);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("https://services.gradle.org/distributions/gradle-1.6-bin.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.9-bin.zip", distributionUrl);
   }
 
   public void testAgpVersionToUse() {
@@ -254,7 +253,7 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
   }
 
   public void testUpdatedDistributionUrlFromStandardAll() throws IOException {
-    // Test when we have a local/unofficial Gradle version, we can upgrade to a new official version.
+    // Test when we have an -all Gradle version, we can upgrade to a new official version.
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
     writeWrapperProperties(
