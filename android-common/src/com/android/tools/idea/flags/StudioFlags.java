@@ -2215,6 +2215,11 @@ public final class StudioFlags {
                     "Enable the new Lucene-backed IntelliJ index for RAG",
                     "When enabled, the RAG index will use the new Lucene-backed IntelliJ index pipeline. Otherwise, the original crawler-based pipeline will be used.");
 
+  public static final Flag<Boolean> STUDIOBOT_USE_BM25_FOR_FIND_FILES =
+    new BooleanFlag(STUDIOBOT, "use.bm25.find.files",
+                    "Use BM25 for find_files tool",
+                    "When enabled, the agent will use find_files tool with BM25 backend together with the original find_files.");
+
   public static final Flag<Boolean> STUDIOBOT_ASK_GEMINI_INCLUDE_BUILD_FILES_IN_CONTEXT =
     new BooleanFlag(STUDIOBOT, "askgemini.include.build.files.in.context",
                     "Allow build files in 'Ask Gemini' context",
