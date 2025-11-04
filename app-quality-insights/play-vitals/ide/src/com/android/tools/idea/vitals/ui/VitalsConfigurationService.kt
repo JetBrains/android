@@ -29,7 +29,6 @@ import com.android.tools.idea.insights.ai.GeminiAiInsightsOnboardingProvider
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
-import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
@@ -38,6 +37,7 @@ import com.android.tools.idea.insights.client.channelBuilderForAddress
 import com.android.tools.idea.insights.events.ExplicitRefresh
 import com.android.tools.idea.insights.getHolderModules
 import com.android.tools.idea.insights.isAndroidApp
+import com.android.tools.idea.insights.model.connection.AppConnection
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.vitals.IntellijStackTraceGroupParser

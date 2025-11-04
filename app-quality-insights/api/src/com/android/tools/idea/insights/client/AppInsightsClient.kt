@@ -36,6 +36,7 @@ import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.model.connection.AppConnection
 
 data class IssueRequest(val connection: Connection, val filters: QueryFilters)
 

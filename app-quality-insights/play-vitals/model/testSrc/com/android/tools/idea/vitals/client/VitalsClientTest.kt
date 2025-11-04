@@ -46,7 +46,6 @@ import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.client.AiInsightClient
-import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.FakeAiInsightClient
@@ -55,6 +54,7 @@ import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
+import com.android.tools.idea.insights.model.connection.AppConnection
 import com.android.tools.idea.insights.zeroCounts
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.TEST_ISSUE1
