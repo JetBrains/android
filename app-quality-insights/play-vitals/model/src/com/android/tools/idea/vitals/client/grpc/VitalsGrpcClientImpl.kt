@@ -21,9 +21,9 @@ import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.StackTraceGroupParser
 import com.android.tools.idea.insights.Version
-import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.client.retryRpc
+import com.android.tools.idea.insights.model.connection.AppConnection
 import com.android.tools.idea.vitals.datamodel.Dimension
 import com.android.tools.idea.vitals.datamodel.DimensionType
 import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics

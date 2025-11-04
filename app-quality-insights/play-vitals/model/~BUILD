@@ -32,6 +32,7 @@ iml_module(
         "@intellij//:intellij.libraries.grpc",
         "@intellij//:intellij.libraries.grpc.netty.shaded",
         "//tools/adt/idea/.idea/libraries:protobuf-kotlin",
+        "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
     ],
 )
 

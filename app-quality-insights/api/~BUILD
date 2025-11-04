@@ -43,6 +43,7 @@ iml_module(
         "@intellij//:intellij.platform.vcs.dvcs.impl",
         "@intellij//:intellij.libraries.grpc",
         "@intellij//:intellij.libraries.grpc.netty.shaded",
+        "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
     ],
 )
 
