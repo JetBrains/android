@@ -29,8 +29,9 @@ final class BazelRenderingServices implements RenderingServices {
     return null;
   }
 
+  @NotNull
   @Override
-  public @NotNull Iterable<@NotNull Path> getExternalLibraries() {
+  public Iterable<Path> getExternalLibraries() {
     return emptyList();
   }
 }
