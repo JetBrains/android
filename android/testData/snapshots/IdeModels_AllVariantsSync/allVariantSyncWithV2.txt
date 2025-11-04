@@ -407,6 +407,7 @@ ProductFlavors
         resourceConfigurations        : hdpi
         resourceConfigurations        : xhdpi
         VectorDrawables
+        MatchingFallbacks             : [bar]
     SourceProvider
         Name                          : otherBar
         Manifest                      : <ROOT>/app/src/otherBar/AndroidManifest.xml [-]

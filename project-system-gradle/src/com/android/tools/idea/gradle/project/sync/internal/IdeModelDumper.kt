@@ -769,6 +769,9 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
           prop("UseSupportLibrary") { it.useSupportLibrary?.toString() }
         }
       }
+      ideProductFlavor.matchingFallbacks.takeIf { !it.isNullOrEmpty() }?.let {
+        prop("MatchingFallbacks") { it.toString() }
+      }
     }
 
     private fun dump(ideSourceProviderContainer: IdeSourceProviderContainer) {
