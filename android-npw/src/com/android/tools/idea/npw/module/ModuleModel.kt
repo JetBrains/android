@@ -126,10 +126,12 @@ abstract class ModuleModel(
         projectTemplateDataBuilder.apply {
           setProjectDefaults(project)
           language = this@ModuleModel.language.value
-          agpVersion =
-            this@ModuleModel.agpVersionSelector
-              .get()
-              .resolveVersion(AgpVersions::getAvailableVersions)
+          if (agpVersion == null) {
+            agpVersion =
+              this@ModuleModel.agpVersionSelector
+                .get()
+                .resolveVersion(AgpVersions::getAvailableVersions)
+          }
         }
         formFactor = this@ModuleModel.formFactor.get()
         category = this@ModuleModel.category.get()
