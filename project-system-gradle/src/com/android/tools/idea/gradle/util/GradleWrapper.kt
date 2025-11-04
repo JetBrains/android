@@ -102,8 +102,10 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
    * @throws IOException if something goes wrong when reading or saving the properties file.
    */
   fun updateDistributionUrl(gradleVersion: GradleVersion): Boolean {
-    val distributionUrl: String = getDistributionUrl(gradleVersion, true)
     val property = this.distributionUrl
+    // preserve -all if used, fallback to -bin otherwise.
+    val isUsingSourceAndDocsDistribution = property?.endsWith("-all.zip") == true
+    val distributionUrl: String = getDistributionUrl(gradleVersion, !isUsingSourceAndDocsDistribution)
     if (property != null && property == distributionUrl) {
       return false
     }
@@ -325,9 +327,13 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
       }
     }
 
+    /**
+     * @param useBinaryOnlyDistribution - when true this will use -bin distribution (only binaries),
+     * otherwise the -all distribution (binaries + source code & documentation).
+     */
     @JvmStatic
-    fun getDistributionUrl(gradleVersion: GradleVersion, binOnly: Boolean): String {
-      val suffix = if (binOnly) "bin" else "all"
+    fun getDistributionUrl(gradleVersion: GradleVersion, useBinaryOnlyDistribution: Boolean): String {
+      val suffix = if (useBinaryOnlyDistribution) "bin" else "all"
       val filename = String.format("gradle-%1\$s-%2\$s.zip", gradleVersion.getVersion(), suffix)
 
       val localDistributionUrl = StudioFlags.GRADLE_LOCAL_DISTRIBUTION_URL.get()
