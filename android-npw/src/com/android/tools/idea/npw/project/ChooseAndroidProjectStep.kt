@@ -73,6 +73,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.android.util.AndroidBundle.message
+import kotlin.collections.forEach
 
 const val TABLE_CELL_WIDTH = 260
 const val TABLE_CELL_HEIGHT = 32
