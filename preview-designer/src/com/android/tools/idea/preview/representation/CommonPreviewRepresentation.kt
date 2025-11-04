@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.asCollection
@@ -71,7 +72,7 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewView
-import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
+import com.android.tools.idea.preview.navigation.AbstractPreviewNavigationHandler
 import com.android.tools.idea.preview.pagination.PreviewPaginationManager
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
@@ -115,6 +116,7 @@ import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import java.awt.Rectangle
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.JComponent
 import kotlin.time.Duration.Companion.milliseconds
@@ -224,18 +226,32 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   @VisibleForTesting
   val navigationHandler =
-    DefaultNavigationHandler(
-        componentNavigationDelegate = { sceneView, _, _, _, _, _ ->
+    object : AbstractPreviewNavigationHandler() {
+        override fun findNavigatableComponents(
+          sceneView: SceneView,
+          hitX: Int,
+          hitY: Int,
+          requestFocus: Boolean,
+          fileName: String,
+          shouldFindAllNavigatables: Boolean,
+        ): List<PreviewNavigatableWrapper> {
           val model = sceneView.sceneManager.model
           val previewElement = model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE)
           val navigatableElement =
             previewElement?.previewElementDefinition?.element?.navigationElement
               as? NavigatablePsiElement
-          if (navigatableElement == null) emptyList<PreviewNavigatableWrapper>()
-          listOf(PreviewNavigatableWrapper("", navigatableElement!!))
-        },
-        componentNavigationDelegateTwo = { sceneView, _, _ -> listOf() },
-      )
+          if (navigatableElement == null) return emptyList<PreviewNavigatableWrapper>()
+          return listOf(PreviewNavigatableWrapper("", navigatableElement!!))
+        }
+
+        override fun findBoundsOfComponentsInFile(
+          sceneView: SceneView,
+          fileName: String,
+          lineNumber: Int,
+        ): List<Rectangle> {
+          return listOf()
+        }
+      }
       .apply { Disposer.register(this@CommonPreviewRepresentation, this) }
 
   @VisibleForTesting

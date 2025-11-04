@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.navigation
 
 import com.android.sdklib.AndroidCoordinate
-import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.ComposeViewInfo
@@ -26,7 +25,7 @@ import com.android.tools.idea.compose.preview.findAllHitsWithPoint
 import com.android.tools.idea.compose.preview.findHitWithDepth
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigation.LOG
 import com.android.tools.idea.compose.preview.parseViewInfo
-import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
+import com.android.tools.idea.preview.navigation.AbstractPreviewNavigationHandler
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.surface.PreviewNavigatableWrapper
 import com.google.common.annotations.VisibleForTesting
@@ -43,6 +42,14 @@ import org.jetbrains.kotlin.idea.base.psi.getLineStartOffset
 private object PreviewNavigation {
   val LOG = Logger.getInstance(PreviewNavigation::class.java)
 }
+
+/**
+ * Data class that holds the bounds of a composable component.
+ *
+ * @param viewInfo the [ComposeViewInfo] of the component.
+ * @param bounds the bounds of the component.
+ */
+private data class ComponentBounds(val viewInfo: ComposeViewInfo, val bounds: Rectangle)
 
 /**
  * Converts a [SourceLocation] into a [Navigatable]. If the [SourceLocation] does not point to a
@@ -120,90 +127,89 @@ fun findNavigatableComponentHit(
   return hits.firstNotNullOfOrNull { runReadAction { it.toNavigatable(module) } }
 }
 
-/** Returns the bounds of all components in a file. Indexed by lineNumber. */
-private fun findBoundsOfComponentsInFile(
+/** Returns the bounds of all components in a file. */
+private fun findAllBoundsOfComponentsInFile(
   sceneView: SceneView,
   fileName: String,
-  lineNumber: Int,
-): List<Rectangle> {
+): List<ComponentBounds> {
   val model = sceneView.sceneManager.model
   val root = model.treeReader.components.firstOrNull() ?: return listOf()
   val viewInfo = root.viewInfo ?: return listOf()
   val allViewInfos = parseViewInfo(rootViewInfo = viewInfo, logger = LOG)
   if (allViewInfos.isEmpty()) return listOf()
-  val rectangles =
-    allViewInfos
-      .findAllHitsInFile(fileName)
-      .filter { it.sourceLocation.lineNumber == lineNumber }
-      .map {
-        Rectangle(
-          it.bounds.left,
-          it.bounds.top,
-          it.bounds.right - it.bounds.left,
-          it.bounds.bottom - it.bounds.top,
-        )
-      }
-  return rectangles
-}
-
-/**
- * Returns a list of [Navigatable]s that references to the source code position of the Composable at
- * the given x, y pixel coordinates. If [shouldFindAllNavigatables] then returns a list of all
- * navigatables under coordinates else returns one navigatable; the deepest navigatable (with the
- * most depth in the tree) that has these coordinates. If [requestFocus] is false the function will
- * only return navigatables in the same file that was passed in.
- */
-private fun findNavigatableComponents(
-  sceneView: SceneView,
-  @SwingCoordinate hitX: Int,
-  @SwingCoordinate hitY: Int,
-  requestFocus: Boolean,
-  fileName: String,
-  shouldFindAllNavigatables: Boolean,
-): List<PreviewNavigatableWrapper> {
-  val x = Coordinates.getAndroidX(sceneView, hitX)
-  val y = Coordinates.getAndroidY(sceneView, hitY)
-  LOG.debug { "handleNavigate x=$x, y=$y" }
-
-  val model = sceneView.sceneManager.model
-
-  // Find component to navigate to
-  val root = model.treeReader.components.firstOrNull() ?: return listOf()
-  val viewInfo = root.viewInfo ?: return listOf()
-  val module = model.module
-  val allViewInfos = parseViewInfo(rootViewInfo = viewInfo, logger = LOG)
-
-  if (LOG.isDebugEnabled) {
-    dumpViewInfosToLog(module, allViewInfos)
+  return allViewInfos.findAllHitsInFile(fileName).map {
+    ComponentBounds(
+      it,
+      Rectangle(
+        it.bounds.left,
+        it.bounds.top,
+        it.bounds.right - it.bounds.left,
+        it.bounds.bottom - it.bounds.top,
+      ),
+    )
   }
-
-  if (shouldFindAllNavigatables) {
-    return allViewInfos
-      .findAllHitsWithPoint(x, y)
-      .filter { it.sourceLocation.toNavigatable(module) != null }
-      .sortedWith(compareBy({ it.sourceLocation.fileName }, { it.sourceLocation.lineNumber }))
-      .map {
-        var name = it.name
-        if (name.isNotBlank()) name += ", "
-
-        return@map PreviewNavigatableWrapper(
-          "${name} ${it.sourceLocation.fileName}: ${it.sourceLocation.lineNumber}",
-          it.sourceLocation.toNavigatable(module)!!,
-        )
-      }
-  }
-
-  val navigatable =
-    findNavigatableComponentHit(module, allViewInfos, x, y) {
-      // We apply a filter to the hits. If requestFocus is true (the user double clicked), we allow
-      // any hit even if it's not in the current
-      // file. If requestFocus is false, we only allow single clicks
-      requestFocus || it.fileName == fileName
-    }
-  if (navigatable != null) return listOf(PreviewNavigatableWrapper("", navigatable))
-  return emptyList()
 }
 
 /** Handles navigation for compose preview when NlDesignSurface preview is clicked. */
-class ComposePreviewNavigationHandler :
-  DefaultNavigationHandler(::findNavigatableComponents, ::findBoundsOfComponentsInFile)
+class ComposePreviewNavigationHandler : AbstractPreviewNavigationHandler() {
+  override fun findNavigatableComponents(
+    sceneView: SceneView,
+    hitX: Int,
+    hitY: Int,
+    requestFocus: Boolean,
+    fileName: String,
+    shouldFindAllNavigatables: Boolean,
+  ): List<PreviewNavigatableWrapper> {
+    val x = Coordinates.getAndroidX(sceneView, hitX)
+    val y = Coordinates.getAndroidY(sceneView, hitY)
+    LOG.debug { "handleNavigate x=$x, y=$y" }
+
+    val model = sceneView.sceneManager.model
+
+    // Find component to navigate to
+    val root = model.treeReader.components.firstOrNull() ?: return listOf()
+    val viewInfo = root.viewInfo ?: return listOf()
+    val module = model.module
+    val allViewInfos = parseViewInfo(rootViewInfo = viewInfo, logger = LOG)
+
+    if (LOG.isDebugEnabled) {
+      dumpViewInfosToLog(module, allViewInfos)
+    }
+
+    if (shouldFindAllNavigatables) {
+      return allViewInfos
+        .findAllHitsWithPoint(x, y)
+        .filter { it.sourceLocation.toNavigatable(module) != null }
+        .sortedWith(compareBy({ it.sourceLocation.fileName }, { it.sourceLocation.lineNumber }))
+        .map {
+          var name = it.name
+          if (name.isNotBlank()) name += ", "
+
+          return@map PreviewNavigatableWrapper(
+            "${name} ${it.sourceLocation.fileName}: ${it.sourceLocation.lineNumber}",
+            it.sourceLocation.toNavigatable(module)!!,
+          )
+        }
+    }
+
+    val navigatable =
+      findNavigatableComponentHit(module, allViewInfos, x, y) {
+        // We apply a filter to the hits. If requestFocus is true (the user double-clicked), we
+        // allow any hit even if it's not in the current file. If requestFocus is false, we
+        // only allow single clicks
+        requestFocus || it.fileName == fileName
+      }
+    if (navigatable != null) return listOf(PreviewNavigatableWrapper("", navigatable))
+    return emptyList()
+  }
+
+  override fun findBoundsOfComponentsInFile(
+    sceneView: SceneView,
+    fileName: String,
+    lineNumber: Int,
+  ): List<Rectangle> {
+    return findAllBoundsOfComponentsInFile(sceneView, fileName)
+      .filter { (viewInfo, _) -> viewInfo.sourceLocation.lineNumber == lineNumber }
+      .map { (_, rect) -> rect }
+  }
+}
