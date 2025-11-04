@@ -224,15 +224,16 @@ public class AndroidStudio extends Ide {
 
   public void waitForSync() throws IOException, InterruptedException {
     benchmarkLog("calling_waitForSync");
-    // "Infinite" timeout
-    waitForSync(1, TimeUnit.DAYS);
+    waitForSync(15, TimeUnit.MINUTES);
     benchmarkLog("after_waitForSync");
   }
 
   public void waitForSync(long timeout, TimeUnit unit) throws IOException, InterruptedException {
     TestLogger.log("Waiting up to %d %s for Gradle sync", timeout, unit);
     Matcher matcher = install.getIdeaLog()
-      .waitForMatchingLine(".*Gradle sync finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
+      .waitForMatchingLine(".*Gradle sync finished in (.*)",
+                           "(.*org\\.gradle\\.tooling\\.\\w+Exception.*)|" +
+                           "(.*Gradle sync failed in (.*))", timeout, unit);
     TestLogger.log("Sync took %s", matcher.group(1));
   }
 
