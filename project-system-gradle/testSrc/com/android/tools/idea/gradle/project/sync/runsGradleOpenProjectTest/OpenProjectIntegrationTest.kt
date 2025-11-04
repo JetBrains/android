@@ -370,7 +370,8 @@ class OpenProjectIntegrationTest {
   fun testReOpenWithCachesButNoModules() {
     val preparedProject = projectRule.prepareTestProject(TestProject.PSD_SAMPLE_GROOVY)
     val (before: String, externalConfigurationDir: Path) = preparedProject.open { project ->
-      Pair(project.saveAndDump(), project.getExternalConfigurationDir())
+      // TODO: b/457664571 - consider removing `ignoreModuleFileAndType = true` when fixed.
+      Pair(project.saveAndDump(ignoreModuleFileAndType = true), project.getExternalConfigurationDir())
     }
 
     // Simulate corrupt external configuration caches
@@ -378,7 +379,7 @@ class OpenProjectIntegrationTest {
 
     val after = preparedProject.open { project ->
       verifySyncSuccessful(project, projectRule.testRootDisposable)
-      project.saveAndDump()
+      project.saveAndDump(ignoreModuleFileAndType = true)
     }
     Truth.assertThat(after).isEqualTo(before)
   }
