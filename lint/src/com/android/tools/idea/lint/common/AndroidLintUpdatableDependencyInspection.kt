@@ -27,11 +27,7 @@ abstract class AndroidLintUpdatableDependencyInspection(displayName: String, iss
     endElement: PsiElement,
   ): Array<out IntentionAction>? {
     val actions = DependencyUpdateProvider.EP_NAME.extensionList.map { it.getUpdateProvider() }
-    if (actions.isNotEmpty()) {
-      return actions.toTypedArray()
-    }
-
-    return super.getIntentions(startElement, endElement)
+    return actions.union(super.getIntentions(startElement, endElement).toList()).toTypedArray()
   }
 }
 
