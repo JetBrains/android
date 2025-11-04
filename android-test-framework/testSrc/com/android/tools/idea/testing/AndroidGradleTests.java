@@ -566,7 +566,6 @@ public class AndroidGradleTests {
 
   @NotNull
   public static String getLocalRepositoriesForDeclarative(@NotNull List<File> localRepos) {
-    // Add metadataSources to work around http://b/144088459.
     return StringUtil.join(
       Iterables.concat(getLocalRepositoryDirectories(), localRepos),
       file -> "maven {\n" +
