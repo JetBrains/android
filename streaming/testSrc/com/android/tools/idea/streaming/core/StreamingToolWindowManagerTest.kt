@@ -27,7 +27,7 @@ import com.android.sdklib.deviceprovisioner.EditTemplateAction
 import com.android.sdklib.deviceprovisioner.Reservation
 import com.android.sdklib.deviceprovisioner.ReservationState
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
-import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
+import com.android.sdklib.deviceprovisioner.testing.LightweightDeviceProvisionerRule
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.actions.createTestEvent
@@ -39,6 +39,7 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.popup.FakeListPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
+import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
@@ -117,7 +118,8 @@ class StreamingToolWindowManagerTest {
   private val emulatorRule = FakeEmulatorRule()
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   private val popupRule = JBPopupRule()
-  private val provisionerRule = DeviceProvisionerRule()
+  private val provisionerRule = LightweightDeviceProvisionerRule(agentRule.fakeAdbRule) { AdbLibApplicationService.instance.session }
+
   @get:Rule
   val ruleChain = RuleChain(agentRule, provisionerRule, emulatorRule, ClipboardSynchronizationDisablementRule(), androidExecutorsRule,
                             EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule)

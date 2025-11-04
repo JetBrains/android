@@ -27,6 +27,7 @@ import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
+import com.android.sdklib.deviceprovisioner.DeviceState as ProvisionerDeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
@@ -38,6 +39,12 @@ import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import icons.StudioIcons
+import java.awt.Dimension
+import java.net.Socket
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.attribute.FileTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
@@ -49,13 +56,6 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.awt.Dimension
-import java.net.Socket
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.attribute.FileTime
-import com.android.sdklib.deviceprovisioner.DeviceState as ProvisionerDeviceState
 
 /**
  * Allows tests to use [FakeScreenSharingAgent] instead of the real one.
@@ -64,7 +64,7 @@ class FakeScreenSharingAgentRule : TestRule {
   private var deviceCounter = 0
   private val devices = mutableListOf<FakeDevice>()
   private val projectRule = ProjectRule()
-  private val fakeAdbRule: FakeAdbRule = createFakeAdbRule()
+  val fakeAdbRule: FakeAdbRule = createFakeAdbRule()
   private val testEnvironment = object : ExternalResource() {
 
     override fun before() {
