@@ -43,6 +43,7 @@ data class IdeProductFlavorImpl(
   override val testFunctionalTest: Boolean?,
   override val resourceConfigurations: List<String>,
   override val vectorDrawables: IdeVectorDrawablesOptionsImpl?,
+  override val matchingFallbacks: List<String>,
   override val isDefault: Boolean?
 ) : IdeProductFlavor, Serializable {
   constructor(
@@ -69,6 +70,7 @@ data class IdeProductFlavorImpl(
     resourceConfigurations: List<String>,
     vectorDrawables: IdeVectorDrawablesOptionsImpl?,
     isDefault: Boolean?,
+    matchingFallbacks: List<String>,
     unused: String = "" // to prevent clash
   ) : this(
     name,
@@ -93,6 +95,7 @@ data class IdeProductFlavorImpl(
     testFunctionalTest,
     resourceConfigurations,
     vectorDrawables,
+    matchingFallbacks,
     isDefault
   )
 }
