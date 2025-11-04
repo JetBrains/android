@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.qsync
 
-import com.google.common.util.concurrent.ListeningExecutorService
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.GraphToProjectConverter.Companion.initializeProjectStructureData
@@ -36,7 +35,6 @@ import java.nio.file.Path
  * state.
  */
 class ProjectBuilder(
-  private val executor: ListeningExecutorService,
   private val packageReader: PackageReader,
   private val parallelPackageReader: PackageReader.ParallelReader,
   private val workspaceRoot: Path,

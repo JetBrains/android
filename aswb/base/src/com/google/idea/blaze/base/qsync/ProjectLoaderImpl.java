@@ -295,7 +295,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
             snapshotHolder::getCurrent);
     ProjectBuilder snapshotBuilder =
         new ProjectBuilder(
-            executor, createPackageReader(), createParallelPackageReader(), workspaceRoot.path());
+            createPackageReader(), createParallelPackageReader(), workspaceRoot.path());
     QueryRunner queryRunner = createQueryRunner(buildSystem);
     ProjectQuerier projectQuerier =
         createProjectQuerier(
