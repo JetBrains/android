@@ -140,127 +140,20 @@ class StudioRendererPanel(
         alpha = renderModel.overlayAlpha.value,
       )
     }
-    renderModel.recomposingNodes.value.forEach { it.paint(g2d, fill = true) }
-    renderModel.visibleNodes.value.forEach { it.paint(g2d) }
-    renderModel.hoveredNode.value?.paint(g2d)
-    renderModel.selectedNode.value?.paint(g2d)
-  }
 
-  /**
-   * Paints this [DrawInstruction] on the [graphics] context. The order of the draw operations in
-   * this function matters.
-   */
-  private fun DrawInstruction.paint(graphics: Graphics2D, fill: Boolean = false) {
-    // Thickness of the bounds.
-    val boundsStrokeThickness = strokeThickness.scale()
-    // Thickness of the outline of the bounds.
-    val outlineStrokeThickness = boundsStrokeThickness / 2
+    val scale = renderModel.renderSettings.scaleFraction.toFloat()
+    // Apply inverse transformation to canvas bounds, to make them match the scale of the draw
+    // instruction bounds.
+    val canvasBounds = g2d.transform.createInverse().createTransformedShape(bounds).bounds2D
 
-    if (outlineColor != null) {
-      // Draw the outline.
-      graphics.color = JBColor(outlineColor, outlineColor)
-      graphics.stroke = BasicStroke(outlineStrokeThickness)
-      val outlineRect =
-        Rectangle2D.Float(
-          bounds.x - boundsStrokeThickness / 2 - outlineStrokeThickness / 2,
-          bounds.y - boundsStrokeThickness / 2 - outlineStrokeThickness / 2,
-          bounds.width + boundsStrokeThickness + outlineStrokeThickness,
-          bounds.height + boundsStrokeThickness + outlineStrokeThickness,
-        )
-      graphics.draw(outlineRect)
+    renderModel.recomposingNodes.value.forEach {
+      it.paint(g2d, canvasBounds = canvasBounds, scale = scale, fill = true)
     }
-
-    // Draw the label.
-    label?.paint(
-      graphics = graphics,
-      nodeBounds = bounds,
-      boundsStrokeThickness = boundsStrokeThickness,
-      outlineStrokeThickness = outlineStrokeThickness,
-      backgroundColor = JBColor(color, color),
-      textColor = JBColor(Color.WHITE, Color.WHITE),
-      outlineColor = outlineColor?.let { JBColor(it, it) },
-    )
-
-    graphics.color = JBColor(color, color)
-    graphics.stroke = BasicStroke(boundsStrokeThickness)
-
-    // Draw the bounds.
-    if (fill) {
-      graphics.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
-    } else {
-      graphics.drawRect(bounds.x, bounds.y, bounds.width, bounds.height)
+    renderModel.visibleNodes.value.forEach {
+      it.paint(g2d, canvasBounds = canvasBounds, scale = scale)
     }
-  }
-
-  /**
-   * Paints this [DrawInstruction.Label] on the [graphics] context. The order of the draw operations
-   * in this function matters.
-   */
-  private fun DrawInstruction.Label.paint(
-    graphics: Graphics2D,
-    nodeBounds: Rectangle,
-    boundsStrokeThickness: Float,
-    outlineStrokeThickness: Float,
-    backgroundColor: Color,
-    textColor: Color,
-    outlineColor: Color?,
-  ) {
-    graphics.font = graphics.font.deriveFont(this.size.scale())
-    val fontMetrics = graphics.fontMetrics
-
-    // Distance between the label text and the label borders.
-    val padding = 8f.scale()
-    val textWidth = fontMetrics.stringWidth(this.text)
-    val textHeight = fontMetrics.maxAscent
-
-    val labelWidth = textWidth + 2 * padding
-    val labelHeight = textHeight + 2 * padding
-
-    var labelLeft = nodeBounds.x - boundsStrokeThickness / 2
-    var labelBottom = nodeBounds.y - boundsStrokeThickness / 2
-    var labelTop = labelBottom - labelHeight
-    var labelRight = labelLeft + labelWidth
-
-    // Use inverse transformation of the bounds to make them match the scale of draw instruction
-    // bounds.
-    val canvasBounds = graphics.transform.createInverse().createTransformedShape(bounds).bounds2D
-
-    if (labelLeft < canvasBounds.x) {
-      // If it extends beyond the left edge of the canvas, move it right so it fits.
-      labelLeft = canvasBounds.x.toFloat()
-      labelRight = labelLeft + labelWidth
-    }
-    if (labelTop < canvasBounds.y) {
-      // If the text goes above the top edge of the canvas, move it down so it fits.
-      labelTop = canvasBounds.y.toFloat()
-      labelBottom = labelTop + labelHeight
-    }
-
-    // Use float rectangle to avoid rounding errors resulting from float to int conversion.
-    val labelBounds =
-      Rectangle2D.Float(labelLeft, labelTop, labelRight - labelLeft, labelBottom - labelTop)
-
-    if (outlineColor != null) {
-      // Draw the outline around the label.
-      graphics.color = outlineColor
-      graphics.stroke = BasicStroke(outlineStrokeThickness)
-      val outlineRect =
-        Rectangle2D.Float(
-          labelBounds.x - outlineStrokeThickness / 2,
-          labelBounds.y - outlineStrokeThickness / 2,
-          labelBounds.width + outlineStrokeThickness,
-          labelBounds.height + outlineStrokeThickness,
-        )
-      graphics.draw(outlineRect)
-    }
-
-    // Draw the label.
-    graphics.color = backgroundColor
-    graphics.fill(labelBounds)
-
-    // Draw the label's text.
-    graphics.color = textColor
-    graphics.drawString(this.text, labelLeft + padding, labelBottom - padding)
+    renderModel.hoveredNode.value?.paint(g2d, canvasBounds = canvasBounds, scale = scale)
+    renderModel.selectedNode.value?.paint(g2d, canvasBounds = canvasBounds, scale = scale)
   }
 
   private fun refresh() {
@@ -382,10 +275,6 @@ class StudioRendererPanel(
 
     return transformedPoint2D
   }
-
-  private fun Float.scale(): Float {
-    return JBUIScale.scale(this) / renderModel.renderSettings.scaleFraction.toFloat()
-  }
 }
 
 /**
@@ -417,6 +306,10 @@ private fun Rectangle.scale(physicalToLogicalScale: Double): Rectangle {
 
 private fun Point2D.scale(scale: Double) = Point2D.Double(x * scale, y * scale)
 
+private fun Float.scale(scale: Float): Float {
+  return JBUIScale.scale(this) / scale
+}
+
 private fun MouseEvent.coordinates() = Point2D.Double(x.toDouble(), y.toDouble())
 
 private fun Graphics2D.drawImage(image: Image, bounds: Rectangle, alpha: Float) {
@@ -425,4 +318,126 @@ private fun Graphics2D.drawImage(image: Image, bounds: Rectangle, alpha: Float) 
   drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height, null)
   // Restore the alpha
   composite = previousComposite
+}
+
+/**
+ * Paints this [DrawInstruction] on the [graphics] context. The order of the draw operations in this
+ * function matters.
+ */
+private fun DrawInstruction.paint(
+  graphics: Graphics2D,
+  canvasBounds: Rectangle2D,
+  scale: Float,
+  fill: Boolean = false,
+) {
+  // Thickness of the bounds.
+  val boundsStrokeThickness = strokeThickness.scale(scale)
+  // Thickness of the outline of the bounds.
+  val outlineStrokeThickness = boundsStrokeThickness / 2
+
+  if (outlineColor != null) {
+    // Draw the outline.
+    graphics.color = JBColor(outlineColor, outlineColor)
+    graphics.stroke = BasicStroke(outlineStrokeThickness)
+    val outlineRect =
+      Rectangle2D.Float(
+        bounds.x - boundsStrokeThickness / 2 - outlineStrokeThickness / 2,
+        bounds.y - boundsStrokeThickness / 2 - outlineStrokeThickness / 2,
+        bounds.width + boundsStrokeThickness + outlineStrokeThickness,
+        bounds.height + boundsStrokeThickness + outlineStrokeThickness,
+      )
+    graphics.draw(outlineRect)
+  }
+
+  // Draw the label.
+  label?.paint(
+    graphics = graphics,
+    nodeBounds = bounds,
+    boundsStrokeThickness = boundsStrokeThickness,
+    outlineStrokeThickness = outlineStrokeThickness,
+    backgroundColor = JBColor(color, color),
+    textColor = JBColor(Color.WHITE, Color.WHITE),
+    outlineColor = outlineColor?.let { JBColor(it, it) },
+    scale = scale,
+    canvasBounds = canvasBounds,
+  )
+
+  graphics.color = JBColor(color, color)
+  graphics.stroke = BasicStroke(boundsStrokeThickness)
+
+  // Draw the bounds.
+  if (fill) {
+    graphics.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
+  } else {
+    graphics.drawRect(bounds.x, bounds.y, bounds.width, bounds.height)
+  }
+}
+
+/**
+ * Paints this [DrawInstruction.Label] on the [graphics] context. The order of the draw operations
+ * in this function matters.
+ */
+private fun DrawInstruction.Label.paint(
+  graphics: Graphics2D,
+  nodeBounds: Rectangle,
+  boundsStrokeThickness: Float,
+  outlineStrokeThickness: Float,
+  backgroundColor: Color,
+  textColor: Color,
+  outlineColor: Color?,
+  scale: Float,
+  canvasBounds: Rectangle2D,
+) {
+  graphics.font = graphics.font.deriveFont(this.size.scale(scale))
+  val fontMetrics = graphics.fontMetrics
+
+  // Distance between the label text and the label borders.
+  val padding = 8f.scale(scale)
+  val textWidth = fontMetrics.stringWidth(this.text)
+  val textHeight = fontMetrics.maxAscent
+
+  val labelWidth = textWidth + 2 * padding
+  val labelHeight = textHeight + 2 * padding
+
+  var labelLeft = nodeBounds.x - boundsStrokeThickness / 2
+  var labelBottom = nodeBounds.y - boundsStrokeThickness / 2
+  var labelTop = labelBottom - labelHeight
+  var labelRight = labelLeft + labelWidth
+
+  if (labelLeft < canvasBounds.x) {
+    // If it extends beyond the left edge of the canvas, move it right so it fits.
+    labelLeft = canvasBounds.x.toFloat()
+    labelRight = labelLeft + labelWidth
+  }
+  if (labelTop < canvasBounds.y) {
+    // If the text goes above the top edge of the canvas, move it down so it fits.
+    labelTop = canvasBounds.y.toFloat()
+    labelBottom = labelTop + labelHeight
+  }
+
+  // Use float rectangle to avoid rounding errors resulting from float to int conversion.
+  val labelBounds =
+    Rectangle2D.Float(labelLeft, labelTop, labelRight - labelLeft, labelBottom - labelTop)
+
+  if (outlineColor != null) {
+    // Draw the outline around the label.
+    graphics.color = outlineColor
+    graphics.stroke = BasicStroke(outlineStrokeThickness)
+    val outlineRect =
+      Rectangle2D.Float(
+        labelBounds.x - outlineStrokeThickness / 2,
+        labelBounds.y - outlineStrokeThickness / 2,
+        labelBounds.width + outlineStrokeThickness,
+        labelBounds.height + outlineStrokeThickness,
+      )
+    graphics.draw(outlineRect)
+  }
+
+  // Draw the label.
+  graphics.color = backgroundColor
+  graphics.fill(labelBounds)
+
+  // Draw the label's text.
+  graphics.color = textColor
+  graphics.drawString(this.text, labelLeft + padding, labelBottom - padding)
 }
