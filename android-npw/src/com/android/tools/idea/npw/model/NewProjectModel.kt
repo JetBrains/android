@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.ide.common.repository.AgpVersion
 import com.android.io.CancellableFileIo
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
@@ -252,10 +253,16 @@ if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && !prompt.isEmpty.get()) {
 
     @WorkerThread
     override fun init() {
-      val resolvedAgpVersion =
+      var resolvedAgpVersion =
         this@NewProjectModel.agpVersionSelector
           .get()
           .resolveVersion(AgpVersions::getAvailableVersions)
+
+      // TODO(b/444641424): Remove when Hilt supports AGP 9.
+      if (prompt.get().isNotEmpty()) {
+        resolvedAgpVersion = resolvedAgpVersion.coerceAtMost(AgpVersion(8, 13))
+      }
+
       projectTemplateData =
         projectTemplateDataBuilder
           .apply {
