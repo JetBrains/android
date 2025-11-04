@@ -45,7 +45,7 @@ internal object StudioMarkdownStylingProvider : MarkdownStylingProvider {
       inlinesStyling
         ?: InlinesStyling.create(
           baseTextStyle,
-          editorTextStyle
+          inlineCode = editorTextStyle
             .copy(
               fontSize = baseTextStyle.fontSize * .85,
               background = inlineCodeBackgroundColor,

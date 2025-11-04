@@ -14,5 +14,10 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+  <dependencies>
+    <module name="intellij.platform.compose"/>
+    <module name="intellij.platform.compose.markdown"/>
+  </dependencies>
+
   <depends optional="true" config-file="adt-ui-compose-androidstudio.xml">com.intellij.modules.androidstudio</depends>
 </idea-plugin>

@@ -23,6 +23,10 @@ import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.markdown.bridge.create
 import org.jetbrains.jewel.intui.markdown.standalone.ProvideMarkdownStyling
+import org.jetbrains.jewel.intui.standalone.styling.dark
+import org.jetbrains.jewel.intui.standalone.styling.darkTransparentBackground
+import org.jetbrains.jewel.intui.standalone.styling.light
+import org.jetbrains.jewel.intui.standalone.styling.lightTransparentBackground
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.intui.standalone.theme.createDefaultTextStyle
 import org.jetbrains.jewel.intui.standalone.theme.createEditorTextStyle
@@ -33,6 +37,8 @@ import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
 import org.jetbrains.jewel.markdown.processing.MarkdownProcessor
 import org.jetbrains.jewel.markdown.rendering.MarkdownBlockRenderer
 import org.jetbrains.jewel.ui.ComponentStyling
+import org.jetbrains.jewel.ui.component.styling.IconButtonStyle
+import org.jetbrains.jewel.ui.component.styling.SpeedSearchStyle
 
 @OptIn(ExperimentalJewelApi::class)
 @Suppress("TestFunctionName") // It's a composable
@@ -81,4 +87,13 @@ fun StudioTestTheme(darkMode: Boolean = false, content: @Composable () -> Unit) 
 
 @Composable
 private fun createComponentStyling(darkMode: Boolean) =
-  if (darkMode) ComponentStyling.dark() else ComponentStyling.light()
+  if (darkMode)
+    ComponentStyling.dark(
+      transparentIconButtonStyle = IconButtonStyle.darkTransparentBackground(),
+      speedSearchStyle = SpeedSearchStyle.dark(),
+    )
+  else
+    ComponentStyling.light(
+      transparentIconButtonStyle = IconButtonStyle.lightTransparentBackground(),
+      speedSearchStyle = SpeedSearchStyle.light(),
+    )

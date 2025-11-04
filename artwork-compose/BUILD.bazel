@@ -18,7 +18,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
     "//android/artwork",
-    "@lib//:android-artwork-compose-jewel-ide-laf-bridge-243",
+    "//platform/jewel/ide-laf-bridge",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
