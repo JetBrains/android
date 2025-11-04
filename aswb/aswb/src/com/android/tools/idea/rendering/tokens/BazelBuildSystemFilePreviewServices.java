@@ -34,20 +34,21 @@ final class BazelBuildSystemFilePreviewServices
     return buildTargetReference instanceof BazelBuildTargetReference;
   }
 
+  @NotNull
   @Override
-  public @NotNull BuildServices<@NotNull BazelBuildTargetReference> getBuildServices() {
+  public BuildServices<BazelBuildTargetReference> getBuildServices() {
     return buildServices;
   }
 
+  @NotNull
   @Override
-  public @NotNull RenderingServices getRenderingServices(
-    @NotNull BazelBuildTargetReference buildTargetReference) {
+  public RenderingServices getRenderingServices(@NotNull BazelBuildTargetReference buildTargetReference) {
     return new BazelRenderingServices();
   }
 
+  @NotNull
   @Override
-  public @NotNull ApplicationLiveEditServices getApplicationLiveEditServices(
-    @NotNull BazelBuildTargetReference buildTargetReference) {
+  public ApplicationLiveEditServices getApplicationLiveEditServices(@NotNull BazelBuildTargetReference buildTargetReference) {
     throw new UnsupportedOperationException();
   }
 
@@ -57,8 +58,9 @@ final class BazelBuildSystemFilePreviewServices
     Disposer.register(parent, () -> buildServices.remove(listener));
   }
 
+  @NotNull
   @Override
-  public @NotNull BuildTargets getBuildTargets() {
+  public BuildTargets getBuildTargets() {
     return new BazelBuildTargets();
   }
 }
