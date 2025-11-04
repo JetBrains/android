@@ -182,9 +182,10 @@ private constructor(
         useGenericInstrumentedTests = newTemplate.useGenericInstrumentedTests
         useGenericLocalTests = newTemplate.useGenericLocalTests
         projectTemplateDataBuilder.language = language.value
-        projectTemplateDataBuilder.agpVersion =
-          agpVersionSelector.get().resolveVersion(AgpVersions::getAvailableVersions)
-
+        if (projectTemplateDataBuilder.agpVersion == null) {
+          projectTemplateDataBuilder.agpVersion =
+            agpVersionSelector.get().resolveVersion(AgpVersions::getAvailableVersions)
+        }
         projectTemplateDataBuilder.debugKeyStoreSha1 = getSha1DebugKeystoreSilently(androidFacet)
 
         if (androidFacet == null) {
