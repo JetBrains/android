@@ -41,20 +41,17 @@ class InsightLinksPanel(
 ) : JPanel(BorderLayout()) {
   init {
     val leftPanel = JPanel(HorizontalLayout(JBUI.scale(15)))
-    parentDisposable
-      .createCoroutineScope()
-      .launch {
-        currentInsightFlow
-          .filterReady()
-          .combine(controller.state) { a, b -> a to b.selectedIssue }
-          .collect { (insight, issue) ->
-            leftPanel.removeAll()
-            if (insight != null && issue != null) {
-              createLinks(insight.event, issue, controller.project).forEach { leftPanel.add(it) }
-            }
+    parentDisposable.createCoroutineScope().launch {
+      currentInsightFlow
+        .filterReady()
+        .combine(controller.state) { a, b -> a to b.selectedIssue }
+        .collect { (insight, issue) ->
+          leftPanel.removeAll()
+          if (insight != null && issue != null) {
+            createLinks(insight.event, issue, controller.project).forEach { leftPanel.add(it) }
           }
-      }
-      .invokeOnCompletion { println("done") }
+        }
+    }
     add(leftPanel, BorderLayout.WEST)
     add(
       InsightToolbarPanel(currentInsightFlow, parentDisposable, controller::submitInsightFeedback),
