@@ -139,7 +139,7 @@ public class StudioCrashDetails {
               }
             }
           }
-          String sanitizedFullReport = JVMReportSanitizer.sanitize(record);
+          String sanitizedFullReport = JVMReportSanitizer.sanitize(jvmCrashReportFile.toFile());
           final TruncatingStringBuilder builder = new TruncatingStringBuilder(MAX_REPORT_SIZE, "\n...report truncated...");
           builder.append(sanitizedFullReport);
           sanitizedCrashLog = builder.toString();
