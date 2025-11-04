@@ -29,6 +29,7 @@ iml_module(
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
         "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
         "@intellij//:intellij.libraries.grpc.netty.shaded",
+        "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
     ],
 )
 
@@ -60,6 +61,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/.idea/libraries:kotlin-test",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
+        "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
