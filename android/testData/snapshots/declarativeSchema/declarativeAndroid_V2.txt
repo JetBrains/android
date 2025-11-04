@@ -316,10 +316,6 @@ Projects:
             com.android.build.api.dsl.CommonExtension
                 Name                          : com.android.build.api.dsl.CommonExtension
                 MemberFunctions
-                    - MemberFunctionName            : compileOptions
-                      Receiver ReferenceType        : com.android.build.api.dsl.CommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.CompileOptions
                     - MemberFunctionName            : getDefaultProguardFile
                       Receiver ReferenceType        : com.android.build.api.dsl.CommonExtension
                       Parameters
@@ -1306,10 +1302,6 @@ Projects:
             com.android.build.gradle.internal.dsl.InternalCommonExtension
                 Name                          : com.android.build.gradle.internal.dsl.InternalCommonExtension
                 MemberFunctions
-                    - MemberFunctionName            : compileOptions
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalCommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.CompileOptions
                     - MemberFunctionName            : getDefaultProguardFile
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalCommonExtension
                       Parameters
@@ -1365,10 +1357,6 @@ Projects:
             com.android.build.gradle.internal.dsl.InternalTestedExtension
                 Name                          : com.android.build.gradle.internal.dsl.InternalTestedExtension
                 MemberFunctions
-                    - MemberFunctionName            : compileOptions
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalTestedExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.CompileOptions
                     - MemberFunctionName            : getDefaultProguardFile
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalTestedExtension
                       Parameters
@@ -2843,10 +2831,6 @@ Settings:
             com.android.build.api.dsl.CommonExtension
                 Name                          : com.android.build.api.dsl.CommonExtension
                 MemberFunctions
-                    - MemberFunctionName            : compileOptions
-                      Receiver ReferenceType        : com.android.build.api.dsl.CommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.CompileOptions
                     - MemberFunctionName            : getDefaultProguardFile
                       Receiver ReferenceType        : com.android.build.api.dsl.CommonExtension
                       Parameters
@@ -3833,10 +3817,6 @@ Settings:
             com.android.build.gradle.internal.dsl.InternalCommonExtension
                 Name                          : com.android.build.gradle.internal.dsl.InternalCommonExtension
                 MemberFunctions
-                    - MemberFunctionName            : compileOptions
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalCommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.CompileOptions
                     - MemberFunctionName            : getDefaultProguardFile
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalCommonExtension
                       Parameters
@@ -3892,10 +3872,6 @@ Settings:
             com.android.build.gradle.internal.dsl.InternalTestedExtension
                 Name                          : com.android.build.gradle.internal.dsl.InternalTestedExtension
                 MemberFunctions
-                    - MemberFunctionName            : compileOptions
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalTestedExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.CompileOptions
                     - MemberFunctionName            : getDefaultProguardFile
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalTestedExtension
                       Parameters
