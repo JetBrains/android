@@ -41,7 +41,7 @@ import org.mockito.kotlin.whenever
 /**
  * A rule that overrides [ActionManager] application service to create fake [JPopupMenu]s.
  */
-class JPopupRule: ExternalResource() {
+class ActionPopupMenuRule: ExternalResource() {
 
   private val disposable = Disposer.newDisposable()
   private var lastPopup: FakeActionPopupMenu? = null
