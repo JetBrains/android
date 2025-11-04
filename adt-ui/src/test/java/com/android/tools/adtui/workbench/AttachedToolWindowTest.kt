@@ -19,7 +19,7 @@ import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.common.AdtUiUtils.getActionMask
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.popup.JPopupRule
+import com.android.tools.adtui.swing.popup.ActionPopupMenuRule
 import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
@@ -69,7 +69,7 @@ import org.mockito.kotlin.mock
 @RunsInEdt
 class AttachedToolWindowTest {
   private val projectRule = ProjectRule()
-  private val popupRule = JPopupRule()
+  private val popupRule = ActionPopupMenuRule()
   private val disposableRule = DisposableRule()
   private val edtRule = EdtRule()
 
