@@ -56,11 +56,11 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
 
 public class AndroidLintIdeClientTest extends AndroidTestCase {
   private final com.intellij.openapi.project.Project ideaProject = mock(com.intellij.openapi.project.Project.class);
