@@ -234,11 +234,13 @@ fun LingeringTooltipArea(
               popupPosition = it.positionInWindow()
             }
             .onPointerEvent(PointerEventType.Enter) {
+              it.changes.forEach { e -> e.consume() }
               // Since the tooltip is visible, can assume the job is hiding the tooltip
               job?.cancel()
               job = null
             }
             .onPointerEvent(PointerEventType.Move) {
+              it.changes.forEach { e -> e.consume() }
               startHidingIfNotHovered(popupPosition + it.position)
             }
             .onPointerEvent(PointerEventType.Exit) {
