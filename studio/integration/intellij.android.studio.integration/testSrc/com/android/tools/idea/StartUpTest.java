@@ -100,6 +100,7 @@ public class StartUpTest {
         "GitLab",
         "Gradle",
         "Gradle Declarative Support",
+        "Gradle DSL Parser Support",
         "Gradle for Java",
         "Groovy",
         "HTML Tools",

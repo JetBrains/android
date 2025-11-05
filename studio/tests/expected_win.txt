@@ -2399,6 +2399,7 @@ android-studio/plugins/gemini/resources/recorder-release-androidTest.apk
 android-studio/plugins/git4insights/lib/git4insights.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.so.jar
+android-studio/plugins/gradle-dsl/lib/gradle-dsl.jar
 android-studio/plugins/gradle-java/lib/gradle-java.jar
 android-studio/plugins/gradle-java/lib/gradle-jps.jar
 android-studio/plugins/gradle/lib/ant/ant-antlr.jar
