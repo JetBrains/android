@@ -235,6 +235,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       testFunctionalTest = flavor.testFunctionalTest,
       testHandleProfiling = flavor.testHandleProfiling,
       matchingFallbacks = legacyAndroidGradlePluginProperties?.productFlavorsMatchingFallbacks[flavor.name] ?: emptyList(),
+      missingDimensionStrategy = emptyMap(),  // TODO: add legacy support
       isDefault = null
     )
   }
