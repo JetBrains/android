@@ -354,7 +354,7 @@ fun modelCacheV2Impl(
         else legacyAndroidGradlePluginProperties?.productFlavorsMatchingFallbacks[flavor.name] ?: emptyList(),
       missingDimensionStrategy =
         if (modelVersions[ModelFeature.HAS_MISSING_DIMENSION_STRATEGY]) flavor.missingDimensionStrategy
-        else emptyMap(),
+        else legacyAndroidGradlePluginProperties?.missingDimensionStrategies[flavor.name] ?: emptyMap(),
       isDefault = flavor.isDefault
     )
   }

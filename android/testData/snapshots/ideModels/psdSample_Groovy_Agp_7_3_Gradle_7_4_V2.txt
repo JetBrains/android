@@ -1633,6 +1633,8 @@ MODULE                        : project.app
             resourceConfigurations        : xhdpi
             VectorDrawables
             MatchingFallbacks             : [bar]
+            MissingDimensionStrategy
+                type                          : [typeone]
         SourceProvider
             Name                          : otherBar
             Manifest                      : <ROOT>/app/src/otherBar/AndroidManifest.xml [-]

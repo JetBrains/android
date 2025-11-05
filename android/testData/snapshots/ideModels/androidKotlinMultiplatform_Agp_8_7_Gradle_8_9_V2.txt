@@ -1479,8 +1479,11 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             TargetSdkVersion
                 ApiLevel                      : 35
                 ApiString                     : 35
-            VectorDrawables
+           VectorDrawables
                 UseSupportLibrary             : false
+            MissingDimensionStrategy
+                mode                          : [modetwo]
+                type                          : [typeone]
         SourceProvider
             Name                          : main
             Manifest                      : <ROOT>/androidLib/src/main/AndroidManifest.xml
@@ -2073,6 +2076,9 @@ MODULE                        : Kotlin_Multiplatform.app
                 ApiString                     : 35
             VectorDrawables
                 UseSupportLibrary             : false
+            MissingDimensionStrategy
+                mode                          : [modetwo]
+                type                          : [typeone]
         SourceProvider
             Name                          : main
             Manifest                      : <ROOT>/app/src/main/AndroidManifest.xml

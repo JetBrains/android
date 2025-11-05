@@ -52,6 +52,13 @@ interface LegacyAndroidGradlePluginProperties {
   val productFlavorsMatchingFallbacks: Map<String, List<String>>
 
   /**
+   * For AGP < 9.0, we get information about the missingDimensionStrategy (defined by DefaultConfig/ProductFlavors)
+   * from the DSL component only.
+   * This represents a mapping of: flavorName -> mapOf(Dimension_ame, listOf(flavors_to_match_with))
+   */
+  val missingDimensionStrategies: Map<String, Map<String, List<String>>>
+
+  /**
    * Exceptions caught from trying to read the additional information from the model, which should be reported as sync warnings.
    */
   val problems: List<Exception>
