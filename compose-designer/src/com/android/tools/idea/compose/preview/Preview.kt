@@ -115,9 +115,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewLiteModeEvent
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.ide.ActivityTracker
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationType
-import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
@@ -169,9 +166,6 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.psi.KtFile
-
-/** [Notification] group ID. Must match the `groupNotification` entry of `compose-designer.xml`. */
-const val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"
 
 /**
  * [NlModel.NlModelUpdaterInterface] to be used for updating the Compose model from the Compose
@@ -1444,23 +1438,14 @@ class ComposePreviewRepresentation(
         postIssueUpdateListenerForUiCheck.activate()
       }
 
-      launch(Dispatchers.EDT) {
-        if (
-          !composeWorkBench.isMessageBeingDisplayed &&
-            refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY
-        ) {
-          // Only notify the preview refresh time if there are previews to show.
-          val durationString =
-            Duration.ofMillis((System.nanoTime() - startTime) / 1_000_000).toDisplayString()
-          val notification =
-            Notification(
-              PREVIEW_NOTIFICATION_GROUP_ID,
-              message("event.log.refresh.title"),
-              message("event.log.refresh.total.elapsed.time", durationString),
-              NotificationType.INFORMATION,
-            )
-          Notifications.Bus.notify(notification, project)
-        }
+      if (
+        !composeWorkBench.isMessageBeingDisplayed &&
+          refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY
+      ) {
+        // Only notify the preview refresh time if there are previews to show.
+        val durationString =
+          Duration.ofMillis((System.nanoTime() - startTime) / 1_000_000).toDisplayString()
+        requestLogger.debug(message("event.log.refresh.total.elapsed.time", durationString))
       }
     }
     return refreshJob
