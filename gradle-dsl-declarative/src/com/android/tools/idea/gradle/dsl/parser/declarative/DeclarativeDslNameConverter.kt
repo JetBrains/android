@@ -53,7 +53,7 @@ interface DeclarativeDslNameConverter : GradleDslNameConverter {
   }
 
   override fun externalNameForPropertiesParent(modelName: String, context: GradlePropertiesDslElement): String {
-    val descriptions = context.getChildPropertiesElementsDescriptionMap(kind)
+    val descriptions = context.getFullChildPropertiesElementsDescriptionMap(kind)
     val instance = descriptions.toList().find { (_, v) -> v.name == modelName }
     return instance?.first ?: modelName
   }
