@@ -32,7 +32,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  * This action must be stateless, as the IDE creates a single instance.
  */
 class UpdateReferenceImagesAction : AnAction(
-  "Add/Update Reference Images",
+  "Add/Update Reference Images...",
   "Updates the reference images for screenshot tests.",
   AllIcons.FileTypes.Image
 ) {
