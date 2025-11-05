@@ -24,7 +24,7 @@ import com.intellij.openapi.ui.Messages
  * This action is displayed as a button in the test details header.
  */
 class UpdateReferenceImagesFromTestPanelAction : AnAction(
-  "Update Reference Images",
+  "Update Reference Images...",
   "Updates the reference images",
   null
 ) {
