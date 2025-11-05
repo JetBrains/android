@@ -1,0 +1,9 @@
+android {
+  buildTypes {
+    release {
+      buildTypeNested {
+        nestedVal 'some'
+      }
+    }
+  }
+}
