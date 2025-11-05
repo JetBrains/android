@@ -39,7 +39,7 @@ import javax.swing.JRadioButton
 
 private const val SUBMIT_BUTTON_TEXT = "Submit"
 private const val NEXT_BUTTON_TEXT = "Next"
-private val CENTER_PANEL_BORDER = JBUI.Borders.empty(0, 0, 10, 50)
+private val CENTER_PANEL_BORDER = JBUI.Borders.empty(0, 0, 30, 50)
 
 class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger, private val followupSurvey: Survey?)
   : DialogWrapper(null), ActionListener, ItemListener {
