@@ -22,8 +22,10 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.intellij.util.SlowOperations
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
+import kotlin.use
 
 typealias ProjectRenderRunner = (renderRunnable: (project: Project) -> Unit) -> Unit
 
@@ -143,7 +145,9 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
       TransactionGuard.getInstance().submitTransactionAndWait {
         // This code needs to run in EDT.
         log.info("Finishing generating sources.")
-        templateRenderers.forEach(TemplateRenderer::finish)
+        SlowOperations.startSection(SlowOperations.ACTION_PERFORM).use {
+          templateRenderers.forEach(TemplateRenderer::finish)
+        }
         multiRenderingFinished(project)
       }
     }
