@@ -28,7 +28,6 @@ import com.google.api.services.drive.model.File as DriveFile
 import com.intellij.openapi.diagnostic.thisLogger
 import java.io.InputStream
 
-private const val TIMEOUT_MS = 5000
 private const val FILE_COUNT_LIMIT = 10
 
 /**
@@ -49,8 +48,6 @@ class GoogleDriveClient(private val credentialProvider: () -> Credential) {
   private fun initDrive(): Drive {
     val initializer = HttpRequestInitializer { httpRequest ->
       httpRequest.apply {
-        connectTimeout = TIMEOUT_MS
-        readTimeout = TIMEOUT_MS
         headers = HttpHeaders()
         credentialProvider().initialize(this)
       }
