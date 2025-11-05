@@ -990,6 +990,7 @@ MODULE                        : project.app
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
             IsZipAlignEnabled             : true
+            MatchingFallbacks             : [release]
         SourceProvider
             Name                          : benchmark
             Manifest                      : <ROOT>/app/src/benchmark/AndroidManifest.xml [-]
@@ -1265,6 +1266,7 @@ MODULE                        : project.benchmark
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
             IsZipAlignEnabled             : true
+            MatchingFallbacks             : [release]
         SourceProvider
             Name                          : benchmark
             Manifest                      : <ROOT>/benchmark/src/benchmark/AndroidManifest.xml [-]

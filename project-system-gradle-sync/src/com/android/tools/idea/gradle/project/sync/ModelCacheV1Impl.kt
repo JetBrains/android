@@ -203,7 +203,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     )
   }
 
-  fun productFlavorFrom(flavor: ProductFlavor): IdeProductFlavorImpl {
+  fun productFlavorFrom(flavor: ProductFlavor, legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?): IdeProductFlavorImpl {
     return IdeProductFlavorImpl(
       name = flavor.name,
       resValues = copy(flavor::resValues, ::classFieldFrom),
@@ -234,7 +234,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       testInstrumentationRunner = flavor.testInstrumentationRunner,
       testFunctionalTest = flavor.testFunctionalTest,
       testHandleProfiling = flavor.testHandleProfiling,
-      matchingFallbacks = emptyList(),
+      matchingFallbacks = legacyAndroidGradlePluginProperties?.productFlavorsMatchingFallbacks[flavor.name] ?: emptyList(),
       isDefault = null
     )
   }
@@ -260,19 +260,20 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
 
   fun productFlavorContainerFrom(
     container: ProductFlavorContainer,
-    mlModelBindingEnabled: Boolean
+    mlModelBindingEnabled: Boolean,
+    legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
   ): IdeProductFlavorContainerImpl {
     fun extraSourceProviderFrom(container: SourceProviderContainer) = extraSourceProviderFrom(container, mlModelBindingEnabled)
 
     return IdeProductFlavorContainerImpl(
-      productFlavor = copyModel(container.productFlavor, ::productFlavorFrom),
+      productFlavor = productFlavorFrom(container.productFlavor, legacyAndroidGradlePluginProperties),
       sourceProvider = container.sourceProvider?.let { copyModel(it, mlModelBindingEnabled, ::sourceProviderFrom) },
       extraSourceProviders = copy(container::getExtraSourceProviders, ::extraSourceProviderFrom)
     )
   }
 
 
-  fun buildTypeFrom(buildType: BuildType): IdeBuildTypeImpl {
+  fun buildTypeFrom(buildType: BuildType, legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?): IdeBuildTypeImpl {
     return IdeBuildTypeImpl(
       name = buildType.name,
       resValues = copy(buildType::resValues, ::classFieldFrom),
@@ -297,15 +298,19 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       isMinifyEnabled = buildType.isMinifyEnabled,
       isZipAlignEnabled = buildType.isZipAlignEnabled,
       isDefault = null,
-      matchingFallbacks = emptyList() // TODO: what about this legacy MB ? does it cover this case of older AGPs ?
+      matchingFallbacks = legacyAndroidGradlePluginProperties?.buildTypesMatchingFallbacks[buildType.name] ?: emptyList()
     )
   }
 
-  fun buildTypeContainerFrom(container: BuildTypeContainer, mlModelBindingEnabled: Boolean): IdeBuildTypeContainerImpl {
+  fun buildTypeContainerFrom(
+    container: BuildTypeContainer,
+    mlModelBindingEnabled: Boolean,
+    legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
+  ): IdeBuildTypeContainerImpl {
     fun sourceProviderContainerFrom(container: SourceProviderContainer) = extraSourceProviderFrom(container, mlModelBindingEnabled)
 
     return IdeBuildTypeContainerImpl(
-      buildType = copyModel(container.buildType, ::buildTypeFrom),
+      buildType = buildTypeFrom(container.buildType, legacyAndroidGradlePluginProperties),
       sourceProvider = container.sourceProvider?.let { copyModel(it, mlModelBindingEnabled, ::sourceProviderFrom) },
       extraSourceProviders = copy(container::getExtraSourceProviders, ::sourceProviderContainerFrom)
     )
@@ -932,7 +937,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     modelVersions: ModelVersions,
     androidModuleId: ModuleId
   ): ModelResult<IdeVariantWithPostProcessor> {
-    val mergedFlavor = copyModel(variant.mergedFlavor, ::productFlavorFrom)
+    val mergedFlavor = productFlavorFrom(variant.mergedFlavor, legacyAndroidGradlePluginProperties)
     val buildType = androidProject.multiVariantData?.buildTypes.orEmpty().find { it.buildType.name == variant.buildType }?.buildType
 
     fun <T> merge(f: IdeProductFlavorImpl.() -> T, b: IdeBuildTypeImpl.() -> T, combine: (T?, T?) -> T): T {
@@ -1318,16 +1323,20 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     val mlModelBindingEnabled = projectFlags?.booleanFlagMap?.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING)
       ?: false
 
-    fun productFlavorContainerFrom(container: ProductFlavorContainer) = productFlavorContainerFrom(container, mlModelBindingEnabled)
-    fun buildTypeContainerFrom(container: BuildTypeContainer) = buildTypeContainerFrom(container, mlModelBindingEnabled)
+    fun productFlavorContainerFrom(
+      container: ProductFlavorContainer,
+      legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
+    ) = productFlavorContainerFrom(container, mlModelBindingEnabled, legacyAndroidGradlePluginProperties)
+    fun buildTypeContainerFrom(container: BuildTypeContainer, legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?) =
+      buildTypeContainerFrom(container, mlModelBindingEnabled, legacyAndroidGradlePluginProperties)
 
 
     fun sourceProviderContainerFrom(container: ProductFlavorContainer) = sourceProviderContainerFrom(container, mlModelBindingEnabled)
 
-    val defaultConfigCopy: IdeProductFlavorImpl = copyModel(project.defaultConfig.productFlavor, ::productFlavorFrom)
+    val defaultConfigCopy: IdeProductFlavorImpl = productFlavorFrom(project.defaultConfig.productFlavor, legacyAndroidGradlePluginProperties)
     val defaultConfigSourcesCopy: IdeSourceProviderContainerImpl = copyModel(project.defaultConfig, ::sourceProviderContainerFrom)
-    val buildTypesCopy: Collection<IdeBuildTypeContainerImpl> = copy(project::getBuildTypes, ::buildTypeContainerFrom)
-    val productFlavorCopy: Collection<IdeProductFlavorContainerImpl> = copy(project::getProductFlavors, ::productFlavorContainerFrom)
+    val buildTypesCopy: Collection<IdeBuildTypeContainerImpl> = project.buildTypes.map { buildTypeContainerFrom(it, legacyAndroidGradlePluginProperties) }
+    val productFlavorCopy: Collection<IdeProductFlavorContainerImpl> = project.productFlavors.map { productFlavorContainerFrom(it, legacyAndroidGradlePluginProperties) }
     val variantToBuildType: (String) -> String?
     if (productFlavorCopy.isEmpty()) {
       variantToBuildType = { variant -> variant.takeIf {buildTypesCopy.any { it.buildType.name == variant }} }

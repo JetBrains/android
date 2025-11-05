@@ -32,6 +32,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="PROVIDED" name="javax-inject" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
+    <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
   </component>
 </module>
