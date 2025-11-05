@@ -11,6 +11,21 @@ jvm_library(
   name = "gradle-dsl-plugin",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
-  resources = [":gradle-dsl-plugin_resources"]
+  resources = [":gradle-dsl-plugin_resources"],
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "@lib//:jetbrains-annotations",
+    "//libraries/guava",
+    "//platform/util",
+    "//platform/projectModel-api:projectModel",
+    "//platform/core-api:core",
+    "//java/java-syntax:syntax",
+    "//android/gradle-dsl",
+    "//android/gradle-dsl-declarative",
+    "//android/gradle-dsl-flags",
+    "//android/gradle-dsl-groovy",
+    "//android/gradle-dsl-kotlin",
+    "//android/gradle-dsl-toml",
+  ]
 )
 ### auto-generated section `build intellij.android.gradle.dsl.plugin` end
