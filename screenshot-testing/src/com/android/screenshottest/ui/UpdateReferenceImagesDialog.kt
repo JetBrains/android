@@ -41,6 +41,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
+import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
@@ -49,6 +50,7 @@ import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Dimension
 import java.util.concurrent.atomic.AtomicInteger
+import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTree
@@ -188,6 +190,7 @@ class UpdateReferenceImagesDialog(
 
     rightPaneWrapper = JPanel(BorderLayout())
     previewToolbar = createPreviewToolbar()
+    previewToolbar.border = BorderFactory.createMatteBorder(1, 0, 0, 0, JBColor.border())
     previewToolbar.isVisible = false
     rightPaneWrapper.add(rightPaneContent, BorderLayout.CENTER)
     rightPaneWrapper.add(previewToolbar, BorderLayout.SOUTH)
