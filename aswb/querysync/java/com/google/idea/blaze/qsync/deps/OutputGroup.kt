@@ -26,7 +26,6 @@ enum class OutputGroup(
 ) {
   JARS("qs_jars", usedBySymbolResolution = true),
   TRANSITIVE_RUNTIME_JARS("qs_transitive_runtime_jars"),
-  EXTERNAL_TRANSITIVE_RUNTIME_JARS("qs_external_transitive_runtime_jars"),
   AARS("qs_aars", usedBySymbolResolution = true),
   GENSRCS("qs_gensrcs", usedBySymbolResolution = true),
   ARTIFACT_INFO_FILE("qs_info"),
