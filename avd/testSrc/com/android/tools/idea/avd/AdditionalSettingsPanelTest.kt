@@ -368,10 +368,10 @@ private fun SemanticsNodeInteractionsProvider.onRamTextField() =
 private fun SemanticsNodeInteractionsProvider.onRamDropdown() =
   onNodeWithTag("RamRow")
     .onChildren()
-    .filterToOne(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
+    .filterToOne(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.DropdownList))
 
 private fun SemanticsNodeInteractionsProvider.onRamDropdownPopupChildren() =
-  onNode(isPopup()).onChild().onChildren()
+  onNode(isPopup()).onChild().onChildren().filterToOne(hasScrollAction()).onChildren()
 
 private fun SemanticsNodeInteractionsProvider.onVMHeapSizeTextField() =
   onNodeWithTag("VMHeapSizeRow").onChildren().filterToOne(hasSetTextAction())
