@@ -182,6 +182,8 @@ class StudioLabsSettingsConfigurable :
             description =
               """
                 Use the vision and reasoning capabilities of AI to convert natural language instructions into automated tests.
+
+                An IDE restart is required for this change to take effect.
               """
                 .trimIndent(),
             imageKey = StudioLabsIcons.Features.Journeys,
