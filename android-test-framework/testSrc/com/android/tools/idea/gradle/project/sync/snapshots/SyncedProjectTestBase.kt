@@ -141,6 +141,7 @@ abstract class SyncedProjectTestBase<TestProject: TestProjectDefinition>(
         preparedProject.open(
           updateOptions = {
             it.copy(
+              disableForcedAgpUpgradeDialog = true,
               disableKtsRelatedIndexing = true,
               reportProjectSizeUsage = true,
             )
