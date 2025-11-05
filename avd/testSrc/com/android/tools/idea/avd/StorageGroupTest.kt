@@ -16,7 +16,6 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsNodeInteractionsProvider
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
@@ -26,9 +25,9 @@ import androidx.compose.ui.test.onChildren
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
+import com.android.tools.adtui.compose.utils.lingerMouseHover
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -55,8 +54,7 @@ class StorageGroupTest {
     // Act
     composeRule.onInternalStorageTextField().performTextReplacement("6")
 
-    @OptIn(ExperimentalTestApi::class)
-    composeRule.onInternalStorageTextField().performMouseInput { moveTo(center) }
+    composeRule.onInternalStorageTextField().lingerMouseHover(composeRule)
 
     // Assert
     composeRule.onTooltips().assertCountEquals(0)
@@ -74,8 +72,7 @@ class StorageGroupTest {
     // Act
     composeRule.onInternalStorageTextField().performTextReplacement("")
 
-    @OptIn(ExperimentalTestApi::class)
-    composeRule.onInternalStorageTextField().performMouseInput { moveTo(center) }
+    composeRule.onInternalStorageTextField().lingerMouseHover(composeRule)
 
     // Assert
     composeRule.onNodeWithText("Specify an internal storage value").assertIsDisplayed()
@@ -93,8 +90,7 @@ class StorageGroupTest {
     // Act
     composeRule.onInternalStorageTextField().performTextReplacement("1")
 
-    @OptIn(ExperimentalTestApi::class)
-    composeRule.onInternalStorageTextField().performMouseInput { moveTo(center) }
+    composeRule.onInternalStorageTextField().lingerMouseHover(composeRule)
 
     // Assert
     composeRule.onNodeWithText("Internal storage must be at least 6 GB").assertIsDisplayed()
@@ -112,8 +108,7 @@ class StorageGroupTest {
     // Act
     composeRule.onInternalStorageTextField().performTextReplacement("8589934592")
 
-    @OptIn(ExperimentalTestApi::class)
-    composeRule.onInternalStorageTextField().performMouseInput { moveTo(center) }
+    composeRule.onInternalStorageTextField().lingerMouseHover(composeRule)
 
     // Assert
     composeRule.onNodeWithText("Internal storage is too large").assertIsDisplayed()
@@ -189,8 +184,7 @@ class StorageGroupTest {
     // Act
     composeRule.onNodeWithText("Existing image").performClick()
 
-    @OptIn(ExperimentalTestApi::class)
-    composeRule.onNodeWithTag("ExistingImageField").performMouseInput { moveTo(center) }
+    composeRule.onNodeWithTag("ExistingImageField").lingerMouseHover(composeRule)
 
     // Assert
     assertEquals(ExpandedStorageRadioButton.EXISTING_IMAGE, state.selectedRadioButton)
@@ -226,8 +220,7 @@ class StorageGroupTest {
     // Act
     composeRule.onCustomTextField().performTextReplacement("513")
 
-    @OptIn(ExperimentalTestApi::class)
-    composeRule.onCustomTextField().performMouseInput { moveTo(center) }
+    composeRule.onCustomTextField().lingerMouseHover(composeRule)
 
     // Assert
     composeRule.onTooltips().assertCountEquals(0)
@@ -246,8 +239,7 @@ class StorageGroupTest {
     // Act
     composeRule.onCustomTextField().performTextReplacement("")
 
-    @OptIn(ExperimentalTestApi::class)
-    composeRule.onCustomTextField().performMouseInput { moveTo(center) }
+    composeRule.onCustomTextField().lingerMouseHover(composeRule)
 
     // Assert
     composeRule.onNodeWithText("Specify an SD card size").assertIsDisplayed()
@@ -265,8 +257,7 @@ class StorageGroupTest {
     // Act
     composeRule.onCustomTextField().performTextReplacement("9")
 
-    @OptIn(ExperimentalTestApi::class)
-    composeRule.onCustomTextField().performMouseInput { moveTo(center) }
+    composeRule.onCustomTextField().lingerMouseHover(composeRule)
 
     // Assert
     composeRule.onNodeWithText("The SD card must be at least 10 MB").assertIsDisplayed()
@@ -284,8 +275,7 @@ class StorageGroupTest {
     // Act
     composeRule.onCustomTextField().performTextReplacement("8796093022208")
 
-    @OptIn(ExperimentalTestApi::class)
-    composeRule.onCustomTextField().performMouseInput { moveTo(center) }
+    composeRule.onCustomTextField().lingerMouseHover(composeRule)
 
     // Assert
     composeRule.onNodeWithText("SD card size is too large").assertIsDisplayed()
