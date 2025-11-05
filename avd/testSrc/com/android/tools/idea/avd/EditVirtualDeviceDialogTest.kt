@@ -32,11 +32,13 @@ import com.android.repository.testframework.FakeProgressIndicator
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.PathFileWrapper
 import com.android.sdklib.SystemImageTags
+import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.repository.IdDisplay
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
+import com.android.tools.adtui.compose.utils.lingerMouseHover
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.idea.IJIgnore
@@ -58,6 +60,7 @@ class EditVirtualDeviceDialogTest {
   @OptIn(ExperimentalTestApi::class)
   private inner class EditAvdFixture(
     val sdkFixture: SdkFixture,
+    val device: Device = sdkFixture.deviceManager.getDevice("pixel_7", "Google")!!,
     localPackages: List<LocalPackage> = emptyList<LocalPackage>(),
     remotePackages: List<RemotePackage> = emptyList<RemotePackage>(),
   ) {
@@ -74,10 +77,9 @@ class EditVirtualDeviceDialogTest {
     val systemImageManager = sdkHandler.getSystemImageManager(FakeProgressIndicator())
     val api34Image = systemImageManager.getImageAt(localPackages.first().location)
 
-    val pixel7 = sdkFixture.deviceManager.getDevice("pixel_7", "Google")!!
-    val pixel7AvdInfo =
+    val avdInfo =
       avdManager.createAvd(
-        avdManager.createAvdBuilder(pixel7).apply {
+        avdManager.createAvdBuilder(device).apply {
           systemImage = api34Image
           skin = null
         }
@@ -85,8 +87,8 @@ class EditVirtualDeviceDialogTest {
 
     val editDialog =
       EditVirtualDeviceDialog(
-        pixel7AvdInfo,
-        pixel7,
+        avdInfo,
+        device,
         EditVirtualDeviceDialog.Mode.EDIT,
         MutableStateFlow(sdkFixture.systemImageState()),
         persistentListOf(NoSkin.INSTANCE),
@@ -104,9 +106,11 @@ class EditVirtualDeviceDialogTest {
     }
 
     fun parseIniFile(): Map<String, String> =
-      AvdManager.parseIniFile(
-        PathFileWrapper(sdkFixture.avdRoot.resolve("Pixel_7.avd").resolve("config.ini")),
-        null,
+      checkNotNull(
+        AvdManager.parseIniFile(
+          PathFileWrapper(sdkFixture.avdRoot.resolve("Pixel_7.avd").resolve("config.ini")),
+          null,
+        )
       )
   }
 
@@ -195,6 +199,10 @@ class EditVirtualDeviceDialogTest {
       }
       composeTestRule.onNodeWithEditableText("Pixel 7 (2)").performTextReplacement("Pixel 7")
       composeTestRule.waitForIdle()
+      composeTestRule
+        .onNodeWithEditableText("Pixel 7")
+        .assertIsDisplayed()
+        .lingerMouseHover(composeTestRule)
       composeTestRule.onNodeWithText("already exists", substring = true).assertIsDisplayed()
       assertThat(wizard.finishAction.enabled).isFalse()
 
