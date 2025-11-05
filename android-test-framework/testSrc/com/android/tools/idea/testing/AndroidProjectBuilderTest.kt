@@ -63,6 +63,7 @@ class AndroidProjectBuilderTest {
                   resourceConfigurations = emptyList(),
                   vectorDrawables = null,
                   matchingFallbacks = emptyList(),
+                  missingDimensionStrategy = emptyMap(),
                   isDefault = null,
                 )
               )

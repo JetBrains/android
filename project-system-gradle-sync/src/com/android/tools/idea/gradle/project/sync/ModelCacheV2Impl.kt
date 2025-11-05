@@ -352,6 +352,9 @@ fun modelCacheV2Impl(
       matchingFallbacks =
         if (modelVersions[ModelFeature.HAS_MATCHING_FALLBACKS]) flavor.matchingFallbacks
         else legacyAndroidGradlePluginProperties?.productFlavorsMatchingFallbacks[flavor.name] ?: emptyList(),
+      missingDimensionStrategy =
+        if (modelVersions[ModelFeature.HAS_MISSING_DIMENSION_STRATEGY]) flavor.missingDimensionStrategy
+        else emptyMap(),
       isDefault = flavor.isDefault
     )
   }
@@ -441,6 +444,7 @@ fun modelCacheV2Impl(
       testFunctionalTest = testFunctionalTest,
       testHandleProfiling = testHandleProfiling,
       matchingFallbacks = emptyList(), // We never need to merge the fallbacks.
+      missingDimensionStrategy = emptyMap(),
       isDefault = null
     )
   }

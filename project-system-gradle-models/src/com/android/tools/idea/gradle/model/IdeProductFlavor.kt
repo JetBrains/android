@@ -54,6 +54,11 @@ interface IdeProductFlavor : IdeBaseConfig {
   val matchingFallbacks: List<String>
 
   /**
+   * Specifies a flavor that the plugin should try to use from a given dimension in a dependency.
+   */
+  val missingDimensionStrategy: Map<String, List<String>>
+
+  /**
    * The test application id. This is only the value set on this product flavor.
    */
   val testApplicationId: String?

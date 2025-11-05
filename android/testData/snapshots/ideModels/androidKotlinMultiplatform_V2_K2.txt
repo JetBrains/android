@@ -1790,6 +1790,9 @@ MODULE                        : Kotlin_Multiplatform.app
                 ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
+            MissingDimensionStrategy
+                mode                          : [modetwo]
+                type                          : [typeone]
         SourceProvider
             Name                          : main
             Manifest                      : <ROOT>/app/src/main/AndroidManifest.xml
