@@ -130,8 +130,7 @@ class EditorBasedTableCellRendererTest {
     // Then move to the actual cell
     ui.mouse.moveTo(rect.x + x, rect.centerY.toInt())
     UIUtil.dispatchAllInvocationEvents()
-    PlatformTestUtil.waitForSingleAlarm((table.expandableItemsHandler as AbstractExpandableItemsHandler<*, *>).updateAlarm.getAlarm(), 20,
-                                        TimeUnit.MILLISECONDS)
+    PlatformTestUtil.waitForSingleAlarm((table.expandableItemsHandler as AbstractExpandableItemsHandler<*, *>).updateAlarm.getAlarm(), 20, TimeUnit.MILLISECONDS)
     return table.isExpandedItem(row, 1)
   }
 

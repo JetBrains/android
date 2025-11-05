@@ -38,7 +38,9 @@ class ComposeSuppressorTest {
 
   @Before
   fun setup() {
-    fixture.enableInspections(FunctionNameInspection::class.java)
+    fixture.enableInspections(
+      FunctionNameInspection::class.java
+    )
     fixture.enableInspections(TestFunctionNameInspection::class.java)
     fixture.stubComposableAnnotation()
 
