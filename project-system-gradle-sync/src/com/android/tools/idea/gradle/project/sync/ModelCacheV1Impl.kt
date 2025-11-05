@@ -136,6 +136,7 @@ import java.io.File
 import java.io.FileFilter
 import java.io.PrintWriter
 import java.io.StringWriter
+import kotlin.collections.emptyMap
 
 internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: BuildFolderPaths): ModelCache.V1 {
 
@@ -235,7 +236,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       testFunctionalTest = flavor.testFunctionalTest,
       testHandleProfiling = flavor.testHandleProfiling,
       matchingFallbacks = legacyAndroidGradlePluginProperties?.productFlavorsMatchingFallbacks[flavor.name] ?: emptyList(),
-      missingDimensionStrategy = emptyMap(),  // TODO: add legacy support
+      missingDimensionStrategy = legacyAndroidGradlePluginProperties?.missingDimensionStrategies[flavor.name] ?: emptyMap(),
       isDefault = null
     )
   }

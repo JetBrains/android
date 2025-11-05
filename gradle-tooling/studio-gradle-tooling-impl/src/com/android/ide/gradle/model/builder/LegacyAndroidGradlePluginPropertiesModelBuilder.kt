@@ -23,7 +23,6 @@ import com.android.ide.gradle.model.builder.LegacyAndroidGradlePluginPropertiesM
 import com.android.ide.gradle.model.builder.LegacyAndroidGradlePluginPropertiesModelBuilder.VariantCollectionProvider.InstantAppFeature
 import com.android.ide.gradle.model.builder.LegacyAndroidGradlePluginPropertiesModelBuilder.VariantCollectionProvider.LibraryVariant
 import com.android.ide.gradle.model.impl.LegacyAndroidGradlePluginPropertiesImpl
-import com.intellij.openapi.diagnostic.thisLogger
 import java.io.File
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
@@ -32,6 +31,9 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import java.lang.reflect.Method
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.String
+import kotlin.collections.List
+import kotlin.collections.set
 import kotlin.getOrElse
 import kotlin.getOrThrow
 import org.gradle.api.file.FileCollection
@@ -63,6 +65,7 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
     val mappingR8TextFiles = fetchMappingTextFiles(parameters, project, problems)
     val buildTypesMatchingFallbacks = fetchBuildTypesMatchingFallbacks(parameters, project, problems)
     val productFlavorsMatchingFallbacks = fetchProductFlavorsMatchingFallbacks(parameters, project, problems)
+    val missingDimensionStrategies = fetchMissingDimensionStrategies(parameters, project, problems)
     return LegacyAndroidGradlePluginPropertiesImpl(
       applicationIdMap,
       namespace,
@@ -71,7 +74,8 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
       problems,
       mappingR8TextFiles,
       buildTypesMatchingFallbacks,
-      productFlavorsMatchingFallbacks
+      productFlavorsMatchingFallbacks,
+      missingDimensionStrategies
       )
   }
 
@@ -236,6 +240,47 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
       return emptyMap()
     }
     return productFlavorsToFallbacks
+  }
+
+  private fun fetchMissingDimensionStrategies(
+    parameters: LegacyAndroidGradlePluginPropertiesModelParameters,
+    project: Project,
+    problems: MutableList<Exception>
+  ): Map<String, Map<String, List<String>>> {
+    if (!parameters.missingDimensionStrategies) return emptyMap()
+    val androidExtension = project.extensions.findByName("android") ?: return emptyMap()
+    val productFlavorsToStrategies = mutableMapOf<String, Map<String, List<String>>>()
+
+    fun populateMissingDimensionStrategies(productFlavor: Any, isDefaultConfig: Boolean) {
+      val missingDimensionStrategy = productFlavor.invokeMethod<Map<String, Any>>("getMissingDimensionStrategies")
+      val name = productFlavor.invokeMethod<String>("getName")
+      if (missingDimensionStrategy.isNotEmpty()) {
+        productFlavorsToStrategies[name] = missingDimensionStrategy.mapValues { (_, it) ->
+          val requested = it.invokeMethod<String>("getRequested")
+          val fallbacks = it.invokeMethod<List<String>>("getFallbacks")
+          // For ProductFlavors: AGP < 9.0 puts the name of the current productFlavor as the 'requested' dimension, which doesn't match
+          // the user intent and caused some unintended matching. (see https://issuetracker.google.com/460094802).
+          // As we're collecting these values for the purposes of the variant selection heuristics, we will "correctly" reflect the user intent by
+          // dropping the "requested" value, rather than replicating the incorrect behavior in older AGPs.
+          if (isDefaultConfig) listOf(requested).plus(fallbacks) else fallbacks
+        }
+      }
+    }
+    try {
+      val defaultConfig = androidExtension.invokeMethod<Any>("getDefaultConfig")
+      populateMissingDimensionStrategies(defaultConfig, true)
+
+      // Now Get the ProductFlavors'.
+      val productFlavors: Collection<*> = androidExtension.invokeMethod("getProductFlavors")
+      for (productFlavor in productFlavors) {
+        productFlavor?.let { populateMissingDimensionStrategies(productFlavor, false) }
+      }
+
+    } catch (e: Exception) {
+      problems += RuntimeException("Failed to get MissingDimensionStrategy information for ${project.path}. Cause:\n$e", e)
+      return emptyMap()
+    }
+    return productFlavorsToStrategies
   }
 
   // Modelled from AGP's logic in OptionParsers.kt
