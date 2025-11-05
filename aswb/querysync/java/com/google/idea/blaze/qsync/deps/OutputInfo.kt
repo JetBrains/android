@@ -21,7 +21,6 @@ import com.google.common.collect.Multimap
 import com.google.devtools.build.lib.view.proto.Deps
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.artifact.OutputArtifact
-import com.google.idea.blaze.common.artifact.OutputArtifactInfo
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcCompilationInfo
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcTargetInfo
@@ -37,7 +36,6 @@ interface OutputInfo {
   val ccTargets: Map<Label, CcTargetInfo>
   val ccToolchains: Map<String, CcToolchainInfo>
   val jars: List<OutputArtifact>
-  val externalTransitiveRuntimeJars: List<OutputArtifactInfo>
   val aars: List<OutputArtifact>
   val generatedSources: List<OutputArtifact>
   val allJavaArtifacts: Collection<OutputArtifact>
@@ -73,8 +71,6 @@ interface OutputInfo {
       get() = OutputGroup.entries.filter { it.usedBySymbolResolution }.flatMap { artifacts[it].orEmpty() }
     override val jars: List<OutputArtifact>
       get() = artifacts[OutputGroup.JARS].orEmpty()
-    override val externalTransitiveRuntimeJars: List<OutputArtifact>
-      get() = artifacts[OutputGroup.EXTERNAL_TRANSITIVE_RUNTIME_JARS].orEmpty()
     override val aars: List<OutputArtifact>
       get() = artifacts[OutputGroup.AARS].orEmpty()
     override val generatedSources: List<OutputArtifact>
