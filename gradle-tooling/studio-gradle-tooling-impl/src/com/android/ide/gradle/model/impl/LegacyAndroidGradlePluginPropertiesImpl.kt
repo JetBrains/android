@@ -25,4 +25,6 @@ data class LegacyAndroidGradlePluginPropertiesImpl(
   override val dataBindingEnabled: Boolean?,
   override val problems: List<Exception>,
   override val mappingR8TextFiles: Map<String, File?>,
+  override val buildTypesMatchingFallbacks: Map<String, List<String>>,
+  override val productFlavorsMatchingFallbacks: Map<String, List<String>>
 ) : LegacyAndroidGradlePluginProperties

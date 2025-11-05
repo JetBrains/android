@@ -23,6 +23,7 @@ import com.android.ide.gradle.model.builder.LegacyAndroidGradlePluginPropertiesM
 import com.android.ide.gradle.model.builder.LegacyAndroidGradlePluginPropertiesModelBuilder.VariantCollectionProvider.InstantAppFeature
 import com.android.ide.gradle.model.builder.LegacyAndroidGradlePluginPropertiesModelBuilder.VariantCollectionProvider.LibraryVariant
 import com.android.ide.gradle.model.impl.LegacyAndroidGradlePluginPropertiesImpl
+import com.intellij.openapi.diagnostic.thisLogger
 import java.io.File
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
@@ -60,13 +61,18 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
     val (namespace, androidTestNamespace) = fetchNamespace(parameters, project, problems)
     val dataBindingEnabled = fetchIsDataBindingEnabled(parameters, project, problems)
     val mappingR8TextFiles = fetchMappingTextFiles(parameters, project, problems)
+    val buildTypesMatchingFallbacks = fetchBuildTypesMatchingFallbacks(parameters, project)
+    val productFlavorsMatchingFallbacks = fetchProductFlavorsMatchingFallbacks(parameters, project)
     return LegacyAndroidGradlePluginPropertiesImpl(
       applicationIdMap,
       namespace,
       androidTestNamespace,
       dataBindingEnabled,
       problems,
-      mappingR8TextFiles)
+      mappingR8TextFiles,
+      buildTypesMatchingFallbacks,
+      productFlavorsMatchingFallbacks
+      )
   }
 
   private fun fetchMappingTextFiles(parameters: LegacyAndroidGradlePluginPropertiesModelParameters, project: Project, problems: MutableList<Exception>): Map<String, File?> {
@@ -184,6 +190,50 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
       problems += RuntimeException("Failed to read if data binding is enabled", e)
       return null
     }
+  }
+
+  private fun fetchBuildTypesMatchingFallbacks(
+    parameters: LegacyAndroidGradlePluginPropertiesModelParameters,
+    project: Project
+  ): Map<String, List<String>> {
+    if (!parameters.matchingFallbacks) return emptyMap()
+    val androidExtension = project.extensions.findByName("android") ?: return emptyMap()
+    val buildTypesToFallbacks = mutableMapOf<String, List<String>>()
+    try {
+      val buildTypes: Collection<*> = androidExtension.invokeMethod("getBuildTypes")
+      for (buildType in buildTypes) {
+        val name = buildType?.invokeMethod<String>("getName") ?: continue
+        val matchingFallbacks = buildType.invokeMethod<List<String>>("getMatchingFallbacks")
+        buildTypesToFallbacks[name] = matchingFallbacks
+      }
+
+    } catch (e: Exception) {
+      thisLogger().info("Error when fetching BuildTypes matchingFallbacks:\n$e")
+      return emptyMap()
+    }
+    return buildTypesToFallbacks
+  }
+
+  private fun fetchProductFlavorsMatchingFallbacks(
+    parameters: LegacyAndroidGradlePluginPropertiesModelParameters,
+    project: Project
+  ): Map<String, List<String>> {
+    if (!parameters.matchingFallbacks) return emptyMap()
+    val androidExtension = project.extensions.findByName("android") ?: return emptyMap()
+    val productFlavorsToFallbacks = mutableMapOf<String, List<String>>()
+    try {
+      val productFlavors: Collection<*> = androidExtension.invokeMethod("getProductFlavors")
+      for (productFlavor in productFlavors) {
+        val name = productFlavor?.invokeMethod<String>("getName") ?: continue
+        val matchingFallbacks = productFlavor.invokeMethod<List<String>>("getMatchingFallbacks")
+        productFlavorsToFallbacks[name] = matchingFallbacks
+      }
+
+    } catch (e: Exception) {
+      thisLogger().info("Error when fetching ProductFlavors matchingFallbacks:\n$e")
+      return emptyMap()
+    }
+    return productFlavorsToFallbacks
   }
 
   // Modelled from AGP's logic in OptionParsers.kt
