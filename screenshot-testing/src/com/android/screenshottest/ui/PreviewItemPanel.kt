@@ -104,9 +104,9 @@ class PreviewItemPanel(
     }
   }
 
-  private fun showPlaceholder(message: String) {
+  private fun showPlaceholder(message: String, color: JBColor) {
     ApplicationManager.getApplication().invokeLater {
-      imagePanel.showText(message)
+      imagePanel.showText(message, color)
     }
   }
 
@@ -122,8 +122,11 @@ class PreviewItemPanel(
         if (diffPath != null && File(diffPath).exists()) {
           loadImage(diffPath, previewData.testId)
         } else {
-          val placeholder = if (previewData.testResult == com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult.PASSED) "No Difference" else "No Diff Image"
-          showPlaceholder(placeholder)
+          if (previewData.testResult == AndroidTestCaseResult.PASSED) {
+            showPlaceholder("No Difference", JBColor.GREEN)
+          } else {
+            showPlaceholder("No Diff Image", JBColor.RED)
+          }
         }
       }
       UpdateReferenceImagesDialog.ScreenshotViewType.REFERENCE -> {
@@ -131,7 +134,7 @@ class PreviewItemPanel(
         if (refPath != null && File(refPath).exists()) {
           loadImage(refPath, previewData.testId)
         } else {
-          showPlaceholder("No Reference Image")
+          showPlaceholder("No Reference Image", JBColor.RED)
         }
       }
     }
@@ -234,10 +237,10 @@ class PreviewItemPanel(
       repaint()
     }
 
-    fun showText(message: String) {
+    fun showText(message: String, color: JBColor = JBColor.RED) {
       this.image = null
       removeAll()
-      add(JBLabel(message).apply { foreground = JBColor.RED })
+      add(JBLabel(message).apply { foreground = color })
 
       // Reset to the initial size to ensure the placeholder text is not clipped.
       preferredSize = initialSize
