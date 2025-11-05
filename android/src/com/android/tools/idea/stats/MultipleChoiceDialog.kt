@@ -44,7 +44,7 @@ class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger:
   val checkBoxes = mutableListOf<JCheckBox>()
 
   val content: JComponent = Box.createVerticalBox().apply {
-    border = JBUI.Borders.empty(0, 0, 10, 50)
+    border = JBUI.Borders.empty(0, 0, 30, 50)
     add(JBLabel(survey.question))
     add(Box.createVerticalStrut(JBUI.scale(10)))
 
