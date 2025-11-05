@@ -15,63 +15,57 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
-import androidx.compose.foundation.ScrollbarStyle
+import androidx.compose.foundation.ContextMenuArea
+import androidx.compose.foundation.ContextMenuItem
 import androidx.compose.foundation.VerticalScrollbar
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ImageMetadata
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.NOT_APPLICABLE
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.calculateMatchPercentage
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.loadImageMetadata
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.ide.ui.LafManagerListener
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.ui.StartupUiUtil
 import java.awt.Desktop
 import java.io.File
 import javax.swing.JComponent
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.Orientation
+import org.jetbrains.jewel.ui.component.Divider
+import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.theme.colorPalette
 
 private val LOG = Logger.getInstance(ScreenshotAttributesView::class.java)
-
-private val LocalIsDarkTheme = compositionLocalOf<Boolean> { error("No isDarkTheme provided") }
 
 /**
  * A view that displays the attributes of a screenshot.
@@ -106,25 +100,8 @@ class ScreenshotAttributesView {
      */
     @UiThread
     fun getComponent(): JComponent {
-        return ComposePanel().apply {
-            setContent {
-                var isDarkTheme by remember { mutableStateOf(StartupUiUtil.isDarkTheme) }
-
-                val messageBus = ApplicationManager.getApplication().messageBus
-                DisposableEffect(messageBus) {
-                    val connection = messageBus.connect()
-                    connection.subscribe(LafManagerListener.TOPIC, LafManagerListener {
-                        isDarkTheme = StartupUiUtil.isDarkTheme
-                    })
-                    onDispose {
-                        connection.disconnect()
-                    }
-                }
-
-                CompositionLocalProvider(LocalIsDarkTheme provides isDarkTheme) {
-                    ScreenshotAttributesUi(state)
-                }
-            }
+        return StudioComposePanel {
+            ScreenshotAttributesUi(state)
         }
     }
 
@@ -176,52 +153,39 @@ class ScreenshotAttributesView {
             newMetadata = loadImageMetadata(currentState.newLocation.takeIf { it != NOT_APPLICABLE })
         }
 
-        val isDarkTheme = LocalIsDarkTheme.current
-        val backgroundColor = if (isDarkTheme) Color(0xFF1e2021) else Color(0xFFf7f8fa)
         val scrollState = rememberScrollState()
-        Box(Modifier.fillMaxSize().background(backgroundColor)) {
-          Column(
-                modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(scrollState),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Section("Summary") {
-                    KeyValueRow("Match") {
-                        val text = currentState.matchPercentage ?: currentState.testResult?.name ?: NOT_APPLICABLE
-                        when (currentState.testResult) {
-                            AndroidTestCaseResult.PASSED -> GreenText(text)
-                            AndroidTestCaseResult.FAILED -> RedText(text)
-                            else -> GrayText(text)
-                        }
+        Column(
+            modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Section("Summary") {
+                KeyValueRow("Match") {
+                    val text = currentState.matchPercentage ?: currentState.testResult?.name ?: NOT_APPLICABLE
+                    when (currentState.testResult) {
+                        AndroidTestCaseResult.PASSED -> GreenText(text)
+                        AndroidTestCaseResult.FAILED -> RedText(text)
+                        else -> GrayText(text)
                     }
-                    KeyValueRow("Preview") { BlueText(currentState.methodName) }
-                    KeyValueRow("Related Composables") { BlueText(currentState.className) }
                 }
-
-                Section("Preview configuration") { CodeSnippet("@Preview(${currentState.methodName})") }
-
-                Section("File info") {
-                    FileInfoTable(
-                        refMetadata.dimensions, newMetadata.dimensions,
-                        refMetadata.size, newMetadata.size,
-                        refMetadata.date, newMetadata.date,
-                        currentState.refLocation, currentState.newLocation
-                    )
-                }
+                KeyValueRow("Preview") { BlueText(currentState.methodName) }
+                KeyValueRow("Related Composables") { BlueText(currentState.className) }
             }
-            val scrollbarStyle = ScrollbarStyle(
-                minimalHeight = 16.dp,
-                thickness = 8.dp,
-                shape = RectangleShape,
-                hoverDurationMillis = 300,
-                unhoverColor = Color.Gray.copy(alpha = 0.12f),
-                hoverColor = Color.Gray.copy(alpha = 0.5f)
-            )
-            VerticalScrollbar(
-                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                adapter = rememberScrollbarAdapter(scrollState),
-                style = scrollbarStyle
-            )
+
+            Section("Preview configuration") { CodeSnippet("@Preview(${currentState.methodName})") }
+
+            Section("File info") {
+                FileInfoTable(
+                    refMetadata.dimensions, newMetadata.dimensions,
+                    refMetadata.size, newMetadata.size,
+                    refMetadata.date, newMetadata.date,
+                    currentState.refLocation, currentState.newLocation
+                )
+            }
         }
+        VerticalScrollbar(
+            adapter = rememberScrollbarAdapter(scrollState),
+            modifier = Modifier.fillMaxHeight(),
+        )
     }
 }
 
@@ -294,17 +258,13 @@ private fun FileInfoTableContent(
     refLocation: String, newLocation: String,
     cellWidth: androidx.compose.ui.unit.Dp
 ) {
-    val isDarkTheme = LocalIsDarkTheme.current
-    val headerColor = if (isDarkTheme) Color(0xFF888888) else Color.Gray
-    val headerStyle = TextStyle(color = headerColor, fontWeight = FontWeight.Bold)
-
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Spacer(modifier = Modifier.width(160.dp))
-            BasicText("Reference", style = headerStyle, modifier = Modifier.width(cellWidth))
-            BasicText("New", style = headerStyle, modifier = Modifier.width(cellWidth))
+            Text("Reference", modifier = Modifier.width(cellWidth), fontWeight = FontWeight.Bold, color = JewelTheme.globalColors.text.info)
+            Text("New", modifier = Modifier.width(cellWidth), fontWeight = FontWeight.Bold, color = JewelTheme.globalColors.text.info)
         }
-        Divider()
+        Divider(orientation = Orientation.Horizontal)
 
         FileInfoRow("Dimensions", refDimensions, newDimensions, cellWidth)
         FileInfoRow("Size", refSize, newSize, cellWidth)
@@ -343,36 +303,10 @@ private fun FileInfoRow(attribute: String, refValue: String, newValue: String, c
  */
 @Composable
 private fun CodeSnippet(text: String, modifier: Modifier = Modifier) {
-    val isDark = LocalIsDarkTheme.current
-    val backgroundColor = if (isDark) Color(0xFF3C3F41) else Color(0xFFdfe1e3)
-    val textColor = if (isDark) Color(0xFFA9B7C6) else Color.Gray
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(color = backgroundColor, shape = RoundedCornerShape(4.dp))
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-    ) {
-        BasicText(
-            text = text,
-            style = TextStyle(color = textColor, fontFamily = FontFamily.Monospace)
-        )
-    }
-}
-
-/**
- * A divider.
- *
- * @param modifier The modifier.
- */
-@Composable
-private fun Divider(modifier: Modifier = Modifier) {
-    val isDarkTheme = LocalIsDarkTheme.current
-    val backgroundColor = if (isDarkTheme) Color(0xFF3C3F41) else Color.LightGray
-    Box(
-        modifier
-            .height(1.dp)
-            .fillMaxWidth()
-            .background(color = backgroundColor)
+    Text(
+        text = text,
+        modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+        fontFamily = FontFamily.Monospace
     )
 }
 
@@ -387,16 +321,33 @@ private fun ClickableFileLink(path: String, modifier: Modifier = Modifier) {
     if (path == NOT_APPLICABLE) {
         LightText(text = path, modifier = modifier)
     } else {
-        BlueText(
-            text = path,
-            modifier = modifier.clickable(enabled = File(path).exists()) {
-                try {
-                    Desktop.getDesktop().open(File(path))
-                } catch (e: Exception) {
-                    LOG.warn("Failed to open file: $path", e)
-                }
+        val clipboardManager = LocalClipboardManager.current
+        val interactionSource = remember { MutableInteractionSource() }
+        val isHovered by interactionSource.collectIsHoveredAsState()
+        val color = if (isHovered) JewelTheme.colorPalette.blue[6].copy(alpha = 0.8f) else JewelTheme.colorPalette.blue[6]
+
+        ContextMenuArea(
+            items = {
+                listOf(
+                    ContextMenuItem("Copy Path") {
+                        clipboardManager.setText(AnnotatedString(path))
+                    }
+                )
             }
-        )
+        ) {
+            BlueText(
+                text = path,
+                modifier = modifier
+                    .clickable(enabled = File(path).exists(), interactionSource = interactionSource, indication = null) {
+                        try {
+                            Desktop.getDesktop().open(File(path))
+                        } catch (e: Exception) {
+                            LOG.warn("Failed to open file: $path", e)
+                        }
+                    },
+                color = color
+            )
+        }
     }
 }
 
@@ -407,10 +358,8 @@ private fun ClickableFileLink(path: String, modifier: Modifier = Modifier) {
  * @param modifier The modifier.
  */
 @Composable
-private fun BlueText(text: String, modifier: Modifier = Modifier) {
-    val isDarkTheme = LocalIsDarkTheme.current
-    val textColor = if (isDarkTheme) Color(0xFF589DF6) else Color(0xFF1854D9)
-    BasicText(text = text, style = TextStyle(color = textColor), modifier = modifier)
+private fun BlueText(text: String, modifier: Modifier = Modifier, color: Color = JewelTheme.colorPalette.blue[6]) {
+    Text(text = text, color = color, modifier = modifier)
 }
 
 /**
@@ -421,9 +370,7 @@ private fun BlueText(text: String, modifier: Modifier = Modifier) {
  */
 @Composable
 private fun GrayText(text: String, modifier: Modifier = Modifier) {
-    val isDarkTheme = LocalIsDarkTheme.current
-    val textColor = if (isDarkTheme) Color(0xFF888888) else Color.Gray
-    BasicText(text = text, style = TextStyle(color = textColor), modifier = modifier)
+    Text(text = text, color = JewelTheme.globalColors.text.info, modifier = modifier)
 }
 
 /**
@@ -434,9 +381,7 @@ private fun GrayText(text: String, modifier: Modifier = Modifier) {
  */
 @Composable
 private fun BoldLightText(text: String, modifier: Modifier = Modifier) {
-    val isDarkTheme = LocalIsDarkTheme.current
-    val textColor = if (isDarkTheme) Color(0xFFBBBBBB) else Color.Black
-    BasicText(text = text, style = TextStyle(color = textColor, fontWeight = FontWeight.Bold), modifier = modifier)
+    Text(text = text, fontWeight = FontWeight.Bold, modifier = modifier)
 }
 
 /**
@@ -447,9 +392,7 @@ private fun BoldLightText(text: String, modifier: Modifier = Modifier) {
  */
 @Composable
 private fun LightText(text: String, modifier: Modifier = Modifier) {
-    val isDarkTheme = LocalIsDarkTheme.current
-    val textColor = if (isDarkTheme) Color(0xFFBBBBBB) else Color.Black
-    BasicText(text = text, style = TextStyle(color = textColor), modifier = modifier)
+    Text(text = text, modifier = modifier)
 }
 
 /**
@@ -460,7 +403,7 @@ private fun LightText(text: String, modifier: Modifier = Modifier) {
  */
 @Composable
 private fun RedText(text: String, modifier: Modifier = Modifier) {
-    BasicText(text = text, style = TextStyle(color = Color(0xFFFF5261)), modifier = modifier)
+    Text(text = text, color = JewelTheme.globalColors.text.error, modifier = modifier)
 }
 
 /**
@@ -471,5 +414,5 @@ private fun RedText(text: String, modifier: Modifier = Modifier) {
  */
 @Composable
 private fun GreenText(text: String, modifier: Modifier = Modifier) {
-    BasicText(text = text, style = TextStyle(color = Color(0xFF499C54)), modifier = modifier)
+  JewelTheme.colorPalette.greenOrNull(7)?.let { Text(text = text, color = it, modifier = modifier) }
 }
