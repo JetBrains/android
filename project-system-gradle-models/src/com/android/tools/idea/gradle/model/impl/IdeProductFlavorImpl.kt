@@ -44,6 +44,7 @@ data class IdeProductFlavorImpl(
   override val resourceConfigurations: List<String>,
   override val vectorDrawables: IdeVectorDrawablesOptionsImpl?,
   override val matchingFallbacks: List<String>,
+  override val missingDimensionStrategy: Map<String, List<String>>,
   override val isDefault: Boolean?
 ) : IdeProductFlavor, Serializable {
   constructor(
@@ -71,6 +72,7 @@ data class IdeProductFlavorImpl(
     vectorDrawables: IdeVectorDrawablesOptionsImpl?,
     isDefault: Boolean?,
     matchingFallbacks: List<String>,
+    missingDimensionStrategy: Map<String, List<String>>,
     unused: String = "" // to prevent clash
   ) : this(
     name,
@@ -96,6 +98,7 @@ data class IdeProductFlavorImpl(
     resourceConfigurations,
     vectorDrawables,
     matchingFallbacks,
+    missingDimensionStrategy,
     isDefault
   )
 }

@@ -772,6 +772,14 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideProductFlavor.matchingFallbacks.takeIf { !it.isNullOrEmpty() }?.let {
         prop("MatchingFallbacks") { it.toString() }
       }
+      ideProductFlavor.missingDimensionStrategy.takeIf { !it.isNullOrEmpty() }?.let {
+        head("MissingDimensionStrategy")
+        nest {
+          it.forEach { (key, value) ->
+            prop(key) { value.toString() }
+          }
+        }
+      }
     }
 
     private fun dump(ideSourceProviderContainer: IdeSourceProviderContainer) {
