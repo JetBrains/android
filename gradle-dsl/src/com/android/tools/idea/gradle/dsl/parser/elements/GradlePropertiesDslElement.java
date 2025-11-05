@@ -55,6 +55,8 @@ import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -426,10 +428,22 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    */
   @SuppressWarnings("rawtypes")
   @NotNull
-  public Map<String, @NotNull PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+  public Map<String, @NotNull PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(@NotNull GradleDslNameConverter.Kind kind) {
+    return Collections.emptyMap();
+  }
+
+  /**
+   * Method introduced to make sure that child properties in addition to getChildPropertiesElementsDescriptionMap()
+   * will always include elements with got with extensions
+   */
+  public Map<String, @NotNull PropertiesElementDescription<?>> getFullChildPropertiesElementsDescriptionMap(
     @NotNull GradleDslNameConverter.Kind kind
   ) {
-    return GradleBlockModelMap.getElementMap(this.getClass(), kind);
+    HashMap<String, PropertiesElementDescription<?>> result = new HashMap<>();
+    result.putAll(getChildPropertiesElementsDescriptionMap(kind));
+    result.putAll(GradleBlockModelMap.getElementMap(this.getClass(), kind));
+
+    return result;
   }
 
   /**
@@ -439,7 +453,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    */
   @Nullable
   public PropertiesElementDescription getChildPropertiesElementDescription(GradleDslNameConverter converter, String name) {
-    return getChildPropertiesElementsDescriptionMap(converter.getKind()).get(name);
+    return getFullChildPropertiesElementsDescriptionMap(converter.getKind()).get(name);
   }
 
   @NotNull

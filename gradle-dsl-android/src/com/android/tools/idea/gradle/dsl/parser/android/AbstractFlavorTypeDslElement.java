@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import com.google.common.collect.ImmutableMap;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -133,12 +134,10 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
   public Map<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
     @NotNull GradleDslNameConverter.Kind kind
   ) {
-    Map<String, PropertiesElementDescription<?>> childPropertiesElements =
-      new HashMap<>(super.getChildPropertiesElementsDescriptionMap(kind));
     if (kind == GradleDslNameConverter.Kind.DECLARATIVE) {
-      childPropertiesElements.putAll(DCL_CHILD_PROPERTIES_ELEMENTS_MAP);
+      return DCL_CHILD_PROPERTIES_ELEMENTS_MAP;
     }
-    return childPropertiesElements;
+    return Collections.emptyMap();
   }
 
   @Override
