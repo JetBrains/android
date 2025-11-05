@@ -1,4 +1,5 @@
 <idea-plugin>
+  <depends>com.android.tools.gradle.dsl</depends>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.gradle.dsl.gradleDeclarativeBuildModelProvider"
                     interface="com.android.tools.idea.gradle.dsl.model.GradleDeclarativeBuildModelProvider"

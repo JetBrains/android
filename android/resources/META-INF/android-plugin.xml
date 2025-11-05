@@ -26,6 +26,7 @@
   <depends>org.toml.lang</depends>
   <depends>org.jetbrains.idea.gradle.dsl</depends>
   <depends>com.intellij.modules.json</depends>
+  <depends>com.android.tools.gradle.dcl</depends>
 
   <dependencies>
     <module name="intellij.xml.emmet"/>

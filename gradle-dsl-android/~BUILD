@@ -40,5 +40,6 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
+        "//tools/adt/idea/gradle-dsl-plugin:intellij.android.gradle.dsl.plugin",
     ],
 )

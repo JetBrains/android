@@ -3121,6 +3121,7 @@ Android Studio Preview.app/Contents/plugins/gemini/resources/recorder-release-an
 Android Studio Preview.app/Contents/plugins/git4insights/lib/git4insights.jar
 Android Studio Preview.app/Contents/plugins/gradle-declarative/lib/gradle-declarative.jar
 Android Studio Preview.app/Contents/plugins/gradle-declarative/lib/gradle-declarative.so.jar
+Android Studio Preview.app/Contents/plugins/gradle-dsl/lib/gradle-dsl.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-java.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-jps.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/ant/ant-antlr.jar
