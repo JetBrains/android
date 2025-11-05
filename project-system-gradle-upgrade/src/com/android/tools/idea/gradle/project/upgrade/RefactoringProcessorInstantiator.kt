@@ -26,7 +26,7 @@ import org.jetbrains.annotations.VisibleForTesting
 
 private val LOG = Logger.getInstance(LOG_CATEGORY)
 
-class RefactoringProcessorInstantiator {
+open class RefactoringProcessorInstantiator {
   /**
    * Show an appropriate dialog, and return whether the AGP upgrade should proceed by running the refactoring processor.  The
    * usual case is the return value from a dialog presenting information and options to the user, but we show a different
@@ -44,7 +44,7 @@ class RefactoringProcessorInstantiator {
 
   @Slow
   @VisibleForTesting
-  fun showAndGetAgpUpgradeDialog(
+  open fun showAndGetAgpUpgradeDialog(
     processor: AgpUpgradeRefactoringProcessor,
     cannotUpgradeDialogFactory: (AgpUpgradeRefactoringProcessor) -> AgpUpgradeRefactoringProcessorCannotUpgradeDialog,
     upgradeDialogFactory: (AgpUpgradeRefactoringProcessor, Boolean) -> AgpUpgradeRefactoringProcessorDialog

@@ -116,6 +116,10 @@ import com.android.tools.idea.gradle.project.sync.idea.setupAndroidContentEntrie
 import com.android.tools.idea.gradle.project.sync.idea.setupAndroidDependenciesForMpss
 import com.android.tools.idea.gradle.project.sync.idea.setupCompilerOutputPaths
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues.Companion.syncIssues
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessorCannotUpgradeDialog
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessorDialog
+import com.android.tools.idea.gradle.project.upgrade.RefactoringProcessorInstantiator
 import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
@@ -2343,6 +2347,7 @@ data class OpenPreparedProjectOptions @JvmOverloads constructor(
   val syncViewEventHandler: (BuildEvent) -> Unit = {},
   val subscribe: (MessageBusConnection) -> Unit = {},
   val disableKtsRelatedIndexing: Boolean = false,
+  val disableForcedAgpUpgradeDialog: Boolean = false,
   val reportProjectSizeUsage: Boolean = false,
   val overrideProjectGradleJdkPath: File? = null,
   val onProjectCreated: Project.() -> Unit = {},
@@ -2417,6 +2422,9 @@ private fun <T> openPreparedProject(
             // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
             // run faster.
             disableKtsIndexing(project, disposable)
+          }
+          if (options.disableForcedAgpUpgradeDialog) {
+            disableForcedAgpUpgradeDialog(project, disposable)
           }
           // After create is invoked via three different execution paths:
           //   (1) when we import a new Android Gradle project that does not yet have a `.idea` directory. In this case this method is
@@ -2866,4 +2874,17 @@ fun disableKtsIndexing(project: Project, disposable: Disposable) {
   val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
 
   ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
+}
+
+fun disableForcedAgpUpgradeDialog(project: Project, disposable: Disposable) {
+  val instantiator = object : RefactoringProcessorInstantiator() {
+    override fun showAndGetAgpUpgradeDialog(
+      processor: AgpUpgradeRefactoringProcessor,
+      cannotUpgradeDialogFactory: (AgpUpgradeRefactoringProcessor) -> AgpUpgradeRefactoringProcessorCannotUpgradeDialog,
+      upgradeDialogFactory: (AgpUpgradeRefactoringProcessor, Boolean) -> AgpUpgradeRefactoringProcessorDialog
+    ): Boolean {
+      return false
+    }
+  }
+  project.replaceService(RefactoringProcessorInstantiator::class.java, instantiator, disposable)
 }

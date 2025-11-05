@@ -78,10 +78,6 @@ abstract class AbstractSyncFailureIntegrationTest {
   ) {
     val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
     val allBuildEventsProcessedLatch = CountDownLatch(1)
-    val instantiator = mock<RefactoringProcessorInstantiator>()
-    doCallRealMethod().whenever(instantiator).createProcessor(any(), any(), any())
-    doCallRealMethod().whenever(instantiator).showAndGetAgpUpgradeDialog(any())
-    doReturn(false).whenever(instantiator).showAndGetAgpUpgradeDialog(any(), any(), any())
     preparedProject.open(
       updateOptions = {
         it.copy(
@@ -99,9 +95,7 @@ abstract class AbstractSyncFailureIntegrationTest {
               allBuildEventsProcessedLatch.countDown()
             }
           },
-          onProjectCreated = {
-            this.replaceService(RefactoringProcessorInstantiator::class.java, instantiator, projectRule.testRootDisposable)
-          }
+          disableForcedAgpUpgradeDialog = true,
         )
       }
     ) { project ->
