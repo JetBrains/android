@@ -42,7 +42,7 @@ import com.android.tools.idea.gradle.project.upgrade.WellKnownGradlePluginDslUsa
 import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
 import com.android.tools.idea.gradle.project.upgrade.isCleanEnoughProject
 import com.android.tools.idea.gradle.project.upgrade.trackProcessorUsage
-import com.android.tools.idea.gradle.project.upgrade.versionsAreIncompatible
+import com.android.tools.idea.gradle.project.upgrade.versionsAreUnsupported
 import com.android.tools.idea.gradle.ui.GradleJdkListPathPresenter
 import com.android.tools.idea.gradle.util.GradleJdkComboBoxUtil
 import com.android.tools.idea.observable.core.ObjectValueProperty
@@ -412,8 +412,8 @@ class UpgradeAssistantWindowModel(
     .filter { current?.let { current -> it >= current } ?: false }
     // Keep only versions that are no later than the latest version we support
     .filter { it <= latestKnownVersion }
-    // Do not keep versions that would force an upgrade from on sync
-    .filter { !versionsAreIncompatible(it, latestKnownVersion) }
+    // Do not keep other versions that the IDE does not support
+    .filter { !versionsAreUnsupported(it, latestKnownVersion) }
     .toList()
     .sortedDescending()
 

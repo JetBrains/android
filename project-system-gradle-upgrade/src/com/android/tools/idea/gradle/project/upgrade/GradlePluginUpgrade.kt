@@ -195,10 +195,16 @@ fun shouldRecommendUpgrade(current: AgpVersion, latestKnown: AgpVersion, publish
  * will attempt to offer an upgrade, but some cases (e.g. a newer [current] than [latestKnown]) the user will be responsible
  * for action to get the project to a working state.
  */
-fun versionsAreIncompatible(
-  current: AgpVersion,
-  latestKnown: AgpVersion
-) : Boolean {
+fun versionsAreIncompatible(current: AgpVersion, latestKnown: AgpVersion) : Boolean {
+  return !setOf(COMPATIBLE, DEPRECATED, OBSOLETE).contains(computeAndroidGradlePluginCompatibility(current, latestKnown))
+}
+
+/**
+ * Returns whether, given the [current] version of AGP and the [latestKnown] version to Studio, we should consider the AGP version
+ * unsupported by the running IDE.  (The nuance compared with [versionsAreIncompatible] is that a compatibility state of [OBSOLETE] is
+ * technically a compatible state, but one which immediately triggers a forced AGP Upgrade).
+ */
+fun versionsAreUnsupported(current: AgpVersion, latestKnown: AgpVersion): Boolean {
   return !setOf(COMPATIBLE, DEPRECATED).contains(computeAndroidGradlePluginCompatibility(current, latestKnown))
 }
 

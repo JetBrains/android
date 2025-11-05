@@ -102,7 +102,7 @@ public class VersionsAreIncompatibleTest {
 
   private final boolean myForceUpgrade;
 
-  private static final AgpVersion unsupportedVersion = AgpVersion.parse("4.0.0");
+  private static final AgpVersion unsupportedVersion = AgpVersion.parse("3.6.0");
 
   public VersionsAreIncompatibleTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
     myCurrent = AgpVersion.parse(current);
@@ -116,6 +116,6 @@ public class VersionsAreIncompatibleTest {
     boolean forced = GradlePluginUpgrade.versionsAreIncompatible(myCurrent, myRecommended);
     assertEquals("are current " + myCurrent + " and latestKnown " + myRecommended + " compatible?", myForceUpgrade, forced);
     boolean forcedFromOldVersion = GradlePluginUpgrade.versionsAreIncompatible(unsupportedVersion, myRecommended);
-    assertTrue("are unsupported " + unsupportedVersion + " and latestKnown " + myRecommended + " compatible?", forcedFromOldVersion);
+    assertTrue("are unsupported " + unsupportedVersion + " and latestKnown " + myRecommended + " incompatible?", forcedFromOldVersion);
   }
 }
