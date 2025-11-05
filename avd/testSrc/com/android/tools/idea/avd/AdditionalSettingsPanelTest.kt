@@ -17,13 +17,13 @@ package com.android.tools.idea.avd
 
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteractionsProvider
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.filterToOne
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isPopup
@@ -32,7 +32,6 @@ import androidx.compose.ui.test.onChildren
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
@@ -41,6 +40,7 @@ import com.android.sdklib.devices.VendorDevices
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
+import com.android.tools.adtui.compose.utils.lingerMouseHover
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.utils.NullLogger
@@ -221,7 +221,7 @@ class AdditionalSettingsPanelTest {
 
     // Act
     rule.onRamTextField().performTextReplacement("3")
-    @OptIn(ExperimentalTestApi::class) rule.onRamTextField().performMouseInput { moveTo(center) }
+    rule.onRamTextField().lingerMouseHover(rule)
 
     // Assert
     rule.onTooltips().assertCountEquals(0)
@@ -238,7 +238,7 @@ class AdditionalSettingsPanelTest {
 
     // Act
     rule.onRamTextField().performTextReplacement("")
-    @OptIn(ExperimentalTestApi::class) rule.onRamTextField().performMouseInput { moveTo(center) }
+    rule.onRamTextField().lingerMouseHover(rule)
 
     // Assert
     rule.onNodeWithText("Specify a RAM value").assertIsDisplayed()
@@ -256,7 +256,7 @@ class AdditionalSettingsPanelTest {
     // Act
     rule.onRamDropdown().performClick()
     rule.onRamDropdownPopupChildren().filterToOne(hasText("MB")).performClick()
-    @OptIn(ExperimentalTestApi::class) rule.onRamTextField().performMouseInput { moveTo(center) }
+    rule.onRamTextField().lingerMouseHover(rule)
 
     // Assert
     rule.onNodeWithText("RAM must be at least 128 MB. Recommendation is 1 GB.").assertIsDisplayed()
@@ -273,7 +273,7 @@ class AdditionalSettingsPanelTest {
 
     // Act
     rule.onRamTextField().performTextReplacement("8589934592")
-    @OptIn(ExperimentalTestApi::class) rule.onRamTextField().performMouseInput { moveTo(center) }
+    rule.onRamTextField().lingerMouseHover(rule)
 
     // Assert
     rule.onNodeWithText("RAM value is too large").assertIsDisplayed()
@@ -291,8 +291,7 @@ class AdditionalSettingsPanelTest {
     // Act
     rule.onVMHeapSizeTextField().performTextReplacement("229")
 
-    @OptIn(ExperimentalTestApi::class)
-    rule.onVMHeapSizeTextField().performMouseInput { moveTo(center) }
+    rule.onVMHeapSizeTextField().lingerMouseHover(rule)
 
     // Assert
     rule.onTooltips().assertCountEquals(0)
@@ -311,8 +310,7 @@ class AdditionalSettingsPanelTest {
     // Act
     rule.onVMHeapSizeTextField().performTextReplacement("")
 
-    @OptIn(ExperimentalTestApi::class)
-    rule.onVMHeapSizeTextField().performMouseInput { moveTo(center) }
+    rule.onVMHeapSizeTextField().lingerMouseHover(rule)
 
     // Assert
     rule.onNodeWithText("Specify a VM heap size").assertIsDisplayed()
@@ -330,8 +328,7 @@ class AdditionalSettingsPanelTest {
     // Act
     rule.onVMHeapSizeTextField().performTextReplacement("15")
 
-    @OptIn(ExperimentalTestApi::class)
-    rule.onVMHeapSizeTextField().performMouseInput { moveTo(center) }
+    rule.onVMHeapSizeTextField().lingerMouseHover(rule)
 
     // Assert
     rule.onNodeWithText("VM heap must be at least 16 MB").assertIsDisplayed()
@@ -349,8 +346,7 @@ class AdditionalSettingsPanelTest {
     // Act
     rule.onVMHeapSizeTextField().performTextReplacement("8796093022208")
 
-    @OptIn(ExperimentalTestApi::class)
-    rule.onVMHeapSizeTextField().performMouseInput { moveTo(center) }
+    rule.onVMHeapSizeTextField().lingerMouseHover(rule)
 
     // Assert
     rule.onNodeWithText("VM heap size is too large").assertIsDisplayed()
