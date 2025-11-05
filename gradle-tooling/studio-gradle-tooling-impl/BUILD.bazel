@@ -27,6 +27,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:javax-inject-provided",
     "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
+    "//platform/util",
   ]
 )
 
@@ -44,6 +45,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:javax-inject-provided",
     "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
+    "//platform/util",
     "@lib//:equalsverifier",
   ]
 )

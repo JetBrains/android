@@ -1487,6 +1487,7 @@ MODULE                        : project.app
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
             IsZipAlignEnabled             : true
+            MatchingFallbacks             : [release, debug]
         SourceProvider
             Name                          : specialRelease
             Manifest                      : <ROOT>/app/src/specialRelease/AndroidManifest.xml [-]
@@ -1680,6 +1681,7 @@ MODULE                        : project.app
             resourceConfigurations        : xhdpi
             resourceConfigurations        : en
             VectorDrawables
+            MatchingFallbacks             : [bar]
         SourceProvider
             Name                          : otherBar
             Manifest                      : <ROOT>/app/src/otherBar/AndroidManifest.xml [-]

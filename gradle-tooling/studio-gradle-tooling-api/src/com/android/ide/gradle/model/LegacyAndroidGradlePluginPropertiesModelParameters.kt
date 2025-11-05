@@ -23,4 +23,5 @@ interface LegacyAndroidGradlePluginPropertiesModelParameters {
   var namespace: Boolean
   var dataBinding: Boolean
   var mappingFile: Boolean
+  var matchingFallbacks: Boolean
 }

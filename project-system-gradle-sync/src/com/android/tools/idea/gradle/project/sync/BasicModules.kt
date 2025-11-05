@@ -158,7 +158,8 @@ private fun getLegacyAndroidGradlePluginProperties(controller: BuildController,
   if (modelVersions[ModelFeature.HAS_APPLICATION_ID] &&
       modelVersions[ModelFeature.HAS_NAMESPACE] &&
       modelVersions[ModelFeature.HAS_DATA_BINDING] &&
-      modelVersions[ModelFeature.HAS_R8_MAPPING_FILE_PATH]
+      modelVersions[ModelFeature.HAS_R8_MAPPING_FILE_PATH] &&
+      modelVersions[ModelFeature.HAS_MATCHING_FALLBACKS]
     ) return null // Only fetch the model if it is needed.
   return controller.findModel(gradleProject, LegacyAndroidGradlePluginProperties::class.java,
                               LegacyAndroidGradlePluginPropertiesModelParameters::class.java) {
@@ -166,6 +167,7 @@ private fun getLegacyAndroidGradlePluginProperties(controller: BuildController,
     it.namespace = !modelVersions[ModelFeature.HAS_NAMESPACE]
     it.dataBinding = !modelVersions[ModelFeature.HAS_DATA_BINDING]
     it.mappingFile = !modelVersions[ModelFeature.HAS_R8_MAPPING_FILE_PATH]
+    it.matchingFallbacks = !modelVersions[ModelFeature.HAS_MATCHING_FALLBACKS]
   }
 }
 /**

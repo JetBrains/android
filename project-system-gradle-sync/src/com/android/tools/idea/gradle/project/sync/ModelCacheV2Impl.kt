@@ -53,9 +53,7 @@ import com.android.builder.model.v2.models.AssetsTestSuiteSource
 import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.BasicTestSuite
 import com.android.builder.model.v2.models.HostJarTestSuiteSource
-import com.android.builder.model.v2.models.SourceType
 import com.android.builder.model.v2.models.TestApkTestSuiteSource
-import com.android.builder.model.v2.models.TestSuiteSource
 import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
@@ -320,7 +318,7 @@ fun modelCacheV2Impl(
     )
   }
 
-  fun productFlavorFrom(flavor: ProductFlavor): IdeProductFlavorImpl {
+  fun productFlavorFrom(flavor: ProductFlavor, legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?): IdeProductFlavorImpl {
     return IdeProductFlavorImpl(
       name = flavor.name.deduplicate(),
       resValues = flavor.resValues?.mapValues { classFieldFrom(it.value) } ?: mapOf(),
@@ -351,7 +349,9 @@ fun modelCacheV2Impl(
       testInstrumentationRunner = flavor.testInstrumentationRunner?.deduplicate(),
       testFunctionalTest = flavor.testFunctionalTest,
       testHandleProfiling = flavor.testHandleProfiling,
-      matchingFallbacks = if (modelVersions[ModelFeature.HAS_MATCHING_FALLBACKS]) flavor.matchingFallbacks else emptyList(),
+      matchingFallbacks =
+        if (modelVersions[ModelFeature.HAS_MATCHING_FALLBACKS]) flavor.matchingFallbacks
+        else legacyAndroidGradlePluginProperties?.productFlavorsMatchingFallbacks[flavor.name] ?: emptyList(),
       isDefault = flavor.isDefault
     )
   }
@@ -462,10 +462,11 @@ fun modelCacheV2Impl(
   fun productFlavorContainerFrom(
     productFlavor: ProductFlavor,
     container: SourceSetContainer?,
-    buildFolder: File
+    buildFolder: File,
+    legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
   ): IdeProductFlavorContainerImpl {
     return IdeProductFlavorContainerImpl(
-      productFlavor = productFlavorFrom(productFlavor),
+      productFlavor = productFlavorFrom(productFlavor, legacyAndroidGradlePluginProperties),
       sourceProvider = container?.sourceProvider?.let { it: SourceProvider -> sourceProviderFrom(it, buildFolder) },
       extraSourceProviders = mutableListOf<IdeExtraSourceProviderImpl>().apply {
         if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
@@ -499,7 +500,7 @@ fun modelCacheV2Impl(
     )
   }
 
-  fun buildTypeFrom(buildType: BuildType): IdeBuildTypeImpl {
+  fun buildTypeFrom(buildType: BuildType, legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?): IdeBuildTypeImpl {
     return IdeBuildTypeImpl(
       name = buildType.name.deduplicate(),
       resValues = buildType.resValues?.mapValues { classFieldFrom(it.value) } ?: mapOf(),
@@ -525,13 +526,22 @@ fun modelCacheV2Impl(
       isMinifyEnabled = buildType.isMinifyEnabled,
       isZipAlignEnabled = buildType.isZipAlignEnabled,
       isDefault = buildType.isDefault,
-      matchingFallbacks = if (modelVersions[ModelFeature.HAS_MATCHING_FALLBACKS]) buildType.matchingFallbacks else emptyList()
+      matchingFallbacks =
+        if (modelVersions[ModelFeature.HAS_MATCHING_FALLBACKS]) buildType.matchingFallbacks
+        else {
+          legacyAndroidGradlePluginProperties?.buildTypesMatchingFallbacks[buildType.name] ?: emptyList()
+        }
     )
   }
 
-  fun buildTypeContainerFrom(buildType: BuildType, container: SourceSetContainer?, buildFolder: File): IdeBuildTypeContainerImpl {
+  fun buildTypeContainerFrom(
+    buildType: BuildType,
+    container: SourceSetContainer?,
+    buildFolder: File,
+    legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
+  ): IdeBuildTypeContainerImpl {
     return IdeBuildTypeContainerImpl(
-      buildType = buildTypeFrom(buildType),
+      buildType = buildTypeFrom(buildType, legacyAndroidGradlePluginProperties),
       sourceProvider = container?.sourceProvider?.let { sourceProviderFrom(it, buildFolder) },
       extraSourceProviders = mutableListOf<IdeExtraSourceProviderImpl>().apply {
         if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
@@ -1542,7 +1552,7 @@ fun modelCacheV2Impl(
     gradlePropertiesModel: GradlePropertiesModel,
     defaultVariantName: String?
   ): ModelResult<IdeAndroidProjectImpl> {
-    val defaultConfigCopy: IdeProductFlavorImpl = productFlavorFrom(androidDsl.defaultConfig)
+    val defaultConfigCopy: IdeProductFlavorImpl = productFlavorFrom(androidDsl.defaultConfig, legacyAndroidGradlePluginProperties)
     val defaultConfigSourcesCopy: IdeSourceProviderContainerImpl =
       sourceProviderContainerFrom(basicProject.mainSourceSet, basicProject.buildFolder)
     val buildTypesCopy: Collection<IdeBuildTypeContainerImpl> = zip(
@@ -1551,6 +1561,7 @@ fun modelCacheV2Impl(
       { it.name },
       { it.sourceProvider?.name ?: error("sourceProvider was null.") },
       basicProject.buildFolder,
+      legacyAndroidGradlePluginProperties,
       ::buildTypeContainerFrom
     )
     val productFlavorCopy: Collection<IdeProductFlavorContainerImpl> = zip(
@@ -1559,6 +1570,7 @@ fun modelCacheV2Impl(
       { it.name },
       { it.sourceProvider?.name ?: error("sourceProvider was null.") },
       basicProject.buildFolder,
+      legacyAndroidGradlePluginProperties,
       ::productFlavorContainerFrom
     )
     val basicVariantsCopy: Collection<IdeBasicVariantImpl> = project.variants.map { variant ->
@@ -1755,10 +1767,11 @@ private inline fun <K, V, W, R, Z> zip(
   key1: (V) -> K,
   key2: (W) -> K,
   additionalParameter: Z,
-  mapper: (V, W?, Z) -> R
+  legacyMapper: LegacyAndroidGradlePluginProperties?,
+  mapper: (V, W?, Z, LegacyAndroidGradlePluginProperties?) -> R
 ): List<R> {
   val original2Keyed = original2.associateBy { key2(it) }
-  return original1.map { mapper(it, original2Keyed[key1(it)], additionalParameter) }
+  return original1.map { mapper(it, original2Keyed[key1(it)], additionalParameter, legacyMapper) }
 }
 
 internal fun Collection<SyncIssue>.toV2SyncIssueData(): List<IdeSyncIssue> {

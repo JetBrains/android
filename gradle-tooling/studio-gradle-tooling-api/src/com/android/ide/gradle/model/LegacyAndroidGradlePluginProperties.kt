@@ -43,6 +43,14 @@ interface LegacyAndroidGradlePluginProperties {
   /** For AGP < 8.7, whether Android resource data binding is enabled. */
   val dataBindingEnabled: Boolean?
   val mappingR8TextFiles: Map<String, File?>
+
+  /** For AGP < 9.0, we have the matchingFallbacks information in the DSL components only. */
+  val buildTypesMatchingFallbacks: Map<String, List<String>>
+
+  /** For AGP < 9.0, we have the matchingFallbacks information in the DSL components only.
+   * We don't need the information about the dimension here because the flavor's name is already unique. */
+  val productFlavorsMatchingFallbacks: Map<String, List<String>>
+
   /**
    * Exceptions caught from trying to read the additional information from the model, which should be reported as sync warnings.
    */
