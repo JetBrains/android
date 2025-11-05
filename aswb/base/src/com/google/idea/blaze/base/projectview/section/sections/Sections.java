@@ -48,7 +48,8 @@ public class Sections {
                     BuildConfigSection.PARSER,
                     UseQuerySyncSection.PARSER,
                     WorkspaceLocationSection.PARSER,
-                    EnableCodeAnalysisOnSyncSection.PARSER);
+                    EnableCodeAnalysisOnSyncSection.PARSER,
+                    AgentsMdSection.PARSER);
 
   public static List<SectionParser> getParsers() {
     List<SectionParser> parsers = Lists.newArrayList(PARSERS);
