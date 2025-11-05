@@ -138,7 +138,7 @@ class CreateTypedResourceFileActionTest {
     val addedFile = elements.single()
     assertThat(addedFile).isInstanceOf(PsiFile::class.java)
     addedFile as PsiFile
-    assertThat(addedFile.virtualFile.name).isEqualTo(filename)
+    assertThat(addedFile.virtualFile!!.name).isEqualTo(filename)
     assertThat(FileEditorManager.getInstance(project).selectedTextEditor).isNull()
   }
 }
