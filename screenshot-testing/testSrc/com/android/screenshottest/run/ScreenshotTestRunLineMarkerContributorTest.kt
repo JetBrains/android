@@ -145,8 +145,8 @@ class ScreenshotTestRunLineMarkerContributorTest {
     assertNotNull(classInfo)
     assertTrue(lastAction1 is UpdateReferenceImagesAction)
     assertTrue(lastAction2 is UpdateReferenceImagesAction)
-    assertEquals("Add/Update Reference Images", lastAction1!!.templateText)
-    assertEquals("Add/Update Reference Images", lastAction2!!.templateText)
+    assertEquals("Add/Update Reference Images...", lastAction1!!.templateText)
+    assertEquals("Add/Update Reference Images...", lastAction2!!.templateText)
   }
 
   @Test
@@ -219,8 +219,8 @@ class ScreenshotTestRunLineMarkerContributorTest {
     assertNotNull(classInfo)
     assertTrue(lastAction1 is UpdateReferenceImagesAction)
     assertTrue(lastAction2 is UpdateReferenceImagesAction)
-    assertEquals("Add/Update Reference Images", lastAction1!!.templateText)
-    assertEquals("Add/Update Reference Images", lastAction2!!.templateText)
+    assertEquals("Add/Update Reference Images...", lastAction1!!.templateText)
+    assertEquals("Add/Update Reference Images...", lastAction2!!.templateText)
   }
 
   @Test
@@ -254,7 +254,7 @@ class ScreenshotTestRunLineMarkerContributorTest {
     assertNotNull(fun1Info)
     assertNotNull(classInfo)
     assertTrue(lastAction1 is UpdateReferenceImagesAction)
-    assertEquals("Add/Update Reference Images", lastAction1!!.templateText)
+    assertEquals("Add/Update Reference Images...", lastAction1!!.templateText)
   }
 
   @Test
