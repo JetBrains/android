@@ -32,6 +32,7 @@ import com.google.idea.blaze.base.projectview.section.ScalarSection;
 import com.google.idea.blaze.base.projectview.section.Section;
 import com.google.idea.blaze.base.projectview.section.SectionParser;
 import com.google.idea.blaze.base.projectview.section.sections.AdditionalLanguagesSection;
+import com.google.idea.blaze.base.projectview.section.sections.AgentsMdSection;
 import com.google.idea.blaze.base.projectview.section.sections.AutomaticallyDeriveTargetsSection;
 import com.google.idea.blaze.base.projectview.section.sections.BazelBinarySection;
 import com.google.idea.blaze.base.projectview.section.sections.BuildConfigSection;
@@ -155,6 +156,9 @@ public class ProjectViewSetTest extends BlazeTestCase {
                                                         .set(new File("/bazel/path/override")))
                                         .add(
                                                 ScalarSection.builder(BuildConfigSection.KEY)
+                                                        .set(new WorkspacePath("test")))
+                                        .add(
+                                                ScalarSection.builder(AgentsMdSection.KEY)
                                                         .set(new WorkspacePath("test")))
                                         .build())
                         .build();
