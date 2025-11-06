@@ -205,4 +205,19 @@ class SanitizedBuilderTest {
     builder.sanitizeMultiplePaths(emptyLine)
     assertEquals("\n", builder.toString())
   }
+
+  @Test
+  fun testSanitizePathAtStartingOfLine() {
+    builder = SanitizedBuilder()
+    val linuxLine = "/usr/local/google/home/taorantr/java_error_in_studio_%p.log "
+    val expectedLinuxLine = "<elided>\n"
+    builder.sanitizeUntilEOL(linuxLine)
+    assertEquals(expectedLinuxLine, builder.toString())
+
+    builder = SanitizedBuilder()
+    val windowsLine = "C:\\Users\\taorantr\\java_error_in_studio_%p.log "
+    val expectedWindowsLine = "<elided>\n"
+    builder.sanitizeUntilEOL(windowsLine)
+    assertEquals(expectedWindowsLine, builder.toString())
+  }
 }
