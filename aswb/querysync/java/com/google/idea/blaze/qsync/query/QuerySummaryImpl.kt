@@ -347,7 +347,9 @@ data class QuerySummaryImpl(
         ":aspect_java_proto_toolchain",
         ":aspect_proto_toolchain_for_javalite",  // This is not strictly correct, as source files of rule with 'export' do not
         // depend on exported targets.
-        "exports"
+        "exports",
+        "library",
+        "cc_library",
       )
 
     // Compile time dependency attributes scoped to specific rule kind, for cases where sync does not
