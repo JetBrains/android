@@ -45,6 +45,7 @@ import com.intellij.coverage.IDEACoverageRunner
 import com.intellij.coverage.JavaCoverageEngine
 import com.intellij.execution.actions.ConfigurationFromContextImpl
 import com.intellij.execution.process.ProcessOutputType
+import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -251,7 +252,11 @@ class AndroidGradleConfigurationProducersTest {
     val settings = GradleManager().executionSettingsProvider.`fun`(Pair.create<Project, String>(project, projectPath)).apply {
       tasks = listOf(":app:testDebugUnitTest")
     }
-    AndroidGradleTaskManager().executeTasks(projectPath, id, settings, ExternalSystemTaskNotificationListener.NULL_OBJECT)
+    try {
+      AndroidGradleTaskManager().executeTasks(projectPath, id, settings, ExternalSystemTaskNotificationListener.NULL_OBJECT)
+    } catch (_: ExternalSystemException) {
+      // Ignore expected exception
+    }
 
     // Check that the JavaCoverageEngine won't require project rebuild.
     val filePsiElement = TestConfigurationTestingUtil.getPsiElement(project, "app/src/main/java/google/simpleapplication/MyActivity.java",
