@@ -32,7 +32,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBScrollBar
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.util.ui.UIUtil
+import com.intellij.ui.util.preferredWidth
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Adjustable
 import java.awt.BorderLayout
@@ -107,15 +107,15 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
 
     background = primaryPanelBackground
 
+    scrollPane = MyScrollPane()
+
     floatingToolbarLayerPane = BorderLayoutPanel().apply {
-      val scrollBarWidth = UIUtil.getScrollBarWidth()
+      val scrollBarWidth = scrollPane.verticalScrollBar.preferredWidth + 1
       @Suppress("UseDPIAwareBorders") // scrollBarWidth is scaled already.
       border = EmptyBorder(scrollBarWidth, scrollBarWidth, scrollBarWidth, scrollBarWidth)
       isOpaque = false
       isFocusable = true
     }
-
-    scrollPane = MyScrollPane()
 
     val layeredPane = JLayeredPane().apply {
       layout = LayeredPaneLayoutManager()
