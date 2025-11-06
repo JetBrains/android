@@ -17,9 +17,12 @@ package com.android.tools.idea.gradle.project.build.invoker
 
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
+import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import org.gradle.tooling.BuildCancelledException
 import org.jetbrains.annotations.TestOnly
 import java.io.File
+import org.gradle.tooling.model.build.BuildEnvironment
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 
 interface GradleBuildResult {
   val isBuildSuccessful: Boolean
@@ -35,13 +38,16 @@ class GradleInvocationResult @JvmOverloads constructor(
    * only through a public API, but for tests it could be useful to access it directly.
    */
   @get:TestOnly val buildError: Throwable?,
-
-  val model: Any? = null
+  val model: Any? = null,
+  private val buildEnvironment: BuildEnvironment? = null
 ) : GradleBuildResult {
 
   override val isBuildCancelled: Boolean get() = buildError != null && GradleProjectSystemUtil.hasCause(
     buildError, BuildCancelledException::class.java)
   override val isBuildSuccessful: Boolean get() = buildError == null
+
+  fun Throwable.toFriendlyError(): ExternalSystemException = GradleProjectResolver.createProjectResolverChain()
+      .getUserFriendlyError(buildEnvironment, this, rootProjectPath.toString(), null)
 }
 
 class GradleMultiInvocationResult(

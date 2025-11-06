@@ -31,6 +31,7 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
+import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -74,7 +75,11 @@ class AarDependencyCompatibilityIssueCheckerIntegrationTest {
     val settings = GradleExecutionSettings().apply {
       tasks = listOf(":app:assembleDebug")
     }
-    AndroidGradleTaskManager().executeTasks(projectPath, id, settings, taskNotificationListener)
+    try {
+      AndroidGradleTaskManager().executeTasks(projectPath, id, settings, taskNotificationListener)
+    } catch (_: ExternalSystemException) {
+      // Ignore expected exception
+    }
     Truth.assertThat(generatedExceptions).hasSize(1)
     Truth.assertThat(generatedExceptions[0]).isInstanceOf(BuildIssueException::class.java)
     val buildIssue = (generatedExceptions[0] as BuildIssueException).buildIssue
