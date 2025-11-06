@@ -1653,6 +1653,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_AI_GLASSES_PREVIEW = new BooleanFlag(
     COMPOSE, "preview.ai.glasses.preview", "Enable Compose Preview for AI Glasses",
     "If enabled, Compose Preview will have limited support for AI Glasses when glasses are set as the preview device.");
+
+  public static final Flag<Boolean> COMPOSE_PREVIEW_REFERENCE_PROVIDER_ENABLED = new BooleanFlag(
+    COMPOSE, "preview.reference.provider.enabled", "Enable Compose Preview Reference Provider",
+    "If enabled, the Compose Preview Reference Provider will be available for context attachment."
+  );
   //endregion
 
   // region Wear surfaces
