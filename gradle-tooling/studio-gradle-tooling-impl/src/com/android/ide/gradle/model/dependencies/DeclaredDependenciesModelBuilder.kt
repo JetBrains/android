@@ -32,23 +32,18 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
     fun ProjectDependency.computePath(): String =
       if (GradleVersion.version(project.gradle.gradleVersion) >= GradleVersion.version("8.11")) {
         path
-      }
-      else {
+      } else {
         // Need to be backwards compatible, should use reflection to get this value in 9.0 tooling api as it's being removed completely
         @Suppress("DEPRECATION")
         dependencyProject.path
       }
 
-    // The apparently-unnecessary toMutableList() calls here are an attempt to defend against anything
+    // The apparently-unnecessary toList() calls here are an attempt to defend against anything
     // that might spontaneously generate new elements of the collection being iterated over.  See
     // for example b/456739611.
-    //
-    // Why toMutableList() rather than toList()?  To defend against possible mis-implementations of the collection protocol,
-    // with differing size() and iterator() behaviours, combined with Kotlin special-casing of collections with size = 1.  See
-    // b/460504494.
-    project.configurations.toMutableList()
+    project.configurations.toList()
       .forEach { configuration ->
-        configuration.dependencies.toMutableList().forEach { dependency ->
+        configuration.dependencies.toList().forEach { dependency ->
           when (dependency) {
             is ProjectDependency -> allOutgoingProjectDependencies.add(dependency.computePath())
             else -> if (CONFIGURATIONS_OF_INTEREST.contains(configuration.name)) {
