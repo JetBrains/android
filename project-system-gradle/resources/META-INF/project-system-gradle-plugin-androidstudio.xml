@@ -96,7 +96,7 @@
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
   </projectListeners>
   <actions>
-    <action id="WelcomeScreen.Configure.ProjectStructure" class="com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction" overrides="true" />
+    <action id="WelcomeScreen.Configure.ProjectStructure" class="com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction"/>
     <action id="ChangeGradleJdkLocation" class="com.android.tools.idea.gradle.actions.ChangeGradleJdkLocationAction"/>
     <action id="GenerateSourcesModuleAction" class="com.android.tools.idea.gradle.actions.GenerateSourcesModuleAction"/>
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
