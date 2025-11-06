@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -192,6 +193,16 @@ class ScreenshotResultView {
     }
   }
 
+  @VisibleForTesting
+  val commonToggleChessboardAction =
+    object : ToggleAction("Chessboard", "Toggle Chessboard Background", IconLoader.getIcon("/org/intellij/images/icons/expui/chessboard.svg", ScreenshotResultView::class.java)) {
+      override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isChessboardVisible() ?: false
+      override fun setSelected(e: AnActionEvent, state: Boolean) = multiViewPanels.forEach { it.setChessboardVisible(state) }
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
+      }
+    }
+
   init {
     // Use nested OnePixelSplitters to create a three-panel view
     val rightSplit = OnePixelSplitter(false, 0.5f).apply {
@@ -271,12 +282,13 @@ class ScreenshotResultView {
 
   private fun createCommonToolbar(): ActionToolbar {
     val actionGroup = DefaultActionGroup().apply {
-      add(commonZoomInAction)
+      add(commonToggleChessboardAction)
+      add(commonToggleGridViewAction)
+      addSeparator()
       add(commonZoomOutAction)
+      add(commonZoomInAction)
       add(commonOneToOneAction)
       add(commonFitToScreenAction)
-      addSeparator()
-      add(commonToggleGridViewAction)
     }
     return ActionManager.getInstance().createActionToolbar("ScreenshotCommonToolbar", actionGroup, true).apply {
       targetComponent = myView
@@ -334,6 +346,8 @@ class ScreenshotResultView {
   ) : JPanel(BorderLayout(0, 4)) {
     private val imageLabel = object : JBLabel() {
       private var gridVisible = false
+      private var chessboardVisible = false
+
       fun setGridVisible(visible: Boolean) {
         if (gridVisible != visible) {
           gridVisible = visible
@@ -341,8 +355,37 @@ class ScreenshotResultView {
         }
       }
       fun isGridVisible(): Boolean = gridVisible
+      fun setChessboardVisible(visible: Boolean) {
+        if (chessboardVisible != visible) {
+          chessboardVisible = visible
+          repaint()
+        }
+      }
+      fun isChessboardVisible(): Boolean = chessboardVisible
 
       override fun paintComponent(g: Graphics) {
+        if (chessboardVisible) {
+          val g2d = g.create() as Graphics2D
+          try {
+            val color1 = UIUtil.getPanelBackground()
+            val color2 = JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()
+            val squareSize = 8
+            var x = 0
+            while (x < width) {
+              var y = 0
+              while (y < height) {
+                g2d.color = if ((x / squareSize + y / squareSize) % 2 == 0) color1 else color2
+                g2d.fillRect(x, y, squareSize, squareSize)
+                y += squareSize
+              }
+              x += squareSize
+            }
+          }
+          finally {
+            g2d.dispose()
+          }
+        }
+
         super.paintComponent(g) // This will draw the icon (the actual image)
 
         if (icon == null) return
@@ -426,6 +469,14 @@ class ScreenshotResultView {
       override fun update(e: AnActionEvent) { e.presentation.isEnabled = hasImage() }
     }
 
+    @VisibleForTesting
+    val toggleChessboardAction =
+      object : ToggleAction("Chessboard", "Toggle Chessboard Background", IconLoader.getIcon("/org/intellij/images/icons/expui/chessboard.svg", ScreenshotResultView::class.java)) {
+        override fun isSelected(e: AnActionEvent): Boolean = isChessboardVisible()
+        override fun setSelected(e: AnActionEvent, state: Boolean) = setChessboardVisible(state)
+        override fun update(e: AnActionEvent) { e.presentation.isEnabled = hasImage() }
+      }
+
     private var dynamicMinScale = 0.1
     private var dynamicMaxScale = 8.0
 
@@ -439,12 +490,13 @@ class ScreenshotResultView {
       border = JBUI.Borders.empty(if (showTitle) 10 else 0, 10, 10, 10)
 
       val actionGroup = DefaultActionGroup().apply {
-        add(zoomInAction)
+        add(toggleChessboardAction)
+        add(toggleGridViewAction)
+        addSeparator()
         add(zoomOutAction)
+        add(zoomInAction)
         add(oneToOneAction)
         add(fitToScreenAction)
-        addSeparator()
-        add(toggleGridViewAction)
       }
       toolbar = ActionManager.getInstance().createActionToolbar("ScreenshotImageToolbar", actionGroup, true).apply {
         targetComponent = this@ImageWithToolbarPanel
@@ -522,6 +574,8 @@ class ScreenshotResultView {
 
     fun setGridVisible(visible: Boolean) = imageLabel.setGridVisible(visible)
     fun isGridVisible(): Boolean = imageLabel.isGridVisible()
+    fun setChessboardVisible(visible: Boolean) = imageLabel.setChessboardVisible(visible)
+    fun isChessboardVisible(): Boolean = imageLabel.isChessboardVisible()
     fun canZoomIn(): Boolean = originalImage != null && currentScale < dynamicMaxScale
     fun canZoomOut(): Boolean = originalImage != null && currentScale > dynamicMinScale
     fun hasImage(): Boolean = originalImage != null
