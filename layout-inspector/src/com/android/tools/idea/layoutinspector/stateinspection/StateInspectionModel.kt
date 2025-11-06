@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.stateinspection
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -88,8 +89,9 @@ internal class StateInspectionModelImpl(
   private val resultShown: () -> Unit,
 ) : StateInspectionModel {
   private val scope = parentScope.createChildScope(parentDisposable = parentDisposable)
-  private var currentNode: ComposeViewNode? = null
-  private var currentRecomposition = 0
+  private val lock = Any()
+  @GuardedBy("lock")
+  private var currentKey: StateReadKey? = null
   private var hasStateReadsForPreviousRecomposition = false
 
   private val _show = MutableStateFlow(false)
@@ -145,7 +147,7 @@ internal class StateInspectionModelImpl(
       model.stateReadsModel.stateReadRequested.collect { key ->
         if (key != null) {
           _show.value = true
-          showInactiveState(InactiveState.WAITING)
+          showInactiveState(InactiveState.WAITING, key)
         } else {
           _show.value = false
           stopStateObservations()
@@ -172,22 +174,23 @@ internal class StateInspectionModelImpl(
       when {
         view !is ComposeViewNode -> showInactiveState(InactiveState.VIEW)
         !model.stateReadsModel.isNodeObserved(view) -> showInactiveState(InactiveState.NOT_OBSERVED)
-        view.anchorHash == currentNode?.anchorHash -> {} // Keep current recomposition
+        view.anchorHash == synchronized(lock) { currentKey?.composable?.anchorHash } -> {} // Keep current recomposition
         else -> loadRecompositionStateReads(view)
       }
     }
   }
 
   private fun showResult(result: RecomposeStateReadResult) {
-    val node = result.key.composable
-    currentNode = node
-    currentRecomposition = result.key.recomposition
-    hasStateReadsForPreviousRecomposition = result.hasStateReadsForPreviousRecomposition
-    _recompositionText.value = generateRecompositionText()
-    _stateReadsText.value = generateStateReadsText(result.reads.size)
-    _stackTraceText.value = generateStackTraces(result.reads)
-    _composableInspected.value = ComposableDefinition(node.qualifiedName, node.composeFilename)
-    _updates.value += 1
+    synchronized(lock) {
+      currentKey = result.key
+      hasStateReadsForPreviousRecomposition = result.hasStateReadsForPreviousRecomposition
+      _recompositionText.value = generateRecompositionText(result.key)
+      _stateReadsText.value = generateStateReadsText(result.reads.size)
+      _stackTraceText.value = generateStackTraces(result.reads)
+      val node = result.key.composable
+      _composableInspected.value = ComposableDefinition(node.qualifiedName, node.composeFilename)
+      _updates.value += 1
+    }
     resultShown()
   }
 
@@ -211,13 +214,19 @@ internal class StateInspectionModelImpl(
     }
   }
 
-  private fun showInactiveState(state: InactiveState) {
-    currentNode = null
-    _recompositionText.value = state.message()
-    _stateReadsText.value = ""
-    _stackTraceText.value = ""
-    _composableInspected.value = null
-    _updates.value += 1
+  private fun showInactiveState(state: InactiveState, waitingFor: StateReadKey? = null) {
+    synchronized(lock) {
+      if (waitingFor != null && currentKey == waitingFor) {
+        // Do no show the waiting state if we are already displaying what we are waiting for.
+        return
+      }
+      currentKey = null
+      _recompositionText.value = state.message()
+      _stateReadsText.value = ""
+      _stackTraceText.value = ""
+      _composableInspected.value = null
+      _updates.value += 1
+    }
   }
 
   private fun stopStateObservations() {
@@ -225,39 +234,41 @@ internal class StateInspectionModelImpl(
   }
 
   private fun clear() {
-    currentNode = null
-    currentRecomposition = 0
-    _recompositionText.value = ""
-    _stateReadsText.value = ""
-    _stackTraceText.value = ""
-    _updates.value += 1
+    synchronized(lock) {
+      currentKey = null
+      _recompositionText.value = ""
+      _stateReadsText.value = ""
+      _stackTraceText.value = ""
+      _updates.value += 1
+    }
   }
 
   private fun gotoPrevRecomposition(event: AnActionEvent) {
-    val node = currentNode ?: return
-    loadRecompositionStateReads(node, currentRecomposition - 1)
+    val key = synchronized(lock) { currentKey } ?: return
+    loadRecompositionStateReads(key.composable, key.recomposition - 1)
     LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.prevRecompositionChosen()
   }
 
   private fun gotoNextRecomposition(event: AnActionEvent) {
-    val node = currentNode ?: return
-    loadRecompositionStateReads(node, currentRecomposition + 1)
+    val key = synchronized(lock) { currentKey } ?: return
+    loadRecompositionStateReads(key.composable, key.recomposition + 1)
     LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.nextRecompositionChosen()
   }
 
   private fun hasPrevComposition(): Boolean {
-    return currentNode != null && hasStateReadsForPreviousRecomposition
+    synchronized(lock) { currentKey } ?: return false
+    return hasStateReadsForPreviousRecomposition
   }
 
   private fun hasNextComposition(): Boolean {
-    val node = currentNode ?: return false
-    return currentRecomposition < node.recompositions.count
+    val key = synchronized(lock) { currentKey } ?: return false
+    return key.recomposition < key.composable.recompositions.count
   }
 
-  private fun generateRecompositionText(): String {
+  private fun generateRecompositionText(key: StateReadKey): String {
     return LayoutInspectorBundle.message(
       "layout.inspector.recomposition.number",
-      currentRecomposition.toString(),
+      key.recomposition.toString(),
     )
   }
 
