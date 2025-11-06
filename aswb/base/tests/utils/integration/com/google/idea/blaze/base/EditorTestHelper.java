@@ -32,8 +32,7 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.PostprocessReformattingAspect;
 import com.intellij.testFramework.EditorTestUtil;
-import com.intellij.testFramework.EditorTestUtil.CaretAndSelectionState;
-import com.intellij.testFramework.EditorTestUtil.CaretInfo;
+import com.intellij.testFramework.common.EditorCaretTestUtil;
 import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import java.util.Arrays;
@@ -123,17 +122,17 @@ public class EditorTestHelper {
   }
 
   public void setCaretPosition(Editor editor, int lineNumber, int columnNumber) throws Throwable {
-    final CaretInfo info = new CaretInfo(new LogicalPosition(lineNumber, columnNumber), null);
+    final EditorCaretTestUtil.CaretInfo info = new EditorCaretTestUtil.CaretInfo(new LogicalPosition(lineNumber, columnNumber), null);
     EdtTestUtil.runInEdtAndWait(
         () ->
             EditorTestUtil.setCaretsAndSelection(
-                editor, new CaretAndSelectionState(ImmutableList.of(info), null)));
+                editor, new EditorCaretTestUtil.CaretAndSelectionState(ImmutableList.of(info), null)));
   }
 
   public void assertCaretPosition(Editor editor, int lineNumber, int columnNumber) {
-    CaretInfo info = new CaretInfo(new LogicalPosition(lineNumber, columnNumber), null);
+    EditorCaretTestUtil.CaretInfo info = new EditorCaretTestUtil.CaretInfo(new LogicalPosition(lineNumber, columnNumber), null);
     EditorTestUtil.verifyCaretAndSelectionState(
-        editor, new CaretAndSelectionState(ImmutableList.of(info), null));
+        editor, new EditorCaretTestUtil.CaretAndSelectionState(ImmutableList.of(info), null));
   }
 
   public void replaceStringContents(StringLiteral string, String newStringContents) {

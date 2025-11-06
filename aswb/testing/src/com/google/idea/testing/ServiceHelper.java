@@ -101,8 +101,8 @@ public class ServiceHelper {
     if (application instanceof ComponentManagerImpl) {
       if (!application.hasComponent(key)) {
         // registers component from scratch
-        ServiceContainerUtil.registerComponentImplementation(
-            application, key, key, /* shouldBeRegistered= */ false);
+        ServiceContainerUtil.registerComponentInstance(
+            application, key, implementation, /* shouldBeRegistered= */ parentDisposable);
       }
       // replaces existing component
       ServiceContainerUtil.registerComponentInstance(
