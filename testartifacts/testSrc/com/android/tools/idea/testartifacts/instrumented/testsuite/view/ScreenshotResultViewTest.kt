@@ -170,6 +170,9 @@ class ScreenshotResultViewTest {
 
     imagePanel.toggleGridViewAction.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
+
+    imagePanel.toggleChessboardAction.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
   }
 
   @Test
@@ -193,6 +196,9 @@ class ScreenshotResultViewTest {
     assertThat(event.presentation.isEnabled).isFalse()
 
     view.commonToggleGridViewAction.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+
+    view.commonToggleChessboardAction.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
   }
 
@@ -295,6 +301,27 @@ class ScreenshotResultViewTest {
     // Toggle off
     gridAction.setSelected(event, false)
     assertThat(gridAction.isSelected(event)).isFalse()
+  }
+
+  @Test
+  fun chessboardActionTogglesChessboardVisibility() = runInEdtAndWait {
+    val imagePanel = view.newImagePanelSingle
+    val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
+    imagePanel.setImage(image)
+
+    val chessboardAction = imagePanel.toggleChessboardAction
+    val event = TestActionEvent.createTestEvent()
+
+    // Initially not selected
+    assertThat(chessboardAction.isSelected(event)).isFalse()
+
+    // Toggle on
+    chessboardAction.setSelected(event, true)
+    assertThat(chessboardAction.isSelected(event)).isTrue()
+
+    // Toggle off
+    chessboardAction.setSelected(event, false)
+    assertThat(chessboardAction.isSelected(event)).isFalse()
   }
 
   /**
