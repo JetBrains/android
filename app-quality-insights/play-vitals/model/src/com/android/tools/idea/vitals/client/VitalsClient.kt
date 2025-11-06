@@ -19,9 +19,6 @@ import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DetailedIssueStats
-import com.android.tools.idea.insights.Device
-import com.android.tools.idea.insights.Event
-import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.IssueId
@@ -32,12 +29,9 @@ import com.android.tools.idea.insights.MINIMUM_PERCENTAGE_TO_SHOW
 import com.android.tools.idea.insights.MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
-import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Permission
-import com.android.tools.idea.insights.StackTraceGroupParser
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
-import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.AiInsightClient
@@ -48,7 +42,13 @@ import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.client.createGeminiInsightRequest
 import com.android.tools.idea.insights.client.runGrpcCatchingWithSupervisorScope
+import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.connection.AppConnection
+import com.android.tools.idea.insights.model.event.Device
+import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.event.EventPage
+import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.stacktrace.StackTraceGroupParser
 import com.android.tools.idea.insights.summarizeDevicesFromRawDataPoints
 import com.android.tools.idea.insights.summarizeOsesFromRawDataPoints
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClient

@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.vcs
 
 import com.android.tools.idea.insights.Connection
-import com.android.tools.idea.insights.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
 import com.android.tools.idea.insights.ui.vcs.ContextDataForDiff
 import com.android.tools.idea.insights.ui.vcs.InsightsDiffViewProvider
 import com.android.tools.idea.insights.ui.vcs.InsightsDiffVirtualFile

@@ -18,13 +18,13 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.ConnectionMode
-import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
+import com.android.tools.idea.insights.model.event.Event
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.runInEdtAndWait
 import java.awt.Component

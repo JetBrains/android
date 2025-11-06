@@ -16,12 +16,12 @@
 package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.insights.ConnectionMode
-import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.ISSUE1
-import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
+import com.android.tools.idea.insights.model.event.Device
+import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

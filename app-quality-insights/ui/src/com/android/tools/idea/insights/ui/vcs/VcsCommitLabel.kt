@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.tools.idea.insights.AppVcsInfo
+import com.android.tools.idea.insights.model.vcs.AppVcsInfo
 import com.android.tools.idea.insights.ui.transparentPanel
 import com.intellij.icons.AllIcons
 import com.intellij.ide.HelpTooltip

@@ -19,9 +19,6 @@ import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DetailedIssueStats
-import com.android.tools.idea.insights.Device
-import com.android.tools.idea.insights.Event
-import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.IssueId
@@ -30,13 +27,16 @@ import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
-import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
-import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.connection.AppConnection
+import com.android.tools.idea.insights.model.event.Device
+import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.event.EventPage
+import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 
 data class IssueRequest(val connection: Connection, val filters: QueryFilters)
 

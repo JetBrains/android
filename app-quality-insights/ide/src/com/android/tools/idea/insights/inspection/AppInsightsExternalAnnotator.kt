@@ -17,10 +17,10 @@ package com.android.tools.idea.insights.inspection
 
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsModel
-import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.analytics.AppInsightsPerformanceTracker
 import com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator.AnnotationResult
 import com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator.InitialInfo
+import com.android.tools.idea.insights.model.vcs.AppVcsInfo
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory

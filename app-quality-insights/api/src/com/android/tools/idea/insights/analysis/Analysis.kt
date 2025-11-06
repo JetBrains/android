@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.analysis
 
-import com.android.tools.idea.insights.Frame
+import com.android.tools.idea.insights.model.stacktrace.Frame
 
 /** A pair of a [crash frame][Frame] and its ["cause"][Cause]. */
 data class CrashFrame(val frame: Frame, val cause: Cause)
@@ -27,7 +27,7 @@ data class CrashFrame(val frame: Frame, val cause: Cause)
  * at that frame.
  */
 sealed class Cause {
-  data class Frame(val frame: com.android.tools.idea.insights.Frame) : Cause()
+  data class Frame(val frame: com.android.tools.idea.insights.model.stacktrace.Frame) : Cause()
 
   data class Throwable(val exceptionType: String) : Cause()
 }

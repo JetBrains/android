@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.insights.vcs
 
-import com.android.tools.idea.insights.PROJECT_ROOT_PREFIX
-import com.android.tools.idea.insights.RepoInfo
-import com.android.tools.idea.insights.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.RepoInfo
+import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RuleChain

@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.insights.Event
+import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
 import com.android.tools.idea.insights.ui.SELECTED_EVENT_KEY
 import com.intellij.ide.plugins.PluginManagerConfigurable

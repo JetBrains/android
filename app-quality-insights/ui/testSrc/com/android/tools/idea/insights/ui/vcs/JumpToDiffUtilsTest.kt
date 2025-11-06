@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.tools.idea.insights.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
 import com.android.tools.idea.insights.vcs.FakeVcsForAppInsights
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
 import com.android.tools.idea.insights.vcs.VcsForAppInsights

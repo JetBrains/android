@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights
 
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.model.event.Event
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import icons.StudioIcons
 import javax.swing.Icon

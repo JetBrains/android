@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.event.EventPage
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.REPO_INFO
 import com.android.tools.idea.insights.REVISION_74081e5f
-import com.android.tools.idea.insights.VCS_CATEGORY
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.model.vcs.AppVcsInfo
+import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
 import com.android.tools.idea.insights.vcs.toVcsFilePath
 import com.android.tools.idea.testing.AndroidProjectRule

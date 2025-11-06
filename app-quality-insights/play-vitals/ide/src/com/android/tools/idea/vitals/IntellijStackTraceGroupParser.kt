@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.vitals
 
-import com.android.tools.idea.insights.Blames
-import com.android.tools.idea.insights.Caption
-import com.android.tools.idea.insights.ExceptionStack
-import com.android.tools.idea.insights.Frame
-import com.android.tools.idea.insights.StackTraceGroupParser
-import com.android.tools.idea.insights.Stacktrace
-import com.android.tools.idea.insights.StacktraceGroup
+import com.android.tools.idea.insights.model.stacktrace.Blames
+import com.android.tools.idea.insights.model.stacktrace.Caption
+import com.android.tools.idea.insights.model.stacktrace.ExceptionStack
+import com.android.tools.idea.insights.model.stacktrace.Frame
+import com.android.tools.idea.insights.model.stacktrace.StackTraceGroupParser
+import com.android.tools.idea.insights.model.stacktrace.Stacktrace
+import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
 import com.intellij.execution.filters.ExceptionWorker.parseExceptionLine
 import com.intellij.openapi.diagnostic.Logger
 import java.util.ArrayDeque

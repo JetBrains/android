@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.vitals.datamodel
 
-import com.android.tools.idea.insights.Device
-import com.android.tools.idea.insights.DeviceType
+import com.android.tools.idea.insights.model.event.Device
+import com.android.tools.idea.insights.model.event.DeviceType
 import com.google.common.truth.Truth.assertThat
 import com.google.play.developer.reporting.DeviceId
 import com.google.play.developer.reporting.DeviceModelSummary

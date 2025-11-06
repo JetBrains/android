@@ -16,14 +16,14 @@
 package com.android.tools.idea.insights.inspection
 
 import com.android.tools.idea.insights.AppInsight
-import com.android.tools.idea.insights.AppVcsInfo
-import com.android.tools.idea.insights.Frame
-import com.android.tools.idea.insights.GenerateErrorReason
-import com.android.tools.idea.insights.PROJECT_ROOT_PREFIX
-import com.android.tools.idea.insights.RepoInfo
-import com.android.tools.idea.insights.VCS_CATEGORY
+import com.android.tools.idea.insights.model.stacktrace.Frame
+import com.android.tools.idea.insights.model.vcs.AppVcsInfo
+import com.android.tools.idea.insights.model.vcs.GenerateErrorReason
+import com.android.tools.idea.insights.model.vcs.RepoInfo
+import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
+import com.android.tools.idea.insights.vcs.PROJECT_ROOT_PREFIX
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.Before
 import org.junit.Rule

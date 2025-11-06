@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.ai
 
 import com.android.tools.idea.insights.AppInsightsIssue
-import com.android.tools.idea.insights.Event
+import com.android.tools.idea.insights.model.event.Event
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 

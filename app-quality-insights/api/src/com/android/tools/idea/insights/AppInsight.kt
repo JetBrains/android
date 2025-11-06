@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights
 
 import com.android.tools.idea.insights.analysis.Cause
+import com.android.tools.idea.insights.model.stacktrace.Frame
 import com.intellij.openapi.diagnostic.Logger
 
 /**
