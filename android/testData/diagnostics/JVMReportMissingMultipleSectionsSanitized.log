@@ -73,7 +73,7 @@ libc: glibc 2.41 NPTL 2.41
 rlimit (soft/hard): STACK 8192k/infinity , CORE infinity/infinity , NPROC 131072/infinity , NOFILE 131072/131072 , AS infinity/infinity , CPU infinity/infinity , DATA infinity/infinity , FSIZE infinity/infinity , MEMLOCK infinity/infinity
 load average: 1.21 1.87 6.65
 
-/proc/meminfo:
+<elided>
 MemTotal:       123633356 kB
 MemFree:         2918136 kB
 MemAvailable:   91067080 kB
@@ -130,9 +130,9 @@ DirectMap4k:      654112 kB
 DirectMap2M:    33945600 kB
 DirectMap1G:    93323264 kB
 
-/sys/kernel/mm/transparent_hugepage/enabled: [always] madvise never
-/sys/kernel/mm/transparent_hugepage/hpage_pmd_size: 2097152
-/sys/kernel/mm/transparent_hugepage/defrag (defrag/compaction efforts parameter): always defer defer+madvise [madvise] never
+<elided>
+<elided>
+<elided>
 
 Process Memory:
 Virtual Size: 7135488K (peak: 7196112K)
@@ -141,10 +141,10 @@ Swapped out: 0K
 C-Heap outstanding allocations: 224538K, retained: 183485K
 glibc malloc tunables: (default)
 
-/proc/sys/kernel/threads-max (system-wide limit on the number of threads): 964657
-/proc/sys/vm/max_map_count (maximum number of memory map areas a process may have): 4194304
-/proc/sys/vm/swappiness (control to define how aggressively the kernel swaps out anonymous memory): 60
-/proc/sys/kernel/pid_max (system-wide limit on number of process identifiers): 4194304
+<elided>
+<elided>
+<elided>
+<elided>
 
 container information not found.
 KVM virtualization detected
