@@ -21,9 +21,9 @@ import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.insights.GroupAware
 import com.android.tools.idea.insights.MultiSelection
-import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.model.common.GroupAware
+import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.ui.TreeDropDownPopup
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.TestLoggerRule

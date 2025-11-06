@@ -20,13 +20,13 @@ import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.Selection
-import com.android.tools.idea.insights.StackTraceGroupParser
-import com.android.tools.idea.insights.StubStackTraceGroupParser
 import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.FakeAiInsightClient
+import com.android.tools.idea.insights.model.stacktrace.StackTraceGroupParser
+import com.android.tools.idea.insights.model.stacktrace.StubStackTraceGroupParser
 import com.android.tools.idea.insights.toIssueRequest
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.client.VitalsClient

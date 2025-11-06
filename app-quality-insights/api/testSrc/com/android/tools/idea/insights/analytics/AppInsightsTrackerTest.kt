@@ -23,9 +23,6 @@ import com.android.tools.idea.insights.DEFAULT_FETCHED_DEVICES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
 import com.android.tools.idea.insights.DEFAULT_FETCHED_VERSIONS
-import com.android.tools.idea.insights.Device
-import com.android.tools.idea.insights.Event
-import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.ISSUE1
@@ -33,7 +30,6 @@ import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.NOTE1
 import com.android.tools.idea.insights.NOTE1_BODY
-import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.SignalType
@@ -42,7 +38,6 @@ import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
-import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
@@ -53,6 +48,11 @@ import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.events.AiInsightFetched
 import com.android.tools.idea.insights.events.EventsChanged
 import com.android.tools.idea.insights.events.SelectedIssueChanged
+import com.android.tools.idea.insights.model.common.WithCount
+import com.android.tools.idea.insights.model.event.Device
+import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.event.EventPage
+import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails

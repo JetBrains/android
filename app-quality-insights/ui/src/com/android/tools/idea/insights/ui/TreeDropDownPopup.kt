@@ -16,9 +16,9 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.insights.GroupAware
 import com.android.tools.idea.insights.MultiSelection
-import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.model.common.GroupAware
+import com.android.tools.idea.insights.model.common.WithCount
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
 import com.intellij.openapi.ui.popup.JBPopup

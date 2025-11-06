@@ -18,11 +18,11 @@ package com.android.tools.idea.insights.ui.insight
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AgentActionContributor
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.filterReady
+import com.android.tools.idea.insights.model.event.Event
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.ui.HyperlinkLabel

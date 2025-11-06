@@ -16,14 +16,14 @@
 package com.android.tools.idea.insights.ai.codecontext
 
 import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.insights.Blames
-import com.android.tools.idea.insights.Caption
 import com.android.tools.idea.insights.Connection
-import com.android.tools.idea.insights.ExceptionStack
-import com.android.tools.idea.insights.Frame
-import com.android.tools.idea.insights.Stacktrace
-import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
+import com.android.tools.idea.insights.model.stacktrace.Blames
+import com.android.tools.idea.insights.model.stacktrace.Caption
+import com.android.tools.idea.insights.model.stacktrace.ExceptionStack
+import com.android.tools.idea.insights.model.stacktrace.Frame
+import com.android.tools.idea.insights.model.stacktrace.Stacktrace
+import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ExtensionTestUtil

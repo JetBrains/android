@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.insights
 
-/** Response from a single call to ListEvents. */
-data class EventPage(val events: List<Event>, val token: String) {
-  companion object {
-    val EMPTY = EventPage(emptyList(), "")
-  }
-}
+import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.event.EventPage
 
 enum class EventMovement {
   NEXT,

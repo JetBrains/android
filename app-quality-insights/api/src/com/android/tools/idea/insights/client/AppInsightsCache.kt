@@ -17,7 +17,6 @@ package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Connection
-import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueId
@@ -28,6 +27,7 @@ import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.model.event.Event
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import java.util.SortedSet

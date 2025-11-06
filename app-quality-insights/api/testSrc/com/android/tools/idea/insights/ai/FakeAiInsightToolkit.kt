@@ -18,10 +18,10 @@ package com.android.tools.idea.insights.ai
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.Connection
-import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
+import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
 
 open class FakeAiInsightToolkit(
   var codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList()),

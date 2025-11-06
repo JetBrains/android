@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Connection
+import com.android.tools.idea.insights.model.vcs.AppVcsInfo
 import com.intellij.openapi.util.Key
 
 /** Key of the app VCS info of the currently selected crash event from the "issues" view. */

@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.inspection
 
 import com.android.tools.idea.insights.AppInsight
-import com.android.tools.idea.insights.AppVcsInfo
+import com.android.tools.idea.insights.model.vcs.AppVcsInfo
 import com.android.tools.idea.insights.vcs.createVcsDocument
 import com.android.tools.idea.insights.vcs.getVcsManager
 import com.android.tools.idea.insights.vcs.locateRepository

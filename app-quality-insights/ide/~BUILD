@@ -24,6 +24,7 @@ iml_module(
         "//tools/adt/idea/analytics",
         "@intellij//:intellij.platform.vcs.impl",
         "@intellij//:intellij.platform.vcs.dvcs.impl",
+        "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
     ],
 )
 
@@ -75,6 +76,7 @@ iml_module(
         "@intellij//:intellij.platform.vcs.impl",
         "@intellij//:intellij.platform.vcs.dvcs.impl",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
     ],
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],

@@ -1,6 +1,6 @@
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.tools.idea.insights.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vcs.FilePath
 import com.intellij.testFramework.ProjectRule

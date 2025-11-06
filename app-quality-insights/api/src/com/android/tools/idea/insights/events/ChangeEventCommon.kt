@@ -18,11 +18,11 @@ package com.android.tools.idea.insights.events
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.DynamicEventGallery
-import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
+import com.android.tools.idea.insights.model.event.Event
 
 fun transitionEvent(provider: InsightsProvider, event: Event) =
   if (provider.supportsMultipleEvents) {

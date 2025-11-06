@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.vitals.datamodel
 
-import com.android.tools.idea.insights.OperatingSystemInfo
+import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.google.play.developer.reporting.OsVersion
 
 fun OperatingSystemInfo.Companion.fromProto(proto: OsVersion): OperatingSystemInfo {

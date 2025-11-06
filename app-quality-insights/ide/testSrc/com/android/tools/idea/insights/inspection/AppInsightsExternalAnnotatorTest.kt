@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.insights.inspection
 
-import com.android.tools.idea.insights.AppVcsInfo
-import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.REPO_INFO
+import com.android.tools.idea.insights.model.stacktrace.Frame
+import com.android.tools.idea.insights.model.vcs.AppVcsInfo
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
 import com.android.tools.idea.testing.AndroidProjectRule

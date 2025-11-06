@@ -7,7 +7,11 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.client.iml"],
     visibility = ["//visibility:public"],
-    deps = ["@intellij//:intellij-sdk"],
+    # do not sort: must match IML order
+    deps = [
+        "@intellij//:intellij-sdk",
+        "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
+    ],
 )
 
 # Build the client as a standalone library to ensure that unwanted dependencies from intellij-sdk
@@ -17,4 +21,8 @@ kotlin_library(
     srcs = glob([
         "src/**/*.kt",
     ]),
+    deps = [
+        "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
+        "@maven//:io.grpc.grpc-protobuf",
+    ],
 )

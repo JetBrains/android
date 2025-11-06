@@ -16,9 +16,9 @@
 package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.insights.GroupAware
 import com.android.tools.idea.insights.MultiSelection
-import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.model.common.GroupAware
+import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.ui.TreeDropDownPopup
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ActionUpdateThread
