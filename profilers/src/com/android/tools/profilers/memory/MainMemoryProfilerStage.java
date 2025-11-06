@@ -420,13 +420,13 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
         getTimeline().setStreaming(true);
         break;
       case FAILURE:
-        getLogger().error("Failure with error code " + status.getErrorCode());
         if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
           TaskEventTrackerUtils.trackStartTaskFailed(getStudioProfilers(),
                                                      getStudioProfilers().getSessionsManager().isSessionAlive(),
                                                      new TaskStartFailedMetadata(status, null, null)
           );
         }
+        getLogger().error("Failure with error code " + status.getErrorCode());
         break;
       case UNSPECIFIED:
         break;
