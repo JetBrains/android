@@ -24,6 +24,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collection;
 import java.util.Collections;
 import javax.annotation.Nullable;
+import org.jetbrains.kotlin.idea.base.codeInsight.KotlinMainFunctionDetectorKt;
+import org.jetbrains.kotlin.idea.base.codeInsight.KotlinMainFunctionDetector;
 import org.jetbrains.kotlin.idea.run.KotlinRunConfigurationProducer;
 import org.jetbrains.kotlin.psi.KtDeclarationContainer;
 
@@ -54,9 +56,10 @@ class KotlinBinaryContextProvider implements BinaryContextProvider {
     if (virtualFile == null) {
       return null;
     }
+
     // #api213. Switch to EntryPointContainerFinder.find.
     KtDeclarationContainer entryPointContainer =
-        KotlinRunConfigurationProducer.Companion.getEntryPointContainer(location.getPsiElement());
+      KotlinMainFunctionDetectorKt.findMainOwner(KotlinMainFunctionDetector.Companion.getInstance(), location.getPsiElement());
     if (entryPointContainer == null) {
       return null;
     }
