@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle;
 
 import static com.android.tools.idea.gradle.LibraryFilePaths.NAME_PREFIX;
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.AndroidCommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.SCREENSHOT_TEST_IMPLEMENTATION;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.AndroidCommonConfigurationNames.SCREENSHOT_TEST_IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelUtilsKt.android;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
