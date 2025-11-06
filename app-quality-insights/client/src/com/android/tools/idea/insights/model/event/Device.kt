@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights
+package com.android.tools.idea.insights.model.event
 
-interface StackTraceGroupParser {
-  /** Parses the provided [dump] into a [StacktraceGroup] */
-  fun parseThreadDump(dump: String): StacktraceGroup
+/** Metadata about the device running an app. */
+data class Device(
+  val manufacturer: String,
+  val model: String,
+  val displayName: String = "$manufacturer $model",
+  val deviceType: DeviceType = DeviceType.UNKNOWN,
+) : Comparable<Device> {
+  companion object {
+    val ALL = Device(manufacturer = "", model = "")
+  }
 
-  /** Parses the provided [exception] into a [StacktraceGroup] */
-  fun parseException(exception: String): StacktraceGroup
-}
-
-open class StubStackTraceGroupParser : StackTraceGroupParser {
-  override fun parseThreadDump(dump: String) = StacktraceGroup()
-
-  override fun parseException(exception: String) = StacktraceGroup()
+  override fun compareTo(other: Device): Int =
+    compareValuesBy(this, other, { it.model }, { it.manufacturer })
 }

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.insights.ai
 
-import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.experiments.InsightFeedback
+import com.android.tools.idea.insights.model.event.Event
 
 data class AiInsight(
   val rawInsight: String,

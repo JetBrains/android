@@ -20,6 +20,23 @@ import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
+import com.android.tools.idea.insights.model.common.WithCount
+import com.android.tools.idea.insights.model.event.CustomKey
+import com.android.tools.idea.insights.model.event.Device
+import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.event.EventData
+import com.android.tools.idea.insights.model.event.Log
+import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.stacktrace.Blames
+import com.android.tools.idea.insights.model.stacktrace.Caption
+import com.android.tools.idea.insights.model.stacktrace.ExceptionStack
+import com.android.tools.idea.insights.model.stacktrace.Frame
+import com.android.tools.idea.insights.model.stacktrace.Stacktrace
+import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
+import com.android.tools.idea.insights.model.vcs.AppVcsInfo
+import com.android.tools.idea.insights.model.vcs.RepoInfo
+import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
+import com.android.tools.idea.insights.vcs.PROJECT_ROOT_PREFIX
 import java.time.Duration
 import java.time.Instant
 

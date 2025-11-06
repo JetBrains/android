@@ -18,7 +18,6 @@ package com.android.tools.idea.insights.events
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DynamicEventGallery
-import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventMovement
 import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.ISSUE1
@@ -30,6 +29,7 @@ import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.events.actions.Action
+import com.android.tools.idea.insights.model.event.Event
 import com.google.common.truth.Truth.assertThat
 import java.time.Instant
 import org.junit.Test

@@ -20,13 +20,13 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.Blames
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
-import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.FailureType
-import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.stacktrace.Blames
+import com.android.tools.idea.insights.model.stacktrace.Frame
 import com.android.tools.idea.insights.ui.vcs.CONNECTION_OF_SELECTED_CRASH
 import com.android.tools.idea.insights.ui.vcs.InsightsAttachInlayDiffLinkFilter
 import com.android.tools.idea.insights.ui.vcs.InsightsExceptionInfoCache

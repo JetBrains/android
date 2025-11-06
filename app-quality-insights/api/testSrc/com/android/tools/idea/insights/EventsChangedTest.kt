@@ -20,6 +20,8 @@ import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.events.EventsChanged
 import com.android.tools.idea.insights.events.actions.Action
+import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.event.EventPage
 import com.google.common.truth.Truth.assertThat
 import java.time.Instant
 import org.junit.Test

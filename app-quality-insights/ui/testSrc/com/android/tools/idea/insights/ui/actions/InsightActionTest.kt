@@ -17,14 +17,14 @@ package com.android.tools.idea.insights.ui.actions
 
 import com.android.mockito.kotlin.whenever
 import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.insights.Device
-import com.android.tools.idea.insights.Event
-import com.android.tools.idea.insights.EventData
-import com.android.tools.idea.insights.ExceptionStack
-import com.android.tools.idea.insights.Frame
-import com.android.tools.idea.insights.OperatingSystemInfo
-import com.android.tools.idea.insights.Stacktrace
-import com.android.tools.idea.insights.StacktraceGroup
+import com.android.tools.idea.insights.model.event.Device
+import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.event.EventData
+import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.stacktrace.ExceptionStack
+import com.android.tools.idea.insights.model.stacktrace.Frame
+import com.android.tools.idea.insights.model.stacktrace.Stacktrace
+import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
 import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
 import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
 import com.android.tools.idea.insights.ui.SELECTED_EVENT_KEY

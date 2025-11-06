@@ -27,8 +27,6 @@ import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
 import com.android.tools.idea.insights.DEFAULT_FETCHED_VERSIONS
 import com.android.tools.idea.insights.DetailedIssueStats
-import com.android.tools.idea.insights.Event
-import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE1_DETAILS
 import com.android.tools.idea.insights.IssueStats
@@ -36,6 +34,8 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.events.actions.Action
+import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.insights.ui.AppInsightsIssuesTableView
 import com.android.tools.idea.insights.ui.DetailsPanelHeader
 import com.android.tools.idea.insights.ui.DistributionPanel

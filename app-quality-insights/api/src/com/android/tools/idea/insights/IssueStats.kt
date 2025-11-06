@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.model.common.WithCount
+import com.android.tools.idea.insights.model.event.Device
+import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+
 /**
  * Ensures the minimum number of [StatsGroup]s and [DataPoint]s within a group if applicable.
  *

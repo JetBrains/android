@@ -22,7 +22,6 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="google-login" />
-    <orderEntry type="library" name="gradle-shared-proto" level="project" />
     <orderEntry type="library" name="google-api-client" level="project" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module-library">
@@ -63,5 +62,6 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
+    <orderEntry type="library" scope="TEST" name="gradle-shared-proto" level="project" />
   </component>
 </module>

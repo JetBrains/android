@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.insights.vcs
 
-import com.android.tools.idea.insights.ABOVE_PROJECT_ROOT_PREFIX
-import com.android.tools.idea.insights.PROJECT_ROOT_PREFIX
-import com.android.tools.idea.insights.RepoInfo
-import com.android.tools.idea.insights.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.RepoInfo
+import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
 import com.intellij.dvcs.repo.Repository
 import com.intellij.dvcs.repo.VcsRepositoryManager
 import com.intellij.openapi.editor.Document
@@ -31,6 +29,9 @@ import com.intellij.openapi.vcs.ProjectLevelVcsManager
 import com.intellij.openapi.vcs.history.VcsRevisionNumber
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.vcsUtil.VcsUtil
+
+const val PROJECT_ROOT_PREFIX = "\$PROJECT_DIR"
+const val ABOVE_PROJECT_ROOT_PREFIX = "\$ABOVE_PROJECT_DIR"
 
 fun VirtualFile.getVcsManager(project: Project): AbstractVcs? {
   return ProjectLevelVcsManager.getInstance(project).getVcsFor(this)

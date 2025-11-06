@@ -17,13 +17,10 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.AppVcsInfo
-import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MultiSelection
-import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.Version
@@ -32,6 +29,9 @@ import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.convertSeverityList
 import com.android.tools.idea.insights.events.actions.Action
+import com.android.tools.idea.insights.model.event.Device
+import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.vcs.AppVcsInfo
 import com.android.tools.idea.insights.persistence.TosPersistence
 import com.android.tools.idea.insights.toIssueRequest
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent

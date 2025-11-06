@@ -26,14 +26,14 @@ import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
-import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.MultiSelection
-import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
-import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.model.common.WithCount
+import com.android.tools.idea.insights.model.event.Device
+import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.CursorFollowingTooltipLabel
 import com.android.tools.idea.insights.ui.DETAIL_PANEL_HORIZONTAL_SPACING

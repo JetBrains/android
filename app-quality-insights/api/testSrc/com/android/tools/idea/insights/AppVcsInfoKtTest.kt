@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.model.vcs.AppVcsInfo
+import com.android.tools.idea.insights.model.vcs.GenerateErrorReason
+import com.android.tools.idea.insights.model.vcs.RepoInfo
+import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
 import com.android.tools.idea.insights.proto.BuildStamp
 import com.android.tools.idea.insights.proto.RepositoryInfo
 import com.android.tools.idea.insights.proto.VersionControlSystem
+import com.android.tools.idea.insights.vcs.PROJECT_ROOT_PREFIX
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.TextFormat
 import org.junit.Test

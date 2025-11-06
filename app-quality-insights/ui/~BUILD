@@ -25,6 +25,7 @@ iml_module(
         "//tools/vendor/google/login:google-login",
         "@intellij//:intellij.libraries.grpc",
         "//tools/adt/idea/android:intellij.android.core",
+        "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
     ],
 )
 
@@ -60,6 +61,7 @@ iml_module(
         "//tools/vendor/google/login:google-login",
         "@intellij//:test-framework",
         "//tools/adt/idea/android:intellij.android.core",
+        "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

@@ -18,7 +18,7 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.Event
+import com.android.tools.idea.insights.model.event.Event
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataKey

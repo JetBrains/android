@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.vcs
 
-import com.android.tools.idea.insights.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.AbstractVcs

@@ -1,8 +1,8 @@
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.tools.idea.insights.AppVcsInfo
-import com.android.tools.idea.insights.GenerateErrorReason
 import com.android.tools.idea.insights.ISSUE1
+import com.android.tools.idea.insights.model.vcs.AppVcsInfo
+import com.android.tools.idea.insights.model.vcs.GenerateErrorReason
 import com.android.tools.idea.testing.ui.flatten
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.HelpTooltip
