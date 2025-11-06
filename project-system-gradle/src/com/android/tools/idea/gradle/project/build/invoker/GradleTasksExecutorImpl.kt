@@ -51,7 +51,6 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
-import com.intellij.notification.NotificationsManager
 import com.intellij.notification.impl.NotificationsManagerImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
@@ -233,6 +232,31 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         var buildEnvironment: BuildEnvironment? = null
         var buildAttributionManager: BuildAttributionManager? = null
         val enableBuildAttribution = isBuildAttributionEnabledForProject(project)
+        val listener = object : ExternalSystemTaskNotificationListener {
+          override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) {
+            if (myBuildStopper.contains(id)) {
+              taskListener.onStatusChange(event)
+            }
+          }
+
+          override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
+            // For test use only: save the logs to a file. Note that if there are multiple tasks at once
+            // the output will be interleaved.
+            if (StudioFlags.GRADLE_SAVE_LOG_TO_FILE.get()) {
+              try {
+                val path = Paths.get(PathManager.getLogPath(), "gradle.log")
+                Files.writeString(path, text, StandardOpenOption.APPEND, StandardOpenOption.CREATE)
+              } catch (e: IOException) {
+                // Ignore
+              }
+            }
+            if (myBuildStopper.contains(id)) {
+              taskListener.onTaskOutput(id, text, stdOut)
+            }
+          }
+        }
+        val context = GradleExecutionContextImpl(gradleRootProjectPath, id, executionSettings, listener, cancellationTokenSource.token())
+        context.buildEnvironment = GradleExecutionHelper.getBuildEnvironment(connection, context)
         val invocationResult = try {
           val buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project)
           val commandLineArguments: MutableList<String?> = Lists.newArrayList(*buildConfiguration.commandLineOptions)
@@ -282,31 +306,6 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             .withVmOptions(traceJvmArgs)
             .withArguments(commandLineArguments)
           val operation: LongRunningOperation = if (isRunBuildAction) connection.action(buildAction) else connection.newBuild()
-          val listener = object : ExternalSystemTaskNotificationListener {
-            override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) {
-              if (myBuildStopper.contains(id)) {
-                taskListener.onStatusChange(event)
-              }
-            }
-
-            override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
-              // For test use only: save the logs to a file. Note that if there are multiple tasks at once
-              // the output will be interleaved.
-              if (StudioFlags.GRADLE_SAVE_LOG_TO_FILE.get()) {
-                try {
-                  val path = Paths.get(PathManager.getLogPath(), "gradle.log")
-                  Files.writeString(path, text, StandardOpenOption.APPEND, StandardOpenOption.CREATE)
-                } catch (e: IOException) {
-                  // Ignore
-                }
-              }
-              if (myBuildStopper.contains(id)) {
-                taskListener.onTaskOutput(id, text, processOutputType)
-              }
-            }
-          }
-          val context = GradleExecutionContextImpl(gradleRootProjectPath, id, executionSettings, listener, cancellationTokenSource.token())
-          context.buildEnvironment = GradleExecutionHelper.getBuildEnvironment(connection, context)
           val gradleVersion = context.buildEnvironment?.gradle?.gradleVersion?.let(GradleInstallationManager::getGradleVersionSafe)
           GradleTaskManager.configureTasks(myRequest.rootProjectPath.path, myRequest.taskId, executionSettings, gradleVersion)
           GradleExecutionHelper.prepareForExecution(operation, context)
@@ -337,39 +336,35 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             reportAgpVersionMismatch(project, buildInfo)
           }
           GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, null, model.get())
-        } catch (e: BuildException) {
-          val failure = runCatching { buildAttributionManager?.onBuildFailure(myRequest) }.exceptionOrNull() ?: e
-          GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, failure, model.get())
         } catch (e: Throwable) {
           val failure = runCatching {
             buildAttributionManager?.onBuildFailure(myRequest)
-            handleTaskExecutionError(e)
+            if (e !is BuildException) {
+              handleTaskExecutionError(e)
+            }
           }.exceptionOrNull() ?: e
-          GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, failure, model.get())
+          GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, failure, model.get(), context.buildEnvironment)
         }
 
 
         executeWithoutProcessCanceledException {
           val application = ApplicationManager.getApplication()
-          val buildError = invocationResult.buildError
-          when {
-            buildError == null -> {
-              buildCompleter.buildFinished(BuildStatus.SUCCESS)
-              taskListener.onSuccess(gradleRootProjectPath, id)
-            }
+          with(invocationResult) {
+            when {
+              buildError == null -> {
+                buildCompleter.buildFinished(BuildStatus.SUCCESS)
+                taskListener.onSuccess(gradleRootProjectPath, id)
+              }
 
-            wasBuildCanceled(buildError) -> {
-              buildCompleter.buildFinished(BuildStatus.CANCELED)
-              taskListener.onCancel(gradleRootProjectPath, id)
-            }
+              wasBuildCanceled(buildError) -> {
+                buildCompleter.buildFinished(BuildStatus.CANCELED)
+                taskListener.onCancel(gradleRootProjectPath, id)
+              }
 
-            else -> {
-              buildCompleter.buildFinished(BuildStatus.FAILED)
-              taskListener.onFailure(
-                gradleRootProjectPath, id,
-                GradleProjectResolver.createProjectResolverChain()
-                  .getUserFriendlyError(buildEnvironment, buildError, gradleRootProjectPath, null)
-              )
+              else -> {
+                buildCompleter.buildFinished(BuildStatus.FAILED)
+                taskListener.onFailure(gradleRootProjectPath, id, buildError.toFriendlyError())
+              }
             }
           }
           taskListener.onEnd(gradleRootProjectPath, id)

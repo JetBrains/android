@@ -21,17 +21,23 @@ import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.hookExecuteTasks
 import com.google.common.truth.Expect
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.externalSystem.model.LocationAwareExternalSystemException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.ExternalSystemFacadeManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.writeText
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.service.task.PredefinedVersionSpecificInitScript
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Rule
 import org.junit.Test
 
@@ -146,6 +152,32 @@ class AndroidGradleTaskManagerTest {
       )
 
       assertNull(capturedException)
+    }
+  }
+
+  @Test
+  fun `throws exception if gradle task execution fails`() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.open { project ->
+      runWriteActionAndWait {
+        val buildFile = VfsUtil.findFileByIoFile(projectRoot.resolve("app/build.gradle"), true)!!
+        buildFile.writeText("**")
+      }
+      val executionSettings = ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(
+        project, project.basePath!!, GradleConstants.SYSTEM_ID
+      ).apply {
+        tasks = listOf(":assembleDebug")
+      }
+      val exception = assertThrows(LocationAwareExternalSystemException::class.java) {
+        AndroidGradleTaskManager().executeTasks(
+          project.basePath!!,
+          ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
+          executionSettings,
+          ExternalSystemTaskNotificationListener.NULL_OBJECT
+        )
+      }
+
+      assertThat(exception.message).contains("fails/project/app/build.gradle': 1: Unexpected input: '**' @ line 1, column 1")
     }
   }
 }

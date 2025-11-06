@@ -31,6 +31,18 @@ import java.io.File
  */
 class AndroidGradleTaskManager : GradleTaskManagerExtension {
 
+  /**
+   * Gradle task execution process.
+   *
+   * @param projectPath path to project, where tasks are executed
+   * @param id          id of operation in IDEA terms
+   * @param settings    gradle execution settings
+   * @param listener    should be called to notify IDEA on tasks' progress and status
+   * @return false - if tasks were not executed and IDEA should proceed with default logic,
+   * true - if tasks are executed and no more actions are required
+   *
+   * @throws ExternalSystemException if gradle task execution fails
+   */
   override fun executeTasks(
     projectPath: String,
     id: ExternalSystemTaskId,
@@ -53,7 +65,10 @@ class AndroidGradleTaskManager : GradleTaskManagerExtension {
       isWaitForCompletion = true,
       doNotShowBuildOutputOnFailure = doNotShowBuildOutputOnFailure
     )
-    gradleBuildInvoker.executeTasks(request)
+    val invocationResult = gradleBuildInvoker.executeTasks(request).get()
+    with(invocationResult) {
+      buildError?.let { throw it.toFriendlyError() }
+    }
     return true
   }
 
