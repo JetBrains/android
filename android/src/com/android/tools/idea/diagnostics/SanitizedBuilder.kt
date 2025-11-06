@@ -19,7 +19,7 @@ class SanitizedBuilder {
   /**
    * A regex to identify and capture Linux-style absolute file paths within log file lines.
    *
-   * 1. The positive lookbehind `(?<=[\s:=])` matches the character that immediately precedes the path. This delimiter
+   * 1. The positive lookbehind `(?<=...)` matches the character that immediately precedes the path. This delimiter
    * can be a whitespace character, a colon, or an equals sign. Having those delimiter, we will be able to identify
    * strings like "java.desktop/java.awt=ALL-UNNAMED" and "com/intellij/openapi/vfs/impl" (package name in Windows)
    * as not a path. But also capture "-XX:ErrorFile=/usr/local/google/home/taorantr" and
@@ -34,7 +34,7 @@ class SanitizedBuilder {
    * - `:`: A colon (which often separates paths in a classpath).
    * - `$`: The end of the line.
    */
-  private val LINUX_MULTIPLE_FILE_PATHS = "(?<=[\\s:=])(/.*?)(?=\\s[\\s-]|\"|'|\\)|:|$)"
+  private val LINUX_MULTIPLE_FILE_PATHS = "(?<=^|[\\s:=])(/.*?)(?=\\s[\\s-]|\"|'|\\)|:|$)"
 
   /**
    * A regex to identify and capture Windows-style absolute file paths within log file lines.
@@ -57,12 +57,13 @@ class SanitizedBuilder {
   /**
    * A regex to identify and capture Linux-style absolute file paths within log file lines until EOL
    *
-   * 1. the positive lookbehind `(?<=...)` defines the start of the path. It starts the match right after one of the
-   * following delimiters is found (without including the delimiter in the match)
+   * 1. the positive lookbehind `(?<=...)` defines the start of the path. It starts the match right after
+   * a) the beginning of the input string
+   * b) one of the following delimiters is found (without including the delimiter in the match)
    *
    * 2. The second capturing group `(/.*)` greedily captures the path until end of line.
    */
-  private val LINUX_FILE_PATH_TO_EOL = "(?<=[\\s:=\"])(/.*)"
+  private val LINUX_FILE_PATH_TO_EOL = "(?<=^|[\\s:=\"])(/.*)"
 
   /**
    * A regex to identify and capture Windows-style absolute file paths within log file lines until EOL,
