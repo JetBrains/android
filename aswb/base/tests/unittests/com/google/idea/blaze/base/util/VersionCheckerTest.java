@@ -118,16 +118,6 @@ public class VersionCheckerTest {
     }
 
     @Override
-    public @Nullable String getProductUrl() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public @Nullable String getJetBrainsTvUrl() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public boolean hasHelp() {
       throw new UnsupportedOperationException();
     }
