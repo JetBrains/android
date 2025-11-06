@@ -115,6 +115,10 @@ class StateInspectionPanelIntegrationTest {
     val recompositionText = panel.getDescendant<JLabel> { it.name == RECOMPOSITION_TEXT_LABEL_NAME }
 
     waitForCondition(10.seconds) { recompositionText.text == "Recomposition 3" }
+
+    // Layout the swing components since InnerStateInspectionPanel was just created.
+    ui.layout()
+
     panel.checkContent("state_reads_1_3.txt")
     panel.checkComposableInspected()
     assertThat(prev.isEnabled).isTrue()
@@ -124,15 +128,15 @@ class StateInspectionPanelIntegrationTest {
     waitForCondition(10.seconds) { recompositionText.text == "Recomposition 2" }
     panel.checkContent("state_reads_1_2.txt")
     panel.checkComposableInspected()
-    assertThat(prev.isEnabled).isFalse()
-    assertThat(next.isEnabled).isTrue()
+    waitForCondition(10.seconds) { !prev.isEnabled }
+    waitForCondition(10.seconds) { next.isEnabled }
 
     ui.click(next)
     waitForCondition(10.seconds) { recompositionText.text == "Recomposition 3" }
     panel.checkContent("state_reads_1_3.txt")
     panel.checkComposableInspected()
-    assertThat(prev.isEnabled).isTrue()
-    assertThat(next.isEnabled).isFalse()
+    waitForCondition(10.seconds) { prev.isEnabled }
+    waitForCondition(10.seconds) { !next.isEnabled }
 
     // Emulate an update that adds several recomposition for compose1.
     // Expect the next action to become enabled.
@@ -219,9 +223,10 @@ class StateInspectionPanelIntegrationTest {
 
   private fun StateInspectionPanel.checkComposableInspected() {
     val editor = getUserData(STATE_READ_EDITOR_KEY)
-    val data = editor!!.getUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY)
-    assertThat(data?.composable).isEqualTo("Column")
-    assertThat(data?.fileName).isEqualTo("MainActivity.kt")
+    waitForCondition(10.seconds) {
+      val data = editor!!.getUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY)
+      data?.composable == "Column" && data?.fileName == "MainActivity.kt"
+    }
   }
 
   private fun StateInspectionPanel.buttonWithIcon(icon: Icon): ActionButton =
