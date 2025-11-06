@@ -50,9 +50,12 @@ public final class RuleKinds {
           "android_instrumentation_test",
           "kt_android_library_helper");
 
-  /** C++ rule kinds */
+  /**
+   * C++ rule kinds
+   */
   public static final ImmutableSet<String> CC_RULE_KINDS =
-      ImmutableSet.of("cc_library", "cc_binary", "cc_shared_library", "cc_test");
+    ImmutableSet.of("cc_library", "cc_binary", "cc_shared_library", "cc_test", "ndk_cc_library_rule",
+                    "ndk_cc_dynamic_library_force_android_rule");
 
   /** Rule kinds that have proto files for sources. */
   public static final ImmutableSet<String> PROTO_SOURCE_RULE_KINDS =
