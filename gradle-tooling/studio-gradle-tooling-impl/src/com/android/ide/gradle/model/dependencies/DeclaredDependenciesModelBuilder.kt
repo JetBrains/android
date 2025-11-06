@@ -42,13 +42,9 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
     // The apparently-unnecessary toMutableList() calls here are an attempt to defend against anything
     // that might spontaneously generate new elements of the collection being iterated over.  See
     // for example b/456739611.
-    //
-    // Why toMutableList() rather than toList()?  To defend against possible mis-implementations of the collection protocol,
-    // with differing size() and iterator() behaviours, combined with Kotlin special-casing of collections with size = 1.  See
-    // b/460504494.
-    project.configurations.toMutableList()
+    project.configurations.toList()
       .forEach { configuration ->
-        configuration.dependencies.toMutableList().forEach { dependency ->
+        configuration.dependencies.toList().forEach { dependency ->
           when (dependency) {
             is ProjectDependency -> allOutgoingProjectDependencies.add(dependency.computePath())
             else -> if (CONFIGURATIONS_OF_INTEREST.contains(configuration.name)) {
