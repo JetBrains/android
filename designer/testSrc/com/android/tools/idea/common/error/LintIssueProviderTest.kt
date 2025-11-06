@@ -28,6 +28,7 @@ import com.intellij.modcommand.ActionContext
 import com.intellij.modcommand.ModCommand
 import com.intellij.modcommand.ModCommandAction
 import com.intellij.modcommand.Presentation
+import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import org.junit.Rule
@@ -67,6 +68,7 @@ class LintIssueProviderTest {
       HighlightDisplayLevel.ERROR,
       NlComponent(nlModel, 0),
     )
+    waitUntilIndexesAreReady(projectRule.project)
     val wrapper = LintIssueProvider.LintIssueWrapper(lintAnnotationsModel.issues[0])
     val fix = wrapper.createQuickFixPair(modQuickFix)
     assertNotNull(fix)
