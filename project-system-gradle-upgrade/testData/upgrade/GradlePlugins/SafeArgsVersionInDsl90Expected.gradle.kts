@@ -9,7 +9,7 @@ buildscript {
 }
 
 plugins {
-  id("androidx.navigation.safeargs.kotlin") version "2.9.5" apply false
+  id("androidx.navigation.safeargs.kotlin") version "2.9.6" apply false
 }
 
 allprojects {
