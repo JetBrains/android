@@ -70,7 +70,7 @@ public abstract class BlazeNewProjectWizard extends AbstractWizard<ProjectImport
 
   @Override
   protected void doHelpAction() {
-    String helpId = getHelpID();
+    String helpId = getHelpId();
     BlazeHelpHandler helpHandler = BlazeHelpHandler.getInstance();
     if (helpId != null && helpHandler != null) {
       helpHandler.handleHelp(helpId);
@@ -79,7 +79,7 @@ public abstract class BlazeNewProjectWizard extends AbstractWizard<ProjectImport
 
   @Nullable
   @Override
-  protected String getHelpID() {
+  protected String getHelpId() {
     ProjectImportWizardStep step = getCurrentStepObject();
     if (step != null) {
       return step.getHelpId();
