@@ -21,7 +21,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.Toggleable
+import com.intellij.openapi.actionSystem.Toggleable.SELECTED_KEY
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
@@ -232,6 +232,9 @@ internal class FloatingToolbarContainer(horizontal: Boolean, private val inactiv
     }
   }
 
+  @MagicConstant(intValues = [HORIZONTAL.toLong(), VERTICAL.toLong()])
+  private annotation class Orientation
+
   private inner class ActivationAnimator(durationMillis: Int)
       : Animator("ActivationAnimator", numFrames(durationMillis), durationMillis, false) {
 
@@ -278,6 +281,163 @@ internal class FloatingToolbarContainer(horizontal: Boolean, private val inactiv
       super.dispose()
       deactivationAnimator = null
     }
+  }
+
+
+  private class ToolbarPanel(private val toolbar: ActionToolbar, val collapsible: Boolean) : BorderLayoutPanel() {
+
+    private var bufferingPainter = VolatileImageBufferingPainter(Transparency.TRANSLUCENT)
+
+    private val crossDimension
+      get() = if (toolbar.orientation == HORIZONTAL) height else width
+    private val cornerRadius
+      get() = crossDimension / 2
+    var alpha: Float by bufferingPainter::alpha
+    private val actionButtons = mutableListOf<ActionButton>()
+    private val hierarchyListener = HierarchyListener {
+      for (button in actionButtons) {
+        button.presentation.removePropertyChangeListener(buttonSelectionListener)
+      }
+      actionButtons.clear()
+      for (child in toolbar.component.components) {
+        if (child is ActionButton) {
+          actionButtons.add(child)
+          child.presentation.addPropertyChangeListener(buttonSelectionListener)
+        }
+      }
+    }
+    private val buttonSelectionListener = PropertyChangeListener  { event ->
+      @Suppress("UnstableApiUsage")
+      if (event.propertyName == SELECTED_KEY.toString()) {
+        revalidate()
+      }
+    }
+
+    init {
+      isOpaque = false
+      background = JBUI.CurrentTheme.Popup.toolbarPanelColor()
+      layout = Layout()
+      toolbar.component.addHierarchyListener(hierarchyListener)
+      add(toolbar.component)
+    }
+
+    /** This property causes repaint of a child to trigger repaint of this panel. */
+    override fun isPaintingOrigin(): Boolean = true
+
+    override fun paintComponent(g: Graphics) {
+      // Everything is painted by the paintChildren method.
+    }
+
+    override fun paintBorder(g: Graphics) {
+      // Everything is painted by the paintChildren method.
+    }
+
+    override fun paintChildren(g: Graphics) {
+      val outsideShape = createOutsideShape()
+      bufferingPainter.paintBuffered(g, size) {
+        paintWithTransparentCorners(it, outsideShape)
+      }
+    }
+
+    private fun paintWithTransparentCorners(g2: Graphics2D, outsideShape: Shape) {
+      setupAAPainting(g2)
+      // Paint background.
+      if (background != null) {
+        g2.color = background
+        g2.fillRect(0, 0, width, height)
+      }
+      // Paint children.
+      super.paintChildren(g2)
+      // Make corners transparent
+      clearArea(g2, outsideShape)
+      // Paint border.
+      g2.color = SEPARATOR_COLOR
+      g2.draw(createRoundRectangle(0, 0, width - 1, height - 1, cornerRadius))
+    }
+
+    private fun clearArea(g2: Graphics2D, area: Shape) {
+      val config = disableAAPainting(g2) // Disable antialiasing for speed.
+      val composite = g2.composite
+      g2.composite = AlphaComposite.Clear
+      g2.fill(area)
+      g2.composite = composite
+      config.restore()
+    }
+
+    private fun createOutsideShape(): Shape {
+      return Path2D.Double(Path2D.WIND_EVEN_ODD).apply {
+        append(createRoundRectangle(0, 0, width - 1, height - 1, cornerRadius), false)
+        append(Rectangle(0, 0, width, height), false)
+      }
+    }
+
+    override fun getMaximumSize(): Dimension =
+      toolbar.component.getPreferredSize() + insets
+
+    val collapsedSize: Dimension
+      get() {
+        val maxSize = getMaximumSize()
+        if (collapsible) {
+          val s = min(maxSize.width, maxSize.height)
+          return Dimension(s, s)
+        }
+        return maxSize
+      }
+
+    private inner class Layout : AbstractLayoutManager() {
+
+      private val orientation
+        get() = toolbar.orientation
+
+      override fun preferredLayoutSize(parent: Container): Dimension =
+        toolbar.component.preferredSize + insets
+
+      override fun layoutContainer(parent: Container) {
+        val insets = insets
+        val toolbarSize = toolbar.component.preferredSize
+        val offset = calculateToolbarOffset(size - insets, toolbarSize)
+        toolbar.component.setBounds(insets.left + offset.width, insets.top + offset.height, toolbarSize.width, toolbarSize.height)
+      }
+
+      private fun calculateToolbarOffset(availableSize: Dimension, preferredToolbarSize: Dimension): Dimension {
+        val insets = toolbar.component.insets
+        val available = (availableSize - insets)[orientation]
+        val preferred = (preferredToolbarSize - insets)[orientation]
+        if (preferred <= available) {
+          return ZERO_DIMENSION
+        }
+        val anchorExtent = locateAnchorButton() ?: return ZERO_DIMENSION
+        if (preferred <= anchorExtent.size) {
+          return ZERO_DIMENSION
+        }
+        val d = anchorExtent.offset.scaled(preferred - available, preferred - anchorExtent.size)
+        return if (orientation == HORIZONTAL) Dimension(-d, 0) else Dimension(0, -d)
+      }
+
+      private fun locateAnchorButton(): Extent? {
+        var offset = 0
+        var firstEnabled: Extent? = null
+        var firstVisible: Extent? = null
+        for (child in toolbar.component.components) {
+          if (child is ActionButton && child.isVisible) {
+            val childSize = child.preferredSize[orientation]
+            if (child.isSelected) {
+              return Extent(offset, childSize)
+            }
+            if (firstEnabled == null && child.isEnabled) {
+              firstEnabled = Extent(offset, childSize)
+            }
+            if (firstVisible == null) {
+              firstVisible = Extent(offset, childSize)
+            }
+            offset += childSize
+          }
+        }
+        return firstEnabled ?: firstVisible
+      }
+    }
+
+    class Extent(val offset: Int, val size: Int)
   }
 
   private inner class Layout : AbstractLayoutManager() {
@@ -332,248 +492,89 @@ internal class FloatingToolbarContainer(horizontal: Boolean, private val inactiv
       return size
     }
   }
-}
 
-@Suppress("UnstableApiUsage")
-private fun ActionToolbar.configureToolbar() {
-  layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
-  minimumButtonSize = ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
-  ((this as? ActionToolbarImpl)?.setActionButtonBorder(1, 1))
-  component.apply {
-    border = JBUI.Borders.empty(2)
-    isOpaque = false
-    putClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY, true)
-  }
-  makeNavigable()
-}
+  companion object {
 
-private class ToolbarPanel(private val toolbar: ActionToolbar, val collapsible: Boolean) : BorderLayoutPanel() {
+    @Suppress("SameParameterValue")
+    private fun createRoundRectangle(x: Int, y: Int, w: Int, h: Int, cornerRadius: Int): RoundRectangle2D =
+        RoundRectangle2D.Double(x.toDouble(), y.toDouble(), w.toDouble(), h.toDouble(), cornerRadius.toDouble(), cornerRadius.toDouble())
 
-  private var bufferingPainter = VolatileImageBufferingPainter(Transparency.TRANSLUCENT)
+    private fun Component.preferredSize(collapsed: Boolean): Dimension =
+        if (collapsed) collapsedSize() else preferredSize
 
-  private val crossDimension
-    get() = if (toolbar.orientation == HORIZONTAL) height else width
-  private val cornerRadius
-    get() = crossDimension / 2
-  var alpha: Float by bufferingPainter::alpha
-  private val actionButtons = mutableListOf<ActionButton>()
-  private val hierarchyListener = HierarchyListener { event ->
-    for (button in actionButtons) {
-      button.presentation.removePropertyChangeListener(buttonSelectionListener)
+    private fun Component.collapsedSize(): Dimension =
+        if (this is ToolbarPanel && collapsible) collapsedSize else ZERO_DIMENSION
+
+    @Suppress("UnstableApiUsage")
+    private fun ActionToolbar.configureToolbar() {
+      layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
+      minimumButtonSize = ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+      ((this as? ActionToolbarImpl)?.setActionButtonBorder(1, 1))
+      component.apply {
+        border = JBUI.Borders.empty(2)
+        isOpaque = false
+        putClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY, true)
+      }
+      makeNavigable()
     }
-    actionButtons.clear()
-    for (child in toolbar.component.components) {
-      if (child is ActionButton) {
-        actionButtons.add(child)
-        child.presentation.addPropertyChangeListener(buttonSelectionListener)
+
+    private fun Dimension.combine(@Orientation orientation: Int, other: Dimension) {
+      if (orientation == HORIZONTAL) {
+        width += other.width
+        height = max(height, other.height)
+      }
+      else {
+        width = max(width, other.width)
+        height += other.height
       }
     }
-  }
-  private val buttonSelectionListener = PropertyChangeListener  { event ->
-    if (event.propertyName == SELECTED_PROPERTY_NAME) {
-      revalidate()
-    }
-  }
 
-  init {
-    isOpaque = false
-    background = JBUI.CurrentTheme.Popup.toolbarPanelColor()
-    layout = Layout()
-    toolbar.component.addHierarchyListener(hierarchyListener)
-    add(toolbar.component)
-  }
-
-  /** This property causes repaint of a child to trigger repaint of this panel. */
-  override fun isPaintingOrigin(): Boolean = true
-
-  override fun paintComponent(g: Graphics) {
-    // Everything is painted by the paintChildren method.
-  }
-
-  override fun paintBorder(g: Graphics) {
-    // Everything is painted by the paintChildren method.
-  }
-
-  override fun paintChildren(g: Graphics) {
-    val outsideShape = createOutsideShape()
-    bufferingPainter.paintBuffered(g, size) {
-      paintWithTransparentCorners(it, outsideShape)
-    }
-  }
-
-  private fun paintWithTransparentCorners(g2: Graphics2D, outsideShape: Shape) {
-    setupAAPainting(g2)
-    // Paint background.
-    if (background != null) {
-      g2.color = background
-      g2.fillRect(0, 0, width, height)
-    }
-    // Paint children.
-    super.paintChildren(g2)
-    // Make corners transparent
-    clearArea(g2, outsideShape)
-    // Paint border.
-    g2.color = SEPARATOR_COLOR
-    g2.draw(createRoundRectangle(0, 0, width - 1, height - 1, cornerRadius))
-  }
-
-  private fun clearArea(g2: Graphics2D, area: Shape) {
-    val config = disableAAPainting(g2) // Disable antialiasing for speed.
-    val composite = g2.composite
-    g2.composite = AlphaComposite.Clear
-    g2.fill(area)
-    g2.composite = composite
-    config.restore()
-  }
-
-  private fun createOutsideShape(): Shape {
-    return Path2D.Double(Path2D.WIND_EVEN_ODD).apply {
-      append(createRoundRectangle(0, 0, width - 1, height - 1, cornerRadius), false)
-      append(Rectangle(0, 0, width, height), false)
-    }
-  }
-
-  override fun getMaximumSize(): Dimension =
-      toolbar.component.getPreferredSize() + insets
-
-  val collapsedSize: Dimension
-    get() {
-      val maxSize = getMaximumSize()
-      if (collapsible) {
-        val s = min(maxSize.width, maxSize.height)
-        return Dimension(s, s)
+    private fun Dimension.increment(@Orientation orientation: Int, value: Int) {
+      if (orientation == HORIZONTAL) {
+        width += value
       }
-      return maxSize
-    }
-
-  private inner class Layout : AbstractLayoutManager() {
-
-    private val orientation
-      get() = toolbar.orientation
-
-    override fun preferredLayoutSize(parent: Container): Dimension =
-        toolbar.component.preferredSize + insets
-
-    override fun layoutContainer(parent: Container) {
-      val insets = insets
-      val toolbarSize = toolbar.component.preferredSize
-      val offset = calculateToolbarOffset(size - insets, toolbarSize)
-      toolbar.component.setBounds(insets.left + offset.width, insets.top + offset.height, toolbarSize.width, toolbarSize.height)
-    }
-
-    private fun calculateToolbarOffset(availableSize: Dimension, preferredToolbarSize: Dimension): Dimension {
-      val insets = toolbar.component.insets
-      val available = (availableSize - insets)[orientation]
-      val preferred = (preferredToolbarSize - insets)[orientation]
-      if (preferred <= available) {
-        return ZERO_DIMENSION
+      else {
+        height += value
       }
-      val anchorExtent = locateAnchorButton() ?: return ZERO_DIMENSION
-      if (preferred <= anchorExtent.size) {
-        return ZERO_DIMENSION
-      }
-      val d = anchorExtent.offset.scaled(preferred - available, preferred - anchorExtent.size)
-      return if (orientation == HORIZONTAL) Dimension(-d, 0) else Dimension(0, -d)
     }
 
-    private fun locateAnchorButton(): Extent? {
-      var offset = 0
-      var firstEnabled: Extent? = null
-      var firstVisible: Extent? = null
-      for (child in toolbar.component.components) {
-        if (child is ActionButton && child.isVisible) {
-          val childSize = child.preferredSize[orientation]
-          if (child.isSelected) {
-            return Extent(offset, childSize)
-          }
-          if (firstEnabled == null && child.isEnabled) {
-            firstEnabled = Extent(offset, childSize)
-          }
-          if (firstVisible == null) {
-            firstVisible = Extent(offset, childSize)
-          }
-          offset += childSize
-        }
+    private operator fun Dimension.set(@Orientation orientation: Int, value: Int) {
+      if (orientation == HORIZONTAL) {
+        width = value
       }
-      return firstEnabled ?: firstVisible
+      else {
+        height = value
+      }
     }
-  }
 
-  class Extent(val offset: Int, val size: Int)
-}
+    private operator fun Dimension.get(@Orientation orientation: Int): Int =
+        if (orientation == HORIZONTAL) width else height
 
-@MagicConstant(intValues = [HORIZONTAL.toLong(), VERTICAL.toLong()])
-private annotation class Orientation
+    private operator fun Dimension.minus(insets: Insets): Dimension =
+        Dimension(width - insets.left - insets.right, height - insets.top - insets.bottom)
 
-@Suppress("SameParameterValue")
-private fun createRoundRectangle(x: Int, y: Int, w: Int, h: Int, cornerRadius: Int): RoundRectangle2D =
-    RoundRectangle2D.Double(x.toDouble(), y.toDouble(), w.toDouble(), h.toDouble(), cornerRadius.toDouble(), cornerRadius.toDouble())
+    private operator fun Dimension.plus(insets: Insets): Dimension =
+        Dimension(width + insets.left + insets.right, height + insets.top + insets.bottom)
 
-private fun Component.preferredSize(collapsed: Boolean): Dimension =
-    if (collapsed) collapsedSize() else preferredSize
+    private operator fun Point.get(@Orientation orientation: Int): Int =
+        if (orientation == HORIZONTAL) x else y
 
-private fun Component.collapsedSize(): Dimension =
-    if (this is ToolbarPanel && collapsible) collapsedSize else ZERO_DIMENSION
+    private operator fun Point.minus(point: Point): Point =
+        Point(x - point.x, y - point.y)
 
-private fun Dimension.combine(@Orientation orientation: Int, other: Dimension) {
-  if (orientation == HORIZONTAL) {
-    width += other.width
-    height = max(height, other.height)
-  }
-  else {
-    width = max(width, other.width)
-    height += other.height
+    private fun Int.scaled(numerator: Int, denominator: Int): Int =
+        ((this.toLong() * numerator + denominator / 2) / denominator).toInt()
+
+    private fun numFrames(durationMillis: Int): Int = max(durationMillis.scaled(1000, ANIMATION_FRAMES_PER_SECOND), 1)
+
+    private const val ANIMATION_FRAMES_PER_SECOND = 60
+    private const val ACTIVATION_ANIMATION_DURATION_MILLIS = 200
+    private const val COLLAPSE_ANIMATION_DURATION_MILLIS = 400
+    private const val COLLAPSE_DELAY_MILLIS = 2000
+    private const val ACTIVE_ALPHA = 1.0
+
+    private val ZERO_DIMENSION = Dimension()
+
+    private val SPACER_SIZE = ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.width / 3
   }
 }
-
-private fun Dimension.increment(@Orientation orientation: Int, value: Int) {
-  if (orientation == HORIZONTAL) {
-    width += value
-  }
-  else {
-    height += value
-  }
-}
-
-private operator fun Dimension.set(@Orientation orientation: Int, value: Int) {
-  if (orientation == HORIZONTAL) {
-    width = value
-  }
-  else {
-    height = value
-  }
-}
-
-private operator fun Dimension.get(@Orientation orientation: Int): Int =
-    if (orientation == HORIZONTAL) width else height
-
-private operator fun Dimension.minus(insets: Insets): Dimension =
-    Dimension(width - insets.left - insets.right, height - insets.top - insets.bottom)
-
-private operator fun Dimension.plus(insets: Insets): Dimension =
-    Dimension(width + insets.left + insets.right, height + insets.top + insets.bottom)
-
-private operator fun Point.get(@Orientation orientation: Int): Int =
-    if (orientation == HORIZONTAL) x else y
-
-private operator fun Point.minus(point: Point): Point =
-    Point(x - point.x, y - point.y)
-
-private fun Int.scaled(numerator: Int, denominator: Int): Int =
-    ((this.toLong() * numerator + denominator / 2) / denominator).toInt()
-
-private fun numFrames(durationMillis: Int): Int = max(durationMillis.scaled(1000, ANIMATION_FRAMES_PER_SECOND), 1)
-
-private const val ANIMATION_FRAMES_PER_SECOND = 60
-private const val ACTIVATION_ANIMATION_DURATION_MILLIS = 200
-private const val COLLAPSE_ANIMATION_DURATION_MILLIS = 400
-private const val COLLAPSE_DELAY_MILLIS = 2000
-private const val ACTIVE_ALPHA = 1.0
-
-private val ZERO_DIMENSION = Dimension()
-
-private val SPACER_SIZE = ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.width / 3
-
-@Suppress("UnstableApiUsage")
-private val SELECTED_PROPERTY_NAME = Toggleable.SELECTED_KEY.toString()
-
