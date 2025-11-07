@@ -154,38 +154,44 @@ class ScreenshotAttributesView {
         }
 
         val scrollState = rememberScrollState()
-        Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(scrollState),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Section("Summary") {
-                KeyValueRow("Match") {
-                    val text = currentState.matchPercentage ?: currentState.testResult?.name ?: NOT_APPLICABLE
-                    when (currentState.testResult) {
-                        AndroidTestCaseResult.PASSED -> GreenText(text)
-                        AndroidTestCaseResult.FAILED -> RedText(text)
-                        else -> GrayText(text)
+        Row(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier.weight(1f).padding(16.dp).verticalScroll(scrollState),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Section("Summary") {
+                    KeyValueRow("Match") {
+                        val text = currentState.matchPercentage ?: if (currentState.testResult == AndroidTestCaseResult.FAILED) {
+                            "0.00%"
+                        } else {
+                            currentState.testResult?.name ?: NOT_APPLICABLE
+                        }
+                        when (currentState.testResult) {
+                            AndroidTestCaseResult.PASSED -> GreenText(text)
+                            AndroidTestCaseResult.FAILED -> RedText(text)
+                            else -> GrayText(text)
+                        }
                     }
+                    KeyValueRow("Preview") { BlueText(currentState.methodName) }
+                    KeyValueRow("Related Composables") { BlueText(currentState.className) }
                 }
-                KeyValueRow("Preview") { BlueText(currentState.methodName) }
-                KeyValueRow("Related Composables") { BlueText(currentState.className) }
-            }
 
-            Section("Preview configuration") { CodeSnippet("@Preview(${currentState.methodName})") }
+                Section("Preview configuration") { CodeSnippet("@Preview(${currentState.methodName})") }
 
-            Section("File info") {
-                FileInfoTable(
-                    refMetadata.dimensions, newMetadata.dimensions,
-                    refMetadata.size, newMetadata.size,
-                    refMetadata.date, newMetadata.date,
-                    currentState.refLocation, currentState.newLocation
-                )
+                Section("File info") {
+                    FileInfoTable(
+                        refMetadata.dimensions, newMetadata.dimensions,
+                        refMetadata.size, newMetadata.size,
+                        refMetadata.date, newMetadata.date,
+                        currentState.refLocation, currentState.newLocation
+                    )
+                }
             }
+            VerticalScrollbar(
+                adapter = rememberScrollbarAdapter(scrollState),
+                modifier = Modifier.fillMaxHeight(),
+            )
         }
-        VerticalScrollbar(
-            adapter = rememberScrollbarAdapter(scrollState),
-            modifier = Modifier.fillMaxHeight(),
-        )
     }
 }
 
