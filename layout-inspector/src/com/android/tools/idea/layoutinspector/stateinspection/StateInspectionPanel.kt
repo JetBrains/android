@@ -92,6 +92,7 @@ internal class StateInspectionPanel(
 
   init {
     isVisible = false
+    isFocusable = false
     scope.launch {
       model.show.collect { show ->
         isVisible = show
@@ -139,21 +140,26 @@ private class InnerStateInspectionPanel(
   private val foldingDetector = StateInspectionFoldingDetector(editor, scope)
 
   init {
+    isFocusable = false
     Disposer.register(parentDisposable, this)
     parent.putUserData(STATE_READ_EDITOR_KEY, editor) // For testing
     title.text = LayoutInspectorBundle.message("layout.inspector.recomposition.state.reads")
     title.border = JBUI.Borders.empty(2, 5)
     val prev = ActionButton(model.prevAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
     prev.maximumSize = DEFAULT_MINIMUM_BUTTON_SIZE
+    prev.isFocusable = true
     val next = ActionButton(model.nextAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
     next.maximumSize = DEFAULT_MINIMUM_BUTTON_SIZE
+    next.isFocusable = true
     val minimize = ActionButton(model.minimizeAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
     minimize.maximumSize = DEFAULT_MINIMUM_BUTTON_SIZE
     minimize.border = JBUI.Borders.emptyRight(10)
+    minimize.isFocusable = true
 
     // Header with title, scroller through the recompositions, a state read count, minimize button
     val header = JPanel()
     header.layout = BoxLayout(header, BoxLayout.X_AXIS)
+    header.isFocusable = false
     header.add(title)
     header.add(Box.createHorizontalGlue())
     header.add(prev)
@@ -186,7 +192,13 @@ private class InnerStateInspectionPanel(
   }
 
   private fun updateButtons(vararg buttons: ActionButton) {
-    buttons.forEach { it.update() }
+    buttons.forEach {
+      it.update()
+      if (it.hasFocus() && !it.isEnabled) {
+        // Focus traversal may get stuck if a button with focus gets disabled:
+        it.transferFocus()
+      }
+    }
   }
 
   private suspend fun setTextInEditor(text: String) {
@@ -223,6 +235,9 @@ private class InnerStateInspectionPanel(
     editor.scrollPane.border = JBUI.Borders.empty()
     editor.scrollPane.verticalScrollBarPolicy = VERTICAL_SCROLLBAR_AS_NEEDED
     Disposer.register(disposable) { editorFactory.releaseEditor(editor) }
+    editor.component.isFocusable = false
+    editor.contentComponent.isFocusable = true
+    editor.contentComponent.isFocusCycleRoot = false
     return editor
   }
 
