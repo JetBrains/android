@@ -23,12 +23,16 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import kotlin.time.Duration.Companion.seconds
+import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -36,7 +40,6 @@ class ComposeWizardTest {
   @get:Rule val composeTestRule = createStudioComposeTestRule()
 
   @Test
-  @Ignore("b/378750746 -- come back and fix")
   fun enter() {
     val wizard = TestComposeWizard {
       val focusRequester = remember { FocusRequester() }
@@ -49,6 +52,38 @@ class ComposeWizardTest {
 
     @OptIn(ExperimentalTestApi::class)
     composeTestRule.onNodeWithText("abcd").performKeyInput { keyPress(Key.Enter) }
+
+    wizard.awaitClose(5.seconds)
+  }
+
+  @Test
+  fun finish() {
+    val wizard = TestComposeWizard {
+      Text("First")
+      nextAction = WizardAction {
+        pushPage {
+          Text("Second")
+          enterFinishedState()
+        }
+      }
+      finishAction = WizardAction.Disabled
+    }
+
+    composeTestRule.setContent { wizard.Content() }
+
+    composeTestRule.onNodeWithText("First").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Cancel").assertIsEnabled()
+    composeTestRule.onNodeWithText("Previous").assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Finish").assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Next").performClick()
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("First").assertDoesNotExist()
+    composeTestRule.onNodeWithText("Second").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Cancel").assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Previous").assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Finish").performClick()
 
     wizard.awaitClose(5.seconds)
   }

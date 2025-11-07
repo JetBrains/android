@@ -174,8 +174,10 @@ internal fun WizardPageScope.WizardButtonBar(
         OutlinedButton(onClick = { with(button.action) { invoke() } }) { Text(button.name) }
       }
       Spacer(Modifier.weight(1f))
-      OutlinedButton(onClick = { cancel() }) { Text("Cancel") }
-      OutlinedButton(onClick = { popPage() }, enabled = pageStackSize() > 1) { Text("Previous") }
+      OutlinedButton(onClick = { cancel() }, enabled = cancelButtonEnabled) { Text("Cancel") }
+      OutlinedButton(onClick = { popPage() }, enabled = prevButtonEnabled && pageStackSize() > 1) {
+        Text("Previous")
+      }
       OutlinedButton(onClick = { with(nextAction) { invoke() } }, enabled = nextAction.enabled) {
         Text("Next")
       }
@@ -233,8 +235,18 @@ class WizardAction(val action: (WizardDialogScope.() -> Unit)?) {
  * their behavior.
  */
 abstract class WizardPageScope {
+  var prevButtonEnabled by mutableStateOf(true)
+  var cancelButtonEnabled by mutableStateOf(true)
+
   abstract var nextAction: WizardAction
   abstract var finishAction: WizardAction
+
+  fun enterFinishedState() {
+    prevButtonEnabled = false
+    cancelButtonEnabled = false
+    nextAction = WizardAction.Disabled
+    finishAction = WizardAction { close() }
+  }
 
   var leftSideButtons by mutableStateOf(emptyList<WizardButton>())
 
