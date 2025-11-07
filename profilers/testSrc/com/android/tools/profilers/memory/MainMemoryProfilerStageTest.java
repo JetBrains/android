@@ -21,6 +21,8 @@ import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import com.android.ddmlib.allocations.AllocationsParserTest;
@@ -30,6 +32,7 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
@@ -64,12 +67,13 @@ import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -89,6 +93,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   public MainMemoryProfilerStageTest(int featureLevel) {
     super();
     myTransportService = new FakeTransportService(myTimer, true, featureLevel);
+    MemoryProfilerTestUtils.setMockStartTraceStatus(myTransportService, myTimer, Trace.TraceStartStatus.Status.SUCCESS);
     myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageTestChannel", myTransportService, new FakeEventService());
   }
 
@@ -129,7 +134,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isEqualTo(null);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
-    // Attempting to start a in-progress session
+    // Attempting to start an in-progress session
     MemoryProfilerTestUtils
       .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.IN_PROGRESS, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(true);
@@ -151,6 +156,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     CaptureObject capture = ((MemoryCaptureStage)myProfilers.getStage()).getCaptureSelection().getSelectedCapture();
     assertThat(capture).isInstanceOf(LegacyAllocationCaptureObject.class);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
+    Assert.assertNotNull(capture);
     assertThat(capture.isDoneLoading()).isFalse();
     assertThat(capture.isError()).isFalse();
 
@@ -169,7 +175,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Set time to 1 second (in ns) before starting tracking to verify start time field of TraceStartStatus event.
     myTimer.setCurrentTimeNs(FakeTimer.ONE_SECOND_IN_NS);
     // Validate we enabled tracking allocations.
-    myStage.toggleNativeAllocationTracking();
+    MemoryProfilerTestUtils.nativeAllocationTrackingHelper(myStage, myTimer, myTransportService, Trace.TraceStartStatus.Status.SUCCESS);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.isTrackingAllocations()).isTrue();
     assertThat(myStage.myNativeAllocationTracking).isTrue();
@@ -179,7 +185,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getTimeline().isStreaming()).isTrue();
     assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isTrue();
     // Validate we disabled tracking allocations.
-    myStage.toggleNativeAllocationTracking();
+    MemoryProfilerTestUtils.nativeAllocationTrackingHelper(myStage, myTimer, myTransportService, Trace.TraceStartStatus.Status.SUCCESS);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.isTrackingAllocations()).isFalse();
     assertThat(myStage.myNativeAllocationTracking).isFalse();
@@ -190,13 +196,13 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Native allocation recording is only enabled as a built-in recording option for Q+ api levels.
     // The call to RecordingOptionsModel::setRecording can only be done if native allocation recording
     // is a part of the built-in recording options list. Thus, we only run this test with api levels Q and above.
-    assumeQAndAbove(true);
+    assumeQAndAbove();
     assertThat(myStage.isTrackingAllocations()).isFalse();
     assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isFalse();
     // Set time to 1 second (in ns) before starting tracking to verify start time field of TraceStartStatus event.
     myTimer.setCurrentTimeNs(FakeTimer.ONE_SECOND_IN_NS);
     // Validate we enabled tracking allocations.
-    myStage.toggleNativeAllocationTracking();
+    MemoryProfilerTestUtils.nativeAllocationTrackingHelper(myStage, myTimer, myTransportService, Trace.TraceStartStatus.Status.SUCCESS);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     //myStage.getRecordingOptionsModel().addBuiltInOptions();
     assertThat(myStage.isTrackingAllocations()).isTrue();
@@ -209,7 +215,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getTimeline().isStreaming()).isTrue();
     assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isTrue();
     // Validate we disabled tracking allocations.
-    myStage.toggleNativeAllocationTracking();
+    MemoryProfilerTestUtils.nativeAllocationTrackingHelper(myStage, myTimer, myTransportService, Trace.TraceStartStatus.Status.SUCCESS);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.isTrackingAllocations()).isFalse();
     assertThat(myStage.myNativeAllocationTracking).isFalse();
@@ -531,7 +537,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     Common.Device device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build();
     Common.Process process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build();
 
-    Long session1Timestamp = 1L;
+    long session1Timestamp = 1L;
     myTimer.setCurrentTimeNs(session1Timestamp);
     manager.beginSession(1, device, process1);
     manager.update();
@@ -632,7 +638,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Test
   public void testLegendsOrder() {
     MemoryStageLegends legends = myStage.getLegends();
-    List<String> legendNames = ContainerUtil.map(legends.getLegends(), legend -> legend.getName());
+    List<String> legendNames = ContainerUtil.map(legends.getLegends(), Legend::getName);
     assertThat(legendNames).containsExactly("Total", "Java", "Native", "Graphics", "Stack", "Code", "Others", "Allocated")
       .inOrder();
   }
@@ -640,7 +646,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Test
   public void testTooltipLegendsOrder() {
     MemoryStageLegends legends = myStage.getTooltipLegends();
-    List<String> legendNames = ContainerUtil.map(legends.getLegends(), legend -> legend.getName());
+    List<String> legendNames = ContainerUtil.map(legends.getLegends(), Legend::getName);
     assertThat(legendNames)
       .containsExactly("Others", "Code", "Stack", "Graphics", "Native", "Java", "Allocated", "Tracking", "GC Duration", "Total")
       .inOrder();
@@ -833,7 +839,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.isTrackingAllocations()).isFalse();
     assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isFalse();
     // Validate we enable tracking allocations
-    myStage.toggleNativeAllocationTracking();
+    MemoryProfilerTestUtils.nativeAllocationTrackingHelper(myStage, myTimer, myTransportService, Trace.TraceStartStatus.Status.SUCCESS);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.isTrackingAllocations()).isTrue();
     assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isTrue();
@@ -860,7 +866,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
                                           myIdeProfilerServices.getFeatureTracker(), myStage);
     List<SeriesData<CaptureDurationData<? extends CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
 
-    myStage.selectCaptureDuration(dataList.get(0).value, null);
+    myStage.selectCaptureDuration(dataList.getFirst().value, null);
     assertThat(myProfilers.getStage()).isInstanceOf(MemoryCaptureStage.class);
     assertThat(myProfilers.getStage().getStageType()).isEqualTo(AndroidProfilerEvent.Stage.MEMORY_HEAP_DUMP_STAGE);
   }
@@ -883,7 +889,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     List<SeriesData<CaptureDurationData<? extends CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(1, dataList.size());
-    myStage.selectCaptureDuration(dataList.get(0).value, null);
+    myStage.selectCaptureDuration(dataList.getFirst().value, null);
     assertThat(myProfilers.getStage()).isInstanceOf(MemoryCaptureStage.class);
     assertThat(myProfilers.getStage().getStageType()).isEqualTo(AndroidProfilerEvent.Stage.MEMORY_STAGE);
   }
@@ -900,7 +906,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Test
   public void testNativeAllocationTrackingWhenEventsAreOutOfOrder() {
     // Start native allocation tracking the "normal" way.
-    MemoryProfilerTestUtils.toggleNativeAllocationTrackingHelper(myStage, myTimer);
+    MemoryProfilerTestUtils.nativeAllocationTrackingHelper(myStage, myTimer, myTransportService, Trace.TraceStartStatus.Status.SUCCESS);
     // To simulate events being returned out of order by the transport pipeline:
     // - insert another event into the pipeline; this event is added after the "normal" event, but has an earlier timestamp
     // - manually turn off native allocation tracking
@@ -952,7 +958,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testStartNativeAllocationCapture() {
-    assumeQAndAbove(true);
+    assumeQAndAbove();
     assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
     myStage.startNativeAllocationCapture();
     assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(myStage.lazyNativeRecordingOption.getValue());
@@ -961,7 +967,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testStopNativeAllocationCapture() {
-    assumeQAndAbove(true);
+    assumeQAndAbove();
     assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
     myStage.startNativeAllocationCapture();
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -1038,12 +1044,44 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     // receivingTraceStopStatusEventSetsRecordingToFinished() test.
   }
 
-  private void assumePreO(boolean assumedPreO) {
-    assumeTrue(myStage.getDeviceForSelectedSession().getFeatureLevel() < AndroidVersion.VersionCodes.O == assumedPreO);
+  /**
+   * Verifies that if start trace fails:
+   * 1. Studio Profiler throws an IDE error.
+   * 2. Session is cleaned up properly for task based UX.
+   * 3. The UI state and recording state is reset.
+   * 4. Screen recording failed error is shown to user.
+   */
+  @Test
+  public void testStartNativeAllocationTrackingFailureResetsState() {
+    assumeQAndAbove();
+
+    /**
+     * Need to re-initialize stage with task based UX enabled.
+     * This is because {@link #setupBase()} creates stage with task based UX disabled (see b/459619773)
+     */
+    myStage = new MainMemoryProfilerStage(myProfilers, new FakeCaptureObjectLoader());
+    Throwable thrown = assertThrows(Throwable.class, () -> MemoryProfilerTestUtils.nativeAllocationTrackingHelper(
+      myStage,
+      myTimer,
+      myTransportService,
+      Trace.TraceStartStatus.Status.FAILURE
+    ));
+
+    assertTrue(thrown.getMessage().contains("Failure with error code 0"));
+    assertThat(myStage.getStudioProfilers().getSessionsManager().getProfilingSession()).isEqualTo(Common.Session.getDefaultInstance());
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+    assertThat(myStage.getRecordingScreenModel()).isNotNull();
+    assertThat(myStage.getRecordingScreenModel().isRecordingFailed().getValue()).isTrue();
+    assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
   }
 
-  private void assumeQAndAbove(boolean assumedQAndAbove) {
-    assumeTrue(myStage.getDeviceForSelectedSession().getFeatureLevel() >= AndroidVersion.VersionCodes.Q == assumedQAndAbove);
+  private void assumePreO(boolean assumedPreO) {
+    assumeTrue(
+      Objects.requireNonNull(myStage.getDeviceForSelectedSession()).getFeatureLevel() < AndroidVersion.VersionCodes.O == assumedPreO);
+  }
+
+  private void assumeQAndAbove() {
+    assumeTrue(Objects.requireNonNull(myStage.getDeviceForSelectedSession()).getFeatureLevel() >= AndroidVersion.VersionCodes.Q);
   }
 
   @Parameterized.Parameters

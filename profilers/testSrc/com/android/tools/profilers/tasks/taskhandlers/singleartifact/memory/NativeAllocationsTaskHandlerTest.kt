@@ -32,8 +32,8 @@ import com.android.tools.profilers.SessionArtifactUtils.createSessionItem
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
+import com.android.tools.profilers.memory.MemoryProfilerTestUtils
 import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
@@ -75,6 +75,8 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
     myManager = myProfilers.sessionsManager
     myNativeAllocationsTaskHandler = NativeAllocationsTaskHandler(myManager)
     myProfilers.addTaskHandler(ProfilerTaskType.NATIVE_ALLOCATIONS, myNativeAllocationsTaskHandler)
+    MemoryProfilerTestUtils.setMockStartTraceStatus(myTransportService, myTimer, Trace.TraceStartStatus.Status.SUCCESS)
+
     assertThat(myManager.sessionArtifacts).isEmpty()
     assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
     assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
@@ -147,6 +149,7 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
 
     // Wait for successful start event to be consumed.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
     // Stop the task successfully. No need to configure the StopTrace event's status to be SUCCESS as the Fake StopTrace command for
     // memory profiler assumes a successful stop trace status event.
     myNativeAllocationsTaskHandler.stopTask()
