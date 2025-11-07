@@ -23,17 +23,21 @@ import com.android.tools.profiler.proto.Trace
 class StartTrace(timer: FakeTimer) : CommandHandler(timer) {
   var startStatus: Trace.TraceStartStatus = Trace.TraceStartStatus.getDefaultInstance()
 
+  /**
+   * Generates the events required to start a trace recording based on the current [startStatus].
+   *
+   * The handler performs following actions:
+   * 1. Info Creation: Builds a [Trace.TraceInfo] with a temporary `toTimestamp` of -1, marking the trace as in-progress.
+   * 2. Report Trace Status: Emits a [Common.Event.Kind.TRACE_STATUS] event to report the immediate success or failure of the request.
+   * 3. Signal Trace Start: If the status is successful, emits an additional [Common.Event.Kind.CPU_TRACE] event, carrying the
+   * [Trace.TraceInfo] to signal the profiler stage that a recording has begun.
+   *
+   * @param command The incoming START_TRACE command.
+   * @param events The list to which generated events are added.
+   */
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
     val traceId = timer.currentTimeNs
-    // Fake StartTrace command for memory profiler assumes successful start trace status event
-    if (command.startTrace.profilerType == Trace.ProfilerType.MEMORY) {
-      this.startStatus = Trace.TraceStartStatus.newBuilder().apply {
-          startTimeNs = timer.currentTimeNs
-          status = Trace.TraceStartStatus.Status.SUCCESS
-        }.build()
-    }
 
-    // Inserts an in-progress trace info object, which the stage will see on the next time update.
     val info = Trace.TraceInfo.newBuilder()
       .setTraceId(traceId)
       .setFromTimestamp(traceId)
