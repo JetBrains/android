@@ -93,4 +93,20 @@ class TestSuiteRunConfigurationTest {
     assertTrue(newConfiguration.showsResultsInAndroidTestMatrix())
     assertTrue(newConfiguration.isDeployableToDevice())
   }
+
+  @Test
+  fun testTaskNameWithoutSpaces() {
+    val taskName = "myTestTask"
+    configuration.addTaskName(taskName)
+    assertEquals(listOf("myTestTask"), configuration.getTaskNames())
+    assertTrue(configuration.containsTask(taskName))
+  }
+
+  @Test
+  fun testTaskNameWithSpaces() {
+    val taskName = "my test task"
+    configuration.addTaskName(taskName)
+    assertEquals(listOf("\"my test task\""), configuration.getTaskNames())
+    assertTrue(configuration.containsTask(taskName))
+  }
 }
