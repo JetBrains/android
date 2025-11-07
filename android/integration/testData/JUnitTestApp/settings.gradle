@@ -1,3 +1,4 @@
+/* //uncomment when opening it outside E2E test
 pluginManagement {
   repositories {
     google()
@@ -10,6 +11,6 @@ dependencyResolutionManagement {
     google()
     mavenCentral()
   }
-}
+}*/
 rootProject.name = "JUnitTestApp"
 include ':app'
