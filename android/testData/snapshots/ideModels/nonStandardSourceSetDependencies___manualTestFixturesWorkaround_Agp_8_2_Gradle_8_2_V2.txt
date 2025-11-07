@@ -1270,6 +1270,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 21
@@ -2085,6 +2087,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : jvmTest
     kotlinMppGradleModel          : {commonMain=commonMain, commonTest=commonTest, jvmMain=jvmMain, jvmTest=jvmTest} (KotlinMPPGradleModelImpl)
         dependencies
             commonMain
@@ -2282,6 +2285,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
     kotlinGradleModel             : kotlin-platform-jvm (KotlinGradleModelImpl)
         additionalVisibleSourceSets
             main                          : <empty>
@@ -2362,6 +2366,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1
@@ -3431,6 +3437,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1
@@ -4096,6 +4104,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
     kotlinGradleModel             : kotlin-platform-jvm (KotlinGradleModelImpl)
         additionalVisibleSourceSets
             main                          : <empty>
@@ -4204,6 +4213,9 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : jvmTest
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     externalProject               : :kmp-java (DefaultExternalProject) (*seen*)
 MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
     GradleModuleModel
@@ -4214,6 +4226,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : jvmTest
     kotlinMppGradleModel          : {commonMain=commonMain, commonTest=commonTest, jvmMain=jvmMain, jvmTest=jvmTest} (KotlinMPPGradleModelImpl)
         dependencies
             commonMain
@@ -4414,6 +4427,8 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1
@@ -4719,6 +4734,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16

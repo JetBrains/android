@@ -117,6 +117,8 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.nio.file.Path
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
+import kotlin.collections.plus
+import org.jetbrains.plugins.gradle.model.GradleTaskModel
 
 private val LOG = logger<AndroidSourceRootSyncContributor>()
 
@@ -205,6 +207,7 @@ internal class SyncContributorAndroidProjectContext(
   val gradlePluginModel = context.getProjectModel(projectModel, GradlePluginModel::class.java)!!
   val gradleProject = context.getProjectModel(projectModel, GradleProject::class.java)!!
   val ideaModule =  context.getProjectModel(projectModel, IdeaModule::class.java)!!
+  val gradleTaskModel = context.getProjectModel(projectModel, GradleTaskModel::class.java)!!
   val kaptGradleModel = context.getProjectModel(projectModel, KaptGradleModel::class.java)
 
   // Need to use Impl version because GradleAndroidModelData expects an immutable implementation.
@@ -253,6 +256,7 @@ internal class SyncContributorAndroidProjectContext(
       GradleModuleModel(
         moduleName,
         gradleProject,
+        gradleTaskModel, // external project doesn't have tasks at this phase
         gradleProject.buildScript.sourceFile,
         context.projectGradleVersion,
         versions.agpVersionAsString,

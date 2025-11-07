@@ -1138,6 +1138,10 @@ MODULE                        : Kotlin_Multiplatform.androidLib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testTypeoneModeoneDebugUnitTest
+        - taskNames                   : testTypeoneModetwoDebugUnitTest
+        - taskNames                   : testTypetwoModeoneDebugUnitTest
+        - taskNames                   : testTypetwoModetwoDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 21
@@ -1702,6 +1706,7 @@ MODULE                        : Kotlin_Multiplatform.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 22
@@ -2137,6 +2142,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testAndroidHostTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 22
@@ -2861,6 +2867,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : jvmTest
     kotlinMppGradleModel          : {commonMain=commonMain, commonTest=commonTest, jvmMain=jvmMain, jvmTest=jvmTest} (KotlinMPPGradleModelImpl)
         dependencies
             commonMain
@@ -3068,6 +3075,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : jvmTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 22

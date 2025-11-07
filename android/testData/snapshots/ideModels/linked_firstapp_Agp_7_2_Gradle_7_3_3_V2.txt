@@ -656,6 +656,8 @@ MODULE                        : My_First_App.app
         rootFolderPath                : <ROOT>/firstapp
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -1799,6 +1801,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
         rootFolderPath                : <ROOT>/firstapp
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16

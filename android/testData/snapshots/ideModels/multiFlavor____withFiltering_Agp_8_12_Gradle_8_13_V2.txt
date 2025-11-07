@@ -84,6 +84,8 @@ MODULE                        : MultiFlavor.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testFirstAbcSecondAbcDebugUnitTest
+        - taskNames                   : testFirstAbcSecondAbcReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16

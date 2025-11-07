@@ -43,6 +43,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
+import org.jetbrains.plugins.gradle.model.GradleTaskModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 
@@ -123,6 +124,7 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
               androidDsl,
               controller.findModel(gradleProject, DeclaredDependencies::class.java)!!,
               controller.findModel(gradleProject, GradlePluginModel::class.java)!!,
+              controller.findModel(gradleProject, GradleTaskModel ::class.java)!!,
               controller.fetchModel<KaptGradleModel>(gradleProject, selectedVariantName),
               ideAndroidProject,
               selectedVariantName,
@@ -141,6 +143,7 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
       modelConsumer.consumeProjectModel(gradleProject, data.androidDsl, AndroidDsl::class.java)
       modelConsumer.consumeProjectModel(gradleProject, data.declaredDependencies, DeclaredDependencies::class.java)
       modelConsumer.consumeProjectModel(gradleProject, data.gradlePluginModel, GradlePluginModel::class.java)
+      modelConsumer.consumeProjectModel(gradleProject, data.gradleTaskModel, GradleTaskModel::class.java)
       modelConsumer.consumeProjectModel(gradleProject, data.ideAndroidProject, IdeAndroidProject::class.java)
 
       // Optional models
@@ -240,6 +243,7 @@ private data class AndroidProjectData(
   val androidDsl: AndroidDsl,
   val declaredDependencies: DeclaredDependencies,
   val gradlePluginModel: GradlePluginModel,
+  val gradleTaskModel: GradleTaskModel,
   val kaptGradleModel: KaptGradleModel?,
   val ideAndroidProject: IdeAndroidProjectImpl,
   val selectedVariantName: String,
