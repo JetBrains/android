@@ -23,8 +23,6 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
-// TODO(b/286943866): Currently test is too flaky
-@Ignore
 class DebugJUnitTest {
 
   @get:Rule
