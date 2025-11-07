@@ -23,17 +23,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.unit.dp
 import com.android.screenshottest.util.ImageData
 import com.android.screenshottest.util.copyReferenceImages
-import com.intellij.openapi.application.ApplicationManager
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
@@ -42,7 +43,7 @@ import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.JBColor
-import com.intellij.ui.JBSplitter
+import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.tree.TreeUtil
@@ -178,7 +179,7 @@ class UpdateReferenceImagesDialog(
   }
 
   private fun populateCenterPanel() {
-    val splitter = JBSplitter(false, 0.3f)
+    val splitter = OnePixelSplitter(false, 0.3f)
 
     rightPaneCardLayout = CardLayout()
     rightPaneContent = JPanel(rightPaneCardLayout)
@@ -190,7 +191,6 @@ class UpdateReferenceImagesDialog(
 
     rightPaneWrapper = JPanel(BorderLayout())
     previewToolbar = createPreviewToolbar()
-    previewToolbar.border = BorderFactory.createMatteBorder(1, 0, 0, 0, JBColor.border())
     previewToolbar.isVisible = false
     rightPaneWrapper.add(rightPaneContent, BorderLayout.CENTER)
     rightPaneWrapper.add(previewToolbar, BorderLayout.SOUTH)
@@ -264,7 +264,8 @@ class UpdateReferenceImagesDialog(
             modifier = Modifier
               .fillMaxWidth()
               .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
           ) {
             SegmentedControl(buttons = buttonData, enabled = true)
           }
@@ -307,9 +308,11 @@ class UpdateReferenceImagesDialog(
     } else {
       if(isLeafSelected) {
         rightPaneWrapper.remove(previewToolbar)
+        previewToolbar.border = null
         previewDetailsPanel.displayPreviews(previewsToShow, imagePanelMap, selectedViewType, previewToolbar)
       } else {
         rightPaneWrapper.add(previewToolbar, BorderLayout.SOUTH)
+        previewToolbar.border = BorderFactory.createMatteBorder(1, 0, 1, 0, JBColor.border())
         if (selectedViewType == ScreenshotViewType.ALL) {
           selectedViewType = ScreenshotViewType.NEW
         }
