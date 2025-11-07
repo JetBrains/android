@@ -204,12 +204,12 @@ fun modelCacheV2Impl(
     return IdeSourceProvider(
       name = source.name.deduplicate(),
       folder = source.kotlin.first(),
-      manifestFile = File(source.kotlin.first(), "AndroidManifest.xml").makeRelativeAndDeduplicate(),
+      manifestFile = File(source.kotlin.first().parent, "AndroidManifest.xml").makeRelativeAndDeduplicate(),
       javaDirectories = source.java.map {
-        it.resolve("java").makeRelativeAndDeduplicate()
+        it.makeRelativeAndDeduplicate()
       },
       kotlinDirectories = source.kotlin.map {
-        it.resolve("kotlin").makeRelativeAndDeduplicate()
+        it.makeRelativeAndDeduplicate()
       },
       resourcesDirectories = emptyList(),
       aidlDirectories = emptyList(),
