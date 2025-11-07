@@ -23,8 +23,10 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.idea.transport.faketransport.commands.HeapDump;
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking;
+import com.android.tools.idea.transport.faketransport.commands.StartTrace;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.Classifier;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
@@ -43,18 +45,18 @@ public class MemoryProfilerTestUtils {
     List<ClassSet> classSets = classifier.getFilteredClassifierSets().stream()
       .filter(
         classifierSet -> classifierSet instanceof ClassSet && className.equals(((ClassSet)classifierSet).getClassEntry().getClassName()))
-      .map(classSet -> (ClassSet)classSet).collect(Collectors.toList());
+      .map(classSet -> (ClassSet)classSet).toList();
     assertEquals(1, classSets.size());
-    return classSets.get(0);
+    return classSets.getFirst();
   }
 
   @NotNull
   public static ClassSet findChildClassSetWithName(@NotNull ClassifierSet classifierSets, @NotNull String className) {
     List<ClassSet> classSets = classifierSets.getChildrenClassifierSets().stream()
       .filter(classifier -> classifier instanceof ClassSet && className.equals(((ClassSet)classifier).getClassEntry().getClassName()))
-      .map(classifierSet -> (ClassSet)classifierSet).collect(Collectors.toList());
+      .map(classifierSet -> (ClassSet)classifierSet).toList();
     assertEquals(1, classSets.size());
-    return classSets.get(0);
+    return classSets.getFirst();
   }
 
   @NotNull
@@ -71,9 +73,9 @@ public class MemoryProfilerTestUtils {
     List<MemoryObjectTreeNode<ClassSet>> nodes = root.getChildren().stream()
       .filter(child -> child.getAdapter() instanceof ClassSet &&
                        className.equals(((ClassSet)child.getAdapter()).getClassEntry().getClassName()))
-      .map(child -> (MemoryObjectTreeNode<ClassSet>)child).collect(Collectors.toList());
+      .map(child -> (MemoryObjectTreeNode<ClassSet>)child).toList();
     assertEquals(1, nodes.size());
-    return nodes.get(0);
+    return nodes.getFirst();
   }
 
   @NotNull
@@ -82,7 +84,7 @@ public class MemoryProfilerTestUtils {
     List<MemoryObjectTreeNode<? extends ClassifierSet>> nodes = root.getChildren().stream()
       .filter(child -> name.equals(child.getAdapter().getName())).collect(Collectors.toList());
     assertEquals(1, nodes.size());
-    return nodes.get(0);
+    return nodes.getFirst();
   }
 
   @NotNull
@@ -91,14 +93,14 @@ public class MemoryProfilerTestUtils {
     List<MemoryObjectTreeNode<? extends MemoryObject>> nodes = root.getChildren().stream()
       .filter(child -> predicate.apply(child.getAdapter())).collect(Collectors.toList());
     assertEquals(1, nodes.size());
-    return nodes.get(0);
+    return nodes.getFirst();
   }
 
   @NotNull
   public static MemoryObjectTreeNode<ClassifierSet> getRootClassifierSet(@Nullable JTree tree) {
     assertNotNull(tree);
     Object root = tree.getModel().getRoot();
-    assertTrue(root instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)root).getAdapter() instanceof ClassifierSet);
+    assertTrue(root instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode<?>)root).getAdapter() instanceof ClassifierSet);
     //noinspection unchecked
     return (MemoryObjectTreeNode<ClassifierSet>)root;
   }
@@ -145,7 +147,11 @@ public class MemoryProfilerTestUtils {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
   }
 
-  public static void toggleNativeAllocationTrackingHelper(MainMemoryProfilerStage stage, FakeTimer timer) {
+  public static void nativeAllocationTrackingHelper(MainMemoryProfilerStage stage,
+                                                    FakeTimer timer,
+                                                    FakeTransportService transportService,
+                                                    Trace.TraceStartStatus.Status status) {
+    setMockStartTraceStatus(transportService, timer, status);
     stage.toggleNativeAllocationTracking();
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
   }
@@ -155,5 +161,15 @@ public class MemoryProfilerTestUtils {
                                     Memory.HeapDumpStatus.Status status) {
     ((HeapDump)transportService.getRegisteredCommand(Commands.Command.CommandType.HEAP_DUMP)).setDumpStatus(status);
     stage.requestHeapDump();
+  }
+
+  public static void setMockStartTraceStatus(FakeTransportService transportService, FakeTimer timer, Trace.TraceStartStatus.Status status) {
+    Trace.TraceStartStatus traceStartStatus = Trace.TraceStartStatus.newBuilder()
+      .setStatus(status)
+      .setStartTimeNs(timer.getCurrentTimeNs()).build();
+
+    ((StartTrace)transportService
+      .getRegisteredCommand(Commands.Command.CommandType.START_TRACE))
+      .setStartStatus(traceStartStatus);
   }
 }
