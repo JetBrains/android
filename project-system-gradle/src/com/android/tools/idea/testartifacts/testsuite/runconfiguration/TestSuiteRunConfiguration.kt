@@ -53,7 +53,15 @@ class TestSuiteRunConfiguration(project: Project, factory: ConfigurationFactory,
    * Adds a task name to the list of tasks executed by this run configuration.
    */
   fun addTaskName(taskName: String) {
-    settings.taskNames = settings.taskNames + taskName
+    val encodedTaskName = if (taskName.contains(" ")) "\"$taskName\"" else taskName
+    settings.taskNames = settings.taskNames + encodedTaskName
+  }
+
+  /**
+   * Returns true if the given [taskName] is executed by this run configuration.
+   */
+  fun containsTask(taskName: String): Boolean {
+    return settings.taskNames.contains(encodeTaskName(taskName))
   }
 
   /**
@@ -120,6 +128,10 @@ class TestSuiteRunConfiguration(project: Project, factory: ConfigurationFactory,
       element.getAttributeValue("id")?.let { testEngineIds.add(it) }
     }
     this.testEngineIds = testEngineIds
+  }
+
+  private fun encodeTaskName(taskName: String): String {
+    return if (taskName.contains(" ")) "\"$taskName\"" else taskName
   }
 
   companion object {
