@@ -64,6 +64,7 @@ MODULE                        : project_sm_src.app
         rootFolderPath                : <ROOT>_sm_src
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 19

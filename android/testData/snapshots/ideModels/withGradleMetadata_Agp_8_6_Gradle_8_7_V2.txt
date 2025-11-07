@@ -108,6 +108,8 @@ MODULE                        : withGradleMetadata.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1

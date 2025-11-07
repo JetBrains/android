@@ -368,13 +368,16 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     val gradleSettingsFile = findGradleSettingsFile(rootModulePath!!)
     val hasArtifactsOrNoRootSettingsFile = hasArtifacts(externalProject) || !gradleSettingsFile.isFile
     if (hasArtifactsOrNoRootSettingsFile || androidModel != null) {
-      gradleModel = createGradleModuleModel(
-        moduleName,
-        gradleModule,
-        androidModels?.androidProject?.agpVersion,
-        buildScriptClasspathModel,
-        gradlePluginModel,
-      )
+      gradleModel = externalProject?.let { externalProject -> // shouldn't be null in general case
+        createGradleModuleModel(
+          moduleName,
+          gradleModule,
+          externalProject,
+          androidModels?.androidProject?.agpVersion,
+          buildScriptClasspathModel,
+          gradlePluginModel,
+        )
+      }
     }
     if (gradleModel != null) {
       moduleNode.createChild(AndroidProjectKeys.GRADLE_MODULE_MODEL, gradleModel)
@@ -868,6 +871,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     private fun createGradleModuleModel(
       moduleName: String,
       gradleModule: IdeaModule,
+      externalProject: ExternalProject,
       modelVersionString: String?,
       buildScriptClasspathModel: GradleBuildScriptClasspathModel?,
       gradlePluginModel: GradlePluginModel?,
@@ -881,6 +885,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       return GradleModuleModel(
         moduleName,
         gradleModule.gradleProject,
+        externalProject.taskModel,
         buildScriptPath,
         buildScriptClasspathModel?.gradleVersion,
         modelVersionString,

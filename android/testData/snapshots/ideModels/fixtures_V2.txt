@@ -829,6 +829,7 @@ MODULE                        : project.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 19
@@ -1953,6 +1954,7 @@ MODULE                        : project.lib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1

@@ -669,6 +669,8 @@ MODULE                        : project.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 23
@@ -1227,6 +1229,7 @@ MODULE                        : project.javalib1
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
 MODULE                        : project.javalib1.main
 MODULE                        : project.javalib1.test
 MODULE                        : project.javalib2
@@ -1238,6 +1241,7 @@ MODULE                        : project.javalib2
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
 MODULE                        : project.javalib2.main
 MODULE                        : project.javalib2.test
 MODULE                        : project.library1
@@ -1250,6 +1254,8 @@ MODULE                        : project.library1
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -1755,6 +1761,8 @@ MODULE                        : project.library2
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16

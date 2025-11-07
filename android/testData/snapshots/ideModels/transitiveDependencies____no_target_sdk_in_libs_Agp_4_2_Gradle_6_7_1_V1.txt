@@ -977,6 +977,8 @@ MODULE                        : project.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 23
@@ -1578,6 +1580,7 @@ MODULE                        : project.javalib1
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
     externalProject               : :javalib1 (DefaultExternalProject) (*seen*)
 MODULE                        : project.javalib1.main
 MODULE                        : project.javalib1.test
@@ -1590,6 +1593,7 @@ MODULE                        : project.javalib2
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
     externalProject               : :javalib2 (DefaultExternalProject) (*seen*)
 MODULE                        : project.javalib2.main
 MODULE                        : project.javalib2.test
@@ -1603,6 +1607,8 @@ MODULE                        : project.library1
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -2138,6 +2144,8 @@ MODULE                        : project.library2
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16

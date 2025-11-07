@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.impl.FileImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
@@ -99,22 +100,18 @@ class ModelSerializationTest {
 
   @Test
   fun testGradleModuleModel() = assertSerializable(disableEqualsCheck = true) {
-    val gradleProject = GradleProjectStub(
-      "someName",
-      "somePath",
-      File("/some/fake/root/dir"),
-      File("/some/fake/project/file"),
-      "task1",
-      "task2"
-    )
     GradleModuleModel(
       "testName",
-      gradleProject,
-
-      null,
+      listOf("testTask1"),
+      listOf("testTask1"),
+      ":gradle:path",
+      FileImpl("/some/fake/root/dir"),
+      FileImpl("/some/fake/build/file"),
       "4.1.10",
       "3.6.0-dev",
-      null
+      false,
+      false,
+      false
     )
   }
 

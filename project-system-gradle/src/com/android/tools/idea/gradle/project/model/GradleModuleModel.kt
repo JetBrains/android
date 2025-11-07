@@ -27,6 +27,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.workspaceModel.ide.legacyBridge.findSnapshotModuleEntity
 import java.io.File
 import org.gradle.tooling.model.GradleProject
+import org.jetbrains.plugins.gradle.model.GradleTaskModel
 
 val Module.gradleModuleModel: GradleModuleModel? get() =
   if (this.isLinkedAndroidModule()) {
@@ -39,7 +40,8 @@ val Module.gradleModuleModel: GradleModuleModel? get() =
 
 data class GradleModuleModel(
   private val moduleNameField: String,
-  val taskNames: List<String>,
+  val testTasks: List<String>,
+  val allTasks: List<String>,
   val gradlePath: String,
   val rootFolderPath: FileImpl,
   val buildFilePath: FileImpl?,
@@ -52,14 +54,16 @@ data class GradleModuleModel(
   constructor(
     moduleName: String,
     gradleProject: GradleProject,
+    gradleTaskModel: GradleTaskModel,
     buildFilePath: File?,
     gradleVersion: String?,
     agpVersion: String?,
     gradlePluginModel: GradlePluginModel?,
   ): this(
     moduleName,
-    gradleProject.getTaskNames(),
-    gradleProject.getPath(),
+    testTasks = gradleTaskModel.tasks.filterValues { it.isTest }.values.map { it.name },
+    allTasks = gradleTaskModel.tasks.values.map { it.name },
+    gradleProject.path,
     gradleProject.projectIdentifier.buildIdentifier.rootDir.toImpl(),
     buildFilePath?.toImpl(),
     gradleVersion,
@@ -72,11 +76,4 @@ data class GradleModuleModel(
   fun buildFileAsVirtualFile() = buildFilePath?.let { VfsUtil.findFileByIoFile(it, true) }
   override fun getModuleName() = moduleNameField
 }
-
-private fun GradleProject.getTaskNames() =
-  tasks.filter {
-    it.name.isNotEmpty()
-  }.map {
-    it.project.path + SdkConstants.GRADLE_PATH_SEPARATOR + it.name
-  }
 

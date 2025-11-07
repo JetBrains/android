@@ -647,6 +647,7 @@ MODULE                        : TestCompositeLib1.app
         rootFolderPath                : <ROOT>/TestCompositeLib1
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -1638,6 +1639,7 @@ MODULE                        : TestCompositeLib1.lib
         rootFolderPath                : <ROOT>/TestCompositeLib1
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -2718,6 +2720,7 @@ MODULE                        : TestCompositeLib3.app
         rootFolderPath                : <ROOT>/TestCompositeLib3
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -3689,6 +3692,7 @@ MODULE                        : TestCompositeLib3.lib
         rootFolderPath                : <ROOT>/TestCompositeLib3
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -4690,6 +4694,7 @@ MODULE                        : TestCompositeLibNested_3.compositeNest
         rootFolderPath                : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
     externalProject               : :TestCompositeLib3:TestCompositeLibNested_3 (DefaultExternalProject)
         path                          : : [-]
         identityPath                  : :TestCompositeLib3:TestCompositeLibNested_3 [-]
@@ -4766,6 +4771,7 @@ MODULE                        : composite2
         rootFolderPath                : <ROOT>/TestCompositeLib2
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
     externalProject               : :TestCompositeLib2 (DefaultExternalProject)
         path                          : : [-]
         identityPath                  : :TestCompositeLib2 [-]
@@ -4842,6 +4848,7 @@ MODULE                        : composite4
         rootFolderPath                : <ROOT>/TestCompositeLib4
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
     externalProject               : :TestCompositeLib4 (DefaultExternalProject)
         path                          : : [-]
         identityPath                  : :TestCompositeLib4 [-]
@@ -4918,6 +4925,7 @@ MODULE                        : compositeNest
         rootFolderPath                : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
     externalProject               : :includedLib1:TestCompositeLibNested_1 (DefaultExternalProject)
         path                          : : [-]
         identityPath                  : :includedLib1:TestCompositeLibNested_1 [-]
@@ -5055,6 +5063,7 @@ MODULE                        : project.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -6150,6 +6159,7 @@ MODULE                        : project.lib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16

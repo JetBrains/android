@@ -155,6 +155,10 @@ private fun getProjectSpecificIdeModelIssues(testProject: TestProject) = when(te
       // a second sync). We don't normally expect the library table to be present but in this case it is because a full sync has completed.
       "LIBRARY_TABLE"
     )
+  TestProject.PSD_SAMPLE_GROOVY -> setOf(
+    // The models for phased sync is fetched too early and are missing this, but it's fine as we have the rest of the tasks for variants
+    "/taskNames (testDebugUnitTest)"
+  )
   else -> emptySet()
 }
 }

@@ -70,6 +70,10 @@ private fun getProjectSpecificIdeModelResyncIssues(testProject: TestProject) = w
       // TODO(b/384022658): Manifest index affects these values so they fail to populate correctly in some cases
       "/CurrentVariantReportedVersions"
     )
+    TestProject.PSD_SAMPLE_GROOVY -> setOf(
+      // The models for phased sync is fetched too early and are missing this, but it's fine as we have the rest of the tasks for variants
+      "/taskNames (testDebugUnitTest)"
+    )
     else -> emptySet()
   }
 }
