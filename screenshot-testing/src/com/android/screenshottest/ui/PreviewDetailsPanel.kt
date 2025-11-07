@@ -27,7 +27,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.IconLoader
-import com.intellij.ui.JBSplitter
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
@@ -49,12 +48,14 @@ import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.BorderFactory
+import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.BoundedRangeModel
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
+import javax.swing.JSeparator
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import javax.swing.event.ChangeEvent
@@ -181,14 +182,40 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
   ) {
     singlePreviewPanel.removeAll()
 
-    val topContainerPanel = JPanel(BorderLayout()).apply {
-      minimumSize = Dimension(0, 200)
+    val topContent = JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+      border = BorderFactory.createEmptyBorder(10, 10, 0, 10)
     }
-    val titleLabel = JBLabel(previewData.previewName).apply {
-      font = font.deriveFont(Font.BOLD, font.size + 4f)
-      border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
+
+    val titlePanel = JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.X_AXIS)
+      alignmentX = JComponent.LEFT_ALIGNMENT
+      val methodNameLabel = JBLabel(previewData.methodName)
+      val previewNameLabel = JBLabel(previewData.previewName).apply {
+        foreground = UIUtil.getLabelDisabledForeground()
+      }
+      add(methodNameLabel)
+      add(Box.createRigidArea(Dimension(4,0)))
+      add(previewNameLabel)
     }
-    topContainerPanel.add(titleLabel, BorderLayout.NORTH)
+    topContent.add(titlePanel)
+    topContent.add(Box.createRigidArea(Dimension(0, 8)))
+
+    val separator1 = JSeparator()
+    separator1.alignmentX = JComponent.LEFT_ALIGNMENT
+    topContent.add(separator1)
+    topContent.add(Box.createRigidArea(Dimension(0, 8)))
+
+    val viewTitleLabel = JBLabel(viewType.displayText).apply {
+      alignmentX = JComponent.LEFT_ALIGNMENT
+    }
+    topContent.add(viewTitleLabel)
+    topContent.add(Box.createRigidArea(Dimension(0, 8)))
+
+    val separator2 = JSeparator()
+    separator2.alignmentX = JComponent.LEFT_ALIGNMENT
+    topContent.add(separator2)
+    topContent.add(Box.createRigidArea(Dimension(0, 4)))
 
     // Add the appropriate image view (either the 3-way split or the tabbed single view).
     val imageDisplayPanel = if (viewType == UpdateReferenceImagesDialog.ScreenshotViewType.ALL) {
@@ -196,8 +223,14 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     } else {
       setupSingleImageView(previewData, viewType)
     }
-    topContainerPanel.add(imageDisplayPanel, BorderLayout.CENTER)
-    topContainerPanel.add(previewToolbar, BorderLayout.SOUTH)
+    imageDisplayPanel.alignmentX = JComponent.LEFT_ALIGNMENT
+    topContent.add(imageDisplayPanel)
+
+    val topContainerPanel = JPanel(BorderLayout()).apply {
+      minimumSize = Dimension(0, 200)
+      add(topContent, BorderLayout.CENTER)
+      add(previewToolbar, BorderLayout.SOUTH)
+    }
 
     // Setup the bottom panel with screenshot attributes.
     val detailsPanel = screenshotAttributesView.getComponent().apply {
@@ -206,7 +239,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     updateScreenshotAttributesView(previewData)
 
     // Combine the top and bottom panels in a splitter.
-    val splitter = JBSplitter(true, 0.65f).apply {
+    val splitter = OnePixelSplitter(true, 0.65f).apply {
       firstComponent = topContainerPanel
       secondComponent = detailsPanel
     }
@@ -514,7 +547,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     private var dynamicMaxScale = 8.0
 
     init {
-      border = JBUI.Borders.empty(if (showTitle) 10 else 0, 10, 10, 10)
+      border = JBUI.Borders.empty(if (showTitle) 10 else 0, 0, 0, 10)
       val actionGroup = DefaultActionGroup().apply {
         add(toggleChessboardAction)
         add(toggleGridViewAction)
