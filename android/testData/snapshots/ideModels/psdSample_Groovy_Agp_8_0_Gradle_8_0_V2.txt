@@ -1067,6 +1067,18 @@ MODULE                        : project.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testBasicBarDebugUnitTest
+        - taskNames                   : testBasicBarReleaseUnitTest
+        - taskNames                   : testBasicBarSpecialReleaseUnitTest
+        - taskNames                   : testBasicOtherBarDebugUnitTest
+        - taskNames                   : testBasicOtherBarReleaseUnitTest
+        - taskNames                   : testBasicOtherBarSpecialReleaseUnitTest
+        - taskNames                   : testPaidBarDebugUnitTest
+        - taskNames                   : testPaidBarReleaseUnitTest
+        - taskNames                   : testPaidBarSpecialReleaseUnitTest
+        - taskNames                   : testPaidOtherBarDebugUnitTest
+        - taskNames                   : testPaidOtherBarReleaseUnitTest
+        - taskNames                   : testPaidOtherBarSpecialReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -2578,6 +2590,8 @@ MODULE                        : project.dyn_feature
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1
@@ -2878,6 +2892,7 @@ MODULE                        : project.jav
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
     externalProject               : :jav (DefaultExternalProject) (*seen*)
 MODULE                        : project.jav.main
 MODULE                        : project.jav.test
@@ -2891,6 +2906,8 @@ MODULE                        : project.lib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -3908,6 +3925,8 @@ MODULE                        : project.nested1
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1
@@ -4205,6 +4224,8 @@ MODULE                        : project.nested1.deep
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1
@@ -4512,6 +4533,12 @@ MODULE                        : project.nested2
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testBasicDebugUnitTest
+        - taskNames                   : testBasicReleaseUnitTest
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testPaidDebugUnitTest
+        - taskNames                   : testPaidReleaseUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1
@@ -4951,6 +4978,8 @@ MODULE                        : project.nested2.deep
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1
@@ -5249,6 +5278,8 @@ MODULE                        : project.nested2.trans
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     externalProject               : :nested2:trans (DefaultExternalProject) (*seen*)
 MODULE                        : project.nested2.trans.deep2
     GradleModuleModel
@@ -5260,6 +5291,8 @@ MODULE                        : project.nested2.trans.deep2
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1

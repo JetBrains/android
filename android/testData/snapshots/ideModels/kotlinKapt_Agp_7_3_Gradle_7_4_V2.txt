@@ -925,6 +925,10 @@ MODULE                        : MainActivity.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testLocalDebugUnitTest
+        - taskNames                   : testLocalReleaseUnitTest
+        - taskNames                   : testRemoteDebugUnitTest
+        - taskNames                   : testRemoteReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -1831,6 +1835,7 @@ MODULE                        : MainActivity.javaLib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
     kotlinGradleModel             : kotlin-platform-jvm (KotlinGradleModelImpl)
         additionalVisibleSourceSets
             main                          : <empty>
@@ -1915,6 +1920,8 @@ MODULE                        : MainActivity.lib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16

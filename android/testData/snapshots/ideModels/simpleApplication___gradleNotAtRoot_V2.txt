@@ -44,6 +44,7 @@ MODULE                        : gradle_project.app
         rootFolderPath                : <ROOT>/gradle_project
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 19

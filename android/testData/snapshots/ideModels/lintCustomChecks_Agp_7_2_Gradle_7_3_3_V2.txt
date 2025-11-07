@@ -453,6 +453,8 @@ MODULE                        : project.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -803,6 +805,8 @@ MODULE                        : project.library
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -1122,6 +1126,8 @@ MODULE                        : project.library-remote
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -1446,6 +1452,7 @@ MODULE                        : project.lint
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
     externalProject               : :lint (DefaultExternalProject) (*seen*)
 MODULE                        : project.lint.main
 MODULE                        : project.lint.test
@@ -1458,6 +1465,7 @@ MODULE                        : project.lintpublish
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
     externalProject               : :lintpublish (DefaultExternalProject) (*seen*)
 MODULE                        : project.lintpublish-remote
     GradleModuleModel
@@ -1468,6 +1476,7 @@ MODULE                        : project.lintpublish-remote
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
     externalProject               : :lintpublish-remote (DefaultExternalProject) (*seen*)
 MODULE                        : project.lintpublish-remote.main
 MODULE                        : project.lintpublish-remote.test

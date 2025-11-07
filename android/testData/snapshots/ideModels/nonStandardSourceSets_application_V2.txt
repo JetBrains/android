@@ -697,6 +697,7 @@ MODULE                        : application.app
         rootFolderPath                : <ROOT>/application
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 19

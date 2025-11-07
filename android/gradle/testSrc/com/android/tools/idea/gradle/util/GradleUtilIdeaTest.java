@@ -19,6 +19,10 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 
+import com.android.tools.idea.gradle.model.impl.FileImpl;
+import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity;
+import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntityKt;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntityModifications;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
@@ -65,11 +69,20 @@ public class GradleUtilIdeaTest extends HeavyPlatformTestCase {
   }
 
   public void testGetGradleBuildFileFromModuleWithGradleFacet() {
-    String name = myModuleRootDir.getName();
-    GradleProjectStub gradleProject = new GradleProjectStub(name, ":" + name, getBaseDirPath(getProject()), myBuildFile);
-
     GradleModuleModel gradleModuleModel =
-      new GradleModuleModel(myModule.getName(), gradleProject, myBuildFile, "2.2.1", null, null);
+      new GradleModuleModel(
+        myModule.getName(),
+        ImmutableList.of(),
+        ImmutableList.of(),
+        ":",
+        new FileImpl(getBaseDirPath(getProject()).getPath()),
+        new FileImpl(myBuildFile.getPath()),
+        "2.2.1",
+        null,
+        false,
+        false,
+        false
+      );
 
 
     ApplicationManager.getApplication()

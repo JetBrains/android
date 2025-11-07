@@ -1011,6 +1011,10 @@ MODULE                        : project.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testBasicBarDebugUnitTest
+        - taskNames                   : testBasicOtherBarDebugUnitTest
+        - taskNames                   : testPaidBarDebugUnitTest
+        - taskNames                   : testPaidOtherBarDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -2472,6 +2476,7 @@ MODULE                        : project.dyn_feature
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1
@@ -2748,6 +2753,7 @@ MODULE                        : project.jav
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : test
     externalProject               : :jav (DefaultExternalProject) (*seen*)
 MODULE                        : project.jav.main
 MODULE                        : project.jav.test
@@ -2761,6 +2767,7 @@ MODULE                        : project.lib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -3762,6 +3769,7 @@ MODULE                        : project.nested1
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1
@@ -4043,6 +4051,7 @@ MODULE                        : project.nested1.deep
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1
@@ -4334,6 +4343,9 @@ MODULE                        : project.nested2
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testBasicDebugUnitTest
+        - taskNames                   : testDebugUnitTest
+        - taskNames                   : testPaidDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1
@@ -4748,6 +4760,7 @@ MODULE                        : project.nested2.deep
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1
@@ -5030,6 +5043,7 @@ MODULE                        : project.nested2.trans
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     externalProject               : :nested2:trans (DefaultExternalProject) (*seen*)
 MODULE                        : project.nested2.trans.deep2
     GradleModuleModel
@@ -5041,6 +5055,7 @@ MODULE                        : project.nested2.trans.deep2
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1

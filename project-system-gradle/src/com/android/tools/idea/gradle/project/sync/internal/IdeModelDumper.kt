@@ -1008,7 +1008,8 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("rootFolderPath") { model.rootFolderPath.path.toPrintablePath() }
         prop("hasSafeArgsJava") { model.safeArgsJava.toString() }
         prop("hasSafeArgsKotlin") { model.safeArgsKotlin.toString() }
-        model.taskNames.forEach { prop("- taskNames") { it } }
+        model.testTasks.sorted().forEach { prop("- taskNames") { it } }
+        model.allTasks.sorted().filter { it !in model.testTasks }.forEach { prop("- allTaskNames ") { it } }
       }
     }
 
