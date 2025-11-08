@@ -192,6 +192,8 @@ iml_module(
                 "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
                 "//prebuilts/studio/jdk:jdk21",
                 "//tools/base/build-system:declarative_android_gradle_plugin.zip",
+                "//tools/base/firebase/testlab/testlab-gradle-plugin:maven_dependencies",
+                "//tools/base/firebase/testlab/testlab-gradle-plugin:testlab-gradle-plugin",
             ],
         },
         "runs_indexing_with_gradle": {
@@ -210,6 +212,8 @@ iml_module(
                 "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
                 "//prebuilts/studio/jdk:jdk21",
                 "//tools/base/build-system:declarative_android_gradle_plugin.zip",
+                "//tools/base/firebase/testlab/testlab-gradle-plugin:maven_dependencies",
+                "//tools/base/firebase/testlab/testlab-gradle-plugin:testlab-gradle-plugin",
             ],
         },
         "runs_gradle_dependencies": {
@@ -748,7 +752,6 @@ maven_repository(
         "@maven//:com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin_1.7.10-1.0.6",
         "@maven//:com.google.errorprone.error_prone_annotations_2.3.2",
         "@maven//:com.google.firebase.firebase-common_12.0.1",
-        "@maven//:com.google.firebase.testlab.testlab-gradle-plugin_0.0.1-alpha12",
         "@maven//:com.google.guava.guava_19.0",
         "@maven//:com.google.guava.guava_23.0",
         "@maven//:com.google.jimfs.jimfs_1.1",
