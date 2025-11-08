@@ -36,15 +36,15 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
-import org.junit.Before
-import org.junit.ClassRule
-import org.junit.Rule
-import org.junit.Test
 import java.awt.BorderLayout
 import java.awt.Color
 import java.nio.file.Path
 import javax.swing.Icon
 import javax.swing.border.EmptyBorder
+import org.junit.Before
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
 
 /** Test for [FloatingToolbarContainer]. */
 @RunsInEdt
@@ -66,7 +66,9 @@ class FloatingToolbarContainerTest {
 
   @Test
   fun testCollapsibleVertical() {
-    val toolbar = FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.5).apply { createTestToolbars(collapsible = true) }
+    val toolbar = FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.5, collapsedStateSelector = { it.isSelected },
+                                           activateOnHover = true)
+    toolbar.createTestToolbars()
     panel.add(toolbar, BorderLayout.EAST)
     assertAppearance("CollapsibleVerticalInactive")
 
@@ -74,6 +76,14 @@ class FloatingToolbarContainerTest {
     assertAppearance("CollapsibleVerticalActive")
 
     fakeUi.mouse.moveTo(0, 0)
+    assertAppearance("CollapsibleVerticalInactive")
+
+    toolbar.toggleActiveState()
+    assertThat(toolbar.isActive).isTrue()
+    assertAppearance("CollapsibleVerticalActive")
+
+    toolbar.toggleActiveState()
+    assertThat(toolbar.isActive).isFalse()
     assertAppearance("CollapsibleVerticalInactive")
 
     // Change the selected toolbar button and check how the toolbar updates itself.
@@ -84,7 +94,8 @@ class FloatingToolbarContainerTest {
 
   @Test
   fun testNonCollapsibleHorizontal() {
-    val toolbar = FloatingToolbarContainer(horizontal = true, inactiveAlpha = 0.7).apply { createTestToolbars(collapsible = false) }
+    val toolbar = FloatingToolbarContainer(horizontal = true, inactiveAlpha = 0.7, activateOnHover = true)
+    toolbar.createTestToolbars()
     panel.add(toolbar, BorderLayout.SOUTH)
     assertAppearance("NonCollapsibleHorizontalInactive")
 
@@ -98,8 +109,8 @@ class FloatingToolbarContainerTest {
   @Test
   fun testEmptyToolbar() {
     val toolbar = FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.8).apply {
-      addToolbar("FloatingToolbar", DefaultActionGroup(), collapsible = false)
-      addToolbar("FloatingToolbar", DefaultActionGroup(), collapsible = false)
+      addToolbar("FloatingToolbar", DefaultActionGroup())
+      addToolbar("FloatingToolbar", DefaultActionGroup())
     }
     panel.add(toolbar, BorderLayout.EAST)
     fakeUi.updateToolbarsIfNecessary()
@@ -121,19 +132,19 @@ class FloatingToolbarContainerTest {
     }
   }
 
-  private fun FloatingToolbarContainer.createTestToolbars(collapsible: Boolean) {
+  private fun FloatingToolbarContainer.createTestToolbars() {
     val actionGroup1 = DefaultActionGroup().apply {
       add(TestToggleAction("Left Top", AllIcons.Actions.MoveToLeftTop))
       add(TestToggleAction("Right Top", AllIcons.Actions.MoveToRightTop))
       add(TestToggleAction("Right Bottom", AllIcons.Actions.MoveToRightBottom))
       add(TestToggleAction("Left Bottom", AllIcons.Actions.MoveToLeftBottom))
     }
-    addToolbar("FloatingToolbar", actionGroup1, collapsible = collapsible)
+    addToolbar("FloatingToolbar", actionGroup1)
 
     val actionGroup2 = DefaultActionGroup().apply {
       add(TestAction("Fit Content", AllIcons.General.FitContent))
     }
-    addToolbar("FloatingToolbar", actionGroup2, collapsible = false)
+    addToolbar("FloatingToolbar", actionGroup2)
   }
 
   private fun assertAppearance(goldenImageName: String) {
