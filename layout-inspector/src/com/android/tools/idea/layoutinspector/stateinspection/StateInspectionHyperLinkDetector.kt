@@ -16,10 +16,13 @@
 package com.android.tools.idea.layoutinspector.stateinspection
 
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.intellij.codeInsight.navigation.actions.ClickLinkAction
 import com.intellij.execution.filters.CompositeFilter
 import com.intellij.execution.impl.ConsoleViewUtil
+import com.intellij.execution.impl.EditorHyperlinkListener
 import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorEx
@@ -31,6 +34,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
+
+private const val CLICK_LINK_ACTION_ID = "ClickLink"
 
 /** A Hyperlink detector that adds hyperlinks to an [Editor] */
 internal class StateInspectionHyperLinkDetector(
@@ -44,6 +49,13 @@ internal class StateInspectionHyperLinkDetector(
   private val filter = CompositeFilter(project)
   private var isDisposed = false
   private val expirableToken = Expirable { isDisposed }
+  private val hyperLinkListener = EditorHyperlinkListener { linkInfo ->
+    if (linkInfo is LayoutInspectorExplainWithAIHyperLinkInfo) {
+      stats.stateReadsExplainWithAiClicked()
+    } else {
+      stats.stateReadsGotoSourceFromStackTrace()
+    }
+  }
 
   @TestOnly val filterJob: Job
 
@@ -69,17 +81,13 @@ internal class StateInspectionHyperLinkDetector(
           .forEach { filter.addFilter(it) }
 
         filters.forEach { filter.addFilter(it) }
+
+        replaceClickLinkAction()
       }
 
     // addEditorHyperlinkListener is marked @ApiStatus.Internal, but there doesn't seem
     // to be a different way to track these hyperlink events.
-    editorHyperlinkSupport.addEditorHyperlinkListener { linkInfo ->
-      if (linkInfo is LayoutInspectorExplainWithAIHyperLinkInfo) {
-        stats.stateReadsExplainWithAiClicked()
-      } else {
-        stats.stateReadsGotoSourceFromStackTrace()
-      }
-    }
+    editorHyperlinkSupport.addEditorHyperlinkListener(hyperLinkListener)
   }
 
   fun detectHyperlinks() {
@@ -87,5 +95,17 @@ internal class StateInspectionHyperLinkDetector(
     val startLine = 0
     val endLine = editor.document.getLineNumber(editor.document.textLength)
     editorHyperlinkSupport.highlightHyperlinksLater(filter, startLine, endLine, expirableToken)
+  }
+
+  private fun replaceClickLinkAction() {
+    val manager = ActionManager.getInstance()
+    val action = manager.getAction(CLICK_LINK_ACTION_ID)
+    if (action is ClickLinkAction) {
+      // Hack: Replace the ClickLinkAction to provide logging of keyboard activated hyperlinks.
+      // Note: Contrary to the name, this is not used for mouse clicks.
+      // See b/458791627. Remove this if IJPL-217477 provides a different way to track link actions.
+      manager.replaceAction(CLICK_LINK_ACTION_ID, ClickLinkActionWithLogging())
+    }
+    editor.putUserData(CLICK_LINK_LOGGING_KEY, hyperLinkListener)
   }
 }
