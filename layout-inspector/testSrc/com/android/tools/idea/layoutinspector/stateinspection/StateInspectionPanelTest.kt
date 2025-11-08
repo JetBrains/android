@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.stateinspection
 
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.common.AdtUiUtils.getActionMask
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
@@ -35,7 +36,6 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.ui.getUserData
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
@@ -43,7 +43,6 @@ import com.intellij.testFramework.RunsInEdt
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JButton
 import javax.swing.JLabel
@@ -316,11 +315,10 @@ class StateInspectionPanelTest {
     val text = editor.document.text
     val offset = text.indexOf("MainActivity.kt:60")
     editor.caretModel.moveToOffset(offset + 2)
-    val modifiers = if (SystemInfo.isMac) InputEvent.META_DOWN_MASK else InputEvent.CTRL_DOWN_MASK
     val queue = IdeEventQueue.getInstance()
 
     // The action shortcuts are handled by the IdeEventQueue not the standard keyboard listeners:
-    queue.pressAndRelease(editor.contentComponent, KeyEvent.VK_B, modifiers)
+    queue.pressAndRelease(editor.contentComponent, KeyEvent.VK_B, getActionMask())
     fileOpenRule.checkEditorOpened("MainActivity.kt", true)
   }
 
