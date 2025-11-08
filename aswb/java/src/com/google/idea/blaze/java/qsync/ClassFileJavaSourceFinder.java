@@ -14,32 +14,24 @@
  * limitations under the License.
  */
 package com.google.idea.blaze.java.qsync;
+
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Arrays.stream;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.compiled.ClsClassImpl;
 import com.intellij.psi.impl.compiled.ClsFileImpl;
 import java.nio.file.Path;
-import java.util.Objects;
-import java.util.Set;
-import javax.annotation.Nullable;
-/**
- * Finds java source files corresponding to a class file inside a jar file belonging to a
- * dependency.
- */
-public class ClassFileJavaSourceFinder extends CompiledJavaSourceFinderBase {
-  private static final Logger logger = Logger.getInstance(ClassFileJavaSourceFinder.class);
+
+
+public class ClassFileJavaSourceFinder extends SourceFileInWorkspaceFinderBase {
 
   public ClassFileJavaSourceFinder(ClsFileImpl clsFile) {
-    super(clsFile);
+    super((PsiFile)clsFile);
   }
 
   @VisibleForTesting
@@ -49,69 +41,15 @@ public class ClassFileJavaSourceFinder extends CompiledJavaSourceFinderBase {
     Path workspaceRoot,
     Path projectPath,
     ClsFileImpl clsFile) {
-    super(project, querySyncManager, workspaceRoot, projectPath, clsFile);
+    super(project, querySyncManager, workspaceRoot, projectPath, (PsiFile)clsFile);
   }
 
-  @Nullable
-  public PsiFile findSourceFile() {
-    ImmutableSet<Path> jarSrcsPaths = getWorkspaceSources();
-    if (jarSrcsPaths.isEmpty()) {
-      return null;
-    }
-    // first, find source files with the expected name:
-    ImmutableSet<Path> matchedJarSrcs = findMatchingSourcePathsByFilename(jarSrcsPaths);
-    if (matchedJarSrcs.isEmpty()) {
-      return null;
-    }
-    // convert from workspace relative path to PsiFile:
-    ImmutableSet<PsiFile> matchingPsiFiles =
-      matchedJarSrcs.stream()
-        .map(workspaceRoot::resolve)
-        .map(LocalFileSystem.getInstance()::findFileByNioFile)
-        .filter(Objects::nonNull)
-        .map(PsiManager.getInstance(project)::findFile)
-        .collect(toImmutableSet());
-    if (matchingPsiFiles.isEmpty()) {
-      return null;
-    }
-    // then, select from those the file(s) that define the class we're looking for:
-    // Then select the one that defines the same class as the original class file. This ensures
-    // that we select the right source file in case there are files of the same name in multiple
-    // packages.
-    ImmutableSet<String> qualifiedClassNames =
-      stream(clsFile.getClasses()).map(PsiClass::getQualifiedName).collect(toImmutableSet());
-    matchingPsiFiles =
-      matchingPsiFiles.stream()
-        .filter(c -> containsClass(c, qualifiedClassNames))
-        .collect(toImmutableSet());
-    if (matchingPsiFiles.size() > 1) {
-      logger.warn(
-        String.format(
-          "Warning: found more than 1 matching source file for %s: %s",
-          clsFile, matchingPsiFiles));
-    }
-    return matchingPsiFiles.stream().findAny().orElse(null);
-  }
-
-  private ImmutableSet<Path> findMatchingSourcePathsByFilename(Set<Path> workspaceSourcesForJar) {
-    // Find the original source file name(s) for the classes in the file:
-    ImmutableSet<String> sourceNamesFromClasses =
-      stream(clsFile.getClasses())
-        .filter(ClsClassImpl.class::isInstance)
-        .map(ClsClassImpl.class::cast)
-        .map(ClsClassImpl::getSourceFileName)
-        .collect(toImmutableSet());
-    // Match the original source file name(s) against the sources for the library jar:
-    return workspaceSourcesForJar.stream()
-      .filter(p -> sourceNamesFromClasses.contains(p.getFileName().toString()))
-      .collect(toImmutableSet());
-  }
-
-  private ImmutableSet<Path> getWorkspaceSources() {
-    final var pathResolver = querySyncManager.assertProjectLoaded().getProjectPathResolver();
-    return getJavaArtifactInfos().stream()
-      .flatMap(it -> it.sources().stream())
-      .map(pathResolver::resolve)
+  @Override
+  ImmutableSet<String> getSourceFileNamesFromClasses() {
+    return stream(((ClsFileImpl)clsFile).getClasses())
+      .filter(ClsClassImpl.class::isInstance)
+      .map(ClsClassImpl.class::cast)
+      .map(ClsClassImpl::getSourceFileName)
       .collect(toImmutableSet());
   }
 }
