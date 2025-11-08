@@ -137,16 +137,16 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
   protected fun createFloatingToolbar() {
     floatingToolbarLayerPane.removeAll()
     if (deviceType == DeviceType.XR_HEADSET) {
-      val toolbar = FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.7).apply {
+      val toolbar = FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.7, activateOnHover = true).apply {
         val actionManager = ActionManager.getInstance()
         val inputModeGroup = actionManager.getAction("android.streaming.xr.input.mode.group") as? ActionGroup
         if (inputModeGroup != null) {
-          addToolbar("FloatingToolbar", inputModeGroup, collapsible = false)
+          addToolbar("FloatingToolbar", inputModeGroup)
         }
 
         val recenterGroup = actionManager.getAction("android.streaming.xr.recenter.group") as? ActionGroup
         if (recenterGroup != null) {
-          addToolbar("FloatingToolbar", recenterGroup, collapsible = false)
+          addToolbar("FloatingToolbar", recenterGroup)
         }
       }
 
