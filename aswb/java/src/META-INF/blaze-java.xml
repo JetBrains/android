@@ -16,6 +16,7 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceInterface="com.google.idea.blaze.java.libraries.JarRepackager" serviceImplementation="com.google.idea.blaze.java.libraries.JarRepackager$NoopJarRepackager"/>
+    <applicationService serviceInterface="org.jetbrains.kotlin.psi.KotlinDeclarationNavigationPolicy" serviceImplementation="com.google.idea.blaze.java.qsync.QuerySyncKtNavigationPolicy" overrides="true"/>
     <postStartupActivity implementation="com.google.idea.blaze.java.plugin.JUnitPluginDependencyWarning"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij.psi">
