@@ -50,6 +50,11 @@ public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
     if (Files.exists(dataBindingSupportFile)) {
       unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip");
     }
+    Path ftlPlugin = TestUtils.getWorkspaceRoot().resolve("tools/base/firebase/testlab/testlab-gradle-plugin/testlab-gradle-plugin.zip");
+    if (Files.exists(ftlPlugin)) {
+      unzipIntoOfflineMavenRepo("tools/base/firebase/testlab/testlab-gradle-plugin/testlab-gradle-plugin.zip");
+      linkIntoOfflineMavenRepo("tools/base/firebase/testlab/testlab-gradle-plugin/maven_dependencies.manifest");
+    }
     // Avoid depending on the execution order and initializing icons with dummies.
     IconLoader.activate();
     try {
