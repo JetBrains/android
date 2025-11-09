@@ -340,4 +340,3 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
     myFixture.checkResultByFile(myTestFolder + "/" + expectedFile);
   }
 }
-

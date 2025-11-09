@@ -638,6 +638,7 @@ iml_module(
         "@intellij//:intellij.spellchecker",
         "@intellij//:intellij.properties.backend.psi",
         "//tools/adt/idea/.idea/libraries:equalsverifier",
+        "@intellij//:tanvd.grazi",
     ],
     test_jvm_flags = ["-Didea.skip.indices.initialization=true"],
     test_resources = ["testResources"],
