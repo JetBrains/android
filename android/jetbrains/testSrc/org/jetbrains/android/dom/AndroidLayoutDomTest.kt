@@ -40,6 +40,8 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.util.xml.DomManager
+import java.io.IOException
+import java.util.Arrays
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 import org.jetbrains.android.dom.resources.ResourceValue
@@ -49,8 +51,6 @@ import org.jetbrains.android.inspections.CreateValueResourceQuickFix
 import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction
 import org.jetbrains.android.refactoring.isAndroidx
 import org.junit.Test
-import java.io.IOException
-import java.util.Arrays
 
 /**
  * Tests semantic highlighting and completion in layout XML files.
