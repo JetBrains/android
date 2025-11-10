@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.template
 
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromFacet
@@ -25,6 +26,7 @@ import com.android.tools.idea.observable.TestInvokeStrategy
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.template.Constraint.CLASS
@@ -132,6 +134,11 @@ class ConfigureTemplateParametersStepTest {
 
   @Test
   fun targetSourceSetSelector_notAddedIfParameterDisabled() {
+    StudioFlags.JOURNEYS_WITH_GEMINI_NEW_WIZARD.overrideForTest(
+      false,
+      projectRule.testRootDisposable,
+    )
+
     val moduleTemplates = facet.getModuleTemplates(null)
     assertTrue(moduleTemplates.size > 1)
 

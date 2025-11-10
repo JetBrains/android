@@ -2746,6 +2746,10 @@ public final class StudioFlags {
     "This dependency is automatically added by the Journeys template engine when configuring a test suite.",
     "org.junit.platform:junit-platform-launcher:1.13.4"
   );
+  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_NEW_WIZARD = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.new.wizard", "Enable Journeys New Wizard",
+    "Enable the new wizard for creating Journeys with Gemini."
+  );
   // endregion JOURNEYS_WITH_GEMINI
 
   // region WIZARD_MIGRATION
