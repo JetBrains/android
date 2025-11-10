@@ -78,10 +78,10 @@
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
     <taskManager implementation="com.android.tools.idea.testartifacts.testsuite.GradleAndroidTestsTaskManager"/>
-    <syncExtension implementation="com.android.tools.idea.projectsystem.gradle.FixSyncContributorIssues" />
     <syncExtension implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidSourceRootSyncExtension"/>
-    <syncContributor implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidSourceRootSyncContributor"/>
-    <syncContributor implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidDependencySyncContributor"/>
+    <syncContributor implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidSourceRootSyncAdditionalPhaseContributor"/>
+    <syncContributor implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidSourceRootSyncDependencyPhaseContributor"/>
+    <syncContributor implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidSourceRootSyncSourceSetPhaseContributor"/>
   </extensions>
   <applicationListeners>
     <listener class="com.android.tools.idea.startup.GradleSpecificInitializer"

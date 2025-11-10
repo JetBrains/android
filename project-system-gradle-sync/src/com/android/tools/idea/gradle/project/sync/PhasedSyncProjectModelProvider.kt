@@ -271,7 +271,7 @@ private fun IdeaProject.getAllChildren() = modules.flatMap { it.getAllChildren {
 
 private fun GradleBuild.getAllChildren() = rootProject.getAllChildren { it.children.toList() }
 
-private fun <T> T.getAllChildren(childrenFunction: (T) -> List<out T>): List<T> {
+fun <T> T.getAllChildren(childrenFunction: (T) -> List<out T>): List<T> {
   val result = mutableListOf<T>(this)
   val stack = ArrayDeque<T>(result)
   while(stack.isNotEmpty()) {
@@ -300,5 +300,3 @@ private fun Versions.hasV2Modules() = this.convert()[ModelFeature.HAS_V2_MODELS]
 
 /** Helper method to run a collection of [BuildAction]s that return booleans to make sure they are all true. */
 private fun BuildController.all(actions: Collection<BuildAction<Boolean>>) = run(actions).all { it }
-
-
