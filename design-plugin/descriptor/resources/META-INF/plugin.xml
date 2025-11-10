@@ -35,10 +35,10 @@
   </dependencies>
 
   <change-notes><![CDATA[
-   This release contains updates from Android Studio Narwhal Feature Drop STABLE.
+   This release contains updates from Android Studio Otter Canary 1.
 
     For detailed information, please refer to the release notes available at:
-    <a href="https://androidstudio.googleblog.com/2025/07/android-studio-narwhal-feature-drop_31.html">Android Studio Narwhal Feature Drop</a>.]]>
+    <a href="https://androidstudio.googleblog.com/2025/09/android-studio-otter-202521-canary-1.html">Android Studio Otter Canary 1</a>.]]>
   </change-notes>
 
   <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
