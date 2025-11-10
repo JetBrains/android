@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Field;
 import com.android.tools.perflib.heap.Heap;
+import com.android.tools.perflib.heap.Snapshot;
 import com.android.tools.perflib.heap.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +33,7 @@ class MockClassObj extends ClassObj {
   // keep insertion order with LinkedHashMap so we have deterministic positions when validating the fields
   @NotNull private final Map<Field, Object> myStaticFields = new LinkedHashMap<>();
   private final int myRootDistance;
+  private Snapshot mySnapshot;
 
   public MockClassObj(int id, @NotNull String className, int rootDistance) {
     super(id, null /* StackTrace - don't care */, className, 0 /* offset - don't care */);
@@ -46,6 +48,14 @@ class MockClassObj extends ClassObj {
   @Override
   public Heap getHeap() {
     Heap mockHeap = mock(Heap.class);
+    try {
+      java.lang.reflect.Field snapshotField = Heap.class.getDeclaredField("mSnapshot");
+      snapshotField.setAccessible(true);
+      snapshotField.set(mockHeap, mySnapshot);
+    }
+    catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
     when(mockHeap.getId()).thenReturn(-1);
     return mockHeap;
   }
@@ -62,5 +72,9 @@ class MockClassObj extends ClassObj {
   @Override
   public int getDistanceToGcRoot() {
     return myRootDistance;
+  }
+
+  public void setSnapshot(Snapshot snapshot) {
+    mySnapshot = snapshot;
   }
 }

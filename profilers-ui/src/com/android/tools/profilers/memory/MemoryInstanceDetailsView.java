@@ -60,6 +60,7 @@ import java.awt.Dimension;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -430,8 +431,21 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     fieldTreeRoot.setTreeModel(fieldTreeModel);
     fieldTreeRoot.expandNode();
 
-    // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
-    JTree tree = new JTree();
+    // Use JTree instead of IJ's tree, because IJ's tree does not correctly apply border insets.
+    JTree tree = new JTree() {
+      @Override
+      public String getToolTipText(MouseEvent e) {
+        TreePath path = getPathForLocation(e.getX(), e.getY());
+        if (path != null) {
+          Object node = path.getLastPathComponent();
+          InstanceObject instance = getInstanceObjectFromTreeNode(node);
+          if (instance != null && instance.isTransient()) {
+            return String.format("Class '%s' is from system image and has no active instance", instance.getClassEntry().getSimpleClassName());
+          }
+        }
+        return super.getToolTipText(e);
+      }
+    };
     int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
     tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
     tree.setBorder(TABLE_ROW_BORDER);
@@ -508,7 +522,12 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
 
       @Override
       public boolean isEnabled() {
-        return mySelection.getSelectedInstanceObject() != null && !mySelection.getSelectedFieldObjectPath().isEmpty();
+        TreePath selection = tree.getSelectionPath();
+        if (selection == null) {
+          return false;
+        }
+        InstanceObject instance = getInstanceObjectFromTreeNode(selection.getLastPathComponent());
+        return instance != null && !instance.isTransient();
       }
 
       @Override
@@ -592,8 +611,21 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     }
 
     final DefaultTreeModel treeModel = new DefaultTreeModel(treeRoot);
-    // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
-    final JTree tree = new JTree(treeModel);
+    // Use JTree instead of IJ's tree, because IJ's tree does not correctly apply border insets.
+    final JTree tree = new JTree(treeModel) {
+      @Override
+      public String getToolTipText(MouseEvent e) {
+        TreePath path = getPathForLocation(e.getX(), e.getY());
+        if (path != null) {
+          Object node = path.getLastPathComponent();
+          InstanceObject instance = getInstanceObjectFromTreeNode(node);
+          if (instance != null && instance.isTransient()) {
+            return String.format("Class '%s' is from system image and has no active instance", instance.getClassEntry().getSimpleClassName());
+          }
+        }
+        return super.getToolTipText(e);
+      }
+    };
     int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
     tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
     tree.setBorder(TABLE_ROW_BORDER);
@@ -650,7 +682,12 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
 
       @Override
       public boolean isEnabled() {
-        return tree.getSelectionPath() != null;
+        TreePath selection = tree.getSelectionPath();
+        if (selection == null) {
+          return false;
+        }
+        InstanceObject instance = getInstanceObjectFromTreeNode(selection.getLastPathComponent());
+        return instance != null && !instance.isTransient();
       }
 
       @Override
@@ -678,6 +715,27 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     });
 
     return tree;
+  }
+
+  @Nullable
+  private static InstanceObject getInstanceObjectFromTreeNode(@Nullable Object node) {
+    if (node instanceof MemoryObjectTreeNode) {
+      MemoryObject memoryObject = ((MemoryObjectTreeNode<?>)node).getAdapter();
+      switch (memoryObject) {
+        case InstanceObject object -> {
+          return object;
+        }
+        case FieldObject object -> {
+          return object.getAsInstance();
+        }
+        case ReferenceObject object -> {
+          return object.getReferenceInstance();
+        }
+        default -> {
+        }
+      }
+    }
+    return null;
   }
 
   private void repeatedlyExpandFirstReference() {

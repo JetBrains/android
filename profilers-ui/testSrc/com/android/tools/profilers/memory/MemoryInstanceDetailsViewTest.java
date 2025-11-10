@@ -479,4 +479,52 @@ public class MemoryInstanceDetailsViewTest {
     Truth.assertThat(fieldTree).isNotNull();
     findChildWithPredicate((MemoryObjectTreeNode<?>)fieldTree.getModel().getRoot(), field -> Objects.equals(field, fieldFoo));
   }
+
+  @Test
+  public void testTransientObject() {
+    final String CLASS_NAME = "com.example.MyClass";
+    final String TRANSIENT_FIELD_NAME = "myTransientField";
+    final String NON_TRANSIENT_FIELD_NAME = "myNonTransientField";
+
+    // 1. Create a transient instance to represent a class object that has no live instances.
+    FakeInstanceObject transientClassAsInstance =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, CLASS_NAME)
+        .setValueType(ValueObject.ValueType.CLASS)
+        .setIsTransient(true)
+        .build();
+    FakeInstanceObject nonTransientInstance =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 2, CLASS_NAME)
+        .build();
+
+    // 2. Create an instance that has a static field pointing to the transient class object.
+    FakeInstanceObject instanceWithStaticField =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 3, "AnotherClass")
+        .setFields(Arrays.asList(TRANSIENT_FIELD_NAME, NON_TRANSIENT_FIELD_NAME))
+        .build();
+    instanceWithStaticField.setFieldValue(TRANSIENT_FIELD_NAME, ValueObject.ValueType.CLASS, transientClassAsInstance);
+    instanceWithStaticField.setFieldValue(NON_TRANSIENT_FIELD_NAME, ValueObject.ValueType.OBJECT, nonTransientInstance);
+    myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(transientClassAsInstance, nonTransientInstance, instanceWithStaticField));
+
+    // 3. Select the instance to show its fields in the details view.
+    myStage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)), null);
+    myStage.getCaptureSelection().selectInstanceObject(instanceWithStaticField);
+
+    JTree fieldTree = myDetailsView.getFieldTree();
+    assertNotNull(fieldTree);
+    MemoryObjectTreeNode<?> root = (MemoryObjectTreeNode<?>)fieldTree.getModel().getRoot();
+    assertEquals(2, root.getChildCount());
+
+    // 4. Verify that "Go to Instance" is disabled for the transient object.
+    MemoryObjectTreeNode<?> transientNode = findChildWithPredicate(root, node -> ((FieldObject)node).getFieldName().equals(
+      TRANSIENT_FIELD_NAME));
+    fieldTree.setSelectionPath(new TreePath(((DefaultTreeModel)fieldTree.getModel()).getPathToRoot(transientNode)));
+    assertFalse(myFakeIdeProfilerComponents.getComponentContextMenus(fieldTree).getFirst().isEnabled());
+
+    // 5. Verify that "Go to Instance" is enabled for the non-transient object.
+    MemoryObjectTreeNode<?> nonTransientNode = findChildWithPredicate(root, node -> ((FieldObject)node).getFieldName().equals(
+      NON_TRANSIENT_FIELD_NAME));
+    fieldTree.setSelectionPath(new TreePath(((DefaultTreeModel)fieldTree.getModel()).getPathToRoot(nonTransientNode)));
+    assertTrue(myFakeIdeProfilerComponents.getComponentContextMenus(fieldTree).getFirst().isEnabled());
+  }
 }

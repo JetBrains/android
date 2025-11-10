@@ -29,12 +29,15 @@ import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.
 import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.SHORT;
 import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.STRING;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.perflib.heap.Instance;
+import com.android.tools.perflib.heap.Snapshot;
 import com.android.tools.perflib.heap.Type;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
@@ -60,6 +63,7 @@ public class HeapDumpInstanceObjectTest {
   private final FakeTimer myTimer = new FakeTimer();
   @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryNavigationTestGrpc", new FakeTransportService(myTimer));
   private FakeHeapDumpCaptureObject myCaptureObject;
+  private Snapshot mySnapshot;
 
   @Before
   public void setup() {
@@ -70,6 +74,7 @@ public class HeapDumpInstanceObjectTest {
                                                                 new FakeCaptureObjectLoader());
     myCaptureObject = new FakeHeapDumpCaptureObject(profilers.getClient(),
                                                     stage.getStudioProfilers().getIdeServices());
+    mySnapshot = mock(Snapshot.class);
   }
 
   /**
@@ -234,9 +239,15 @@ public class HeapDumpInstanceObjectTest {
     softInstanceRef.addFieldValue(Type.OBJECT, "softInstanceRef", mockInstance);
     softInstanceRef.addFieldValue(Type.OBJECT, "invalidRef", new Object());
 
+    // A transient object is not pre-added to the capture's instance map.
+    MockClassObj transientClassRef = new MockClassObj(-1, "transientClassRef", 4);
+    transientClassRef.addStaticField(Type.OBJECT, "transientRef", mockInstance);
+    transientClassRef.setSnapshot(mySnapshot);
+
     mockInstance.addHardReference(hardInstanceRef);
     mockInstance.addHardReference(hardArrayRef);
     mockInstance.addHardReference(hardClassRef);
+    mockInstance.addHardReference(transientClassRef);
     mockInstance.addSoftReferences(softInstanceRef);
 
     ClassDb.ClassEntry mockClassEntry = myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS);
@@ -254,7 +265,7 @@ public class HeapDumpInstanceObjectTest {
     // extractReference is expected to return a list of sorted hard references first
     // then sorted soft references.
     List<ReferenceObject> referrers = myCaptureObject.getInstance(mockInstance).extractReferences();
-    assertEquals(4, referrers.size());
+    assertEquals(5, referrers.size());
     // The first object should refer to the hardClassRef which has the shortest distance to root.
     List<String> refs = referrers.get(0).getReferenceFieldNames();
     assertEquals(1, refs.size());
@@ -264,12 +275,18 @@ public class HeapDumpInstanceObjectTest {
     assertEquals(2, refs.size());
     assertEquals("1", refs.get(0));
     assertEquals("2", refs.get(1));
-    // The third object should refer to hardInstanceRef
+    // The third object should refer to hardInstanceRef.
     refs = referrers.get(2).getReferenceFieldNames();
     assertEquals(1, refs.size());
     assertEquals("hardInstanceRef", refs.get(0));
-    // The fourth object should refer to softInstanceRef
-    refs = referrers.get(3).getReferenceFieldNames();
+    // The fourth object should be the transient one, which is added last.
+    ReferenceObject transientRef = referrers.get(3);
+    refs = transientRef.getReferenceFieldNames();
+    assertEquals(1, refs.size());
+    assertEquals("transientRef", refs.get(0));
+    assertTrue(transientRef.getReferenceInstance().isTransient());
+    // The fifth object should refer to softInstanceRef
+    refs = referrers.get(4).getReferenceFieldNames();
     assertEquals(1, refs.size());
     assertEquals("softInstanceRef", refs.get(0));
   }
