@@ -403,7 +403,7 @@ internal class AndroidSourceRootSyncDependencyPhaseContributor : GradleSyncContr
 
 internal class AndroidSourceRootSyncSourceSetPhaseContributor : GradleSyncContributor {
 
-  override val phase: GradleSyncPhase = GradleSyncPhase.SOURCE_SET_MODEL_PHASE
+  override val phase: GradleSyncPhase = GradleSyncPhase.ADDITIONAL_MODEL_PHASE
 
   override suspend fun createProjectModel(
     context: ProjectResolverContext,
