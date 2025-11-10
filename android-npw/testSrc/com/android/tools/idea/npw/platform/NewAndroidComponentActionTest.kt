@@ -20,6 +20,7 @@ import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.impl.IdeJUnitEngineInfoImpl
@@ -34,6 +35,7 @@ import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.template.Category
@@ -298,6 +300,11 @@ class NewAndroidComponentActionTest {
 
   @Test
   fun verifyTemplateDialog_journeys() {
+    StudioFlags.JOURNEYS_WITH_GEMINI_NEW_WIZARD.overrideForTest(
+      false,
+      projectRule.testRootDisposable,
+    )
+
     val testSuiteFile =
       projectRule.fixture.addFileToProject("app/src/journeysTest/test.journey.xml", "").virtualFile
     val testSuiteModule = ModuleUtilCore.findModuleForFile(testSuiteFile, projectRule.project)!!

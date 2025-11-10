@@ -134,6 +134,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
   fun tearDown() {
     StudioFlags.AGP_VERSION_TO_USE.clearOverride()
     StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.clearOverride()
+    StudioFlags.JOURNEYS_WITH_GEMINI_NEW_WIZARD.clearOverride()
   }
 
   enum class TestMode {
@@ -781,6 +782,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
   @Test
   fun testJourneysWithTestSuite() {
     StudioFlags.AGP_TEST_SUITES_ENABLED.override(true)
+    StudioFlags.JOURNEYS_WITH_GEMINI_NEW_WIZARD.override(false)
     checkCreateTemplate("Journey File")
   }
 
