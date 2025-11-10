@@ -817,7 +817,6 @@ MODULE                        : project.dyn_feature
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
         MainArtifact
-            ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -909,7 +908,6 @@ MODULE                        : project.lib
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
         MainArtifact
-            ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -1516,7 +1514,6 @@ MODULE                        : project.nested1
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
         MainArtifact
-            ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/nested1/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -1603,7 +1600,6 @@ MODULE                        : project.nested1.deep
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
         MainArtifact
-            ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -1696,7 +1692,6 @@ MODULE                        : project.nested2
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
         MainArtifact
-            ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -1803,7 +1798,6 @@ MODULE                        : project.nested2.deep
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
         MainArtifact
-            ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -1894,7 +1888,6 @@ MODULE                        : project.nested2.trans.deep2
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
         MainArtifact
-            ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
