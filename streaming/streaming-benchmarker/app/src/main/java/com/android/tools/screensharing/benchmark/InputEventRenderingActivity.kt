@@ -160,7 +160,7 @@ class InputEventRenderingActivity : Activity() {
       KeyEvent.KEYCODE_DEL -> enteredText.text = enteredText.text.dropLast(1)
       KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_DPAD_UP -> {
         enteredText.text = ""
-        when(state) {
+        when (state) {
           State.BENCHMARKING -> showTouchableArea()
           State.SHOWING_TOUCHABLE_AREA -> reset()
           State.INITIALIZED -> {}
