@@ -29,6 +29,23 @@ import java.nio.file.Path;
 import org.junit.Rule;
 import org.junit.Test;
 
+/**
+ * Test to ensure new projects can be created using the new project wizard, and that project
+ * imports and builds successfully.
+ * <p>
+ * To avoid having this test depend also on building AGP from source, this test overrides the
+ * AGP version selection logic in Studio by setting
+ * <code>gradle.ide.agp.version.to.use</code>.
+ * The Gradle version is inferred from the AGP version,
+ * see <code>CompatibleGradleVersion.getAssociatedGradleVersion</code>.
+ * <p>
+ * To avoid needing to update this alongside the default compile SDK for new projects,
+ * this test also explicitly overrides that by setting
+ * <code>npw.new.project.compile.sdk</code>
+ * <p>
+ * See <code>system.getInstallation().addVmOption("...")</code> calls in
+ * <code>createProjectTest</code>.
+ */
 public class CreateProjectTest {
   @Rule
   public AndroidSystem system = AndroidSystem.standard();
@@ -38,19 +55,13 @@ public class CreateProjectTest {
 
   @Test
   public void createProjectTest() throws Exception {
-    system.installRepo(new MavenRepo("tools/adt/idea/android/integration/createproject_deps.manifest"));
+    system.installRepo(new MavenRepo("tools/adt/idea/android/integration/createproject_deps.manifest").withoutInitScript());
 
     // Attempting to create a project on a fresh installation of Android Studio will produce an
     // error saying that no SDK has been configured, so we configure it first.
     system.getInstallation().setGlobalSdk(system.getSdk());
-
-    // Set the AGP version so that we don't end up with something like "8.0.0-dev" and also so that
-    // we don't need to update this test every time a new AGP version is released.
-    //
-    // The Gradle version is chosen based on this. AGP 7.4.1 corresponds to Gradle 7.5.0 (see
-    // GradleVersionRefactoringProcessor#getCompatibleGradleVersion).
-    // AGP version 7.4.1 is chosen because version catalogs requires at least AGP 7.4.0
-    system.getInstallation().addVmOption("-Dgradle.ide.agp.version.to.use=8.1.0");
+    // See class-level comments
+    system.getInstallation().addVmOption("-Dgradle.ide.agp.version.to.use=8.13.0");
     system.getInstallation().addVmOption("-Dnpw.new.project.compile.sdk=34");
 
     String distributionPath = "tools/external/gradle/";
