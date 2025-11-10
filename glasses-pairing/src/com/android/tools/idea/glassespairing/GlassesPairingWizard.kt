@@ -44,6 +44,7 @@ import com.android.tools.adtui.compose.ComposeWizard
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.idea.flags.StudioFlags
+import com.google.wireless.android.sdk.stats.GlassesPairingEvent
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.JBUI
@@ -100,6 +101,8 @@ internal constructor(
         return null
       }
 
+      // TODO android merge GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ASSISTANT_LAUNCHED)
+
       val coroutineScope = CoroutineScope(SupervisorJob())
       val model = GlassesPairingWizard(coroutineScope, devicesFlow, glassesHandle)
       val wizard =
@@ -141,6 +144,15 @@ internal constructor(
       .flatMapLatest {
         pair(it.glasses, it.phone).catch { cause ->
           emit(PairingState.Error("Unexpected error: $cause"))
+        }
+      }
+      .onEach {
+        when (it) {
+          is PairingState.Error ->
+            TODO()// TODO android merge GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.SHOW_FAILED_PAIRING)
+          is PairingState.Complete ->
+            TODO()// TODO android merge GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.SHOW_SUCCESSFUL_PAIRING)
+          else -> {}
         }
       }
       .stateIn(
