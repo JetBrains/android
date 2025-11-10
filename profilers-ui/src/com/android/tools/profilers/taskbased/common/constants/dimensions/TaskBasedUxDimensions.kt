@@ -30,6 +30,7 @@ object TaskBasedUxDimensions {
   val TASK_TOOLTIP_WIDTH_DP = 200.dp
 
   // Common table dimensions
+  val TABLE_HEADER_ROW_HEIGHT_DP = 26.dp
   val TABLE_ROW_HEIGHT_DP = 24.dp
   val TABLE_ROW_HORIZONTAL_PADDING_DP = 5.dp
 

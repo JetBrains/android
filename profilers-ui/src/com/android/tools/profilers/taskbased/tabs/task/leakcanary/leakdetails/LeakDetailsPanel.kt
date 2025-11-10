@@ -62,6 +62,7 @@ import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedU
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_OPEN
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.START_TASK_SELECTION_ERROR_ICON_DESC
+import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
 import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.notifications.NotificationWithTooltip
 import icons.StudioIconsCompose
@@ -86,6 +87,10 @@ fun LeakDetailsPanel(selectedLeak: Leak?,
                      openStates: List<Boolean>,
                      onOpenStatesChange: (List<Boolean>) -> Unit) {
   val emptyLeakMessage = if (isRecording) LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE else LEAKCANARY_NO_LEAK_FOUND_MESSAGE
+  val traceNodes = selectedLeak?.displayedLeakTrace?.firstOrNull()?.nodes ?: emptyList()
+  val onExpandAll = { onOpenStatesChange(List(traceNodes.size) { true })}
+  val onCollapseAll = { onOpenStatesChange(List(traceNodes.size) { false })}
+
   if (selectedLeak == null) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
       EllipsisText(text = emptyLeakMessage, maxLines = 3)
@@ -93,7 +98,13 @@ fun LeakDetailsPanel(selectedLeak: Leak?,
   }
   else {
     val scrollState = rememberScrollState()
-    Box(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize()) {
+      LeakActionToolbar(
+        selectedLeak = selectedLeak,
+        onExpandAll = onExpandAll,
+        onCollapseAll = onCollapseAll
+      )
+      ToolWindowHorizontalDivider()
       Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(10.dp)) {
         // If displayedLeakTrace is empty, use empty list for the leak nodes.
         val traceNodes = if (selectedLeak.displayedLeakTrace.isNotEmpty()) selectedLeak.displayedLeakTrace[0].nodes else listOf()
@@ -117,7 +128,7 @@ fun LeakDetailsPanel(selectedLeak: Leak?,
       }
       VerticalScrollbar(
         adapter = rememberScrollbarAdapter(scrollState),
-        modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
+        modifier = Modifier.fillMaxHeight().align(Alignment.CenterHorizontally),
       )
     }
   }
