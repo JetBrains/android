@@ -45,7 +45,7 @@ private fun Int.bits(minBits: Int = Int.SIZE_BITS) : String = toUInt().toString(
 @ColorInt
 private fun List<String>.toColor() : Int {
   require(!isEmpty()) { "Must provide at least one value." }
-  return when(size) {
+  return when (size) {
     1 -> Color.rgb(get(0).toColorChannel(), 0, 0)
     2 -> Color.rgb(get(0).toColorChannel(), get(1).toColorChannel(), 0)
     else ->  Color.rgb(get(0).toColorChannel(), get(1).toColorChannel(), get(2).toColorChannel())
