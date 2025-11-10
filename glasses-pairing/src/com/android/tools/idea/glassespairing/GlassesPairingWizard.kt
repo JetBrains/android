@@ -291,15 +291,14 @@ internal sealed class PairingState {
     override val heading: String = "Accept CDM Permissions on Companion device"
   }
 
-  data class Error(val state: String) : PairingState() {
-    override val heading: String = "Pairing failed."
-    override val detailText: String =
-      when (state) {
-        "WORKER_BOND_FAILED" -> "Failed to bond to device."
-        "WORKER_CONNECTION_FAILED" -> "Failed to connect to device."
-        "WORKER_CANCELLED" -> "Pairing was cancelled."
-        else -> "Error pairing device."
-      }
+  data class Error(
+    override val heading: String,
+    override val detailText: String,
+    val logDetail: String? = null,
+  ) : PairingState() {
+    constructor(detailText: String) : this("Pairing failed.", detailText)
+
+    fun toLogMessage() = "$heading: $detailText${logDetail?.let { " [$it]" } ?: ""}"
   }
 
   data object Complete : PairingState() {
@@ -360,9 +359,21 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
         emit(PairingState.Error("$glassesName failed to launch."))
         return@flow
       }
-      emit(PairingState.Pairing("Initiating pairing..."))
 
       with(AiGlassesPairing(phoneDevice.session)) {
+        val pairedDeviceCount = glassesDevice.getPairedBluetoothDeviceCount()
+        if (pairedDeviceCount != null && pairedDeviceCount > 0) {
+          emit(
+            PairingState.Error(
+              "Glasses already paired",
+              "Wipe data on $glassesName to pair a new device.",
+            )
+          )
+          return@flow
+        }
+
+        emit(PairingState.Pairing("Initiating pairing..."))
+
         if (!phoneDevice.hasGlassesCompanionApp()) {
           emit(PairingState.Error("$phoneName does not have support for Glasses."))
           return@flow
@@ -381,7 +392,20 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
             when (pairingState) {
               "PAIRED" -> emit(PairingState.Complete)
               "UI_CDM_ASSOCIATING" -> emit(PairingState.AwaitingAuthorization)
-              in AiGlassesPairing.TERMINAL_STATES -> emit(PairingState.Error(pairingState))
+              in AiGlassesPairing.TERMINAL_STATES ->
+                emit(
+                  PairingState.Error(
+                    heading = "Error pairing $glassesName",
+                    detailText =
+                      when (pairingState) {
+                        "WORKER_BOND_FAILED" -> "Failed to bond to device."
+                        "WORKER_CONNECTION_FAILED" -> "Failed to connect to device."
+                        "WORKER_CANCELLED" -> "Pairing was cancelled."
+                        else -> "Error pairing device."
+                      },
+                    logDetail = pairingState,
+                  )
+                )
               else -> emit(PairingState.Pairing("Pairing in progress..."))
             }
           }
@@ -398,7 +422,7 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
           }
         PairingState.AwaitingAuthorization -> logger.debug("Awaiting authorization")
         PairingState.Complete -> logger.info("Successfully paired $phoneName with $glassesName")
-        is PairingState.Error -> logger.warn("${it.heading}: ${it.detailText}")
+        is PairingState.Error -> logger.warn(it.toLogMessage())
       }
     }
 }
