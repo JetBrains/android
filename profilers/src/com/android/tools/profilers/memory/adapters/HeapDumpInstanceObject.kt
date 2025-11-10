@@ -30,10 +30,14 @@ import java.util.Locale
 /**
  * A UI representation of a [ClassInstance].
  */
-internal class HeapDumpInstanceObject(private val captureObject: HeapDumpCaptureObject,
+internal class HeapDumpInstanceObject @JvmOverloads constructor(private val captureObject: HeapDumpCaptureObject,
                                       private val instance: Instance,
                                       private val classEntry: ClassDb.ClassEntry,
-                                      precomputedValueType: ValueObject.ValueType?) : InstanceObject {
+                                      precomputedValueType: ValueObject.ValueType?,
+                                      private val isTransient: Boolean = false) : InstanceObject {
+
+  override fun isTransient() = isTransient
+
   private val valueType = when {
     precomputedValueType != null -> precomputedValueType
     else -> instance.classObj.let { classObj ->
@@ -153,7 +157,7 @@ internal class HeapDumpInstanceObject(private val captureObject: HeapDumpCapture
     // Hard referrers first, soft second
     val sortedReferences = instance.hardReverseReferences.sortedWith(order) +
                            instance.softReverseReferences.sortedWith(order)
-    return sortedReferences.map { reference ->
+    return sortedReferences.mapNotNull { reference ->
       // Note that each instance can have multiple references to the same object.
       val referencingFieldNames = when (reference) {
         is ClassInstance -> reference.values.mapNotNull { ref ->
@@ -170,7 +174,7 @@ internal class HeapDumpInstanceObject(private val captureObject: HeapDumpCapture
         }
         else -> listOf()
       }
-      ReferenceObject(referencingFieldNames, captureObject.findInstanceObject(reference)!!)
+      captureObject.getOrCreateInstanceObject(reference)?.let { ReferenceObject(referencingFieldNames, it) }
     }.toList()
   }
 

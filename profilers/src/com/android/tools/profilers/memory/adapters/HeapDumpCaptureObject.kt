@@ -211,13 +211,25 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
 
   open fun findInstanceObject(instance: Instance) = if (hasLoaded) instanceIndex.get(instance.id) else null
 
-  fun createClassObjectInstance(classObj: ClassObj): InstanceObject {
+  fun createClassObjectInstance(classObj: ClassObj, isTransient: Boolean = false): InstanceObject {
     // The ClassEntry associated with this InstanceObject should be for the class it represents
     // (e.g. MyClass), not "java.lang.Class".
     // This makes the object appear under its own class grouping in the UI, where it can act as a
     // placeholder to access its static fields.
     val classEntry = classObj.makeEntry()
-    return HeapDumpInstanceObject(this, classObj, classEntry, ValueObject.ValueType.CLASS)
+    return HeapDumpInstanceObject(this, classObj, classEntry, ValueObject.ValueType.CLASS, isTransient)
+  }
+
+  /**
+   * Finds an existing [InstanceObject] or creates one on-demand if the reference is a [ClassObj]
+   * that was filtered out during initial loading (e.g. a class on the image heap with no instances).
+   * The new instance is registered in the instance index and added to the correct heap.
+   */
+  fun getOrCreateInstanceObject(instance: Instance): InstanceObject? {
+    return findInstanceObject(instance) ?: when (instance) {
+      is ClassObj -> createClassObjectInstance(instance, true)
+      else -> null
+    }
   }
 
   override fun getActivityFragmentLeakFilter() = activityFragmentLeakFilter

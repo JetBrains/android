@@ -145,4 +145,14 @@ public interface InstanceObject extends ValueObject {
   default boolean hasDeallocTime() {
     return false;
   }
+
+  /**
+   * A transient instance is a placeholder for an object that was filtered out during initial loading
+   * (e.g. a class on the image heap with no instances) but is still referenced by other objects.
+   * It is created on-demand for display in the Fields/References trees and should not be navigable
+   * or displayed in the main heap view.
+   */
+  default boolean isTransient() {
+    return false;
+  }
 }

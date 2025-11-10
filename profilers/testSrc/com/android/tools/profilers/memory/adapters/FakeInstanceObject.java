@@ -46,6 +46,8 @@ public final class FakeInstanceObject implements InstanceObject {
   private final int myShallowSize;
   private final long myRetainedSize;
 
+  private final boolean myIsTransient;
+
   private FakeInstanceObject(@NotNull String name,
                              @NotNull ClassDb.ClassEntry classEntry,
                              @NotNull List<FakeFieldObject> fields,
@@ -55,7 +57,7 @@ public final class FakeInstanceObject implements InstanceObject {
                              @Nullable ValueType arrayElementType,
                              @Nullable Object array,
                              int arrayLength,
-                             int heapId, int depth, long nativeSize, int shallowSize, long retainedSize) {
+                             int heapId, int depth, long nativeSize, int shallowSize, long retainedSize, boolean isTransient) {
     myName = name;
     myClassEntry = classEntry;
     myDepth = depth;
@@ -70,6 +72,7 @@ public final class FakeInstanceObject implements InstanceObject {
     myArray = array;
     myArrayLength = arrayLength;
     myHeapId = heapId;
+    myIsTransient = isTransient;
   }
 
   @NotNull
@@ -220,6 +223,11 @@ public final class FakeInstanceObject implements InstanceObject {
     myReferences.add(reference);
   }
 
+  @Override
+  public boolean isTransient() {
+    return myIsTransient;
+  }
+
   public static class Builder {
     @NotNull private FakeCaptureObject myCaptureObject;
     @NotNull private String myName = "SAMPLE_INSTANCE";
@@ -239,6 +247,7 @@ public final class FakeInstanceObject implements InstanceObject {
     private ValueType myArrayElementType;
     private Object myArray;
     private int myArrayLength;
+    private boolean myIsTransient = false;
 
     private ClassDb.ClassEntry myClassEntry; // if this is non-null, it overwrites `myClassId` and `myClassName`
 
@@ -345,15 +354,21 @@ public final class FakeInstanceObject implements InstanceObject {
     }
 
     @NotNull
+    public Builder setIsTransient(boolean isTransient) {
+      myIsTransient = isTransient;
+      return this;
+    }
+
+    @NotNull
     public FakeInstanceObject build() {
       return
         myClassEntry != null
         ? new FakeInstanceObject(myName, myClassEntry, myFields,
                                  myAllocationThreadId, myAllocationStack, myValueType, myArrayElementType, myArray, myArrayLength,
-                                 myHeapId, myDepth, myNativeSize, myShallowSize, myRetainedSize)
+                                 myHeapId, myDepth, myNativeSize, myShallowSize, myRetainedSize, myIsTransient)
         : new FakeInstanceObject(myName, myCaptureObject.registerClass(myClassId, mySuperClassId, myClassName), myFields,
                                  myAllocationThreadId, myAllocationStack, myValueType, myArrayElementType, myArray, myArrayLength,
-                                 myHeapId, myDepth, myNativeSize, myShallowSize, myRetainedSize);
+                                 myHeapId, myDepth, myNativeSize, myShallowSize, myRetainedSize, myIsTransient);
     }
   }
 }
