@@ -30,13 +30,13 @@ import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.actions.RESIZE_PANEL_INSTANCE_KEY
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationPreview
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationSubscriber
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.flow.ComposePreviewFlowManager
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
+import com.android.tools.idea.compose.preview.resize.RESIZE_PANEL_INSTANCE_KEY
 import com.android.tools.idea.compose.preview.resize.ResizePanel
 import com.android.tools.idea.compose.preview.scene.ComposeAnimationToolbarUpdater
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
@@ -1194,14 +1194,14 @@ class ComposePreviewRepresentation(
    * Hides the panels before rendering.
    *
    * We need to hide the interaction panel if in focus mode to avoid the flickering b/287484743.
-   * Also, we need to clear and hide the resize panel before rendering otherwise it will be shown
-   * during rendering as configuration can be updated.
+   * Also, we need to clear the resize panel before rendering otherwise it will be shown during
+   * rendering as configuration can be updated.
    */
   private fun hidePanelsBeforeRender() {
     if (previewModeManager.mode.value.isFocus) {
       surface.interactionPane.isVisible = false
     }
-    activeResizePanelInFocusMode?.clearAndHide()
+    activeResizePanelInFocusMode?.clear()
   }
 
   private fun requestRefresh(
@@ -1599,7 +1599,7 @@ class ComposePreviewRepresentation(
           composeWorkBench.focusMode =
             activeResizePanelInFocusMode?.let { resizePanel ->
               FocusMode(composeWorkBench.mainSurface, resizePanel).apply {
-                addSelectionListener { resizePanel.clearAndHide() }
+                addSelectionListener { resizePanel.clear() }
               }
             } ?: FocusMode(composeWorkBench.mainSurface)
         }

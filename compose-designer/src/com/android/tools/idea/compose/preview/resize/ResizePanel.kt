@@ -45,6 +45,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
@@ -82,11 +83,13 @@ import javax.swing.text.DocumentFilter
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
+val RESIZE_PANEL_INSTANCE_KEY = DataKey.create<ResizePanel>("ResizePanel")
+
 /**
  * Panel that allows resizing the preview by selecting a device or entering custom dimensions. It is
  * displayed in the toolbar of the Compose Preview.
  *
- * The panel looks like: [ Device Picker ▼ ] [ WidthTF ] x [ HeightTF ] dp [X]
+ * The panel looks like: [ Device Picker ▼ ] [ WidthTF ] x [ HeightTF ] dp [↩]
  */
 class ResizePanel(parentDisposable: Disposable) :
   JBPanel<ResizePanel>(), Disposable, UiDataProvider {
@@ -129,10 +132,6 @@ class ResizePanel(parentDisposable: Disposable) :
         hasBeenResized =
           !Objects.equals(currentConfiguration?.device, originalDeviceSnapshot) ||
             !Objects.equals(currentConfiguration?.deviceState, originalDeviceStateSnapshot)
-        val panelWasHidden = !isVisible
-        if (panelWasHidden && hasBeenResized) {
-          isVisible = true
-        }
       }
       updatePanelFromConfiguration()
     }
@@ -141,12 +140,43 @@ class ResizePanel(parentDisposable: Disposable) :
 
   private val dimensionInputsAction = DimensionInputsAction()
 
+  /** Creates and configures the revert button. */
+  private fun createRevertButton(): JComponent {
+    val revertAction = RevertAction()
+    val revertButton =
+      ActionButton(
+          revertAction,
+          revertAction.templatePresentation.clone(),
+          ActionPlaces.TOOLBAR,
+          ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
+        )
+        .apply { isFocusable = true }
+
+    // Wrap the revert button in a panel to prevent it from being stretched by the BorderLayout,
+    // and to align it vertically.
+    return JBPanel<Nothing>().apply {
+      isOpaque = false
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+      add(Box.createVerticalGlue())
+      add(revertButton)
+      add(Box.createVerticalGlue())
+    }
+  }
+
+  @VisibleForTesting
+  internal inner class RevertAction :
+    DumbAwareAction(message("resize.panel.revert.tooltip"), null, AllIcons.Actions.Rollback) {
+    override fun actionPerformed(e: AnActionEvent) {
+      revertResizing()
+    }
+  }
+
   init {
     layout = BorderLayout()
     border = JBEmptyBorder(2)
     background = Colors.DEFAULT_BACKGROUND_COLOR
 
-    // The main action group for the toolbar. Does not include the close button.
+    // The main action group for the toolbar. Does not include the revert button.
     val mainActionGroup =
       DefaultActionGroup().apply {
         add(DevicePickerAction())
@@ -166,11 +196,10 @@ class ResizePanel(parentDisposable: Disposable) :
 
     add(flowingComponentsPanel, BorderLayout.CENTER)
 
-    val closeButton = createCloseButton()
-    add(closeButton, BorderLayout.EAST)
+    val revertButton = createRevertButton()
+    add(revertButton, BorderLayout.EAST)
     Disposer.register(parentDisposable, this)
     isEnabled = false
-    isVisible = false
   }
 
   override fun uiDataSnapshot(sink: DataSink) {
@@ -180,7 +209,7 @@ class ResizePanel(parentDisposable: Disposable) :
 
   /**
    * Reverts the preview to its original device and state. This is called when the user clicks the
-   * close button or selects the "Original" device option from the dropdown.
+   * revert button or selects the "Original" device option from the dropdown.
    */
   private fun revertResizing() {
     dimensionInputsAction.resetErrors()
@@ -195,8 +224,8 @@ class ResizePanel(parentDisposable: Disposable) :
     hasBeenResized = false
   }
 
-  /** Clears the panel's state, removing any existing configuration and hiding it. */
-  fun clearAndHide() {
+  /** Clears the panel's state, removing any existing configuration. */
+  fun clear() {
     currentConfiguration?.removeListener(resizePanelUiUpdaterListener)
     renderTriggerListener?.let { existingListener ->
       Disposer.dispose(existingListener)
@@ -208,7 +237,6 @@ class ResizePanel(parentDisposable: Disposable) :
     currentFocusedPreviewElement = null
     currentModuleForList = null
     hasBeenResized = false
-    isVisible = false
   }
 
   /**
@@ -220,6 +248,7 @@ class ResizePanel(parentDisposable: Disposable) :
   private fun handleDeviceSelection(selectedItem: Device) {
     dimensionInputsAction.resetErrors()
     currentConfiguration?.setEffectiveDevice(selectedItem, selectedItem.defaultState)
+    hasBeenResized = true
     dimensionInputsAction.updateTextFieldsFromConfiguration()
     ComposeResizeToolingUsageTracker.logResizeStopped(
       currentSceneManager?.scene?.designSurface,
@@ -237,7 +266,7 @@ class ResizePanel(parentDisposable: Disposable) :
    *   or null if none.
    */
   fun setSceneManager(sceneManager: LayoutlibSceneManager?) {
-    clearAndHide()
+    clear()
 
     currentSceneManager = sceneManager
     val model = sceneManager?.model
@@ -273,7 +302,7 @@ class ResizePanel(parentDisposable: Disposable) :
   }
 
   override fun dispose() {
-    clearAndHide()
+    clear()
   }
 
   override fun setVisible(isVisible: Boolean) {
@@ -358,7 +387,7 @@ class ResizePanel(parentDisposable: Disposable) :
         JPanel(FlowLayout(FlowLayout.CENTER, scale(4), scale(2))).apply {
           isOpaque = false
           add(widthTextField)
-          add(JBLabel("x"))
+          add(JBLabel("X"))
           add(heightTextField)
           add(JBLabel(SdkConstants.UNIT_DP))
         }
@@ -502,6 +531,7 @@ class ResizePanel(parentDisposable: Disposable) :
         ConversionUtil.dpToPx(newWidthDp, dpi),
         ConversionUtil.dpToPx(newHeightDp, dpi),
       )
+      hasBeenResized = true
       ComposeResizeToolingUsageTracker.logResizeStopped(
         currentSceneManager?.scene?.designSurface,
         currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
@@ -514,38 +544,6 @@ class ResizePanel(parentDisposable: Disposable) :
 
     override fun actionPerformed(e: AnActionEvent) {
       // This action is just for showing the component, it doesn't have a direct action
-    }
-  }
-
-  /** Creates and configures the close button. */
-  private fun createCloseButton(): JComponent {
-    val closeAction = CloseAction()
-    val closeButton =
-      ActionButton(
-          closeAction,
-          closeAction.templatePresentation.clone(),
-          ActionPlaces.TOOLBAR,
-          ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
-        )
-        .apply { isFocusable = true }
-
-    // Wrap the close button in a panel to prevent it from being stretched by the BorderLayout,
-    // and to align it vertically.
-    return JBPanel<Nothing>().apply {
-      isOpaque = false
-      layout = BoxLayout(this, BoxLayout.Y_AXIS)
-      add(Box.createVerticalGlue())
-      add(closeButton)
-      add(Box.createVerticalGlue())
-    }
-  }
-
-  @VisibleForTesting
-  internal inner class CloseAction :
-    DumbAwareAction(message("resize.panel.hide.revert.tooltip"), null, AllIcons.Actions.Close) {
-    override fun actionPerformed(e: AnActionEvent) {
-      revertResizing()
-      this@ResizePanel.isVisible = false
     }
   }
 }
