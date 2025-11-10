@@ -83,7 +83,7 @@ private fun LeakListHeader() {
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .height(TaskBasedUxDimensions.TABLE_ROW_HEIGHT_DP)
+      .height(TaskBasedUxDimensions.TABLE_HEADER_ROW_HEIGHT_DP)
       .background(TaskBasedUxColors.TABLE_HEADER_BACKGROUND_COLOR)
       .padding(horizontal = TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP)
   ) {

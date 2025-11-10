@@ -41,6 +41,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.WithFakeTimer
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
+import com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails.copyLeakToClipboard
 import com.google.common.truth.Truth
 import org.junit.After
 import org.junit.Before
