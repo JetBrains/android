@@ -49,7 +49,6 @@ import org.mockito.kotlin.whenever
 // ZoomToSelectionAction(),
 // JumpToDefinitionAction(),
 // ViewInFocusModeAction(),
-// ToggleResizePanelVisibilityAction(),
 // Separator(),
 // SavePreviewInNewSizeAction(),
 // EnableUiCheckAction(),
@@ -59,7 +58,7 @@ import org.mockito.kotlin.whenever
 // BackNavigationAction()
 // ComposePreviewAgentsDropdownAction() or TransformPreviewAction(), depending on flag value.
 // in wrappers
-private const val EXPECTED_NUMBER_OF_ACTIONS = 9
+private const val EXPECTED_NUMBER_OF_ACTIONS = 8
 
 // SavePreviewInNewSize()
 // EnableUiCheckAction(),
@@ -138,14 +137,12 @@ class PreviewSurfaceActionManagerTest {
     assertThat(actions[1]).isInstanceOf(ZoomToSelectionAction::class.java)
     assertThat(actions[2]).isInstanceOf(JumpToDefinitionAction::class.java)
     assertThat(actions[3]).isInstanceOf(ViewInFocusModeAction::class.java)
-    assertThat((actions[4] as AnActionWrapper).delegate)
-      .isInstanceOf(ToggleResizePanelVisibilityAction::class.java)
 
-    assertThat(actions[5]).isInstanceOf(Separator::class.java)
+    assertThat(actions[4]).isInstanceOf(Separator::class.java)
 
     // SceneViewContextToolbar actions.
     val sceneViewContextActions =
-      (actions[6] as ShowGroupUnderConditionWrapper)
+      (actions[5] as ShowGroupUnderConditionWrapper)
         .getChildren(null)
         .filterIsInstance<ShowUnderConditionWrapper>()
         .map { it.delegate as EnableUnderConditionWrapper }
@@ -163,12 +160,12 @@ class PreviewSurfaceActionManagerTest {
     // The back navigation action is wrapped into the EnableUnderConditionWrapper and then into
     // the visibleOnlyInInteractive wrapper.
     val backNavigationAction =
-      ((actions[7] as AnActionWrapper).delegate as AnActionWrapper).delegate
+      ((actions[6] as AnActionWrapper).delegate as AnActionWrapper).delegate
     assertThat(backNavigationAction).isInstanceOf(BackNavigationAction::class.java)
 
     // AI actions
     val aiActionsDefaultGroup =
-      (actions[8] as ShowGroupUnderConditionWrapper).getChildren(null).single()
+      (actions[7] as ShowGroupUnderConditionWrapper).getChildren(null).single()
     assertThat(aiActionsDefaultGroup.templatePresentation.text)
       .isEqualTo(if (aiActionsDropdownEnabled) "previewAgents" else "transformPreview")
     assertThat(aiActionsDefaultGroup is DefaultActionGroup)

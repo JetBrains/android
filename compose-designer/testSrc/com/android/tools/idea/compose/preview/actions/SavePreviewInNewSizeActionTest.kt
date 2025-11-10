@@ -38,6 +38,7 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.NopComposePreviewManager
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
+import com.android.tools.idea.compose.preview.resize.RESIZE_PANEL_INSTANCE_KEY
 import com.android.tools.idea.compose.preview.resize.ResizePanel
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.configurations.ConfigurationManager
