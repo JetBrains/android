@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.android.adblib.tools.aiglasses.AiGlassesPairing
 import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.LocalEmulatorDeviceHandle
 import com.android.sdklib.deviceprovisioner.awaitReady
 import com.android.sdklib.deviceprovisioner.mapChangedState
 import com.android.sdklib.deviceprovisioner.pairWithNestedState
@@ -86,6 +87,7 @@ internal constructor(
   private val glassesHandle: DeviceHandle,
   private val pair: (glasses: DeviceHandle, phone: DeviceHandle) -> Flow<PairingState> =
     ::pairGlassesToPhone,
+  private val isCompatible: (DeviceHandle) -> Boolean = ::isAiGlassesCompatible
 ) {
   companion object {
     /**
@@ -130,7 +132,7 @@ internal constructor(
 
   private val deviceRowFlow: StateFlow<ImmutableList<DeviceRow>> =
     devicesFlow
-      .map { devices -> devices.filter { it != glassesHandle } }
+      .map { devices -> devices.filter { it != glassesHandle && isCompatible(it) } }
       .pairWithNestedState { it.stateFlow }
       .mapChangedState { handle, state -> DeviceRow(handle, state) }
       .stateIn(coroutineScope, SharingStarted.Eagerly, persistentListOf())
@@ -167,8 +169,17 @@ internal constructor(
 
     val state = getOrCreateState { SelectableLazyListState(LazyListState()) }
     Column(Modifier.padding(20.dp)) {
-      LargeText("Select a device to pair", Modifier.padding(bottom = 8.dp))
-      DeviceList(devices, onSelectedDeviceChange = { phone = it }, state)
+      if (devices.isEmpty()) {
+        PairingStateHorizontalProgress(
+          header = "No compatible AVDs found.",
+          detail =
+            "Glasses pairing requires a Canary system image that includes AI Glasses support.",
+          showProgressBar = false,
+        )
+      } else {
+        LargeText("Select a device to pair", Modifier.padding(bottom = 8.dp))
+        DeviceList(devices, onSelectedDeviceChange = { phone = it }, state)
+      }
     }
     nextAction =
       when (val phone = phone) {
@@ -326,6 +337,9 @@ internal fun launchAvd(handle: DeviceHandle): Flow<LaunchState> = flow {
     emit(LaunchState.Ready)
   }
 }
+
+private fun isAiGlassesCompatible(handle: DeviceHandle) =
+  handle is LocalEmulatorDeviceHandle && handle.avdInfo.isAiGlassesCompatibleDevice
 
 internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flow<PairingState> {
   val logger = logger<GlassesPairingWizard>()
