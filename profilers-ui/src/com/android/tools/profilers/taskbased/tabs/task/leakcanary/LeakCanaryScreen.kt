@@ -70,9 +70,6 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel) {
   val traceNodes = selectedLeak?.displayedLeakTrace?.firstOrNull()?.nodes ?: emptyList()
   var openStates by remember(selectedLeak) { mutableStateOf(List(traceNodes.size) { false }) }
 
-  val onExpandAll = { openStates = List(traceNodes.size) { true } }
-  val onCollapseAll = { openStates = List(traceNodes.size) { false } }
-
   val focusRequester = remember { FocusRequester() }
 
   Column(modifier = Modifier.fillMaxSize()
@@ -82,11 +79,11 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel) {
       if (keyEvent.type == KeyEventType.KeyDown && keyEvent.isCtrlPressed) {
         when (keyEvent.key) {
           Key.Plus, Key.NumPadAdd, Key.Equals -> {
-            onExpandAll()
+            openStates = List(traceNodes.size) { true }
             true
           }
           Key.NumPadSubtract, Key.Minus -> {
-            onCollapseAll()
+            openStates = List(traceNodes.size) { false }
             true
           }
           else -> false
@@ -123,97 +120,9 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel) {
         },
         modifier = Modifier.weight(1f),
       )
-      if (selectedLeak != null) {
-        ToolWindowVerticalDivider()
-        RightSidebar(
-          selectedLeak = selectedLeak!!,
-          modifier = Modifier.width(48.dp),
-          onExpandAll = onExpandAll,
-          onCollapseAll = onCollapseAll
-        )
-      }
     }
     LaunchedEffect(Unit) {
       focusRequester.requestFocus()
     }
   }
-}
-
-@Composable
-private fun ToolWindowVerticalDivider() {
-  Divider(
-    modifier = Modifier.fillMaxHeight(),
-    orientation = Orientation.Vertical,
-    color = JewelTheme.globalColors.borders.normal
-  )
-}
-
-/**
- * A composable for the content of the right sidebar.
- */
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun RightSidebar(
-  selectedLeak: Leak,
-  modifier: Modifier = Modifier,
-  onExpandAll: () -> Unit,
-  onCollapseAll: () -> Unit
-) {
-  Column(
-    modifier = modifier.padding(vertical = 8.dp),
-    horizontalAlignment = Alignment.CenterHorizontally,
-    verticalArrangement = Arrangement.spacedBy(8.dp)
-  ) {
-    Tooltip(
-      tooltip = {
-        Column(horizontalAlignment = Alignment.Start) {
-          Text(TaskBasedUxStrings.LEAKCANARY_EXPAND_ALL)
-          Text(TaskBasedUxStrings.LEAKCANARY_EXPAND_ALL_SHORTCUT, color = JewelTheme.globalColors.text.info)
-        }
-      }
-    ) {
-      IconButton(onClick = onExpandAll) {
-        Icon(
-          key = StudioIconsCompose.Profiler.Toolbar.ExpandSession,
-          contentDescription = TaskBasedUxStrings.LEAKCANARY_EXPAND_ALL,
-          modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP),
-        )
-      }
-    }
-    Tooltip(
-      tooltip = {
-        Column(horizontalAlignment = Alignment.Start) {
-          Text(TaskBasedUxStrings.LEAKCANARY_COLLAPSE_ALL)
-          Text(TaskBasedUxStrings.LEAKCANARY_COLLAPSE_ALL_SHORTCUT, color = JewelTheme.globalColors.text.info)
-        }
-      }
-    ) {
-      IconButton(onClick = onCollapseAll) {
-        Icon(
-          key = StudioIconsCompose.Profiler.Toolbar.CollapseSession,
-          contentDescription = TaskBasedUxStrings.LEAKCANARY_COLLAPSE_ALL,
-          modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP),
-        )
-      }
-    }
-    Tooltip(
-      tooltip = { Text(TaskBasedUxStrings.LEAKCANARY_COPY_TO_CLIPBOARD) }
-    ) {
-      IconButton(onClick = { copyLeakToClipboard(selectedLeak.toString()) }) {
-        Icon(
-          key = AllIconsKeys.Actions.Copy,
-          contentDescription = TaskBasedUxStrings.LEAKCANARY_COPY_TO_CLIPBOARD,
-          modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP),
-        )
-      }
-    }
-  }
-}
-
-/**
- * Copies a simplified text representation of the selected leak to the system clipboard.
- */
-internal var copyLeakToClipboard: (String) -> Unit = { content ->
-  val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-  clipboard.setContents(StringSelection(content), null)
 }
