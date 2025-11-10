@@ -312,6 +312,7 @@
     <importCustomizer implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleImportCustomizer"/>
     <settingsControlProvider implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettingsControlProvider"/>
     <executionHelperExtension implementation="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$BuildPhaseListenerExecutionHelperExtension"/>
+    <executionHelperExtension implementation="com.android.tools.idea.gradle.project.sync.AgpVersionExecutionHelperExtension"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.gradle.sync">
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.IgnoredBuildScriptSetupStep"/>
