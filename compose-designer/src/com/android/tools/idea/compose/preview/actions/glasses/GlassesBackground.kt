@@ -23,7 +23,9 @@ enum class GlassesBackground(val displayName: String, val fileName: String?) {
   NONE("No Background", null),
   LIGHT_BACKGROUND("Light Background", "light_bg.png"),
   DARK_BACKGROUND("Dark Background", "dark_bg.png"),
-  GRADIENT_BACKGROUND("Gradient Background", "gradient_bg.png");
+  // A "busy" background that contains larger color and contrast variability
+  // used to verify the contrast in environments that are just not dark or light.
+  BUSY_BACKGROUND("Busy Background", "busy_bg.png");
 
   val imageTransform: Consumer<BufferedImage> =
     Consumer<BufferedImage> {
