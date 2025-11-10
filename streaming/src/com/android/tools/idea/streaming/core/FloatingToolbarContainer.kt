@@ -506,6 +506,10 @@ internal class FloatingToolbarContainer(
 
   companion object {
 
+    /**
+     * Toggles the activation state of the floating toolbar. The [event] has to be associated with
+     * a button of that toolbar.
+     */
     fun toggleActiveState(event: AnActionEvent) {
       findContainer(event)?.toggleActiveState()
     }
