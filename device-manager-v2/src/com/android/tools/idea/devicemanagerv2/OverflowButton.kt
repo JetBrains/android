@@ -40,6 +40,8 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
         ViewPairedDevicesAction(),
         UnpairWearableDeviceAction(),
       )
+
+    private val pairGlassesActions = DefaultActionGroup(PairGlassesAction(), UnpairGlassesAction())
   }
 
   val actions =
@@ -47,6 +49,7 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
       reservationActions,
       Separator.create(),
       ColdBootAction(),
+      pairGlassesActions,
       wearableActions,
       Separator.create(),
       EditDeviceAction(),
