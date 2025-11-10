@@ -656,7 +656,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
         MainArtifact
-            ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies

@@ -651,7 +651,6 @@ MODULE                        : TestCompositeLib1.lib
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
         MainArtifact
-            ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -1889,7 +1888,6 @@ MODULE                        : TestCompositeLib3.lib
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
         MainArtifact
-            ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -3160,7 +3158,6 @@ MODULE                        : project.lib
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
         MainArtifact
-            ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
