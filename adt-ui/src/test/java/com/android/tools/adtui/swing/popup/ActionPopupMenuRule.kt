@@ -55,14 +55,14 @@ class ActionPopupMenuRule: ExternalResource() {
   override fun before() {
     val actionManager = spy(ActionManager.getInstance())
 
-    ApplicationManager.getApplication()
-      .replaceService(ActionManager::class.java, actionManager, disposable)
-
     doAnswer { invocation ->
       FakeActionPopupMenu(invocation.getArgument(0), invocation.getArgument(1)).also { lastPopup = it }
     }
-    .whenever(ActionManager.getInstance())
+    .whenever(actionManager)
     .createActionPopupMenu(ArgumentMatchers.anyString(), any())
+
+    ApplicationManager.getApplication()
+      .replaceService(ActionManager::class.java, actionManager, disposable)
   }
 
   override fun after() {
