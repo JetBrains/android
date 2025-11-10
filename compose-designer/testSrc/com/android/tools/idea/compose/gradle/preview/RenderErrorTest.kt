@@ -376,7 +376,8 @@ class RenderErrorTest {
       (sceneViewTopPanel.components.filterIsInstance<ActionToolbarImpl>().single().actionGroup
           as DefaultActionGroup)
         .childActionsOrStubs
-        .single() as SceneViewTopPanel.ShowActionGroupInPopupAction
+        .filterIsInstance<SceneViewTopPanel.ShowActionGroupInPopupAction>()
+        .single()
     return showToolbarActionsActionGroup.actionGroup.childActionsOrStubs
       .filterIsInstance<ShowGroupUnderConditionWrapper>()
       .single()
