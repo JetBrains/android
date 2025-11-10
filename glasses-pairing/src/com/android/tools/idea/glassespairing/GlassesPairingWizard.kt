@@ -90,7 +90,7 @@ internal constructor(
     /**
      * Shows the Glasses Pairing wizard dialog, returning the paired phone if pairing is successful.
      */
-    fun show(
+    suspend fun show(
       parent: Component?,
       project: Project?,
       devicesFlow: Flow<List<DeviceHandle>>,
@@ -113,7 +113,7 @@ internal constructor(
           with(model) { SelectDevicePage() }
         }
       try {
-        if (wizard.showAndGet()) {
+        if (wizard.showNonModal()) {
           return model.phone?.handle
         }
         return null
@@ -197,7 +197,6 @@ private fun PairingState(pairingState: PairingState, phone: DeviceRow) {
           Text(pairingState.detailText ?: "Waiting for user to accept permissions on ${phone.name}")
         }
       }
-
       else ->
         PairingStateHorizontalProgress(
           pairingState.heading,
