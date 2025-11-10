@@ -153,7 +153,6 @@ import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI.Borders
-import com.intellij.util.ui.JBUI.CurrentTheme.Banner
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Cursor
@@ -1102,7 +1101,7 @@ constructor(
     }
   }
 
-  private class WarningNotificationPanel : EditorNotificationPanel(Banner.WARNING_BACKGROUND) {
+  private class WarningNotificationPanel : EditorNotificationPanel(Status.Warning) {
     init {
       border =
         BorderFactory.createCompoundBorder(Borders.customLine(JBColor.border(), 1, 1, 0, 0), border)
