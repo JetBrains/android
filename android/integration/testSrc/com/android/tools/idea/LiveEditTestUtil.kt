@@ -25,7 +25,7 @@ import com.android.tools.asdriver.tests.MavenRepo
  */
 
 internal fun createLiveEditProject() = AndroidProject("tools/adt/idea/android/integration/testData/liveedit").also {
-  it.setDistribution("tools/external/gradle/gradle-8.10.2-bin.zip")
+  it.setDistribution("tools/external/gradle/gradle-9.0.0-bin.zip")
 }
 
 internal fun AndroidSystem.installLiveEditMavenDependencies() {

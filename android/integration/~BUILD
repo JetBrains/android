@@ -381,7 +381,7 @@ iml_test(
 
 live_edit_test_data = [
     # Gradle
-    "//tools/base/build-system:gradle-distrib-8.10.2",
+    "//tools/base/build-system:gradle-distrib-9.0.0",
     # The project and the project's Maven dependencies.
     ":liveeditproject",
     ":live_edit_project_deps",
@@ -397,7 +397,6 @@ iml_test(
     data = live_edit_test_data + [
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:system_image_android-33_default",
-        INTEGRATION_TEST_GRADLE_VERSION,
     ],
     module = ":intellij.android.core.integration",
     tags = [
@@ -910,22 +909,21 @@ maven_repository(
         "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.8.7",
         "@maven//:androidx.test.espresso.espresso-core_3.5.1",
         "@maven//:androidx.test.ext.junit_1.1.5",
-        "@maven//:com.android.application.com.android.application.gradle.plugin_8.8.0",
-        "@maven//:com.android.library.com.android.library.gradle.plugin_8.8.0",
-        "@maven//:com.android.tools.build.aapt2_8.8.0-12006047",
-        "@maven//:com.android.tools.lint.lint-gradle_31.8.0",
+        "@maven//:com.android.application.com.android.application.gradle.plugin_8.13.0",
+        "@maven//:com.android.library.com.android.library.gradle.plugin_8.13.0",
+        "@maven//:com.android.tools.build.aapt2_8.13.0-13719691",
+        "@maven//:com.android.tools.lint.lint-gradle_31.13.0",
         "@maven//:commons-io.commons-io_2.13.0",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.jetbrains.compose.ui.ui-test-junit4-desktop_1.7.3",
-        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_2.0.21",
-        "@maven//:org.jetbrains.kotlin.kotlin-build-tools-impl_2.0.21",
-        "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.0.21",
-        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.9.24",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.0.21",
-        "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.0.21",
+        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_2.2.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-build-tools-impl_2.2.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.2.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_2.2.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.2.10",
+        "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.2.10",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.4",
-        "@maven//:org.junit.junit-bom_5.9.2",
-        "@maven//:org.junit.junit-bom_5.9.3",
+        "@maven//:org.junit.junit-bom_5.10.2",
     ],
 )
 
