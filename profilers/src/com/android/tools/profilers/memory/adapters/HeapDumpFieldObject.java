@@ -63,7 +63,7 @@ final class HeapDumpFieldObject implements FieldObject {
         myDepth = Integer.MAX_VALUE;
       }
       else {
-        myInstanceObject = captureObject.findInstanceObject(instance);
+        myInstanceObject = captureObject.getOrCreateInstanceObject(instance);
         if (instance instanceof ClassObj) {
           myValueType = CLASS;
         }
