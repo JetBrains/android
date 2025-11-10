@@ -218,7 +218,7 @@ class ResizeIntegrationTest {
       val popupMenu = openContextMenu()
       assertNotNull("Popup menu not found", popupMenu)
       val actionMenuItem = popupMenu!!.findDescendant<ActionMenuItem> { it.text == text }
-      assertNotNull("Action not found in popup", actionMenuItem)
+      assertNotNull("Action '${text}' not found in popup", actionMenuItem)
       actionMenuItem!!.doClick()
       popupRule.mockPopup.hide()
       popupMenu.isVisible = false
@@ -238,8 +238,6 @@ class ResizeIntegrationTest {
       previewView.updateVisibilityAndNotifications()
       fakeUi.root.validate()
       fakeUi.layoutAndDispatchEvents()
-
-      clickContextMenuItem("Show Resize Toolbar")
 
       val resizePanel = fakeUi.findComponent<ResizePanel>()
       assertNotNull("ResizePanel not found", resizePanel)

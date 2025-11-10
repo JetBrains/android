@@ -115,19 +115,19 @@ class ResizePanelTest {
     Disposer.dispose(surface)
   }
 
-  @Test fun `panel is initially hidden`() = runInEdtAndGet { assertFalse(resizePanel.isVisible) }
+  @Test fun `panel is initially visible`() = runInEdtAndGet { assertTrue(resizePanel.isVisible) }
 
   @Test
-  fun `setting scene manager does not show panel`() = runInEdtAndGet {
+  fun `setting scene manager keeps panel visible`() = runInEdtAndGet {
     resizePanel.setSceneManager(sceneManager)
-    assertFalse(resizePanel.isVisible)
+    assertTrue(resizePanel.isVisible)
   }
 
   @Test
-  fun `external device change makes panel visible`() = runInEdtAndGet {
+  fun `external device change keeps panel visible`() = runInEdtAndGet {
     val initialDevice = configuration.device
     resizePanel.setSceneManager(sceneManager)
-    assertFalse(resizePanel.isVisible)
+    assertTrue(resizePanel.isVisible)
 
     val newDevice = findDifferentDevice(initialDevice)
     configuration.setDevice(newDevice, true)
@@ -200,7 +200,7 @@ class ResizePanelTest {
   }
 
   @Test
-  fun `close button reverts changes and hides panel`() = runInEdtAndGet {
+  fun `revert button reverts changes and keeps panel visible`() = runInEdtAndGet {
     val initialDevice = configuration.device!!
     val initialDeviceState = configuration.deviceState!!
     setupAndShowPanel()
@@ -208,9 +208,9 @@ class ResizePanelTest {
     assertTrue(resizePanel.hasBeenResized)
     assertNotEquals(initialDevice, configuration.device)
 
-    closePanel()
+    revertPanel()
 
-    assertFalse(resizePanel.isVisible)
+    assertTrue(resizePanel.isVisible)
     assertFalse(resizePanel.hasBeenResized)
     assertEquals(initialDevice, configuration.device)
     assertEquals(initialDeviceState, configuration.deviceState)
@@ -272,37 +272,24 @@ class ResizePanelTest {
     assertNotEquals(initialDevice.id, configuration.device?.id)
     assertEquals("Custom", configuration.device!!.displayName)
 
-    revertToOriginal()
+    revertPanel()
 
+    assertTrue(resizePanel.isVisible)
     assertFalse(resizePanel.hasBeenResized)
     assertEquals(initialDevice.id, configuration.device!!.id)
   }
 
   @Test
-  fun `custom dimensions then close`() = runInEdtAndGet {
-    val initialDevice = setupAndShowPanel()
-    changeWidthTextField(widthTextField.value + 10)
-    assertNotEquals(initialDevice.id, configuration.device?.id)
-    assertEquals("Custom", configuration.device!!.displayName)
-
-    closePanel()
-
-    assertFalse(resizePanel.isVisible)
-    assertFalse(resizePanel.hasBeenResized)
-    assertEquals(initialDevice.id, configuration.device!!.id)
-  }
-
-  @Test
-  fun `device to custom then close`() = runInEdtAndGet {
+  fun `device to custom then revert`() = runInEdtAndGet {
     val initialDevice = setupAndShowPanel()
     setDifferentDevice()
     changeWidthTextField(widthTextField.value + 10)
     assertNotEquals(initialDevice.id, configuration.device?.id)
     assertEquals("Custom", configuration.device!!.displayName)
 
-    closePanel()
+    revertPanel()
 
-    assertFalse(resizePanel.isVisible)
+    assertTrue(resizePanel.isVisible)
     assertFalse(resizePanel.hasBeenResized)
     assertEquals(initialDevice.id, configuration.device!!.id)
   }
@@ -512,9 +499,10 @@ class ResizePanelTest {
     findAndPerformDeviceMenuAction { it.templateText == "Original" }
   }
 
-  private fun closePanel() {
-    val closeButton = fakeUi.findComponent<ActionButton> { it.action is ResizePanel.CloseAction }!!
-    fakeUi.clickOn(closeButton)
+  private fun revertPanel() {
+    val revertButton =
+      fakeUi.findComponent<ActionButton> { it.action is ResizePanel.RevertAction }!!
+    fakeUi.clickOn(revertButton)
   }
 
   private fun setupAndShowPanel(): Device {
@@ -530,35 +518,28 @@ class ResizePanelTest {
   }
 
   @Test
-  fun `setVisible updates text fields`() = runInEdtAndGet {
-    resizePanel.setSceneManager(sceneManager)
-    resizePanel.isVisible = true
-    fakeUi.layoutAndDispatchEvents()
+  fun `hasBeenResized flag is correctly managed`() = runInEdtAndGet {
+    setupAndShowPanel()
+    assertFalse(resizePanel.hasBeenResized)
 
-    val (widthTextField, heightTextField) =
-      fakeUi.findAllComponents<IntegerField>().let { it.first() to it.last() }
+    // Resize by changing device
+    setDifferentDevice()
+    assertTrue(resizePanel.hasBeenResized)
 
-    val initialWidth = widthTextField.value
-    val initialHeight = heightTextField.value
-    assertTrue(initialWidth > 0)
-    assertTrue(initialHeight > 0)
+    // Revert and check
+    revertPanel()
+    assertFalse(resizePanel.hasBeenResized)
 
-    // Simulate user clearing the fields
-    widthTextField.text = ""
-    heightTextField.text = ""
-    assertEquals("", widthTextField.text)
-    assertEquals("", heightTextField.text)
+    // Resize by changing width
+    changeWidthTextField(widthTextField.value + 10)
+    assertTrue(resizePanel.hasBeenResized)
 
-    // Hide the panel without reverting
-    resizePanel.isVisible = false
-    fakeUi.layoutAndDispatchEvents()
+    // Revert and check
+    revertPanel()
+    assertFalse(resizePanel.hasBeenResized)
 
-    // Show the panel again
-    resizePanel.isVisible = true
-    fakeUi.layoutAndDispatchEvents()
-
-    // Verify the values have been restored from the configuration
-    assertEquals(initialWidth, widthTextField.value)
-    assertEquals(initialHeight, heightTextField.value)
+    // Resize by changing height
+    changeHeightTextField(heightTextField.value + 10)
+    assertTrue(resizePanel.hasBeenResized)
   }
 }
