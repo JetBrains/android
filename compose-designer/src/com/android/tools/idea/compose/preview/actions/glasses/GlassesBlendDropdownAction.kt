@@ -32,7 +32,7 @@ class GlassesBlendDropdownAction :
   DropDownAction(
     message("action.glasses.blend.title"),
     message("action.glasses.blend.description"),
-    StudioIcons.Avd.DEVICE_GLASS,
+    StudioIcons.Emulator.XR.ENVIRONMENT,
   ) {
 
   init {
