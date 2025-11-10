@@ -122,7 +122,6 @@ MODULE                        : project.library
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
         MainArtifact
-            ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/library/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -210,7 +209,6 @@ MODULE                        : project.library-remote
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
         MainArtifact
-            ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/library-remote/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies

@@ -876,7 +876,6 @@ MODULE                        : project.lib
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
         MainArtifact
-            ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -985,7 +984,6 @@ MODULE                        : project.lib
         - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         TestFixturesArtifact
-            ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugTestFixtures/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
