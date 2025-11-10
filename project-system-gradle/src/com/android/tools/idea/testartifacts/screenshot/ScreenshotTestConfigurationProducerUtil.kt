@@ -22,6 +22,7 @@ import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.containsFile
 import com.intellij.execution.Location
 import com.intellij.execution.actions.ConfigurationContext
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
@@ -36,6 +37,8 @@ import org.jetbrains.plugins.gradle.util.GradleUtil
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 
 private const val PREVIEW_TEST_ANNOTATION = "com.android.tools.screenshot.PreviewTest"
+
+val IS_SCREENSHOT_TEST_CONFIGURATION = Key.create<Boolean>("com.android.tools.idea.testartifacts.screenshot.isScreenshotTest")
 
 /**
  * Checks if the given location belongs to screenshot test source set.
