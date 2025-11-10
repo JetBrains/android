@@ -58,6 +58,47 @@ class SystemPropertyInjectionForSyncTest {
   }
 
   @Test
+  fun testLatestKnownAgpVersionIsInjected() {
+    val prepared = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+
+    prepared.root.resolve("app").resolve("build.gradle").let { buildFile ->
+      buildFile.appendText("""
+
+        if (!providers.systemProperty("android.studio.latest.known.compatible.agp.version").isPresent()) {
+          throw new RuntimeException("Latest Known-compatible AGP version should be injected")
+        }
+      """.trimIndent())
+    }
+
+    val listener = object : ExternalSystemTaskNotificationListener {
+      var successDetected = false
+      var taskOutput = StringBuilder()
+
+      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
+        taskOutput.append(text)
+      }
+
+      override fun onSuccess(proojecPath: String, id: ExternalSystemTaskId) {
+        successDetected = true
+      }
+    }
+
+    // Opening project makes sure we inject the version during sync
+    prepared.open {
+      // Running a task makes sure we inject the version during build
+      val projectPath = project.basePath!!
+      val id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
+      val settings = GradleExecutionSettings().apply {
+        tasks = listOf("help")
+      }
+      AndroidGradleTaskManager().executeTasks(projectPath, id, settings, listener)
+    }
+    if (!listener.successDetected) {
+      expect.fail("Task should succeed, but it failed with:\n %s", listener.taskOutput.toString())
+    }
+  }
+
+  @Test
   fun testStudioVersionInjectedForSync() {
     val prepared = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
 
