@@ -34,12 +34,15 @@ import com.android.tools.rendering.classloading.ClassTransform
 import com.android.tools.res.AssetRepositoryBase
 import com.android.tools.res.ids.ResourceIdManager
 import com.android.tools.sdk.AndroidPlatform
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.CheckedDisposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.application
+import java.util.concurrent.Callable
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.getInstance
 import java.util.concurrent.ExecutionException
@@ -62,7 +65,17 @@ class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetR
   override val manifest: RenderModelManifest?
     get() {
       try {
-        return RenderMergedManifest(MergedManifestManager.getMergedManifest(facet.module).get(1, TimeUnit.SECONDS))
+        val getManifestSnapshot = Callable {
+          MergedManifestManager.getMergedManifest(facet.module).get(1, TimeUnit.SECONDS)
+        }
+
+        val mergedManifestSnapshot = if (application.isReadAccessAllowed) {
+          getManifestSnapshot.call()
+        } else {
+          ReadAction.nonBlocking(getManifestSnapshot).executeSynchronously()
+        }
+
+        return RenderMergedManifest(mergedManifestSnapshot)
       } catch (e: InterruptedException) {
         throw ProcessCanceledException(e)
       } catch (e: TimeoutException) {
