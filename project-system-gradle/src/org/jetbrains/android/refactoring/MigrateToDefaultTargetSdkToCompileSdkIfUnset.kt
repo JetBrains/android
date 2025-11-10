@@ -126,7 +126,7 @@ class MigrateToDefaultTargetSdkToCompileSdkIfUnsetProcessor private constructor(
   val projectBuildModel = ProjectBuildModel.get(myProject)
 
   companion object {
-    private val DEFAULT_TARGET_SDK_TO_COMPILE_SDK_IF_UNSET_ENABLE_BY_DEFAULT = AgpVersion.parse("9.0.0")
+    private val DEFAULT_TARGET_SDK_TO_COMPILE_SDK_IF_UNSET_ENABLE_BY_DEFAULT = AgpVersion.parse("9.0.0-alpha01")
     private val DEFAULT_TARGET_SDK_TO_COMPILE_SDK_IF_UNSET_AVAILABLE = AgpVersion.parse("8.11.0")
 
     private val LOG = Logger.getInstance(BaseRefactoringProcessor::class.java)
