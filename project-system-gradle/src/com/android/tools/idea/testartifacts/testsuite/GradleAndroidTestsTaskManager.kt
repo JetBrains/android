@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.testsuite
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.execution.common.DeployableToDevice
+import com.android.tools.idea.flags.StudioFlags.AGP_TEST_SUITES_ENABLED
 import com.android.tools.idea.flags.StudioFlags.ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS
 import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
@@ -51,7 +52,7 @@ class GradleAndroidTestsTaskManager : GradleTaskManagerExtension  {
         """.trimIndent())
     }
 
-    if (ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.get() &&
+    if ((ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.get() || AGP_TEST_SUITES_ENABLED.get()) &&
         settings.getUserData(DeployableToDevice.KEY) == true) {
       id.findProject()?.takeIf { IdeInfo.getInstance().isAndroidStudio }?.let { project ->
         val deviceSerials = launchDevices(project)
