@@ -16,12 +16,21 @@ resourcegroup(
   strip_prefix = "resources"
 )
 
+resourcegroup(
+  name = "common_resources_1",
+  srcs = glob(["flags/resources/**/*"]),
+  strip_prefix = "flags/resources"
+)
+
 jvm_library(
   name = "common",
   module_name = "intellij.android.common",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = [":common_resources"],
+  resources = [
+    ":common_resources",
+    ":common_resources_1",
+  ],
   kotlinc_opts = ":custom_common",
   deps = [
     "@lib//:studio-platform-provided",
