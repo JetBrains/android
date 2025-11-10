@@ -57,9 +57,8 @@ internal fun AdditionalSettingsPanel(
 ) {
   val device = state.device
   Column(modifier, verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE)) {
-    when (device.formFactor) {
-      FormFactors.AI_GLASSES,
-      FormFactors.XR_GLASSES -> GlassesEnvironmentSelector(device, state)
+    when {
+      device.isEnvironmentAllowed() -> GlassesEnvironmentSelector(device, state)
       else -> SkinSelector(device, state.skins())
     }
 

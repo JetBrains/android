@@ -42,6 +42,7 @@ import com.android.sdklib.internal.avd.QuickBoot
 import com.android.sdklib.internal.avd.SdCard
 import com.android.sdklib.internal.avd.Skin as AvdSkin
 import com.android.sdklib.internal.avd.UserSettingsKey
+import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
@@ -102,6 +103,9 @@ internal class VirtualDevice(
 
   fun hasPlayStore(image: ISystemImage) =
     hasPlaystore && image.getServices() == Services.GOOGLE_PLAY_STORE
+
+  fun isEnvironmentAllowed(): Boolean =
+    formFactor in setOf(FormFactors.AI_GLASSES, FormFactors.XR_GLASSES)
 
   /** Initializes the device based on its device profile. */
   fun initializeFromProfile() {

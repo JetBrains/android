@@ -47,7 +47,10 @@ import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 internal fun StorageGroup(device: VirtualDevice, state: StorageGroupState) {
-  Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
+  Column(
+    Modifier.testTag("StorageGroup"),
+    verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM),
+  ) {
     GroupHeader("Storage")
 
     Row(Modifier.testTag("InternalStorageRow")) {

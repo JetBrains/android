@@ -135,8 +135,14 @@ internal fun WizardPageScope.ConfigurationPage(
       val state = ConfigureDevicePanelState(device, skins, deviceNameValidator)
       val defaultSkin = resolveDefaultSkin(device, sdkHandler, fileSystem)
       if (imageWasNotSet) {
+        // This is a newly-created device; set the initial skin or environment.
         state.initDeviceSkins(defaultSkin)
+
+        if (device.isEnvironmentAllowed()) {
+          device.environment = defaultEnvironments().first().toPath()
+        }
       } else {
+        // This is an existing device that we are editing.
         state.initDefaultSkin(defaultSkin)
 
         (device.expandedStorage as? Custom)?.let { device.existingCustomExpandedStorage = it }

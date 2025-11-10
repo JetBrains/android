@@ -29,6 +29,7 @@ import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageSupplier
 import com.android.sdklib.devices.Abi
+import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
@@ -40,26 +41,28 @@ import com.android.tools.adtui.compose.LocalFileSystem
 import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.sdk.DeviceManagers
 import com.android.utils.CpuArchitecture
+import com.android.utils.ILogger
 import com.android.utils.StdLogger
 import com.android.utils.osArchitecture
 import com.intellij.util.io.createDirectories
+import java.nio.file.FileSystem
 import java.nio.file.Files
 import java.nio.file.Path
 import javax.swing.JPanel
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.jewel.bridge.LocalComponent
 
-class SdkFixture {
-  val fileSystem = createInMemoryFileSystem()
-  val sdkRoot: Path = Files.createDirectories(fileSystem.someRoot.resolve("sdk"))
-  val avdRoot: Path = sdkRoot.root.resolve("avd")
-  val repoPackages = RepositoryPackages()
-  val repoManager = FakeRepoManager(sdkRoot, repoPackages)
-  val sdkHandler = AndroidSdkHandler(sdkRoot, avdRoot, repoManager)
-  private val logger = StdLogger(StdLogger.Level.INFO)
-  val deviceManager = DeviceManagers.getDeviceManager(sdkHandler)
-  val avdManager = AvdManager.createInstance(sdkHandler, avdRoot, deviceManager, logger)
-
+class SdkFixture(
+  val fileSystem: FileSystem = createInMemoryFileSystem(),
+  val sdkRoot: Path = Files.createDirectories(fileSystem.someRoot.resolve("sdk")),
+  val avdRoot: Path = sdkRoot.root.resolve("avd"),
+  val repoPackages: RepositoryPackages = RepositoryPackages(),
+  val repoManager: FakeRepoManager = FakeRepoManager(sdkRoot, repoPackages),
+  val sdkHandler: AndroidSdkHandler = AndroidSdkHandler(sdkRoot, avdRoot, repoManager),
+  private val logger: ILogger = StdLogger(StdLogger.Level.INFO),
+  val deviceManager: DeviceManager = DeviceManagers.getDeviceManager(sdkHandler),
+  val avdManager: AvdManager = AvdManager.createInstance(sdkHandler, avdRoot, deviceManager, logger),
+) {
   internal fun systemImageState(
     hasLocal: Boolean = true,
     hasRemote: Boolean = true,
