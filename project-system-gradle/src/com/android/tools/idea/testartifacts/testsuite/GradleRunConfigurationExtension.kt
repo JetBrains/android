@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.testsuite
 
 import com.android.tools.idea.execution.common.DeployableToDevice
+import com.android.tools.idea.flags.StudioFlags.AGP_TEST_SUITES_ENABLED
 import com.android.tools.idea.flags.StudioFlags.ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS
 import com.intellij.execution.configurations.RunnerSettings
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunConfiguration
@@ -53,11 +54,11 @@ class GradleRunConfigurationExtension :
   }
 
   override fun isApplicableFor(configuration: ExternalSystemRunConfiguration): Boolean {
-    return ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.get()
+    return ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.get() || AGP_TEST_SUITES_ENABLED.get()
   }
 
   override fun isEnabledFor(applicableConfiguration: ExternalSystemRunConfiguration, runnerSettings: RunnerSettings?): Boolean {
-    return ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.get()
+    return ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.get() || AGP_TEST_SUITES_ENABLED.get()
   }
 
   override fun SettingsEditorFragmentContainer<GradleRunConfiguration>.configureFragments(

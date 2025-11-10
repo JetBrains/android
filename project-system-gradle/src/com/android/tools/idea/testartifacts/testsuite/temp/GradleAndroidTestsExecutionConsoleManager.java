@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.testsuite.temp;
 
+import static com.android.tools.idea.flags.StudioFlags.AGP_TEST_SUITES_ENABLED;
 import static com.android.tools.idea.flags.StudioFlags.ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS;
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView;
@@ -150,7 +151,7 @@ public final class GradleAndroidTestsExecutionConsoleManager
 
   @Override
   public boolean isApplicableFor(@NotNull ExternalSystemTask task) {
-    if (!ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.get()) {
+    if (!(ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.get() || AGP_TEST_SUITES_ENABLED.get())) {
       return false;
     }
 
