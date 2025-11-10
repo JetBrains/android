@@ -54,5 +54,6 @@ fun Point.rotatedByQuadrants(numQuadrants: Int): Point {
   }
 }
 
+/** Returns the equivalent rotation with the number of quadrants in the [0, 3] interval. */
 fun normalizedRotation(rotation: Int) =
     rotation and 0x3
