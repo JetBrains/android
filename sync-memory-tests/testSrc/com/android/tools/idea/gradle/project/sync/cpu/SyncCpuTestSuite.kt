@@ -90,7 +90,7 @@ class Benchmark2000CpuTest {
 // Same as above test, just has a separate blaze target and metric name
 class Benchmark2000CpuStandardMachineTest {
   @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_2000_STANDARD_MACHINE_NAME, STANDARD_2000)
-  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5, enableAnalyzers = false)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
   @Test
   fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
@@ -98,7 +98,7 @@ class Benchmark2000CpuStandardMachineTest {
 
 class Benchmark2000CpuPhasedSyncOffTest {
   @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_2000_PHASED_SYNC_OFF_NAME, STANDARD_2000)
-  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5, enableAnalyzers = false)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
   @get:Rule val disablePhasedSyncRule = ConfigurePhasedSyncFlagsRule(phasedSyncEnabled = false)
 
@@ -108,7 +108,7 @@ class Benchmark2000CpuPhasedSyncOffTest {
 
 class Benchmark2000CpuWithDependencyResolutionPhaseTest {
   @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_2000_WITH_DEPENDENCY_RESOLUTION_PHASE_NAME, STANDARD_2000)
-  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5, enableAnalyzers = false)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
   @get:Rule val enableDependencyResolution = ConfigurePhasedSyncFlagsRule(dependencyResolutionEnabled = true)
   @Test
@@ -120,7 +120,7 @@ class Benchmark2000CpuAgp813Test {
     SUBSET_2000_AGP_8_13_NAME,
     STANDARD_2000_8_13
   )
-  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5, enableAnalyzers = false)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
   @Test
   fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
@@ -131,7 +131,7 @@ class Benchmark2000CpuAgp813PhasedSyncOffTest {
     SUBSET_2000_AGP_8_13_PHASED_SYNC_OFF_NAME,
     STANDARD_2000_8_13
   )
-  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5, enableAnalyzers = false)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
   @get:Rule val disablePhasedSyncRule = ConfigurePhasedSyncFlagsRule(phasedSyncEnabled = false)
   @Test
@@ -143,7 +143,7 @@ class Benchmark2000CpuAgp813WithDependencyResolutionPhaseTest {
     SUBSET_2000_AGP_8_13_WITH_DEPENDENCY_RESOLUTION_PHASE_NAME,
     STANDARD_2000_8_13
   )
-  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5, enableAnalyzers = false)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
   @get:Rule val enableDependencyResolution = ConfigurePhasedSyncFlagsRule(dependencyResolutionEnabled = true)
   @Test
