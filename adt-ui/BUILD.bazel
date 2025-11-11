@@ -114,6 +114,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util/text-matching",
+    "//platform/util/text-matching:text-matching_test_lib",
     "//platform/util:util-ui",
     "//xml/xml-psi-impl:psi-impl",
     "//android/adt-testutils:adt-testutils_test_lib",

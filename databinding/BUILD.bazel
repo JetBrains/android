@@ -78,6 +78,7 @@ jvm_library(
     "@lib//:layoutlib",
     "//android/analytics:analytics_test_lib",
     "//platform/util-rt:util-rt_test_lib",
+    "//platform/util/text-matching:text-matching_test_lib",
     "//plugins/kotlin/base/project-structure:project-structure_test_lib",
     "//plugins/kotlin/base/util:util_test_lib",
   ]
