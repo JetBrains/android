@@ -17,12 +17,14 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import java.awt.Point
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filter
@@ -35,6 +37,22 @@ class OnDeviceRendererPanel(
   scope: CoroutineScope,
   private val model: OnDeviceRendererModel,
   private val enableSendRightClicksToDevice: (enable: Boolean) -> Unit,
+  private val showRightClickMenu:
+    suspend (
+      source: JComponent, selectedView: ViewNode?, views: List<ViewNode>, coordinates: Point,
+    ) -> Unit =
+    { source, selectedView, views, coordinates ->
+      withContext(Dispatchers.EDT) {
+        showViewContextMenu(
+          selectedView = selectedView,
+          views = views,
+          inspectorModel = model.inspectorModel,
+          source = source,
+          x = coordinates.x,
+          y = coordinates.y,
+        )
+      }
+    },
 ) : LayoutInspectorRenderer() {
   private val childScope = scope.createChildScope(parentDisposable = this)
   private val interceptClicks
@@ -85,16 +103,12 @@ class OnDeviceRendererPanel(
           // There should always be a lastMousePosition available, if for some reason it's missing,
           // show the popup in them middle of the panel.
           val rightClickCoordinates = lastMousePosition ?: Point(width / 2, height / 2)
-          withContext(Dispatchers.EDT) {
-            showViewContextMenu(
-              selectedView = model.inspectorModel.selection,
-              views = views.toList(),
-              inspectorModel = model.inspectorModel,
-              source = this@OnDeviceRendererPanel,
-              x = rightClickCoordinates.x,
-              y = rightClickCoordinates.y,
-            )
-          }
+          showRightClickMenu(
+            this@OnDeviceRendererPanel,
+            model.inspectorModel.selection,
+            views.toList(),
+            rightClickCoordinates,
+          )
         }
     }
 
