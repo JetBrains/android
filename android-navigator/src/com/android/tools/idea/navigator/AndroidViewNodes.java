@@ -24,7 +24,7 @@ import com.google.common.collect.Iterables;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.project.Project;
-
+import com.intellij.ui.treeStructure.ProjectViewUpdateCause;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +34,7 @@ public class AndroidViewNodes {
     ProjectView projectView = ProjectView.getInstance(project);
     AbstractProjectViewPane androidViewPane = projectView.getProjectViewPaneById(AndroidProjectViewPane.ID);
     assert androidViewPane != null;
-    androidViewPane.updateFromRoot(true);
+    androidViewPane.updateFromRoot(true, ProjectViewUpdateCause.ANDROID);
   }
 
   @NotNull
