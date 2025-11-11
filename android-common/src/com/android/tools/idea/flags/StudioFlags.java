@@ -16,6 +16,7 @@
 package com.android.tools.idea.flags;
 
 import com.android.flags.BooleanFlag;
+import com.android.flags.CustomTypeFlag;
 import com.android.flags.DebugFlag;
 import com.android.flags.EnumFlag;
 import com.android.flags.Flag;
@@ -25,9 +26,11 @@ import com.android.flags.FlagValueContainer;
 import com.android.flags.Flags;
 import com.android.flags.IntFlag;
 import com.android.flags.LongFlag;
+import com.android.flags.StaticFlagDefault;
 import com.android.flags.StringFlag;
 import com.android.flags.overrides.InMemoryFlagValueContainer;
 import com.android.flags.overrides.PropertyOverrides;
+import com.android.sdklib.AndroidApiLevel;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.AgpReleaseBranchProvider;
@@ -35,9 +38,14 @@ import com.android.tools.idea.flags.overrides.AgpTestSuitesProvider;
 import com.android.tools.idea.flags.overrides.FeatureConfigurationProvider;
 import com.android.tools.idea.flags.overrides.MendelOverrides;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.Cancellation;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -251,10 +259,39 @@ public final class StudioFlags {
     NPW, "new.kotlin.multiplatform.module", "New Kotlin Multiplatform Module",
     "Show template to create a new Kotlin Multiplatform module in the new module wizard.");
 
-  public static final Flag<Integer> NPW_COMPILE_SDK_VERSION = new IntFlag(
+  static class AndroidApiFlag extends CustomTypeFlag<AndroidApiLevel> {
+    public AndroidApiFlag(FlagGroup group, String name, String displayName, String description, AndroidApiLevel defaultValue) {
+      super(AndroidApiLevel.class, group, name, displayName, description, defaultValue, AndroidApiFlagConverter, examples);
+    }
+
+    private static final List<AndroidApiLevel> examples = ImmutableList.of(
+      new AndroidApiLevel(35),
+      new AndroidApiLevel(36),
+      new AndroidApiLevel(36, 1)
+    );
+
+    static final ValueConverter<AndroidApiLevel> AndroidApiFlagConverter = new ValueConverter<>() {
+      @Override
+      public @NotNull String serialize(AndroidApiLevel value) {
+        return value.toString();
+      }
+
+      @Override
+      public AndroidApiLevel deserialize(@NotNull String strValue) {
+        AndroidApiLevel result = AndroidApiLevel.fromString(strValue);
+        if (result == null) {
+          throw new IllegalArgumentException(
+            "Invalid Android API level '" + strValue + "'. Expected to be of the form <int> or <int>.<int>");
+        }
+        return result;
+      }
+    };
+  }
+
+  public static final Flag<AndroidApiLevel> NPW_COMPILE_SDK_VERSION = new AndroidApiFlag(
     NPW, "new.project.compile.sdk", "New project Compile SDK version",
-    "SDK version to be used for compileSdk for newly created project.",
-    36);
+    "SDK version to be used for compileSdk for newly created project. Must be of the form <major> or <major>.<minor>",
+    new AndroidApiLevel(36,0));
 
   public static final Flag<String> NPW_DAEMON_JVM_CRITERIA_REQUIRED_GRADLE_VERSION = new StringFlag(
     NPW, "new.project.daemon.jvm.criteria.gradle.version", "New project Daemon JVM criteria required Gradle version",

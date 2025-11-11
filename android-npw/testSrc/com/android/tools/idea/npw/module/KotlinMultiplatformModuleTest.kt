@@ -96,8 +96,9 @@ class KotlinMultiplatformModuleTest {
     projectRuleAgpVersion: AgpVersionSoftwareEnvironment,
   ): File {
     val name = "shared"
-    val buildApi = AndroidVersion(StudioFlags.NPW_COMPILE_SDK_VERSION.get(), 0)
-    val targetApi = AndroidMajorVersion(StudioFlags.NPW_COMPILE_SDK_VERSION.get())
+    val apiLevel = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
+    val buildApi = AndroidVersion(apiLevel)
+    val targetApi = AndroidMajorVersion(apiLevel)
     val minApi = AndroidMajorVersion(34)
     val kotlinVersion = "1.9.20"
     val agpVersion = AgpVersion(8, 3, 0)
@@ -198,7 +199,7 @@ plugins {
   // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
 androidLibrary {
   namespace = "com.kmplib.packagename"
-  compileSdk = ${StudioFlags.NPW_COMPILE_SDK_VERSION.get()}
+  compileSdk = ${StudioFlags.NPW_COMPILE_SDK_VERSION.get().majorVersion}
   minSdk = 34
 
   withHostTestBuilder {
