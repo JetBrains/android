@@ -20,4 +20,8 @@
   </dependencies>
 
   <depends optional="true" config-file="adt-ui-compose-androidstudio.xml">com.intellij.modules.androidstudio</depends>
+  <applicationListeners>
+    <listener class="com.android.tools.adtui.compose.InitializeSkikoLibPathEarly"
+              topic="com.intellij.ide.AppLifecycleListener"/>
+  </applicationListeners>
 </idea-plugin>
