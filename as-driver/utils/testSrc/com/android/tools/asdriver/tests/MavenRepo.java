@@ -24,9 +24,15 @@ import java.util.List;
 
 public class MavenRepo {
   private final String manifest;
+  private boolean skipInitScriptInjection;
 
   public MavenRepo(String manifest) {
     this.manifest = manifest;
+  }
+
+  public MavenRepo withoutInitScript() {
+    skipInitScriptInjection = true;
+    return this;
   }
 
   public void install(Path tempDir, AndroidStudioInstallation install, HashMap<String, String> env) throws Exception {
@@ -50,8 +56,10 @@ public class MavenRepo {
     env.put("STUDIO_CUSTOM_REPO", repoDir.toString());
     // Configure studio to read STUDIO_CUSTOM_REPO as a development offline repository, and use it for new projects and upgrade assistant
     install.addVmOption("-Dgradle.ide.development.offline.repos=true");
-    // Also add that repository with a Gradle init script to every gradle invocation, both build and sync, to allow opening of existing
-    // projects without requiring network access.
-    install.addVmOption("-Dgradle.ide.inject.repos.with.init.script=true");
+    if (!skipInitScriptInjection) {
+      // Also add that repository with a Gradle init script to every gradle invocation, both build and sync, to allow opening of existing
+      // projects without requiring network access.
+      install.addVmOption("-Dgradle.ide.inject.repos.with.init.script=true");
+    }
   }
 }
