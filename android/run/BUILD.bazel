@@ -105,6 +105,7 @@ jvm_library(
     "@lib//:kotlinc-analysis-api-provided",
     "//plugins/kotlin/code-insight/api",
     "//android/backup:backup-api",
+    "//android/android-adb:adb-testUtil_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.core.run` end

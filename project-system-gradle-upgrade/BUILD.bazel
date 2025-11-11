@@ -59,6 +59,7 @@ jvm_library(
     "//plugins/properties/properties-psi-api:psi",
     "//xml/xml-psi-api:psi",
     "//android/gmaven",
+    "//libraries/ktor/client",
   ]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.upgrade` end

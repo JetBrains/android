@@ -54,6 +54,7 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//java/testFramework",
     "//android/android-test-framework:testFramework_test_lib",
+    "//android/adt-testutils:adt-testutils_test_lib",
   ],
   runtime_deps = ["//android/gradle-declarative-lang-ide"]
 )

@@ -43,6 +43,7 @@ jvm_library(
     "//platform/util/base",
     "//platform/util-rt",
     "//platform/util:util-ui",
+    "//android/android:core",
   ]
 )
 ### auto-generated section `build intellij.android.device-explorer-files` end

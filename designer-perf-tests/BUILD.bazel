@@ -62,6 +62,8 @@ jvm_library(
     "//android/visual-lint",
     "//libraries/guava",
     "//platform/projectModel-impl",
+    "@lib//:truth",
+    "//android/compose-designer:compose-designer-testFramework_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.designer-perf-tests` end

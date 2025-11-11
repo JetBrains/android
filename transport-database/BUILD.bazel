@@ -21,6 +21,7 @@ jvm_library(
     "//libraries/guava",
     "//android/adt-ui-model",
     "//android/android-common:common",
+    "//platform/util",
   ]
 )
 
@@ -47,6 +48,7 @@ jvm_library(
     "//android/android-common:common",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//libraries/hamcrest",
+    "//platform/util",
   ]
 )
 ### auto-generated section `build intellij.android.transportDatabase` end

@@ -78,7 +78,5 @@
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.adt.ui.compose" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.adt.ui.compose.tests" scope="TEST" />
   </component>
 </module>

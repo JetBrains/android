@@ -72,7 +72,6 @@ jvm_library(
     "//android/android-kotlin/idea-android:android-kotlin-idea",
     "//android/lint:lint-common",
     "//android/profilers-android/gradle",
-    "//android/safemode",
     "//android/whats-new-assistant",
     "//android/app-inspection/ide/gradle",
     "//android/layoutlib",

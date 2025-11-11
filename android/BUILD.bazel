@@ -251,6 +251,7 @@ jvm_library(
     "@lib//:kotlinc-analysis-api-k2-provided",
     "@lib//:jgoodies-forms",
     "//spellchecker/xml",
+    "@lib//:android-core-kotlin-metadata-jvm",
     ":plugins_maven_artifactResolver-m31_provided",
   ],
   exports = ["//android/build-common"]
@@ -330,6 +331,8 @@ jvm_library(
     "//android/android/editing/documentation",
     "//android/android/editing/documentation:documentation_test_lib",
     "//xml/xml-psi-impl:psi-impl",
+    "//plugins/kotlin/base/util",
+    "//plugins/kotlin/base/util:util_test_lib",
   ],
   runtime_deps = [
     "//android/gradle-dsl-kotlin",

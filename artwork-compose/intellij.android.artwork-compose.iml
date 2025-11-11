@@ -32,6 +32,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="module" module-name="intellij.platform.jewel.ideLafBridge" />
+    <orderEntry type="module" module-name="intellij.platform.compose.markdown" exported="" />
+    <orderEntry type="module" module-name="intellij.platform.compose" exported="" />
   </component>
 </module>

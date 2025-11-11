@@ -9,8 +9,5 @@
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.properties" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.modules.json" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-Git4Idea" level="project" />
   </component>
 </module>

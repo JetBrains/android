@@ -93,6 +93,7 @@ jvm_library(
     "//android/ml-api",
     "//android/avd",
     "//libraries/xerces",
+    "@lib//:kotlinc-kotlin-compiler-ir-provided",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
@@ -204,6 +205,7 @@ jvm_library(
     "//android/avd",
     "//android/avd:avd_test_lib",
     "//libraries/xerces",
+    "@lib//:kotlinc-kotlin-compiler-ir-provided",
   ],
   plugins = ["@lib//:compose-plugin"]
 )

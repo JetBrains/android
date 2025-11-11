@@ -19,6 +19,7 @@ jvm_library(
     "//platform/util",
     "//platform/util/base",
     "//platform/util-ex",
+    "//platform/rd-platform-community:rd-community",
   ]
 )
 ### auto-generated section `build intellij.android.android-material` end
@@ -62,6 +63,7 @@ jvm_library(
     "//platform/util-rt:util-rt_test_lib",
     "//libraries/gson",
     "//android/android-common:common",
+    "//java/testFramework",
   ]
 )
 ### auto-generated section `build intellij.android.android-material.tests` end

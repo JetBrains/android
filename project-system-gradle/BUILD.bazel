@@ -174,6 +174,7 @@ jvm_library(
     "//android/gradle-declarative-lang-flags",
     "//plugins/kotlin/base/scripting/scripting.k1",
     "//plugins/kotlin/base/scripting/scripting.shared",
+    "//platform/util-class-loader:util-classLoader",
   ]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle` end

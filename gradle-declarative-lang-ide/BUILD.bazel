@@ -83,6 +83,7 @@ jvm_library(
     "//android/gradle-declarative-lang-sync",
     "//android/gradle-declarative-lang-ide",
     "//android/gradle-declarative-lang-flags",
+    "//android/adt-testutils:adt-testutils_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.gradle.declarative.lang.ide.tests` end

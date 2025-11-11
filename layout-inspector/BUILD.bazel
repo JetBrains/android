@@ -84,6 +84,7 @@ jvm_library(
     "//plugins/kotlin/base/scripting/scripting.shared",
     "//plugins/kotlin/base/util",
     "//android/device-manager-v2",
+    "//fleet/util/core",
   ]
 )
 
@@ -192,6 +193,7 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "//android/device-manager-v2",
     "//android/device-manager-v2:device-manager-v2_test_lib",
+    "//fleet/util/core",
   ]
 )
 ### auto-generated section `build intellij.android.layout-inspector` end
@@ -214,10 +216,13 @@ resourcegroup(
 
 jvm_library(
   name = "layout-inspector-integration_test_lib",
-  module_name = "intellij.android.layout-inspector.integration",
   visibility = ["//visibility:public"],
   srcs = glob(["integration/testSrc/**/*.kt", "integration/testSrc/**/*.java", "integration/testSrc/**/*.form"], allow_empty = True),
   resources = [":layout-inspector-integration_test_resources"],
+  associates = [
+    "//android/layout-inspector",
+    "//android/layout-inspector:layout-inspector_test_lib",
+  ],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -251,10 +256,13 @@ resourcegroup(
 
 jvm_library(
   name = "layout-inspector-tests_test_lib",
-  module_name = "intellij.android.layout-inspector.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   resources = [":layout-inspector-tests_test_resources"],
+  associates = [
+    "//android/layout-inspector",
+    "//android/layout-inspector:layout-inspector_test_lib",
+  ],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -290,8 +298,6 @@ jvm_library(
     "//android/deploy:deploy_test_lib",
     "//android/execution/common",
     "//android/jps-model",
-    "//android/layout-inspector",
-    "//android/layout-inspector:layout-inspector_test_lib",
     "//android/layout-inspector/gradle",
     "//android/layout-ui",
     "//android/layout-ui:layout-ui_test_lib",
@@ -320,6 +326,7 @@ jvm_library(
     "//platform/core-ui",
     "//platform/xdebugger-api:debugger",
     "//platform/editor-ui-api:editor-ui",
+    "//platform/editor-ui-ex:editor-ex",
     "//platform/execution",
     "//platform/execution-impl",
     "//platform/extensions",
@@ -346,6 +353,7 @@ jvm_library(
     "@lib//:jimfs",
     "//android/device-manager-v2",
     "//android/device-manager-v2:device-manager-v2_test_lib",
+    "//fleet/util/core",
   ]
 )
 ### auto-generated section `build intellij.android.layout-inspector.tests` end

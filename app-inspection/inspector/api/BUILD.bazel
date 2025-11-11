@@ -14,6 +14,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:google-protobuf-java-util",
     "//platform/util",
+    "//platform/editor-ui-api:editor-ui",
   ]
 )
 
@@ -34,6 +35,7 @@ jvm_library(
     "@lib//:google-protobuf-java-util",
     "//android/android-common:common",
     "//platform/util",
+    "//platform/editor-ui-api:editor-ui",
   ]
 )
 ### auto-generated section `build intellij.android.app-inspection.inspector.api` end

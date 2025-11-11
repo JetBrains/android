@@ -34,6 +34,7 @@ jvm_library(
     "//platform/core-api:core",
     "//platform/extensions",
     "//platform/util",
+    "//libraries/gson",
   ]
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.network.ide` end

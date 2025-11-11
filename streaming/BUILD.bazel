@@ -110,6 +110,7 @@ jvm_library(
     "//android/android-adb:adb",
     "//libraries/guava",
     "//java/testFramework",
+    "//android/android-adb:adb-testUtil_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.streaming.integration` end

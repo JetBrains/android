@@ -162,6 +162,7 @@ jvm_library(
     "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting_test_lib",
     "//jvm/jvm-analysis-impl:analysis-impl",
     "//android/gradle-dsl-flags",
+    "@lib//:mockito-kotlin",
   ]
 )
 ### auto-generated section `build intellij.android.lint.tests` end

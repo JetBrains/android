@@ -37,6 +37,7 @@ jvm_library(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//android/artwork-compose",
+    "//android/adt-testutils:adt-testutils_test_lib",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
