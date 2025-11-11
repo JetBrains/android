@@ -1627,3 +1627,41 @@ def _gen_plugin_jars_import_target(name, spec, sdk_dirs, plugin, jars):
             "//conditions:default": jars_linux,
         }),
     )
+
+def _studio_project_model_impl(ctx):
+    out_dir = ctx.actions.declare_directory(ctx.attr.out_dir_name)
+    project_path = ctx.attr.project_path
+    manifest_path = ctx.attr.manifest_path
+    runfiles_path = ctx.executable.tool.path + ".runfiles"
+    tool_runfiles = ctx.attr.tool[DefaultInfo].default_runfiles.files
+    all_args = [out_dir.path, project_path, manifest_path] + ctx.attr.tool_args
+
+    ctx.actions.run(
+        outputs = [out_dir],
+        inputs = depset(ctx.files.srcs, transitive = [tool_runfiles]),
+        executable = ctx.executable.tool,
+        arguments = all_args,
+        env = {
+            "RUNFILES_DIR": runfiles_path,
+            "TEST_SRCDIR": runfiles_path,
+            "TEST_WORKSPACE": ctx.workspace_name,
+            "HOME": ".",
+            "USER_HOME": ".",
+            "JAVA_TOOL_OPTIONS": "-Djava.awt.headless=true",
+        },
+        mnemonic = "TargetGen",
+        progress_message = "Generating directory %s" % out_dir.path,
+    )
+    return [DefaultInfo(files = depset([out_dir]), runfiles = ctx.runfiles(files = [out_dir]))]
+
+studio_project_model = rule(
+    implementation = _studio_project_model_impl,
+    attrs = {
+        "srcs": attr.label_list(allow_files = True),
+        "tool": attr.label(executable = True, mandatory = True, cfg = "target"),
+        "out_dir_name": attr.string(mandatory = True),
+        "project_path": attr.string(mandatory = True),
+        "manifest_path": attr.string(mandatory = True),
+        "tool_args": attr.string_list(),
+    },
+)

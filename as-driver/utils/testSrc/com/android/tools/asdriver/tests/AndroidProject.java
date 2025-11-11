@@ -63,6 +63,43 @@ public class AndroidProject {
     return targetProject;
   }
 
+  /**
+   * Installs the project into the specified temporary directory outside bazel sandbox. The project
+   * source code is copied from the bazel bin folder to the specified location. It also sets the
+   * project jdk location through gradle.xml file.
+   */
+  public Path installAtTmpDir(Path tmpDir) throws IOException {
+    Path project = TestUtils.getBinPath(this.path);
+    targetProject = tmpDir.resolve(Paths.get(path).getFileName().toString());
+    Files.createDirectories(targetProject);
+    FileUtils.copyDirectory(project.toFile(), targetProject.toFile());
+    setJdkDir(targetProject);
+    injectGradle();
+    return targetProject;
+  }
+
+  private void setJdkDir(Path project) throws IOException {
+    Path dotIdea = project.resolve(".idea");
+    if (!Files.exists(dotIdea)) {
+      Files.createDirectories(dotIdea);
+    }
+    String xmlContent = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <project version="4">
+          <component name="GradleSettings">
+            <option name="linkedExternalProjectsSettings">
+              <GradleProjectSettings>
+                <option name="externalProjectPath" value="$PROJECT_DIR$" />
+                <option name="gradleJvm" value="$PROJECT_DIR$/../jdk" />
+                <option name="resolveModulePerSourceSet" value="false" />
+              </GradleProjectSettings>
+            </option>
+          </component>
+        </project>
+        """;
+    Files.writeString(dotIdea.resolve("gradle.xml"), xmlContent);
+  }
+
   protected void injectGradle() throws IOException {
     Path wrapper = targetProject.resolve("gradle/wrapper/gradle-wrapper.properties");
     String content = Files.readString(wrapper);
