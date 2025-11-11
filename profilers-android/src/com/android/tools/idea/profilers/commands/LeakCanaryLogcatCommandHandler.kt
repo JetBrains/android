@@ -184,6 +184,7 @@ class LeakCanaryLogcatCommandHandler(
           if (logCollectionJob?.isCancelled == true) return@collect
 
           logcatMessages.forEach { logcatMessage ->
+            detectAndHandleObjectRetainedAndAnalysis(logcatMessage)
             detectAndHandlePartialLeakTraces(logcatMessage)
             detectAndHandleCompleteLeakTraces(logcatMessage)
             detectAndHandleHostAnalysisTrigger(logcatMessage)
@@ -201,6 +202,20 @@ class LeakCanaryLogcatCommandHandler(
           sendLeakCanaryLogcatInfoEvent(timestampNs = currentTimeNs, isStarted = false, stopStatus = FAILURE)
           addSessionEndedEvent(eventQueue, currentTimeNs, pid, sessionId)
         }
+      }
+    }
+  }
+
+  private fun detectAndHandleObjectRetainedAndAnalysis(logcatMessage: LogcatMessage) {
+    if(logcatMessage.header.tag != LEAKCANARY_TAG)
+      return
+
+    val retainedObjectsRegex = """Found (\d+) objects retained""".toRegex()
+    val analysisProgressRegex = """Analysis in progress, (\d+)% done""".toRegex()
+
+    logcatMessage.message.split("\n").forEach { line ->
+      if (retainedObjectsRegex.containsMatchIn(line) || analysisProgressRegex.containsMatchIn(line)) {
+        sendLeakCanaryLogcatEvent(line)
       }
     }
   }

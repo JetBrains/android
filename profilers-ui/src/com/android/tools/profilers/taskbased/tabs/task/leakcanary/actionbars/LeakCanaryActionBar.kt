@@ -18,6 +18,7 @@ package com.android.tools.profilers.taskbased.tabs.task.leakcanary.actionbars
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -25,16 +26,24 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.ACTION_BAR_RECORDING
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.ACTION_BAR_STOP_RECORDING
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_ANALYSIS
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_RETAINED_OBJECT
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_WAITING_HEAP_DUMP
 import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel
 import icons.StudioIconsCompose
 import org.jetbrains.jewel.ui.component.DefaultButton
+import org.jetbrains.jewel.ui.component.HorizontalProgressBar
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 
@@ -54,6 +63,7 @@ fun LeakCanaryActionBar(leakCanaryModel: LeakCanaryModel) {
         verticalAlignment = Alignment.CenterVertically) {
       RecordingTimer(leakCanaryModel)
       Spacer(modifier = Modifier.weight(1f))
+      HeapDumpAndAnalysisStatus(leakCanaryModel)
       DefaultButton(onClick = leakCanaryModel::stopListening) {
         Text(ACTION_BAR_STOP_RECORDING)
       }
@@ -80,3 +90,31 @@ fun RecordingTimer(leakCanaryModel: LeakCanaryModel) {
     }
   }
 }
+
+@Composable
+fun HeapDumpAndAnalysisStatus(leakCanaryModel: LeakCanaryModel) {
+  val objectRetainedCount by leakCanaryModel.objectRetainedCount.collectAsState()
+  val analysisProgress by leakCanaryModel.analysisProgress.collectAsState()
+  val requiredRetainedObjectCount = leakCanaryModel.requiredRetainedObjectCount
+
+  if (objectRetainedCount < requiredRetainedObjectCount) {
+    val text = AnnotatedString.Builder().apply {
+      withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+        append("$objectRetainedCount ${objectRetainedText(objectRetainedCount)}")
+      }
+      append(" $LEAKCANARY_WAITING_HEAP_DUMP $requiredRetainedObjectCount ${objectRetainedText(requiredRetainedObjectCount)}")
+    }.toAnnotatedString()
+    Text(text, modifier = Modifier.padding(end = 10.dp))
+  }
+  else {
+    Text(LEAKCANARY_ANALYSIS)
+    HorizontalProgressBar(analysisProgress/100f,
+                          modifier = Modifier
+                            .width(140.dp)
+                            .height(4.dp)
+                            .padding(horizontal = 10.dp)
+                            .testTag("AnalysisProgressBar"))
+  }
+}
+
+private fun objectRetainedText(objectRetainedCount: Int) = "$LEAKCANARY_RETAINED_OBJECT${if(objectRetainedCount == 1)"" else "s"}."
