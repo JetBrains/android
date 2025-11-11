@@ -49,9 +49,17 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
   override val name: String
     get() = "Android Gradle"
 
-  override fun canOpenProject(file: VirtualFile): Boolean =
-      (Registry.`is`("android.gradle.importer.enabled") || IdeInfo.getInstance().isAndroidStudio) &&
-      GradleProjects.canImportAsGradleProject(file)
+  override fun canOpenProject(file: VirtualFile): Boolean {
+    if (canImportAsGradleProject(file)) return true
+
+    // Try again but refreshing the file system since this might not be updated b/460389443
+    file.refresh(false, false)
+    return canImportAsGradleProject(file)
+  }
+
+  private fun canImportAsGradleProject(file: VirtualFile) =
+    (Registry.`is`("android.gradle.importer.enabled") || IdeInfo.getInstance().isAndroidStudio) &&
+    GradleProjects.canImportAsGradleProject(file)
 
   override suspend fun openProjectAsync(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? {
     val importTarget = findGradleTarget(virtualFile) ?: return null
