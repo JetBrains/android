@@ -64,6 +64,9 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
   protected final LogFile stdout;
   protected final LogFile stderr;
   protected final Path vmOptionsPath;
+  protected final Path systemDir;
+  //Points to a location outside bazel sandbox, used to ensure constant path for any artifact placed inside
+  protected final Path tmpDir;
 
   public final TestFileSystem fileSystem;
 
@@ -73,6 +76,7 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     this.workDir = workDir;
     this.studioDir = studioDir;
     this.logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "logs");
+    this.tmpDir = getTmpDir();
     this.ideaLog = new LogFile(logsDir.resolve("idea.log"));
     Files.createFile(ideaLog.getPath());
     stdout = new LogFile(logsDir.resolve("stdout.txt"));
@@ -84,6 +88,8 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     Files.createDirectories(configDir);
     pluginsDir = workDir.resolve("plugins");
     Files.createDirectories(pluginsDir);
+    this.systemDir = workDir.resolve("system");
+    Files.createDirectories(systemDir);
 
     createVmOptionsFile();
   }
@@ -176,6 +182,10 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     return configDir;
   }
 
+  public Path getSystemDir() {
+    return systemDir;
+  }
+
   private void createVmOptionsFile() throws IOException {
     StringBuilder vmOptions = new StringBuilder();
     createVmOptions(vmOptions);
@@ -193,7 +203,7 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     vmOptions.append(String.format("-Didea.home.path=%s%n", studioDir));
     vmOptions.append(String.format("-Didea.config.path=%s%n", configDir));
     vmOptions.append(String.format("-Didea.plugins.path=%s%n", pluginsDir));
-    vmOptions.append(String.format("-Didea.system.path=%s/system%n", workDir));
+    vmOptions.append(String.format("-Didea.system.path=%s%n", systemDir));
     vmOptions.append(String.format("-Djava.io.tmpdir=%s%n", Files.createTempDirectory(workDir, "tmp")));
     // Work around b/247532990, which is that libnotify.so.4 is missing on our
     // test machines.
@@ -268,8 +278,28 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     return projectPath;
   }
 
+  protected Path setupProjectAtTmpDir(AndroidProject project) throws IOException {
+    Path projectPath = project.installAtTmpDir(tmpDir);
+    project.setSdkDir(getSdkDir());
+    // Mark that project as trusted
+    trustPath(projectPath);
+    return projectPath;
+  }
+
   public T run(Display display, Map<String, String> env, AndroidProject project, Path sdkDir) throws IOException, InterruptedException {
     Path projectPath = setupProject(project, sdkDir);
+    return run(display, env, new String[]{ projectPath.toString() });
+  }
+
+  public T runIdeFromTmpDir(Display display, Map<String, String> env, AndroidProject project) throws IOException, InterruptedException {
+    Path projectPath = setupProjectAtTmpDir(project);
+    Path jdkDir = getJdkDir();
+    String javaHome = jdkDir.toAbsolutePath().toString();
+    env.put("GRADLE_LOCAL_JAVA_HOME", javaHome);
+    env.put("JAVA_HOME", javaHome);
+    env.put("STUDIO_GRADLE_JDK", javaHome);
+    env.put("STUDIO_JDK", javaHome);
+    addVmOption("-Dgradle.jvm=$javaHome");
     return run(display, env, new String[]{ projectPath.toString() });
   }
 
@@ -596,6 +626,49 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     studio.startCapturingScreenshotsOnWindows();
     return studio;
   }
+
+  public static Path getTmpDir() {
+    String tmpDir = "/tmp/android-studio-test-artifacts";
+    if (SystemInfo.isMac) {
+      tmpDir = "/private/tmp/android-studio-test-artifacts";
+    } else if (SystemInfo.isWindows) {
+      tmpDir = "C:\\Temp\\android-studio-test-artifacts";
+    }
+    return Path.of(tmpDir);
+  }
+
+  public Path getSdkDir() {
+    return this.tmpDir.resolve("sdk");
+  }
+
+  public Path getJdkDir() {
+    return this.tmpDir.resolve("jdk");
+  }
+
+  public void setupTmpDir() throws IOException {
+    FileUtils.deleteRecursivelyIfExists(tmpDir.toFile());
+    Files.createDirectories(tmpDir);
+    setupSdkAtTmpDir();
+    setupJdkAtTmpDir();
+  }
+
+  public void setupSdkAtTmpDir() throws IOException {
+    Path sdkDir = getSdkDir();
+    Files.createDirectories(sdkDir);
+    Path prebuiltSdk = TestUtils.resolveWorkspacePath(TestUtils.getRelativeSdk());
+    FileUtils.copyDirectory(prebuiltSdk.toFile(), sdkDir.toFile());
+  }
+
+  public void setupJdkAtTmpDir() throws IOException {
+    Path jdkDir = getJdkDir();
+    Files.createDirectories(jdkDir);
+    FileUtils.copyDirectory(TestUtils.getJava21Jdk().toFile(), jdkDir.toFile());
+  }
+
+  public void copySystemDir(Path projectArtifactsPath) throws IOException {
+    FileUtils.copyDirectory(TestUtils.getBinPath(projectArtifactsPath.resolve("system").toString()).toFile(), getSystemDir().toFile());
+  }
+
 
   abstract public T attach() throws IOException, InterruptedException;
 
