@@ -39,7 +39,6 @@ import com.android.tools.adtui.compose.ComposeWizard
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardButton
 import com.android.tools.adtui.compose.WizardPageScope
-import com.android.tools.adtui.compose.initializeComposeMainDispatcherChecker
 import com.android.tools.adtui.compose.table.SingleSelectionRadioButtons
 import com.android.tools.adtui.compose.table.TableColumn
 import com.android.tools.adtui.compose.table.TableColumnWidth
@@ -95,7 +94,6 @@ suspend fun showAddDeviceDialog(project: Project?, parent: Component?): AvdInfo?
     getOrSetupValidSdk(project, "An Android SDK is required to create an AVD.") ?: return null
   val source = withContext(workerThread) { LocalVirtualDeviceSource.create(sdkHandler) }
   return withContext(uiThread) {
-    initializeComposeMainDispatcherChecker()
     var avdInfo: AvdInfo? = null
     val wizard =
       AddDeviceWizard(
