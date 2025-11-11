@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.ApplicationTerminator
@@ -100,8 +101,12 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
-    // Make sure that devices are online.
+    LOG.info("Checking device online status.")
+    AndroidDebugBridge.getBridge()?.devices?.forEach {
+      LOG.info("ADB connected device: ${it.name}, serial: ${it.serialNumber}, isOnline: ${it.isOnline}")
+    }
     devices.forEach {
+      LOG.info("Target device for run: ${it.name}, serial: ${it.serialNumber}, isOnline: ${it.isOnline}")
       require(it.isOnline) {
         "Device (${it.name}) is offline."
       }
