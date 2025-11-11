@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res
 
-import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.model.Namespacing
@@ -53,14 +52,15 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiTreeChangeListener
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.Consumer
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
-import org.jetbrains.annotations.VisibleForTesting
+import com.intellij.util.concurrency.annotations.RequiresWriteLock
 import java.io.IOException
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.concurrent.Future
 import java.util.function.BiConsumer
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * A project service that manages [ResourceFolderRepository] instances, creating them as necessary
@@ -327,7 +327,8 @@ private class ResourceFolderDocumentListener(
  */
 private class ResourceFolderVfsListener(private val registry: ResourceFolderRegistry) :
   BulkFileListener {
-  @UiThread
+
+  @RequiresWriteLock
   override fun before(events: List<VFileEvent>) {
     for (event in events) {
       when (event) {
@@ -338,6 +339,7 @@ private class ResourceFolderVfsListener(private val registry: ResourceFolderRegi
     }
   }
 
+  @RequiresWriteLock
   override fun after(events: List<VFileEvent>) {
     for (event in events) {
       when (event) {
