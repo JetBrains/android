@@ -15,9 +15,11 @@
  */
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails
 import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -39,6 +41,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -53,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import com.android.tools.leakcanarylib.data.Leak
 import com.android.tools.leakcanarylib.data.LeakTrace
 import com.android.tools.leakcanarylib.data.Node
+import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_CLOSE
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_GC_ROOT
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_GO_TO_DECLARATION
@@ -184,17 +189,24 @@ fun LeakTraceNodeView(node: Node,
                       isOpen: Boolean = false,
                       onClickNode: () -> Unit,
                       isDeclarationAvailableAsync: (Node) -> CompletableFuture<Boolean>) {
+  val interactionSource = remember { MutableInteractionSource() }
+  val isFocused by interactionSource.collectIsFocusedAsState()
+  val focusRequester = remember { FocusRequester() }
+
   val rowClickableModifier = Modifier
-    .clickable(onClick = { onClickNode() }, indication = null, interactionSource = remember { MutableInteractionSource() })
+    .focusRequester(focusRequester)
+    .clickable(onClick = { onClickNode() }, interactionSource = interactionSource)
     .pointerHoverIcon(PointerIcon.Hand)
-  var isDeclarationFound by remember(node) { mutableStateOf<Boolean>(true) }
+  var isDeclarationFound by remember(node) { mutableStateOf(true) }
 
   LaunchedEffect(node) {
     isDeclarationAvailableAsync(node).thenAccept { isAvailable ->
       isDeclarationFound = isAvailable
     }
   }
-  Column(modifier = Modifier.height(IntrinsicSize.Min)) {
+  Column(modifier = Modifier.height(IntrinsicSize.Min)
+    .background(if (isFocused) TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR else Color.Transparent, shape = RoundedCornerShape(4.dp))
+  ) {
     Row {
       Row(modifier = rowClickableModifier.testTag(node.className)) {
         if (isOpen) {
