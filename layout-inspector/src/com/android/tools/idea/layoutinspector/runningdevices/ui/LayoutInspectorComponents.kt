@@ -54,7 +54,7 @@ private const val WORKBENCH_NAME = "Layout Inspector"
 const val STATE_READ_SPLITTER_NAME = "StateReadSplitter"
 
 /** Contains the state of Layout Inspector toolbar actions. */
-class ToolbarState {
+class ToolbarState(val showTitle: Boolean = true, val leftAlightToolbar: Boolean = false) {
   private val _isDeepInspectEnabled = MutableStateFlow(false)
   val isDeepInspectEnabled = _isDeepInspectEnabled.asStateFlow()
 
@@ -238,6 +238,8 @@ private fun createToolbarPanel(
     targetComponent = rootComponent,
     layoutInspector = layoutInspector,
     selectProcessAction = processPicker,
+    showTitleLabel = toolbarState.showTitle,
+    leftAlignToolbar = toolbarState.leftAlightToolbar,
     firstGroupExtraActions = listOf(overlayActionGroup),
     lastGroupExtraActions = listOf(toggleDeepInspectAction) + extraActions,
   )
