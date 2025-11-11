@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.layoutinspector.model
@@ -28,6 +29,7 @@ import com.android.tools.idea.layoutinspector.model.RenderingDimensions.NORMAL_B
 import com.android.tools.idea.layoutinspector.model.RenderingDimensions.RECOMPOSITION_BORDER_THICKNESS
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.OnDeviceRenderingClient
 import com.android.tools.idea.layoutinspector.ui.BASE_COLOR_ARGB
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
@@ -38,40 +40,31 @@ import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.viewWindow
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeoutException
+import javax.swing.JComponent
+import kotlin.test.fail
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito.doAnswer
-import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
 
 class OnDeviceRendererPanelTest {
-  @get:Rule val applicationRule = ApplicationRule()
+  @get:Rule val runInEdt = EdtRule()
   @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var inspectorModel: InspectorModel
@@ -104,6 +97,7 @@ class OnDeviceRendererPanelTest {
   }
 
   @Test
+  @RunsInEdt
   fun testMouseEventsAreDispatchedToParent() = runTest {
     val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
@@ -145,7 +139,7 @@ class OnDeviceRendererPanelTest {
 
     // move the cursor
     fakeUi.mouse.moveTo(42, 42)
-    withContext(Dispatchers.EDT) { fakeUi.layoutAndDispatchEvents() }
+    fakeUi.layoutAndDispatchEvents()
 
     assertThat(lastMousePosition).isEqualTo(Point(42, 42))
   }
@@ -424,6 +418,7 @@ class OnDeviceRendererPanelTest {
   }
 
   @Test
+  @RunsInEdt
   fun testHoverNodeReceived() = runTest {
     val (_, messenger) = buildMessenger()
     val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
@@ -455,7 +450,7 @@ class OnDeviceRendererPanelTest {
 
     // move the cursor on the panel, to enable handling hover
     fakeUi.mouse.moveTo(42, 42)
-    withContext(Dispatchers.EDT) { fakeUi.layoutAndDispatchEvents() }
+    fakeUi.layoutAndDispatchEvents()
 
     testScheduler.advanceUntilIdle()
 
@@ -477,7 +472,7 @@ class OnDeviceRendererPanelTest {
 
     // move the cursor outside the panel, should clear hover
     fakeUi.mouse.moveTo(200, 200)
-    withContext(Dispatchers.EDT) { fakeUi.layoutAndDispatchEvents() }
+    fakeUi.layoutAndDispatchEvents()
 
     assertThat(inspectorModel.hoveredNode).isEqualTo(null)
   }
@@ -525,6 +520,7 @@ class OnDeviceRendererPanelTest {
   }
 
   @Test
+  @RunsInEdt
   fun testRightClickShowsPopup() = runTest {
     val (_, messenger) = buildMessenger()
     val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
@@ -539,28 +535,31 @@ class OnDeviceRendererPanelTest {
         client = onDeviceRenderingClient,
       )
 
+    var rightClickInvocations = 0
+    var rightClickNodes: List<ViewNode>? = null
+    var rightClickCoordinates: Point? = null
+    var rightClickSelectedNode: ViewNode? = null
+
     val onDeviceRenderer =
       OnDeviceRendererPanel(
         disposable = disposableRule.disposable,
         scope = scope,
         model = onDeviceRendererModel,
         enableSendRightClicksToDevice = {},
+        showRightClickMenu = {
+          _: JComponent,
+          selectedNode: ViewNode?,
+          nodes: List<ViewNode>,
+          point: Point ->
+          rightClickInvocations += 1
+          rightClickNodes = nodes
+          rightClickCoordinates = point
+          rightClickSelectedNode = selectedNode
+        },
       )
 
     renderModel.setInterceptClicks(true)
     testScheduler.advanceUntilIdle()
-
-    val popupLatch = CountDownLatch(1)
-    var lastPopup: FakeActionPopupMenu? = null
-    ApplicationManager.getApplication()
-      .replaceService(ActionManager::class.java, mock(), disposableRule.disposable)
-    doAnswer { invocation ->
-        lastPopup = FakeActionPopupMenu(invocation.getArgument(1))
-        popupLatch.countDown()
-        lastPopup
-      }
-      .whenever(ActionManager.getInstance())
-      .createActionPopupMenu(anyString(), any<ActionGroup>())
 
     val parent = BorderLayoutPanel()
     parent.add(onDeviceRenderer)
@@ -571,7 +570,7 @@ class OnDeviceRendererPanelTest {
 
     // move the cursor
     fakeUi.mouse.moveTo(42, 42)
-    withContext(Dispatchers.EDT) { fakeUi.layoutAndDispatchEvents() }
+    fakeUi.layoutAndDispatchEvents()
 
     assertThat(inspectorModel.selection).isNull()
 
@@ -588,18 +587,21 @@ class OnDeviceRendererPanelTest {
     testScheduler.advanceUntilIdle()
 
     // wait for the popup to be shown.
-    popupLatch.await()
+    waitForCondition(2.seconds) { rightClickInvocations == 1 }
 
     assertThat(inspectorModel.selection).isEqualTo(inspectorModel[COMPOSE1])
-    lastPopup!!.assertSelectViewActionAndGotoDeclaration(COMPOSE1, ROOT)
-    verify(lastPopup.popup).show(onDeviceRenderer, 42, 42)
+    assertThat(rightClickSelectedNode).isEqualTo(inspectorModel[COMPOSE1])
+    assertThat(rightClickNodes!!.map { it.drawId }).containsExactly(COMPOSE1, ROOT)
+    assertThat(rightClickCoordinates).isEqualTo(Point(42, 42))
 
-    lastPopup = null
+    rightClickNodes = null
+    rightClickCoordinates = null
+    rightClickSelectedNode = null
 
     // test that right click is ignored when cursor is not above the panel
     // move the cursor
     fakeUi.mouse.moveTo(200, 200)
-    withContext(Dispatchers.EDT) { fakeUi.layoutAndDispatchEvents() }
+    fakeUi.layoutAndDispatchEvents()
 
     val rightClickEvent2 =
       buildUserInputEventProto(
@@ -614,10 +616,15 @@ class OnDeviceRendererPanelTest {
     testScheduler.advanceUntilIdle()
 
     // wait for the popup to be shown.
-    popupLatch.await()
+    try {
+      waitForCondition(2.seconds) { rightClickInvocations == 2 }
+      fail("Right click menu was invoked.")
+    } catch (_: TimeoutException) {}
 
     assertThat(inspectorModel.selection).isEqualTo(inspectorModel[COMPOSE1])
-    assertThat(lastPopup).isNull()
+    assertThat(rightClickNodes).isNull()
+    assertThat(rightClickCoordinates).isNull()
+    assertThat(rightClickSelectedNode).isNull()
   }
 
   @Test
