@@ -1227,6 +1227,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> RUNNING_DEVICES_CONTEXT_MENU = new BooleanFlag(
     EMBEDDED_EMULATOR, "context.menu", "Enable Context Menu",
     "Enables context menu in the Running Devices tool window");
+  public static final Flag<Boolean> RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS = new BooleanFlag(
+    EMBEDDED_EMULATOR, "collapsible.floating.toolbars", "Make zoom and XR toolbars collapsible",
+    "Make zoom and XR toolbars in the Running Devices window collapsible");
   //endregion
 
   //region Device Mirroring
