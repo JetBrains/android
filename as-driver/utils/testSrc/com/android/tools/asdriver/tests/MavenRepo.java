@@ -50,7 +50,7 @@ public class MavenRepo {
 
       RepoLinker linker = new RepoLinker();
       List<String> artifacts = Files.readAllLines(offlineRepoManifest);
-      linker.link(repoDir, artifacts);
+      linker.link(repoDir, artifacts, TestUtils::resolveWorkspacePathUnchecked);
     }
 
     env.put("STUDIO_CUSTOM_REPO", repoDir.toString());

@@ -290,4 +290,47 @@ public class AndroidStudio extends Ide {
       this.dataContextSource = dataContextSource;
     }
   }
+
+  /**
+   * Waits for IDE to log that indexing is skipped because the index is up to date. Use this when using pre-indexed project
+   */
+  public void waitForIndexingSkippedLog() throws IOException, InterruptedException {
+    benchmarkLog("calling_waitForIndex");
+    TestLogger.log("Waiting for indexing to complete");
+    ASDriver.WaitForIndexRequest rq = ASDriver.WaitForIndexRequest.newBuilder().build();
+    ASDriver.WaitForIndexResponse ignore = ide.waitForIndex(rq);
+    install.getIdeaLog().reset(); //Log position can be moved past if used after waitForBuild
+    var indexSkipped = ".*No files to index.*";
+    var indexUpdated = ".*Unindexed files update took (.*)ms;.*";
+    var matcher = install.getIdeaLog().waitForMatchingLine(String.format("(?:%s)|(%s)", indexUpdated, indexSkipped), 300, TimeUnit.SECONDS);
+    if (matcher.group(0).contains("Unindexed files")) {
+      TestLogger.log("Checking: " + matcher.group(1));
+      var indexingMs = Integer.parseInt(matcher.group(1));
+      var indexingTime = String.format("%ds %dms", indexingMs / 1000, indexingMs % 1000);
+      TestLogger.log("Indexing took %s", indexingTime);
+    } else {
+      TestLogger.log("Indexing skipped");
+    }
+    benchmarkLog("after_waitForIndex");
+  }
+
+  /**
+   * Waits for IDE to log that Gradle sync is skipped because the model is up to date. Use this when using pre-synced project
+   */
+  public void waitForSyncSkippedLog() throws IOException, InterruptedException {
+    long timeout = 15;
+    TimeUnit unit = TimeUnit.MINUTES;
+    TestLogger.log("Waiting up to %d %s for Gradle sync", timeout, unit);
+    var syncFinished = ".*Gradle sync finished in (.*)";
+    var syncSkipped = ".*Up-to-date models found in the cache. Not invoking Gradle sync.*";
+    Matcher matcher = install.getIdeaLog()
+      .waitForMatchingLine(String.format("(?:%s)|(%s)", syncFinished, syncSkipped),
+                           "(.*org\\.gradle\\.tooling\\.\\w+Exception.*)|" +
+                           "(.*Gradle sync failed in (.*))", timeout, unit);
+    if (matcher.group(0).contains("sync finished")) {
+      TestLogger.log("Sync took %s", matcher.group(1));
+    } else {
+      TestLogger.log("Sync skipped");
+    }
+  }
 }

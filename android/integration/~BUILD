@@ -1,4 +1,6 @@
+load("@rules_java//java:defs.bzl", "java_binary")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE", "KOTLIN_ARTIFACTS_FOR_TESTS")
+load("//tools/adt/idea/studio:studio.bzl", "studio_project_model")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
@@ -623,14 +625,39 @@ maven_repository(
     ] + KOTLIN_ARTIFACTS_FOR_TESTS,
 )
 
+java_binary(
+    name = "minapp_project_model_generator",
+    testonly = True,
+    srcs = ["testSrc/com/android/tools/idea/ProjectIndexAndGradleSyncGenerator.java"],
+    data = [
+        ":buildproject_deps",
+        ":minapp",
+        "//tools/base/build-system:gradle-distrib-8.6",
+    ],
+    main_class = "com.android.tools.idea.ProjectIndexAndGradleSyncGenerator",
+    deps = [
+        "//tools/adt/idea/as-driver:as-driver.utils_testlib",
+        "//tools/base/common:studio.android.sdktools.common",
+    ],
+)
+
+studio_project_model(
+    name = "minapp_project_model",
+    testonly = True,
+    manifest_path = "tools/adt/idea/android/integration/buildproject_deps.manifest",
+    out_dir_name = "minapp_project_model",
+    project_path = "tools/adt/idea/android/integration/testData/minapp",
+    tool = ":minapp_project_model_generator",
+)
+
 iml_test(
     name = "BuildProjectTest",
     timeout = "long",
     data = [
         ":buildproject_deps",
-        ":minapp",
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         INTEGRATION_TEST_GRADLE_VERSION,
+        ":minapp_project_model",
     ],
     module = ":intellij.android.core.integration",
     tags = [
