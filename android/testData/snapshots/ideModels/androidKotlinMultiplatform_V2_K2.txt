@@ -2279,6 +2279,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 AssembleTaskName              : assembleAndroidMain
                 IsTestArtifact                : false
                 ClassesFolder                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/main [-]
+                ClassesFolder                 : <ROOT>/kmpFirstLib/build/intermediates/javac/androidMain/compileAndroidMainJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         module                        : :-:kmpFirstLib-commonMain
@@ -2309,6 +2310,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 AssembleTaskName              : assembleAndroidDeviceTest
                 IsTestArtifact                : true
                 ClassesFolder                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/deviceTest [-]
+                ClassesFolder                 : <ROOT>/kmpFirstLib/build/intermediates/javac/androidDeviceTest/compileAndroidDeviceTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         module                        : :-:kmpFirstLib-androidMain
@@ -2441,6 +2443,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 AssembleTaskName              : assembleAndroidHostTest
                 IsTestArtifact                : true
                 ClassesFolder                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/hostTest [-]
+                ClassesFolder                 : <ROOT>/kmpFirstLib/build/intermediates/javac/androidHostTest/compileAndroidHostTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         module                        : :-:kmpFirstLib-commonTest
