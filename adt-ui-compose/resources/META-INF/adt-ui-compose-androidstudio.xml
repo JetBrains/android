@@ -15,7 +15,5 @@
   -->
 <idea-plugin>
   <applicationListeners>
-    <listener class="com.android.tools.adtui.compose.OnStartup"
-              topic="com.intellij.ide.AppLifecycleListener"/>
   </applicationListeners>
 </idea-plugin>
