@@ -230,7 +230,7 @@ fun calculateRotationCorrection(
   return (layoutInspectorDisplayOrientationQuadrant - displayRectangleOrientationQuadrant).mod(4)
 }
 
-private fun LayoutInspector.navigateToSelectedViewFromRendererDoubleClick() {
+fun LayoutInspector.navigateToSelectedViewFromRendererDoubleClick() {
   navigateToSelectedViewFromRendererDoubleClick(
     scope = coroutineScope,
     inspectorModel = inspectorModel,
