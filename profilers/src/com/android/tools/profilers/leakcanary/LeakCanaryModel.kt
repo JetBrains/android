@@ -58,7 +58,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
       handleLeakAnalysis(heapAnalysis.toString())
     }
   }
-
+  val requiredRetainedObjectCount = 5
   private val _leaks = MutableStateFlow(listOf<Leak>())
   val leaks = _leaks.asStateFlow()
   private val _selectedLeak = MutableStateFlow<Leak?>(null)
@@ -67,10 +67,16 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
   val isRecording = _isRecording.asStateFlow()
   private val _elapsedNs = MutableStateFlow(0L)
   val elapsedNs = _elapsedNs.asStateFlow()
+  private val _objectRetainedCount = MutableStateFlow(0)
+  val objectRetainedCount = _objectRetainedCount.asStateFlow()
+  private val _analysisProgress = MutableStateFlow(0)
+  val analysisProgress = _analysisProgress.asStateFlow()
 
   fun startListening() {
     profilers.updater.register(this)
     setIsRecording(true)
+    setObjectRetainedCount(0)
+    setAnalysisProgress(0)
     registerLeakCanaryListeners()
     toggleLeakCanaryLogcatTracking(profilers.session, enable = true, endSession = false)
   }
@@ -87,6 +93,14 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
 
   fun setIsRecording(isRecording: Boolean) {
     _isRecording.value = isRecording
+  }
+
+  fun setObjectRetainedCount(objectRetainedCount: Int) {
+    _objectRetainedCount.value = objectRetainedCount
+  }
+
+  fun setAnalysisProgress(analysisProgress: Int) {
+    _analysisProgress.value = analysisProgress
   }
 
   @VisibleForTesting
@@ -146,13 +160,39 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
    * @param event: The LeakCanary logcat event.
    */
   private fun leakDetected(event: Common.Event) {
+    val logcatMessage = event.leakcanaryAnalysis.data
+    handleRetainedObject(logcatMessage)
+    handleAnalysisProgress(logcatMessage)
     handleLeakAnalysis(event.leakcanaryAnalysis.data)
+  }
+
+  private fun handleRetainedObject(logcatMessage: String) {
+    val retainedObjectsRegex = """Found (\d+) objects retained""".toRegex()
+    retainedObjectsRegex.find(logcatMessage)?.let { matchResult ->
+      matchResult.groupValues.getOrNull(1)?.toIntOrNull()?.let { count ->
+        setObjectRetainedCount(count)
+      }
+      return
+    }
+  }
+
+  private fun handleAnalysisProgress(logcatMessage: String) {
+    val analysisProgressRegex = """Analysis in progress, (\d+)% done""".toRegex()
+    analysisProgressRegex.find(logcatMessage)?.let { matchResult ->
+      matchResult.groupValues.getOrNull(1)?.toIntOrNull()?.let { progress ->
+        setAnalysisProgress(progress)
+      }
+      return
+    }
   }
 
   private fun handleLeakAnalysis(analysisReport: String) {
     if (analysisReport.isEmpty()) return
     val leakAnalysisEvent = getEventFromLogcatMessage(analysisReport)
     if (leakAnalysisEvent == null) return
+
+    setObjectRetainedCount(0)
+    setAnalysisProgress(0)
 
     if (leakAnalysisEvent is AnalysisSuccess) {
       addLeaks(leakAnalysisEvent.leaks)

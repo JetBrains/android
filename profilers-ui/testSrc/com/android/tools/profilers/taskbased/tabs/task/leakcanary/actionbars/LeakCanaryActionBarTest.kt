@@ -16,6 +16,7 @@
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary.actionbars
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule
@@ -31,6 +32,9 @@ import com.android.tools.profilers.leakcanary.FakeLeakCanaryCommandHandler
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.ACTION_BAR_RECORDING
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.ACTION_BAR_STOP_RECORDING
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_ANALYSIS
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_RETAINED_OBJECT
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_WAITING_HEAP_DUMP
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -95,5 +99,62 @@ class LeakCanaryActionBarTest: WithFakeTimer {
     composeTestRule.onNodeWithText(ACTION_BAR_STOP_RECORDING).performClick()
     // Click on 'Stop Recording' has stopped the recording
     assertFalse(leakCanaryModel.isRecording.value)
+  }
+
+  @Test
+  fun `retained object count from logcat is displayed`() {
+    leakCanaryModel.setIsRecording(true)
+    composeTestRule.setContent {
+      LeakCanaryActionBar(leakCanaryModel = leakCanaryModel)
+    }
+
+    // Test for singular case
+    leakCanaryModel.setObjectRetainedCount(1)
+    val singularMessage = "1 $LEAKCANARY_RETAINED_OBJECT. $LEAKCANARY_WAITING_HEAP_DUMP 5 ${LEAKCANARY_RETAINED_OBJECT}s."
+    composeTestRule.onNodeWithText(singularMessage).assertIsDisplayed()
+
+    // Test for plural case
+    leakCanaryModel.setObjectRetainedCount(2)
+    val pluralMessage = "2 ${LEAKCANARY_RETAINED_OBJECT}s. $LEAKCANARY_WAITING_HEAP_DUMP 5 ${LEAKCANARY_RETAINED_OBJECT}s."
+    composeTestRule.onNodeWithText(pluralMessage).assertIsDisplayed()
+
+    // Ensure analysis progress bar is not shown
+    composeTestRule.onNodeWithTag("AnalysisProgressBar").assertDoesNotExist()
+  }
+
+  @Test
+  fun `analysis progress from logcat is displayed`() {
+    leakCanaryModel.setIsRecording(true)
+    // Set retained object count to meet the requirement to trigger analysis view
+    leakCanaryModel.setObjectRetainedCount(leakCanaryModel.requiredRetainedObjectCount)
+    leakCanaryModel.setAnalysisProgress(50)
+
+    composeTestRule.setContent {
+      LeakCanaryActionBar(leakCanaryModel = leakCanaryModel)
+    }
+
+    // Verify that the analysis progress UI is displayed
+    composeTestRule.onNodeWithText(LEAKCANARY_ANALYSIS).assertIsDisplayed()
+    composeTestRule.onNodeWithTag("AnalysisProgressBar").assertIsDisplayed()
+  }
+
+  @Test
+  fun `status is cleared when analysis is complete`() {
+    leakCanaryModel.setIsRecording(true)
+    leakCanaryModel.setObjectRetainedCount(leakCanaryModel.requiredRetainedObjectCount)
+    leakCanaryModel.setAnalysisProgress(100)
+
+    composeTestRule.setContent {
+      LeakCanaryActionBar(leakCanaryModel = leakCanaryModel)
+    }
+
+    composeTestRule.onNodeWithText(LEAKCANARY_ANALYSIS).assertIsDisplayed()
+
+    leakCanaryModel.setObjectRetainedCount(0)
+    leakCanaryModel.setAnalysisProgress(0)
+
+
+    composeTestRule.onNodeWithText(LEAKCANARY_ANALYSIS).assertDoesNotExist()
+    composeTestRule.onNodeWithTag("AnalysisProgressBar").assertDoesNotExist()
   }
 }
