@@ -1221,6 +1221,10 @@ public final class StudioFlags {
     "Max number of state reads stored on the device",
     "Limit the amount of state reads the agent caches to avoid OOM problems on the device.", 5000
   );
+
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_STANDALONE_V2 = new BooleanFlag(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.standalone.v2", "Enable standalone Layout Inspector V2",
+    "Enable standalone Layout Inspector V2.");
   //endregion
 
   //region Embedded Emulator
