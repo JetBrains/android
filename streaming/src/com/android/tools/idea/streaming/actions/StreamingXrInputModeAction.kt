@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.actions
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.core.FloatingToolbarContainer
 import com.android.tools.idea.streaming.xr.XrInputMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -33,6 +34,9 @@ sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : To
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     if (state) {
       getXrInputController(event)?.inputMode = inputMode
+    }
+    else {
+      FloatingToolbarContainer.triggerActivation(event)
     }
   }
 
