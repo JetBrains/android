@@ -41,7 +41,6 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:org.intellij.groovy",
-        "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
     ],
 )
