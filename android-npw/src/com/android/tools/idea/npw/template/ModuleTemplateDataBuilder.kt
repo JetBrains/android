@@ -206,7 +206,7 @@ class ModuleTemplateDataBuilder(
         buildApi = buildVersion.compileSdk,
         targetApi = buildVersion.compileSdk.majorVersion,
         minApi = buildVersion.minSdk.majorVersion,
-        // The highest supported/recommended appCompact version is P(28)
+        // The highest supported/recommended appCompat version is P(28)
         appCompatVersion = buildVersion.compileSdk.featureLevel.coerceAtMost(P),
       )
   }
@@ -319,11 +319,11 @@ fun getExistingModuleTemplateDataBuilder(module: Module): ModuleTemplateDataBuil
       val npwCompileSdkVersion = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
       apis =
         ApiTemplateData(
-          buildApi = AndroidVersion(npwCompileSdkVersion, 0),
+          buildApi = AndroidVersion(npwCompileSdkVersion),
           targetApi = AndroidMajorVersion(npwCompileSdkVersion),
           minApi = AndroidMajorVersion(LOWEST_ACTIVE_API),
           // The highest supported/recommended appCompact version is P(28)
-          appCompatVersion = npwCompileSdkVersion.coerceAtMost(P),
+          appCompatVersion = npwCompileSdkVersion.majorVersion.coerceAtMost(P),
         )
     }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.flags;
 
 import static com.android.tools.idea.observable.expressions.bool.BooleanExpressions.not;
 
+import com.android.flags.CustomTypeFlag;
 import com.android.flags.DEFAULT_BOOLEAN_FLAG_VALUE;
 import com.android.flags.Flag;
 import com.android.flags.FlagGroup;
@@ -27,10 +28,14 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.overrides.FeatureConfigurationProvider;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.adapters.AdapterProperty;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.ObservableString;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.SpinnerLongValueProperty;
@@ -373,6 +378,9 @@ public final class StudioFlagsDialog extends DialogWrapper {
     else if (flag.get().getClass().isEnum()) {
       return createEnumFlagEditor((Flag<Enum>)flag);
     }
+    else if (flag instanceof CustomTypeFlag<?>) {
+      return createCustomFlagEditor((CustomTypeFlag<?>)flag);
+    }
     else {
       throw new IllegalStateException(
         String.format("Unhandled flag type (\"%s\"): Flag<%s>", flag.getId(), flag.get().getClass().getSimpleName()));
@@ -500,6 +508,39 @@ public final class StudioFlagsDialog extends DialogWrapper {
     };
   }
 
+  @NotNull
+  private <T> FlagEditor<T> createCustomFlagEditor(CustomTypeFlag<T> flag) {
+    return new FlagEditor<>() {
+      final FlagProperty<T> myFlagProperty = new FlagProperty<>(flag);
+
+      @NotNull
+      @Override
+      public FlagProperty<T> flagProperty() {
+        return myFlagProperty;
+      }
+
+      @NotNull
+      @Override
+      public JComponent editorComponent() {
+        String[] examples = flag.getExamples().stream().map(flag::toString).toArray(String[]::new);
+        ComboBox<String> comboBox = new ComboBox<>(examples);
+        comboBox.setEditable(true);
+        CustomFlagAdapterProperty<T> adapter =
+          new CustomFlagAdapterProperty<>(flag, ObjectProperty.wrap(new SelectedItemProperty<>(comboBox)));
+        myBindings.bindTwoWay(adapter, myFlagProperty);
+        JBLabel invalidValue = new JBLabel();
+        invalidValue.setIcon(AllIcons.General.Warning);
+        invalidValue.setOpaque(true);
+        myBindings.bind(new VisibleProperty(invalidValue), adapter.inSync().not());
+        myBindings.bind(new TextProperty(invalidValue), adapter.errorString);
+        JPanel panel = new JPanel(new HorizontalLayout(UIUtil.DEFAULT_HGAP));
+        panel.add(comboBox);
+        panel.add(invalidValue);
+        return panel;
+      }
+    };
+  }
+
   @Override
   public void doCancelAction() {
     replaceOverrides(StudioFlagSettings.getInstance(), myBackupOverrides);
@@ -571,6 +612,37 @@ public final class StudioFlagsDialog extends DialogWrapper {
       myFlag.clearOverride();
       myOverridden.set(false);
       notifyInvalidated();
+    }
+  }
+
+  private static final class CustomFlagAdapterProperty<T> extends AdapterProperty<String, T> {
+
+    private final CustomTypeFlag<T> myFlag;
+    private final StringProperty errorString = new StringValueProperty();
+
+    public CustomFlagAdapterProperty(
+      @NotNull CustomTypeFlag<T> flag,
+      @NotNull AbstractProperty<String> wrappedProperty) {
+      super(wrappedProperty, flag.get());
+      myFlag = flag;
+    }
+
+    @Override
+    protected @Nullable T convertFromSourceType(@NotNull String value) {
+      T t;
+      try {
+        t = myFlag.fromString(value);
+      } catch (Exception e) {
+        errorString.set(e.getMessage());
+        return null;
+      }
+      errorString.set("");
+      return t;
+    }
+
+    @Override
+    protected @NotNull String convertFromDestType(@NotNull T value) {
+      return myFlag.toString(value);
     }
   }
 }
