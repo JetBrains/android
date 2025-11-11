@@ -351,7 +351,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       }
 
       override fun doCancelAction() {
-        // Ask for confirmation to close on ESC with not apllied changes.
+        // Ask for confirmation to close on ESC with not applied changes.
         if ((IdeEventQueue.getInstance().trueCurrentEvent as? KeyEvent)?.keyCode == KeyEvent.VK_ESCAPE) {
           if (isModified) {
             if (Messages.showDialog(
