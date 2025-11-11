@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.util
 
 import com.android.builder.model.AndroidProject
 import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.extensions.PluginId
 
 /**
@@ -26,6 +27,9 @@ import com.intellij.openapi.extensions.PluginId
  * See http://b/280831521 for more details.
  */
 fun addAndroidStudioPluginVersion(allArgs: MutableList<String?>) {
-  val studioVersion = PluginManagerCore.getPlugin(PluginId.getId("org.jetbrains.android"))?.version ?: return
-  allArgs.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_ANDROID_STUDIO_VERSION, studioVersion))
+  PluginManagerCore.getPlugin(PluginId.getId("org.jetbrains.android"))?.version?.let { studioVersion ->
+    allArgs.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_ANDROID_STUDIO_VERSION, studioVersion))
+  }
+  allArgs.add(AndroidGradleSettings.createProjectProperty("android.ide.full.version", ApplicationInfo.getInstance().fullVersion))
+  allArgs.add(AndroidGradleSettings.createProjectProperty("android.ide.strict.version", ApplicationInfo.getInstance().strictVersion))
 }

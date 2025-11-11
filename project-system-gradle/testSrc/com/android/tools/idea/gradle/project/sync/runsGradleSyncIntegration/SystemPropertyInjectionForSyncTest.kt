@@ -109,6 +109,14 @@ class SystemPropertyInjectionForSyncTest {
           if (!project.providers.gradleProperty("android.studio.version").isPresent()) {
             throw new RuntimeException("Studio version should be injected")
           }
+          
+          if (!project.providers.gradleProperty("android.ide.full.version").isPresent()) {
+            throw new RuntimeException("IDE Full version should be injected")
+          }
+          
+          if (!project.providers.gradleProperty("android.ide.strict.version").isPresent()) {
+            throw new RuntimeException("IDE Strict version should be injected")
+          }
         """.trimIndent()
     )
 
