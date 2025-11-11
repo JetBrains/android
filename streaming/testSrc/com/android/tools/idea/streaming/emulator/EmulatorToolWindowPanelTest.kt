@@ -20,9 +20,9 @@ import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.ThemingStyle
 import com.android.mockito.kotlin.whenever
-import com.android.testutils.TestUtils
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.ZoomType
@@ -169,6 +169,17 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testAppearanceAndToolbarActions() {
+    StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.overrideForTest(false, testRootDisposable)
+    doTestAppearanceAndToolbarActions()
+  }
+
+  @Test
+  fun testAppearanceAndToolbarActionsCollapsibleToolbar() {
+    StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.overrideForTest(true, testRootDisposable)
+    doTestAppearanceAndToolbarActions()
+  }
+
+  private fun doTestAppearanceAndToolbarActions() {
     panel = createWindowPanelForPhone()
 
     assertThat(panel.primaryDisplayView).isNull()
@@ -184,7 +195,11 @@ class EmulatorToolWindowPanelTest {
     fakeUi.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 515")
-    assertAppearance("AppearanceAndToolbarActions1", maxPercentDifferentMac = 0.03, maxPercentDifferentWindows = 0.3)
+    val goldenImageName = when {
+      StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.get() -> "AppearanceAndToolbarActionsCollapsibleToolbar1"
+      else -> "AppearanceAndToolbarActions1"
+    }
+    assertAppearance(goldenImageName, maxPercentDifferentMac = 0.03, maxPercentDifferentWindows = 0.3)
 
     // Check push button actions.
     val pushButtonCases = listOf(
@@ -365,6 +380,17 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testXrToolbarActions() {
+    StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.overrideForTest(false, testRootDisposable)
+    doTestXrToolbarActions()
+  }
+
+  @Test
+  fun testXrToolbarActionsCollapsibleToolbar() {
+    StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.overrideForTest(true, testRootDisposable)
+    doTestXrToolbarActions()
+  }
+
+  private fun doTestXrToolbarActions() {
     // Move XR buttons to the Running Devices toolbar to check its appearance.
     service<FloatingXrToolbarState>()::floatingXrToolbarEnabled.override(false, testRootDisposable)
     panel = createWindowPanelForXr()
@@ -441,7 +467,11 @@ class EmulatorToolWindowPanelTest {
 
     val toggleAction = ToggleFloatingXrToolbarAction()
     toggleAction.actionPerformed(createTestEvent(emulatorView, project, ActionPlaces.TOOLWINDOW_POPUP))
-    assertAppearance("XrToolbarActions2", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+    val goldenImageName = when {
+      StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.get() -> "XrToolbarActionsCollapsibleToolbar2"
+      else -> "XrToolbarActions2"
+    }
+    assertAppearance(goldenImageName, maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
     panel.destroyContent()
     assertThat(panel.primaryDisplayView).isNull()

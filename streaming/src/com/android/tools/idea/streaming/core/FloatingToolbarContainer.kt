@@ -21,11 +21,17 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Toggleable.SELECTED_KEY
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeGlassPaneUtil
 import com.intellij.openapi.wm.impl.IdeGlassPaneEx
@@ -34,6 +40,7 @@ import com.intellij.util.ui.AbstractLayoutManager
 import com.intellij.util.ui.Animator
 import com.intellij.util.ui.GraphicsUtil.disableAAPainting
 import com.intellij.util.ui.GraphicsUtil.setupAAPainting
+import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.CurrentTheme.Toolbar.SEPARATOR_COLOR
 import com.intellij.util.ui.components.BorderLayoutPanel
@@ -504,19 +511,52 @@ internal class FloatingToolbarContainer(
     }
   }
 
+  /** Action that toggles activation state of the floating toolbar. */
+  class CollapserAction : DumbAwareAction(">"), CustomComponentAction {
+
+    override fun actionPerformed(event: AnActionEvent) {
+      triggerDeactivation(event)
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
+    override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
+        ActionButtonWithText(this, presentation, place, JBDimension(0, DEFAULT_MINIMUM_BUTTON_SIZE.height, true))
+  }
+
   companion object {
 
     /**
-     * Toggles the activation state of the floating toolbar. The [event] has to be associated with
-     * a button of that toolbar.
+     * Returns the [FloatingToolbarContainer] associated with the given [event], if any. The [event]
+     * has to triggered by a mouse event on a button of that toolbar.
      */
-    fun toggleActiveState(event: AnActionEvent) {
-      findContainer(event)?.toggleActiveState()
-    }
-
-    private fun findContainer(event: AnActionEvent): FloatingToolbarContainer? {
+    fun fromActionEvent(event: AnActionEvent): FloatingToolbarContainer? {
       val component = event.inputEvent?.component ?: return null
       return getParentOfType(FloatingToolbarContainer::class.java, component)
+    }
+
+    /**
+     * Activates the floating toolbar. The [event] has to triggered by a mouse event on a button
+     * of that toolbar.
+     */
+    fun triggerActivation(event: AnActionEvent) {
+      fromActionEvent(event)?.triggerActivation()
+    }
+
+    /**
+     * Deactivates the floating toolbar. The [event] has to triggered by a mouse event on a button
+     * of that toolbar.
+     */
+    fun triggerDeactivation(event: AnActionEvent) {
+      fromActionEvent(event)?.triggerDeactivation()
+    }
+
+    /**
+     * Toggles activation state of the floating toolbar. The [event] has to triggered by a mouse
+     * event on a button of that toolbar.
+     */
+    fun toggleActiveState(event: AnActionEvent) {
+      fromActionEvent(event)?.toggleActiveState()
     }
 
     @Suppress("SameParameterValue")
@@ -532,7 +572,7 @@ internal class FloatingToolbarContainer(
     @Suppress("UnstableApiUsage")
     private fun ActionToolbar.configureToolbar() {
       layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
-      minimumButtonSize = ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+      minimumButtonSize = DEFAULT_MINIMUM_BUTTON_SIZE
       ((this as? ActionToolbarImpl)?.setActionButtonBorder(1, 1))
       component.apply {
         border = JBUI.Borders.empty(2)
@@ -600,6 +640,6 @@ internal class FloatingToolbarContainer(
 
     private val ZERO_DIMENSION = Dimension()
 
-    private val SPACER_SIZE = ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.width / 3
+    private val SPACER_SIZE = DEFAULT_MINIMUM_BUTTON_SIZE.width / 3
   }
 }
