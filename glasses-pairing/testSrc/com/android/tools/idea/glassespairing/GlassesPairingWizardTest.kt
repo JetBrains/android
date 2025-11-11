@@ -88,7 +88,7 @@ class GlassesPairingWizardTest {
       }
 
       val glassesWizard =
-        GlassesPairingWizard(coroutineScope, devicesFlow, glasses, ::pair, { true })
+        GlassesPairingWizard(null, coroutineScope, devicesFlow, glasses, ::pair, { true })
       val wizard = TestComposeWizard { with(glassesWizard) { SelectDevicePage() } }
 
       composeTestRule.setContent { wizard.Content() }
