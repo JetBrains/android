@@ -22,6 +22,7 @@ import com.android.repository.api.RepoManager
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.testframework.FakePackage.FakeRemotePackage
 import com.android.repository.testframework.FakeRepoManager
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.testing.AndroidSdkHandlerRule
 import com.android.testutils.waitForCondition
@@ -78,7 +79,7 @@ class SetupSdkApplicationServiceTest {
   @get:Rule
   val chain =
     RuleChain(
-      FlagRule(StudioFlags.NPW_COMPILE_SDK_VERSION, 35),
+      FlagRule(StudioFlags.NPW_COMPILE_SDK_VERSION, AndroidApiLevel(35)),
       FlagRule(StudioFlags.SDK_SETUP_MIGRATED_WIZARD_ENABLED),
       sdkHandlerRule,
       projectRule,

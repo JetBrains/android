@@ -114,8 +114,7 @@ class AndroidVersionsInfo(
       fun fromAndroidVersion(minApi: AndroidVersion): VersionItem {
         // By default, compileSdk is the newest supported SDK, but if the specified version is newer
         // or a preview, use it.
-        val newProjectsCompileSdkVersion =
-          AndroidVersion(StudioFlags.NPW_COMPILE_SDK_VERSION.get(), 0)
+        val newProjectsCompileSdkVersion = AndroidVersion(StudioFlags.NPW_COMPILE_SDK_VERSION.get())
         val compileApi =
           if (minApi.isPreview || minApi > newProjectsCompileSdkVersion) minApi
           else newProjectsCompileSdkVersion

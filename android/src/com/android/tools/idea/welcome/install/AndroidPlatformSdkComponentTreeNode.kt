@@ -18,6 +18,7 @@ package com.android.tools.idea.welcome.install
 import com.android.SdkConstants
 import com.android.repository.Revision
 import com.android.repository.api.RemotePackage
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.getFullReleaseName
 import com.android.sdklib.repository.AndroidSdkHandler
@@ -97,7 +98,7 @@ class AndroidPlatformSdkComponentTreeNode(
     private fun getPlatformToInstall(
       remotePackages: Collection<RemotePackage>,
       installUpdates: Boolean,
-      api: Int,
+      api: AndroidApiLevel,
     ): AndroidPlatformSdkComponentTreeNode {
       val version = AndroidVersion(api).withBaseExtensionLevel()
       val versionName = version.getFullReleaseName(includeApiLevel = true, includeCodeName = true)
@@ -133,7 +134,7 @@ class AndroidPlatformSdkComponentTreeNode(
     fun createSubtree(
       remotePackages: Collection<RemotePackage>,
       installUpdates: Boolean,
-      api: Int = StudioFlags.NPW_COMPILE_SDK_VERSION.get(),
+      api: AndroidApiLevel = StudioFlags.NPW_COMPILE_SDK_VERSION.get(),
     ): SdkComponentTreeNode {
       val platformToInstall = getPlatformToInstall(remotePackages, installUpdates, api)
       return SdkComponentCategoryTreeNode(

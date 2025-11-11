@@ -15,38 +15,28 @@
  */
 package com.android.tools.idea.npw.platform
 
+import com.android.flags.junit.FlagRule
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.SdkVersionInfo.getCodeName
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
-import org.junit.AfterClass
 import org.junit.Assert.assertEquals
-import org.junit.BeforeClass
+import org.junit.ClassRule
 import org.junit.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 
 class AndroidVersionsInfoTest {
   companion object {
-    private var oldCompileSdk: Int = 0
-
-    @BeforeClass
-    @JvmStatic
-    fun setUp() {
-      // This is overridden in NewProjectWizardTestSuite, but we want to override it differently
-      // here.
-      // TODO(b/409977476): We can delete this when all the template tests use the current API.
-      oldCompileSdk = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
-      StudioFlags.NPW_COMPILE_SDK_VERSION.override(36)
-    }
-
-    @AfterClass
-    @JvmStatic
-    fun tearDown() {
-      StudioFlags.NPW_COMPILE_SDK_VERSION.override(oldCompileSdk)
-    }
+    /**
+     * This is overridden in NewProjectWizardTestSuite, but we want to override it differently here.
+     */
+    @get:ClassRule
+    val compileSdkFlagRule: FlagRule<AndroidApiLevel> =
+      FlagRule(StudioFlags.NPW_COMPILE_SDK_VERSION, AndroidApiLevel(36))
   }
 
   /**
@@ -138,6 +128,6 @@ class AndroidVersionsInfoTest {
     }
 }
 
-private val NPW_CURRENT_VERSION: Int = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
+private val NPW_CURRENT_VERSION = StudioFlags.NPW_COMPILE_SDK_VERSION.get().majorVersion
 private val OLDER_VERSION = NPW_CURRENT_VERSION - 1
 private val FUTURE_VERSION = NPW_CURRENT_VERSION + 1

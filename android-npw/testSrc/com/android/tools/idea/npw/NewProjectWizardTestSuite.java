@@ -29,7 +29,7 @@ public class NewProjectWizardTestSuite extends IdeaTestSuiteBase {
     unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
     linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
-    StudioFlags.NPW_COMPILE_SDK_VERSION.override(getSDK_VERSION_FOR_NPW_TESTS().getMajorVersion());
+    StudioFlags.NPW_COMPILE_SDK_VERSION.override(getSDK_VERSION_FOR_NPW_TESTS());
   }
 
 }
