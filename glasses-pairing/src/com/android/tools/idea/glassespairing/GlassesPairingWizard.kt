@@ -34,9 +34,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.android.adblib.serialNumber
 import com.android.adblib.tools.aiglasses.AiGlassesPairing
 import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.LocalEmulatorDeviceHandle
 import com.android.sdklib.deviceprovisioner.awaitReady
 import com.android.sdklib.deviceprovisioner.mapChangedState
@@ -45,6 +47,7 @@ import com.android.tools.adtui.compose.ComposeWizard
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.google.wireless.android.sdk.stats.GlassesPairingEvent
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
@@ -63,6 +66,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -82,6 +86,7 @@ import org.jetbrains.jewel.ui.component.Text
 @Stable
 class GlassesPairingWizard
 internal constructor(
+  private val project: Project?,
   private val coroutineScope: CoroutineScope,
   devicesFlow: Flow<List<DeviceHandle>>,
   private val glassesHandle: DeviceHandle,
@@ -106,7 +111,7 @@ internal constructor(
       // TODO android merge GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ASSISTANT_LAUNCHED)
 
       val coroutineScope = CoroutineScope(SupervisorJob())
-      val model = GlassesPairingWizard(coroutineScope, devicesFlow, glassesHandle)
+      val model = GlassesPairingWizard(project, coroutineScope, devicesFlow, glassesHandle)
       val wizard =
         ComposeWizard(
           project,
@@ -148,8 +153,11 @@ internal constructor(
           emit(PairingState.Error("Unexpected error: $cause"))
         }
       }
+      .distinctUntilChanged()
       .onEach {
         when (it) {
+          is PairingState.AwaitingAuthorization ->
+            phone?.handle?.let { project?.userInvolvementRequired(it) }
           is PairingState.Error ->
             TODO()// TODO android merge GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.SHOW_FAILED_PAIRING)
           is PairingState.Complete ->
@@ -336,6 +344,13 @@ internal fun launchAvd(handle: DeviceHandle): Flow<LaunchState> = flow {
     withTimeout(60.seconds) { handle.awaitReady() }
     emit(LaunchState.Ready)
   }
+}
+
+/** Indicates that the device requires user attention. */
+internal fun Project.userInvolvementRequired(deviceHandle: DeviceHandle) {
+  val connected = deviceHandle.state as? DeviceState.Connected ?: return
+  val serialNumber = connected.connectedDevice.serialNumber
+  messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(serialNumber, this)
 }
 
 private fun isAiGlassesCompatible(handle: DeviceHandle) =
