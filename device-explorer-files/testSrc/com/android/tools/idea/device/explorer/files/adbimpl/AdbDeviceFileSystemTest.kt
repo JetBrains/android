@@ -38,7 +38,6 @@ import com.intellij.openapi.util.EmptyRunnable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.testFramework.TestApplicationManager
-import com.intellij.testFramework.UsefulTestCase.assertThrows
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.firstOrNull
@@ -55,6 +54,7 @@ import java.nio.file.Files
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
+import org.junit.Assert.assertThrows
 
 class AdbDeviceFileSystemTest {
   private val myParentDisposable = Disposer.newDisposable()
@@ -389,7 +389,7 @@ class AdbDeviceFileSystemTest {
 
     // Act
     val totalBytesRef = AtomicReference<Long>()
-    assertThrows(AdbShellCommandException::class.java, "cp: /system/build.prop: Read-only file system") {
+    val exception = assertThrows(AdbShellCommandException::class.java) {
       runBlocking {
         dataEntry.uploadFile(tempFile, "build.prop",
           object : FileTransferProgress {
@@ -403,6 +403,7 @@ class AdbDeviceFileSystemTest {
           })
       }
     }
+    assertThat(exception.message).contains("cp: /system/build.prop: Read-only file system")
 
     // Ensure all progress callbacks have been executed
     myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
