@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.glassespairing
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -52,6 +54,7 @@ import com.google.wireless.android.sdk.stats.GlassesPairingEvent
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.JBUI
+import icons.StudioIconsCompose
 import java.awt.Component
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.collections.immutable.ImmutableList
@@ -80,6 +83,7 @@ import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
+import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IndeterminateHorizontalProgressBar
 import org.jetbrains.jewel.ui.component.Text
 
@@ -92,7 +96,7 @@ internal constructor(
   private val glassesHandle: DeviceHandle,
   private val pair: (glasses: DeviceHandle, phone: DeviceHandle) -> Flow<PairingState> =
     ::pairGlassesToPhone,
-  private val isCompatible: (DeviceHandle) -> Boolean = ::isAiGlassesCompatible
+  private val isCompatible: (DeviceHandle) -> Boolean = ::isAiGlassesCompatible,
 ) {
   companion object {
     /**
@@ -226,6 +230,16 @@ private fun PairingState(pairingState: PairingState, phone: DeviceRow) {
           CircularProgressIndicator()
           Spacer(Modifier.size(5.dp))
           Text(pairingState.detailText ?: "Waiting for user to accept permissions on ${phone.name}")
+        }
+      }
+      is PairingState.Complete -> {
+        Column(Modifier.fillMaxSize(), Arrangement.Center) {
+          Icon(
+            StudioIconsCompose.Common.Success,
+            null,
+            Modifier.size(100.dp).align(Alignment.CenterHorizontally).padding(bottom = 10.dp),
+          )
+          LargeText(pairingState.heading, Modifier.align(Alignment.CenterHorizontally))
         }
       }
       else ->
