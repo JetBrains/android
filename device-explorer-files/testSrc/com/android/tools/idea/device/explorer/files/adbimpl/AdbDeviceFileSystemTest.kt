@@ -80,7 +80,6 @@ class AdbDeviceFileSystemTest {
   @JvmField
   @Rule
   val deviceProvisionerRule = DeviceProvisionerRule {
-    installDefaultCommandHandlers()
     installDeviceHandler(TestShellCommandHandler(SHELL, shellCommands))
   }
 

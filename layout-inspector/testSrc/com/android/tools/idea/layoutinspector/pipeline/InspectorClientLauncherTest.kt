@@ -59,7 +59,6 @@ class InspectorClientLauncherTest {
   private val disposableRule = DisposableRule()
   private val projectRule = ProjectRule()
   private val adbRule = FakeAdbServerProviderRule {
-    installDefaultCommandHandlers()
     installDeviceHandler(FakeShellCommandHandler())
   }
   private val useAdbLibAndroidDebugBridgeRule = UseAdbLibAndroidDebugBridgeRule {
@@ -639,7 +638,6 @@ class InspectorClientLauncherMetricsTest {
   private val disposableRule = DisposableRule()
   private val projectRule = ProjectRule()
   private val adbRule = FakeAdbServerProviderRule {
-    installDefaultCommandHandlers()
     installDeviceHandler(FakeShellCommandHandler())
   }
   private val useAdbLibAndroidDebugBridgeRule = UseAdbLibAndroidDebugBridgeRule {

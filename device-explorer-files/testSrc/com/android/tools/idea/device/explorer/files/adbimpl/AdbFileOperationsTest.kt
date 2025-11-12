@@ -49,7 +49,6 @@ class AdbFileOperationsTest(private val testDevice: TestDevices) {
   @JvmField
   @Rule
   val fakeAdbRule = FakeAdbServerProviderRule {
-    installDefaultCommandHandlers()
     installDeviceHandler(TestShellCommandHandler(SHELL, shellCommands))
   }
 
