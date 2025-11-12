@@ -321,7 +321,7 @@ internal sealed class PairingState {
   }
 
   data object AwaitingAuthorization : PairingState() {
-    override val heading: String = "Accept CDM Permissions on Companion device"
+    override val heading: String = "Accept Permissions on Companion device"
   }
 
   data class Error(
