@@ -1202,10 +1202,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_DISCOVERY = new BooleanFlag(
     EMBEDDED_EMULATOR, "trace.discovery", "Enable Tracing of Emulator Discovery",
     "Enables tracing of Emulator discovery");
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_ALLOW_XR_HEADSET_AVD = new BooleanFlag(
-    EMBEDDED_EMULATOR, "allow.xr", "Allow XR headset AVD to run embedded",
-    "Enables running an XR headset AVD in the Running Devices tool window"
-    );
   public static final Flag<Boolean> EMBEDDED_EMULATOR_ALLOW_AI_GLASSES_AVD = new BooleanFlag(
     EMBEDDED_EMULATOR, "allow.ai.glasses", "Allow AI glasses AVD to run embedded",
     "Enables running an AI glasses AVD in the Running Devices tool window"
