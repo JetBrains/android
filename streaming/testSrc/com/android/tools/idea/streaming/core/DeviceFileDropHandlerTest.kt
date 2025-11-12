@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.streaming.core
 
-import com.android.adblib.ddmlibcompatibility.testutils.AdbLibApplicationServiceRule
+import com.android.adblib.ddmlibcompatibility.testutils.FakeAdbServerAdbLibRule
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.TestUtils
@@ -39,6 +39,11 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import java.awt.datatransfer.DataFlavor
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.concurrent.TimeUnit.SECONDS
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -46,11 +51,6 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.awt.datatransfer.DataFlavor
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Path
-import java.util.concurrent.TimeUnit.SECONDS
 
 private const val TEST_DATA_PATH = "tools/adt/idea/streaming/testData/DeviceFileDropHandlerTest"
 
@@ -63,10 +63,10 @@ class DeviceFileDropHandlerTest {
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
 
-  private val adbLibApplicationServiceRule = AdbLibApplicationServiceRule()
+  private val fakeAdbServerAdbLibRule = FakeAdbServerAdbLibRule()
 
   @get:Rule
-  val ruleChain = RuleChain(projectRule, adbLibApplicationServiceRule, emulatorRule, EdtRule())
+  val ruleChain = RuleChain(projectRule, fakeAdbServerAdbLibRule, emulatorRule, EdtRule())
   @get:Rule
   val tempDirRule = TemporaryDirectoryRule()
 
@@ -129,7 +129,7 @@ class DeviceFileDropHandlerTest {
   }
 
   private fun attachDevice(): DeviceState {
-    return adbLibApplicationServiceRule.connectDevice(
+    return fakeAdbServerAdbLibRule.connectDevice(
       deviceId = "emulator-${emulator.serialPort}",
       manufacturer = "Google",
       deviceModel = "Pixel 3 XL",
