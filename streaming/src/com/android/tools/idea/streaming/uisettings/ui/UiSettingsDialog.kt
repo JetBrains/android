@@ -34,29 +34,39 @@ import javax.swing.JComponent
 import javax.swing.JRootPane
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.SwingUtilities
-import org.jetbrains.android.util.runOnDisposalOfAnyOf
 
 private const val HORIZONTAL_MARGIN = 20
 private const val VERTICAL_MARGIN = 8
 private const val SEPARATOR_MARGIN = 4
 
 /**
- * Displays a dialog with setting shortcuts.
+ * Display the UiSettingsDialog
  */
-internal class UiSettingsDialog(
+internal fun showUiSettingsDialog(
   project: Project,
   model: UiSettingsModel,
   deviceType: DeviceType,
   parentDisposable: Disposable
+): UiSettingsDialog {
+  val dialog = UiSettingsDialog(project, model, deviceType)
+  dialog.show()
+  dialog.handleCleanUp(parentDisposable)
+  return dialog
+}
+
+/**
+ * A dialog for displaying setting shortcuts.
+ */
+internal class UiSettingsDialog(
+  project: Project,
+  model: UiSettingsModel,
+  deviceType: DeviceType
 ) : DialogWrapper(project, null, false, IdeModalityType.MODELESS, false) {
   private val header = UiSettingsHeader(model)
   private val panel = UiSettingsPanel(model, deviceType)
 
   init {
     init()
-    runOnDisposalOfAnyOf(parentDisposable, disposable) {
-      close()
-    }
   }
 
   override fun init() {
@@ -83,21 +93,12 @@ internal class UiSettingsDialog(
     }
     WindowRoundedCornersManager.configure(this)
 
-    // Close the dialog if the dialog loses focus:
-    val windowListener = object : WindowAdapter() {
-      override fun windowLostFocus(event: WindowEvent) {
-        close()
-      }
-    }
-    window.addWindowFocusListener(windowListener)
-
     // WindowMoveListener allows the window to be moved by dragging the panel.
     val moveListener = WindowMoveListener(contentPanel)
     moveListener.installTo(panel)
     moveListener.installTo(header)
 
     Disposer.register(disposable) {
-      window.removeWindowFocusListener(windowListener)
       moveListener.uninstallFrom(panel)
       moveListener.uninstallFrom(header)
     }
@@ -105,12 +106,32 @@ internal class UiSettingsDialog(
     pack()
   }
 
-  private fun close() {
-    close(OK_EXIT_CODE)
-  }
-
   override fun createContentPaneBorder() = JBUI.Borders.empty()
   override fun createNorthPanel(): JComponent = header
   override fun createCenterPanel(): JComponent = panel
   override fun createActions(): Array<Action> = emptyArray()
+
+  fun handleCleanUp(parentDisposable: Disposable) {
+    // Close the dialog if the dialog loses focus:
+    val windowListener = object : WindowAdapter() {
+      override fun windowLostFocus(event: WindowEvent) {
+        close(OK_EXIT_CODE)
+      }
+    }
+    window.addWindowFocusListener(windowListener)
+
+    registerCleanup(disposable) {
+      window.removeWindowFocusListener(windowListener)
+    }
+    registerCleanup(parentDisposable) {
+      close(OK_EXIT_CODE)
+    }
+  }
+
+  private fun registerCleanup(parent: Disposable, child: Disposable) {
+    val alreadyDisposed = !Disposer.tryRegister(parent, child)
+    if (alreadyDisposed) {
+      Disposer.dispose(child)
+    }
+  }
 }
