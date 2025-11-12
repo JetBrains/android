@@ -121,10 +121,7 @@ class LegacyDeviceRule(
       extraCommands.add(SimpleCommand("am get-config", config))
       extraCommands.add(SimpleCommand("dumpsys activity activities", activities))
     }
-  private val adbRule = FakeAdbServerRule {
-    installDefaultCommandHandlers()
-    addDeviceHandler(commandHandler)
-  }
+  private val adbRule = FakeAdbServerRule { addDeviceHandler(commandHandler) }
   private val initAndroidDebugBridgeRule = InitAndroidDebugBridgeRule { adbRule.adbServer.port }
   private val adbServiceRule = AdbServiceRule(projectRule::project)
   private val disposableRule = DisposableRule()

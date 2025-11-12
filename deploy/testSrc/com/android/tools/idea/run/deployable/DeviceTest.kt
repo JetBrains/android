@@ -67,10 +67,9 @@ class DeviceTest {
   private val myApplicationIdResolver = ApplicationIdResolver()
 
   private val fakeAdbRule = FakeAdbServerProviderRule {
-    installDefaultCommandHandlers()
-      .installDeviceHandler(
-        getShellHandler(
-          Pattern.compile("^uid.*"), mapOf(APP_ID to myPreOResult), { myPreOContinuationLatch }, { myPreOFinishedLatch }))
+    installDeviceHandler(
+      getShellHandler(
+        Pattern.compile("^uid.*"), mapOf(APP_ID to myPreOResult), { myPreOContinuationLatch }, { myPreOFinishedLatch }))
       .installDeviceHandler(getShellHandler(Pattern.compile("^stat.*"), myStatPidMap, { myOContinuationLatch }, { myOFinishedLatch }))
   }
 
