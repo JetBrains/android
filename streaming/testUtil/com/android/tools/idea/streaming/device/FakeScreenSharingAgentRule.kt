@@ -18,7 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.adblib.ConnectedDevice
 import com.android.adblib.DeviceInfo
 import com.android.adblib.DeviceState.ONLINE
-import com.android.adblib.ddmlibcompatibility.testutils.AdbLibApplicationServiceRule
+import com.android.adblib.ddmlibcompatibility.testutils.FakeAdbServerAdbLibRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.FakeDeviceCreator
@@ -65,7 +65,7 @@ class FakeScreenSharingAgentRule : TestRule {
   private var deviceCounter = 0
   private val devices = mutableListOf<FakeDevice>()
   private val projectRule = ProjectRule()
-  private val adbLibApplicationServiceRule = AdbLibApplicationServiceRule(configureFakeAdbServer())
+  private val fakeAdbServerAdbLibRule = FakeAdbServerAdbLibRule(configureFakeAdbServer())
   private val testEnvironment = object : ExternalResource() {
 
     override fun before() {
@@ -91,7 +91,7 @@ class FakeScreenSharingAgentRule : TestRule {
     get() = projectRule.project
 
   val fakeDeviceCreator: FakeDeviceCreator
-    get() = adbLibApplicationServiceRule
+    get() = fakeAdbServerAdbLibRule
 
   init {
     // Preload FFmpeg codec native libraries upfront to avoid a race condition when unpacking them.
@@ -100,7 +100,7 @@ class FakeScreenSharingAgentRule : TestRule {
 
   override fun apply(base: Statement, description: Description): Statement {
     return projectRule.apply(
-      adbLibApplicationServiceRule.apply(
+      fakeAdbServerAdbLibRule.apply(
         testEnvironment.apply(base, description),
         description),
       description)
@@ -163,7 +163,7 @@ class FakeScreenSharingAgentRule : TestRule {
                     hostConnectionType: DeviceState.HostConnectionType = DeviceState.HostConnectionType.USB): FakeDevice {
     val serialNumber = (++deviceCounter).toString()
     val release = "Sweet dessert"
-    val deviceState = adbLibApplicationServiceRule.connectDevice(
+    val deviceState = fakeAdbServerAdbLibRule.connectDevice(
       serialNumber, manufacturer, model,
       release, AndroidApiLevel(apiLevel),
       cpuAbi = abi, properties = additionalDeviceProperties, hostConnectionType = hostConnectionType)
@@ -178,7 +178,7 @@ class FakeScreenSharingAgentRule : TestRule {
   }
 
   fun disconnectDevice(device: FakeDevice) {
-    adbLibApplicationServiceRule.disconnectDevice(device.serialNumber)
+    fakeAdbServerAdbLibRule.disconnectDevice(device.serialNumber)
     Disposer.dispose(device.agent)
     devices.remove(device)
   }

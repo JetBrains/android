@@ -25,7 +25,7 @@ import org.junit.runners.model.Statement
  * The test rule that combines [FakeAdbServerRule] and [InitAndroidDebugBridgeRule] to allow
  * `AdbLibApplicationService` to be used in tests.
  */
-class AdbLibApplicationServiceRule(
+class FakeAdbServerAdbLibRule(
   configure: (FakeAdbServer.Builder.() -> FakeAdbServer.Builder)? = null
 ) : FakeAdbServerRule(TODO()) { // TODO android merge
 
