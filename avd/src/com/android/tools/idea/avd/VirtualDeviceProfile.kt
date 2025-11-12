@@ -140,6 +140,11 @@ internal val Device.formFactor: String
       Device.isAiGlasses(this) -> FormFactors.AI_GLASSES
       Device.isXrGlasses(this) -> FormFactors.XR_GLASSES
       Device.isXrHeadset(this) -> FormFactors.XR_HEADSET
+      // The above two checks look at device ID rather than tag; we don't have a way to distinguish
+      // XR headset and XR glasses device profiles. So, if we have a custom device profile with the
+      // android-xr tag, arbitrarily call it a headset. (Currently, the only difference is that
+      // glasses have an environment rather than a skin.)
+      Device.isXr(this) -> FormFactors.XR_HEADSET
       else -> FormFactors.PHONE
     }
 

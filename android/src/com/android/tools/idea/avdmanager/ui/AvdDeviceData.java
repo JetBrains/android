@@ -496,24 +496,7 @@ public final class AvdDeviceData {
 
   public void updateValuesFromDevice(@NotNull Device device, @Nullable SystemImageDescription systemImage) {
     myName.set(device.getDisplayName());
-    String tagId = device.getTagId();
-    if (tagId == null) {
-      myDeviceType.setValue(SystemImageTags.DEFAULT_TAG);
-    } else {
-      // The "android-automotive-playstore" tag shouldn't exist; we indicate Play support explicitly in Device.
-      // ("android-automotive-distantdisplay" shouldn't either, but until we have distant display support in the
-      // device schema, it's necessary.)
-      if (tagId.equals(SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG.getId())) {
-        myDeviceType.setValue(SystemImageTags.AUTOMOTIVE_TAG);
-      } else {
-        for (IdDisplay tag : AvdWizardUtils.ALL_DEVICE_TAGS) {
-          if (tag.getId().equals(tagId)) {
-            myDeviceType.setValue(tag);
-            break;
-          }
-        }
-      }
-    }
+    myDeviceType.setValue(AvdWizardUtils.canonicalizeTag(device.getTagId()));
     myDeviceId.set(device.getId());
     Hardware defaultHardware = device.getDefaultHardware();
     Screen screen = defaultHardware.getScreen();
