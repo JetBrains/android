@@ -45,15 +45,14 @@ interface ComposeStudioBotActionFactory {
   fun fixComposeRenderIssueAction(): AnAction?
 
   /**
-   * [DropdownAction] to list AI agent-based actions that are not specific to a single existing
-   * previews. It's expected to be displayed in the surface toolbar as opposed to individual preview
-   * toolbars.
+   * [DropdownAction] to list AI agent-based actions that are specific to a single preview. It's
+   * expected to be displayed in the context menu.
    */
   fun previewAgentsDropDownAction(): DropDownAction?
 
   /**
-   * [DefaultActionGroup] to list AI agent-based actions that are not specific to a single existing
-   * preview. It's expected to be displayed in the surface toolbar as opposed to individual preview
+   * [DefaultActionGroup] to list AI agent-based actions that are specific to a single preview. It's
+   * expected to be displayed in overflow menu.
    */
   fun previewAgentsActionGroup(): DefaultActionGroup?
 
