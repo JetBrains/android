@@ -23,7 +23,16 @@ import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 
-fun zoomTargetProvider(sceneView: SceneView, x: Int, y: Int, logger: Logger): Rectangle {
+/**
+ * Provides the bounding [Rectangle] of the smallest subcomponent at the given (x, y) coordinates
+ * within the [sceneView]. If no specific subcomponent is found, it returns the bounding box of the
+ * entire [sceneView].
+ *
+ * @param sceneView The [SceneView] to search within.
+ * @param x The x-coordinate in swing dimensions.
+ * @param y The y-coordinate in swing dimensions.
+ */
+fun subComponentProvider(sceneView: SceneView, x: Int, y: Int, logger: Logger): Rectangle {
   val smallestViewInfos = sceneView.getSmallestViewInfos(x, y, logger)
   if (smallestViewInfos.isNullOrEmpty()) {
     // This is expected for example when the Preview contains showSystemUi=true
@@ -31,15 +40,21 @@ fun zoomTargetProvider(sceneView: SceneView, x: Int, y: Int, logger: Logger): Re
     logger.info("Could not find the view to zoom to, zooming to the whole Preview.")
     return Rectangle(Point(0, 0), sceneView.scaledContentSize)
   }
-  if (smallestViewInfos!!.size > 1) {
+  if (smallestViewInfos.size > 1) {
     logger.warn(
       "Expected 1 view to zoom to, but found ${smallestViewInfos.size}, choosing the last one."
     )
   }
-  return findZoomTarget(smallestViewInfos.last(), sceneView)
+  return findSubComponent(smallestViewInfos.last(), sceneView)
 }
 
-fun findZoomTarget(deepestViewInfo: ComposeViewInfo, sceneView: SceneView): Rectangle =
+/**
+ * Calculates the bounding [Rectangle] of a given subcomponent within a [SceneView].
+ *
+ * @param deepestViewInfo The [ComposeViewInfo] representing the subcomponent.
+ * @param sceneView The [SceneView] containing the subcomponent.
+ */
+fun findSubComponent(deepestViewInfo: ComposeViewInfo, sceneView: SceneView): Rectangle =
   deepestViewInfo.bounds.let {
     val topLeftCorner =
       Point(
