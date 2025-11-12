@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose
 
 import com.android.flags.junit.FlagRule
+import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
@@ -46,7 +47,7 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-private const val COMPILE_SDK_VERSION = "35"
+private val COMPILE_SDK_VERSION = AndroidApiLevel(35)
 
 /**
  * [TestRule] that implements the [before] and [after] setup specific for Compose rendering tests.

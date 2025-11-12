@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.util.KotlinGradleProjectSystemUtil
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -33,7 +34,7 @@ import org.junit.Test
 @OldAgpTest(gradleVersions = ["8.13"], agpVersions = ["8.12.0"])
 class OldKotlinTest() {
 
-  private val agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_8_12.withCompileSdk("35")
+  private val agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_8_12.withCompileSdk(AndroidApiLevel(35))
 
   @get:Rule
   val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = agpVersion)

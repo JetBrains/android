@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -37,7 +38,7 @@ open class ComposeRenderTestBase(val testProject: String = SIMPLE_COMPOSE_PROJEC
     val baseTestPath =
       TestUtils.resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
     projectRule.fixture.testDataPath = baseTestPath
-    projectRule.load(testProject, AGP_CURRENT.withCompileSdk("35"))
+    projectRule.load(testProject, AGP_CURRENT.withCompileSdk(AndroidApiLevel(35)))
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
