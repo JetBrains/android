@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.lint.common.getModuleDir
@@ -50,7 +51,7 @@ import org.mockito.kotlin.whenever
 
 class KotlinBomPlatformDependencyTest {
   // The test SDK Manager needs to be set, and loadProject also changes the project files to the specified version
-  private val agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_8_12.withCompileSdk("35")
+  private val agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_8_12.withCompileSdk(AndroidApiLevel(35))
 
   @get:Rule
   val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = agpVersion)

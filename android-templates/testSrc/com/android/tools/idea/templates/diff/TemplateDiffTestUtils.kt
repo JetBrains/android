@@ -36,10 +36,9 @@ object TemplateDiffTestUtils {
    * TODO: extend this to more versions
    */
   internal fun getPinnedAgpVersion(): AgpVersionSoftwareEnvironment {
-    return AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withCompileSdk(
-        SDK_VERSION_FOR_TEMPLATE_TESTS.toString()
-      )
-      .withTargetSdk(SDK_VERSION_FOR_TEMPLATE_TESTS.toString())
+    return AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+      .withCompileSdk(SDK_VERSION_FOR_TEMPLATE_TESTS)
+      .withTargetSdk(SDK_VERSION_FOR_TEMPLATE_TESTS)
   }
 
   /**

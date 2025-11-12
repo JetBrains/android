@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors.runsGradleErrors
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.errors.AarDependencyCompatibilityIssue
 import com.android.tools.idea.gradle.project.sync.errors.UpdateCompileSdkQuickFix
@@ -50,7 +51,7 @@ class AarDependencyCompatibilityIssueCheckerIntegrationTest {
   fun testAarDependencyCompatibilityIssue() {
     projectRule.loadProject(
       TestProjectPaths.ANDROIDX_WITH_LIB_MODULE,
-      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.resolve().withCompileSdk("33").resolve()
+      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.resolve().withCompileSdk(AndroidApiLevel(33)).resolve()
     )
     val appModule = project.findAppModule()
     val libModule = project.findModule("mylibrary")
