@@ -15,24 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.utils
 
-//import com.android.tools.idea.gradle.project.sync.model.StubEelNioBridgeService
-//import com.android.tools.idea.gradle.project.sync.model.StubLocalEelDescriptor
-import com.android.tools.idea.gradle.project.sync.model.StubLocalPosixEelApi
 import com.android.tools.idea.gradle.project.sync.utils.environment.TestSystemEnvironment
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
+import com.intellij.openapi.externalSystem.service.execution.createJdkInfo
 import com.intellij.openapi.externalSystem.util.environment.Environment
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.roots.ui.configuration.SdkLookupProvider
 import com.intellij.openapi.util.Disposer
-import com.intellij.platform.eel.provider.LocalPosixEelApi
 import com.intellij.testFramework.replaceService
+import org.jetbrains.plugins.gradle.resolvers.GradleJvmResolver
 import org.mockito.Mockito
-import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 
-// TODO KMT-1388
 object EnvironmentUtils {
 
   fun overrideEnvironmentVariables(environmentVariablesMap: Map<String, String>, disposable: Disposable) {
@@ -40,13 +40,11 @@ object EnvironmentUtils {
     ApplicationManager.getApplication().replaceService(Environment::class.java, systemEnvironment, disposable)
     systemEnvironment.variables(*environmentVariablesMap.toList().toTypedArray())
 
-    val localPosixEelApi = Mockito.spy(ApplicationManager.getApplication().getService(LocalPosixEelApi::class.java))
-    doReturn(StubLocalPosixEelApi(environmentVariablesMap)).whenever(localPosixEelApi).exec
-    //val localEelDescriptor = StubLocalEelDescriptor(localPosixEelApi)
-
-    ApplicationManager.getApplication().replaceService(LocalPosixEelApi::class.java, localPosixEelApi, disposable)
-    //ApplicationManager.getApplication().replaceService(
-    //  EelNioBridgeService::class.java, StubEelNioBridgeService(localEelDescriptor), disposable)
+    // Workaround registering an GradleJvmResolver to resolve gradleJVM = '#JAVA_HOME', since EelApi implementation
+    // doesn't expose any easy and maintainable way of overriding environment variables IJPL-197722
+    val javaHomeGradleJvmResolver = JavaHomeGradleJvmResolver(environmentVariablesMap)
+    // TODO android merge ; gradle issue
+    //ApplicationManager.getApplication().registerExtension(GradleJvmResolver.EP_NAME, javaHomeGradleJvmResolver, disposable)
 
     handleSpecialCasesEnvironmentVariables(environmentVariablesMap, disposable)
   }
@@ -62,6 +60,21 @@ object EnvironmentUtils {
       Disposer.register(disposable) {
         IdeSdks.getInstance().overrideJdkEnvVariable(null)
       }
+    }
+  }
+
+  private class JavaHomeGradleJvmResolver(private val environmentVariablesMap: Map<String, String>) : GradleJvmResolver()  {
+
+    override fun canBeResolved(gradleJvm: String) = gradleJvm == USE_JAVA_HOME
+
+    override fun getResolvedSdkInfo(
+      project: Project,
+      projectSdk: Sdk?,
+      externalProjectPath: String?,
+      sdkLookupProvider: SdkLookupProvider
+    ): SdkLookupProvider.SdkInfo {
+      val jdkPathEnvValue = environmentVariablesMap[JAVA_HOME] ?: return SdkLookupProvider.SdkInfo.Undefined
+      return createJdkInfo(JAVA_HOME, jdkPathEnvValue)
     }
   }
 }
