@@ -19,7 +19,7 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2025.1.1.00">
+    version="2025.2.2.00">
   <feature
       name="What's New in Narwhal">
     <tutorial
