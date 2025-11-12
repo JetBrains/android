@@ -27,7 +27,7 @@ import com.intellij.openapi.project.Project;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.core.script.k1.settings.KotlinScriptingSettingsImpl;
+import org.jetbrains.kotlin.idea.core.script.v1.settings.KotlinScriptingSettings;
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinitionProvider;
 
 public final class AndroidStudioPreferences {
@@ -56,7 +56,7 @@ public final class AndroidStudioPreferences {
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       // Disable KotlinScriptingSettings.autoReloadConfigurations flag, avoiding unexpected re-sync project with kotlin scripts
       var iterator = ScriptDefinitionProvider.Companion.getInstance(project).getCurrentDefinitions().iterator();
-      var settings = KotlinScriptingSettingsImpl.Companion.getInstance(project);
+      var settings = KotlinScriptingSettings.getInstance(project);
       while (iterator.hasNext()) {
         var scriptDefinition = iterator.next();
         if (settings.isScriptDefinitionEnabled(scriptDefinition) && settings.autoReloadConfigurations(scriptDefinition)) {
