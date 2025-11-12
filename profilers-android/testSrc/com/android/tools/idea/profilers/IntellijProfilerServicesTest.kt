@@ -99,6 +99,12 @@ class IntellijProfilerServicesTest {
   }
 
   @Test
+  fun featureFlagSystemTraceInEditorDisabled() {
+    StudioFlags.PROFILER_SYSTEM_TRACE_IN_EDITOR.override(false)
+    assertFalse(IntellijProfilerServices.FeatureConfigProd().isSystemTraceInEditorEnabled)
+  }
+
+  @Test
   fun testGetTaskCpuProfilerConfigs() {
     val result = intellijProfilerServices.getTaskCpuProfilerConfigs(8)
     assertThat(result.size).isEqualTo(5)

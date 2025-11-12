@@ -16,6 +16,7 @@
 package com.android.tools.profilers
 
 import com.android.tools.idea.codenavigation.CodeNavigator
+import com.android.tools.idea.transport.EventStreamServer
 import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
@@ -23,6 +24,7 @@ import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.CompletableFuture
@@ -69,6 +71,15 @@ interface IdeProfilerServices {
    * @param postRunnable             A callback for when the system finally finishes writing to and synchronizing the file.
    */
   fun saveFile(file: File, fileOutputStreamConsumer: Consumer<FileOutputStream>, postRunnable: Runnable?)
+
+  /**
+   * This method ensures the file is recognized by the Virtual File System and
+   * delegates to the [com.intellij.openapi.fileEditor.FileEditorManager] to display it using the appropriate
+   * registered editor (e.g., Unified Profiler).
+   * @param file The physical file on disk to be opened.
+   * @return true if the open request was successfully initiated.
+   */
+  fun openTraceFile(file: File): Boolean
 
   /**
    * Returns a symbolizer wrapper that can be used for converting a module offset to a
@@ -196,6 +207,11 @@ interface IdeProfilerServices {
   fun clearStartupTaskConfigs()
 
   /**
+   * Closes the task tab associated with the given [ProfilerTaskType].
+   */
+  fun closeTaskTab(taskType: ProfilerTaskType)
+
+  /**
    * Whether a native CPU profiling configuration is preferred over a Java one.
    * Native configurations can be preferred for native projects, for instance.
    */
@@ -227,4 +243,17 @@ interface IdeProfilerServices {
    * If profileableMode is true, performs the ProfileProfileableAction, otherwise performs the ProfileDebuggableAction.
    */
   fun buildAndLaunchAction(profileableMode: Boolean, device: ProcessListModel.ProfilerDeviceSelection)
+
+  /**
+   * Attempts to open a trace file directly if it's already backed by a local file in the EventStreamServer.
+   * This acts as an optimization for imported sessions to avoid duplicating the file from the transport pipeline.
+   * TODO(b/472667234) Revisit to check if openTrace file should be used
+   */
+  fun openFileFromEventStream(eventStreamServer: EventStreamServer, byteId: String): Boolean
+
+  /**
+   * Returns a hash of the project home location (or other stable unique project identifier).
+   * This is used to create unique directories for storing temporary capture files per project.
+   */
+  val projectHomeHash: String get() = ""
 }

@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.profilers.capture;
 
+import com.android.tools.idea.profilers.capture.unified.UnifiedProfilerEditorProvider;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileTypes.INativeFileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -49,13 +53,41 @@ public abstract class AndroidProfilerCaptureFileType implements INativeFileType 
   @Override
   public boolean openFileInAssociatedApplication(Project project,
                                                  @NotNull VirtualFile file) {
-    AndroidProfilerCaptureEditorProvider provider = new AndroidProfilerCaptureEditorProvider();
-    if (provider.accept(project, file)) {
-      provider.createEditor(project, file);
+    return openFileInAssociatedApplication(project, file,
+                                           getLegacyProvider(),
+                                           getUnifiedProvider(),
+                                           FileEditorManager.getInstance(project));
+  }
+
+  @VisibleForTesting
+  protected boolean openFileInAssociatedApplication(Project project,
+                                          @NotNull VirtualFile file,
+                                          FileEditorProvider legacyProvider,
+                                          FileEditorProvider unifiedProvider,
+                                          FileEditorManager fileEditorManager) {
+    if (unifiedProvider.accept(project, file)) {
+      fileEditorManager.openFile(file, true);
+      return true;
+    }
+    else if (legacyProvider.accept(project, file)) {
+      legacyProvider.createEditor(project, file);
       return true;
     }
     return false;
   }
+
+  @VisibleForTesting
+  @NotNull
+  FileEditorProvider getLegacyProvider() {
+    return new AndroidProfilerCaptureEditorProvider();
+  }
+
+  @VisibleForTesting
+  @NotNull
+  FileEditorProvider getUnifiedProvider() {
+    return new UnifiedProfilerEditorProvider();
+  }
+
 
   @Override
   public boolean useNativeIcon() {
