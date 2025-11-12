@@ -201,14 +201,16 @@ class BindingScopeEnlargerMultiModuleTest {
         .addFileToProject("lib/src/main/src/LibActivity.java", "public class LibActivity {}")
         .getFirstJavaClass()
 
-    assertThat(PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, appLightBindingClass))
-      .isTrue()
-    assertThat(PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, libLightBindingClass))
-      .isTrue()
-    assertThat(PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, appLightBindingClass))
-      .isFalse()
-    assertThat(PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, libLightBindingClass))
-      .isTrue()
+    runReadAction {
+      assertThat(PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, appLightBindingClass))
+        .isTrue()
+      assertThat(PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, libLightBindingClass))
+        .isTrue()
+      assertThat(PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, appLightBindingClass))
+        .isFalse()
+      assertThat(PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, libLightBindingClass))
+        .isTrue()
+    }
   }
 
   private fun AndroidFacet.getLightBindingClasses() = runReadAction {
