@@ -98,9 +98,7 @@ class GenerateBaselineProfileModuleTest {
         useGradleKts = true,
         useGmd = true,
         projectRuleAgpVersion =
-          AgpVersionSoftwareEnvironmentDescriptor.AGP_81.withCompileSdk(
-            SDK_VERSION_FOR_NPW_TESTS.toString()
-          ),
+          AgpVersionSoftwareEnvironmentDescriptor.AGP_81.withCompileSdk(SDK_VERSION_FOR_NPW_TESTS),
       )
 
     val buildGradleContent = rootDir.resolve("build.gradle.kts").readText()
@@ -151,9 +149,7 @@ class GenerateBaselineProfileModuleTest {
         useGradleKts = false,
         useGmd = false,
         projectRuleAgpVersion =
-          AgpVersionSoftwareEnvironmentDescriptor.AGP_81.withCompileSdk(
-            SDK_VERSION_FOR_NPW_TESTS.toString()
-          ),
+          AgpVersionSoftwareEnvironmentDescriptor.AGP_81.withCompileSdk(SDK_VERSION_FOR_NPW_TESTS),
       )
 
     val buildGradleContent = rootDir.resolve("build.gradle").readText()
@@ -712,7 +708,7 @@ android {
 
   defaultConfig {
         minSdk 34
-        targetSdk $SDK_VERSION_FOR_NPW_TESTS
+        targetSdk ${SDK_VERSION_FOR_NPW_TESTS.majorVersion}
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -753,7 +749,7 @@ android {
 
   defaultConfig {
         minSdk = 34
-        targetSdk = $SDK_VERSION_FOR_NPW_TESTS
+        targetSdk = ${SDK_VERSION_FOR_NPW_TESTS.majorVersion}
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

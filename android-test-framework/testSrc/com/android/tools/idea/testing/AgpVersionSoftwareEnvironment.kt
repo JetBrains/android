@@ -18,6 +18,9 @@
 package com.android.tools.idea.testing
 
 import com.android.SdkConstants
+import com.android.sdklib.AndroidApiLevel
+import com.android.sdklib.AndroidMajorVersion
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.projectRoots.JavaSdk
@@ -147,20 +150,24 @@ fun AgpVersionSoftwareEnvironment.withKotlin(
   )
 
 fun AgpVersionSoftwareEnvironment.withCompileSdk(
-  compileSdk: String
+  compileSdk: AndroidVersion
 ): CustomAgpVersionSoftwareEnvironment =
   CustomAgpVersionSoftwareEnvironment(
     agpVersion,
     gradleVersion,
     jdkVersion,
     kotlinVersion,
-    compileSdk,
+    compileSdk.apiStringWithExtension,
     targetSdk,
     modelVersion,
   )
 
+fun AgpVersionSoftwareEnvironment.withCompileSdk(
+  compileSdk: AndroidApiLevel
+): CustomAgpVersionSoftwareEnvironment = withCompileSdk(AndroidVersion(compileSdk))
+
 fun AgpVersionSoftwareEnvironment.withTargetSdk(
-  targetSdk: String
+  targetSdk: AndroidMajorVersion
 ): CustomAgpVersionSoftwareEnvironment =
   CustomAgpVersionSoftwareEnvironment(
     agpVersion,
@@ -168,9 +175,13 @@ fun AgpVersionSoftwareEnvironment.withTargetSdk(
     jdkVersion,
     kotlinVersion,
     compileSdk,
-    targetSdk,
+    targetSdk.apiString,
     modelVersion,
   )
+
+fun AgpVersionSoftwareEnvironment.withTargetSdk(
+  targetSdk: AndroidApiLevel
+): CustomAgpVersionSoftwareEnvironment = withTargetSdk(AndroidVersion(targetSdk).majorVersion)
 
 @JvmName("resolveAgpVersionSoftwareEnvironment")
 @JvmOverloads

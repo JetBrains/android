@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module
 
 import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -35,7 +36,7 @@ import org.junit.Test
 
 class NewModuleCompileSdkSelectionTest {
   private val agpVersionToTest =
-    AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withCompileSdk("33")
+    AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withCompileSdk(AndroidApiLevel(33))
 
   @get:Rule
   val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = agpVersionToTest)

@@ -15,21 +15,23 @@
  */
 package com.android.tools.idea.npw
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.withCompileSdk
 import com.android.tools.idea.testing.withTargetSdk
 
-internal const val SDK_VERSION_FOR_NPW_TESTS = 35
+internal val SDK_VERSION_FOR_NPW_TESTS = AndroidApiLevel(35)
 
 object NewProjectWizardTestUtils {
+
   @JvmStatic
   fun getAgpVersion(): AgpVersionSoftwareEnvironment {
     return AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withCompileSdk(
-        SDK_VERSION_FOR_NPW_TESTS.toString()
+        SDK_VERSION_FOR_NPW_TESTS
       )
-      .withTargetSdk(SDK_VERSION_FOR_NPW_TESTS.toString())
+      .withTargetSdk(SDK_VERSION_FOR_NPW_TESTS)
   }
 
   @JvmStatic
