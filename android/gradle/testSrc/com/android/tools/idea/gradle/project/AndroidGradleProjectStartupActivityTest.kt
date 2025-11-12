@@ -212,7 +212,7 @@ class AndroidGradleProjectStartupActivityTest {
     }
     catch (e: Exception) {
       assertThat(e.message).isEqualTo(
-        "Some of the Android Studio features using Gradle require syncing so it has up-to-date information about your project. Sync the project to ensure the best Android Studio experience. You can snooze sync notifications for this session.")
+        "Some critical Android Studio features using Gradle require syncing so it has up-to-date information about your project. Sync the project to ensure Android Studio presents complete and up-to-date information for your project. You can snooze sync notifications for this session.")
     }
   }
 
