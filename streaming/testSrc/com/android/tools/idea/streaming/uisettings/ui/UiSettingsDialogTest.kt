@@ -19,7 +19,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.HeadlessDialogRule
+import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.streaming.uisettings.binding.ChangeListener
 import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
@@ -31,10 +31,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TestName
 import java.awt.Dimension
 import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_SHIFT
@@ -44,6 +40,10 @@ import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JSlider
 import kotlin.time.Duration.Companion.seconds
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TestName
 
 @RunsInEdt
 class UiSettingsDialogTest {
@@ -64,14 +64,16 @@ class UiSettingsDialogTest {
     }
 
   @get:Rule
-  val ruleChain = RuleChain(nameRule, projectRule, HeadlessDialogRule(), EdtRule())
+  val ruleChain = RuleChain(nameRule, projectRule, EdtRule())
 
   @Before
   fun before() {
+    val disposable = projectRule.disposable
+    enableHeadlessDialogs(disposable)
     model = createModel()
-    dialog = UiSettingsDialog(projectRule.project, model, deviceTypeFromTestName, projectRule.disposable)
+    dialog = showUiSettingsDialog(projectRule.project, model, deviceTypeFromTestName, disposable)
     panel = dialog.contentPanel
-    ui = FakeUi(panel, createFakeWindow = false, parentDisposable = projectRule.disposable)
+    ui = FakeUi(panel, createFakeWindow = false, parentDisposable = disposable)
   }
 
   private fun createModel(): UiSettingsModel {

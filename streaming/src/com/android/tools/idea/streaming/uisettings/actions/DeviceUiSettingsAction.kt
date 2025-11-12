@@ -22,8 +22,8 @@ import com.android.tools.idea.streaming.device.actions.AbstractDeviceAction
 import com.android.tools.idea.streaming.device.actions.getDeviceConfig
 import com.android.tools.idea.streaming.device.actions.getDeviceController
 import com.android.tools.idea.streaming.uisettings.DeviceUiSettingsController
-import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
+import com.android.tools.idea.streaming.uisettings.ui.showUiSettingsDialog
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.EDT
@@ -56,8 +56,7 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(
     deviceView.createCoroutineScope().launch {
       controller.populateModel()
       withContext(Dispatchers.EDT) {
-        val dialog = UiSettingsDialog(project, model, deviceType, deviceView)
-        dialog.show()
+        showUiSettingsDialog(project, model, deviceType, deviceView)
       }
     }
   }
