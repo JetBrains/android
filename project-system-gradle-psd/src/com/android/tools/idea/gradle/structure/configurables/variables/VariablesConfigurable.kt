@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.android.tools.idea.structure.dialog.ValidationAggregateDisplayConfigurable
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.options.BaseConfigurable
@@ -44,11 +45,13 @@ class VariablesConfigurable(private val project: Project, private val context: P
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_VARIABLES
   private val myEventDispatcher = EventDispatcher.create(ValidationAggregateDisplayConfigurable.ValidationChangeListener::class.java)
   private var myHasValidationErrors = false
+  @VisibleForTesting var table: VariablesTable? = null
 
   override fun createComponent(): JComponent {
     val panel = JPanel(BorderLayout())
     panel.border = BorderFactory.createEmptyBorder(20, 10, 20, 10)
     val table = VariablesTable(project, context, context.project, this, this)
+    this.table = table
     panel.add(
       ToolbarDecorator
         .createDecorator(table)
@@ -66,13 +69,19 @@ class VariablesConfigurable(private val project: Project, private val context: P
     table.runToolbarAddAction(button.preferredPopupPoint!!)
   }
 
-  override fun apply() = context.applyChanges()
+  override fun apply() {
+    table?.cellEditor?.stopCellEditing()
+    context.applyChanges()
+  }
 
   override fun copyEditedFieldsTo(builder: PSDEvent.Builder) {
     builder.addAllModifiedFields(context.getEditedFieldsAndClear())
   }
 
-  override fun isModified(): Boolean = context.project.isModified
+  override fun isModified(): Boolean {
+    val editInProgress = table?.isEditing ?: false
+    return editInProgress || context.project.isModified
+  }
 
   override fun reset() {
     super.reset()
