@@ -1078,9 +1078,19 @@ def android_studio(
             name = name + "-metadata",
             deps = plugins,
         )
+
+    configured_targets = {}
+    default_configuration = None
     for configuration in configurations:
         config_name = Label(configuration).name
-        suffix = "" if config_name == legacy_default_configuration else "." + config_name
+        configured_targets["." + config_name] = configuration
+        if config_name == legacy_default_configuration:
+            configured_targets[""] = configuration
+            default_configuration = configuration
+    if not default_configuration:
+        fail("Default configuration " + legacy_default_configuration + " not found in list of configurations")
+
+    for suffix, configuration in configured_targets.items():
         _android_studio(
             name = name + suffix,
             compress = is_release(),
