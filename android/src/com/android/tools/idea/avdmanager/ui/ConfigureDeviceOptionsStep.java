@@ -118,7 +118,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<>(new ArrayList<>(AvdWizardUtils.availableDeviceTags())));
+    myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<>(new ArrayList<>(DeviceProfileTags.availableDeviceTags())));
 
     myDeviceTypeComboBox.setRenderer(SimpleListCellRenderer.create(
       DEFAULT_DEVICE_TYPE_LABEL, value -> SystemImageTags.DEFAULT_TAG.equals(value) ? DEFAULT_DEVICE_TYPE_LABEL : value.getDisplay()));

@@ -21,7 +21,6 @@ import com.android.resources.Density;
 import com.android.resources.Keyboard;
 import com.android.resources.Navigation;
 import com.android.resources.ScreenOrientation;
-import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.devices.ButtonType;
 import com.android.sdklib.devices.CameraLocation;
 import com.android.sdklib.devices.Device;
@@ -496,7 +495,7 @@ public final class AvdDeviceData {
 
   public void updateValuesFromDevice(@NotNull Device device, @Nullable SystemImageDescription systemImage) {
     myName.set(device.getDisplayName());
-    myDeviceType.setValue(AvdWizardUtils.canonicalizeTag(device.getTagId()));
+    myDeviceType.setValue(DeviceProfileTags.canonicalizeTag(device.getTagId()));
     myDeviceId.set(device.getId());
     Hardware defaultHardware = device.getDefaultHardware();
     Screen screen = defaultHardware.getScreen();
