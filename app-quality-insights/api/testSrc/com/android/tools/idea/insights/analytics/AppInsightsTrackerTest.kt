@@ -23,7 +23,6 @@ import com.android.tools.idea.insights.DEFAULT_FETCHED_DEVICES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
 import com.android.tools.idea.insights.DEFAULT_FETCHED_VERSIONS
-import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
@@ -53,6 +52,8 @@ import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.issue.FailureType
+import com.android.tools.idea.insights.toCrashType
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails

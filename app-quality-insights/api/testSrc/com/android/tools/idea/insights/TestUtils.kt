@@ -27,6 +27,8 @@ import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventData
 import com.android.tools.idea.insights.model.event.Log
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.issue.FailureType
+import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.stacktrace.Blames
 import com.android.tools.idea.insights.model.stacktrace.Caption
 import com.android.tools.idea.insights.model.stacktrace.ExceptionStack

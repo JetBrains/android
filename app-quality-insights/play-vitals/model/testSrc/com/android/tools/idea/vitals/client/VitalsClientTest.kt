@@ -20,11 +20,9 @@ import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DataPoint
 import com.android.tools.idea.insights.FAKE_50_DAYS_AGO
-import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.FakeTimeProvider
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.IssueDetails
-import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.PlayTrack
@@ -49,6 +47,8 @@ import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.DeviceType
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.issue.FailureType
+import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.stacktrace.Caption
 import com.android.tools.idea.insights.model.stacktrace.ExceptionStack
 import com.android.tools.idea.insights.model.stacktrace.Frame

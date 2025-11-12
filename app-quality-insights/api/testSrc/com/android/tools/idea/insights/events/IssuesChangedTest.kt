@@ -24,7 +24,6 @@ import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
 import com.android.tools.idea.insights.DEFAULT_FETCHED_VERSIONS
 import com.android.tools.idea.insights.DynamicEventGallery
-import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.Filters
@@ -48,6 +47,7 @@ import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.selectionOf
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat

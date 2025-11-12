@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.ui.actions
 import com.android.tools.adtui.common.ColoredIconGenerator.generateColoredIcon
 import com.android.tools.adtui.ui.DynamicRendererList
 import com.android.tools.idea.insights.AppInsight
+import com.android.tools.idea.insights.getIcon
 import com.android.tools.idea.insights.ui.JListSimpleColoredComponent
 import com.android.tools.idea.insights.ui.ResizedSimpleColoredComponent
 import com.android.tools.idea.insights.ui.formatNumberToPrettyString

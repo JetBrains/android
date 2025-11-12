@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.vitals.datamodel
+package com.android.tools.idea.insights.model.issue
 
-import com.android.tools.idea.insights.model.issue.FailureType
-import com.google.play.developer.reporting.ErrorType
-
-internal fun ErrorType.toFailureType(): FailureType {
-  return when (this) {
-    ErrorType.ERROR_TYPE_UNSPECIFIED,
-    ErrorType.UNRECOGNIZED -> FailureType.UNSPECIFIED
-    ErrorType.APPLICATION_NOT_RESPONDING -> FailureType.ANR
-    ErrorType.CRASH -> FailureType.FATAL
-  }
-}
+data class IssueAnnotation(
+  // e.g. "Potential fix", "Insight"
+  val category: String,
+  // e.g. "Slow Binder call"
+  val title: String,
+  val body: String,
+)

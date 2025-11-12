@@ -22,11 +22,12 @@ import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
-import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.stacktrace.Blames
 import com.android.tools.idea.insights.model.stacktrace.Frame
+import com.android.tools.idea.insights.toCrashType
 import com.android.tools.idea.insights.ui.vcs.CONNECTION_OF_SELECTED_CRASH
 import com.android.tools.idea.insights.ui.vcs.InsightsAttachInlayDiffLinkFilter
 import com.android.tools.idea.insights.ui.vcs.InsightsExceptionInfoCache

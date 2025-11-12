@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.insights.events.actions
 
-import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.FetchSource
-import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.issue.FailureType
+import com.android.tools.idea.insights.model.issue.IssueId
 import kotlin.reflect.KClass
 
 /**

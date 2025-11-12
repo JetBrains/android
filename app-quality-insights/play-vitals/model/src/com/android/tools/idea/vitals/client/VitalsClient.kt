@@ -19,10 +19,7 @@ import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DetailedIssueStats
-import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.FetchSource
-import com.android.tools.idea.insights.IssueId
-import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MINIMUM_PERCENTAGE_TO_SHOW
@@ -48,6 +45,9 @@ import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.issue.FailureType
+import com.android.tools.idea.insights.model.issue.IssueId
+import com.android.tools.idea.insights.model.issue.IssueState
 import com.android.tools.idea.insights.model.stacktrace.StackTraceGroupParser
 import com.android.tools.idea.insights.summarizeDevicesFromRawDataPoints
 import com.android.tools.idea.insights.summarizeOsesFromRawDataPoints
