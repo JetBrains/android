@@ -816,7 +816,6 @@ class EmulatorToolWindowPanelTest {
     val mockUIThemeLookAndFeelInfo = mock<UIThemeLookAndFeelInfoImpl>()
     whenever(mockUIThemeLookAndFeelInfo.name).thenReturn("Darcula")
     val mockLafManager = mock<LafManager>()
-    @Suppress("UnstableApiUsage")
     whenever(mockLafManager.currentUIThemeLookAndFeel).thenReturn(mockUIThemeLookAndFeelInfo)
     ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, testRootDisposable)
 
