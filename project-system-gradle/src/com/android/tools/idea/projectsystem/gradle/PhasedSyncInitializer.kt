@@ -27,6 +27,7 @@ import com.intellij.workspaceModel.ide.legacyBridge.findModule
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncExtension
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
+import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase.Companion.PROJECT_MODEL_PHASE
 import org.jetbrains.plugins.gradle.service.syncAction.impl.extensions.GradleJpsSyncExtension
 
 /**
@@ -46,12 +47,14 @@ internal class FixSyncContributorIssues : GradleSyncExtension {
     projectStorage: MutableEntityStorage,
     phase: GradleSyncPhase,
   ) {
-    if (!StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()) {
+    if (!context.isPhasedSyncEnabled || !StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()) {
       // If data bridge is not disabled, everything that was set up by phased sync will be removed, so no need to do anything.
       return
     }
 
-    reconcileExistingHolderModules(context, syncStorage, phase)
+    if (phase == PROJECT_MODEL_PHASE) {
+      reconcileExistingHolderModules(context, syncStorage, phase)
+    }
   }
 
   private fun reconcileExistingHolderModules(context: ProjectResolverContext, storage: MutableEntityStorage, phase: GradleSyncPhase) {
