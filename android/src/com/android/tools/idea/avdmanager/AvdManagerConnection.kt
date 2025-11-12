@@ -25,12 +25,14 @@ import com.android.sdklib.deviceprovisioner.DeviceActionCanceledException
 import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
 import com.android.sdklib.devices.Abi
+import com.android.sdklib.internal.avd.AvdBuilder
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.BootMode
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.internal.avd.ConfigKey.SKIN_PATH
 import com.android.sdklib.internal.avd.EmulatorPackage
+import com.android.sdklib.internal.avd.UserSettingsKey
 import com.android.sdklib.internal.avd.getEmulatorPackage
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
@@ -39,6 +41,7 @@ import com.android.tools.idea.avdmanager.DeviceSkinUpdater.updateSkin
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
@@ -424,6 +427,15 @@ constructor(
         }
       }
     }
+    // Clear the paired devices when data is wiped.
+    AvdBuilder.updateUserSettings(
+      avdInfo.dataFolderPath,
+      mapOf(
+        UserSettingsKey.PAIRED_PHONE_AVD_ID to null,
+        UserSettingsKey.PAIRED_GLASSES_AVD_ID to null,
+      ),
+      LogWrapper(IJ_LOG),
+    )
     return true
   }
 
@@ -483,8 +495,8 @@ constructor(
     /** Checks whether the emulator can be launched in the Running Device tool window. */
     private fun canLaunchInToolWindow(avd: AvdInfo, project: Project?): Boolean {
       return project != null &&
-             ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null &&
-             (StudioFlags.EMBEDDED_EMULATOR_ALLOW_AI_GLASSES_AVD.get() || !avd.isAiGlassesDevice)
+        ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null &&
+        (StudioFlags.EMBEDDED_EMULATOR_ALLOW_AI_GLASSES_AVD.get() || !avd.isAiGlassesDevice)
     }
 
     @JvmStatic
