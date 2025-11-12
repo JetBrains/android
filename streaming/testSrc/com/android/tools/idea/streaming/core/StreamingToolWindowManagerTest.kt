@@ -118,7 +118,7 @@ class StreamingToolWindowManagerTest {
   private val emulatorRule = FakeEmulatorRule()
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   private val popupRule = JBPopupRule()
-  private val provisionerRule = LightweightDeviceProvisionerRule(agentRule.adbLibApplicationServiceRule) { AdbLibApplicationService.instance.session }
+  private val provisionerRule = LightweightDeviceProvisionerRule(agentRule.fakeDeviceCreator) { AdbLibApplicationService.instance.session }
 
   @get:Rule
   val ruleChain = RuleChain(agentRule, provisionerRule, emulatorRule, ClipboardSynchronizationDisablementRule(), androidExecutorsRule,
