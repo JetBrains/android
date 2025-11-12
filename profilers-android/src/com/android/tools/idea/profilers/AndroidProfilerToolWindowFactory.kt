@@ -143,6 +143,7 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
     @Nls
     private val PROFILER_TOOL_WINDOW_TITLE = if (IdeInfo.getInstance().isAndroidStudio) "Profiler" else AndroidProfilerBundle.message("android.profiler.tool.window.title")
     @VisibleForTesting
+    @JvmField
     val PROJECT_PROFILER_MAP: MutableMap<Project, AndroidProfilerToolWindow> = HashMap()
     private fun createContent(project: Project, toolWindow: ToolWindow) {
       val view = createProfilerToolWindow(project, toolWindow)

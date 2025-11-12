@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.capture;
 
+import com.android.tools.idea.profilers.capture.unified.UnifiedProfilerEditorProvider;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -33,14 +34,26 @@ public class AndroidProfilerCaptureEditorProvider implements FileEditorProvider,
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
+    // We check extensions by FileTypes first. we shouldn't check further for non-profiler types
     String extension = file.getExtension();
     FileType fileType = FileTypeManager.getInstance().getFileTypeByFile(file);
-    return (fileType instanceof CpuCaptureFileType ||
+    boolean isProfilerCaptureFile = (fileType instanceof CpuCaptureFileType ||
             fileType instanceof MemoryAllocationFileType ||
             fileType instanceof MemoryCaptureFileType ||
             fileType instanceof HeapProfdMemoryCaptureFileType ||
             fileType instanceof ProfilerDatabaseFileType ||
             PerfettoCaptureFileType.EXTENSIONS.contains(extension));
+
+    if (!isProfilerCaptureFile) return false;
+
+    // This check guarantees mutual exclusion between the Unified provider and this Legacy provider.
+    // If canViewInUnifiedProfiler() returns true, the Unified provider is capable of handling the file,
+    // so this Legacy provider explicitly steps aside by returning false.
+    // We only consider accepting the file if the Unified provider returns false.
+    if (UnifiedProfilerEditorProvider.canViewInUnifiedProfiler(file)) {
+      return false;
+    }
+    return true;
   }
 
   @Override

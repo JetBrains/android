@@ -16,7 +16,9 @@
 package com.android.tools.profilers
 
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.SessionData.SessionStarted
 import com.android.tools.profiler.proto.LeakCanary
+import com.android.tools.profilers.cpu.CpuCaptureStageUtils
 import com.android.tools.profilers.memory.MemoryProfiler
 import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.openapi.diagnostic.Logger
@@ -26,6 +28,7 @@ import java.io.IOException
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
+import kotlin.jvm.JvmStatic
 
 /**
  * This utility class extracts and exposes common functions needed to import a file and convert it to a session + artifact
@@ -39,7 +42,13 @@ object ImportedSessionUtils {
    * Helper function to copy an imported file to a temporary location.
    * @return The copied file. If the copy fails, it logs a warning and returns the original file as a fallback.
    */
-  private fun copyToTemp(file: File): File {
+  private fun copyToTemp(file: File, services: IdeProfilerServices, sessionType: SessionStarted.SessionType? = null): File {
+    if (services.featureConfig.isSystemTraceInEditorEnabled && sessionType == SessionStarted.SessionType.CPU_CAPTURE) {
+      val permanentFile = CpuCaptureStageUtils.getPermanentCaptureFile(services, file, file.name)
+      if (permanentFile != null) {
+        return permanentFile
+      }
+    }
     return try {
       val tempFile = FileUtil.createTempFile("profiler-import-${file.nameWithoutExtension}", ".${file.extension}", true)
       FileUtil.copy(file, tempFile)
@@ -59,11 +68,11 @@ object ImportedSessionUtils {
   fun importFileWithArtifactEvent(
     sessionsManager: SessionsManager,
     file: File,
-    sessionType: Common.SessionData.SessionStarted.SessionType,
+    sessionType: SessionStarted.SessionType,
     makeEvent: (Long, Long) -> Common.Event
   ) {
     withFileImportedOnce(sessionsManager, file) { startTimestampsEpochMs, startTime, endTime ->
-      val copiedFile = copyToTemp(file)
+      val copiedFile = copyToTemp(file, sessionsManager.studioProfilers.ideServices, sessionType)
       sessionsManager.createImportedSession(
         file.name,
         sessionType,
@@ -83,10 +92,10 @@ object ImportedSessionUtils {
   fun importFile(
     sessionsManager: SessionsManager,
     file: File,
-    sessionType: Common.SessionData.SessionStarted.SessionType,
+    sessionType: SessionStarted.SessionType,
   ) {
     withFileImportedOnce(sessionsManager, file) { startTimestampsEpochMs, startTime, endTime ->
-      val copiedFile = copyToTemp(file)
+      val copiedFile = copyToTemp(file, sessionsManager.studioProfilers.ideServices, sessionType)
       sessionsManager.createImportedSession(
         file.name,
         sessionType,
@@ -160,7 +169,7 @@ object ImportedSessionUtils {
   fun importEventBasedArtifact(
     sessionsManager: SessionsManager,
     file: File,
-    sessionType: Common.SessionData.SessionStarted.SessionType,
+    sessionType: SessionStarted.SessionType,
     metaDataSessionType: Common.SessionMetaData.SessionType,
     makeArtifactEvents: ((Long, Long) -> List<Common.Event>)? = null
   ) {
@@ -185,7 +194,16 @@ object ImportedSessionUtils {
 
     // The time when the session is created. Will determine the order in Past Recordings panel.
     val startTimestampEpochMs = System.currentTimeMillis()
-    val copiedFile = FileUtil.createTempFile("imported-${file.nameWithoutExtension}", ".${file.extension}", true)
+    var copiedFile: File? = null
+    if (sessionsManager.studioProfilers.ideServices.featureConfig.isSystemTraceInEditorEnabled) {
+      copiedFile = CpuCaptureStageUtils.getPermanentCaptureFile(
+        sessionsManager.studioProfilers.ideServices,
+        file,
+        file.name)
+    }
+    if (copiedFile == null) {
+      copiedFile = FileUtil.createTempFile("imported-${file.nameWithoutExtension}", ".${file.extension}", true)
+    }
 
     try {
       // 1. Create the stream to get a streamId and server.
@@ -340,7 +358,7 @@ object ImportedSessionUtils {
   private fun importLeakCanaryTask(profilers: StudioProfilers, file: File) {
     importEventBasedArtifact(profilers.sessionsManager,
                              file,
-                             Common.SessionData.SessionStarted.SessionType.FULL,
+                             SessionStarted.SessionType.FULL,
                              Common.SessionMetaData.SessionType.FULL) { start, end ->
       listOf(
         makeStartedEvent(start, start, Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS) {
@@ -363,7 +381,7 @@ object ImportedSessionUtils {
   private fun importLiveTask(profilers: StudioProfilers, file: File) {
     importEventBasedArtifact(profilers.sessionsManager,
                              file,
-                             Common.SessionData.SessionStarted.SessionType.FULL,
+                             SessionStarted.SessionType.FULL,
                              Common.SessionMetaData.SessionType.FULL) { start, _ ->
       listOf(makeStartedEvent(start, start, Common.Event.Kind.LIVE_VIEW_STATUS) {})
     }

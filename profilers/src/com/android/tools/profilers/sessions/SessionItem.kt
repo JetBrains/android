@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData
 import com.android.tools.profiler.proto.Common.SessionMetaData
-import com.android.tools.profilers.LiveStage
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.StudioMonitorStage
 import com.android.tools.profilers.StudioProfilers

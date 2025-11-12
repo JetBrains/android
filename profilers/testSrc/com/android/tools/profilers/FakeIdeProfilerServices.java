@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.FakeNavSource;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
+import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.FakeTracePreProcessor;
@@ -133,6 +134,8 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   private boolean myTaskTitleV2Enabled = false;
 
+  private boolean mySystemTraceInEditorEnabled = false;
+
   /**
    * Whether power and battery data tracks should be visible in system trace and if shown,
    * which graph display style will be used for the power and battery tracks.
@@ -163,6 +166,8 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   @Nullable private Notification myNotification;
 
   @NotNull private final Set<String> myProjectClasses = new HashSet<>();
+
+  private File myOpenedFile;
 
   public FakeIdeProfilerServices() {
     myPersistentPreferences = new FakeProfilerPreferences();
@@ -276,6 +281,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isTaskTitleV2Enabled() {
         return myTaskTitleV2Enabled;
+      }
+
+      @Override
+      public boolean isSystemTraceInEditorEnabled() {
+        return mySystemTraceInEditorEnabled;
       }
     };
   }
@@ -464,5 +474,30 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableLeakCanaryMilestone2(boolean enabled) {
     myLeakCanaryMilestone2Enabled = enabled;
+  }
+
+  public void enableSystemTraceInEditor(boolean enabled) {
+    mySystemTraceInEditorEnabled = enabled;
+  }
+
+  @Override
+  public boolean openTraceFile(@NotNull File file) {
+    myOpenedFile = file;
+    return true;
+  }
+
+  @Override
+  public void closeTaskTab(@NotNull ProfilerTaskType taskType) {
+  }
+
+  @Override
+  public boolean openFileFromEventStream(@NotNull EventStreamServer eventStreamServer, @NotNull String byteId) {
+    return openTraceFile(new File(byteId + ".trace"));
+  }
+
+  @NotNull
+  @Override
+  public String getProjectHomeHash() {
+    return "fake_project_hash";
   }
 }
