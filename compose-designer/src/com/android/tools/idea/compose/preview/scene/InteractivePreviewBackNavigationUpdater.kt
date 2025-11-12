@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.scene
 
-import com.android.tools.idea.compose.preview.InteractiveNavigationHandler
+import com.android.tools.idea.compose.preview.InteractivePreviewNavigationController
 import com.android.tools.idea.compose.preview.scene.InteractivePreviewBackNavigationUpdater.currentNavigationEventDispatcherOwner
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
@@ -24,8 +24,8 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.preview.ComposePreviewElementInstance
 
 /**
- * Sets up the [InteractiveNavigationHandler] on the [ComposePreviewElementInstance] responsible for handling interactive back navigation
- * events in the preview.
+ * Sets up the [InteractivePreviewNavigationController] on the [ComposePreviewElementInstance] responsible for handling interactive back
+ * navigation events in the preview.
  */
 object InteractivePreviewBackNavigationUpdater {
 
@@ -54,13 +54,14 @@ object InteractivePreviewBackNavigationUpdater {
   }
 
   /**
-   * Updates the [InteractiveNavigationHandler] for the current [ComposePreviewElementInstance] using the provided [LayoutlibSceneManager].
+   * Updates the [InteractivePreviewNavigationController] for the current [ComposePreviewElementInstance] using the provided
+   * [LayoutlibSceneManager].
    *
    * This method retrieves the [ComposePreviewElementInstance] and the underlying object of `androidx.compose.ui-tooling.ComposeViewAdapter`
-   * from the [LayoutlibSceneManager] to update the [InteractiveNavigationHandler].
+   * from the [LayoutlibSceneManager] to update the [InteractivePreviewNavigationController].
    *
-   * Call this method on every preview render to ensure the [InteractiveNavigationHandler] has the most current navigation information from
-   * the [ComposeViewAdapter].
+   * Call this method on every preview render to ensure the [InteractivePreviewNavigationController] has the most current navigation
+   * information from the [ComposeViewAdapter].
    *
    * @param previewManager The [PreviewModeManager] to check the current preview mode.
    * @param layoutlibSceneManager The [LayoutlibSceneManager] providing the [ComposePreviewElementInstance] and the [ComposeViewAdapter]
@@ -69,11 +70,11 @@ object InteractivePreviewBackNavigationUpdater {
   fun update(
     previewManager: PreviewModeManager,
     layoutlibSceneManager: LayoutlibSceneManager,
-    interactiveNavigationHandler: InteractiveNavigationHandler,
+    interactivePreviewNavigationController: InteractivePreviewNavigationController,
   ) {
     val composeViewAdapterObj = layoutlibSceneManager.viewObject ?: return
     if (previewManager.mode.value !is PreviewMode.Interactive) return
-    interactiveNavigationHandler.updateObjects(
+    interactivePreviewNavigationController.updateObjects(
       currentNavigationEventDispatcherOwnerObj = currentNavigationEventDispatcherOwner,
       currentComposeViewAdapterObj = composeViewAdapterObj,
     )

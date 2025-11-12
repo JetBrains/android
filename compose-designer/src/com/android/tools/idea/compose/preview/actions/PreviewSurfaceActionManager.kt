@@ -20,6 +20,7 @@ import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
+import com.android.tools.idea.compose.preview.PredictiveBackNavigationControlsAction
 import com.android.tools.idea.compose.preview.actions.glasses.GlassesBlendDropdownAction
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.subComponentProvider
@@ -93,6 +94,12 @@ internal class PreviewSurfaceActionManager(
         .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
         .hideIfRenderErrors()
         .visibleOnlyInStaticPreview() +
-      listOfNotNull(StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK.ifEnabled { BackNavigationAction().visibleOnlyInInteractive() })
+      StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK.ifEnabled {
+          listOfNotNull(
+            BackNavigationAction().visibleOnlyInInteractive(),
+            PredictiveBackNavigationControlsAction().visibleOnlyInInteractive(),
+          )
+        }
+        .orEmpty()
         .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
 }

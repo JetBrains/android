@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.annotations.concurrency.UiThread
+import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.environment.Logger
+import com.android.tools.idea.compose.preview.interactive.NavigationControlsContent
+import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.DataKey
 import java.lang.reflect.Method
+import javax.swing.JComponent
 
 /** Enum representing the edge from which a back navigation gesture can be initiated. */
 enum class BackNavigationEdge(val visibleName: String) {
@@ -32,15 +37,16 @@ enum class BackNavigationEdge(val visibleName: String) {
 }
 
 /**
- * Handles back gestures and predictive back navigation during [PreviewMode.Interactive].
+ * Controller for showing and hiding the navigation panel when [Interactive] mode is enabled.
  *
- * This handler works by interacting with the underlying navigation dispatcher object. It primarily attempts to use the
- * [LocalNavigationEventDispatcherOwner] instance, which may be provided directly from a bytecode transform from
- * [LocalNavigationEventTransform]. If that is not available, it attempts to find the dispatcher owner by reflecting on the
- * `androidx.compose.ui.tooling.ComposeViewAdapter` to locate the [FakeOnBackPressedDispatcherOwner] field.
+ * @param onAfterPanelUpdate A callback invoked immediately after the controller's visibility state changes (i.e., after a show/hide call).
  */
-class InteractiveNavigationHandler {
+class InteractivePreviewNavigationController(private val onAfterPanelUpdate: () -> Unit = {}) {
 
+  private val showNavigationControlsProvider = { StudioComposePanel { NavigationControlsContent(this) } }
+
+  /** The currently active [JComponent] for back navigation controls, or null if controls are hidden. */
+  private var activeBackNavigationPanelInInteractiveMode: JComponent? = null
   private var backPressDispatcherOwner: Any? = null
 
   private var canBackPressMethod: Method? = null
@@ -49,7 +55,7 @@ class InteractiveNavigationHandler {
   private var onBackPressCompletedMethod: Method? = null
   private var onBackPressCancelledMethod: Method? = null
 
-  private val logger = Logger.getInstance(InteractiveNavigationHandler::class.java)
+  private val logger = Logger.getInstance(InteractivePreviewNavigationController::class.java)
 
   /**
    * Updates the objects needed to resolve the back press dispatcher and resets cached reflection methods.
@@ -175,6 +181,50 @@ class InteractiveNavigationHandler {
     (onBackPressProgressMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_PROGRESS).also { onBackPressProgressMethod = it }) !=
       null
 
+  /**
+   * Shows the navigation controls for the given [instance].
+   *
+   * If the controller is not already enabled, it retrieves the navigation component from the [showNavigationControlsProvider] and triggers
+   * [onAfterPanelUpdate].
+   *
+   * @param instance The [ComposePreviewElementInstance] for which to show the navigation controls.
+   */
+  @UiThread
+  fun showNavigationControls(instance: ComposePreviewElementInstance<*>) {
+    if (activeBackNavigationPanelInInteractiveMode == null) {
+      activeBackNavigationPanelInInteractiveMode = showNavigationControlsProvider()
+      onAfterPanelUpdate()
+    }
+  }
+
+  /**
+   * Hides the navigation controls.
+   *
+   * If the controller is currently enabled, it clears the active navigation panel and triggers [onAfterPanelUpdate].
+   */
+  @UiThread
+  fun hideNavigationControls() {
+    backPressCancelled()
+    if (activeBackNavigationPanelInInteractiveMode != null) {
+      activeBackNavigationPanelInInteractiveMode = null
+      onAfterPanelUpdate()
+    }
+  }
+
+  /**
+   * Returns the currently active navigation panel [JComponent] or null if the navigation controls are not visible.
+   *
+   * @return The active navigation component or null.
+   */
+  fun getBottomPanelComponent() = activeBackNavigationPanelInInteractiveMode
+
+  /**
+   * Returns `true` if the navigation controls are currently enabled and visible, `false` otherwise.
+   *
+   * @return True if navigation controls are enabled.
+   */
+  fun isNavigationControlsShown(): Boolean = activeBackNavigationPanelInInteractiveMode != null
+
   companion object {
     private const val CAN_BACK_PRESS = "canBackPress"
     private const val ON_BACK_PRESS_STARTED = "onBackPressStarted"
@@ -182,6 +232,9 @@ class InteractiveNavigationHandler {
     private const val ON_BACK_PRESS_COMPLETED = "onBackPressCompleted"
     private const val ON_BACK_PRESS_CANCELLED = "onBackPressCancelled"
 
-    val KEY = DataKey.create<InteractiveNavigationHandler>(InteractiveNavigationHandler::class.java.name)
+    /**
+     * The [DataKey] used to access the [InteractivePreviewNavigationController] from the [com.intellij.openapi.actionSystem.DataContext].
+     */
+    val KEY = DataKey.create<InteractivePreviewNavigationController>(InteractivePreviewNavigationController::class.java.name)
   }
 }

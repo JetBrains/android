@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.InteractiveNavigationHandler
+import com.android.tools.idea.compose.preview.InteractivePreviewNavigationController
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.findPreviewManager
@@ -30,8 +30,8 @@ import icons.StudioIcons
 class BackNavigationAction : DumbAwareAction(message("action.navigate.back"), null, StudioIcons.Emulator.Toolbar.BACK) {
 
   override fun actionPerformed(e: AnActionEvent) {
-    val interactiveNavigationHandler = e.dataContext.getData(InteractiveNavigationHandler.KEY) ?: return
-    interactiveNavigationHandler.backPressCompleted()
+    val interactivePreviewNavigationController = e.dataContext.getData(InteractivePreviewNavigationController.KEY) ?: return
+    interactivePreviewNavigationController.backPressCompleted()
   }
 
   override fun update(e: AnActionEvent) {
@@ -39,10 +39,10 @@ class BackNavigationAction : DumbAwareAction(message("action.navigate.back"), nu
     if (!isInteractive) {
       return
     }
-    val interactiveNavigationHandler = e.dataContext.getData(InteractiveNavigationHandler.KEY) ?: return
+    val interactivePreviewNavigationController = e.dataContext.getData(InteractivePreviewNavigationController.KEY) ?: return
     e.presentation.isVisible =
-      interactiveNavigationHandler.canPerformBackNavigation() && StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK.get()
-    e.presentation.isEnabled = interactiveNavigationHandler.canBackPress()
+      interactivePreviewNavigationController.canPerformBackNavigation() && StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK.get()
+    e.presentation.isEnabled = interactivePreviewNavigationController.canBackPress()
   }
 
   /** BGT is needed when calling [findPreviewManager] because it accesses the VirtualFile */

@@ -39,6 +39,7 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.android.artwork-compose" />
     <orderEntry type="module-library">
       <library name="ui-animation-tooling-internal">
         <CLASSES>

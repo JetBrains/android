@@ -201,7 +201,8 @@ private const val SHARED_PREVIEW_FLOW_STOP_TIMEOUT_MS = 5_000L
  * @param previewFlowManager the [PreviewFlowManager] that manages flows of [ComposePreviewElementInstance]
  * @param previewElement the [ComposePreviewElementInstance] associated to this model
  * @param fastPreviewSurface the [FastPreviewSurface] of the preview
- * @param interactiveNavigationHandler the [InteractiveNavigationHandler] used to enable back navigation in Interactive mode
+ * @param interactivePreviewNavigationController the [InteractivePreviewNavigationController] used to manage the controls of the navigation
+ *   panel when [Interactive] mode is enabled.
  */
 private fun createPreviewElementDataProvider(
   project: Project,
@@ -209,7 +210,7 @@ private fun createPreviewElementDataProvider(
   previewFlowManager: PreviewFlowManager<out ComposePreviewElementInstance<*>>,
   previewElement: PsiComposePreviewElementInstance,
   fastPreviewSurface: FastPreviewSurface,
-  interactiveNavigationHandler: InteractiveNavigationHandler,
+  interactivePreviewNavigationController: InteractivePreviewNavigationController,
 ) =
   object :
     NlDataProvider(
@@ -224,7 +225,7 @@ private fun createPreviewElementDataProvider(
       PREVIEW_VIEW_MODEL_STATUS,
       FastPreviewSurface.KEY,
       PreviewInvalidationManager.KEY,
-      InteractiveNavigationHandler.KEY,
+      InteractivePreviewNavigationController.KEY,
     ) {
     override fun getData(dataId: String): Any? =
       when (dataId) {
@@ -239,7 +240,7 @@ private fun createPreviewElementDataProvider(
         PREVIEW_VIEW_MODEL_STATUS.name -> composePreviewManager.status()
         FastPreviewSurface.KEY.name -> fastPreviewSurface
         PreviewInvalidationManager.KEY.name -> composePreviewManager
-        InteractiveNavigationHandler.KEY.name -> interactiveNavigationHandler
+        InteractivePreviewNavigationController.KEY.name -> interactivePreviewNavigationController
         else -> null
       }
   }
@@ -333,7 +334,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
   private val project
     get() = psiFilePointer.project
 
-  private val interactiveNavigationHandler = InteractiveNavigationHandler()
   override val caretNavigationHandler = CaretNavigationHandlerImpl()
 
   private val previewBuildListenersManager =
@@ -546,7 +546,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
           composePreviewFlowManager,
           previewElement,
           this@ComposePreviewRepresentation,
-          interactiveNavigationHandler,
+          interactivePreviewNavigationController,
         )
 
       override fun toXml(previewElement: PsiComposePreviewElementInstance) =
@@ -556,13 +556,29 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
           .toolsAttribute("paintBounds", showDebugBoundaries.toString())
           .apply {
             if (mode.value is PreviewMode.AnimationInspection) {
-              // If the animation inspection is active, start the PreviewAnimationClock with
-              // the current epoch time.
+              // If the animation inspection is active, start the PreviewAnimationClock with the current epoch time.
               toolsAttribute("animationClockStartTime", System.currentTimeMillis().toString())
             }
           }
           .buildString()
     }
+
+  /**
+   * Controls the bottom panel responsible for managing back navigation within an [Interactive] Preview.
+   *
+   * This controller uses reflection to interface with the Android back press dispatcher APIs (supporting Navigation 3 predictive back
+   * gestures) through a hidden `BackPressDispatcherOwner` object obtained from the `ComposeViewAdapter`. It provides methods to simulate
+   * the start, progress, completion, and cancellation of a back gesture.
+   *
+   * The panel's visibility is tied to this controller. The provided lambda, when the panel state changes is triggered whenever the panel
+   * updates its state.
+   *
+   * @param onAfterPanelUpdate A callback invoked immediately after the controller's visibility state changes (i.e., after a show/hide
+   *   call).
+   */
+  private val interactivePreviewNavigationController by lazy {
+    InteractivePreviewNavigationController(onAfterPanelUpdate = { updateBottomPanelVisibility() })
+  }
 
   private suspend fun startInteractivePreview(instance: ComposePreviewElementInstance<*>) {
     log.debug("New single preview element focus: $instance")
@@ -641,18 +657,19 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
     invalidate()
   }
 
-  private fun updateAnimationPanelVisibility() {
+  private fun updateBottomPanelVisibility() {
     if (!hasRenderedAtLeastOnce.get()) return
 
-    // Always hide currentAnimationPreview if it's not PreviewMode.AnimationInspection even if
-    // preview is not rendered yet.
-    if (mode.value !is PreviewMode.AnimationInspection) {
+    // Always hide the bottom panel if it's not PreviewMode.AnimationInspection or PreviewMode.Interactive even if preview is not rendered
+    // yet.
+    if (mode.value !is PreviewMode.AnimationInspection || mode.value !is PreviewMode.Interactive) {
       composeWorkBench.bottomPanel = null
     }
     composeWorkBench.bottomPanel =
       when {
         status().hasErrors || project.needsBuild -> null
         mode.value is PreviewMode.AnimationInspection -> currentAnimationPreview?.component
+        mode.value is PreviewMode.Interactive -> interactivePreviewNavigationController.getBottomPanelComponent()
         else -> null
       }
   }
@@ -1019,7 +1036,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
     composeWorkBench.hasRendered = true
     surface.sceneManagers.forEach {
       ComposeAnimationToolbarUpdater.update(this, it) { AnimationToolingUsageTracker.getInstance(surface) }
-      InteractivePreviewBackNavigationUpdater.update(this, it, interactiveNavigationHandler)
+      InteractivePreviewBackNavigationUpdater.update(this, it, interactivePreviewNavigationController)
     }
 
     // Only update the hasRenderedAtLeastOnce field if we rendered at least one preview. Otherwise,
@@ -1185,7 +1202,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
   private fun requestVisibilityAndNotificationsUpdate() {
     if (!hasRenderedAtLeastOnce.get()) return
 
-    composePreviewFlowManager.run { this@ComposePreviewRepresentation.updateVisibilityAndNotifications(::updateAnimationPanelVisibility) }
+    composePreviewFlowManager.run { this@ComposePreviewRepresentation.updateVisibilityAndNotifications(::updateBottomPanelVisibility) }
   }
 
   /**
@@ -1471,7 +1488,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
             )
 
           ComposeAnimationSubscriber.setHandler(animationPreview)
-          updateAnimationPanelVisibility()
+          updateBottomPanelVisibility()
         }
         invalidateAndRefresh()
       }
@@ -1508,6 +1525,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
       is PreviewMode.Default -> {}
       is PreviewMode.Interactive -> {
         log.debug("Stopping interactive")
+        withContext(Dispatchers.EDT) { interactivePreviewNavigationController.hideNavigationControls() }
         onInteractivePreviewStop()
       }
       is PreviewMode.UiCheck -> {
