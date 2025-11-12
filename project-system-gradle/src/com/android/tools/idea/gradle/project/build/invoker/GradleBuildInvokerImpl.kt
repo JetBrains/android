@@ -542,16 +542,20 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     }
 
     override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) {
-      when (event) {
-        is ExternalSystemBuildEvent -> buildEventDispatcher.onEvent(event.getId(), event.buildEvent)
-        is ExternalSystemTaskExecutionEvent -> buildEventDispatcher.onEvent(event.getId(), convert((event)))
+      if (startBuildEventPosted) {
+        when (event) {
+          is ExternalSystemBuildEvent -> buildEventDispatcher.onEvent(event.getId(), event.buildEvent)
+          is ExternalSystemTaskExecutionEvent -> buildEventDispatcher.onEvent(event.getId(), convert((event)))
+        }
       }
       super.onStatusChange(event)
     }
 
     override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
-      buildEventDispatcher.setStdOut(!processOutputType.isStderr)
-      buildEventDispatcher.append(text)
+      if (startBuildEventPosted) {
+        buildEventDispatcher.setStdOut(!processOutputType.isStderr)
+        buildEventDispatcher.append(text)
+      }
       super.onTaskOutput(id, text, processOutputType)
     }
 
