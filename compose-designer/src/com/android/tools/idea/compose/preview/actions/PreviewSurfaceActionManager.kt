@@ -22,7 +22,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
 import com.android.tools.idea.compose.preview.actions.glasses.GlassesBlendDropdownAction
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.zoomTargetProvider
+import com.android.tools.idea.compose.preview.subComponentProvider
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.BackNavigationAction
@@ -61,7 +61,9 @@ internal class PreviewSurfaceActionManager(
       SwingUtilities.convertPoint(mouseEvent.component, mouseEvent.point, surface.interactionPane)
 
     // Zoom to Selection
-    actionGroup.add(ZoomToSelectionAction(convertedPoint.x, convertedPoint.y, ::zoomTargetProvider))
+    actionGroup.add(
+      ZoomToSelectionAction(convertedPoint.x, convertedPoint.y, ::subComponentProvider)
+    )
     // Jump to Definition
     actionGroup.add(JumpToDefinitionAction(convertedPoint.x, convertedPoint.y, navigationHandler))
     // View in Focus mode
