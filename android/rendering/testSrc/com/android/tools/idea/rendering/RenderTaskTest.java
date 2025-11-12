@@ -56,6 +56,7 @@ import com.android.tools.rendering.RenderTask;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
@@ -259,7 +260,8 @@ public class RenderTaskTest {
     PsiTestUtil.addSourceRoot(myModule, VfsUtil.findFileByIoFile(srcDir, true));
     getJavac().run(null, null, null, customDrawable.getAbsolutePath());
     File outputDir = new File(tmpDir, CompilerModuleExtension.PRODUCTION + "/" + myModule.getName());
-    CompilerProjectExtension.getInstance(myModule.getProject()).setCompilerOutputUrl(pathToIdeaUrl(tmpDir));
+    CompilerProjectExtension compilerProjectExtension = Objects.requireNonNull(CompilerProjectExtension.getInstance(getProject()));
+    WriteAction.runAndWait(() -> compilerProjectExtension.setCompilerOutputUrl(pathToIdeaUrl(tmpDir)));
     FileUtil.copy(new File(srcDir, "com/google/test/CustomDrawable.class"), new File(outputDir, "com/google/test/CustomDrawable.class"));
 
     VirtualFile drawableFile = myFixture.addFileToProject("res/drawable/test.xml",
@@ -304,7 +306,8 @@ public class RenderTaskTest {
     getJavac().run(null, null, null, customView.getAbsolutePath());
     File outputDir = new File(tmpDir, CompilerModuleExtension.PRODUCTION + "/" + myModule.getName());
     File outputFile = new File(outputDir, "com/google/test/CustomView.class");
-    Objects.requireNonNull(CompilerProjectExtension.getInstance(getProject())).setCompilerOutputUrl(pathToIdeaUrl(tmpDir));
+    CompilerProjectExtension compilerProjectExtension = Objects.requireNonNull(CompilerProjectExtension.getInstance(getProject()));
+    WriteAction.runAndWait(() -> compilerProjectExtension.setCompilerOutputUrl(pathToIdeaUrl(tmpDir)));
     FileUtil.copy(new File(srcDir, "com/google/test/CustomView.class"), outputFile);
 
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/test.xml",
