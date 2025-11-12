@@ -200,6 +200,7 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
   }
 
   private fun buildSummaryPanel() = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
+    border = AdtUiUtils.DEFAULT_TOP_BORDER
     fun mkLabel(desc: String, action: Runnable? = null) =
       StatLabel(0L, desc, numFont = ProfilerFonts.H2_FONT, descFont = AdtUiUtils.DEFAULT_FONT.biggerOn(1f), action = action)
 
