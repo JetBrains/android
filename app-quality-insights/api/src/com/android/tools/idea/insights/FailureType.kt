@@ -15,33 +15,31 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.model.issue.FailureType
+import com.android.tools.idea.insights.model.issue.FailureType.ANR
+import com.android.tools.idea.insights.model.issue.FailureType.FATAL
+import com.android.tools.idea.insights.model.issue.FailureType.NON_FATAL
+import com.android.tools.idea.insights.model.issue.FailureType.UNSPECIFIED
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import icons.StudioIcons
 import javax.swing.Icon
 
-enum class FailureType {
-  UNSPECIFIED,
-  FATAL,
-  NON_FATAL,
-  ANR;
+fun FailureType.getIcon(): Icon? =
+  when (this) {
+    FATAL -> StudioIcons.AppQualityInsights.FATAL
+    NON_FATAL -> StudioIcons.AppQualityInsights.NON_FATAL
+    ANR -> StudioIcons.AppQualityInsights.ANR
+    // This scenario shouldn't ever be reached.
+    UNSPECIFIED -> null
+  }
 
-  fun getIcon(): Icon? =
-    when (this) {
-      FATAL -> StudioIcons.AppQualityInsights.FATAL
-      NON_FATAL -> StudioIcons.AppQualityInsights.NON_FATAL
-      ANR -> StudioIcons.AppQualityInsights.ANR
-      // This scenario shouldn't ever be reached.
-      UNSPECIFIED -> null
-    }
-
-  fun toCrashType(): AppQualityInsightsUsageEvent.CrashType =
-    when (this) {
-      UNSPECIFIED -> AppQualityInsightsUsageEvent.CrashType.UNKNOWN_TYPE
-      FATAL -> AppQualityInsightsUsageEvent.CrashType.FATAL
-      NON_FATAL -> AppQualityInsightsUsageEvent.CrashType.NON_FATAL
-      ANR -> AppQualityInsightsUsageEvent.CrashType.ANR
-    }
-}
+fun FailureType.toCrashType(): AppQualityInsightsUsageEvent.CrashType =
+  when (this) {
+    UNSPECIFIED -> AppQualityInsightsUsageEvent.CrashType.UNKNOWN_TYPE
+    FATAL -> AppQualityInsightsUsageEvent.CrashType.FATAL
+    NON_FATAL -> AppQualityInsightsUsageEvent.CrashType.NON_FATAL
+    ANR -> AppQualityInsightsUsageEvent.CrashType.ANR
+  }
 
 fun convertSeverityList(
   fatalities: List<FailureType>

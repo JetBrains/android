@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.model.issue.IssueId
 import java.time.Instant
 
 /**

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.vitals
 
-import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.Filters
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.Selection
@@ -26,6 +25,7 @@ import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.selectionOf
 
 internal val VitalsTimeIntervals =

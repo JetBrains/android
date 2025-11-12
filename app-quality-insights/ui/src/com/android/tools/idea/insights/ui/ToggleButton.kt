@@ -17,8 +17,8 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.ConnectionMode
-import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.Permission
+import com.android.tools.idea.insights.model.issue.IssueState
 import javax.swing.JButton
 
 /**

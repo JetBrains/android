@@ -18,8 +18,9 @@ package com.android.tools.idea.insights.analytics
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.insights.ConnectionMode
-import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.model.issue.FailureType
+import com.android.tools.idea.insights.toCrashType
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent

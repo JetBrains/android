@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.vitals.datamodel
 
-import com.android.tools.idea.insights.IssueAnnotation
 import com.android.tools.idea.insights.IssueDetails
-import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.client.toJavaInstant
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventData
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.issue.IssueAnnotation
+import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.stacktrace.StackTraceGroupParser
 import com.android.tools.idea.insights.model.vcs.AppVcsInfo
 import com.google.play.developer.reporting.ErrorIssue
 import com.google.play.developer.reporting.ErrorReport
 import com.google.play.developer.reporting.ErrorType
+import com.google.play.developer.reporting.IssueAnnotation as IssueAnnotationProto
 
 internal fun ErrorIssue.toIssueDetails(): IssueDetails {
   return IssueDetails(
@@ -45,7 +46,7 @@ internal fun ErrorIssue.toIssueDetails(): IssueDetails {
     signals = emptySet(),
     uri = issueUri,
     notesCount = 0L,
-    annotations = annotationsList.map { IssueAnnotation.fromProto(it) },
+    annotations = annotationsList.map { it.toIssueAnnotation() },
   )
 }
 
@@ -65,8 +66,4 @@ internal fun ErrorReport.toSampleEvent(parser: StackTraceGroupParser): Event {
   )
 }
 
-internal fun IssueAnnotation.Companion.fromProto(
-  proto: com.google.play.developer.reporting.IssueAnnotation
-): IssueAnnotation {
-  return IssueAnnotation(category = proto.category, title = proto.title, body = proto.body)
-}
+internal fun IssueAnnotationProto.toIssueAnnotation() = IssueAnnotation(category, title, body)

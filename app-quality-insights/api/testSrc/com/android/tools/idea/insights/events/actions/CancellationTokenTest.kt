@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.events.actions
 
-import com.android.tools.idea.insights.IssueId
+import com.android.tools.idea.insights.model.issue.IssueId
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Job
 import org.junit.Test

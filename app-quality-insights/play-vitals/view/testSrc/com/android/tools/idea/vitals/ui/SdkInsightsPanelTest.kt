@@ -16,7 +16,7 @@
 package com.android.tools.idea.vitals.ui
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.insights.IssueAnnotation
+import com.android.tools.idea.insights.model.issue.IssueAnnotation
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.testFramework.ApplicationRule
