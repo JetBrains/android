@@ -273,6 +273,20 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     }
   }
 
+  /**
+   * Closes the Profiler task tab for a specified task type.
+   */
+  fun closeTaskTab(taskType: ProfilerTaskType) {
+    val contentManager = window.getContentManager()
+    val taskTabTitle = StringUtils.getTaskTabTitle(taskType, profilers.ideServices.featureConfig.isTaskTitleV2Enabled)
+    val taskTab = contentManager.contents.find {
+      it.displayName == taskTabTitle || it.tabName == taskTabTitle
+    }
+    taskTab?.let { content ->
+      contentManager.removeContent(content, true)
+    }
+  }
+
   private fun onTaskTabClose() {
     // On close of the task tab, end the current session/task if its ongoing and reset the current session selection.
     // If the current task/session is ongoing/alive, terminate it and reset the selected session to reflect that the closed task is

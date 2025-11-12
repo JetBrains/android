@@ -49,11 +49,13 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.AdditionalOptions;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel;
+import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata;
 import com.android.tools.profilers.tasks.analytics.TaskStopFailedMetadata;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -487,10 +489,22 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
         },
         stage -> {
           myRecordingOptionsModel.setLoading(false);
-          if (stage != null) {
+          CpuTraceInfo traceInfo = myCompletedTraceIdToInfoMap.get(traceId);
+          ProfilingConfiguration config = ProfilingConfiguration.fromProto(traceInfo.getTraceInfo().getConfiguration(), isTraceboxEnabled);
+          ProfilingConfiguration.TraceType traceType = config.getTraceType();
+          boolean isSystemTrace = traceType == ProfilingConfiguration.TraceType.ATRACE
+                                  || traceType == ProfilingConfiguration.TraceType.PERFETTO;
+          if (stage != null && getStudioProfilers().getIdeServices().getFeatureConfig().isSystemTraceInEditorEnabled() && isSystemTrace) {
+            File captureFile = stage.getCaptureHandler().getCaptureFile();
+            getStudioProfilers().getIdeServices().getMainExecutor().execute(() -> {
+              if(captureFile.exists()) {
+                getStudioProfilers().getIdeServices().openTraceFile(captureFile);
+                getStudioProfilers().getIdeServices().closeTaskTab(ProfilerTaskType.SYSTEM_TRACE);
+              }
+            });
+          } else if (stage != null) {
             getStudioProfilers().getIdeServices().getMainExecutor().execute(() -> getStudioProfilers().setStage(stage));
-          }
-          else {
+          } else {
             // Trace ID is not found or the capture stage cannot retrieve the trace.
             setCaptureState(CaptureState.IDLE);
             getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);

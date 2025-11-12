@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PerfettoCaptureFileType extends AndroidProfilerCaptureFileType {
 
-  public static final List<String> EXTENSIONS = Arrays.asList("pftrace", "perfetto-trace");
+  public static final List<String> EXTENSIONS = Arrays.asList("pftrace", "perfetto-trace", "perfetto");
 
   private static final PerfettoCaptureFileType INSTANCE = new PerfettoCaptureFileType();
 

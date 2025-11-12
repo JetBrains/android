@@ -21,6 +21,7 @@ import com.android.tools.profilers.sessions.SessionAspect
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
 import com.android.tools.profilers.taskbased.task.TaskGridModel
+import com.android.tools.profilers.tasks.ProfilerTaskType
 
 /**
  * This class is to be extended by tab UI models allowing the user to select and enter a Profiler task.
@@ -52,7 +53,8 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
       // existing task tab will be re-opened.
       is PastRecordingsTabModel -> {
         val selectedSession = selectedRecording!!.session
-        if (selectedSession == profilers.session) {
+        if (selectedSession == profilers.session && !(profilers.ideServices.featureConfig.isSystemTraceInEditorEnabled &&
+                                                      selectedRecording!!.getTaskType() == ProfilerTaskType.SYSTEM_TRACE)) {
           profilers.openTaskTab()
           return
         }

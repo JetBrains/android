@@ -31,6 +31,7 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
+import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator;
@@ -57,6 +58,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.DoNotAskOption;
 import com.intellij.openapi.ui.MessageDialogBuilder;
@@ -121,6 +123,8 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     myCodeNavigator = new CodeNavigator(new IntelliJNavSource(project, nativeSymbolizer),
                                         CodeNavigator.Companion.getApplicationExecutor());
     myCodeNavigator.addListener(location -> myFeatureTracker.trackNavigateToCode());
+    ProjectManager projectManager = ProjectManager.getInstance();
+    projectManager.addProjectManagerListener(project, new UnifiedProfilerExitHandler());
   }
 
   @Override
@@ -181,6 +185,45 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     if (virtualFile != null) {
       virtualFile.refresh(true, false, postRunnable);
     }
+  }
+
+  /**
+   * Opens a trace file in the IDE, using FileEditorManager.
+   * @param file The physical file on disk to be opened.
+   * @return true to indicate the open request was successfully initiated.
+   */
+  @Override
+  public boolean openTraceFile(@NotNull File file) {
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      if (ApplicationManager.getApplication() == null || myProject.isDisposed()) {
+        return;
+      }
+      VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, true);
+      if (virtualFile != null) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+          if (myProject.isDisposed()) {
+            return;
+          }
+          FileEditorManager.getInstance(myProject).openFile(virtualFile, true);
+        });
+      }
+    });
+    return true;
+  }
+
+  @Override
+  public boolean openFileFromEventStream(@NotNull EventStreamServer eventStreamServer, @NotNull String byteId) {
+    String filePath = eventStreamServer.getFilePathCache().get(byteId);
+    if (filePath == null) {
+      return false;
+    }
+    File file = new File(filePath);
+    if (!file.exists()) {
+      getLogger().warn("File does not exist at path: " + filePath);
+      return false;
+    }
+    // openFile handles the ApplicationManager.invokeLater() internally.
+    return openTraceFile(file);
   }
 
   @NotNull
@@ -380,6 +423,16 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
+  public void closeTaskTab(@NotNull ProfilerTaskType taskType) {
+    // used by unifiedProfiler
+    // Close the recording tab and show the preview in a new tab in the code editor space.
+    AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP.get(myProject);
+    if (profilerToolWindow != null) {
+      profilerToolWindow.closeTaskTab(taskType);
+    }
+  }
+
+  @Override
   public boolean isNativeProfilingConfigurationPreferred() {
     // File extensions that we consider native. We can add more later if we feel that's necessary.
     ImmutableList<String> nativeExtensions = ImmutableList.of("c", "cc", "cpp", "cxx", "c++", "h", "hh", "hpp", "hxx", "h++");
@@ -453,6 +506,12 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     ProfilerBuildAndLaunch.buildAndLaunchAction(myProject, profileableMode, device);
   }
 
+  @NotNull
+  @Override
+  public String getProjectHomeHash() {
+    return Integer.toHexString(myProject.getLocationHash().hashCode());
+  }
+
   /**
    * Implementation of {@link FeatureConfig} with values used in production.
    */
@@ -501,6 +560,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     @Override
     public boolean isTaskTitleV2Enabled() {
       return StudioFlags.PROFILER_TASK_TITLE_V2.get();
+    }
+
+    @Override
+    public boolean isSystemTraceInEditorEnabled() {
+      return StudioFlags.PROFILER_SYSTEM_TRACE_IN_EDITOR.get();
     }
   }
 }

@@ -157,7 +157,19 @@ public class CpuCaptureStage extends Stage<Timeline> {
     if (!captureFile.exists() || captureFile.length() == 0) {
       return null;
     }
-
+    // The existing flow creates a temporary file (e.g., "/private/var/folders/.../T/transport-bytes-....tmp").
+    // If Unified Preview is enabled, we need to convert/save this to a permanent trace file to be viewed in the editor.
+    // TODO(b/472627125): the transport-bytes...tmp can be renamed to a trace file instead of creating a new
+    //  one. Also getAndSaveCapture shouldn't be called if isSystemTraceInEditorEnabled is enabled
+    if (profilers.getIdeServices().getFeatureConfig().isSystemTraceInEditorEnabled()) {
+      File permanentFile = CpuCaptureStageUtils.getPermanentCaptureFile(
+        profilers.getIdeServices(),
+        captureFile,
+        "capture_" + traceId + ".trace");
+      if (permanentFile != null) {
+        return permanentFile;
+      }
+    }
     return captureFile;
   }
 

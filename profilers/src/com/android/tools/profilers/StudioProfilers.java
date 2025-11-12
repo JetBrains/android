@@ -45,8 +45,6 @@ import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
-import com.android.tools.profilers.customevent.CustomEventProfiler;
-import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.event.EventProfiler;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfiler;
@@ -255,6 +253,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private TransportEventPoller myTransportPoller;
 
+  @NotNull
+  private final UnifiedTraceOpener myUnifiedTraceOpener;
+
   @VisibleForTesting
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
@@ -306,6 +307,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myToolbarDeviceSelectionsFetcher = toolbarDeviceSelectionsFetcher;
     myPreferredProcessNameFetcher = preferredProcessNameFetcher;
     myCurrentTaskHandlerFetcher = currentTaskHandlerFetcher;
+    myUnifiedTraceOpener = new UnifiedTraceOpener(this);
     myStage.enter();
 
     myUpdater = new Updater(timer);
@@ -904,7 +906,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         myIdeServices.showNotification(TaskNotifications.STARTUP_TASK_FAILURE);
         return;
       }
-
+      // Delegate the trace file opening check to the helper class
+      // If it returns true, the file was opened successfully, so we return early.
+      if (myUnifiedTraceOpener.openUnifiedTrace(mySelectedSession, sessionIdToSessionItems)) {
+        return;
+      }
       ProfilerTaskLauncher.launchProfilerTask(selectedTaskType, isStartupTask, getTaskHandlers(), getSession(), sessionIdToSessionItems,
                                               myCreateTaskTab, myIdeServices);
     }
