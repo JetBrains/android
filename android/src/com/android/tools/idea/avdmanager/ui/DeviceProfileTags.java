@@ -34,7 +34,7 @@ import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
-public class AvdWizardUtils {
+public class DeviceProfileTags {
   /**
    * These are the device tags that can be assigned to a custom device profile. Generally, these are
    * tags that determine the form factor of the device, and will require a system image with a
@@ -72,7 +72,7 @@ public class AvdWizardUtils {
       } else if (tagId.equals(DEPRECATED_AI_GLASSES_TAG.getId())) {
         return AI_GLASSES_TAG;
       } else {
-        for (IdDisplay tag : AvdWizardUtils.ALL_DEVICE_TAGS) {
+        for (IdDisplay tag : DeviceProfileTags.ALL_DEVICE_TAGS) {
           if (tag.getId().equals(tagId)) {
             return tag;
           }
