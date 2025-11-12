@@ -21,6 +21,7 @@ import com.android.adblib.DeviceState.ONLINE
 import com.android.adblib.ddmlibcompatibility.testutils.AdbLibApplicationServiceRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
+import com.android.fakeadbserver.FakeDeviceCreator
 import com.android.fakeadbserver.ShellV2Protocol
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.sdklib.AndroidApiLevel
@@ -37,7 +38,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.RuleChain
 import icons.StudioIcons
 import java.awt.Dimension
 import java.net.Socket
@@ -51,20 +51,21 @@ import kotlinx.coroutines.runBlocking
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP8
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_find_encoder
 import org.junit.rules.ExternalResource
+import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.junit.rules.TestRule
 
 /**
  * Allows tests to use [FakeScreenSharingAgent] instead of the real one.
  */
 class FakeScreenSharingAgentRule : TestRule {
+
   private var deviceCounter = 0
   private val devices = mutableListOf<FakeDevice>()
   private val projectRule = ProjectRule()
-  val adbLibApplicationServiceRule = AdbLibApplicationServiceRule(configureFakeAdbServer())
+  private val adbLibApplicationServiceRule = AdbLibApplicationServiceRule(configureFakeAdbServer())
   private val testEnvironment = object : ExternalResource() {
 
     override fun before() {
@@ -82,7 +83,6 @@ class FakeScreenSharingAgentRule : TestRule {
       }
     }
   }
-  val ruleChain = RuleChain(projectRule, adbLibApplicationServiceRule, testEnvironment)
 
   val disposable: Disposable
     get() = projectRule.disposable
@@ -90,13 +90,20 @@ class FakeScreenSharingAgentRule : TestRule {
   val project: ProjectEx
     get() = projectRule.project
 
+  val fakeDeviceCreator: FakeDeviceCreator
+    get() = adbLibApplicationServiceRule
+
   init {
     // Preload FFmpeg codec native libraries upfront to avoid a race condition when unpacking them.
     avcodec_find_encoder(AV_CODEC_ID_VP8).close()
   }
 
   override fun apply(base: Statement, description: Description): Statement {
-    return ruleChain.apply(base, description)
+    return projectRule.apply(
+      adbLibApplicationServiceRule.apply(
+        testEnvironment.apply(base, description),
+        description),
+      description)
   }
 
   private fun configureFakeAdbServer():
