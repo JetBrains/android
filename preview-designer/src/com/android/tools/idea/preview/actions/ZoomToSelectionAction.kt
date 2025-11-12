@@ -36,7 +36,7 @@ import java.awt.Rectangle
 class ZoomToSelectionAction(
   @param:VisibleForTesting @param:SwingCoordinate val x: Int,
   @param:VisibleForTesting @param:SwingCoordinate val y: Int,
-  val zoomTargetProvider: (sceneView: SceneView, x: Int, y: Int, logger: Logger) -> Rectangle?,
+  val subComponentProvider: (sceneView: SceneView, x: Int, y: Int, logger: Logger) -> Rectangle?,
 ) : AnAction(message("action.zoom.to.selection")) {
 
   private val logger = Logger.getInstance(ZoomToSelectionAction::class.java)
@@ -53,7 +53,7 @@ class ZoomToSelectionAction(
   override fun actionPerformed(e: AnActionEvent) {
     val surface = e.getData(DESIGN_SURFACE) as NlDesignSurface
     val sceneView = e.getData(SCENE_VIEW) ?: return
-    val zoomTarget = zoomTargetProvider(sceneView, x, y, logger) ?: return
+    val zoomTarget = subComponentProvider(sceneView, x, y, logger) ?: return
     surface.zoomAndCenter(sceneView, zoomTarget)
   }
 }
