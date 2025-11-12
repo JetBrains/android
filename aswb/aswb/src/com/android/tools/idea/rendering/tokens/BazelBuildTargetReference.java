@@ -23,15 +23,7 @@ import com.intellij.serviceContainer.AlreadyDisposedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class BazelBuildTargetReference implements BuildTargetReference {
-  private final Module module;
-  private final @NotNull VirtualFile file;
-
-  BazelBuildTargetReference(@NotNull Module module, @NotNull VirtualFile file) {
-    this.module = module;
-    this.file = file;
-  }
-
+record BazelBuildTargetReference(Module module, VirtualFile file) implements BuildTargetReference {
   @NotNull VirtualFile getFile() {
     return file;
   }
