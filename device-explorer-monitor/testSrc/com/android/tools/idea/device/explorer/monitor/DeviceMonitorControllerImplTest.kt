@@ -69,7 +69,6 @@ class DeviceMonitorControllerImplTest {
   private val commandHandler =  TestCommandHandler()
 
   private val fakeAdbRule = FakeAdbServerRule {
-    installDefaultCommandHandlers()
     addDeviceHandler(commandHandler)
   }
 
