@@ -20,8 +20,8 @@ jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
         "@lib//:kotlin-stdlib",
+        "@lib//:studio-platform-provided",
         "//android/gradle-dsl",
         "//platform/core-api:core",
         "//platform/core-impl",
