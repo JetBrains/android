@@ -22,6 +22,7 @@ import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.experiments.InsightFeedback
+import com.android.tools.idea.insights.toCrashType
 
 class InsightFeedbackSubmitted(val feedback: InsightFeedback) : ChangeEvent {
   override fun transition(

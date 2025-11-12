@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.issue.FailureType
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import java.time.Duration
 import java.time.Instant

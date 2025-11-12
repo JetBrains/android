@@ -19,8 +19,8 @@ import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.ConnectionMode
-import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.Permission
+import com.android.tools.idea.insights.model.issue.IssueState
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent

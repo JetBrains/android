@@ -23,7 +23,6 @@ import com.android.tools.idea.insights.DEFAULT_FETCHED_DEVICES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
 import com.android.tools.idea.insights.DEFAULT_FETCHED_VERSIONS
-import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.SignalType
@@ -35,6 +34,7 @@ import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.issue.FailureType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.components.service
 import com.intellij.testFramework.ProjectRule

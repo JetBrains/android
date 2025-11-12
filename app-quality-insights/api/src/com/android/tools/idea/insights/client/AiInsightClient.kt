@@ -16,9 +16,9 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.Connection
-import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.issue.IssueId
 
 data class GeminiCrashInsightRequest(
   val connection: Connection,
