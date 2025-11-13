@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.device.explorer.monitor
 
-import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
-import com.android.adblib.ddmlibcompatibility.testutils.waitForOnlineDevice
-import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
-import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.idea.FutureValuesTracker
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
@@ -49,11 +46,7 @@ class AdbDeviceListServiceTest {
   val androidProjectRule = AndroidProjectRule.withSdk()
 
   @get:Rule
-  val adb = FakeAdbServerRule()
-
-  @get:Rule
-  val initAndroidDebugBridgeRule =
-    InitAndroidDebugBridgeRule(alsoCreateBridge = true) { adb.adbServer.port }
+  val adbRule = FakeAdbServerAdbLibRule()
 
   @JvmField
   @Rule
@@ -66,11 +59,9 @@ class AdbDeviceListServiceTest {
 
   @Before
   fun setUp() {
-    device1 = adb.connectDevice(
+    device1 = adbRule.connectDevice(
       deviceId = "test_device_01", manufacturer = "Google", deviceModel = "Pixel 10", release = "8.0", sdk = AndroidApiLevel(31),
       hostConnectionType = DeviceState.HostConnectionType.USB)
-      .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
-    runBlockingWithTimeout { device1.waitForOnlineDevice() }
   }
 
   @Test
@@ -102,11 +93,10 @@ class AdbDeviceListServiceTest {
     // Act
     service.addListener(listener)
     service.start()
-    val device2 = adb.connectDevice(
+    val device2 = adbRule.connectDevice(
       deviceId = "test_device_02", manufacturer = "Google", deviceModel = "Pixel 10", release = "8.0", sdk = AndroidApiLevel(31),
       hostConnectionType = DeviceState.HostConnectionType.USB)
       .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
-    device2.waitForOnlineDevice()
 
     // Assert
     assertThat(service.getIDeviceFromSerialNumber(device2.deviceId)).isNotNull()

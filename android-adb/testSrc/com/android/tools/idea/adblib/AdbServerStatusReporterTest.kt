@@ -17,11 +17,9 @@
 package com.android.tools.idea.adblib
 
 import com.android.adblib.ServerStatus
-import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
-import com.android.adblib.testingutils.FakeAdbServerRule
-import com.android.tools.adblib.testutils.InitAdbLibApplicationServiceRule
+import com.android.test.testutils.EnsureAndroidProjectRule
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.intellij.testFramework.ProjectRule
-import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,26 +27,18 @@ import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import com.android.test.testutils.EnsureAndroidProjectRule
+import java.util.concurrent.CountDownLatch
 
 class AdbServerStatusReporterTest {
   private val projectRule = ProjectRule()
-  private val initAdbLibApplicationServiceRule = InitAdbLibApplicationServiceRule()
-  private val fakeAdbRule = FakeAdbServerRule()
-  private val initAndroidDebugBridgeRule =
-    InitAndroidDebugBridgeRule(alsoCreateBridge = true) { fakeAdbRule.adbServer.port }
+  private val fakeAdbRule = FakeAdbServerAdbLibRule()
   @get:Rule val ensureAndroidProjectRule = EnsureAndroidProjectRule()
   private lateinit var reporter: AdbServerStatusReporter
 
   private var statusCallbackCalled = false
   private val latch = CountDownLatch(1)
 
-  @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(projectRule)
-      .around(initAdbLibApplicationServiceRule)
-      .around(fakeAdbRule)
-      .around(initAndroidDebugBridgeRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
 
   private fun statusReporterCallback(status: ServerStatus) {
     Assert.assertNotNull("No server-status version", status.version)

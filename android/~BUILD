@@ -248,7 +248,7 @@ iml_module(
         "//tools/base/environment-services:studio.intellij.android.environment-services",
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
-        "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility",
+        "//tools/adt/idea/android-adb:intellij.android.adb.testUtil",
     ],
     test_friends = ["//tools/adt/idea/android:intellij.android.core"],
     test_jvm_flags = [
