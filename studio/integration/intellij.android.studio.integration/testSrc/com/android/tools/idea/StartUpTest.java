@@ -106,7 +106,7 @@ public class StartUpTest {
         "IDEA CORE",
         "Images",
         "JSON",
-        "IntelliLang",
+        "Natural Languages",
         "JUnit",
         "Java",
         "Java Bytecode Decompiler",
