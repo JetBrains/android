@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.adblib
 
-import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
-import com.android.adblib.testingutils.FakeAdbServerRule
-import com.android.tools.adblib.testutils.InitAdbLibApplicationServiceRule
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.runBlocking
@@ -27,17 +25,9 @@ import org.junit.rules.RuleChain
 
 class AdbLibServiceTest {
   private val projectRule = ProjectRule()
-  private val initAdbLibApplicationServiceRule = InitAdbLibApplicationServiceRule()
-  private val fakeAdbRule = FakeAdbServerRule()
-  private val initAndroidDebugBridgeRule =
-    InitAndroidDebugBridgeRule(alsoCreateBridge = true) { fakeAdbRule.adbServer.port }
+  private val fakeAdbRule = FakeAdbServerAdbLibRule()
 
-  @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(projectRule)
-      .around(initAdbLibApplicationServiceRule)
-      .around(fakeAdbRule)
-      .around(initAndroidDebugBridgeRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
 
   private val project
     get() = projectRule.project

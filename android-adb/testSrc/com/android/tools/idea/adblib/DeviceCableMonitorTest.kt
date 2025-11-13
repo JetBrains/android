@@ -16,13 +16,10 @@
 
 package com.android.tools.idea.adblib
 
-import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
-import com.android.adblib.ddmlibcompatibility.testutils.waitForOnlineDevice
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
-import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
-import com.android.tools.adblib.testutils.InitAdbLibApplicationServiceRule
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.intellij.facet.impl.FacetUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
@@ -42,21 +39,13 @@ import org.junit.rules.RuleChain
 
 class DeviceCableMonitorTest {
   private val projectRule = ProjectRule()
-  private val initAdbLibApplicationServiceRule = InitAdbLibApplicationServiceRule()
-  private val adbRule = FakeAdbServerRule()
-  private val initAndroidDebugBridgeRule =
-    InitAndroidDebugBridgeRule(alsoCreateBridge = true) { adbRule.adbServer.port }
+  private val adbRule = FakeAdbServerAdbLibRule()
 
   private lateinit var monitor: DeviceCableMonitor
 
   private val latch = CountDownLatch(1)
 
-  @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(projectRule)
-      .around(initAdbLibApplicationServiceRule)
-      .around(adbRule)
-      .around(initAndroidDebugBridgeRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(adbRule)!!
 
   @Before
   fun setup() {
@@ -77,20 +66,17 @@ class DeviceCableMonitorTest {
   @Test
   fun badUSBCableNotificationTest() = runBlockingWithTimeout {
     // Add devices with desired properties here through adbRule.
-    val deviceState =
-      adbRule
-        .connectDevice(
-          deviceId = "device_with_bad_usb_cable",
-          manufacturer = "Google",
-          deviceModel = "Pixel7",
-          release = "10.0.0",
-          sdk = AndroidApiLevel(34),
-          hostConnectionType = DeviceState.HostConnectionType.USB,
-          maxSpeedMbps = 5000L,
-          negotiatedSpeedMbps = 480L,
-        )
-        .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
-    deviceState.waitForOnlineDevice()
+    adbRule.connectDevice(
+      deviceId = "device_with_bad_usb_cable",
+      manufacturer = "Google",
+      deviceModel = "Pixel7",
+      release = "10.0.0",
+      sdk = AndroidApiLevel(34),
+      hostConnectionType = DeviceState.HostConnectionType.USB,
+      maxSpeedMbps = 5000L,
+      negotiatedSpeedMbps = 480L,
+    )
+
     WriteAction.runAndWait<Throwable> {
       FacetUtil.addFacet(projectRule.module, AndroidFacet.getFacetType())
     }

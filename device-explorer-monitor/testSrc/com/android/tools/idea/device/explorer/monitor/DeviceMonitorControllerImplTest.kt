@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.device.explorer.monitor
 
-import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
-import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.ddmlib.ClientData
 import com.android.fakeadbserver.ClientState
 import com.android.fakeadbserver.DeviceState
@@ -26,6 +24,7 @@ import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.fakeadbserver.services.StatusWriter
 import com.android.sdklib.AndroidApiLevel
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorControllerImpl.Companion.getProjectController
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
@@ -68,15 +67,12 @@ class DeviceMonitorControllerImplTest {
 
   private val commandHandler =  TestCommandHandler()
 
-  private val fakeAdbRule = FakeAdbServerRule {
+  private val fakeAdbRule = FakeAdbServerAdbLibRule {
     addDeviceHandler(commandHandler)
   }
 
-  private val initAndroidDebugBridgeRule =
-    InitAndroidDebugBridgeRule(alsoCreateBridge = true) { fakeAdbRule.adbServer.port }
-
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(androidProjectRule).around(fakeAdbRule).around(initAndroidDebugBridgeRule)
+  val ruleChain: RuleChain = RuleChain.outerRule(androidProjectRule).around(fakeAdbRule)
 
   private lateinit var model: DeviceMonitorModel
   private lateinit var service: AdbDeviceService

@@ -16,8 +16,12 @@
 package com.android.tools.adblib.testutils
 
 import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
+import com.android.adblib.ddmlibcompatibility.testutils.waitForOnlineDevice
+import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.FakeAdbServerRule
+import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.adblib.AdbLibApplicationService
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -42,5 +46,31 @@ class FakeAdbServerAdbLibRule(configure: (FakeAdbServer.Builder.() -> Unit)? = n
         .apply(base, description),
       description,
     )
+  }
+
+  override fun connectDevice(
+    deviceId: String,
+    manufacturer: String,
+    deviceModel: String,
+    release: String,
+    sdk: AndroidApiLevel,
+    hostConnectionType: DeviceState.HostConnectionType,
+    maxSpeedMbps: Long,
+    negotiatedSpeedMbps: Long,
+  ): DeviceState {
+    val deviceState =
+      super.connectDevice(
+        deviceId,
+        manufacturer,
+        deviceModel,
+        release,
+        sdk,
+        hostConnectionType,
+        maxSpeedMbps,
+        negotiatedSpeedMbps,
+      )
+
+    runBlockingWithTimeout { deviceState.waitForOnlineDevice() }
+    return deviceState
   }
 }

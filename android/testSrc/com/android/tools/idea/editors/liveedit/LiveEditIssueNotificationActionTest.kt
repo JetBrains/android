@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.editors.liveedit
 
-import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
-import com.android.adblib.ddmlibcompatibility.testutils.waitForOnlineDevice
-import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
-import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.liveedit.ui.DeviceGetter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditDeviceMap
@@ -51,12 +48,10 @@ import org.mockito.kotlin.whenever
 /** Tests for [LiveEditIssueNotificationAction]. */
 internal class LiveEditIssueNotificationActionTest {
   private val projectRule = AndroidProjectRule.inMemory()
-  private val fakeAdbRule = FakeAdbServerRule()
-  private val initAndroidDebugBridgeRule =
-    InitAndroidDebugBridgeRule(alsoCreateBridge = true) { fakeAdbRule.adbServer.port }
+  private val fakeAdbRule = FakeAdbServerAdbLibRule()
 
   @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule).around(initAndroidDebugBridgeRule)
+  val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
 
   @Before
   fun setUp() {
@@ -98,17 +93,13 @@ internal class LiveEditIssueNotificationActionTest {
   @Test
   fun `check simple with fake device`() {
     val service = LiveEditService.getInstance(projectRule.project)
-    val deviceState = fakeAdbRule.connectDevice(
+    fakeAdbRule.connectDevice(
       deviceId = "device_id",
       manufacturer = "mfg",
       deviceModel = "model",
       release = "10.0.0",
       sdk = AndroidApiLevel(30),
       hostConnectionType = DeviceState.HostConnectionType.USB)
-      .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
-    runBlockingWithTimeout {
-      deviceState.waitForOnlineDevice()
-    }
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     // Event two. Pretending we are running device window. We should have the shorten status.
