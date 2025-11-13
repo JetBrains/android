@@ -67,12 +67,14 @@ class AddDependencySrcJarsTest {
   @Before
   @Throws(IOException::class)
   fun setUp() {
-    intellij.registerApplicationService(ExperimentService::class.java, MockExperimentService())
+    val mockExperimentService = MockExperimentService()
+    intellij.registerApplicationService(ExperimentService::class.java, mockExperimentService)
     original = syncer.sync(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
     workspaceRoot = tempDir.newFolder("workspace").toPath()
     val projectDirPath = tempDir.newFolder("project").toPath()
     pathResolver =
       ProjectPath.Resolver.create(workspaceRoot, projectDirPath, projectDirPath.resolve(".external"))
+    mockExperimentService.setExperiment(com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.ENABLED_NAVIGATION_POLICY, false)
   }
 
   @Test

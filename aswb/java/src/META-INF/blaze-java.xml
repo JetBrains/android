@@ -22,6 +22,7 @@
     <clsCustomNavigationPolicy implementation="com.google.idea.blaze.java.qsync.QuerySyncNavigationPolicy" />
     <clsCustomNavigationPolicy implementation="com.google.idea.blaze.java.qsync.ProtoSrcJarQuerySyncNavigationPolicy" />
     <clsCustomNavigationPolicy implementation="com.google.idea.blaze.java.qsync.GenSrcJarQuerySyncNavigationPolicy" />
+    <clsCustomNavigationPolicy implementation="com.google.idea.blaze.java.qsync.SrcJarQuerySyncNavigationPolicy" />
   </extensions>
   <extensions defaultExtensionNs="com.google.idea.blaze">
     <TargetKindProvider implementation="com.google.idea.blaze.java.JavaBlazeRules"/>
