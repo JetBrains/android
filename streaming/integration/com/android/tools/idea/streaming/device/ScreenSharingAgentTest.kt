@@ -20,9 +20,9 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.testutils.TestUtils.getBinPath
 import com.android.testutils.waitForCondition
+import com.android.tools.adblib.testutils.InitAdbLibApplicationServiceRule
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.asdriver.tests.AndroidSystem
-import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.testing.flags.overrideForTest
@@ -43,15 +43,6 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
 import icons.StudioIcons
-import org.jetbrains.android.sdk.AndroidSdkUtils
-import org.junit.AfterClass
-import org.junit.BeforeClass
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
-import org.junit.runners.Suite
-import org.junit.runners.Suite.SuiteClasses
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
@@ -65,6 +56,15 @@ import kotlin.math.sign
 import kotlin.random.Random
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
+import org.jetbrains.android.sdk.AndroidSdkUtils
+import org.junit.AfterClass
+import org.junit.BeforeClass
+import org.junit.ClassRule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.junit.runners.Suite
+import org.junit.runners.Suite.SuiteClasses
 
 @RunWith(Suite::class)
 @SuiteClasses(ScreenSharingAgentTest::class)

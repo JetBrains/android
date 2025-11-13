@@ -22,7 +22,7 @@ import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
-import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
+import com.android.tools.adblib.testutils.InitAdbLibApplicationServiceRule
 import com.intellij.facet.impl.FacetUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications

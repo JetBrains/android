@@ -31,7 +31,7 @@ import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestResources
-import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
+import com.android.tools.adblib.testutils.InitAdbLibApplicationServiceRule
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.logcat.SYSTEM_HEADER

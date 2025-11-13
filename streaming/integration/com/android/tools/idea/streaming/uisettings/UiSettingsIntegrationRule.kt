@@ -21,13 +21,11 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
+import com.android.tools.adblib.testutils.InitAdbLibApplicationServiceRule
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.findModelessDialog
-import com.android.tools.testlib.Adb
 import com.android.tools.asdriver.tests.AndroidSystem
-import com.android.tools.testlib.Emulator
-import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.StreamingDevicePanel
@@ -41,6 +39,8 @@ import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
+import com.android.tools.testlib.Adb
+import com.android.tools.testlib.Emulator
 import com.android.utils.executeWithRetries
 import com.intellij.execution.process.ProcessIOExecutorService
 import com.intellij.ide.DataManager
@@ -55,17 +55,17 @@ import com.intellij.testFramework.common.ThreadLeakTracker
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBScrollPane
 import icons.StudioIcons
+import java.awt.Dimension
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.pathString
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import java.awt.Dimension
-import java.nio.file.Files
-import java.nio.file.Path
-import kotlin.io.path.pathString
-import kotlin.time.Duration.Companion.seconds
 
 private const val SETTINGS_BUTTON_TEXT = "Device UI Shortcuts"
 
