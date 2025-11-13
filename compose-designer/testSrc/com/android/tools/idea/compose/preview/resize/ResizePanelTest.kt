@@ -34,10 +34,10 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
-import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.util.Disposer
@@ -208,7 +208,7 @@ class ResizePanelTest {
     assertTrue(resizePanel.hasBeenResized)
     assertNotEquals(initialDevice, configuration.device)
 
-    revertPanel()
+    revert()
 
     assertTrue(resizePanel.isVisible)
     assertFalse(resizePanel.hasBeenResized)
@@ -272,7 +272,7 @@ class ResizePanelTest {
     assertNotEquals(initialDevice.id, configuration.device?.id)
     assertEquals("Custom", configuration.device!!.displayName)
 
-    revertPanel()
+    revert()
 
     assertTrue(resizePanel.isVisible)
     assertFalse(resizePanel.hasBeenResized)
@@ -287,7 +287,7 @@ class ResizePanelTest {
     assertNotEquals(initialDevice.id, configuration.device?.id)
     assertEquals("Custom", configuration.device!!.displayName)
 
-    revertPanel()
+    revert()
 
     assertTrue(resizePanel.isVisible)
     assertFalse(resizePanel.hasBeenResized)
@@ -499,10 +499,13 @@ class ResizePanelTest {
     findAndPerformDeviceMenuAction { it.templateText == "Original" }
   }
 
-  private fun revertPanel() {
-    val revertButton =
-      fakeUi.findComponent<ActionButton> { it.action is ResizePanel.RevertAction }!!
-    fakeUi.clickOn(revertButton)
+  private fun revert() {
+    fakeUi.updateToolbars()
+    fakeUi.layoutAndDispatchEvents()
+    val revertToolbar =
+      fakeUi.findComponent<ActionToolbar> { it.actions.firstOrNull() is ResizePanel.RevertAction }
+    assertNotNull(revertToolbar)
+    revertToolbar!!.actions.single().actionPerformed(TestActionEvent.createTestEvent())
   }
 
   private fun setupAndShowPanel(): Device {
@@ -527,7 +530,7 @@ class ResizePanelTest {
     assertTrue(resizePanel.hasBeenResized)
 
     // Revert and check
-    revertPanel()
+    revert()
     assertFalse(resizePanel.hasBeenResized)
 
     // Resize by changing width
@@ -535,7 +538,7 @@ class ResizePanelTest {
     assertTrue(resizePanel.hasBeenResized)
 
     // Revert and check
-    revertPanel()
+    revert()
     assertFalse(resizePanel.hasBeenResized)
 
     // Resize by changing height
