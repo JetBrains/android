@@ -121,7 +121,7 @@ class GeminiAiInsightClientTest {
 
     expectedPromptText =
       """
-      |SYSTEM
+      |USER
       |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
       |For headings, use H3 only. Initial explanation should not be under a heading.
       |Begin with the explanation directly. Do not add fillers at the start of response.
@@ -163,7 +163,7 @@ class GeminiAiInsightClientTest {
 
     expectedPromptText =
       """
-      |SYSTEM
+      |USER
       |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
       |For headings, use H3 only. Initial explanation should not be under a heading.
       |Begin with the explanation directly. Do not add fillers at the start of response.
@@ -294,7 +294,7 @@ class GeminiAiInsightClientTest {
 
       expectedPromptText =
         """
-      |SYSTEM
+      |USER
       |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
       |For headings, use H3 only. Initial explanation should not be under a heading.
       |Begin with the explanation directly. Do not add fillers at the start of response.
@@ -356,7 +356,7 @@ class GeminiAiInsightClientTest {
 
     expectedPromptText =
       """
-      |SYSTEM
+      |USER
       |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
       |For headings, use H3 only. Initial explanation should not be under a heading.
       |Begin with the explanation directly. Do not add fillers at the start of response.
@@ -397,7 +397,7 @@ class GeminiAiInsightClientTest {
 
     expectedPromptText =
       """
-      |SYSTEM
+      |USER
       |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
       |For headings, use H3 only. Initial explanation should not be under a heading.
       |Begin with the explanation directly. Do not add fillers at the start of response.
@@ -450,7 +450,7 @@ class GeminiAiInsightClientTest {
 
     expectedPromptText =
       """
-      |SYSTEM
+      |USER
       |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
       |For headings, use H3 only. Initial explanation should not be under a heading.
       |Begin with the explanation directly. Do not add fillers at the start of response.
@@ -516,7 +516,7 @@ class GeminiAiInsightClientTest {
 
       expectedPromptText =
         """
-      |SYSTEM
+      |USER
       |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
       |For headings, use H3 only. Initial explanation should not be under a heading.
       |Begin with the explanation directly. Do not add fillers at the start of response.
@@ -591,7 +591,7 @@ class GeminiAiInsightClientTest {
 
     expectedPromptText =
       """
-      |SYSTEM
+      |USER
       |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
       |For headings, use H3 only. Initial explanation should not be under a heading.
       |Begin with the explanation directly. Do not add fillers at the start of response.
