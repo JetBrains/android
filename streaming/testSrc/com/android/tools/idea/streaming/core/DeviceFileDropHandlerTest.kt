@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.streaming.core
 
-import com.android.adblib.ddmlibcompatibility.testutils.FakeAdbServerAdbLibRule
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.FakeEmulator

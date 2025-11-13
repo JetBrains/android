@@ -17,7 +17,7 @@ package com.android.tools.idea.adblib
 
 import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
 import com.android.adblib.testingutils.FakeAdbServerRule
-import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
+import com.android.tools.adblib.testutils.InitAdbLibApplicationServiceRule
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.google.common.truth.Truth
 import com.intellij.openapi.components.service

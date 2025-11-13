@@ -18,7 +18,6 @@ package com.android.tools.idea.streaming.device
 import com.android.adblib.ConnectedDevice
 import com.android.adblib.DeviceInfo
 import com.android.adblib.DeviceState.ONLINE
-import com.android.adblib.ddmlibcompatibility.testutils.FakeAdbServerAdbLibRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.FakeDeviceCreator
@@ -31,6 +30,7 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState as ProvisionerDeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.Resolution
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.util.StudioPathManager

@@ -19,7 +19,7 @@ import com.android.adblib.testingutils.CloseablesRule
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.testutils.MockitoCleanerRule
-import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
+import com.android.tools.adblib.testutils.InitAdbLibApplicationServiceRule
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
@@ -32,11 +32,11 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.xdebugger.XDebuggerManager
+import java.io.File
 import org.junit.After
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.rules.RuleChain
-import java.io.File
 
 
 @Ignore("FakeAdbTestRule hangs")
