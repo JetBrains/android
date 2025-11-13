@@ -369,6 +369,12 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     viewType: UpdateReferenceImagesDialog.ScreenshotViewType
   ) {
     multiplePreviewsPanel.removeAll()
+    multiplePreviewsPanel.layout = BorderLayout()
+
+    val contentPanel = JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+    }
+
     val previewsByFunction = previewsToShow.groupBy { it.methodName }
     previewsByFunction.forEach { (function, previews) ->
       val functionNameLabel =
@@ -377,12 +383,13 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
           border = BorderFactory.createEmptyBorder(15, 5, 5, 5)
           alignmentX = JComponent.LEFT_ALIGNMENT
         }
-      multiplePreviewsPanel.add(functionNameLabel)
+      contentPanel.add(functionNameLabel)
 
-      // Use FlowLayout to ensure components are left-aligned and not stretched.
+      // Use FlowLayout to align components to the left.
       val horizontalPreviewsPanel =
         JPanel(FlowLayout(FlowLayout.LEFT, 10, 0)).apply {
-          border = BorderFactory.createEmptyBorder(10, 20, 10, 20)
+          border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
+          alignmentX = JComponent.LEFT_ALIGNMENT
         }
 
       previews.forEach { previewData ->
@@ -391,16 +398,15 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
           horizontalPreviewsPanel.add(panel)
         }
       }
-
-      val horizontalScrollPane =
-        JBScrollPane(horizontalPreviewsPanel).apply {
-          horizontalScrollBarPolicy = JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
-          verticalScrollBarPolicy = JBScrollPane.VERTICAL_SCROLLBAR_NEVER
-          border = null
-          alignmentX = JComponent.LEFT_ALIGNMENT
-        }
-      multiplePreviewsPanel.add(horizontalScrollPane)
+      contentPanel.add(horizontalPreviewsPanel)
     }
+
+    val scrollPane = JBScrollPane(contentPanel).apply {
+      verticalScrollBarPolicy = JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
+      horizontalScrollBarPolicy = JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+      border = null
+    }
+    multiplePreviewsPanel.add(scrollPane, BorderLayout.CENTER)
     multiplePreviewsPanel.revalidate()
     multiplePreviewsPanel.repaint()
   }
