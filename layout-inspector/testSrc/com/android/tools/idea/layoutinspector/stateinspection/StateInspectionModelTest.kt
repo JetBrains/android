@@ -42,6 +42,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetRecompositionStateReadResponse
@@ -170,7 +171,7 @@ class StateInspectionModelTest {
     assertThat(model.stackTraceText.value)
       .isEqualTo(
         """
-        State read value: 1.0dp 🟢
+        State read value: 1.0dp <invalidated>
             at androidx.CompositionImpl.recordReadOf(Composition.kt:1015)
             at androidx.SnapshotKt.readable(Snapshot.kt:225)
 
@@ -218,7 +219,7 @@ class StateInspectionModelTest {
     assertThat(model.stackTraceText.value)
       .isEqualTo(
         """
-        State read value: 1.0dp 🟢
+        State read value: 1.0dp <invalidated>
             at androidx.CompositionImpl.recordReadOf(Composition.kt:1015)
             at androidx.SnapshotKt.readable(Snapshot.kt:225)
 
@@ -412,8 +413,10 @@ class StateInspectionModelTest {
         ActionUiKind.NONE,
         null,
       )
-    ActionUtil.updateAction(this, event)
-    ActionUtil.performAction(this, event)
+    runInEdtAndWait {
+      ActionUtil.updateAction(this, event)
+      ActionUtil.performAction(this, event)
+    }
   }
 
   private fun GetRecompositionStateReadResponse.convert(

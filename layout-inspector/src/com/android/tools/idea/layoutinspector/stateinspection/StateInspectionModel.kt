@@ -52,6 +52,8 @@ private const val PREV_DESCRIPTION_KEY = "layout.inspector.recomposition.prev"
 private const val NEXT_DESCRIPTION_KEY = "layout.inspector.recomposition.next"
 private const val HIDE_DESCRIPTION_KEY = "layout.inspector.recomposition.hide"
 
+internal const val INVALIDATED = "<invalidated>"
+
 /** Model for the [StateInspectionPanel]. */
 internal interface StateInspectionModel {
   /** Show the State Read panel if the value is true, otherwise hide. */
@@ -90,8 +92,7 @@ internal class StateInspectionModelImpl(
 ) : StateInspectionModel {
   private val scope = parentScope.createChildScope(parentDisposable = parentDisposable)
   private val lock = Any()
-  @GuardedBy("lock")
-  private var currentKey: StateReadKey? = null
+  @GuardedBy("lock") private var currentKey: StateReadKey? = null
   private var hasStateReadsForPreviousRecomposition = false
 
   private val _show = MutableStateFlow(false)
@@ -174,7 +175,7 @@ internal class StateInspectionModelImpl(
       when {
         view !is ComposeViewNode -> showInactiveState(InactiveState.VIEW)
         !model.stateReadsModel.isNodeObserved(view) -> showInactiveState(InactiveState.NOT_OBSERVED)
-        view.anchorHash == synchronized(lock) { currentKey?.composable?.anchorHash } -> {} // Keep current recomposition
+        view.anchorHash == synchronized(lock) { currentKey?.composable?.anchorHash } -> {}  // Keep current recomposition
         else -> loadRecompositionStateReads(view)
       }
     }
@@ -309,7 +310,7 @@ internal class StateInspectionModelImpl(
       maxLengthReached = true
     }
     if (invalidated) {
-      message.append(" \uD83D\uDFE2")
+      message.append(" $INVALIDATED")
     }
     var read = message.toString()
     LayoutInspectorStateReadRewriter.EP_NAME.extensionList.forEach {
