@@ -1212,6 +1212,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_XR_EYE_TRACKING = new BooleanFlag(
     EMBEDDED_EMULATOR, "xr.eye.tracking", "Enable eye tracking input mode for XR AVDs",
     "Enables eye tracking input mode for XR AVDs");
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_B458422581_LOGGING = new DebugFlag(
+    EMBEDDED_EMULATOR, "b458422581.logging", "Enable logging for investigation of b/458422581",
+    "Enable logging for investigation of b/458422581");
   public static final Flag<Boolean> RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME = new BooleanFlag(
     EMBEDDED_EMULATOR, "hide.tool.window.name", "Hide Tool Window Name",
     "Hides the name of the Running Devices window when it contains any device tabs"
