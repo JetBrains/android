@@ -148,7 +148,8 @@ class GeminiAiInsightClient(
       val userPrompt = createPrompt(request, contextData.codeContext)
       val finalPrompt =
         buildLlmPrompt(project) {
-          systemMessage {
+          // Enterprise GCA drops systemMessages, so this has to be a userMessage.
+          userMessage {
             text(
               if (StudioFlags.AQI_FIX_WITH_AGENT.get()) SHORT_GEMINI_PREAMBLE else GEMINI_PREAMBLE,
               emptyList(),
