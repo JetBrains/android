@@ -22,7 +22,7 @@ import java.io.File
 import java.io.Serializable
 
 /** This is collapsed similarly to [IdeDependencies]. See the note there. */
-data class IdeSourceProvider private constructor(
+data class IdeSourceProvider constructor(
   private val nameField: String,
   private val folderField: FileImpl?,
   private val manifestFileField: FileImpl?,

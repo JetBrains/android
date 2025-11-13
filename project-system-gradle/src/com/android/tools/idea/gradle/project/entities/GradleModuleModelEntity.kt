@@ -22,50 +22,13 @@ import com.intellij.platform.workspace.storage.EntityType
 import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.platform.workspace.storage.WorkspaceEntity
-import com.intellij.platform.workspace.storage.annotations.Child
+import com.intellij.platform.workspace.storage.annotations.Parent
 
 interface GradleModuleModelEntity : WorkspaceEntity {
+  @Parent
   val module: ModuleEntity
   val gradleModuleModel: GradleModuleModel
-
-  //region generated code
-  @GeneratedCodeApiVersion(3)
-  interface Builder : WorkspaceEntity.Builder<GradleModuleModelEntity> {
-    override var entitySource: EntitySource
-    var module: ModuleEntity.Builder
-    var gradleModuleModel: GradleModuleModel
-  }
-
-  companion object : EntityType<GradleModuleModelEntity, Builder>() {
-    @JvmOverloads
-    @JvmStatic
-    @JvmName("create")
-    operator fun invoke(
-      gradleModuleModel: GradleModuleModel,
-      entitySource: EntitySource,
-      init: (Builder.() -> Unit)? = null,
-    ): Builder {
-      val builder = builder()
-      builder.gradleModuleModel = gradleModuleModel
-      builder.entitySource = entitySource
-      init?.invoke(builder)
-      return builder
-    }
-  }
-  //endregion
 }
 
-//region generated code
-fun MutableEntityStorage.modifyGradleModuleModelEntity(
-  entity: GradleModuleModelEntity,
-  modification: GradleModuleModelEntity.Builder.() -> Unit,
-): GradleModuleModelEntity {
-  return modifyEntity(GradleModuleModelEntity.Builder::class.java, entity, modification)
-}
-
-var ModuleEntity.Builder.gradleModuleModel: GradleModuleModelEntity.Builder?
-  by WorkspaceEntity.extensionBuilder(GradleModuleModelEntity::class.java)
-//endregion
-
-val ModuleEntity.gradleModuleModel: @Child GradleModuleModelEntity?
+val ModuleEntity.gradleModuleModel: GradleModuleModelEntity?
   by WorkspaceEntity.extension()

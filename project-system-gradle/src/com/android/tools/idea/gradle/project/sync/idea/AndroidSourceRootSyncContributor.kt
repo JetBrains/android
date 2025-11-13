@@ -511,7 +511,7 @@ private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities(
 }
 
 private fun SyncContributorAndroidProjectContext.linkModuleGroup(
-  holderModuleEntity: ModuleEntity.Builder,
+  holderModuleEntity: ModuleEntityBuilder,
   sourceSetModules: Map<IdeArtifactName, ModuleEntityBuilder>) {
   val androidModuleGroup = getModuleGroup(sourceSetModules)
   val linkedModules = sourceSetModules.values + holderModuleEntity
