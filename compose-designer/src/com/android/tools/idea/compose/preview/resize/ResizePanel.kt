@@ -51,7 +51,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
-import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -109,6 +108,7 @@ class ResizePanel(parentDisposable: Disposable) :
    * Indicates whether the preview has been resized using this panel at least once since the panel
    * was last cleared or initialized.
    */
+  @Volatile
   var hasBeenResized: Boolean = false
     private set
 
@@ -143,14 +143,11 @@ class ResizePanel(parentDisposable: Disposable) :
   /** Creates and configures the revert button. */
   private fun createRevertButton(): JComponent {
     val revertAction = RevertAction()
-    val revertButton =
-      ActionButton(
-          revertAction,
-          revertAction.templatePresentation.clone(),
-          ActionPlaces.TOOLBAR,
-          ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
-        )
-        .apply { isFocusable = true }
+    val actionGroup = DefaultActionGroup(revertAction)
+    val actionToolbar =
+      ActionManager.getInstance().createActionToolbar(ActionPlaces.TOOLBAR, actionGroup, true)
+    actionToolbar.targetComponent = this
+    actionToolbar.component.isOpaque = false
 
     // Wrap the revert button in a panel to prevent it from being stretched by the BorderLayout,
     // and to align it vertically.
@@ -158,7 +155,7 @@ class ResizePanel(parentDisposable: Disposable) :
       isOpaque = false
       layout = BoxLayout(this, BoxLayout.Y_AXIS)
       add(Box.createVerticalGlue())
-      add(revertButton)
+      add(actionToolbar.component)
       add(Box.createVerticalGlue())
     }
   }
@@ -168,6 +165,14 @@ class ResizePanel(parentDisposable: Disposable) :
     DumbAwareAction(message("resize.panel.revert.tooltip"), null, AllIcons.Actions.Rollback) {
     override fun actionPerformed(e: AnActionEvent) {
       revertResizing()
+    }
+
+    override fun update(e: AnActionEvent) {
+      e.presentation.isEnabledAndVisible = hasBeenResized
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      return ActionUpdateThread.BGT
     }
   }
 
@@ -221,7 +226,6 @@ class ResizePanel(parentDisposable: Disposable) :
       currentSceneManager?.scene?.designSurface,
       currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
     )
-    hasBeenResized = false
   }
 
   /** Clears the panel's state, removing any existing configuration. */
@@ -248,7 +252,6 @@ class ResizePanel(parentDisposable: Disposable) :
   private fun handleDeviceSelection(selectedItem: Device) {
     dimensionInputsAction.resetErrors()
     currentConfiguration?.setEffectiveDevice(selectedItem, selectedItem.defaultState)
-    hasBeenResized = true
     dimensionInputsAction.updateTextFieldsFromConfiguration()
     ComposeResizeToolingUsageTracker.logResizeStopped(
       currentSceneManager?.scene?.designSurface,
@@ -531,7 +534,6 @@ class ResizePanel(parentDisposable: Disposable) :
         ConversionUtil.dpToPx(newWidthDp, dpi),
         ConversionUtil.dpToPx(newHeightDp, dpi),
       )
-      hasBeenResized = true
       ComposeResizeToolingUsageTracker.logResizeStopped(
         currentSceneManager?.scene?.designSurface,
         currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
