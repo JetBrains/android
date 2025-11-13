@@ -30,7 +30,7 @@ import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 
-data class GradleAndroidTestsTaskManagerTest(
+data class GradleAndroidTestsTaskManagerTestDef(
   override val name: String,
   override val testProject: TestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
@@ -38,8 +38,8 @@ data class GradleAndroidTestsTaskManagerTest(
 ) : SyncedProjectTestDef {
 
   companion object {
-    val tests: List<GradleAndroidTestsTaskManagerTest> = listOf(
-      GradleAndroidTestsTaskManagerTest(
+    val tests: List<GradleAndroidTestsTaskManagerTestDef> = listOf(
+      GradleAndroidTestsTaskManagerTestDef(
         name = "simpleApplication gradle task manager",
         testProject = TestProject.SIMPLE_APPLICATION,
       ) { project ->
