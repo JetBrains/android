@@ -28,9 +28,6 @@ import com.android.tools.idea.projectsystem.gradle.getBuiltApksForSelectedVarian
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_71
@@ -76,9 +73,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               RequiredInstallationOptions: []
           """.let {
         listOf(
-          AGP_35 to it,
-          AGP_40 to it,
-          AGP_41 to it,
           AGP_42 to it,
           AGP_70 to it,
           AGP_CURRENT to """
@@ -104,9 +98,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               RequiredInstallationOptions: []
             """.let {
         listOf(
-          AGP_35 to it,
-          AGP_40 to it,
-          AGP_41 to it,
           AGP_42 to it,
           AGP_70 to it,
           AGP_CURRENT to """
@@ -138,15 +129,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         AGP_42 to """
               ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/outputs/apk/debug/output-metadata.json
             """,
-        AGP_41 to """
-              ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/outputs/apk/debug/output-metadata.json
-            """,
-        AGP_40 to """
-              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app Variant: debug
-            """,
-        AGP_35 to """
-              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app Variant: debug
-            """
       )
     ),
     def(
@@ -163,9 +145,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             RequiredInstallationOptions: []
           """.let {
         listOf(
-          AGP_35 to it,
-          AGP_40 to it,
-          AGP_41 to it,
           AGP_42 to it,
           AGP_70 to it,
           AGP_CURRENT to """
@@ -206,27 +185,13 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
                 base -> project/app/build/intermediates/extracted_apks/debug/extractApksFromBundleForDebug/base-mdpi.apk
               RequiredInstallationOptions: []
             """),
-        *(arrayOf(AGP_41, AGP_42, AGP_70, AGP_71, AGP_72, AGP_73, AGP_80, AGP_81, AGP_82)  eachTo """
+        *(arrayOf(AGP_42, AGP_70, AGP_71, AGP_72, AGP_73, AGP_80, AGP_81, AGP_82)  eachTo """
               ApplicationId: one.name.defaultConfig.debug
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
               RequiredInstallationOptions: []
             """),
-        AGP_40 to """
-              ApplicationId: one.name.defaultConfig.debug
-              Files:
-                base -> project/app/build/intermediates/extracted_apks/debug/out/base-master.apk
-                base -> project/app/build/intermediates/extracted_apks/debug/out/base-mdpi.apk
-              RequiredInstallationOptions: []
-            """,
-        AGP_35 to """
-              ApplicationId: one.name.defaultConfig.debug
-              Files:
-                base -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/base-master.apk
-                base -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/base-mdpi.apk
-              RequiredInstallationOptions: []
-            """
       )
     ),
     def(
@@ -270,9 +235,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             RequiredInstallationOptions: []
           """.let {
         listOf(
-          AGP_35 to it,
-          AGP_40 to it,
-          AGP_41 to it,
           AGP_42 to it,
           AGP_70 to it,
           AGP_CURRENT to """
@@ -339,9 +301,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             RequiredInstallationOptions: []
           """.let {
         listOf(
-          AGP_35 to it,
-          AGP_40 to it,
-          AGP_41 to it,
           AGP_42 to it,
           AGP_70 to it,
           AGP_CURRENT to
@@ -374,9 +333,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             RequiredInstallationOptions: []
           """.let {
         listOf(
-          AGP_35 to it,
-          AGP_40 to it,
-          AGP_41 to it,
           AGP_42 to it,
           AGP_70 to it,
           AGP_CURRENT to """
@@ -404,12 +360,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               standalone -> project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
             RequiredInstallationOptions: []
           """,
-        AGP_35 to """
-            ApplicationId: google.simpleapplication
-            Files:
-              standalone -> project/app/build/outputs/extracted_apks/debug/standalone-mdpi.apk
-            RequiredInstallationOptions: []
-          """,
       )
 
     ),
@@ -420,7 +370,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         target = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
       ),
       expectApks = mapOf(
-        *(arrayOf(AGP_35, AGP_40, AGP_41, AGP_42, AGP_70) eachTo """
+        *(arrayOf(AGP_42, AGP_70) eachTo """
               ApplicationId: google.simpleapplication
               Files:
                 simpleApplication.app -> project/app/build/outputs/apk/debug/app-debug.apk
@@ -454,17 +404,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       IGNORE = { TODO("b/189190337") },
       expectApks = mapOf(
         AGP_CURRENT to """
-            ApplicationId: google.simpleapplication.test
-            Files:
-               -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-            RequiredInstallationOptions: []
-          """,
-        AGP_35 to """
-            ApplicationId: google.simpleapplication
-            Files:
-              standalone -> project/app/build/outputs/extracted_apks/debug/standalone-mdpi.apk
-            RequiredInstallationOptions: []
-
             ApplicationId: google.simpleapplication.test
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
@@ -542,55 +481,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
                  -> project/feature1/build/intermediates/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
             """
-        ),
-        AGP_41 to """
-              ApplicationId: google.simpleapplication
-              Files:
-                base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
-                base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
-                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/dependsOnFeature1-master.apk
-                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/dependsOnFeature1-mdpi.apk
-                feature1 -> project/app/build/intermediates/extracted_apks/debug/feature1-master.apk
-                feature1 -> project/app/build/intermediates/extracted_apks/debug/feature1-mdpi.apk
-              RequiredInstallationOptions: []
-
-              ApplicationId: com.example.feature1.test
-              Files:
-                 -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
-              RequiredInstallationOptions: []
-            """,
-        AGP_40 to """
-              ApplicationId: google.simpleapplication
-              Files:
-                base -> project/app/build/intermediates/extracted_apks/debug/out/base-master.apk
-                base -> project/app/build/intermediates/extracted_apks/debug/out/base-mdpi.apk
-                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/out/dependsOnFeature1-master.apk
-                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/out/dependsOnFeature1-mdpi.apk
-                feature1 -> project/app/build/intermediates/extracted_apks/debug/out/feature1-master.apk
-                feature1 -> project/app/build/intermediates/extracted_apks/debug/out/feature1-mdpi.apk
-              RequiredInstallationOptions: []
-
-              ApplicationId: com.example.feature1.test
-              Files:
-                 -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
-              RequiredInstallationOptions: []
-            """,
-        AGP_35 to """
-              ApplicationId: google.simpleapplication
-              Files:
-                base -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/base-master.apk
-                base -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/base-mdpi.apk
-                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/dependsOnFeature1-master.apk
-                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/dependsOnFeature1-mdpi.apk
-                feature1 -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/feature1-master.apk
-                feature1 -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/feature1-mdpi.apk
-              RequiredInstallationOptions: []
-
-              ApplicationId: com.example.feature1.test
-              Files:
-                 -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
-              RequiredInstallationOptions: []
-            """
+        )
       )
     ),
     def(
@@ -617,9 +508,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             RequiredInstallationOptions: [FORCE_QUERYABLE, GRANT_ALL_PERMISSIONS]
           """.let {
         listOf(
-          AGP_35 to it,
-          AGP_40 to it,
-          AGP_41 to it,
           AGP_42 to it,
           AGP_70 to it,
           AGP_CURRENT to """
@@ -649,10 +537,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       ),
       expectValidate = mapOf(
         AGP_CURRENT to "The apk for your currently selected variant cannot be signed. " +
-          "Please specify a signing configuration for this variant (release).",
-        AGP_40 to "The apk for your currently selected variant cannot be signed. " +
-          "Please specify a signing configuration for this variant (release).",
-        AGP_35 to "The apk for your currently selected variant cannot be signed. " +
           "Please specify a signing configuration for this variant (release)."
       ),
       expectApks =
@@ -663,9 +547,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               RequiredInstallationOptions: []
             """.let {
         listOf(
-          AGP_35 to it,
-          AGP_40 to it,
-          AGP_41 to it,
           AGP_42 to it,
           AGP_70 to it,
           AGP_CURRENT to """
@@ -691,9 +572,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           RequiredInstallationOptions: []
             """.let {
         listOf(
-          AGP_35 to it,
-          AGP_40 to it,
-          AGP_41 to it,
           AGP_42 to it,
           AGP_70 to it,
           AGP_CURRENT to """
