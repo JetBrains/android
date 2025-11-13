@@ -263,7 +263,7 @@ internal class LiveEditOutputBuilder(val unrestricted: Boolean = false) {
  * mapping is changed, we will need to go into unsupported state.
  */
 private fun isWhenMapping(clazz: IrClass) : Boolean {
-  return clazz.name.endsWith(MAPPINGS_CLASS_NAME_POSTFIX) && clazz.fields.all { it.name.startsWith(MAPPING_ARRAY_FIELD_PREFIX)}
+  return clazz.name.endsWith("\$WhenMappings") && clazz.fields.all { it.name.startsWith("\$EnumSwitchMapping$")}
 }
 
 private const val MAPPING_ARRAY_FIELD_PREFIX = "\$EnumSwitchMapping$"
