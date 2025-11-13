@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.adblib.DeviceSelector
-import com.android.adblib.ddmlibcompatibility.testutils.waitForOnlineDevice
 import com.android.fakeadbserver.DeviceState
 import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
@@ -1330,17 +1329,14 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
         .port
     val deviceId = "emulator-$emulatorPort"
     val device =
-      inspectorRule.adbRule
-        .connectDevice(
-          deviceId = deviceId,
-          manufacturer = "mfg",
-          deviceModel = "model",
-          release = "10.0.0",
-          sdk = AndroidApiLevel(apiLevel),
-          hostConnectionType = DeviceState.HostConnectionType.LOCAL,
-        )
-        .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
-    device.waitForOnlineDevice()
+      inspectorRule.adbRule.connectDevice(
+        deviceId = deviceId,
+        manufacturer = "mfg",
+        deviceModel = "model",
+        release = "10.0.0",
+        sdk = AndroidApiLevel(apiLevel),
+        hostConnectionType = DeviceState.HostConnectionType.LOCAL,
+      )
 
     val processDescriptor =
       object : ProcessDescriptor {
