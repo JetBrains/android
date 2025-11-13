@@ -30,7 +30,7 @@ const val STATE_READS_MIN_VERSION = "1.10.0"
 
 /** Create a "State Reads" menu group. */
 fun createStateReadMenuGroup(selected: ComposeViewNode, inspectorModel: InspectorModel): AnAction {
-  return object : ActionGroup("State Reads", true) {
+  return object : ActionGroup("Observe Recomposition", true) {
     override fun update(event: AnActionEvent) {
       val inspector = LayoutInspectorRootPanel.get(event)
       val hasLineNumberInfo = inspector.hasCapability(Capability.HAS_LINE_NUMBER_INFORMATION)
