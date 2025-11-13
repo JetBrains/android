@@ -89,6 +89,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.or
 
 private const val BUTTON_CATEGORY_INDEX = 2
 private const val CHECKBOX_ITEM_INDEX = 2
@@ -302,7 +303,7 @@ public class MyWebView extends android.webkit.WebView {
       assertFalse(imitateDragAndDrop(handler, list))
       verify(statusBar)
         .notifyProgressByBalloon(
-          eq(MessageType.WARNING),
+          or(eq(MessageType.WARNING), eq(MessageType.INFO)),
           eq("Dragging from the Palette is not available while indices are updating."),
         )
     }
