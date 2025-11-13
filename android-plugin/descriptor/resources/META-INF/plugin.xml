@@ -19,7 +19,6 @@
   <dependencies>
     <plugin id="com.intellij.platform.images"/>
     <plugin id="com.intellij.java"/>
-    <plugin id="intellij.webp"/>
     <module name="intellij.json.backend"/>
     <module name="intellij.platform.lvcs.impl"/>
     <module name="intellij.platform.vcs.impl"/>
