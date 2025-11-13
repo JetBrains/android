@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.testartifacts.testsuite.runconfiguration
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.flags.overrideForTest
 import junit.framework.TestCase.assertTrue
 import kotlin.test.assertEquals
 import org.jdom.Element
@@ -49,6 +51,30 @@ class TestSuiteRunConfigurationTest {
 
   @Test
   fun testSerializationAndDeserialization() {
+    val engineIds = setOf("junit5", "journeys-test-engine")
+    configuration.setTestEngineIds(engineIds)
+    val taskName = "myTestTask"
+    configuration.addTaskName(taskName)
+    configuration.setShowsResultsInAndroidTestMatrix(true)
+    configuration.setIsDeployableToDevice(true)
+
+    val element = Element("configuration")
+    configuration.writeExternal(element)
+
+    val newConfiguration = TestSuiteRunConfiguration(rule.project, configuration.factory!!, "New Config")
+    newConfiguration.readExternal(element)
+
+    assertEquals(engineIds, newConfiguration.getTestEngineIds())
+    assertEquals(listOf(taskName), newConfiguration.getTaskNames())
+    assertTrue(newConfiguration.showsResultsInAndroidTestMatrix())
+    assertTrue(newConfiguration.isDeployableToDevice())
+  }
+
+  @Test
+  fun testSerializationAndDeserialization_whenAgpTestSuitesEnabled() {
+    StudioFlags.ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.overrideForTest(false, rule.testRootDisposable)
+    StudioFlags.AGP_TEST_SUITES_ENABLED.overrideForTest(true, rule.testRootDisposable)
+
     val engineIds = setOf("junit5", "journeys-test-engine")
     configuration.setTestEngineIds(engineIds)
     val taskName = "myTestTask"
