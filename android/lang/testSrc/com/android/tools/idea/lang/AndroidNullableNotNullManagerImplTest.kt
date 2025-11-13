@@ -38,6 +38,12 @@ class AndroidNullableNotNullManagerImplTest {
       //language=JAVA
       "package androidx.annotation; public @interface NonNull {} "
     )
+    // Need a stub for @Nullable too to appease
+    // NullableStuffInspectionBase#nullabilityAnnotationsNotAvailable
+    myFixture.addClass(
+      //language=JAVA
+      "package androidx.annotation; public @interface Nullable {} "
+    )
 
     val file = myFixture.addFileToProject(
       "/src/test/MakeNonNull.java",
