@@ -124,8 +124,8 @@ public final class FilterComponent extends JPanel {
       //to consume enter in combo box - do not process this event by default button from DialogWrapper
       @Override
       public void keyPressed(final KeyEvent e) {
-        e.consume();
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+          e.consume();
           mySearchField.addCurrentTextToHistory();
           updateModel();
         }
@@ -332,4 +332,3 @@ public final class FilterComponent extends JPanel {
     return KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask());
   }
 }
-
