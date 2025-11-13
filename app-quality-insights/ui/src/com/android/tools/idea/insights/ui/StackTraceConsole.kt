@@ -37,7 +37,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.execution.filters.FileHyperlinkInfo
 import com.intellij.execution.filters.HyperlinkInfo
-import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.ide.ui.LafManager
@@ -55,7 +54,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.unscramble.AnalyzeStacktraceUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.CardLayout
@@ -328,24 +326,23 @@ class StackTraceConsole(
   }
 
   private fun createStackPanel(): ConsoleViewImpl {
-    val builder = TextConsoleBuilderFactory.getInstance().createBuilder(project)
-    builder.filters(AnalyzeStacktraceUtil.EP_NAME.getExtensions(project))
+    val builder = StackTraceConsoleBuilder(project)
     val consoleView = builder.console as ConsoleViewImpl
-    @Suppress("UNUSED_VARIABLE") val unused = consoleView.component // causes editor to be created
-    consoleView.addMessageFilter(
-      InsightsAttachInlayDiffLinkFilter(resolvedInfoCache, consoleView, tracker)
-    )
-    (consoleView.editor as EditorEx).apply {
+    consoleView.initConsole()
+    return consoleView
+  }
+
+  private fun ConsoleViewImpl.initConsole() {
+    component // causes editor to be created
+    addMessageFilter(InsightsAttachInlayDiffLinkFilter(resolvedInfoCache, this, tracker))
+    val listener = ListenerForTracking(this, tracker, project, stackTraceConsoleState, scope)
+    (editor as EditorEx).apply {
       contentComponent.isFocusCycleRoot = false
       contentComponent.isFocusable = true
       setCaretEnabled(false)
       scrollPane.verticalScrollBarPolicy = JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
+      addEditorMouseListener(listener, this@StackTraceConsole)
     }
-
-    val listener = ListenerForTracking(consoleView, tracker, project, stackTraceConsoleState, scope)
-    consoleView.editor!!.addEditorMouseListener(listener, this)
-
-    return consoleView
   }
 
   override fun dispose() = Unit

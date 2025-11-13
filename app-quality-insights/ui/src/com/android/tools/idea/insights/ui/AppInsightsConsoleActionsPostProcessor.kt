@@ -31,6 +31,9 @@ class AppInsightsConsoleActionsPostProcessor : ConsoleActionsPostProcessor() {
     console: ConsoleView,
     actions: Array<AnAction>,
   ): Array<AnAction> {
+    if (console.place != AQI_CONSOLE_VIEW_PLACE) {
+      return actions
+    }
     return actions
       .flatten()
       .filter {
