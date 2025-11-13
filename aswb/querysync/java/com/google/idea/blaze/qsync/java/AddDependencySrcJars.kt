@@ -18,6 +18,7 @@ package com.google.idea.blaze.qsync.java
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
+import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.Companion.ENABLED_NAVIGATION_POLICY
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.AllowPackagePrefixes
@@ -41,6 +42,9 @@ class AddDependencySrcJars(
     context: Context<*>,
     externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
+    if (ENABLED_NAVIGATION_POLICY.value) {
+      return
+    }
     for (target in artifactState.targets()) {
       val javaInfo = target.javaInfo().getOrNull() ?: continue
       if (projectDefinition.isIncluded(javaInfo.label())) {
