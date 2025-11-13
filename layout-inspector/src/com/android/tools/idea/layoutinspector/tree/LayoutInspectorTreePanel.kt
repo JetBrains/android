@@ -198,6 +198,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         headerRenderer = createCountsHeader(),
         actionEnabled = { item -> isStateReadsEnabledForNode(item.view) },
         action = { item, _, _ -> showStateReadsForNode(item.view) },
+        popup = ::showPopup,
       )
 
     val recompositionChildCountColumn =
@@ -215,6 +216,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         maxInt = { inspectorModel?.maxRecomposition?.count ?: 0 },
         minInt = { 0 },
         headerRenderer = createChildCountsHeader(),
+        popup = ::showPopup,
       )
 
     val recompositionSkipsColumn =
@@ -225,6 +227,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         maxInt = { inspectorModel?.maxRecomposition?.skips ?: 0 },
         minInt = { 0 },
         headerRenderer = createSkipsHeader(),
+        popup = ::showPopup,
       )
 
     return ComponentTreeBuilder()
