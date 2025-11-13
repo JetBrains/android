@@ -67,6 +67,12 @@ class HelpActionsTest {
 
   @get:Rule val chain = RuleChain.outerRule(projectRule).around(popupRule).around(EdtRule())!!
 
+  private fun normalizeHtml(html: String): String {
+    val doc = Jsoup.parse(html)
+    doc.outputSettings().prettyPrint(true)
+    return doc.html()
+  }
+
   @Test
   fun testHelpForCustomPropertyWithoutDocumentation() = runBlocking {
     val property =
@@ -87,8 +93,9 @@ class HelpActionsTest {
     withContext(uiThread) {
       assertThat(helpTextInPopup(property))
         .isEqualTo(
-          // language=HTML
-          """
+          normalizeHtml(
+            // language=HTML
+            """
             <html>
              <head></head>
              <body>
@@ -98,7 +105,8 @@ class HelpActionsTest {
              </body>
             </html>
           """
-            .trimIndent()
+              .trimIndent()
+          )
         )
     }
   }
@@ -111,20 +119,22 @@ class HelpActionsTest {
     val property = util.properties[ANDROID_URI, ATTR_TEXT]
     assertThat(helpTextInPopup(property))
       .isEqualTo(
-        // language=HTML
-        """
+        normalizeHtml(
+          // language=HTML
+          """
         <html>
          <head></head>
          <body>
           <div class="content">
-           <p><b>android:text</b><br><br>
-            Formats: string<br><br>
-            Text to display.</p>
+           <p><b>android:text</b><br>
+           <br>Formats: string<br>
+           <br>Text to display.</p>
           </div>
          </body>
         </html>
       """
-          .trimIndent()
+            .trimIndent()
+        )
       )
   }
 
@@ -146,7 +156,7 @@ class HelpActionsTest {
         .singleOrNull() ?: error("No doc?")
     Disposer.dispose(popup)
 
-    return Jsoup.parse(doc.text).html()
+    return normalizeHtml(doc.text)
   }
 
   @Test
