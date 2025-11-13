@@ -23,7 +23,7 @@ import com.android.tools.idea.navigator.AndroidProjectViewSnapshotComparisonTest
 import com.android.tools.idea.navigator.SourceProvidersTestDef
 import com.android.tools.idea.projectsystem.gradle.GradleModuleHierarchyProviderTest
 import com.android.tools.idea.projectsystem.gradle.GradleTaskManagerTest
-import com.android.tools.idea.testartifacts.testsuite.GradleAndroidTestsTaskManagerTest
+import com.android.tools.idea.testartifacts.testsuite.GradleAndroidTestsTaskManagerTestDef
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
@@ -64,7 +64,7 @@ abstract class SyncedProjectTest(
       GradleProjectSystemIntegrationTest.tests +
       HighlightProjectTestDef.tests +
       GradleTaskManagerTest.tests +
-      GradleAndroidTestsTaskManagerTest.tests +
+      GradleAndroidTestsTaskManagerTestDef.tests +
       PhasedSyncSnapshotConsistencyTestDef.tests +
       selfChecks()
       ).groupBy { it.testProject }
