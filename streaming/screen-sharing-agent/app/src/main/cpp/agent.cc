@@ -181,7 +181,7 @@ void Agent::Initialize(const vector<string>& args) {
       } else if (value == "debug") {
         Log::SetLevel(Log::Level::DEBUG);
       } else if (value == "info") {
-        Log::SetLevel(Log::Level::INFO);
+        Log::SetLevel(Agent::device_manufacturer() == HONOR ? Log::Level::DEBUG : Log::Level::INFO); // b/
       } else if (value == "warn") {
         Log::SetLevel(Log::Level::WARN);
       } else if (value == "error") {
