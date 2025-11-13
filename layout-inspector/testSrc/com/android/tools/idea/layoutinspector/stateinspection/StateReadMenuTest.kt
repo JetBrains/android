@@ -107,7 +107,7 @@ class StateReadMenuTest {
     val compose1 = model[COMPOSE1] as ComposeViewNode
     whenever(client.capabilities).thenReturn(setOf(Capability.CAN_OBSERVE_RECOMPOSE_STATE_READS))
     val stateReadMenu = createStateReadMenuGroup(compose1, model)
-    stateReadMenu.checkText(event, "State Reads (No Source Information Found)")
+    stateReadMenu.checkText(event, "Observe Recomposition (No Source Information Found)")
     stateReadMenu.checkIsNotEnabled(event)
   }
 
@@ -116,7 +116,7 @@ class StateReadMenuTest {
     whenever(client.capabilities).thenReturn(setOf(Capability.HAS_LINE_NUMBER_INFORMATION))
     val compose1 = model[COMPOSE1] as ComposeViewNode
     val stateReadMenu = createStateReadMenuGroup(compose1, model)
-    stateReadMenu.checkText(event, "State Reads (Needs Compose 1.10.0+)")
+    stateReadMenu.checkText(event, "Observe Recomposition (Needs Compose 1.10.0+)")
     stateReadMenu.checkIsNotEnabled(event)
   }
 

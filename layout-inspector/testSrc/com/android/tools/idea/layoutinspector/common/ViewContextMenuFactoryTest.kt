@@ -219,7 +219,7 @@ class ViewContextMenuFactoryTest {
         "Show Only Parents",
         "Show All",
         null, // Separator
-        "State Reads",
+        "Observe Recomposition",
         "Go To Declaration",
       )
       .inOrder()
