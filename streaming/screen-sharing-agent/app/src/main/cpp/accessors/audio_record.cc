@@ -127,6 +127,7 @@ JObject CreateAudioRecord(Jni jni, int32_t audio_sample_rate) {
 
 AudioRecord::AudioRecord(Jni jni, int32_t audio_sample_rate)
     : audio_record_(CreateAudioRecord(jni, audio_sample_rate)) {
+  Log::D("AudioRecord::AudioRecord: audio_record_=%p", audio_record_.ref()); // b/457620853
   if (audio_record_.IsNull()) {
     return;
   }
@@ -142,6 +143,7 @@ AudioRecord::AudioRecord(Jni jni, int32_t audio_sample_rate)
 }
 
 AudioRecord::~AudioRecord() {
+  Log::D("AudioRecord::~AudioRecord: audio_record_=%p", audio_record_.ref()); // b/457620853
   Release();
 }
 
@@ -159,16 +161,19 @@ AudioRecord& AudioRecord::operator=(AudioRecord&& other) noexcept {
 }
 
 void AudioRecord::Release() {
+  Log::D("AudioRecord::Release: audio_record_=%p", audio_record_.ref()); // b/457620853
   if (audio_record_.IsNotNull()) {
     Jvm::GetJni()->CallVoidMethod(audio_record_.Release(), release_method_);
   }
 }
 
 void AudioRecord::Start() {
+  Log::D("AudioRecord::Start: audio_record_=%p", audio_record_.ref()); // b/457620853
   audio_record_.CallVoidMethod(start_recording_method_);
 }
 
 void AudioRecord::Stop() {
+  Log::D("AudioRecord::Stop: audio_record_=%p", audio_record_.ref()); // b/457620853
   audio_record_.CallVoidMethod(stop_method_);
 }
 
