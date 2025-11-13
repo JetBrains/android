@@ -15,7 +15,7 @@
  */
 package com.google.idea.blaze.java.qsync;
 
-import static com.google.idea.blaze.java.qsync.QuerySyncNavigationPolicy.ENABLED;
+import static com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.ENABLED_NAVIGATION_POLICY;
 
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.settings.Blaze;
@@ -38,7 +38,7 @@ public class ProtoSrcJarQuerySyncNavigationPolicy implements ClsCustomNavigation
   @Nullable
   public PsiElement getNavigationElement(ClsFileImpl clsFile) {
     Project project = clsFile.getProject();
-    if (!Blaze.getProjectType(project).equals(ProjectType.QUERY_SYNC) || !ENABLED.getValue()) {
+    if (!Blaze.getProjectType(project).equals(ProjectType.QUERY_SYNC) || !ENABLED_NAVIGATION_POLICY.getValue()) {
       return null;
     }
     return CachedValuesManager.getCachedValue(
