@@ -15,18 +15,20 @@
  */
 package com.google.idea.blaze.qsync.java
 
+import kotlin.jvm.JvmField
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarJavaPackageRoots
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
+import com.google.idea.common.experiments.BoolExperiment
 import java.nio.file.Path
 import kotlin.jvm.optionals.getOrNull
 
@@ -37,8 +39,12 @@ import kotlin.jvm.optionals.getOrNull
  */
 class AddDependencyGenSrcsJars(
   private val projectDefinition: ProjectDefinition,
-  private val srcJarPathsMetadata: ArtifactMetadata.Extractor<SrcJarJavaPackageRoots>
+  private val srcJarPathsMetadata: ArtifactMetadata.Extractor<SrcJarJavaPackageRoots>,
 ) : ProjectProtoUpdateOperation {
+  companion object {
+    @JvmField
+    val ENABLED_NAVIGATION_POLICY = BoolExperiment("querysync.navigationpolicy", true)
+  }
   private fun getDependencyGenSrcJars(target: TargetBuildInfo): Collection<BuildArtifact> {
     val javaInfo = target.javaInfo().getOrNull() ?: return emptyList()
 
@@ -74,7 +80,7 @@ class AddDependencyGenSrcsJars(
           val projectPaths = getDependencyGenSrcJars(target)
             .flatMap { genSrc ->
               val projectPath = addIfNewer(genSrc.artifactPath(), genSrc, target.buildContext())
-               ?: return@flatMap emptyList()
+                                ?: return@flatMap emptyList()
 
               val innerJavaRoots = genSrc
                                      .getMetadata(SrcJarJavaPackageRoots::class.java)
@@ -83,8 +89,10 @@ class AddDependencyGenSrcsJars(
                                    ?: setOf(Path.of(""))
               innerJavaRoots.map { projectPath.withInnerJarPath(it) }
             }
-          update.library(target.label()) {
-            addSourceJars(projectPaths)
+          if (!ENABLED_NAVIGATION_POLICY.value) {
+            update.library(target.label()) {
+              addSourceJars(projectPaths)
+            }
           }
         }
       }
