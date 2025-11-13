@@ -1,5 +1,14 @@
 ### auto-generated section `build intellij.android.newProjectWizard` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+create_kotlinc_options(
+  name = "custom_newProjectWizard",
+  x_context_receivers = True,
+  x_jvm_default = "all-compatibility",
+  x_sam_conversions = "class",
+  x_x_language = []
+)
 
 resourcegroup(
   name = "newProjectWizard_resources",
@@ -13,6 +22,7 @@ jvm_library(
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   resources = [":newProjectWizard_resources"],
+  kotlinc_opts = ":custom_newProjectWizard",
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
@@ -70,11 +80,23 @@ jvm_library(
     "//plugins/kotlin/gradle/code-insight-common:kotlin-gradle-codeInsight-common",
     "//plugins/kotlin/gradle/gradle-tooling/impl",
     "//xml/xml-psi-impl:psi-impl",
-  ]
+    "//android/ml-api",
+    "//android/artwork-compose",
+    "//android/adt-ui-compose",
+  ],
+  plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.newProjectWizard` end
 
 ### auto-generated section `build intellij.android.newProjectWizard.tests` start
+create_kotlinc_options(
+  name = "custom_newProjectWizard-tests",
+  x_context_receivers = True,
+  x_jvm_default = "all-compatibility",
+  x_sam_conversions = "class",
+  x_x_language = []
+)
+
 resourcegroup(
   name = "newProjectWizard-tests_test_resources",
   srcs = glob(["testResources/**/*"]),
@@ -87,6 +109,7 @@ jvm_library(
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   resources = [":newProjectWizard-tests_test_resources"],
+  kotlinc_opts = ":custom_newProjectWizard-tests",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -152,13 +175,17 @@ jvm_library(
     "//plugins/kotlin/gradle/gradle-tooling/impl:impl_test_lib",
     "//plugins/gradle",
     "//plugins/kotlin/gradle/code-insight-common:kotlin-gradle-codeInsight-common",
+    "//android/adt-ui-compose",
+    "//android/adt-ui-compose:adt-ui-compose_test_lib",
+    "//android/ml-api",
   ],
   runtime_deps = [
     "//android/gradle-dsl-kotlin",
     "//android/gradle-dsl-toml",
     "//android/gradle-dsl-declarative",
     "//android/gradle-dsl-groovy",
-  ]
+  ],
+  plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.newProjectWizard.tests` end
 

@@ -53,6 +53,7 @@ internal object StudioMarkdownFactory : MarkdownFactory {
           baseTextStyle,
           inlineCode = editorTextStyle
             .copy(fontSize = baseTextStyle.fontSize * .85, background = inlineCodeBackgroundColor)
+            .toSpanStyle()
         )
 
     return MarkdownStyling.create(

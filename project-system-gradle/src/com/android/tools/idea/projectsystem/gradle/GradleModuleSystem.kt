@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.model.IdeDeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
@@ -97,7 +98,6 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.nio.file.Path
 import com.android.ide.common.gradle.Module as ExternalModule
-import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
 import com.android.tools.idea.model.AndroidModel
 import com.intellij.workspaceModel.ide.legacyBridge.findSnapshotModuleEntity
 

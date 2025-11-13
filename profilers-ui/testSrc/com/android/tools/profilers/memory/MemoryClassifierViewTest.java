@@ -1345,7 +1345,7 @@ public class MemoryClassifierViewTest {
     myStage.getCaptureSelection().selectHeapSet(capture.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID));
     myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_PACKAGE);
     MemoryObjectTreeNode<ClassifierSet> root = (MemoryObjectTreeNode<ClassifierSet>)myClassifierView.getTree().getModel().getRoot();
-    assertThat(MemoryClassifierView.findSmallestSuperSetNode(root, ClassSet.EMPTY_SET)).isSameInstanceAs(root);
+    assertThat(MemoryClassifierView.findSmallestSuperSetNode(root, ClassSet.EMPTY_SET)).isSameAs(root);
   }
 
   private static int countClassSets(@NotNull MemoryObjectTreeNode<ClassifierSet> node) {

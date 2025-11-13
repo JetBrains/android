@@ -123,11 +123,11 @@ class DetailsViewDeviceSelectorListViewTest {
     val statusLabel = rendererComponent.getComponent(1) as JLabel
 
     assertThat(deviceLabel.text).isEqualTo("<html>&lt;device name&gt;<br><font color='#999999'>API 28 - 1 s</font></html>")
-    assertThat(deviceLabel.icon).isSameInstanceAs(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
-    assertThat(deviceLabel.font).isSameInstanceAs(view.deviceList.font)
+    assertThat(deviceLabel.icon).isSameAs(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+    assertThat(deviceLabel.font).isSameAs(view.deviceList.font)
     assertThat(statusLabel.text).isEqualTo("")
-    assertThat(statusLabel.icon).isSameInstanceAs(AllIcons.RunConfigurations.TestFailed)
-    assertThat(statusLabel.font).isSameInstanceAs(view.deviceList.font)
+    assertThat(statusLabel.icon).isSameAs(AllIcons.RunConfigurations.TestFailed)
+    assertThat(statusLabel.font).isSameAs(view.deviceList.font)
   }
 
   private fun device(id: String, name: String): AndroidDevice {

@@ -981,7 +981,7 @@ class AndroidTestResultsTableViewTest {
 
       val location = Location.DATA_KEY.getData(dataContext)
       assertThat(location).isInstanceOf(PsiLocation::class.java)
-      assertThat((location as PsiLocation<*>).psiElement).isSameInstanceAs(mockPsiMethod)
+      assertThat((location as PsiLocation<*>).psiElement).isSameAs(mockPsiMethod)
     }
 
     // Select the test class.
@@ -994,7 +994,7 @@ class AndroidTestResultsTableViewTest {
 
       val locationForClass = Location.DATA_KEY.getData(dataContext)
       assertThat(locationForClass).isInstanceOf(PsiLocation::class.java)
-      assertThat((locationForClass as PsiLocation<*>).psiElement).isSameInstanceAs(mockPsiClass)
+      assertThat((locationForClass as PsiLocation<*>).psiElement).isSameAs(mockPsiClass)
       val runConfiguration = RunConfiguration.DATA_KEY.getData(dataContext)
       assertThat(runConfiguration).isInstanceOf(AndroidTestRunConfiguration::class.java)
     }

@@ -331,8 +331,6 @@ jvm_library(
     "//android/android/editing/documentation",
     "//android/android/editing/documentation:documentation_test_lib",
     "//xml/xml-psi-impl:psi-impl",
-    "//plugins/kotlin/base/util",
-    "//plugins/kotlin/base/util:util_test_lib",
   ],
   runtime_deps = [
     "//android/gradle-dsl-kotlin",

@@ -441,7 +441,7 @@ class AndroidGradleConfigurationProducersTest {
 
     libGradleTestClassConfiguration = psiElement.createGradleRunConfiguration()
     assertThat(libGradleTestClassConfiguration).isNotNull()
-    assertThat(libGradleTestClassConfiguration).isNotSameInstanceAs(appGradleTestClassConfiguration)
+    assertThat(libGradleTestClassConfiguration).isNotSameAs(appGradleTestClassConfiguration)
   }
 
   private fun verifyCanCreateGradleConfigurationFromSameNameTestDirectory() {
@@ -458,7 +458,7 @@ class AndroidGradleConfigurationProducersTest {
 
     val libGradleTestPackageConfiguration = libModulePsiLocation.createGradleRunConfiguration()
     assertThat(libGradleTestPackageConfiguration).isNotNull()
-    assertThat(libGradleTestPackageConfiguration).isNotSameInstanceAs(appGradleTestPackageConfiguration)
+    assertThat(libGradleTestPackageConfiguration).isNotSameAs(appGradleTestPackageConfiguration)
   }
 
   private fun findExistingGradleTestConfigurationFromPsiElement(project: Project, psiElement: PsiElement): GradleRunConfiguration? {

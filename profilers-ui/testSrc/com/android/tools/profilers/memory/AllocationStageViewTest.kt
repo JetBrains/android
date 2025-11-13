@@ -93,7 +93,7 @@ class AllocationStageViewTest(private val isLive: Boolean) {
       val unexpected =
         if (isLive) listOf()
         else listOf(samplingMenu, forceGcButton, stopButton)
-      assertThat(descendants).containsAtLeastElementsIn(expected)
+      assertThat(descendants).containsAllIn(expected)
       assertThat(expected.all { it.isVisible }).isTrue()
       assertThat(unexpected.all { !it.isVisible || it !in descendants }).isTrue()
     }

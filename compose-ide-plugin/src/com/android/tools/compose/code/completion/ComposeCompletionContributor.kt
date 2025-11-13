@@ -489,5 +489,5 @@ private fun KtNamedFunction.getFunctionInfoForCompletion(): FunctionInfo =
     val hasRequiredParametersBeforeLambda =
       endsInRequiredLambda && allParameters.dropLast(1).any { !it.hasDeclaredDefaultValue && !it.isVararg }
 
-    return FunctionInfo(endsInRequiredLambda, endsInVarargLambda, hasParametersBeforeLambda)
+    return FunctionInfo(endsInRequiredLambda, endsInVarargLambda, hasRequiredParametersBeforeLambda)
   }

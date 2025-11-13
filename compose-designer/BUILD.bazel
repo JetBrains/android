@@ -176,6 +176,7 @@ jvm_library(
     "//android/android-test-framework:testFramework_test_lib",
     "//android/jps-model",
     "//platform/core-api:core",
+    "//platform/core-impl",
     "//platform/core-ui",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",

@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.util.toVirtualFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.guessProjectDir
@@ -27,7 +28,6 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.RunsInEdt
 import java.io.File
 import org.jetbrains.android.dom.converters.ManifestPlaceholderConverter
-import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
