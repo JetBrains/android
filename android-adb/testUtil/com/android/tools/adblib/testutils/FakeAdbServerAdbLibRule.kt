@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.adblib.ddmlibcompatibility.testutils
+package com.android.tools.adblib.testutils
 
+import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
 import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.tools.idea.adblib.AdbLibApplicationService
