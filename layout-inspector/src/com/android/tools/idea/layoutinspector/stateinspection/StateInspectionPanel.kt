@@ -33,6 +33,8 @@ import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.impl.DocumentImpl
+import com.intellij.openapi.editor.markup.HighlighterTargetArea.EXACT_RANGE
+import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
@@ -55,6 +57,8 @@ import kotlinx.coroutines.launch
 internal val STATE_READ_EDITOR_KEY = Key.create<Editor>("StateReadEditor")
 const val RECOMPOSITION_TEXT_LABEL_NAME = "RecompositionTextLabel"
 const val STATE_READ_TEXT_LABEL_NAME = "StateReadTextLabel"
+private val INVALIDATED_COLOR = JBColor(0x388E3C, 0x66BB6A)
+private const val INVALIDATED_LAYER = 10
 
 /** Convenience function for creating a StateInspectionPanel */
 internal fun createStateInspectionPanel(
@@ -206,10 +210,27 @@ private class InnerStateInspectionPanel(
     try {
       document.setReadOnly(false)
       edtWriteAction { document.setText(text) }
+      highlightInvalidations(text)
       hyperlinkDetector.detectHyperlinks()
       foldingDetector.detectFolding()
     } finally {
       document.setReadOnly(true)
+    }
+  }
+
+  private fun highlightInvalidations(text: String) {
+    val attrs = TextAttributes().apply { foregroundColor = INVALIDATED_COLOR }
+    var startOffset = text.indexOf(INVALIDATED)
+    while (startOffset > 0) {
+      val endOffset = startOffset + INVALIDATED.length
+      editor.markupModel.addRangeHighlighter(
+        startOffset,
+        endOffset,
+        INVALIDATED_LAYER,
+        attrs,
+        EXACT_RANGE,
+      )
+      startOffset = text.indexOf(INVALIDATED, endOffset)
     }
   }
 
