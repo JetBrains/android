@@ -62,19 +62,28 @@ void AudioRecordReader::Stop() {
 }
 
 void AudioRecordReader::Run() {
+  Log::D("AudioRecordReader::Run: 1"); // b/457620853
   consequent_queue_error_count_ = 0;
   audio_record_ = AudioRecord(Jvm::GetJni(), sample_rate_);
   if (!audio_record_.IsValid()) {
+    Log::D("AudioRecordReader::Run: 2"); // b/457620853
     return;
   }
+  Log::D("AudioRecordReader::Run: 3"); // b/457620853
   audio_record_.Start();
+  Log::D("AudioRecordReader::Run: 4"); // b/457620853
   ReadUntilStopped();
+  Log::D("AudioRecordReader::Run: 5"); // b/457620853
   audio_record_.Stop();
+  Log::D("AudioRecordReader::Run: 6"); // b/457620853
   audio_record_.Release();
+  Log::D("AudioRecordReader::Run: 7"); // b/457620853
   codec_handle_->Stop();
+  Log::D("AudioRecordReader::Run: 8"); // b/457620853
 }
 
 void AudioRecordReader::ReadUntilStopped() {
+  Log::D("AudioRecordReader::ReadUntilStopped"); // b/457620853
   Jni jni = Jvm::GetJni();
   JShortArray audio_data(jni, BUF_SIZE);
   while (!reader_stopped_) {
@@ -121,6 +130,7 @@ void AudioRecordReader::ReadUntilStopped() {
       offset += size;
     }
   }
+  Log::D("AudioRecordReader::ReadUntilStopped: exiting"); // b/457620853
 }
 
 }  // namespace screensharing
