@@ -48,6 +48,7 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.RuleChain
 import com.intellij.ui.AbstractExpandableItemsHandler
 import com.intellij.ui.ClientProperty
 import com.intellij.ui.ExpandableItemsHandler
@@ -57,9 +58,6 @@ import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.UIUtil.FontSize
 import icons.StudioIcons
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
 import java.awt.Component
 import java.awt.Container
 import java.awt.Rectangle
@@ -67,15 +65,16 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JTable
 import kotlin.time.Duration.Companion.milliseconds
+import org.junit.Rule
+import org.junit.Test
 
 private const val LONG_STRING_VALUE = "A very long long long string value"
 private const val ROW_HEIGHT = 22
 
 class EditorBasedTableCellRendererTest {
   @get:Rule
-  val rules = RuleChain.outerRule(ApplicationRule()).around(IconLoaderRule()).around(EdtRule())!!
+  val rules = RuleChain(ApplicationRule(), IconLoaderRule())
 
-  @RunsInEdt
   @Test
   fun testExpansionHotZoneOfRenderers() {
     // Test that expansion on hove will happen in the right places in several of the control types.
@@ -132,7 +131,7 @@ class EditorBasedTableCellRendererTest {
     ui.mouse.moveTo(rect.x + x, rect.centerY.toInt())
     UIUtil.dispatchAllInvocationEvents()
     PlatformTestUtil.waitForSingleAlarm((table.expandableItemsHandler as AbstractExpandableItemsHandler<*, *>).updateAlarm.getAlarm(), 20,
-                                        TimeUnit.MILLISECONDS);
+                                        TimeUnit.MILLISECONDS)
     return table.isExpandedItem(row, 1)
   }
 
