@@ -22,6 +22,7 @@ import com.android.tools.idea.flags.StudioFlags.ENABLE_ADDITIONAL_TESTING_GRADLE
 import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.util.ui.UIUtil
 import org.gradle.util.GradleVersion
@@ -31,7 +32,10 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 /**
  * Gradle Task Manager for configuring Android test tasks.
  */
-class GradleAndroidTestsTaskManager : GradleTaskManagerExtension  {
+class GradleAndroidTestsTaskManager(
+  private val deviceLauncher: (project: Project) -> List<String> = ::launchDevices
+) : GradleTaskManagerExtension {
+
   override fun configureTasks(projectPath: String,
                               id: ExternalSystemTaskId,
                               settings: GradleExecutionSettings,
@@ -55,7 +59,7 @@ class GradleAndroidTestsTaskManager : GradleTaskManagerExtension  {
     if ((ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.get() || AGP_TEST_SUITES_ENABLED.get()) &&
         settings.getUserData(DeployableToDevice.KEY) == true) {
       id.findProject()?.takeIf { IdeInfo.getInstance().isAndroidStudio }?.let { project ->
-        val deviceSerials = launchDevices(project)
+        val deviceSerials = deviceLauncher(project)
         if (deviceSerials.isEmpty()) {
           UIUtil.invokeLaterIfNeeded {
             Messages.showErrorDialog(
