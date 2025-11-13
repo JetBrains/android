@@ -27,6 +27,12 @@ import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.ui.components.JBLoadingPanel
+import java.awt.BorderLayout
+import java.awt.Dimension
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -35,11 +41,6 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.BorderLayout
-import java.awt.Dimension
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
 
 private fun InstructionsPanel.toDisplayText(): String =
   (0 until componentCount)
@@ -94,24 +95,28 @@ class CommonNlDesignSurfacePreviewViewTest {
   @Test
   fun testShowLoading() =
     runBlocking(Dispatchers.Default) {
-      withContext(uiThread) {
-        previewView.showLoadingMessage("Loading foo")
-        fakeUi.root.validate()
-      }
+      withContext(Dispatchers.Main) {
+        withContext(uiThread) {
+          previewView.showLoadingMessage("Loading foo")
+          fakeUi.root.validate()
+        }
 
-      delay(2000) // Let the message appear (it takes 1s by default in WorkBench)
+        delay(2000) // Let the message appear (it takes 1s by default in WorkBench)
 
-      withContext(uiThread) {
-        Assert.assertTrue(fakeUi.findComponent<JLabel> { it.text == "Loading foo" }.isVisible())
+        withContext(Dispatchers.Main) {
+          Assert.assertTrue(fakeUi.findComponent<JLabel> { it.text == "Loading foo" }.isVisible())
 
-        previewView.showContent()
-        fakeUi.root.validate()
-      }
+          previewView.showContent()
+          fakeUi.root.validate()
+        }
 
-      delay(1000) // Let the message fade away (500ms)
-
-      withContext(uiThread) {
-        Assert.assertFalse(fakeUi.findComponent<JLabel> { it.text == "Loading foo" }.isVisible())
+        // In 2025.3 Jetbrains has a broken the loading indicator for headless tests since it
+        // relies on animations to hide the content. For now, the best we can do is to check that
+        // the panel has received the message by checking isLoading.
+        // Reported as KTIJ-36421
+        withContext(Dispatchers.Main) {
+          Assert.assertFalse(fakeUi.findComponent<JBLoadingPanel>()!!.isLoading)
+        }
       }
     }
 
