@@ -39,24 +39,15 @@ public class AndroidManifestPurposeDomTest {
   private static final String DEFAULT_XML_CONTENT =
     "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
     "<permissions>" +
-    "    <permission name=\"android.permission.USE_FOO\" requiresGeneralPurposeMinTargetSdkVersion=\"37\" requiresSpecificPurposeMinTargetSdkVersion=\"37\">" +
-    "        <valid-specific-purpose name=\"specificValidPurpose1\" minSdkVersion=\"37\"/>" +
-    "        <valid-specific-purpose name=\"specificValidPurpose2\" minSdkVersion=\"37\"/>" +
-    "        <valid-general-purpose name=\"generalValidPurpose1\" minSdkVersion=\"37\"/>" +
-    "        <valid-general-purpose name=\"generalValidPurpose2\" minSdkVersion=\"37\"/>" +
-    "    </permission>" +
-    "    <permission name=\"android.permission.USE_BAR\" requiresSpecificPurposeMinTargetSdkVersion=\"37\">" +
-    "        <valid-specific-purpose name=\"specificValidPurpose3\" minSdkVersion=\"37\"/>" +
-    "    </permission>" +
-    "    <permission name=\"android.permission.USE_XYZ\" requiresGeneralPurposeMinTargetSdkVersion=\"37\">" +
-    "        <valid-general-purpose name=\"generalValidPurpose3\" minSdkVersion=\"37\"/>" +
+    "    <permission name=\"android.permission.USE_FOO\" requiresPurposeMinTargetSdkVersion=\"37\">" +
+    "        <valid-purpose name=\"validPurpose1\" minSdkVersion=\"37\"/>" +
+    "        <valid-purpose name=\"validPurpose2\" minSdkVersion=\"37\"/>" +
     "    </permission>" +
     "</permissions>";
 
   private static final String EMPTY_XML_CONTENT =
     "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-    "<permissions>" +
-    "</permissions>";
+    "<permissions/>";
 
   @Rule
   public AndroidProjectRule projectRule = AndroidProjectRule.withSdk();
@@ -69,105 +60,43 @@ public class AndroidManifestPurposeDomTest {
   }
 
   @Test
-  public void testUsesPermissionSpecificPurposeCompletionWithMultiPurposes() throws Exception {
+  public void testUsesPermissionPurposeCompletionWithMultiPurposes() throws Exception {
     mockSdkWithXmlFile(DEFAULT_XML_CONTENT);
 
     myFixture.configureByText("AndroidManifest.xml",
                               "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
                               "    <uses-permission android:name=\"android.permission.USE_FOO\">\n" +
-                              "        <specific-purpose android:name=\"<caret>\"/>\n" +
+                              "        <purpose android:name=\"<caret>\"/>\n" +
                               "    </uses-permission>\n" +
                               "</manifest>");
 
     myFixture.completeBasic();
-    assertThat(myFixture.getLookupElementStrings()).containsExactly("specificValidPurpose1", "specificValidPurpose2");
+    assertThat(myFixture.getLookupElementStrings()).containsExactly("validPurpose1", "validPurpose2");
   }
 
   @Test
-  public void testUsesPermissionGeneralPurposeCompletionWithMultiPurposes() throws Exception {
-    mockSdkWithXmlFile(DEFAULT_XML_CONTENT);
-
-    myFixture.configureByText("AndroidManifest.xml",
-                              "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-                              "    <uses-permission android:name=\"android.permission.USE_FOO\">\n" +
-                              "        <specific-purpose android:name=\"specificValidPurpose1\"/>\n" +
-                              "        <general-purpose android:name=\"<caret>\"/>\n" +
-                              "    </uses-permission>\n" +
-                              "</manifest>");
-
-    myFixture.completeBasic();
-    assertThat(myFixture.getLookupElementStrings()).containsExactly("generalValidPurpose1", "generalValidPurpose2");
-  }
-
-  @Test
-  public void testUsesPermissionSdk23SpecificPurposeCompletionWithMultiPurposes() throws Exception {
+  public void testUsesPermissionSdk23PurposeCompletionWithMultiPurposes() throws Exception {
     mockSdkWithXmlFile(DEFAULT_XML_CONTENT);
 
     myFixture.configureByText("AndroidManifest.xml",
                               "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
                               "    <uses-permission-sdk-23 android:name=\"android.permission.USE_FOO\">\n" +
-                              "        <specific-purpose android:name=\"<caret>\"/>\n" +
+                              "        <purpose android:name=\"<caret>\"/>\n" +
                               "    </uses-permission-sdk-23\n" +
                               "</manifest>");
 
     myFixture.completeBasic();
-    assertThat(myFixture.getLookupElementStrings()).containsExactly("specificValidPurpose1", "specificValidPurpose2");
+    assertThat(myFixture.getLookupElementStrings()).containsExactly("validPurpose1", "validPurpose2");
   }
 
   @Test
-  public void testUsesPermissionSdk23GeneralPurposeCompletionWithMultiPurposes() throws Exception {
+  public void testPurposeCompletionUnderNonUsesPermissionParentTag() throws Exception {
     mockSdkWithXmlFile(DEFAULT_XML_CONTENT);
 
     myFixture.configureByText("AndroidManifest.xml",
                               "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-                              "    <uses-permission-sdk-23 android:name=\"android.permission.USE_FOO\">\n" +
-                              "        <specific-purpose android:name=\"specificValidPurpose1\"/>\n" +
-                              "        <general-purpose android:name=\"<caret>\"/>\n" +
-                              "    </uses-permission-sdk-23>\n" +
-                              "</manifest>");
-
-    myFixture.completeBasic();
-    assertThat(myFixture.getLookupElementStrings()).containsExactly("generalValidPurpose1", "generalValidPurpose2");
-  }
-
-  @Test
-  public void testUsesPermissionSpecificPurposeCompletionWithOnlySpecificPurposes() throws Exception {
-    mockSdkWithXmlFile(DEFAULT_XML_CONTENT);
-
-    myFixture.configureByText("AndroidManifest.xml",
-                              "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-                              "    <uses-permission android:name=\"android.permission.USE_BAR\">\n" +
-                              "        <specific-purpose android:name=\"<caret>\"/>\n" +
-                              "    </uses-permission>\n" +
-                              "</manifest>");
-
-    myFixture.completeBasic();
-    assertThat(myFixture.getLookupElementStrings()).containsExactly("specificValidPurpose3");
-  }
-
-  @Test
-  public void testUsesPermissionGeneralPurposeCompletionWithOnlyGeneralPurposes() throws Exception {
-    mockSdkWithXmlFile(DEFAULT_XML_CONTENT);
-
-    myFixture.configureByText("AndroidManifest.xml",
-                              "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-                              "    <uses-permission android:name=\"android.permission.USE_XYZ\">\n" +
-                              "        <general-purpose android:name=\"<caret>\"/>\n" +
-                              "    </uses-permission>\n" +
-                              "</manifest>");
-
-    myFixture.completeBasic();
-    assertThat(myFixture.getLookupElementStrings()).containsExactly("generalValidPurpose3");
-  }
-
-  @Test
-  public void testSpecificPurposeCompletionUnderUnknownTag() throws Exception {
-    mockSdkWithXmlFile(DEFAULT_XML_CONTENT);
-
-    myFixture.configureByText("AndroidManifest.xml",
-                              "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-                              "    <unknown-tag android:name=\"android.permission.USE_BAR\">\n" +
-                              "        <specific-purpose android:name=\"<caret>\"/>\n" +
+                              "    <unknown-tag android:name=\"android.permission.USE_FOO\">\n" +
+                              "        <purpose android:name=\"<caret>\"/>\n" +
                               "    </unknown-tag>\n" +
                               "</manifest>");
 
@@ -176,13 +105,13 @@ public class AndroidManifestPurposeDomTest {
   }
 
   @Test
-  public void testSpecificPurposeCompletionWithEmptyXmlFile() throws Exception {
+  public void testPurposeCompletionWithEmptyXmlFile() throws Exception {
     mockSdkWithXmlFile(EMPTY_XML_CONTENT);
 
     myFixture.configureByText("AndroidManifest.xml",
                               "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-                              "    <uses-permission android:name=\"android.permission.USE_BAR\">\n" +
-                              "        <specific-purpose android:name=\"<caret>\"/>\n" +
+                              "    <uses-permission android:name=\"android.permission.USE_FOO\">\n" +
+                              "        <purpose android:name=\"<caret>\"/>\n" +
                               "    </uses-permission>\n" +
                               "</manifest>");
 
@@ -191,11 +120,11 @@ public class AndroidManifestPurposeDomTest {
   }
 
   @Test
-  public void testGeneralPurposeCompletionWithMissingXmlFile() {
+  public void testPurposeCompletionWithMissingXmlFile() {
     myFixture.configureByText("AndroidManifest.xml",
                               "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-                              "    <uses-permission android:name=\"android.permission.USE_BAR\">\n" +
-                              "        <general-purpose android:name=\"<caret>\"/>\n" +
+                              "    <uses-permission android:name=\"android.permission.USE_FOO\">\n" +
+                              "        <purpose android:name=\"<caret>\"/>\n" +
                               "    </uses-permission>\n" +
                               "</manifest>");
 

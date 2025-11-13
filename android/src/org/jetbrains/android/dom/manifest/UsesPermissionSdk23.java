@@ -29,9 +29,6 @@ public interface UsesPermissionSdk23 extends ManifestElementWithName {
     @Convert(AndroidPermissionConverter.class)
     AndroidAttributeValue<String> getName();
 
-    @SubTagList("specific-purpose")
-    List<SpecificPurpose> getSpecificPurposes();
-
-    @SubTagList("general-purpose")
-    List<GeneralPurpose> getGeneralPurposes();
+    @SubTagList("purpose")
+    List<Purpose> getPurposes();
 }
