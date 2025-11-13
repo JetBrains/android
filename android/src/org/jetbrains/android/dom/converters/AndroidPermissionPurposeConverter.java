@@ -16,18 +16,14 @@
 package org.jetbrains.android.dom.converters;
 
 import static com.android.SdkConstants.ATTR_NAME;
-import static com.android.SdkConstants.TAG_GENERAL_PURPOSE;
 import static com.android.SdkConstants.TAG_PERMISSION;
-import static com.android.SdkConstants.TAG_SPECIFIC_PURPOSE;
-import static com.android.SdkConstants.TAG_VALID_GENERAL_PURPOSE;
-import static com.android.SdkConstants.TAG_VALID_SPECIFIC_PURPOSE;
+import static com.android.SdkConstants.TAG_VALID_PURPOSE;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.sdk.AndroidPlatform;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.ResolvingConverter;
@@ -52,25 +48,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 /**
- * Provides completion for <specific-purpose> and <general-purpose> tags in the manifest.
+ * Provides completion for <purpose> tags in the manifest.
  */
 public class AndroidPermissionPurposeConverter extends ResolvingConverter<String> {
   private static final Logger LOG = Logger.getInstance(AndroidPermissionPurposeConverter.class);
 
-  private static class PermissionPurposes {
-    @NotNull final List<String> specificPurposes;
-    @NotNull final List<String> generalPurposes;
-
-    PermissionPurposes(List<String> specificPurposes, List<String> generalPurposes) {
-      this.specificPurposes = Collections.unmodifiableList(specificPurposes);
-      this.generalPurposes = Collections.unmodifiableList(generalPurposes);
-    }
-  }
-
   // A map where the key is the build hash and the value is a map containing information in the
   // permission versions XML file from the SDK; the keys of the inner map are permission names
-  // and values are a list of corresponding valid specific and general purposes for the permission.
-  private static Map<String, Map<String, PermissionPurposes>> purposeMapCache = new ConcurrentHashMap<>();
+  // and values are a list of corresponding valid purpose strings for the permission.
+  private static Map<String, Map<String, List<String>>> purposeMapCache = new ConcurrentHashMap<>();
 
   @NotNull
   @Override
@@ -95,25 +81,10 @@ public class AndroidPermissionPurposeConverter extends ResolvingConverter<String
       return Collections.emptyList();
     }
 
-    Map<String, PermissionPurposes> permissionsMap = getPermissionsMap(context);
-    PermissionPurposes permissionPurposes = permissionsMap.get(permissionName);
-    if (permissionPurposes == null) {
-      return Collections.emptyList();
-    }
-    XmlTag tag = invocationElement.getXmlTag();
-    if (tag == null) {
-      return Collections.emptyList();
-    }
-    String tagName = tag.getLocalName();
+    Map<String, List<String>> permissionsMap = getPermissionsMap(context);
+    List<String> permissionPurposes = permissionsMap.get(permissionName);
 
-    if (TAG_SPECIFIC_PURPOSE.equals(tagName)) {
-      return permissionPurposes.specificPurposes;
-    }
-    else if (TAG_GENERAL_PURPOSE.equals(tagName)) {
-      return permissionPurposes.generalPurposes;
-    }
-
-    return Collections.emptyList();
+    return permissionPurposes == null ? Collections.emptyList() : permissionPurposes;
   }
 
   @Nullable
@@ -129,7 +100,7 @@ public class AndroidPermissionPurposeConverter extends ResolvingConverter<String
     purposeMapCache = new ConcurrentHashMap<>();
   }
 
-  private static Map<String, PermissionPurposes> getPermissionsMap(ConvertContext context) {
+  private static Map<String, List<String>> getPermissionsMap(ConvertContext context) {
     Module module = context.getModule();
     if (module == null) return Collections.emptyMap();
 
@@ -157,14 +128,14 @@ public class AndroidPermissionPurposeConverter extends ResolvingConverter<String
     }
   }
 
-  private static Map<String, PermissionPurposes> parsePermissionsFile(IAndroidTarget target) throws Exception {
+  private static Map<String, List<String>> parsePermissionsFile(IAndroidTarget target) throws Exception {
     Path platformDataPath = target.getPath(IAndroidTarget.PERMISSION_VERSIONS);
     File dataFile = new File(platformDataPath.toString());
     if (!dataFile.exists()) {
       return Collections.emptyMap();
     }
 
-    Map<String, PermissionPurposes> mapBuilder = new HashMap<>();
+    Map<String, List<String>> mapBuilder = new HashMap<>();
     DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
     DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
     Document doc = dBuilder.parse(dataFile);
@@ -176,12 +147,10 @@ public class AndroidPermissionPurposeConverter extends ResolvingConverter<String
       if (permissionName.isEmpty()) {
         continue;
       }
-      List<String> specificPurposes = getValidPurposes(
-        permissionElement.getElementsByTagName(TAG_VALID_SPECIFIC_PURPOSE));
-      List<String> generalPurposes = getValidPurposes(
-        permissionElement.getElementsByTagName(TAG_VALID_GENERAL_PURPOSE));
-      if (!specificPurposes.isEmpty() || !generalPurposes.isEmpty()) {
-        mapBuilder.put(permissionName, new PermissionPurposes(specificPurposes, generalPurposes));
+      List<String> validPurposes = getValidPurposes(
+        permissionElement.getElementsByTagName(TAG_VALID_PURPOSE));
+      if (!validPurposes.isEmpty()) {
+        mapBuilder.put(permissionName, validPurposes);
       }
     }
 
