@@ -76,7 +76,7 @@ class ThreadingCheckerHookImplTest {
   fun testVerifyOnUiThread_addsViolation_whenCalledFromWorkerThread() {
     System.setProperty("android.studio.instrumentation.threading.suppress-notifications", "false")
     val expectedViolatingMethod =
-      "com.android.tools.idea.instrumentation.threading.ThreadingCheckerHookImplTest#checkForUiThreadOnWorkerThread\$lambda\$1"
+      "com.android.tools.idea.instrumentation.threading.ThreadingCheckerHookImplTest#checkForUiThreadOnWorkerThread\$lambda\$0"
     checkForUiThreadOnWorkerThread()
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).containsExactly(expectedViolatingMethod)
     Truth.assertThat(threadingCheckerHook.threadingViolations[expectedViolatingMethod]!!.get()).isEqualTo(1L)
