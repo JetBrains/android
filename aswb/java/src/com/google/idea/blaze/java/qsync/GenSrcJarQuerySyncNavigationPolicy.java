@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Bazel Authors. All rights reserved.
+ * Copyright 2025 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
  * Substitutes a workspace source file in place of a decompiled class file for non-project
  * dependencies with sources in the workspace.
  */
-public class QuerySyncNavigationPolicy implements ClsCustomNavigationPolicy {
+public class GenSrcJarQuerySyncNavigationPolicy implements ClsCustomNavigationPolicy {
 
   @Override
   @Nullable
@@ -42,11 +42,11 @@ public class QuerySyncNavigationPolicy implements ClsCustomNavigationPolicy {
       return null;
     }
     return CachedValuesManager.getCachedValue(
-        clsFile,
-        () ->
-            Result.create(
-                new ClassFileJavaSourceFinder(clsFile).findSourceFile(),
-                clsFile,
-                QuerySyncManager.getInstance(project).getProjectModificationTracker()));
+      clsFile,
+      () ->
+        Result.create(
+          new ClassFileGenSrcJarJavaSourceFinder(clsFile).findSourceFile(),
+          clsFile,
+          QuerySyncManager.getInstance(project).getProjectModificationTracker()));
   }
 }

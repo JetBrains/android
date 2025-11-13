@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.qsync.java
 
+import com.intellij.openapi.application.ApplicationManager
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth
@@ -141,6 +142,8 @@ class AddDependencyGenSrcsJarsTest {
   @Test
   @Throws(Exception::class)
   fun external_gensrcs_added() {
+    val experimentService = ApplicationManager.getApplication().getService(ExperimentService::class.java) as? MockExperimentService
+    experimentService?.setExperiment(com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.ENABLED_NAVIGATION_POLICY, false)
     val addGenSrcJars =
       AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
     external_gensrcs_added(
@@ -196,6 +199,8 @@ class AddDependencyGenSrcsJarsTest {
   @Test
   @Throws(Exception::class)
   fun no_metadata_present() {
+    val experimentService = ApplicationManager.getApplication().getService(ExperimentService::class.java) as? MockExperimentService
+    experimentService?.setExperiment(com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.ENABLED_NAVIGATION_POLICY, false)
     val addGenSrcJars =
       AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
     no_metadata_present(
