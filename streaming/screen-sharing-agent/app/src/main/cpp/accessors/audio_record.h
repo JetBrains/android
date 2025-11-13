@@ -38,7 +38,7 @@ public:
   int32_t Read(JShortArray* buf, int32_t num_samples);
   // Returns nanosecond timestamp of the audio record, if available, or a negative error code otherwise.
   int64_t GetTimestamp();
-  bool IsValid() const { return !audio_record_.IsNull(); }
+  bool IsValid() const { return audio_record_.IsNotNull(); }
 
 private:
   JObject audio_record_;
