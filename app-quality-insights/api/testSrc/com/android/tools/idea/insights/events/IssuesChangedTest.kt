@@ -24,6 +24,7 @@ import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
 import com.android.tools.idea.insights.DEFAULT_FETCHED_VERSIONS
 import com.android.tools.idea.insights.DynamicEventGallery
+import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
 import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.Filters
@@ -39,7 +40,6 @@ import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
-import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.IssueResponse
@@ -117,8 +117,8 @@ class IssuesChangedTest {
       event.transition(
         currentState,
         TestAppInsightsTracker,
-        FakeInsightsProvider(),
-        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+        FAKE_INSIGHTS_PROVIDER,
+        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
       )
     ) {
       assertThat(newState.currentIssueDetails).isEqualTo(LoadingState.Ready(null))
@@ -157,8 +157,8 @@ class IssuesChangedTest {
       event.transition(
         currentState,
         TestAppInsightsTracker,
-        FakeInsightsProvider(),
-        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+        FAKE_INSIGHTS_PROVIDER,
+        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
       )
     ) {
       assertThat((newState.issues as LoadingState.Ready).value.value.selected).isEqualTo(ISSUE1)
@@ -205,8 +205,8 @@ class IssuesChangedTest {
       event.transition(
         currentState,
         TestAppInsightsTracker,
-        FakeInsightsProvider(),
-        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+        FAKE_INSIGHTS_PROVIDER,
+        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
       )
     ) {
       assertThat((newState.issues as LoadingState.Ready).value.value.selected).isEqualTo(ISSUE2)
@@ -256,8 +256,8 @@ class IssuesChangedTest {
       event.transition(
         currentState,
         TestAppInsightsTracker,
-        FakeInsightsProvider(),
-        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+        FAKE_INSIGHTS_PROVIDER,
+        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
       )
 
     // These filters should remain untouched
@@ -318,8 +318,8 @@ class IssuesChangedTest {
       event.transition(
         currentState,
         TestAppInsightsTracker,
-        FakeInsightsProvider(),
-        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+        FAKE_INSIGHTS_PROVIDER,
+        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
       )
 
     // These filters are untouched
@@ -369,7 +369,7 @@ class IssuesChangedTest {
         currentState,
         TestAppInsightsTracker,
         FakeInsightsProvider("name", false),
-        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
       )
     ) {
       assertThat((newState.issues as LoadingState.Ready).value.value.selected).isEqualTo(ISSUE1)

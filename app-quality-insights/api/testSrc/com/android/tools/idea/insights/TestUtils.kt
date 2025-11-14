@@ -19,7 +19,6 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
-import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.event.CustomKey
 import com.android.tools.idea.insights.model.event.Device
@@ -51,6 +50,8 @@ private val TestTimeIntervals =
     TimeIntervalFilter.NINETY_DAYS,
   )
 private val TestFailureTypes = listOf(FailureType.FATAL, FailureType.ANR, FailureType.NON_FATAL)
+
+val FAKE_INSIGHTS_PROVIDER = FakeInsightsProvider()
 
 val TEST_FILTERS =
   Filters(
@@ -171,7 +172,7 @@ val ISSUE1 =
       customKeys = SAMPLE_KEYS,
       logs = SAMPLE_LOGS,
     ),
-    source = ProductType.PLAY_VITALS,
+    source = FAKE_INSIGHTS_PROVIDER,
   )
 val ISSUE1_DETAILS =
   DetailedIssueStats(
@@ -320,7 +321,7 @@ val ISSUE2 =
         ),
       appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO)),
     ),
-    source = ProductType.PLAY_VITALS,
+    source = FAKE_INSIGHTS_PROVIDER,
   )
 
 val ISSUE3 =
@@ -409,7 +410,7 @@ val ISSUE3 =
         ),
       appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO)),
     ),
-    source = ProductType.PLAY_VITALS,
+    source = FAKE_INSIGHTS_PROVIDER,
   )
 
 val NOTE1 =

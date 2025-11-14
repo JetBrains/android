@@ -23,7 +23,7 @@ import com.android.tools.idea.insights.DEFAULT_FETCHED_DEVICES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
 import com.android.tools.idea.insights.DEFAULT_FETCHED_VERSIONS
-import com.android.tools.idea.insights.FakeInsightsProvider
+import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.LoadingState
@@ -41,7 +41,6 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
-import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.events.AiInsightFetched
@@ -284,7 +283,7 @@ class AppInsightsTrackerTest {
 
   @Test
   fun `track events fetched`() = runBlocking {
-    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
+    val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
     var testState =
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
@@ -298,11 +297,11 @@ class AppInsightsTrackerTest {
     var eventsChanged = EventsChanged(LoadingState.Ready(EventPage(listOf(Event("1")), "abc")))
     testState =
       eventsChanged
-        .transition(testState, controllerRule.tracker, FakeInsightsProvider(), cache)
+        .transition(testState, controllerRule.tracker, FAKE_INSIGHTS_PROVIDER, cache)
         .newState
 
     eventsChanged = EventsChanged(LoadingState.Ready(EventPage(listOf(Event("2")), "def")))
-    eventsChanged.transition(testState, controllerRule.tracker, FakeInsightsProvider(), cache)
+    eventsChanged.transition(testState, controllerRule.tracker, FAKE_INSIGHTS_PROVIDER, cache)
 
     verify(controllerRule.tracker, times(2))
       .logEventsFetched(
@@ -317,7 +316,7 @@ class AppInsightsTrackerTest {
 
   @Test
   fun `track crash view`() = runBlocking {
-    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
+    val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
     val testState =
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
@@ -325,11 +324,11 @@ class AppInsightsTrackerTest {
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
       )
     var issueChanged = SelectedIssueChanged(ISSUE1, IssueSelectionSource.LIST)
-    issueChanged.transition(testState, controllerRule.tracker, FakeInsightsProvider(), cache)
+    issueChanged.transition(testState, controllerRule.tracker, FAKE_INSIGHTS_PROVIDER, cache)
     verify(controllerRule.tracker, never()).logCrashListDetailView(any())
 
     issueChanged = SelectedIssueChanged(ISSUE2, IssueSelectionSource.LIST)
-    issueChanged.transition(testState, controllerRule.tracker, FakeInsightsProvider(), cache)
+    issueChanged.transition(testState, controllerRule.tracker, FAKE_INSIGHTS_PROVIDER, cache)
     verify(controllerRule.tracker, times(1))
       .logCrashListDetailView(
         argThat {
@@ -340,7 +339,7 @@ class AppInsightsTrackerTest {
       )
 
     issueChanged = SelectedIssueChanged(ISSUE2, IssueSelectionSource.INSPECTION)
-    issueChanged.transition(testState, controllerRule.tracker, FakeInsightsProvider(), cache)
+    issueChanged.transition(testState, controllerRule.tracker, FAKE_INSIGHTS_PROVIDER, cache)
     verify(controllerRule.tracker, times(1))
       .logCrashListDetailView(
         argThat {
@@ -352,7 +351,7 @@ class AppInsightsTrackerTest {
       )
 
     issueChanged = SelectedIssueChanged(null, IssueSelectionSource.INSPECTION)
-    issueChanged.transition(testState, controllerRule.tracker, FakeInsightsProvider(), cache)
+    issueChanged.transition(testState, controllerRule.tracker, FAKE_INSIGHTS_PROVIDER, cache)
     verify(controllerRule.tracker, times(2)).logCrashListDetailView(any())
   }
 
@@ -377,8 +376,8 @@ class AppInsightsTrackerTest {
     insightFetch.transition(
       testState,
       controllerRule.tracker,
-      FakeInsightsProvider(),
-      AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+      FAKE_INSIGHTS_PROVIDER,
+      AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
     )
 
     verify(controllerRule.tracker, times(1))
