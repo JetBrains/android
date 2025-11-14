@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.vitals.datamodel
 
-import com.android.tools.idea.insights.Version
-import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.event.Version
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
+import com.android.tools.idea.insights.model.issue.VisibilityType
 import java.util.logging.Level
 import java.util.logging.Logger
 

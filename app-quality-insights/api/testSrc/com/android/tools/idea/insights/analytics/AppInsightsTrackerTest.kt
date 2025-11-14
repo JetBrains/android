@@ -31,12 +31,9 @@ import com.android.tools.idea.insights.NOTE1
 import com.android.tools.idea.insights.NOTE1_BODY
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.Selection
-import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Timed
-import com.android.tools.idea.insights.Version
-import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
@@ -51,7 +48,10 @@ import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.event.Version
 import com.android.tools.idea.insights.model.issue.FailureType
+import com.android.tools.idea.insights.model.issue.SignalType
+import com.android.tools.idea.insights.model.issue.VisibilityType
 import com.android.tools.idea.insights.toCrashType
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent

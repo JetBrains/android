@@ -21,13 +21,14 @@ import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
-import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
+import com.android.tools.idea.insights.model.common.Interval
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.issue.IssueState
+import com.android.tools.idea.insights.model.issue.SignalType
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import java.util.SortedSet

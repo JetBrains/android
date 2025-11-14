@@ -17,15 +17,15 @@ package com.android.tools.idea.vitals.datamodel
 
 import com.android.tools.idea.insights.FAKE_6_DAYS_AGO
 import com.android.tools.idea.insights.FakeTimeProvider.now
-import com.android.tools.idea.insights.SignalType
-import com.android.tools.idea.insights.Version
-import com.android.tools.idea.insights.VisibilityType
-import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.insights.client.QueryFilters
+import com.android.tools.idea.insights.model.common.Interval
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.event.Version
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
+import com.android.tools.idea.insights.model.issue.SignalType
+import com.android.tools.idea.insights.model.issue.VisibilityType
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

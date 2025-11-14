@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.vitals.datamodel
 
-import com.android.tools.idea.insights.PlayTrack
-import com.android.tools.idea.insights.Version
+import com.android.tools.idea.insights.model.event.PlayTrack
+import com.android.tools.idea.insights.model.event.Version
 import com.google.common.truth.Truth.assertThat
 import com.google.play.developer.reporting.Release
 import com.google.play.developer.reporting.Track

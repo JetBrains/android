@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.AdtUiUtils.ShrinkDirection.TRUNCATE_START
 import com.android.tools.idea.insights.AppInsightsIssue
+import com.android.tools.idea.insights.icon
 import com.android.tools.idea.insights.model.issue.IssueState
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes

@@ -28,7 +28,6 @@ import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.TimeIntervalFilter
-import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppInsightsCache
@@ -44,6 +43,7 @@ import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.event.Version
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.issue.IssueState

@@ -25,8 +25,11 @@ import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.event.Version
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueState
+import com.android.tools.idea.insights.model.issue.SignalType
+import com.android.tools.idea.insights.model.issue.VisibilityType
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
