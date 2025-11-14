@@ -350,10 +350,16 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
 
   private fun updateScreenshotAttributesView(previewData: PreviewDetails) {
     val diffPercent = previewData.diffPercent?.toDoubleOrNull()
+    val testMethodName = if (previewData.previewName.isNotBlank() && previewData.previewName != "()") {
+      val params = previewData.previewName.removeSurrounding("(", ")")
+      "${previewData.methodName}_($params)"
+    } else {
+      previewData.methodName
+    }
     screenshotAttributesView.updateData(
       refImagePath = previewData.destImagePath,
       newImagePath = previewData.srcImagePath,
-      testMethodName = previewData.methodName,
+      testMethodName = testMethodName,
       testClassName = previewData.className,
       result = previewData.testResult,
       diffPercent = diffPercent
