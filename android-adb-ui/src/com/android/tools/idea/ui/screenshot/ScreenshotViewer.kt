@@ -66,6 +66,8 @@ import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
 import java.awt.event.ActionListener
 import java.awt.image.BufferedImage
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.OutputStream
@@ -472,8 +474,17 @@ class ScreenshotViewer(
   }
 
   private fun updateEditorImage() {
-    imageFileEditor.imageEditor.document.value = displayedImageRef.get().image
-    pack()
+    val imageEditor = imageFileEditor.imageEditor
+    imageEditor.document.value = displayedImageRef.get().image
+    // Resize the dialog after the image editor finishes its internal resizing.
+    val imageComponent = imageEditor.contentComponent
+    val listener = object : PropertyChangeListener {
+      override fun propertyChange(event: PropertyChangeEvent) {
+        imageComponent.removePropertyChangeListener(ZOOM_FACTOR_PROP, this)
+        pack()
+      }
+    }
+    imageComponent.addPropertyChangeListener(ZOOM_FACTOR_PROP, listener)
 
     // After image has updated, set the focus to image to allow keyboard shortcut copying.
     IdeFocusManager.getInstance(project).requestFocusInProject(preferredFocusedComponent, project)
@@ -521,6 +532,7 @@ class ScreenshotViewer(
   }
 
   companion object {
+    private const val ZOOM_FACTOR_PROP: @NonNls String = "ImageEditor.zoomFactor"
     private const val SCREENSHOT_VIEWER_DIMENSIONS_KEY: @NonNls String = "ScreenshotViewer"
 
     fun getDefaultDecoration(screenshotImage: ScreenshotImage, screenshotDecorator: ScreenshotDecorator,
