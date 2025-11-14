@@ -31,10 +31,14 @@ fun hasAndroidManifest(contentRoot: Path): Boolean {
   }
   if (listDir == null || !listDir.exists()) return false
   return try {
-    Files.list(listDir).anyMatch { childProjectDir ->
-      childProjectDir.isDirectory()
-      && (childProjectDir.hasAndroidManifestImpl()
-      || Files.list(childProjectDir).anyMatch { grandChildProjectDir -> grandChildProjectDir.hasAndroidManifestImpl() })
+    Files.list(listDir).use { children ->
+      children.anyMatch { childProjectDir ->
+        childProjectDir.isDirectory()
+        && (childProjectDir.hasAndroidManifestImpl()
+        || Files.list(childProjectDir).use { grandChildren ->
+          grandChildren.anyMatch { grandChildProjectDir -> grandChildProjectDir.hasAndroidManifestImpl() }
+        })
+      }
     }
   }
   catch (e: Exception) {
