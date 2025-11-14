@@ -31,7 +31,7 @@ import java.util.concurrent.Executor
 
 interface GradleBuildInvoker {
   fun buildConfiguration(modules: Array<Module>, deployApkFromBundle: Boolean): ListenableFuture<AssembleInvocationResult>
-  fun cleanProject(): ListenableFuture<GradleMultiInvocationResult>
+  fun cleanProject(): ListenableFuture<GradleInvocationResult>
 
   fun generateSources(modules: Array<Module>): ListenableFuture<GradleMultiInvocationResult>
   fun compileJava(modules: Array<Module>): ListenableFuture<GradleMultiInvocationResult>

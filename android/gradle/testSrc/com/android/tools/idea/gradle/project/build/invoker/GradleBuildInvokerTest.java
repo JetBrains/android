@@ -123,6 +123,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     assertThat(request.getGradleTasks()).containsExactly("clean");
     assertThat(request.getCommandLineArguments()).isEmpty();
     verifyInteractionWithMocks(CLEAN);
+    assertThat(myGradleTaskExecutor.getInvoked()).isEqualTo(1);
   }
 
   public void testCleanupWithNativeDebugSessionAndUserTerminatesSession() {
