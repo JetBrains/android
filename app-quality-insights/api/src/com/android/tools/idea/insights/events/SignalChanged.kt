@@ -19,10 +19,10 @@ import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
+import com.android.tools.idea.insights.model.issue.SignalType
 
 /** Signal changed. */
 data class SignalChanged(val signal: SignalType) : ChangeEvent {
