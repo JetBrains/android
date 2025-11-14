@@ -20,15 +20,15 @@ import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Posture.PostureValue
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.SystemImageTags.AI_GLASSES_TAG
 import com.android.sdklib.SystemImageTags.ANDROID_TV_TAG
 import com.android.sdklib.SystemImageTags.AUTOMOTIVE_DISTANT_DISPLAY_TAG
 import com.android.sdklib.SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG
 import com.android.sdklib.SystemImageTags.AUTOMOTIVE_TAG
+import com.android.sdklib.SystemImageTags.DEPRECATED_AI_GLASSES_TAG
 import com.android.sdklib.SystemImageTags.DESKTOP_TAG
 import com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG
 import com.android.sdklib.SystemImageTags.WEAR_TAG
-import com.android.sdklib.SystemImageTags.AI_GLASSES_TAG
-import com.android.sdklib.SystemImageTags.DEPRECATED_AI_GLASSES_TAG
 import com.android.sdklib.SystemImageTags.XR_HEADSET_TAG
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.internal.avd.ConfigKey
@@ -53,9 +53,12 @@ class EmulatorConfiguration private constructor(
   val skinFolder: Path?,
   val hasOrientationSensors: Boolean,
   val hasAudioOutput: Boolean,
+  val hasTransparentDisplay: Boolean,
+  val hasTouchScreen: Boolean,
   val initialOrientationQuadrants: Int,
   val displayModes: List<DisplayMode>,
   val postures: List<PostureDescriptor>,
+  val touchpadSize: Dimension?,
 ) {
 
   val displayWidth: Int
@@ -89,7 +92,7 @@ class EmulatorConfiguration private constructor(
       }
       val density = parseInt(hardwareIni["hw.lcd.density"], 0)
 
-      val hasAudioOutput = hardwareIni["hw.audioOutput"]?.toBoolean() != false
+      val hasAudioOutput = hardwareIni["hw.audioOutput"]?.toBoolean() ?: true
 
       val configIniFile = avdFolder.resolve("config.ini")
       val configIni = readKeyValueFile(configIniFile)
@@ -110,11 +113,13 @@ class EmulatorConfiguration private constructor(
         tagIds.asSeparatedListContains(GOOGLE_TV_TAG.id) || tagIds.asSeparatedListContains(ANDROID_TV_TAG.id) -> DeviceType.TV
         tagIds.asSeparatedListContains(WEAR_TAG.id) -> DeviceType.WEAR
         tagIds.asSeparatedListContains(XR_HEADSET_TAG.id) -> DeviceType.XR_HEADSET
-        tagIds.asSeparatedListContains(DEPRECATED_AI_GLASSES_TAG.id) -> DeviceType.AI_GLASSES
+        tagIds.asSeparatedListContains(DEPRECATED_AI_GLASSES_TAG.id) ||
         tagIds.asSeparatedListContains(AI_GLASSES_TAG.id) -> DeviceType.AI_GLASSES
         else -> DeviceType.HANDHELD
       }
-      val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) != false
+      val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
+      val hasTransparentDisplay = configIni["hw.lcd.transparent"]?.equals("yes", ignoreCase = false) ?: false
+      val hasTouchScreen = !(configIni["hw.screen"]?.equals("no-touch", ignoreCase = true) ?: false)
       val postureMode = parseInt(hardwareIni["hw.sensor.hinge.resizable.config"], -1)
       val displayModes = try {
         configIni["hw.resizable.configs"]?.let { parseDisplayModes(it, postureMode) } ?: emptyList()
@@ -162,7 +167,7 @@ class EmulatorConfiguration private constructor(
       val api = sourceProperties["AndroidVersion.ApiLevel"]?.let { AndroidApiLevel.fromString(it) } ?: throw RuntimeException("Missing or invalid API level")
       val codeName = sourceProperties["AndroidVersion.CodeName"]
       val extensionLevel = sourceProperties["AndroidVersion.ExtensionLevel"]?.let { parseInt(it, 0) }
-      val isBaseSdk = sourceProperties["AndroidVersion.IsBaseSdk"]?.toBoolean() != false
+      val isBaseSdk = sourceProperties["AndroidVersion.IsBaseSdk"]?.toBoolean() ?: true
       val androidVersion = AndroidVersion(api, codeName, extensionLevel, isBaseSdk)
 
       // Extract parameters of secondary displays from lines like "hw.display6.width=400" and "hw.display6.height=600".
@@ -195,6 +200,10 @@ class EmulatorConfiguration private constructor(
         }
       }
 
+      val touchpadWidth = parseInt(configIni["hw.touchpad0.width"], 0)
+      val touchpadHeight = parseInt(configIni["hw.touchpad0.height"], 0)
+      val touchpadSize = if (touchpadWidth > 0 && touchpadHeight > 0) Dimension(touchpadWidth, touchpadHeight) else null
+
       return EmulatorConfiguration(avdFolder = avdFolder,
                                    avdName = avdName,
                                    deviceType = deviceType,
@@ -205,15 +214,19 @@ class EmulatorConfiguration private constructor(
                                    skinFolder = skinPath,
                                    hasOrientationSensors = hasOrientationSensors,
                                    hasAudioOutput = hasAudioOutput,
+                                   hasTransparentDisplay = hasTransparentDisplay,
+                                   hasTouchScreen = hasTouchScreen,
                                    initialOrientationQuadrants = initialOrientation,
                                    displayModes = displayModes,
-                                   postures = postures)
+                                   postures = postures,
+                                   touchpadSize = touchpadSize)
     }
 
     fun createStub(avdName: String, avdFolder: Path): EmulatorConfiguration {
       return EmulatorConfiguration(avdFolder, avdName, DeviceType.HANDHELD, AndroidVersion(0, 0), Dimension(), 0, emptyMap(), null,
-                                   hasOrientationSensors = false, hasAudioOutput = false, initialOrientationQuadrants = 0,
-                                   displayModes = emptyList(), postures = emptyList())
+                                   hasOrientationSensors = false, hasAudioOutput = false, hasTransparentDisplay = false,
+                                   hasTouchScreen = false, initialOrientationQuadrants = 0, displayModes = emptyList(),
+                                   postures = emptyList(), touchpadSize = null)
     }
 
     private fun getSkinPath(configIni: Map<String, String>, androidSdkRoot: Path): Path? {
