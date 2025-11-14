@@ -31,7 +31,6 @@ import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestResources
-import com.android.tools.adblib.testutils.InitAdbLibApplicationServiceRule
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.logcat.SYSTEM_HEADER
@@ -78,7 +77,6 @@ private val LAST_MESSAGE =
 /** Tests for [LogcatServiceImpl] */
 class LogcatServiceImplTest {
   private val projectRule = ProjectRule()
-  private val initAdbLibApplicationServiceRule = InitAdbLibApplicationServiceRule()
   private val logcatHandler = CheckFormatLogcatHandler()
   private val logcatHandler_v2 = CheckFormatLogcatHandler(ShellProtocolType.SHELL_V2)
   private val fakeAdbServerProviderRule = FakeAdbServerProviderRule {
@@ -94,7 +92,6 @@ class LogcatServiceImplTest {
   val rule =
     RuleChain(
       projectRule,
-      initAdbLibApplicationServiceRule,
       WaitForIndexRule(projectRule),
       fakeAdbServerProviderRule,
       closeables,
