@@ -16,9 +16,9 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.insights.AppInsightsIssue
+import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.SignalType
-import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.testing.ui.flatten
@@ -75,7 +75,7 @@ class AppInsightsIssuesTableCellRendererTest {
         }
       }
     }
-    assertThat(getIcons(AppInsightsIssue(detailsTemplate, mock(), ProductType.PLAY_VITALS)))
+    assertThat(getIcons(AppInsightsIssue(detailsTemplate, mock(), FakeInsightsProvider())))
       .containsExactly(StudioIcons.AppQualityInsights.FATAL)
 
     assertThat(
@@ -83,7 +83,7 @@ class AppInsightsIssuesTableCellRendererTest {
           AppInsightsIssue(
             detailsTemplate.copy(fatality = FailureType.NON_FATAL),
             mock(),
-            ProductType.PLAY_VITALS,
+            FakeInsightsProvider(),
           )
         )
       )
@@ -91,7 +91,7 @@ class AppInsightsIssuesTableCellRendererTest {
 
     assertThat(
         getIcons(
-          AppInsightsIssue(detailsTemplate.copy(notesCount = 4), mock(), ProductType.PLAY_VITALS)
+          AppInsightsIssue(detailsTemplate.copy(notesCount = 4), mock(), FakeInsightsProvider())
         )
       )
       .containsExactly(StudioIcons.AppQualityInsights.FATAL_WITH_NOTE)
@@ -103,7 +103,7 @@ class AppInsightsIssuesTableCellRendererTest {
               signals = setOf(SignalType.SIGNAL_FRESH, SignalType.SIGNAL_REGRESSED)
             ),
             mock(),
-            ProductType.PLAY_VITALS,
+            FakeInsightsProvider(),
           )
         )
       )

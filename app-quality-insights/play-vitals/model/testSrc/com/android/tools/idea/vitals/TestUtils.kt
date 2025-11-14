@@ -19,7 +19,6 @@ import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.FAKE_25_DAYS_AGO
 import com.android.tools.idea.insights.FAKE_6_DAYS_AGO
 import com.android.tools.idea.insights.IssueDetails
-import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventData
@@ -115,7 +114,7 @@ val TEST_ISSUE1 =
             )
         ),
     ),
-    ProductType.PLAY_VITALS,
+    VitalsInsightsProvider,
   )
 
 val TEST_ISSUE2 =
@@ -233,5 +232,5 @@ val TEST_ISSUE2 =
             )
         ),
     ),
-    ProductType.PLAY_VITALS,
+    VitalsInsightsProvider,
   )

@@ -19,9 +19,9 @@ import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.ConnectionMode
+import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.Permission
-import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
@@ -162,7 +162,7 @@ class ToggleIssueActionTest {
         emptyList(),
       ),
       Event(),
-      ProductType.PLAY_VITALS,
+      FakeInsightsProvider(),
       state,
     )
 }

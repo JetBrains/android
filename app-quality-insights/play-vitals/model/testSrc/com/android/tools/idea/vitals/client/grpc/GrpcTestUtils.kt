@@ -20,7 +20,6 @@ import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.Selection
-import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
@@ -29,6 +28,7 @@ import com.android.tools.idea.insights.model.stacktrace.StackTraceGroupParser
 import com.android.tools.idea.insights.model.stacktrace.StubStackTraceGroupParser
 import com.android.tools.idea.insights.toIssueRequest
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
+import com.android.tools.idea.vitals.VitalsInsightsProvider
 import com.android.tools.idea.vitals.client.VitalsClient
 import com.android.tools.idea.vitals.createVitalsFilters
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
@@ -55,7 +55,7 @@ fun createIssueRequest(connection: VitalsConnection = TEST_CONNECTION_1, clock: 
     .toIssueRequest(clock)!!
 
 fun createVitalsClient(
-  cache: AppInsightsCache = AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+  cache: AppInsightsCache = AppInsightsCacheImpl(VitalsInsightsProvider),
   grpcClient: VitalsGrpcClient? = null,
   aiInsightClient: AiInsightClient = FakeAiInsightClient,
   stackTraceParser: StackTraceGroupParser = StubStackTraceGroupParser(),

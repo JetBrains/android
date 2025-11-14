@@ -75,7 +75,7 @@ import org.jetbrains.annotations.VisibleForTesting
 
 @Service(Service.Level.PROJECT)
 class VitalsConfigurationService(project: Project) : Disposable {
-  private val cache = AppInsightsCacheImpl(AppInsightsTracker.ProductType.PLAY_VITALS)
+  private val cache = AppInsightsCacheImpl(VitalsInsightsProvider)
 
   val manager: AppInsightsConfigurationManager =
     VitalsConfigurationManager(project, cache, parentDisposable = this)

@@ -17,7 +17,7 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
-import com.android.tools.idea.insights.FakeInsightsProvider
+import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.ISSUE_VARIANT
@@ -26,7 +26,6 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.Timed
-import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.events.actions.Action
@@ -51,8 +50,8 @@ class SelectedIssueVariantChangedTest {
         .transition(
           currentState,
           TestAppInsightsTracker,
-          FakeInsightsProvider(),
-          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+          FAKE_INSIGHTS_PROVIDER,
+          AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
         )
 
     with(transition) {
@@ -86,8 +85,8 @@ class SelectedIssueVariantChangedTest {
         .transition(
           currentState,
           TestAppInsightsTracker,
-          FakeInsightsProvider(),
-          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+          FAKE_INSIGHTS_PROVIDER,
+          AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
         )
 
     with(transition) {
@@ -118,8 +117,8 @@ class SelectedIssueVariantChangedTest {
         .transition(
           currentState,
           TestAppInsightsTracker,
-          FakeInsightsProvider(),
-          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+          FAKE_INSIGHTS_PROVIDER,
+          AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
         )
 
     with(transition) {

@@ -17,13 +17,13 @@ package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Connection
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
-import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
@@ -117,8 +117,8 @@ private data class IssueDetailsValue(
   val sampleEvents: SortedSet<Event>,
   val state: IssueState,
 ) {
-  fun toIssue(source: AppInsightsTracker.ProductType) =
-    AppInsightsIssue(issueDetails, sampleEvents.first(), source, state)
+  fun toIssue(insightsProvider: InsightsProvider) =
+    AppInsightsIssue(issueDetails, sampleEvents.first(), insightsProvider, state)
 }
 
 private data class AiInsightKey(
@@ -134,10 +134,8 @@ private data class CacheValue(
 
 // TODO(b/249510375): persist cache
 /** Cache for storing issues used in offline and online mode. */
-class AppInsightsCacheImpl(
-  val source: AppInsightsTracker.ProductType,
-  private val maxIssuesCount: Int = 50,
-) : AppInsightsCache {
+class AppInsightsCacheImpl(val source: InsightsProvider, private val maxIssuesCount: Int = 50) :
+  AppInsightsCache {
 
   private val compositeIssuesCache: Cache<Connection, Cache<IssueId, CacheValue>> =
     createNew(MAXIMUM_FIREBASE_CONNECTIONS_CACHE_SIZE)
