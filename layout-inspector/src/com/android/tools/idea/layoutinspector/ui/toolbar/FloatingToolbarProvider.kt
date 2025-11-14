@@ -23,18 +23,22 @@ import com.android.tools.adtui.actions.ZoomResetAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.editor.EditorActionsFloatingToolbarProvider
 import com.android.tools.editor.EditorActionsToolbarActionGroups
-import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.Toggle3dAction
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import javax.swing.JComponent
 
-/** Creates the actions toolbar used on the [DeviceViewPanel] */
+/**
+ * Creates the actions toolbar used in the old Standalone Layout Inspector. Contains 3D controls.
+ */
 class FloatingToolbarProvider(
-  private val deviceViewPanel: DeviceViewPanel,
-  parentDisposable: Disposable,
-) : EditorActionsFloatingToolbarProvider(deviceViewPanel, parentDisposable) {
+  component: JComponent,
+  private val layoutInspector: LayoutInspector,
+  disposable: Disposable,
+) : EditorActionsFloatingToolbarProvider(component, disposable) {
 
   /** Defines the groups of actions shown in the floating toolbar */
   private val actionGroup =
@@ -54,19 +58,46 @@ class FloatingToolbarProvider(
 
       val panSurfaceGroup = DefaultActionGroup().apply { add(PanSurfaceAction) }
       val toggle3dGroup =
-        DefaultActionGroup().apply {
-          add(Toggle3dAction { deviceViewPanel.layoutInspector.renderModel })
-        }
+        DefaultActionGroup().apply { add(Toggle3dAction { layoutInspector.renderModel }) }
 
       override val otherGroups: List<ActionGroup> = listOf(panSurfaceGroup, toggle3dGroup)
     }
 
   val toggle3dActionButton: ActionButton?
     get() =
-      findActionButton(
-        actionGroup.toggle3dGroup,
-        Toggle3dAction { deviceViewPanel.layoutInspector.renderModel },
-      )
+      findActionButton(actionGroup.toggle3dGroup, Toggle3dAction { layoutInspector.renderModel })
+
+  init {
+    updateToolbar()
+  }
+
+  override fun getActionGroups() = actionGroup
+}
+
+/** Creates the actions toolbar used in the new Standalone Layout Inspector. */
+class NewFloatingToolbarProvider(component: JComponent, disposable: Disposable) :
+  EditorActionsFloatingToolbarProvider(component, disposable) {
+
+  /** Defines the groups of actions shown in the floating toolbar */
+  private val actionGroup =
+    object : EditorActionsToolbarActionGroups {
+      override val zoomLabelGroup =
+        DefaultActionGroup().apply {
+          add(ZoomLabelAction)
+          add(ZoomResetAction)
+        }
+
+      override val zoomControlsGroup =
+        DefaultActionGroup().apply {
+          add(ZoomInAction.getInstance())
+          add(ZoomOutAction.getInstance())
+          add(ZoomToFitAction.getInstance())
+        }
+
+      val panSurfaceGroup = DefaultActionGroup().apply { add(PanSurfaceAction) }
+
+      override val otherGroups: List<ActionGroup> = listOf(panSurfaceGroup)
+    }
 
   init {
     updateToolbar()

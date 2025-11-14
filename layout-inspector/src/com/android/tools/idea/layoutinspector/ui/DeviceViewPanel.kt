@@ -45,7 +45,6 @@ import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
-import kotlinx.coroutines.launch
 import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.Cursor
@@ -64,6 +63,7 @@ import javax.swing.JPanel
 import javax.swing.JViewport
 import javax.swing.SwingUtilities
 import kotlin.math.min
+import kotlinx.coroutines.launch
 
 private const val MAX_ZOOM = 300
 private const val MIN_ZOOM = 10
@@ -185,7 +185,12 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
   private val scrollPane = JBScrollPane(contentPanel)
   private val layeredPane = JLayeredPane()
   private val loadingPane: JBLoadingPanel = JBLoadingPanel(BorderLayout(), disposableParent)
-  private val floatingToolbarProvider = FloatingToolbarProvider(this, disposableParent)
+  private val floatingToolbarProvider =
+    FloatingToolbarProvider(
+      disposable = disposableParent,
+      component = this,
+      layoutInspector = layoutInspector,
+    )
   private val viewportLayoutManager =
     MyViewportLayoutManager(
       scrollPane.viewport,

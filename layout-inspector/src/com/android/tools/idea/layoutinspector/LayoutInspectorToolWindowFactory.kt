@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
@@ -39,6 +40,7 @@ import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefin
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
+import com.android.tools.idea.layoutinspector.ui.ZoomableContainer
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
@@ -195,6 +197,14 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     val renderPanel =
       StandaloneRendererPanel(disposable = disposable, scope = scope, renderModel = renderModel)
 
+    val container =
+      ZoomableContainer(
+        disposable = disposable,
+        contentPanel = renderPanel,
+        getZoomPercent = { layoutInspector.renderSettings.scalePercent },
+        setZoomPercent = { layoutInspector.renderSettings.scalePercent = it },
+      )
+
     val toolbarState = ToolbarState(showTitle = false, leftAlightToolbar = true)
     val rootPanel =
       createLayoutInspectorPanel(
@@ -202,7 +212,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         disposable = disposable,
         layoutInspector = layoutInspector,
         uiConfig = UiConfig.VERTICAL,
-        centerPanel = renderPanel,
+        centerPanel = container,
         processPicker = processPicker?.dropDownAction,
         toolbarState = toolbarState,
       )
@@ -215,6 +225,22 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
     scope.launch {
       toolbarState.overlayTransparency.collect { renderModel.setOverlayTransparency(it) }
+    }
+
+    layoutInspector.inspectorModel.addModificationListener { oldWindow, newWindow, _ ->
+      if (oldWindow == null && newWindow != null) {
+        // Zoom to fit each time we go from rendering nothing to something
+        container.zoom(ZoomType.FIT)
+      }
+    }
+
+    val renderSettings = layoutInspector.renderSettings
+    renderSettings.modificationListeners.add {
+      val client = layoutInspector.currentClient
+      if (client.inLiveMode) {
+        // The current agent protocol requires bitmaps to be resized based on to the current scale
+        client.updateScreenshotType(null, renderSettings.scaleFraction.toFloat())
+      }
     }
 
     return rootPanel
