@@ -13,6 +13,7 @@ def main():
     parser.add_argument('-p', '--presubmit', action='store_true')
     parser.add_argument('-t', '--topic')
     parser.add_argument('-ht', '--hashtag')
+    parser.add_argument('-wip', '--work-in-progress', action='store_true')
     args = parser.parse_args()
 
     if not args.push:
@@ -29,6 +30,7 @@ def main():
     # Push.
     push_args = []
     if args.presubmit: push_args.append(f'l=Presubmit-Ready+1')
+    if args.work_in_progress: push_args.append('wip')
     if args.topic: push_args.append(f'topic={args.topic}')
     if args.hashtag: push_args.append(f'hashtag={args.hashtag}')
     push_args = ','.join(push_args)
