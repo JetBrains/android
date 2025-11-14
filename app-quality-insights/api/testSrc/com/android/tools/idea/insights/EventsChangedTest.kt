@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.events.EventsChanged
@@ -44,8 +43,8 @@ class EventsChangedTest {
       event.transition(
         currentState,
         TestAppInsightsTracker,
-        FakeInsightsProvider(),
-        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+        FAKE_INSIGHTS_PROVIDER,
+        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
       )
     assertThat(transition.newState.currentEvents)
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(eventList, 0, "")))
@@ -70,8 +69,8 @@ class EventsChangedTest {
       event.transition(
         currentState,
         TestAppInsightsTracker,
-        FakeInsightsProvider(),
-        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+        FAKE_INSIGHTS_PROVIDER,
+        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
       )
     assertThat(transition.newState.currentEvents)
       .isEqualTo(
@@ -95,8 +94,8 @@ class EventsChangedTest {
       event.transition(
         currentState,
         TestAppInsightsTracker,
-        FakeInsightsProvider(),
-        AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+        FAKE_INSIGHTS_PROVIDER,
+        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
       )
     assertThat(transition.newState.currentEvents).isEqualTo(failure)
     assertThat(transition.action)

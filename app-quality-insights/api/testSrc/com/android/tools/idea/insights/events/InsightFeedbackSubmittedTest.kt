@@ -18,7 +18,7 @@ package com.android.tools.idea.insights.events
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
-import com.android.tools.idea.insights.FakeInsightsProvider
+import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
@@ -26,7 +26,6 @@ import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
-import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.toCrashType
@@ -41,7 +40,7 @@ class InsightFeedbackSubmittedTest {
   @Test
   fun `InsightFeedbackSubmitted tracks feedback and caches it`() {
     val tracker = mock<AppInsightsTracker>()
-    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
+    val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
     val startingState =
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
@@ -52,7 +51,7 @@ class InsightFeedbackSubmittedTest {
 
     val transition =
       InsightFeedbackSubmitted(InsightFeedback.THUMBS_UP)
-        .transition(startingState, tracker, FakeInsightsProvider(), cache)
+        .transition(startingState, tracker, FAKE_INSIGHTS_PROVIDER, cache)
 
     val expectedInsight = DEFAULT_AI_INSIGHT.copy(feedback = InsightFeedback.THUMBS_UP)
     assertThat(transition.newState.currentInsight.valueOrNull()).isEqualTo(expectedInsight)

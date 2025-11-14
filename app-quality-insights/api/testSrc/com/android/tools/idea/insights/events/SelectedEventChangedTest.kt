@@ -19,13 +19,12 @@ import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DynamicEventGallery
 import com.android.tools.idea.insights.EventMovement
-import com.android.tools.idea.insights.FakeInsightsProvider
+import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.Timed
-import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.events.actions.Action
@@ -66,8 +65,8 @@ class SelectedEventChangedTest {
         .transition(
           state,
           TestAppInsightsTracker,
-          FakeInsightsProvider(),
-          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+          FAKE_INSIGHTS_PROVIDER,
+          AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
         )
     assertThat(transition.newState.currentEvents)
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(Event("1"), Event("2")), 1, "")))
@@ -89,8 +88,8 @@ class SelectedEventChangedTest {
         .transition(
           state,
           TestAppInsightsTracker,
-          FakeInsightsProvider(),
-          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+          FAKE_INSIGHTS_PROVIDER,
+          AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
         )
     assertThat(transition.newState.currentEvents)
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(Event("1"), Event("2")), 0, "")))
@@ -111,8 +110,8 @@ class SelectedEventChangedTest {
         .transition(
           state,
           TestAppInsightsTracker,
-          FakeInsightsProvider(),
-          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+          FAKE_INSIGHTS_PROVIDER,
+          AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
         )
     assertThat(transition.newState.currentEvents)
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, "")))
@@ -123,8 +122,8 @@ class SelectedEventChangedTest {
         .transition(
           state,
           TestAppInsightsTracker,
-          FakeInsightsProvider(),
-          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+          FAKE_INSIGHTS_PROVIDER,
+          AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
         )
     assertThat(transition.newState.currentEvents)
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, "")))
@@ -147,8 +146,8 @@ class SelectedEventChangedTest {
         .transition(
           state,
           TestAppInsightsTracker,
-          FakeInsightsProvider(),
-          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+          FAKE_INSIGHTS_PROVIDER,
+          AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
         )
     assertThat(transition.newState.currentEvents)
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(Event("1"), Event("2")), 1, "abc")))

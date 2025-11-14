@@ -17,12 +17,12 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.model.connection.AppConnection
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.vitals.VitalsInsightsProvider
 import com.android.tools.idea.vitals.VitalsLoginFeature
 import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.LoginUsersRule
@@ -57,7 +57,7 @@ class VitalsConfigurationManagerTest {
       val configManager =
         VitalsConfigurationManager(
           projectRule.project,
-          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+          AppInsightsCacheImpl(VitalsInsightsProvider),
           MutableStateFlow(true),
           projectRule.testRootDisposable,
           client,
@@ -81,7 +81,7 @@ class VitalsConfigurationManagerTest {
       val configManager =
         VitalsConfigurationManager(
           projectRule.project,
-          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+          AppInsightsCacheImpl(VitalsInsightsProvider),
           parentDisposable = projectRule.testRootDisposable,
           testClient = client,
         )
@@ -108,7 +108,7 @@ class VitalsConfigurationManagerTest {
       val configManager =
         VitalsConfigurationManager(
           projectRule.project,
-          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+          AppInsightsCacheImpl(VitalsInsightsProvider),
           parentDisposable = projectRule.testRootDisposable,
           testClient = client,
         )
@@ -136,7 +136,7 @@ class VitalsConfigurationManagerTest {
       val configManager =
         VitalsConfigurationManager(
           projectRule.project,
-          AppInsightsCacheImpl(ProductType.PLAY_VITALS),
+          AppInsightsCacheImpl(VitalsInsightsProvider),
           parentDisposable = projectRule.testRootDisposable,
           testClient = client,
         )

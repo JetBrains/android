@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueAnnotation
@@ -29,7 +28,7 @@ import javax.swing.Icon
 data class AppInsightsIssue(
   val issueDetails: IssueDetails,
   val sampleEvent: Event,
-  val source: AppInsightsTracker.ProductType,
+  val source: InsightsProvider,
   val state: IssueState = IssueState.OPEN,
 ) {
   val id: IssueId = issueDetails.id

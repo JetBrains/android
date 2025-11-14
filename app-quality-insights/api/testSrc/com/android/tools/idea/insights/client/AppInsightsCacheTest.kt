@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
+import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.IssueDetails
@@ -28,7 +29,6 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
-import com.android.tools.idea.insights.analytics.AppInsightsTracker.ProductType
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventData
@@ -127,7 +127,7 @@ class AppInsightsCacheTest {
             emptyList(),
           ),
           testEvent,
-          source = ProductType.PLAY_VITALS,
+          source = FAKE_INSIGHTS_PROVIDER,
         )
 
       issue =
@@ -195,7 +195,7 @@ class AppInsightsCacheTest {
       populateIssues.add(issue)
     }
 
-    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
+    val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
     assertThat(
         cache.getTopIssues(
           IssueRequest(
@@ -316,10 +316,10 @@ class AppInsightsCacheTest {
           emptyList(),
         ),
         testEvent,
-        source = ProductType.PLAY_VITALS,
+        source = FAKE_INSIGHTS_PROVIDER,
       )
 
-    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS, 5)
+    val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER, 5)
     cache.populateIssues(
       connection,
       listOf(
@@ -384,10 +384,10 @@ class AppInsightsCacheTest {
           emptyList(),
         ),
         testEvent,
-        source = ProductType.PLAY_VITALS,
+        source = FAKE_INSIGHTS_PROVIDER,
       )
 
-    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS, 5)
+    val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER, 5)
     cache.populateIssues(connection, listOf(issue))
     assertThat(cache.getNotes(connection, issue.issueDetails.id)).isNull()
 
@@ -408,7 +408,7 @@ class AppInsightsCacheTest {
   fun `add and delete notes from cache`() {
     val issue = ISSUE1
 
-    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS, 5)
+    val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER, 5)
     cache.populateIssues(connection, listOf(issue))
     assertThat(cache.getNotes(connection, issue.issueDetails.id)).isNull()
 
@@ -436,7 +436,7 @@ class AppInsightsCacheTest {
 
   @Test
   fun `get issues based on issue Ids`() {
-    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS, 5)
+    val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER, 5)
     cache.populateIssues(connection, listOf(ISSUE1, ISSUE2))
 
     assertThat(cache.getIssues(connection, listOf(ISSUE2.id))).containsExactly(ISSUE2)
@@ -448,7 +448,7 @@ class AppInsightsCacheTest {
 
   @Test
   fun `populate connections retains only current connections`() {
-    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
+    val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
     cache.populateIssues(connection, listOf(ISSUE1, ISSUE2))
 
     cache.populateConnections(listOf(connection2))
@@ -478,10 +478,10 @@ class AppInsightsCacheTest {
           emptyList(),
         ),
         testEvent,
-        ProductType.PLAY_VITALS,
+        FAKE_INSIGHTS_PROVIDER,
       )
 
-    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
+    val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
     cache.populateIssues(connection, listOf(issue))
 
     // Mismatch device
@@ -565,7 +565,7 @@ class AppInsightsCacheTest {
 
   @Test
   fun `get and put AI insights`() {
-    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
+    val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
     val context =
       CodeContextData(
         listOf(CodeContext("/path", "abc")),
@@ -597,7 +597,7 @@ class AppInsightsCacheTest {
 
   @Test
   fun `removeIssue removes the issue from cache`() {
-    val cache = AppInsightsCacheImpl(ProductType.PLAY_VITALS)
+    val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
     cache.populateIssues(connection, listOf(ISSUE1))
     cache.addNote(connection, ISSUE1.issueDetails.id, NOTE1)
     cache.putAiInsight(connection, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
