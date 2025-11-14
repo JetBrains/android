@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.vitals.client.grpc
 
-import com.android.tools.idea.insights.client.Interval
+import com.android.tools.idea.insights.model.common.Interval
 import com.android.tools.idea.vitals.datamodel.TimeGranularity
 import com.google.play.developer.reporting.DateTimeInterval
 import com.google.type.DateTime

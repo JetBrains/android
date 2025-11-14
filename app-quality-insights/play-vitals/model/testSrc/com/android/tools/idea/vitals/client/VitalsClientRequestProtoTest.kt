@@ -16,7 +16,7 @@
 package com.android.tools.idea.vitals.client
 
 import com.android.testutils.time.FakeClock
-import com.android.tools.idea.insights.client.Interval
+import com.android.tools.idea.insights.model.common.Interval
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.TEST_ISSUE1
 import com.android.tools.idea.vitals.client.grpc.DISTINCT_USERS

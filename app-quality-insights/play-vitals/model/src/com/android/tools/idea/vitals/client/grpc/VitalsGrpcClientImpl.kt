@@ -17,11 +17,11 @@ package com.android.tools.idea.vitals.client.grpc
 
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.IssueDetails
-import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.client.retryRpc
 import com.android.tools.idea.insights.model.connection.AppConnection
 import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.event.Version
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.stacktrace.StackTraceGroupParser
 import com.android.tools.idea.vitals.datamodel.Dimension

@@ -15,19 +15,13 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.model.issue.VisibilityType
+import com.android.tools.idea.insights.model.issue.VisibilityType.ALL
+import com.android.tools.idea.insights.model.issue.VisibilityType.USER_PERCEIVED
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.VisibilityFilter
 
-enum class VisibilityType(val displayName: String) {
-  ALL("All visibility") {
-    override fun toString() = displayName
-  },
-  USER_PERCEIVED("User-perceived") {
-    override fun toString() = displayName
-  };
-
-  fun toLogProto() =
-    when (this) {
-      ALL -> VisibilityFilter.ALL_VISIBILITY
-      USER_PERCEIVED -> VisibilityFilter.USER_PERCEIVED
-    }
-}
+fun VisibilityType.toLogProto() =
+  when (this) {
+    ALL -> VisibilityFilter.ALL_VISIBILITY
+    USER_PERCEIVED -> VisibilityFilter.USER_PERCEIVED
+  }

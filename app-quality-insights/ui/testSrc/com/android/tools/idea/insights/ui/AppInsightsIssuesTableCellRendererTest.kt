@@ -18,9 +18,9 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.IssueDetails
-import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
+import com.android.tools.idea.insights.model.issue.SignalType
 import com.android.tools.idea.testing.ui.flatten
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.SimpleColoredComponent

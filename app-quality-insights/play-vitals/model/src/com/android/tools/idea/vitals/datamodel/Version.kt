@@ -15,30 +15,29 @@
  */
 package com.android.tools.idea.vitals.datamodel
 
-import com.android.tools.idea.insights.PlayTrack
-import com.android.tools.idea.insights.Version
+import com.android.tools.idea.insights.model.event.PlayTrack
+import com.android.tools.idea.insights.model.event.Version
 import com.google.play.developer.reporting.Track
 import java.util.logging.Level
 import java.util.logging.Logger
 
 private val LOG = Logger.getLogger("vitals.datamodel.Verion")
 
-internal fun PlayTrack.Companion.fromProto(proto: Track): PlayTrack? {
-  return when (proto.type) {
+internal fun Track.toPlayTrack() =
+  when (type) {
     "Production" -> PlayTrack.PRODUCTION
     "Internal" -> PlayTrack.INTERNAL
     "Open testing" -> PlayTrack.OPEN_TESTING
     "Closed testing" -> PlayTrack.CLOSED_TESTING
     else -> {
-      LOG.log(Level.WARNING, "${proto.type} is not of a supported Play Track type.")
+      LOG.log(Level.WARNING, "$type is not of a supported Play Track type.")
       null
     }
   }
-}
 
 internal fun List<Track>.extract(): List<Version> {
   val flattened = flatMap { track ->
-    val trackType = PlayTrack.fromProto(track) ?: return@flatMap emptyList()
+    val trackType = track.toPlayTrack() ?: return@flatMap emptyList()
 
     track.servingReleasesList.flatMap { release ->
       release.versionCodesList.map { versionCode -> versionCode to trackType }
