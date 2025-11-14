@@ -25,6 +25,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JTable
+import org.junit.After
 
 class InstantAppRunConfigurationsDialogTest {
   lateinit var myRunConfiguration: AndroidRunConfiguration
@@ -40,6 +41,11 @@ class InstantAppRunConfigurationsDialogTest {
     val configurationFactory = AndroidRunConfigurationType.getInstance().factory
     myRunConfiguration = AndroidRunConfiguration(projectRule.project, configurationFactory)
     parameters.setActiveModule(projectRule.module, DynamicFeaturesParameters.AvailableDeployTypes.INSTANT_AND_INSTALLED)
+  }
+
+  @After
+  fun tearDown() {
+    projectRule.fixture.tearDown()
   }
 
   private fun getFeatureNameCellRenderer(table: JTable, row: Int, column: Int): DynamicFeaturesParameters.FeatureNameCellRenderer {
