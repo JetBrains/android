@@ -25,8 +25,7 @@ import com.android.fakeadbserver.DeviceState.HostConnectionType
 import com.android.fakeadbserver.shellcommandhandlers.ScreenRecordCommandHandler
 import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.truth.PathSubject.assertThat
-import com.android.tools.idea.testing.disposable
-import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TemporaryDirectory
 import org.junit.Rule
@@ -35,12 +34,12 @@ import org.junit.Test
 /** Tests for [ShellCommandRecordingProvider]. */
 class ShellCommandRecordingProviderTest {
 
-  private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
   private val fakeAdbRule = FakeAdbServerProviderRule()
   private val temporaryDirectoryRule = TemporaryDirectory()
 
   @get:Rule
-  val ruleChain = RuleChain(projectRule, fakeAdbRule, temporaryDirectoryRule)
+  val ruleChain = RuleChain(disposableRule, fakeAdbRule, temporaryDirectoryRule)
 
   private val fakeAdb get() =
       fakeAdbRule.fakeAdb
@@ -53,7 +52,7 @@ class ShellCommandRecordingProviderTest {
     val device = createFakeDevice()
     val options = ScreenRecorderOptions(
         displayId = PRIMARY_DISPLAY_ID, width = 600, height = 400, bitrateMbps = 6, showTouches = false, timeLimitSec = 300)
-    val provider = ShellCommandRecordingProvider(projectRule.disposable, device.deviceId, RECODING_FILE, options, fakeAdbRule.adbSession)
+    val provider = ShellCommandRecordingProvider(disposableRule.disposable, device.deviceId, RECODING_FILE, options, fakeAdbRule.adbSession)
 
     // Act.
     val done = provider.startRecording()
