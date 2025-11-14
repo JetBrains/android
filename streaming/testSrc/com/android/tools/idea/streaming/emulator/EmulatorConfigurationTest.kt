@@ -24,8 +24,8 @@ import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDe
 import com.google.common.jimfs.Jimfs
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
-import org.junit.Test
 import java.awt.Dimension
+import org.junit.Test
 
 /**
  * Tests for [EmulatorConfiguration].
@@ -58,11 +58,14 @@ class EmulatorConfigurationTest {
     assertThat(config.additionalDisplays).isEmpty()
     assertThat(config.skinFolder?.toString()?.replace('\\', '/'))
         .endsWith("tools/adt/idea/artwork/resources/device-art-resources/pixel_3_xl")
-    assertThat(config.hasAudioOutput).isTrue()
     assertThat(config.hasOrientationSensors).isTrue()
+    assertThat(config.hasAudioOutput).isTrue()
+    assertThat(config.hasTransparentDisplay).isFalse()
+    assertThat(config.hasTouchScreen).isTrue()
     assertThat(config.initialOrientationQuadrants).isEqualTo(0)
     assertThat(config.displayModes).isEmpty()
     assertThat(config.postures).isEmpty()
+    assertThat(config.touchpadSize).isNull()
   }
 
   @Test
@@ -147,7 +150,7 @@ class EmulatorConfigurationTest {
   }
 
   @Test
-  fun testXr() {
+  fun testXrHeadset() {
     // Prepare.
     val androidVersion = AndroidVersion(34, 0)
     val avdFolder = FakeEmulator.createXrAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
@@ -171,6 +174,36 @@ class EmulatorConfigurationTest {
     assertThat(config.initialOrientationQuadrants).isEqualTo(1)
     assertThat(config.displayModes).isEmpty()
     assertThat(config.postures).isEmpty()
+  }
+
+  @Test
+  fun testAiGlasses() {
+    // Prepare.
+    val androidVersion = AndroidVersion(36, 0)
+    val avdFolder = FakeEmulator.createAiGlassesAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
+
+    // Act.
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder)
+
+    // Assert.
+    assertThat(config).isNotNull()
+    assertThat(config.avdFolder).isEqualTo(avdFolder)
+    assertThat(config.avdName).isEqualTo("AI Glasses")
+    assertThat(config.deviceType).isEqualTo(DeviceType.AI_GLASSES)
+    assertThat(config.androidVersion).isEqualTo(androidVersion)
+    assertThat(config.displayWidth).isEqualTo(450)
+    assertThat(config.displayHeight).isEqualTo(450)
+    assertThat(config.density).isEqualTo(160)
+    assertThat(config.additionalDisplays).isEmpty()
+    assertThat(config.skinFolder).isNull()
+    assertThat(config.hasOrientationSensors).isTrue()
+    assertThat(config.hasAudioOutput).isTrue()
+    assertThat(config.hasTransparentDisplay).isTrue()
+    assertThat(config.hasTouchScreen).isFalse()
+    assertThat(config.initialOrientationQuadrants).isEqualTo(1)
+    assertThat(config.displayModes).isEmpty()
+    assertThat(config.postures).isEmpty()
+    assertThat(config.touchpadSize).isEqualTo(Dimension(1543, 297))
   }
 
   @Test
