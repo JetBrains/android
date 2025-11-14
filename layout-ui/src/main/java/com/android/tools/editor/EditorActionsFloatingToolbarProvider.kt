@@ -18,7 +18,6 @@ package com.android.tools.editor
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.ui.DesignSurfaceToolbarUI
 import com.android.tools.adtui.util.ActionToolbarUtil
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -28,6 +27,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import java.awt.GridBagConstraints
@@ -41,7 +41,6 @@ import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.Timer
-import kotlinx.coroutines.withContext
 
 const val zoomActionPlace = "ZoomActionsToolbar"
 const val zoomLabelPlace = "ZoomLabelToolbar"
@@ -201,14 +200,14 @@ abstract class EditorActionsFloatingToolbarProvider(
     hiddenZoomLabelTimer = null
   }
 
-  suspend fun zoomChanged() {
-    withContext(uiThread) { zoomToolbars.forEach { it.updateActionsAsync() } }
+  fun zoomChanged() = invokeLater {
+    zoomToolbars.forEach { it.updateActionsAsync() }
     hiddenZoomLabelComponent?.isVisible = true
     hiddenZoomLabelTimer?.restart()
   }
 
-  protected suspend fun panningChanged() {
-    withContext(uiThread) { otherToolbars.values.forEach { it.updateActionsAsync() } }
+  protected fun panningChanged() = invokeLater {
+    otherToolbars.values.forEach { it.updateActionsAsync() }
   }
 
   abstract fun getActionGroups(): EditorActionsToolbarActionGroups

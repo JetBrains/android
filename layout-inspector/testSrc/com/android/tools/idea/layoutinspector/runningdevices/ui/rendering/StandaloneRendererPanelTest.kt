@@ -31,7 +31,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.components.BorderLayoutPanel
 import com.jetbrains.rd.swing.fillRect
 import java.awt.Color
@@ -105,33 +104,23 @@ class StandaloneRendererPanelTest {
   fun testPreferredSize() {
     val (_, renderer) = createRenderer()
 
-    // Expected margin from StandaloneRendererPanel const
-    val margin = JBUIScale.scale(50) * 2
-
     // 100% scale
     renderSettings.scalePercent = 100
     assertThat(renderer.preferredSize)
-      .isEqualTo(
-        Dimension(deviceScreenDimension.width + margin, deviceScreenDimension.height + margin)
-      )
+      .isEqualTo(Dimension(deviceScreenDimension.width, deviceScreenDimension.height))
 
     // 200% scale
     renderSettings.scalePercent = 200
     assertThat(renderer.preferredSize)
-      .isEqualTo(
-        Dimension(
-          (deviceScreenDimension.width * 2) + margin,
-          (deviceScreenDimension.height * 2) + margin,
-        )
-      )
+      .isEqualTo(Dimension((deviceScreenDimension.width * 2), (deviceScreenDimension.height * 2)))
 
     // 50% scale
     renderSettings.scalePercent = 50
     assertThat(renderer.preferredSize)
       .isEqualTo(
         Dimension(
-          (deviceScreenDimension.width * 0.5).toInt() + margin,
-          (deviceScreenDimension.height * 0.5).toInt() + margin,
+          (deviceScreenDimension.width * 0.5).toInt(),
+          (deviceScreenDimension.height * 0.5).toInt(),
         )
       )
   }

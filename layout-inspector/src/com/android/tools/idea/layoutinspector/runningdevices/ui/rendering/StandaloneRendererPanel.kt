@@ -16,13 +16,10 @@
 package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.intellij.openapi.Disposable
-import com.intellij.ui.scale.JBUIScale
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.geom.AffineTransform
 import kotlinx.coroutines.CoroutineScope
-
-private const val MARGIN = 50
 
 /** Panel responsible for rendering Layout Inspector UI for standalone Layout Inspector V2. */
 class StandaloneRendererPanel(
@@ -59,14 +56,19 @@ class StandaloneRendererPanel(
 
   override fun getPreferredSize(): Dimension {
     val renderBounds = renderModel.inspectorModel.root.transitiveBounds
-
     val scale = scaleProvider()
+
+    val contentWidth = (renderBounds.width * scale).toInt()
+    val contentHeight = (renderBounds.height * scale).toInt()
+
+    // This allows the container panel to inject margins via setBorder()
+    val insets = insets
 
     // Change the size of the panel according to the size of the rendered bounds. This is useful to
     // trigger scrollbars when this panel is wrapped in a scrollable panel.
     return Dimension(
-      (renderBounds.width * scale).toInt() + JBUIScale.scale(MARGIN) * 2,
-      (renderBounds.height * scale).toInt() + JBUIScale.scale(MARGIN) * 2,
+      contentWidth + insets.left + insets.right,
+      contentHeight + insets.top + insets.bottom,
     )
   }
 }
