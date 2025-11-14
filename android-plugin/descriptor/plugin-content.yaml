@@ -129,7 +129,6 @@
   - name: intellij.android.codenavigation
   - name: intellij.android.execution.common
   - name: intellij.android.avd
-  - name: intellij.android.safemode
   - name: intellij.android.preview-fast-compile
   - name: intellij.android.completion
   - name: intellij.android.streaming
@@ -234,6 +233,11 @@
   files:
   - name: $MAVEN_REPOSITORY$/javax/inject/javax.inject/1/javax.inject-1.jar
   reason: withProjectLibrary
+- name: lib/kotlin-metadata-jvm.jar
+  library: kotlin-metadata-jvm
+  module: intellij.android.core
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-metadata-jvm/2/kotlin-metadata-jvm-2.jar
 - name: lib/kotlinx-coroutines-guava.jar
   library: kotlinx-coroutines-guava
   files:
@@ -250,7 +254,7 @@
 - name: lib/layoutlib.jar
   library: layoutlib
   files:
-  - name: $MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib/15/layoutlib-15.jar
+  - name: $MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib/16/layoutlib-16.jar
   reason: <- intellij.android.rendering
 - name: lib/lint-ide.jar
   modules:

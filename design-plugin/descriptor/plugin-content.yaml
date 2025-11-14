@@ -25,7 +25,7 @@
 - name: lib/layoutlib.jar
   library: layoutlib
   files:
-  - name: $MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib/15/layoutlib-15.jar
+  - name: $MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib/16/layoutlib-16.jar
   reason: withProjectLibrary
 - name: lib/ui-animation-tooling-internal.jar
   library: ui-animation-tooling-internal
