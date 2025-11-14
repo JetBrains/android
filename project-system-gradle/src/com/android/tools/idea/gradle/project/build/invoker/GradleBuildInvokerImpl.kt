@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionO
 import com.android.tools.idea.gradle.project.build.attribution.buildOutputLine
 import com.android.tools.idea.gradle.project.build.attribution.isBuildAttributionEnabledForProject
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager
+import com.android.tools.idea.gradle.project.model.gradleModuleModel
 import com.android.tools.idea.gradle.run.createOutputBuildAction
 import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty
 import com.android.tools.idea.gradle.util.BuildMode
@@ -69,6 +70,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.compiler.CompilerPaths
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
@@ -94,10 +96,6 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.PathUtil
 import com.intellij.xdebugger.XDebugSession
-import org.gradle.tooling.BuildAction
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.base.projectStructure.externalProjectPath
 import java.io.File
 import java.nio.file.Path
 import java.util.Collections
@@ -105,6 +103,10 @@ import java.util.Collections.emptyList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit.SECONDS
+import org.gradle.tooling.BuildAction
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.idea.base.projectStructure.externalProjectPath
 
 
 /**
@@ -164,20 +166,21 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     }
   }
 
-  override fun cleanProject(): ListenableFuture<GradleMultiInvocationResult> {
+  override fun cleanProject(): ListenableFuture<GradleInvocationResult> {
     if (stopNativeDebugSessionOrStopBuild()) {
-      return Futures.immediateFuture(GradleMultiInvocationResult(emptyList()))
+      return Futures.immediateFuture(GradleInvocationResult(File(project.basePath!!), emptyList(), null))
     }
-    // Collect the root project path for all modules, there is one root project path per included project.
-    val projectRootPaths: Set<File> =
-      ModuleManager.getInstance(project)
-        .modules
-        .mapNotNull { module -> module.getGradleProjectPath()?.buildRoot?.let(::File) }
-        .toSet()
-    return combineGradleInvocationResults(
-      projectRootPaths
-        .map { projectRootPath -> executeTasks(CLEAN, projectRootPath, Collections.singletonList(CLEAN_TASK_NAME)) }
-    )
+    val modules = ModuleManager.getInstance(project).modules
+    val isCompositeBuild = modules.filter { it.gradleModuleModel != null }.distinctBy { module -> module.getGradleProjectPath()?.buildRoot }.size > 1
+    val tasks = if (isCompositeBuild) {
+      modules.mapNotNull { module ->
+        ExternalSystemModulePropertyManager.getInstance(module).getLinkedProjectId()
+      }.filter { it.lastIndexOf(":") == 0 }.toSet().map { path -> "$path:$CLEAN_TASK_NAME" }
+    }
+    else {
+      listOf(CLEAN_TASK_NAME)
+    }
+    return executeTasks(CLEAN, File(project.basePath!!), tasks)
   }
 
   override fun generateSources(modules: Array<Module>): ListenableFuture<GradleMultiInvocationResult> {
