@@ -224,17 +224,6 @@
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="        AnalyticsSettings.setInstanceForTest(analyticsSettings);"
-        errorLine2="                          ~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/startup/AndroidStudioAnalyticsImpl.java"
-            line="55"
-            column="27"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope"
         errorLine1="      androidTestSources?.containsFile(virtualFile) == false &amp;&amp; !androidTestSources.isContainedBy(virtualFile) &amp;&amp;"
         errorLine2="                                                                                    ~~~~~~~~~~~~~">
         <location
