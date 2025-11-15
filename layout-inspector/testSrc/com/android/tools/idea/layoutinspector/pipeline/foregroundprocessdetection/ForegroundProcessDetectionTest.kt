@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection
 
-import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
-import com.android.adblib.ddmlibcompatibility.testutils.UseAdbLibAndroidDebugBridgeRule
-import com.android.adblib.testingutils.FakeAdbServerProviderRule
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
@@ -27,7 +25,6 @@ import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.layoutinspector.AdbServiceRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.testing.disposable
@@ -66,12 +63,7 @@ import org.mockito.kotlin.mock
 
 class ForegroundProcessDetectionTest {
   private val projectRule = ProjectRule()
-  private val adbRule = FakeAdbServerProviderRule()
-  private val useAdbLibAndroidDebugBridgeRule = UseAdbLibAndroidDebugBridgeRule {
-    adbRule.adbSession
-  }
-  private val initAndroidDebugBridgeRule = InitAndroidDebugBridgeRule { adbRule.fakeAdb.port }
-  private val adbService = AdbServiceRule(projectRule::project)
+  private val adbRule = FakeAdbServerAdbLibRule()
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
   private val grpcServerRule =
@@ -82,9 +74,6 @@ class ForegroundProcessDetectionTest {
   val ruleChain: RuleChain =
     RuleChain.outerRule(projectRule)
       .around(adbRule)
-      .around(useAdbLibAndroidDebugBridgeRule)
-      .around(initAndroidDebugBridgeRule)
-      .around(adbService)
       .around(grpcServerRule)
       .around(streamManagerRule)
 
@@ -829,9 +818,18 @@ class ForegroundProcessDetectionTest {
 
       // stop handshake
       deviceToHandshakeSupportTypeMap[device4] = SupportType.NOT_SUPPORTED
-
-      val (handshakeDevice4, supportType4) = handshakeSyncChannel.receive()
-      assertThat(handshakeDevice4).isEqualTo(device4)
+      // We may still get `SupportType.UNKNOWN` before finally getting `NOT_SUPPORTED`
+      val supportType4 =
+        withTimeoutOrNull(500) {
+          while (true) {
+            val (handshakeDevice, supportType) = handshakeSyncChannel.receive()
+            if (supportType == SupportType.UNKNOWN) {
+              continue
+            }
+            assertThat(handshakeDevice).isEqualTo(device4)
+            return@withTimeoutOrNull supportType
+          }
+        }
       assertThat(supportType4).isEqualTo(SupportType.NOT_SUPPORTED)
 
       withTimeoutOrNull<Nothing>(500) {
@@ -1220,7 +1218,7 @@ class ForegroundProcessDetectionTest {
       transportService.addDevice(transportDevice)
     }
 
-    adbRule.fakeAdb.connectDevice(
+    adbRule.connectDevice(
       device.serial,
       device.manufacturer,
       device.model,
