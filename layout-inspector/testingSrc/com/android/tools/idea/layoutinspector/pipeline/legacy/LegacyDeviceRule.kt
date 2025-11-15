@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
-import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
-import com.android.adblib.ddmlibcompatibility.testutils.waitForOnlineDevice
-import com.android.adblib.testingutils.CoroutineTestUtils
-import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.fakeadbserver.DeviceState
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.layoutinspector.AdbServiceRule
+import com.android.tools.idea.layoutinspector.AdbFileProviderRule
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.createProcess
@@ -121,15 +118,13 @@ class LegacyDeviceRule(
       extraCommands.add(SimpleCommand("am get-config", config))
       extraCommands.add(SimpleCommand("dumpsys activity activities", activities))
     }
-  private val adbRule = FakeAdbServerRule { addDeviceHandler(commandHandler) }
-  private val initAndroidDebugBridgeRule = InitAndroidDebugBridgeRule { adbRule.adbServer.port }
-  private val adbServiceRule = AdbServiceRule(projectRule::project)
+  private val adbRule = FakeAdbServerAdbLibRule { addDeviceHandler(commandHandler) }
+  private val adbFileProviderRule = AdbFileProviderRule(projectRule::project)
   private val disposableRule = DisposableRule()
   val ruleChain: RuleChain =
     RuleChain.outerRule(projectRule)
       .around(adbRule)
-      .around(initAndroidDebugBridgeRule)
-      .around(adbServiceRule)
+      .around(adbFileProviderRule)
       .around(disposableRule)
 
   private var clientInstance: LegacyClient? = null
@@ -145,18 +140,14 @@ class LegacyDeviceRule(
 
   override fun before() {
     val device = LEGACY_DEVICE
-    val deviceState =
-      adbRule
-        .connectDevice(
-          device.serial,
-          device.manufacturer,
-          device.model,
-          device.version,
-          device.apiLevel,
-          DeviceState.HostConnectionType.USB,
-        )
-        .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
-    CoroutineTestUtils.runBlockingWithTimeout { deviceState.waitForOnlineDevice() }
+    adbRule.connectDevice(
+      device.serial,
+      device.manufacturer,
+      device.model,
+      device.version,
+      device.apiLevel,
+      DeviceState.HostConnectionType.USB,
+    )
 
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     projectRule.fixture.addFileToProject("/AndroidManifest.xml", manifest)

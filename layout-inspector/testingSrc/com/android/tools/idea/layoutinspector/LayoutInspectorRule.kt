@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
-import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
@@ -223,11 +222,9 @@ class LayoutInspectorRule(
   val processes = ProcessesModel(processNotifier, isPreferredProcess)
   private lateinit var deviceModel: DeviceModel
 
-  val adbRule = FakeAdbServerRule()
-  val adbService = AdbServiceRule(projectRule::project)
-  private val initAndroidDebugBridgeRule = InitAndroidDebugBridgeRule { adbRule.adbServer.port }
-  private val ruleChain =
-    RuleChain.outerRule(adbRule).around(initAndroidDebugBridgeRule).around(adbService)
+  val adbRule = FakeAdbServerAdbLibRule()
+  val adbFileProviderRule = AdbFileProviderRule(projectRule::project)
+  private val ruleChain = RuleChain.outerRule(adbRule).around(adbFileProviderRule)
 
   lateinit var inspector: LayoutInspector
     private set
