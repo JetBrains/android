@@ -112,7 +112,9 @@ class LayoutInspectorManagerTest {
         container = JPanel(),
         displays =
           listOf(
-            displayViewRule.newEmulatorView(avdCreator = { path -> FakeEmulator.createXrAvd(path) })
+            displayViewRule.newEmulatorView(
+              avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) }
+            )
           ),
       )
     fakeToolWindowManager =
