@@ -18,7 +18,6 @@ package com.android.tools.idea.streaming.emulator
 import com.android.emulator.control.Posture.PostureValue
 import com.android.mockito.kotlin.whenever
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.internal.avd.AvdInfo.AvdStatus
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
@@ -1106,7 +1105,7 @@ class EmulatorViewTest {
 
   @Test
   fun testXrZoom() {
-    val panel = createEmulatorDisplayPanel { path -> FakeEmulator.createXrAvd(path) }
+    val panel = createEmulatorDisplayPanel { path -> FakeEmulator.createXrHeadsetAvd(path) }
     fakeUi = FakeUi(panel, 2.0)
 
     fakeUi.root.size = Dimension(200, 300)

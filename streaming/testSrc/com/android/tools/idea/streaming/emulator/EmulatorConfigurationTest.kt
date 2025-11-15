@@ -153,7 +153,7 @@ class EmulatorConfigurationTest {
   fun testXrHeadset() {
     // Prepare.
     val androidVersion = AndroidVersion(34, 0)
-    val avdFolder = FakeEmulator.createXrAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
+    val avdFolder = FakeEmulator.createXrHeadsetAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
     val config = EmulatorConfiguration.readAvdDefinition(avdFolder)

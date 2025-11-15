@@ -1174,7 +1174,7 @@ class EmulatorToolWindowPanelTest {
   }
 
   private fun createWindowPanelForXr(): EmulatorToolWindowPanel {
-    val avdFolder = FakeEmulator.createXrAvd(emulatorRule.avdRoot)
+    val avdFolder = FakeEmulator.createXrHeadsetAvd(emulatorRule.avdRoot)
     return createWindowPanel(avdFolder)
   }
 
