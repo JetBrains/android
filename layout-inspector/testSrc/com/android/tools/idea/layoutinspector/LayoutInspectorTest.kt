@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
-import com.android.adblib.ddmlibcompatibility.testutils.UseAdbLibAndroidDebugBridgeRule
-import com.android.adblib.testingutils.FakeAdbServerProviderRule
 import com.android.testutils.waitForCondition
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
@@ -72,12 +70,7 @@ class LayoutInspectorTest {
 
   private val projectRule = ProjectRule()
 
-  private val adbRule = FakeAdbServerProviderRule()
-  private val useAdbLibAndroidDebugBridgeRule = UseAdbLibAndroidDebugBridgeRule {
-    adbRule.adbSession
-  }
-  private val initAndroidDebugBridgeRule = InitAndroidDebugBridgeRule { adbRule.fakeAdb.port }
-  private val adbService = AdbServiceRule(projectRule::project)
+  private val adbRule = FakeAdbServerAdbLibRule()
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
@@ -86,13 +79,7 @@ class LayoutInspectorTest {
   val grpcServerRule =
     FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
 
-  @get:Rule
-  val ruleChain: RuleChain =
-    RuleChain.outerRule(projectRule)
-      .around(adbRule)
-      .around(useAdbLibAndroidDebugBridgeRule)
-      .around(initAndroidDebugBridgeRule)
-      .around(adbService)
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(adbRule)!!
 
   private lateinit var layoutInspector: LayoutInspector
   private lateinit var deviceModel: DeviceModel

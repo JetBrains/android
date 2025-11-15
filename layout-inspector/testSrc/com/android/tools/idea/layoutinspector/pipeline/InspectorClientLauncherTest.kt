@@ -15,17 +15,13 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
-import com.android.adblib.AdbSession
-import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
-import com.android.adblib.ddmlibcompatibility.testutils.UseAdbLibAndroidDebugBridgeRule
-import com.android.adblib.testingutils.FakeAdbServerProviderRule
 import com.android.fakeadbserver.DeviceState
 import com.android.testutils.waitForCondition
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.layoutinspector.AdbServiceRule
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
@@ -58,28 +54,15 @@ import org.mockito.kotlin.mock
 class InspectorClientLauncherTest {
   private val disposableRule = DisposableRule()
   private val projectRule = ProjectRule()
-  private val adbRule = FakeAdbServerProviderRule {
-    installDeviceHandler(FakeShellCommandHandler())
-  }
-  private val useAdbLibAndroidDebugBridgeRule = UseAdbLibAndroidDebugBridgeRule {
-    adbRule.adbSession
-  }
-  private val initAndroidDebugBridgeRule = InitAndroidDebugBridgeRule { adbRule.fakeAdb.port }
-  private val adbService = AdbServiceRule(projectRule::project)
+  private val adbRule = FakeAdbServerAdbLibRule { addDeviceHandler(FakeShellCommandHandler()) }
 
   @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(projectRule)
-      .around(disposableRule)
-      .around(adbRule)
-      .around(useAdbLibAndroidDebugBridgeRule)
-      .around(initAndroidDebugBridgeRule)
-      .around(adbService)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(disposableRule).around(adbRule)!!
 
   @Before
   fun before() {
     for (device in setOf(MODERN_DEVICE, LEGACY_DEVICE)) {
-      adbRule.fakeAdb.connectDevice(
+      adbRule.connectDevice(
         device.serial,
         device.manufacturer,
         device.model,
@@ -146,7 +129,6 @@ class InspectorClientLauncherTest {
                 projectRule.project,
                 params.process,
                 disposableRule.disposable,
-                adbRule.adbSession,
               )
             else null
           }
@@ -188,7 +170,6 @@ class InspectorClientLauncherTest {
                 projectRule.project,
                 params.process,
                 disposableRule.disposable,
-                adbRule.adbSession,
               )
             client.registerStateCallback { state ->
               if (state == InspectorClient.State.DISCONNECTED) {
@@ -237,7 +218,6 @@ class InspectorClientLauncherTest {
                 projectRule.project,
                 params.process,
                 disposableRule.disposable,
-                adbRule.adbSession,
               )
             else null
           },
@@ -249,7 +229,6 @@ class InspectorClientLauncherTest {
                 projectRule.project,
                 params.process,
                 disposableRule.disposable,
-                adbRule.adbSession,
               )
             else null
           },
@@ -260,7 +239,6 @@ class InspectorClientLauncherTest {
               projectRule.project,
               params.process,
               disposableRule.disposable,
-              adbRule.adbSession,
             )
           },
         ),
@@ -312,7 +290,6 @@ class InspectorClientLauncherTest {
                 projectRule.project,
                 params.process,
                 disposableRule.disposable,
-                adbRule.adbSession,
               ) {
               override suspend fun doConnect() = throw IllegalStateException()
             }
@@ -324,7 +301,6 @@ class InspectorClientLauncherTest {
                 projectRule.project,
                 params.process,
                 disposableRule.disposable,
-                adbRule.adbSession,
               ) {
               override suspend fun doConnect() = throw IllegalStateException()
             }
@@ -335,7 +311,6 @@ class InspectorClientLauncherTest {
               projectRule.project,
               params.process,
               disposableRule.disposable,
-              adbRule.adbSession,
             )
           },
         ),
@@ -368,7 +343,6 @@ class InspectorClientLauncherTest {
                 projectRule.project,
                 params.process,
                 disposableRule.disposable,
-                adbRule.adbSession,
               ) {
               override suspend fun doConnect() = throw IllegalStateException()
             }
@@ -380,7 +354,6 @@ class InspectorClientLauncherTest {
                 projectRule.project,
                 params.process,
                 disposableRule.disposable,
-                adbRule.adbSession,
               ) {
               override suspend fun doConnect() = throw IllegalStateException()
             }
@@ -392,7 +365,6 @@ class InspectorClientLauncherTest {
                 projectRule.project,
                 params.process,
                 disposableRule.disposable,
-                adbRule.adbSession,
               )
             } else {
               null
@@ -440,7 +412,6 @@ class InspectorClientLauncherTest {
               projectRule.project,
               params.process,
               disposableRule.disposable,
-              adbRule.adbSession,
             )
           }
         ),
@@ -516,7 +487,6 @@ class InspectorClientLauncherTest {
                 projectRule.project,
                 params.process,
                 disposableRule.disposable,
-                adbRule.adbSession,
               ) {
               override suspend fun doConnect() {
                 if (process == process1) {
@@ -538,7 +508,6 @@ class InspectorClientLauncherTest {
                 projectRule.project,
                 params.process,
                 disposableRule.disposable,
-                adbRule.adbSession,
               ) {
               override suspend fun doConnect() {
                 if (process == process1) {
@@ -587,7 +556,6 @@ class InspectorClientLauncherTest {
           projectRule.project,
           params.process,
           disposableRule.disposable,
-          adbRule.adbSession,
         ) {
         override suspend fun doConnect() {
           when (params.process) {
@@ -637,28 +605,15 @@ class InspectorClientLauncherMetricsTest {
 
   private val disposableRule = DisposableRule()
   private val projectRule = ProjectRule()
-  private val adbRule = FakeAdbServerProviderRule {
-    installDeviceHandler(FakeShellCommandHandler())
-  }
-  private val useAdbLibAndroidDebugBridgeRule = UseAdbLibAndroidDebugBridgeRule {
-    adbRule.adbSession
-  }
-  private val initAndroidDebugBridgeRule = InitAndroidDebugBridgeRule { adbRule.fakeAdb.port }
-  private val adbService = AdbServiceRule(projectRule::project)
+  private val adbRule = FakeAdbServerAdbLibRule { addDeviceHandler(FakeShellCommandHandler()) }
 
   @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(projectRule)
-      .around(disposableRule)
-      .around(adbRule)
-      .around(useAdbLibAndroidDebugBridgeRule)
-      .around(initAndroidDebugBridgeRule)
-      .around(adbService)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(disposableRule).around(adbRule)!!
 
   @Before
   fun before() {
     val device = MODERN_DEVICE
-    adbRule.fakeAdb.connectDevice(
+    adbRule.connectDevice(
       device.serial,
       device.manufacturer,
       device.model,
@@ -683,7 +638,6 @@ class InspectorClientLauncherMetricsTest {
                 projectRule.project,
                 params.process,
                 disposableRule.disposable,
-                adbRule.adbSession,
               ) {
               override suspend fun doConnect() {
                 metrics.logEvent(
@@ -701,7 +655,6 @@ class InspectorClientLauncherMetricsTest {
                 projectRule.project,
                 params.process,
                 disposableRule.disposable,
-                adbRule.adbSession,
               ) {
               override suspend fun doConnect() {
                 metrics.logEvent(
@@ -719,7 +672,6 @@ class InspectorClientLauncherMetricsTest {
                 projectRule.project,
                 params.process,
                 disposableRule.disposable,
-                adbRule.adbSession,
               ) {
               override suspend fun doConnect() {
                 metrics.logEvent(
@@ -775,7 +727,6 @@ class InspectorClientLauncherMetricsTest {
               projectRule.project,
               params.process,
               disposableRule.disposable,
-              adbRule.adbSession,
             ) {
             override suspend fun doConnect() {
               metrics.logEvent(
@@ -829,7 +780,6 @@ private open class FakeInspectorClient(
   project: Project,
   process: ProcessDescriptor,
   parentDisposable: Disposable,
-  adbSession: AdbSession,
 ) :
   AbstractInspectorClient(
     ClientType.UNKNOWN_CLIENT_TYPE,
@@ -839,7 +789,6 @@ private open class FakeInspectorClient(
     DisconnectedClient.stats,
     AndroidCoroutineScope(parentDisposable),
     parentDisposable,
-    adbSession,
   ) {
 
   override suspend fun startFetching() = throw NotImplementedError()
