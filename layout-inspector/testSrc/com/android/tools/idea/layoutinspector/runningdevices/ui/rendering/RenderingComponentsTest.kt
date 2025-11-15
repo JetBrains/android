@@ -137,7 +137,9 @@ class RenderingComponentsTest {
   @Test
   fun testOnDeviceRenderingIsLoggedToMetrics() {
     val xrDisplay =
-      displayViewRule.newEmulatorView(avdCreator = { path -> FakeEmulator.createXrAvd(path) })
+      displayViewRule.newEmulatorView(
+        avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) }
+      )
     val fakeSessionStats = FakeSessionStats()
     createRenderingComponents(
       disposable = displayViewRule.disposable,
@@ -152,9 +154,13 @@ class RenderingComponentsTest {
   @Test
   fun testOnDeviceRenderingSharesBetweenDifferentRenderers() {
     val xrDisplay1 =
-      displayViewRule.newEmulatorView(avdCreator = { path -> FakeEmulator.createXrAvd(path) })
+      displayViewRule.newEmulatorView(
+        avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) }
+      )
     val xrDisplay2 =
-      displayViewRule.newEmulatorView(avdCreator = { path -> FakeEmulator.createXrAvd(path) })
+      displayViewRule.newEmulatorView(
+        avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) }
+      )
 
     val fakeSessionStats = FakeSessionStats()
     val renderingComponents =

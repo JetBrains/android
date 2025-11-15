@@ -1691,7 +1691,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
     /** Creates a fake XR Headset AVD. */
     @JvmStatic
-    fun createXrAvd(
+    fun createXrHeadsetAvd(
         parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(34, 0)): Path {
       val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "XR_Headset_Device_API_$api"
