@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser
 
+import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
@@ -31,6 +32,7 @@ import org.junit.runners.Parameterized.Parameter
 import org.junit.runners.Parameterized.Parameters
 import org.mockito.Mockito
 import java.io.File
+import kotlin.io.path.absolutePathString
 
 @RunWith(Parameterized::class)
 class GroovyKotlinDslParserParityTest : LightPlatformTestCase() {
@@ -72,7 +74,7 @@ class GroovyKotlinDslParserParityTest : LightPlatformTestCase() {
   }
 
   private fun doTest(testFileObject: TestFile, verification: (GradleDslFile) -> Unit) {
-    val testDataRelativePath = "tools/adt/idea/gradle-dsl/testData/parser"
+    val testDataRelativePath = TestUtils.resolveWorkspacePath("tools/adt/idea/gradle-dsl/testData/parser").absolutePathString()
     val testFile: File = testFileObject.toFile(testDataRelativePath, myTestDataExtension)
 
     val virtualTestFile = VfsUtil.findFileByIoFile(testFile, true)
