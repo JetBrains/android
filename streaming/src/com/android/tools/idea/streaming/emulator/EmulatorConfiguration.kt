@@ -117,9 +117,9 @@ class EmulatorConfiguration private constructor(
         tagIds.asSeparatedListContains(AI_GLASSES_TAG.id) -> DeviceType.AI_GLASSES
         else -> DeviceType.HANDHELD
       }
-      val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
-      val hasTransparentDisplay = configIni["hw.lcd.transparent"]?.equals("yes", ignoreCase = false) ?: false
-      val hasTouchScreen = !(configIni["hw.screen"]?.equals("no-touch", ignoreCase = true) ?: false)
+      val hasOrientationSensors = getConfigBoolean(configIni["hw.sensors.orientation"], true)
+      val hasTransparentDisplay = getConfigBoolean(configIni["hw.lcd.transparent"], false)
+      val hasTouchScreen = !"no-touch".equals(configIni["hw.screen"])
       val postureMode = parseInt(hardwareIni["hw.sensor.hinge.resizable.config"], -1)
       val displayModes = try {
         configIni["hw.resizable.configs"]?.let { parseDisplayModes(it, postureMode) } ?: emptyList()
@@ -191,7 +191,7 @@ class EmulatorConfiguration private constructor(
           }
         }
       }
-      // Remove secondary displays with invalid dimensions.
+      // Remove secondary displays with invalid dimensions.Adjust few method descriptions
       val iter = additionalDisplays.iterator()
       while (iter.hasNext()) {
         val size = iter.next().value
@@ -222,6 +222,9 @@ class EmulatorConfiguration private constructor(
                                    touchpadSize = touchpadSize)
     }
 
+    private fun getConfigBoolean(value: String?, defaultValue: Boolean): Boolean =
+        value?.equals("yes", ignoreCase = true) ?: defaultValue
+
     fun createStub(avdName: String, avdFolder: Path): EmulatorConfiguration {
       return EmulatorConfiguration(avdFolder, avdName, DeviceType.HANDHELD, AndroidVersion(0, 0), Dimension(), 0, emptyMap(), null,
                                    hasOrientationSensors = false, hasAudioOutput = false, hasTransparentDisplay = false,
@@ -230,7 +233,7 @@ class EmulatorConfiguration private constructor(
     }
 
     private fun getSkinPath(configIni: Map<String, String>, androidSdkRoot: Path): Path? {
-      if ("no".equals(configIni["showDeviceFrame"], ignoreCase = true)) {
+      if (!getConfigBoolean(configIni["showDeviceFrame"], true)) {
         return null
       }
       val skinPath = configIni["skin.path"]
