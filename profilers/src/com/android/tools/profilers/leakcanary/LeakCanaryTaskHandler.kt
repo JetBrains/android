@@ -39,7 +39,6 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager): Singl
   }
 
   override fun enter(args: TaskArgs): Boolean {
-    setupStage()
     logEnterStage()
     return super.enter(args)
   }
