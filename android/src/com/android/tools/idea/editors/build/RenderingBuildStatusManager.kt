@@ -49,6 +49,7 @@ import com.intellij.psi.search.EverythingGlobalScope
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.SlowOperations
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -179,7 +180,9 @@ private fun defaultClassFinderFactory(buildTargetReference: BuildTargetReference
     buildTargetReference.getBuildSystemFilePreviewServices()
   val renderingServices =  buildSystemFilePreviewServices.getRenderingServices(buildTargetReference)
   return { fqcn: String ->
-    readAction { (renderingServices.classFileFinder?.findClassFile(fqcn) != null || doesOverlayContainClass(buildTargetReference, fqcn)) }
+    withContext(Dispatchers.Default) {
+      readAction { (renderingServices.classFileFinder?.findClassFile(fqcn) != null || doesOverlayContainClass(buildTargetReference, fqcn)) }
+    }
   }
 }
 
