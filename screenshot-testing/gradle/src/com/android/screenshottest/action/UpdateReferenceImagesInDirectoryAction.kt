@@ -31,11 +31,12 @@ class UpdateReferenceImagesInDirectoryAction : UpdateReferenceImagesBaseAction(
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
+    e.presentation.isEnabledAndVisible = false
+
     val context = ConfigurationContext.getFromEvent(e)
     val location = context.location ?: return
     val psiElement = location.psiElement
     if (psiElement !is PsiDirectory) {
-      e.presentation.isEnabledAndVisible = false
       return
     }
     val facet = AndroidUtils.getAndroidModule(context)?.let { AndroidFacet.getInstance(it) } ?: return
