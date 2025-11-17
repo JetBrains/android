@@ -44,6 +44,7 @@ import com.android.tools.sdk.CompatibilityRenderTarget
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -96,6 +97,45 @@ class PreviewConfigurationTest {
     assertThat(getUiModeForDevice(deviceThings)).isEqualTo(UiMode.APPLIANCE)
     assertThat(getUiModeForDevice(devicePhone)).isEqualTo(UiMode.NORMAL)
     assertThat(getUiModeForDevice(deviceNull)).isEqualTo(UiMode.NORMAL)
+  }
+
+  @Test
+  fun testBackgroundOnlyAppliesToAiGlasses() {
+    val deviceAiGlasses = createDevice(tagId = "ai-glasses")
+    val devicePhone = createDevice(tagId = "other-device")
+
+    val configuration =
+      Configuration.create(
+        TestConfigurationSettingsImpl(devices = ImmutableList.of(deviceAiGlasses, devicePhone)),
+        FolderConfiguration.createDefault(),
+      )
+
+    val deviceGlassesConfiguration = PreviewConfiguration.cleanAndGet(device = deviceAiGlasses.id)
+    val devicePhoneConfiguration = PreviewConfiguration.cleanAndGet(device = devicePhone.id)
+    val previewElement =
+      object : ConfigurablePreviewElement<Int> {
+        override var configuration: PreviewConfiguration = deviceGlassesConfiguration
+        override val hasAnimations: Boolean = false
+        override val displaySettings: PreviewDisplaySettings =
+          PreviewDisplaySettings(
+            "display",
+            "display",
+            null,
+            null,
+            false,
+            PreviewDisplaySettings.Background.Image(image = { _ -> }),
+            organizationGroup = "group",
+          )
+        override val previewElementDefinition: Int = -1
+        override val previewBody: Int = -1
+      }
+
+    previewElement.applyTo(configuration, { deviceAiGlasses })
+    assertNotNull(configuration.imageTransformation)
+
+    previewElement.configuration = devicePhoneConfiguration
+    previewElement.applyTo(configuration, { devicePhone })
+    assertNotNull(configuration.imageTransformation)
   }
 
   @Test
@@ -243,7 +283,9 @@ class TestConfigurationModelModule : ConfigurationModelModule {
 }
 
 /** Test implementation of [ConfigurationSettings]. */
-class TestConfigurationSettingsImpl : ConfigurationSettings {
+class TestConfigurationSettingsImpl(
+  override var devices: ImmutableList<Device> = ImmutableList.of()
+) : ConfigurationSettings {
 
   override var defaultDevice: Device? = null
   override var locale: Locale = Locale.ANY
@@ -252,7 +294,6 @@ class TestConfigurationSettingsImpl : ConfigurationSettings {
   override var configModule: ConfigurationModelModule = TestConfigurationModelModule()
   override lateinit var resolverCache: ResourceResolverCache
   override var localesInProject: ImmutableList<Locale> = ImmutableList.of()
-  override var devices: ImmutableList<Device> = ImmutableList.of()
   override var projectTarget: IAndroidTarget? = null
   override var highestApiTarget: IAndroidTarget? = null
   override var targets: Array<IAndroidTarget> = arrayOf()
