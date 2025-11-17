@@ -96,6 +96,17 @@ class ConditionalActionWrapper(
     if (isPerformWithDocumentsCommitted(delegate)) {
       error("Action $delegate cannot be wrapped. isPerformWithDocumentsCommitted(delegate) returns true.")
     }
+
+    // Prevent these cases from happening at all
+    if (delegate.isDumbAware && !replacement.isDumbAware) {
+      error("Cannot wrap dumb-aware $delegate with non-dumb-aware $replacement.")
+    }
+    if (delegate.actionUpdateThread == ActionUpdateThread.BGT && replacement.actionUpdateThread != ActionUpdateThread.BGT) {
+      error("Replacement $replacement must update on BGT, like $delegate.")
+    }
+    if (delegate.isInInjectedContext != replacement.isInInjectedContext) {
+      error("Replacement $replacement should have isInInjectedContext=${delegate.isInInjectedContext}, like $delegate.")
+    }
   }
 
   fun getWrappedActionFor(e: AnActionEvent): AnAction {
@@ -114,33 +125,11 @@ class ConditionalActionWrapper(
     ActionWrapperUtil.actionPerformed(e, this, getWrappedActionFor(e))
   }
 
-  override fun isDumbAware(): Boolean {
-    return delegate.isDumbAware
-      .also { delegateIsDumbAware ->
-        if (delegateIsDumbAware && !replacement.isDumbAware) {
-          thisLogger().error("$replacement action replacing $delegate is supposed to be DumbAware", IllegalStateException())
-        }
-      }
-  }
+  override fun isDumbAware(): Boolean = delegate.isDumbAware
 
-  override fun getActionUpdateThread(): ActionUpdateThread {
-    return delegate.actionUpdateThread
-      .also { delegateActionUpdateThread ->
-        if (delegateActionUpdateThread == ActionUpdateThread.BGT && replacement.actionUpdateThread != ActionUpdateThread.BGT) {
-          thisLogger().error(
-            "$replacement action replacing $delegate is supposed to have actionUpdateThread=BGT", IllegalStateException())
-        }
-      }
-  }
+  override fun getActionUpdateThread(): ActionUpdateThread = delegate.actionUpdateThread
 
-  override fun isInInjectedContext(): Boolean {
-    return delegate.isInInjectedContext
-      .also {
-        if (replacement.isInInjectedContext != it) {
-          thisLogger().error("$replacement action replacing $delegate is supposed to have isInInjectedContext=$it", IllegalStateException())
-        }
-      }
-  }
+  override fun isInInjectedContext(): Boolean = delegate.isInInjectedContext
 }
 
 class DumbAwareEmptyAction () : AnAction() {
