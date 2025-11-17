@@ -39,7 +39,7 @@ import org.jetbrains.plugins.gradle.util.TasksToRun
 class ScreenshotTestMethodGradleConfigurationProducer: TestMethodGradleConfigurationProducer() {
   private val visitedAnnotations = mutableMapOf<String, Boolean>()
   override fun suggestConfigurationName(context: ConfigurationContext, element: PsiMethod, chosenElements: List<PsiClass>): String {
-    return element.name
+    return "Screenshot Tests in ${element.name}"
   }
 
   override fun doIsConfigurationFromContext(configuration: GradleRunConfiguration, context: ConfigurationContext): Boolean {
