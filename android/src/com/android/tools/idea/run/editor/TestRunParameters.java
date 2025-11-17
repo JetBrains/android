@@ -288,8 +288,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myContentPanel.setLayout(new GridLayoutManager(7, 6, new Insets(0, 0, 0, 0), -1, -1));
     myAllInPackageTestButton = new JRadioButton();
     myAllInPackageTestButton.setActionCommand(ExecutionBundle.message("junit.configuration.all.tests.in.package.radio"));
-    loadButtonText(myAllInPackageTestButton,
-                   AndroidBundle.message("android.run.configuration.all.in.package.radio"));
+    loadButtonText(myAllInPackageTestButton, AndroidBundle.message("android.run.configuration.all.in.package.radio"));
     myContentPanel.add(myAllInPackageTestButton, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                                      null, null, null, 0, false));
