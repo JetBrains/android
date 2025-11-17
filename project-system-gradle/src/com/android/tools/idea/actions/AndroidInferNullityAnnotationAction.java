@@ -34,7 +34,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.module.AndroidModuleInfo;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -43,7 +42,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.codeInsight.FileModificationService;
-import com.intellij.codeInsight.NullableNotNullManager;
 import com.intellij.codeInspection.inferNullity.InferNullityAnnotationsAction;
 import com.intellij.codeInspection.inferNullity.NullityInferrer;
 import com.intellij.history.LocalHistory;
@@ -54,7 +52,6 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.DumbService;
@@ -82,7 +79,6 @@ import com.intellij.usages.UsageViewPresentation;
 import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
 import java.nio.file.FileSystems;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -109,8 +105,6 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
 
   @Override
   protected void analyze(@NotNull Project project, @NotNull AnalysisScope scope) {
-    setUpNullityAnnotationDefaults(project);
-
     if (!(ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem)) {
       super.analyze(project, scope);
       return;
@@ -137,19 +131,6 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     else {
       showUsageView(project, usageInfos, scope, this);
     }
-  }
-
-  private static void setUpNullityAnnotationDefaults(@NotNull Project project) {
-    NullableNotNullManager nullityManager = NullableNotNullManager.getInstance(project);
-
-    if (Arrays.stream(ModuleManager.getInstance(project).getModules())
-              .anyMatch(module -> DependencyManagementUtil.dependsOnAndroidx(module))) {
-       nullityManager.setDefaultNotNull("androidx.annotation.NonNull");
-       nullityManager.setDefaultNullable("androidx.annotation.Nullable");
-     } else {
-       nullityManager.setDefaultNotNull("android.support.annotation.NonNull");
-       nullityManager.setDefaultNullable("android.support.annotation.Nullable");
-     }
   }
 
   private static Map<Module, PsiFile> findModulesFromUsage(UsageInfo[] infos) {

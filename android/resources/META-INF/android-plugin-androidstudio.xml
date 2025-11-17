@@ -247,6 +247,7 @@
                         serviceImplementation="com.android.tools.idea.browser.AndroidStudioBrowserLauncher"
                         overrides="true"
     />
+    <lang.jvm.annotationPackageSupport implementation="com.android.tools.idea.lang.AndroidAnnotationSupport" order="first"/>
   </extensions>
 
   <applicationListeners>
