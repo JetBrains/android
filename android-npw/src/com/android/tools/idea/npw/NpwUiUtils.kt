@@ -53,7 +53,7 @@ internal fun hasComposeMinAgpVersion(project: Project): Boolean {
  * Checks if the project's AGP version is new enough to support Test Suite. If we can't determine
  * it, assume that it is.
  */
-internal fun hasTestSuiteMinAgpVersion(project: Project): Boolean {
+fun hasTestSuiteMinAgpVersion(project: Project): Boolean {
   return hasMinAgpVersion(project, getMinimumAgpVersionForTestSuiteSupport())
 }
 
