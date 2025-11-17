@@ -511,7 +511,7 @@ internal class FloatingToolbarContainer(
     }
   }
 
-  /** Action that toggles activation state of the floating toolbar. */
+  /** Action that triggers collapse of the floating toolbar. */
   class CollapserAction : DumbAwareAction(">"), CustomComponentAction {
 
     override fun actionPerformed(event: AnActionEvent) {
