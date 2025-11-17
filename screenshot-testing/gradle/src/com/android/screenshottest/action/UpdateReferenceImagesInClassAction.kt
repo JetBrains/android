@@ -34,11 +34,12 @@ class UpdateReferenceImagesInClassAction : UpdateReferenceImagesBaseAction(
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
+    e.presentation.isEnabledAndVisible = false
+
     val context = ConfigurationContext.getFromEvent(e)
     val location = context.location ?: return
     val psiElement = location.psiElement
     if (psiElement is PsiDirectory) {
-      e.presentation.isEnabledAndVisible = false
       return
     }
     val psiClass = PsiTreeUtil.getParentOfType(psiElement, PsiClass::class.java, false) ?: return
