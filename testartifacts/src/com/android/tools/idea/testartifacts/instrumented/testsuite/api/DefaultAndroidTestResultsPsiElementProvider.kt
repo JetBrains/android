@@ -16,9 +16,9 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.api
 
 import com.android.annotations.concurrency.AnyThread
-import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
@@ -28,15 +28,14 @@ import com.intellij.psi.PsiElement
  * A default implementation of [TestResultsPsiElementProvider] which works for Java class-based
  * tests, e.g. Android instrumentation tests.
  */
+@AnyThread
 class DefaultAndroidTestResultsPsiElementProvider : TestResultsPsiElementProvider {
   private val parameterizedTestMethodNameRegex: Regex = "\\[.*\\]$".toRegex()
 
-  @AnyThread
   override fun isApplicable(runConfiguration: RunConfiguration): Boolean {
     return true
   }
 
-  @UiThread
   override fun getPsiElement(project: Project,
                              androidTestResults: AndroidTestResults,
                              module: Module?): PsiElement? {
@@ -44,16 +43,18 @@ class DefaultAndroidTestResultsPsiElementProvider : TestResultsPsiElementProvide
     val androidTestSourceScope = scopes.androidTestSourceScope
     val javaPsiFacade = JavaPsiFacade.getInstance(project)
 
-    val testClasses = androidTestResults.getFullTestClassName().let {
-      javaPsiFacade.findClasses(it, androidTestSourceScope)
-    }
+    return runReadAction {
+      val testClasses = androidTestResults.getFullTestClassName().let {
+        javaPsiFacade.findClasses(it, androidTestSourceScope)
+      }
 
-    return testClasses.firstNotNullOfOrNull {
-      it.findMethodsByName(androidTestResults.methodName, true).firstOrNull()
+      testClasses.firstNotNullOfOrNull {
+        it.findMethodsByName(androidTestResults.methodName, true).firstOrNull()
+      }
+      ?: testClasses.firstNotNullOfOrNull {
+        it.findMethodsByName(androidTestResults.methodName.replace(parameterizedTestMethodNameRegex, ""), true).firstOrNull()
+      }
+      ?: testClasses.firstOrNull()
     }
-           ?: testClasses.firstNotNullOfOrNull {
-             it.findMethodsByName(androidTestResults.methodName.replace(parameterizedTestMethodNameRegex, ""), true).firstOrNull()
-           }
-           ?: testClasses.firstOrNull()
   }
 }
