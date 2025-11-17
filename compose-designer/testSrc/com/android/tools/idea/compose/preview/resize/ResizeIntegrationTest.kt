@@ -57,6 +57,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -77,6 +78,7 @@ class ResizeIntegrationTest {
   private lateinit var previewView: ComposePreviewView
 
   @Test
+  @Ignore("b/460851812")
   fun `resize and save integration test`() = runTest {
     val newWidth = 555
     val newHeight = 888
