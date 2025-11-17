@@ -19,6 +19,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.MANIFEST_CONFLICT_
 import static com.android.tools.idea.testing.TestProjectPaths.MANIFEST_CONFLICT_DYN_FEATURE_ATTR_CONFLICT_IN_XML;
 import static com.android.tools.idea.testing.TestProjectPaths.MANIFEST_CONFLICT_DYN_FEATURE_ATTR_CONFLICT_NOT_IN_XML;
 import static com.android.tools.idea.testing.TestProjectPaths.MANIFEST_CONFLICT_MIN_SDK;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.manifmerger.MergingReport;
 import com.android.tools.idea.model.MergedManifestManager;
@@ -27,6 +28,7 @@ import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
@@ -36,9 +38,6 @@ import java.util.regex.Pattern;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.junit.Rule;
 import org.junit.Test;
-
-import static com.android.tools.idea.testing.TestProjectPaths.*;
-import static com.google.common.truth.Truth.assertThat;
 
 public class ManifestConflictTest {
   @Rule
@@ -118,7 +117,10 @@ public class ManifestConflictTest {
     String[] errors = new String[records.size()];
     for (int c = 0; c < records.size(); c++) {
       MergingReport.Record record = records.get(c);
-      errors[c] = ManifestPanel.getErrorHtml(AndroidFacet.getInstance(module), record.getMessage(), record.getSourceLocation(), myHtmlLinkManager, token, null, true);
+      errors[c] = ReadAction.compute(() -> {
+        return ManifestPanel.getErrorHtml(AndroidFacet.getInstance(module), record.getMessage(), record.getSourceLocation(),
+                                          myHtmlLinkManager, token, null, true);
+      });
     }
     return errors;
   }
