@@ -560,7 +560,7 @@ class BasicCompileTest {
     }
     catch (e: LiveEditUpdateException) {
       if (KotlinPluginModeProvider.isK2Mode()) {
-        Assert.assertTrue(e.message!!.contains("[INVISIBLE_REFERENCE] Cannot access 'fun invisibleFunction(): Unit': it is protected in '/Child'. A.kt at line 10"))
+        Assert.assertTrue(e.message!!.contains("[INVISIBLE_REFERENCE] Cannot access 'fun invisibleFunction(): Unit': it is protected in 'Child'. A.kt at line 10"))
       } else {
         Assert.assertTrue(e.message?.contains("Analyze Error. INVISIBLE_MEMBER") == true)
       }
