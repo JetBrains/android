@@ -41,7 +41,7 @@ import org.jetbrains.plugins.gradle.util.TasksToRun
 class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurationProducer() {
   private val visitedAnnotation = mutableMapOf<String, Boolean>()
   override fun suggestConfigurationName(context: ConfigurationContext, element: PsiClass, chosenElements: List<PsiClass>): String {
-    return "Screenshot tests in ${element.qualifiedName}"
+    return "Screenshot Tests in ${element.qualifiedName}"
   }
 
   override fun doIsConfigurationFromContext(configuration: GradleRunConfiguration, context: ConfigurationContext): Boolean {
@@ -157,7 +157,7 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
       sourceElementRef.set(representativeElement)
 
       configuration.settings.externalProjectPath = project.basePath
-      configuration.name = ktFile.name
+      configuration.name = "Screenshot Tests in ${ktFile.name}"
       configuration.settings.taskNames = taskNamesWithFilter(context, qualifiedNames.toList())
       return true
     }
