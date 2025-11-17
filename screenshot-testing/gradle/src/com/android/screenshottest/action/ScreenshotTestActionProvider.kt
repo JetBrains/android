@@ -24,7 +24,7 @@ import com.intellij.openapi.actionSystem.AnAction
 
 class ScreenshotTestActionProvider : AndroidTestSuiteDetailsActionProvider {
   override fun isApplicable(runConfiguration: RunConfiguration): Boolean {
-    return runConfiguration.name.contains("Screenshot Tests")
+    return runConfiguration.name.contains("Screenshot Tests", ignoreCase = true)
   }
 
   override fun getDetailsViewHeaderActions(testResults: AndroidTestResults?): List<AnAction> {
