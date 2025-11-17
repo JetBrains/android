@@ -1,29 +1,40 @@
-// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+/*
+ * Copyright (C) 2025 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.android.tools.idea.lang
 
 import com.intellij.codeInsight.Nullability
 import com.intellij.codeInsight.annoPackages.AnnotationPackageSupport
 
-internal class AndroidAnnotationSupport : AnnotationPackageSupport {
-    override fun getNullabilityAnnotations(nullability: Nullability): List<String> {
-        return when (nullability) {
-            Nullability.NOT_NULL -> listOf(
-                "android.annotation.NonNull",
-                "androidx.annotation.NonNull",
-                "com.android.annotations.NonNull",
-                "android.support.annotation.NonNull",
-                "androidx.annotation.RecentlyNonNull"
-            )
-
-            Nullability.NULLABLE -> listOf(
-                "android.annotation.Nullable",
-                "androidx.annotation.Nullable",
-                "com.android.annotations.Nullable",
-                "android.support.annotation.Nullable",
-                "androidx.annotation.RecentlyNullable"
-            )
-
-            else -> listOf()
-        }
+class AndroidAnnotationSupport : AnnotationPackageSupport {
+  override fun getNullabilityAnnotations(nullability: Nullability) =
+    when (nullability) {
+      Nullability.NOT_NULL -> mutableListOf(
+        "androidx.annotation.NonNull",
+        "android.annotation.NonNull",
+        "com.android.annotations.NonNull",
+        "android.support.annotation.NonNull",
+        "androidx.annotation.RecentlyNonNull"
+      )
+      Nullability.NULLABLE -> mutableListOf(
+        "androidx.annotation.Nullable",
+        "android.annotation.Nullable",
+        "com.android.annotations.Nullable",
+        "android.support.annotation.Nullable",
+        "androidx.annotation.RecentlyNullable"
+      )
+      else -> mutableListOf()
     }
 }

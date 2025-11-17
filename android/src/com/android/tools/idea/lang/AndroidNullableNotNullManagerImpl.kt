@@ -23,4 +23,14 @@ class AndroidNullableNotNullManagerImpl(project: Project) : NullableNotNullManag
     myDefaultNotNull = "androidx.annotation.NonNull"
     myDefaultNullable = "androidx.annotation.Nullable"
   }
+
+  override fun setDefaultNullable(defaultNullable: String) {
+    super.setDefaultNullable(defaultNullable)
+    setNullables(defaultNullable, *(defaultNullables - defaultNullable).toTypedArray())
+  }
+
+  override fun setDefaultNotNull(defaultNotNull: String) {
+    super.setDefaultNotNull(defaultNotNull)
+    setNotNulls(defaultNotNull, *(defaultNotNulls - defaultNotNull).toTypedArray())
+  }
 }

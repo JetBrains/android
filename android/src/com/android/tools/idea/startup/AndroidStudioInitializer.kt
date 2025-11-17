@@ -24,12 +24,14 @@ import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
+import com.intellij.codeInsight.annoPackages.AnnotationPackageSupport
 import com.intellij.concurrency.JobScheduler
 import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.thisLogger
+import kotlin.jvm.javaClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.android.sdk.AndroidSdkUtils
@@ -64,6 +66,9 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
     //StudioCodeVersionAdapter.initialize()
 
     setupAndroidSdkForTests()
+
+    // Replace the platform extension with studio AndroidAnnotationSupport while prioritizing it over others
+    removeAndroidAnnotationSupportExtension()
   }
 
   /** Sets up collection of Android Studio specific analytics.  */
@@ -91,5 +96,13 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
     invokeLater {
       AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.toString())
     }
+  }
+
+  private fun removeAndroidAnnotationSupportExtension() {
+    AnnotationPackageSupport.EP_NAME.extensions
+      .find { it.javaClass.name == "com.intellij.codeInsight.annoPackages.AndroidAnnotationSupport"  }
+      ?.let {
+        AnnotationPackageSupport.EP_NAME.point.unregisterExtension(it::class.java)
+      }
   }
 }
