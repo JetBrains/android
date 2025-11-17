@@ -19,7 +19,6 @@ import com.android.tools.idea.actions.AndroidActionGroupRemover
 import com.android.tools.idea.actions.AndroidOpenFileAction
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction
-import com.android.tools.idea.gradle.actions.AssembleIdeaModuleAction
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.startup.Actions.hideAction
@@ -59,8 +58,7 @@ class GradleSpecificActionCustomizer : ActionConfigurationCustomizer {
       hideAction(actionManager, "CompileDirty") { it.isFromGradleProject() }
 
       // 'Build' > 'Make Modules' action
-      // We cannot simply hide this action, because of a NPE.
-      replaceAction(actionManager, IdeActions.ACTION_MAKE_MODULE, AssembleIdeaModuleAction()) { it.isFromGradleProject() }
+      hideAction(actionManager, IdeActions.ACTION_MAKE_MODULE) { it.isFromGradleProject() }
 
       // 'Build' > 'Rebuild' action
       hideAction(actionManager, IdeActions.ACTION_COMPILE_PROJECT) { it.isFromGradleProject() }
