@@ -26,6 +26,7 @@ import com.intellij.psi.PsiElement
 /**
  * An extension point to provide a [PsiElement] for a given [AndroidTestResults].
  */
+@AnyThread
 interface TestResultsPsiElementProvider {
   companion object {
     val EP_NAME = ExtensionPointName.create<TestResultsPsiElementProvider>(
@@ -38,15 +39,14 @@ interface TestResultsPsiElementProvider {
   /**
    * Returns true if this provider can handle the given [runConfiguration].
    */
-  @AnyThread
   fun isApplicable(runConfiguration: RunConfiguration): Boolean
 
   /**
    * Returns a [PsiElement] for the given [androidTestResults].
    *
-   * This function will always be called on the UI thread.
+   * Implementations should ensure any operations that read PSI elements
+   * occur from within a read action
    */
-  @UiThread
   fun getPsiElement(project: Project,
                     androidTestResults: AndroidTestResults,
                     module: Module?): PsiElement?

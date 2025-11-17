@@ -16,6 +16,7 @@
 @file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE") // TODO: remove usage of sun.swing.DefaultLookup.
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
@@ -109,6 +110,7 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
 import kotlin.math.max
 import sun.swing.DefaultLookup
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A table to display Android test results. Test results are grouped by device and test case. The column is a device name
@@ -604,10 +606,11 @@ private class AndroidTestResultsTableViewComponent(
     }
   }
 
-  private val myPsiElementCache: MutableMap<AndroidTestResults, Lazy<PsiElement?>> = mutableMapOf()
+  private val myPsiElementCache: MutableMap<AndroidTestResults, Lazy<PsiElement?>> = ConcurrentHashMap()
 
+  @AnyThread
   fun getPsiElement(androidTestResults: AndroidTestResults): PsiElement? {
-    return myPsiElementCache.getOrPut(androidTestResults) {
+    return myPsiElementCache.computeIfAbsent(androidTestResults) {
       lazy {
         testResultsPsiElementProvider?.getPsiElement(project, androidTestResults, module)
       }
