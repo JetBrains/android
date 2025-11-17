@@ -128,19 +128,22 @@ fun ConfigurablePreviewElement<*>.applyTo(
     getCustomDeviceSize(),
   )
 
-  // Backgrounds need to be handled separately since they are rendered by Studio (and not
-  // layoutlib).
-  // The background is composited in studio by using an image transformation as opposed to giving
-  // it to Layoutlib to paint it behind the content.
-  (displaySettings.background as? PreviewDisplaySettings.Background.Image)?.image?.let { background
-    ->
-    if (renderConfiguration.imageTransformation != null) {
-      // There was already an existing transformation (Color Blind Mode?)
-      // Composite the two:
-      renderConfiguration.imageTransformation =
-        renderConfiguration.imageTransformation!!.andThen(background)
-    } else {
-      renderConfiguration.imageTransformation = background
+  // Backgrounds only apply to AI Glasses for now.
+  if (Device.isAiGlasses(renderConfiguration.device)) {
+    // Backgrounds need to be handled separately since they are rendered by Studio (and not
+    // layoutlib).
+    // The background is composited in studio by using an image transformation as opposed to giving
+    // it to Layoutlib to paint it behind the content.
+    (displaySettings.background as? PreviewDisplaySettings.Background.Image)?.image?.let {
+      background ->
+      if (renderConfiguration.imageTransformation != null) {
+        // There was already an existing transformation (Color Blind Mode?)
+        // Composite the two:
+        renderConfiguration.imageTransformation =
+          renderConfiguration.imageTransformation!!.andThen(background)
+      } else {
+        renderConfiguration.imageTransformation = background
+      }
     }
   }
 }
