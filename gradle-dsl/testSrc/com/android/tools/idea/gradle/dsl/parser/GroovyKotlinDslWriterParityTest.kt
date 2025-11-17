@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser
 
+import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
@@ -38,6 +39,7 @@ import org.junit.runners.Parameterized.Parameter
 import org.junit.runners.Parameterized.Parameters
 import org.mockito.Mockito
 import java.io.File
+import kotlin.io.path.absolutePathString
 
 @RunWith(Parameterized::class)
 class GroovyKotlinDslWriterParityTest : LightPlatformTestCase() {
@@ -82,7 +84,7 @@ class GroovyKotlinDslWriterParityTest : LightPlatformTestCase() {
   }
 
   private fun doTest(testFileName: TestFile, createDslModel: (GradleDslFile) -> Unit) {
-    val testDataRelativePath = "tools/adt/idea/gradle-dsl/testData/parser"
+    val testDataRelativePath = TestUtils.resolveWorkspacePath("tools/adt/idea/gradle-dsl/testData/parser").absolutePathString()
     val expected = FileUtil.loadFile(testFileName.toFile(testDataRelativePath, myTestDataExtension))
 
 
