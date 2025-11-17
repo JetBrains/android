@@ -528,7 +528,7 @@ internal class FloatingToolbarContainer(
 
     /**
      * Returns the [FloatingToolbarContainer] associated with the given [event], if any. The [event]
-     * has to triggered by a mouse event on a button of that toolbar.
+     * has to be triggered by a mouse event on a button of that toolbar.
      */
     fun fromActionEvent(event: AnActionEvent): FloatingToolbarContainer? {
       val component = event.inputEvent?.component ?: return null
@@ -536,23 +536,23 @@ internal class FloatingToolbarContainer(
     }
 
     /**
-     * Activates the floating toolbar. The [event] has to triggered by a mouse event on a button
-     * of that toolbar.
+     * Activates the floating toolbar. The action [event] has to be triggered by a mouse event on
+     * a button of that toolbar.
      */
     fun triggerActivation(event: AnActionEvent) {
       fromActionEvent(event)?.triggerActivation()
     }
 
     /**
-     * Deactivates the floating toolbar. The [event] has to triggered by a mouse event on a button
-     * of that toolbar.
+     * Deactivates the floating toolbar. The [event] has to be triggered by a mouse event on
+     * a button of that toolbar.
      */
     fun triggerDeactivation(event: AnActionEvent) {
       fromActionEvent(event)?.triggerDeactivation()
     }
 
     /**
-     * Toggles activation state of the floating toolbar. The [event] has to triggered by a mouse
+     * Toggles activation state of the floating toolbar. The [event] has to be triggered by a mouse
      * event on a button of that toolbar.
      */
     fun toggleActiveState(event: AnActionEvent) {
