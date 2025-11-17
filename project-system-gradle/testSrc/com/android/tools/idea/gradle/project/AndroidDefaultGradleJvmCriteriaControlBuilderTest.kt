@@ -40,10 +40,9 @@ class AndroidDefaultGradleJvmCriteriaControlBuilderTest: LightPlatformTestCase()
   override fun setUp() {
     super.setUp()
     container = PaintAwarePanel()
-    gradleSettings = GradleSettings(project).apply {
-      storeProjectFilesExternally = true
-    }
+    gradleSettings = GradleSettings(project)
     controlBuilder = AndroidDefaultGradleJvmCriteriaControlBuilder(gradleSettings, testRootDisposable)
+    controlBuilder.dropStoreExternallyCheckBox()
     controlBuilder.fillUi(container, 0)
   }
 
