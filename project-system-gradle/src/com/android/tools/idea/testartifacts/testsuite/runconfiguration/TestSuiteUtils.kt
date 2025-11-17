@@ -146,11 +146,18 @@ object TestSuiteUtils {
   fun getTestSuiteRoot(testSuiteModule: Module): File? {
     if (!testSuiteModule.isTestSuiteModule()) return null
 
-    val appModule = testSuiteModule.getHolderModule()
-    val testSuiteName = testSuiteModule.name.substringAfterLast("${appModule.name}.")
+    val testSuiteName = getTestSuiteNameFromModule(testSuiteModule)
     val testSuite = GradleAndroidModel.get(testSuiteModule)?.testSuites?.find { it.name == testSuiteName } ?: return null
 
     return getTestSuiteRoot(testSuite)
+  }
+
+  /**
+   * Parses the test suite name from the given [testSuiteModule]
+   */
+  fun getTestSuiteNameFromModule(testSuiteModule: Module): String {
+    val appModule = testSuiteModule.getHolderModule()
+    return testSuiteModule.name.substringAfterLast("${appModule.name}.")
   }
 
   /**
