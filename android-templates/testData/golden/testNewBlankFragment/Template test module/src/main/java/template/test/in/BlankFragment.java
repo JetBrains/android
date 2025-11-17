@@ -14,7 +14,6 @@ import template.test.in.R;
  * A simple {@link Fragment} subclass.
  * Use the {@link BlankFragment#newInstance} factory method to
  * create an instance of this fragment.
- *
  */
 public class BlankFragment extends Fragment {
 
