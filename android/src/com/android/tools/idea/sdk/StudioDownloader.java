@@ -85,7 +85,7 @@ public class StudioDownloader implements Downloader {
         mContentLength = 0;
         mStartOffset = 0;
         mTotalDisplaySize = null;
-        setText(String.format("Downloading $1%s...", mTargetName));
+        setText(String.format("Downloading %s...", mTargetName));
         setIndeterminate(true);
       }
     }

@@ -140,7 +140,7 @@ public class StudioDownloaderTest {
           requestedRanges.add(Pair.of(fromByte, toByte));
           httpResponseCode = 206;
           Headers responseHeaders = ex.getResponseHeaders();
-          responseHeaders.add("Content-Range", String.format("bytes $1%s-$2%s/$3%s", fromByte,
+          responseHeaders.add("Content-Range", String.format("bytes %s-%s/%s", fromByte,
                                                              (toByte == 0) ? "" : toByte,
                                                              content.length()));
         }
