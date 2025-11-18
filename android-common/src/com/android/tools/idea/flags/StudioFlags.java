@@ -287,7 +287,7 @@ public final class StudioFlags {
   public static final Flag<AndroidApiLevel> NPW_COMPILE_SDK_VERSION = new AndroidApiFlag(
     NPW, "new.project.compile.sdk", "New project Compile SDK version",
     "SDK version to be used for compileSdk for newly created project. Must be of the form <major> or <major>.<minor>",
-    new AndroidApiLevel(36,0));
+    new AndroidApiLevel(36,1));
 
   public static final Flag<String> NPW_DAEMON_JVM_CRITERIA_REQUIRED_GRADLE_VERSION = new StringFlag(
     NPW, "new.project.daemon.jvm.criteria.gradle.version", "New project Daemon JVM criteria required Gradle version",
