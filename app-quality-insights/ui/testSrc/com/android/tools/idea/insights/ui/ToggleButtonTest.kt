@@ -16,13 +16,13 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.FakeInsightsProvider
-import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.issue.AppInsightsIssue
 import com.android.tools.idea.insights.model.issue.FailureType
+import com.android.tools.idea.insights.model.issue.IssueDetails
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.issue.IssueState
 import com.google.common.truth.Truth.assertThat

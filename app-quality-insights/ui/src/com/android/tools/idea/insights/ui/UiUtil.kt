@@ -16,10 +16,10 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.common.ColoredIconGenerator
-import com.android.tools.idea.insights.AppInsightsIssue
-import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.getIcon
+import com.android.tools.idea.insights.model.issue.AppInsightsIssue
 import com.android.tools.idea.insights.model.issue.FailureType
+import com.android.tools.idea.insights.model.issue.IssueDetails
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.ui.NewUI

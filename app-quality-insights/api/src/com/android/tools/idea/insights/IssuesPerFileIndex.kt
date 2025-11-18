@@ -17,6 +17,7 @@ package com.android.tools.idea.insights
 
 import com.android.tools.idea.insights.analysis.Cause
 import com.android.tools.idea.insights.analysis.CrashFrame
+import com.android.tools.idea.insights.model.issue.AppInsightsIssue
 import com.android.tools.idea.insights.model.stacktrace.Frame
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.ImmutableSetMultimap

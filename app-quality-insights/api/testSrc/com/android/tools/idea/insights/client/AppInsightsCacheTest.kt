@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
-import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.NOTE1
 import com.android.tools.idea.insights.NOTE2
 import com.android.tools.idea.insights.TestConnection
@@ -33,7 +31,9 @@ import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventData
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.issue.AppInsightsIssue
 import com.android.tools.idea.insights.model.issue.FailureType
+import com.android.tools.idea.insights.model.issue.IssueDetails
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.issue.SignalType
 import com.android.tools.idea.insights.model.stacktrace.Blames
