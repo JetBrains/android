@@ -120,6 +120,9 @@ internal class VirtualDevice(
     graphicsMode = GraphicsMode.AUTO
     ram = EmulatedProperties.defaultRamSize(deviceProfile).toStorageCapacity()
     vmHeapSize = EmulatedProperties.defaultVmHeapSize(deviceProfile).toStorageCapacity()
+    if (deviceProfile.formFactor == FormFactors.AI_GLASSES) {
+      defaultBoot = Boot.COLD
+    }
   }
 
   /** Copies an existing AVD definition into this device. */
