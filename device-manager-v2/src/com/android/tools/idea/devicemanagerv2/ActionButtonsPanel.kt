@@ -19,7 +19,6 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.adtui.categorytable.constrainSize
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBDimension
@@ -58,9 +57,7 @@ internal class DeviceHandleButtonsPanel(val project: Project?, handle: DeviceHan
             activationAction,
             deactivationAction,
             handle.repairDeviceAction,
-            handle.pairGlassesAction.takeIf {
-              StudioFlags.AI_GLASSES_PHONE_EMULATOR_PAIRING_WIZARD_ENABLED.get()
-            },
+            null,
           ),
           overflowButton,
         )
