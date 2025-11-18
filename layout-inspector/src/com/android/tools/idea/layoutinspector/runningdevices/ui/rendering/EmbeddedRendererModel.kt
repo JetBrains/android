@@ -25,10 +25,12 @@ import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
+import com.android.tools.idea.layoutinspector.ui.TRANSPARENT_COLOR_ARGB
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_ALPHA_VALUE
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import java.awt.Rectangle
+import java.awt.image.BufferedImage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -48,6 +50,7 @@ const val AGENT_PACKAGE = "com.android.tools.agent.appinspection"
  * @param label Optional label to be rendered with the [bounds].
  * @param strokeThickness Screen density independent thickness to render the [bounds].
  * @param outlineColor The color of the optional outline to draw outside the border.
+ * @param image Optional image to render within the [bounds].
  */
 data class DrawInstruction(
   val rootViewId: Long,
@@ -56,6 +59,7 @@ data class DrawInstruction(
   val label: Label?,
   val strokeThickness: Float,
   val outlineColor: Int?,
+  val image: BufferedImage? = null,
 ) {
   /**
    * The label of the bounds.
@@ -105,6 +109,9 @@ class EmbeddedRendererModel(
   /** All the nodes that had a recent recomposition count change. */
   val recomposingNodes = _recomposingNodes.asStateFlow()
 
+  private val _images = MutableStateFlow<List<DrawInstruction>>(emptyList())
+  val images = _images.asStateFlow()
+
   private val _overlay = MutableStateFlow<ByteArray?>(null)
   val overlay = _overlay.asStateFlow()
 
@@ -127,6 +134,7 @@ class EmbeddedRendererModel(
         // stale (for example if the position has changed).
         setSelectedNode(newNodes.find { it == inspectorModel.selection })
         setHoveredNode(newNodes.find { it == inspectorModel.hoveredNode })
+        setImages(inspectorModel.windows.values)
 
         if (treeSettings.showRecompositions) {
           setRecomposingNodes(newNodes.filter { it.recompositions.hasHighlight })
@@ -333,12 +341,25 @@ class EmbeddedRendererModel(
       }
   }
 
+  private fun setImages(windows: Collection<AndroidWindow>) {
+    _images.value =
+      windows.mapNotNull { window ->
+        window.root.toDrawInstruction(
+          color = TRANSPARENT_COLOR_ARGB,
+          strokeThickness = 0f,
+          outlineColor = null,
+          image = window.image,
+        )
+      }
+  }
+
   /** Convert a ViewNode to [DrawInstruction]. */
   private fun ViewNode.toDrawInstruction(
     color: Int,
     strokeThickness: Float,
-    label: String? = null,
     outlineColor: Int?,
+    label: String? = null,
+    image: BufferedImage? = null,
   ): DrawInstruction? {
     val rootView = inspectorModel.rootFor(this) ?: return null
     return DrawInstruction(
@@ -348,6 +369,7 @@ class EmbeddedRendererModel(
       strokeThickness = strokeThickness,
       label = label?.let { DrawInstruction.Label(text = label, size = LABEL_FONT_SIZE) },
       outlineColor = outlineColor,
+      image = image,
     )
   }
 }

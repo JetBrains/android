@@ -39,16 +39,20 @@ import com.android.tools.idea.layoutinspector.model.RenderingDimensions.RECOMPOS
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.Screenshot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAndroidWindow
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.processBitmap
 import com.android.tools.idea.layoutinspector.ui.BASE_COLOR_ARGB
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
 import com.android.tools.idea.layoutinspector.ui.HOVER_COLOR_ARGB
 import com.android.tools.idea.layoutinspector.ui.OUTLINE_COLOR_ARGB
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.android.tools.idea.layoutinspector.ui.SELECTION_COLOR_ARGB
+import com.android.tools.idea.layoutinspector.ui.TRANSPARENT_COLOR_ARGB
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED_ARGB
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.viewWindow
+import com.android.tools.layoutinspector.BitmapType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
@@ -273,6 +277,35 @@ class EmbeddedRendererModelTest {
 
     val instructions3 = rendererModel.recomposingNodes.first()
     assertThat(instructions3).isEqualTo(emptyList<DrawInstruction>())
+  }
+
+  @Test
+  fun testImages() = runTest {
+    val screenshot = Screenshot("wear.png", BitmapType.RGB_565)
+    val imageBytes = processBitmap(screenshot.bytes)
+
+    val localInspectorModel =
+      model(disposableRule.disposable, displayId = 0) {
+        view(ROOT, 0, 0, 100, 100) { image = imageBytes }
+      }
+
+    val localRenderModel = createEmbeddedRendererModel(model = localInspectorModel)
+    testScheduler.advanceUntilIdle()
+
+    val expectedInstructions1 =
+      listOf(
+        DrawInstruction(
+          rootViewId = ROOT,
+          bounds = Rectangle(0, 0, 100, 100),
+          color = TRANSPARENT_COLOR_ARGB,
+          label = null,
+          strokeThickness = 0f,
+          outlineColor = null,
+          image = imageBytes,
+        )
+      )
+    val instructions1 = localRenderModel.images.first()
+    assertThat(instructions1).isEqualTo(expectedInstructions1)
   }
 
   @Test
@@ -974,11 +1007,14 @@ class EmbeddedRendererModelTest {
     }
   }
 
-  private fun createEmbeddedRendererModel(displayId: Int? = null): EmbeddedRendererModel {
+  private fun createEmbeddedRendererModel(
+    displayId: Int? = null,
+    model: InspectorModel = inspectorModel,
+  ): EmbeddedRendererModel {
     return EmbeddedRendererModel(
       parentDisposable = disposableRule.disposable,
       displayId = displayId,
-      inspectorModel = inspectorModel,
+      inspectorModel = model,
       treeSettings = treeSettings,
       renderSettings = renderSettings,
       navigateToSelectedViewOnDoubleClick = { navigateToInvocations += 1 },

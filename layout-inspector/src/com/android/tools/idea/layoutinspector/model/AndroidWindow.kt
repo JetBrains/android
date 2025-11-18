@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import java.awt.Shape
+import java.awt.image.BufferedImage
 
 /**
  * Container for window-level information in the layout inspector. [refreshImages] should be called
@@ -63,6 +64,12 @@ abstract class AndroidWindow(
     get() = root.layoutBounds.height
 
   open val deviceClip: Shape? = null
+
+  /**
+   * The latest bitmap image captured for this window. Can be missing if bitmap capturing is
+   * disabled
+   */
+  open var image: BufferedImage? = null
 
   open fun copyFrom(other: AndroidWindow) {
     if (other.imageType == ImageType.SKP_PENDING && imageType == ImageType.SKP) {
