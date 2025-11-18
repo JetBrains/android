@@ -25,7 +25,7 @@ import com.google.wireless.android.sdk.stats.EditorFileType
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 
 // This test should ideally live in the same module as HighlightingStats, but it cannot currently
-// because it needs AndroidStudioAnalyticsImpl to be active from intellij.android.core.
+// because it needs AndroidStudioInitializer to be active from intellij.android.core.
 class HighlightingStatsTest : BasePlatformTestCase() {
 
   fun testSimple() {
