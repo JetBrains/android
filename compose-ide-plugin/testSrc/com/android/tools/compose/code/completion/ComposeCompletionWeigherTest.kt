@@ -226,6 +226,8 @@ class ComposeCompletionWeigherTest {
       """,
     )
 
+    val expectedItems = setOf("Default", "Filled", "Outlined", "Rounded", "Sharp", "TwoTone")
+
     // Given:
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
@@ -251,22 +253,23 @@ class ComposeCompletionWeigherTest {
     myFixture.completeBasic()
 
     // Then:
+    // All of the expected items should be first in the list. It's okay if they show up more than
+    // once - depending on the version of the Kotlin plugin, they may have multiple entries with
+    // different formatting. We are testing that they are appropriately promoted, and that all
+    // exist.
     val renderedLookupElements = myFixture.renderedLookupElements
+    val targetItemsAtBeginning =
+      renderedLookupElements
+        .map { renderedLookupElement ->
+          expectedItems.firstOrNull { renderedLookupElement.startsWith(it) }
+        }
+        .takeWhile { it != null }
+
+    assertThat(targetItemsAtBeginning.toSet()).containsExactlyElementsIn(expectedItems)
 
     // There should be at least one more suggestion that's not one of the Icons object, but we don't
-    // really care what it is as long as it's
-    // ranked lower than the Icons entries.
-    assertThat(renderedLookupElements.size).isAtLeast(7)
-    assertThat(renderedLookupElements.toList().subList(0, 6))
-      .containsExactly(
-        "Defaultnull Icons.Filled",
-        "Filled (androidx.compose.material.icons.Icons)",
-        "Outlined (androidx.compose.material.icons.Icons)",
-        "Rounded (androidx.compose.material.icons.Icons)",
-        "Sharp (androidx.compose.material.icons.Icons)",
-        "TwoTone (androidx.compose.material.icons.Icons)",
-      )
-      .inOrder()
+    // really care what it is as long as it's ranked lower than the Icons entries.
+    assertThat(renderedLookupElements.size).isAtLeast(targetItemsAtBeginning.size + 1)
   }
 
   @Test
