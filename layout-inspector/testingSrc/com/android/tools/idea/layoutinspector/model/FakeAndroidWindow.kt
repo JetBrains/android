@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import java.awt.image.BufferedImage
+
 class FakeAndroidWindow(
   root: ViewNode,
   id: Any,
   imageType: ImageType = ImageType.SKP,
   displayId: Int? = null,
+  override var image: BufferedImage? = null,
   var refreshImages: ((Double, AndroidWindow) -> Unit)? = null,
 ) : AndroidWindow(root = root, displayId = displayId, id = id, imageType = imageType) {
   override suspend fun refreshImages(scale: Double) {

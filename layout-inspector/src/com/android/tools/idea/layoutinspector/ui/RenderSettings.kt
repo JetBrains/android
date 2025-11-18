@@ -30,6 +30,7 @@ const val HOVER_COLOR_ARGB = 0xFF6AA1D3.toInt()
 const val SELECTION_COLOR_ARGB = 0xFF1886F7.toInt()
 const val BASE_COLOR_ARGB = 0x80808080.toInt()
 const val OUTLINE_COLOR_ARGB = 0xFFFFFFFF.toInt()
+const val TRANSPARENT_COLOR_ARGB = 0x00FFFFFF
 
 interface RenderSettings {
   data class State(

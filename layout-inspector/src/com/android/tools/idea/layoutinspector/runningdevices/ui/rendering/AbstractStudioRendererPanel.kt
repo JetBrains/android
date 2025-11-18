@@ -76,6 +76,7 @@ abstract class AbstractStudioRendererPanel(
     childScope.launch { renderModel.hoveredNode.collect { refresh() } }
     childScope.launch { renderModel.visibleNodes.collect { refresh() } }
     childScope.launch { renderModel.recomposingNodes.collect { refresh() } }
+    childScope.launch { renderModel.images.collect { refresh() } }
 
     renderModel.setInterceptClicks(interceptClicks)
   }
@@ -117,6 +118,13 @@ abstract class AbstractStudioRendererPanel(
 
   /** Paints Layout Inspector UI. The order of the draw operation matters. */
   private fun doPaint(g2d: Graphics2D, transform: AffineTransform) {
+    val scale = renderModel.renderSettings.scaleFraction.toFloat()
+    // Apply inverse transformation to canvas bounds, to make them match the scale of the draw
+    // instruction bounds.
+    val canvasBounds = g2d.transform.createInverse().createTransformedShape(bounds).bounds2D
+
+    renderModel.images.value.forEach { it.paint(g2d, canvasBounds = canvasBounds, scale = scale) }
+
     if (overlay != null) {
       getOverlayBounds(transform)?.let { overlayBounds ->
         g2d.drawImage(
@@ -126,11 +134,6 @@ abstract class AbstractStudioRendererPanel(
         )
       }
     }
-
-    val scale = renderModel.renderSettings.scaleFraction.toFloat()
-    // Apply inverse transformation to canvas bounds, to make them match the scale of the draw
-    // instruction bounds.
-    val canvasBounds = g2d.transform.createInverse().createTransformedShape(bounds).bounds2D
 
     renderModel.recomposingNodes.value.forEach {
       it.paint(g2d, canvasBounds = canvasBounds, scale = scale, fill = true)
@@ -218,6 +221,11 @@ private fun DrawInstruction.paint(
   scale: Float,
   fill: Boolean = false,
 ) {
+  if (image != null) {
+    // Draw the image first
+    graphics.drawImage(image, bounds, alpha = 1f)
+  }
+
   // Thickness of the bounds.
   val boundsStrokeThickness = strokeThickness.scale(scale)
   // Thickness of the outline of the bounds.

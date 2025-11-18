@@ -25,8 +25,11 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.Screenshot
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.processBitmap
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.layoutinspector.BitmapType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -69,6 +72,9 @@ class AbstractStudioRendererPanelTest {
   @get:Rule val applicationRule = ApplicationRule()
   @get:Rule val projectRule = ProjectRule()
   @get:Rule val disposableRule = DisposableRule()
+
+  /** The dimension of the device screen */
+  private val deviceScreenDimension = Dimension(100, 150)
 
   private val treeSettings = FakeTreeSettings(showRecompositions = false)
   private val renderSettings = FakeRenderSettings()
@@ -213,6 +219,26 @@ class AbstractStudioRendererPanelTest {
     fakeUi.layoutAndDispatchEvents()
 
     assertThat(model.selectedNode.value).isNull()
+  }
+
+  @Test
+  fun testRenderingWithImage() {
+    val screenshot = Screenshot("test_image.png", BitmapType.RGB_565)
+    val imageBytes = processBitmap(screenshot.bytes)
+
+    val inspectorModel =
+      model(disposable) {
+        view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
+          image = imageBytes
+          view(VIEW1, 10, 15, 25, 25) { image() }
+        }
+      }
+
+    val (_, renderer) = createRenderer(inspectorModel = inspectorModel)
+
+    val renderImage = createRenderImage()
+    paint(renderImage, renderer)
+    assertSimilar(renderImage, testName.methodName)
   }
 
   private fun createRenderer(

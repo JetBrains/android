@@ -240,6 +240,7 @@ class InspectorViewDescriptor(
   private val composeFlags: Int = 0,
   private val anchorHash: Int = 0,
   val imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
+  var image: BufferedImage? = null,
 ) : InspectorNodeDescriptor {
   private val children = mutableListOf<InspectorNodeDescriptor>()
 
@@ -475,6 +476,7 @@ class InspectorModelDescriptor(
         id = windowRoot.drawId,
         displayId = displayId,
         imageType = root?.imageType ?: ImageType.UNKNOWN,
+        image = root?.image,
       ) { _, window ->
         ViewNode.writeAccess {
           window.root.flatten().forEach {
