@@ -27,6 +27,7 @@ class StudioFlagsTest {
 
   @Test
   fun testChannelDefault() {
-    Assert.assertEquals(FeatureConfiguration.INTERNAL, StudioFlags.FLAG_LEVEL.get())
+    // they seem to treat the application that runs in tests as `INTERNAL` but in our tests it's `COMPLETE`
+    Assert.assertEquals(FeatureConfiguration.COMPLETE, StudioFlags.FLAG_LEVEL.get())
   }
 }
