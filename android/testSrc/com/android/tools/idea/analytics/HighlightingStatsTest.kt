@@ -19,16 +19,26 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.HighlightingStats
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.IdeInfo
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EditorFileType
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
+import org.junit.Assume
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 // This test should ideally live in the same module as HighlightingStats, but it cannot currently
 // because it needs AndroidStudioInitializer to be active from intellij.android.core.
+@RunWith(JUnit4::class)
 class HighlightingStatsTest : BasePlatformTestCase() {
 
+  @Test
   fun testSimple() {
+    // Highlighting latency tracking relies on a platform patch only available in Studio.
+    Assume.assumeTrue(IdeInfo.getInstance().isAndroidStudio)
+
     val usageTracker = TestUsageTracker(VirtualTimeScheduler())
     val getHighlightingEvents = {
       HighlightingStats.getInstance().reportHighlightingStats() // Flush pending histogram.
