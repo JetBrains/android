@@ -16,9 +16,9 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.getIcon
+import com.android.tools.idea.insights.model.issue.IssueDetails
 import com.intellij.openapi.ui.getUserData
 import com.intellij.openapi.ui.putUserData
 import com.intellij.openapi.util.Key

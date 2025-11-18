@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.vitals.client.grpc
 
-import com.android.tools.idea.insights.AppInsightsIssue
-import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.client.toProtoTimestamp
 import com.android.tools.idea.insights.model.event.EventData
+import com.android.tools.idea.insights.model.issue.AppInsightsIssue
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueAnnotation
+import com.android.tools.idea.insights.model.issue.IssueDetails
 import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.google.play.developer.reporting.AppVersion

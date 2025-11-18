@@ -13,24 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.ai
+package com.android.tools.idea.insights.model.issue
 
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.model.event.Event
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
-import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.project.Project
 
-interface AgentActionContributor {
-  fun provideActions(
-    event: Event,
-    issue: AppInsightsIssue,
-    project: Project,
-  ): List<Pair<String, () -> Unit>>
+/** Represents discovered issue, including one representative event for it. */
+data class AppInsightsIssue(
+  val issueDetails: IssueDetails,
+  val sampleEvent: Event,
+  val source: InsightsProvider,
+  val state: IssueState = IssueState.OPEN,
+) {
+  val id: IssueId = issueDetails.id
 
-  companion object {
-    val EP_NAME =
-      ExtensionPointName<AgentActionContributor>(
-        "com.android.tools.idea.insights.ai.agentActionContributor"
-      )
-  }
+  fun incrementNotesCount() =
+    copy(issueDetails = issueDetails.copy(notesCount = issueDetails.notesCount.inc()))
+
+  fun decrementNotesCount() =
+    copy(
+      issueDetails = issueDetails.copy(notesCount = issueDetails.notesCount.dec().coerceAtLeast(0))
+    )
 }

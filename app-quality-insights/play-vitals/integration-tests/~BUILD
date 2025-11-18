@@ -13,6 +13,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/as-driver:as-driver.utils",
         "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api",
+        "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model",
         "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
