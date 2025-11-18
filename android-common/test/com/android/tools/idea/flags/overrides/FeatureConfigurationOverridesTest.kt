@@ -24,11 +24,14 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.utils.associateNotNull
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
 
 class FeatureConfigurationOverridesTest {
+  @get:Rule
+  val appRule = ApplicationRule()
 
   @get:Rule
   val studioFlagRule = FlagRule(StudioFlags.FLAG_LEVEL)
@@ -158,7 +161,8 @@ class FeatureConfigurationOverridesTest {
 
   @Test
   fun testUnitTest() {
-    StudioFlags.FLAG_LEVEL.clearOverride()
+    // they seem to treat the application that runs in tests as `INTERNAL` but in our tests it's `COMPLETE`
+    StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.INTERNAL)
     // Unit test should match to DEV channel.
 
     val content = """
@@ -180,6 +184,8 @@ class FeatureConfigurationOverridesTest {
 
   @Test
   fun testTrailingWhitespace() {
+    // they seem to treat the application that runs in tests as `INTERNAL` but in our tests it's `COMPLETE`
+    StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.INTERNAL)
     val content = """
     #some comments
     group1.flag1=INTERNAL${' '}
@@ -198,6 +204,8 @@ class FeatureConfigurationOverridesTest {
 
   @Test
   fun testComments() {
+    // they seem to treat the application that runs in tests as `INTERNAL` but in our tests it's `COMPLETE`
+    StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.INTERNAL)
     val content = """
     #some comments
     group1.flag1=INTERNAL # some comments
