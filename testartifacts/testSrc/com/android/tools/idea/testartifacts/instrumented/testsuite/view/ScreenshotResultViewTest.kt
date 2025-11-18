@@ -110,19 +110,19 @@ class ScreenshotResultViewTest {
 
   @Test
   fun initialTabIsSelected() = runInEdtAndWait {
-    assertThat(view.selectedTab).isEqualTo(ScreenshotResultView.ScreenshotViewType.ALL.displayText)
+    assertThat(view.selectedTab).isEqualTo(ScreenshotViewType.ALL.displayText)
   }
 
   @Test
   fun clickingTabChangesSelection() = runInEdtAndWait {
     // Initial state check
-    assertThat(view.selectedTab).isEqualTo(ScreenshotResultView.ScreenshotViewType.ALL.displayText)
+    assertThat(view.selectedTab).isEqualTo(ScreenshotViewType.ALL.displayText)
 
     // "Click" the "New" tab
-    view.selectTab(ScreenshotResultView.ScreenshotViewType.NEW.displayText)
+    view.selectTab(ScreenshotViewType.NEW.displayText)
 
     // After click state check
-    assertThat(view.selectedTab).isEqualTo(ScreenshotResultView.ScreenshotViewType.NEW.displayText)
+    assertThat(view.selectedTab).isEqualTo(ScreenshotViewType.NEW.displayText)
   }
 
   @Test
