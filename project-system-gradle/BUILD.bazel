@@ -209,6 +209,7 @@ jvm_library(
     "@lib//:rd-core",
     "//platform/credential-store",
     "//platform/editor-ui-ex:editor-ex",
+    "//xml/xml-analysis-api:analysis",
     "//libraries/commons/io",
     "//libraries/commons/lang3",
     "//libraries/jackson/module-kotlin:libraries-jackson-module-kotlin",

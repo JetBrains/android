@@ -111,6 +111,7 @@
     <orderEntry type="module" module-name="intellij.xml.structureView" scope="TEST" />
     <orderEntry type="module" module-name="intellij.kotlin.base.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.tools.ide.metrics.benchmark" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.xml.analysis" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core.editing.documentation" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java" scope="TEST" />
   </component>
