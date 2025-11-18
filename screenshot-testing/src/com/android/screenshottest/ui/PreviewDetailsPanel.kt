@@ -17,7 +17,9 @@ package com.android.screenshottest.ui
 
 import androidx.compose.ui.awt.ComposePanel
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ImageWithToolbarPanel
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotAttributesView
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotViewType
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -31,37 +33,24 @@ import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.CardLayout
-import java.awt.Color
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
-import java.awt.Graphics
-import java.awt.Graphics2D
-import java.awt.RenderingHints
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
-import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.BoundedRangeModel
-import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.JScrollPane
 import javax.swing.JSeparator
-import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
-import kotlin.math.max
-import kotlin.math.min
 
 
 private const val MULTIPLE_PREVIEWS_PANEL = "MULTIPLE_PREVIEWS_PANEL"
@@ -82,16 +71,16 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
   private val singlePreviewPanel = JPanel(BorderLayout())
 
   // Panels for the "All" view (3-way split) in single preview mode.
-  private val newImagePanel = ImageWithToolbarPanel("New", showToolbar = false, showTitle = true)
-  private val diffImagePanel = ImageWithToolbarPanel("Diff", showToolbar = false, showTitle = true)
-  private val refImagePanel = ImageWithToolbarPanel("Reference", showToolbar = false, showTitle = true)
+  private val newImagePanel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = false, showTitle = true)
+  private val diffImagePanel = ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = false, showTitle = true)
+  private val refImagePanel = ImageWithToolbarPanel(ScreenshotViewType.REFERENCE, showToolbar = false, showTitle = true)
 
   private val multiViewPanels = listOf(newImagePanel, diffImagePanel, refImagePanel)
 
   // Panels for the individual tabbed views in single preview mode.
-  private val newImagePanelSingle = ImageWithToolbarPanel("New", showToolbar = true, showTitle = false)
-  private val diffImagePanelSingle = ImageWithToolbarPanel("Diff", showToolbar = true, showTitle = false)
-  private val refImagePanelSingle = ImageWithToolbarPanel("Reference", showToolbar = true, showTitle = false)
+  private val newImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = false)
+  private val diffImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = true, showTitle = false)
+  private val refImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.REFERENCE, showToolbar = true, showTitle = false)
 
   // Common actions for the "All" view toolbar.
   private val commonZoomInAction = object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
@@ -158,7 +147,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
   fun displayPreviews(
     previewsToShow: List<PreviewDetails>,
     imagePanelMap: Map<String, PreviewItemPanel>,
-    viewType: UpdateReferenceImagesDialog.ScreenshotViewType,
+    viewType: ScreenshotViewType,
     previewToolbar: ComposePanel?
   ) {
     val cardLayout = layout as CardLayout
@@ -177,7 +166,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
    */
   private fun displaySinglePreviewDetails(
     previewData: PreviewDetails,
-    viewType: UpdateReferenceImagesDialog.ScreenshotViewType,
+    viewType: ScreenshotViewType,
     previewToolbar: ComposePanel
   ) {
     singlePreviewPanel.removeAll()
@@ -218,7 +207,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     topContent.add(Box.createRigidArea(Dimension(0, 4)))
 
     // Add the appropriate image view (either the 3-way split or the tabbed single view).
-    val imageDisplayPanel = if (viewType == UpdateReferenceImagesDialog.ScreenshotViewType.ALL) {
+    val imageDisplayPanel = if (viewType == ScreenshotViewType.ALL) {
       setupAllImagesView(previewData)
     } else {
       setupSingleImageView(previewData, viewType)
@@ -289,22 +278,22 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
    */
   private fun setupSingleImageView(
     previewData: PreviewDetails,
-    viewType: UpdateReferenceImagesDialog.ScreenshotViewType
+    viewType: ScreenshotViewType
   ): JComponent {
     val imageContainer = JPanel(CardLayout())
-    imageContainer.add(newImagePanelSingle, UpdateReferenceImagesDialog.ScreenshotViewType.NEW.displayText)
-    imageContainer.add(diffImagePanelSingle, UpdateReferenceImagesDialog.ScreenshotViewType.DIFF.displayText)
-    imageContainer.add(refImagePanelSingle, UpdateReferenceImagesDialog.ScreenshotViewType.REFERENCE.displayText)
+    imageContainer.add(newImagePanelSingle, ScreenshotViewType.NEW.displayText)
+    imageContainer.add(diffImagePanelSingle, ScreenshotViewType.DIFF.displayText)
+    imageContainer.add(refImagePanelSingle, ScreenshotViewType.REFERENCE.displayText)
 
     val cardLayout = imageContainer.layout as CardLayout
     val diffPlaceholder = if (previewData.testResult == AndroidTestCaseResult.PASSED) "No Difference" else "No Diff Image"
 
     when (viewType) {
-      UpdateReferenceImagesDialog.ScreenshotViewType.NEW ->
+      ScreenshotViewType.NEW ->
         loadImageAsync(previewData.srcImagePath, newImagePanelSingle, "No New Image")
-      UpdateReferenceImagesDialog.ScreenshotViewType.DIFF ->
+      ScreenshotViewType.DIFF ->
         loadImageAsync(previewData.diffImagePath, diffImagePanelSingle, diffPlaceholder)
-      UpdateReferenceImagesDialog.ScreenshotViewType.REFERENCE ->
+      ScreenshotViewType.REFERENCE ->
         loadImageAsync(previewData.destImagePath, refImagePanelSingle, "No Reference Image")
       else -> LOG.warn("Unexpected viewType in setupSingleImageView: $viewType") // Should not happen, as ALL is handled separately.
     }
@@ -372,7 +361,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
   private fun displayMultiplePreviews(
     previewsToShow: List<PreviewDetails>,
     imagePanelMap: Map<String, PreviewItemPanel>,
-    viewType: UpdateReferenceImagesDialog.ScreenshotViewType
+    viewType: ScreenshotViewType
   ) {
     multiplePreviewsPanel.removeAll()
     multiplePreviewsPanel.layout = BorderLayout()
@@ -437,243 +426,6 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
       } finally {
         isSyncing = false
       }
-    }
-  }
-
-  /**
-   * A self-contained panel for displaying an image with an optional title and toolbar
-   * for zoom and other view controls.
-   */
-  private class ImageWithToolbarPanel(
-    private val title: String,
-    private val showToolbar: Boolean,
-    private val showTitle: Boolean
-  ) : JPanel(BorderLayout(0, 4)) {
-    private val imageLabel = object : JBLabel() {
-      private var gridVisible = false
-      private var chessboardVisible = false
-
-      fun setGridVisible(visible: Boolean) {
-        if (gridVisible != visible) {
-          gridVisible = visible
-          repaint()
-        }
-      }
-      fun isGridVisible(): Boolean = gridVisible
-      fun setChessboardVisible(visible: Boolean) {
-        if (chessboardVisible != visible) {
-          chessboardVisible = visible
-          repaint()
-        }
-      }
-      fun isChessboardVisible(): Boolean = chessboardVisible
-
-      override fun paintComponent(g: Graphics) {
-        if (chessboardVisible) {
-          val g2d = g.create() as Graphics2D
-          try {
-            val color1 = UIUtil.getPanelBackground()
-            val color2 = JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()
-            val squareSize = 8
-            var x = 0
-            while (x < width) {
-              var y = 0
-              while (y < height) {
-                g2d.color = if ((x / squareSize + y / squareSize) % 2 == 0) color1 else color2
-                g2d.fillRect(x, y, squareSize, squareSize)
-                y += squareSize
-              }
-              x += squareSize
-            }
-          }
-          finally {
-            g2d.dispose()
-          }
-        }
-
-        super.paintComponent(g)
-        if (icon == null) return
-        val g2d = g.create() as Graphics2D
-        try {
-          val iconX = (width - icon.iconWidth) / 2
-          val iconY = (height - icon.iconHeight) / 2
-          if (title == "Diff") {
-            g2d.color = JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()
-            g2d.drawRect(iconX, iconY, icon.iconWidth - 1, icon.iconHeight - 1)
-          }
-          if (gridVisible) {
-            g2d.translate(iconX, iconY)
-            g2d.color = Color(128, 128, 128, 128)
-            val gridSize = (20 * currentScale).toInt().coerceAtLeast(1)
-            for (x in 0..icon.iconWidth step gridSize) g2d.drawLine(x, 0, x, icon.iconHeight)
-            for (y in 0..icon.iconHeight step gridSize) g2d.drawLine(0, y, icon.iconWidth, y)
-          }
-        } finally {
-          g2d.dispose()
-        }
-      }
-    }.apply {
-      horizontalAlignment = SwingConstants.CENTER
-    }
-
-    private val placeholderLabel = JBLabel().apply {
-      horizontalAlignment = SwingConstants.CENTER
-      verticalAlignment = SwingConstants.CENTER
-    }
-
-    internal val scrollPane = JScrollPane()
-    private val imageContainer = JPanel(BorderLayout())
-    private var originalImage: BufferedImage? = null
-    private var currentScale = 1.0
-    private var isAutoFitting = false
-
-    val zoomInAction = object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
-      override fun actionPerformed(e: AnActionEvent) = zoomIn()
-      override fun update(e: AnActionEvent) { e.presentation.isEnabled = canZoomIn() }
-    }
-    val zoomOutAction = object : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
-      override fun actionPerformed(e: AnActionEvent) = zoomOut()
-      override fun update(e: AnActionEvent) { e.presentation.isEnabled = canZoomOut() }
-    }
-    val oneToOneAction = object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
-      override fun actionPerformed(e: AnActionEvent) = setActualSize()
-      override fun update(e: AnActionEvent) { e.presentation.isEnabled = hasImage() }
-    }
-    val fitToScreenAction = object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
-      override fun actionPerformed(e: AnActionEvent) = fitToScreen()
-      override fun update(e: AnActionEvent) { e.presentation.isEnabled = hasImage() }
-    }
-    val toggleGridViewAction = object : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
-      override fun isSelected(e: AnActionEvent): Boolean = isGridVisible()
-      override fun setSelected(e: AnActionEvent, state: Boolean) = setGridVisible(state)
-      override fun update(e: AnActionEvent) { e.presentation.isEnabled = hasImage() }
-    }
-    val toggleChessboardAction =
-      object : ToggleAction("Chessboard", "Toggle Chessboard Background", IconLoader.getIcon("/org/intellij/images/icons/expui/chessboard.svg", PreviewDetailsPanel::class.java)) {
-        override fun isSelected(e: AnActionEvent): Boolean = isChessboardVisible()
-        override fun setSelected(e: AnActionEvent, state: Boolean) = setChessboardVisible(state)
-        override fun update(e: AnActionEvent) { e.presentation.isEnabled = hasImage() }
-      }
-
-    private var dynamicMinScale = 0.1
-    private var dynamicMaxScale = 8.0
-
-    init {
-      border = JBUI.Borders.empty(if (showTitle) 10 else 0, 0, 0, 10)
-      val actionGroup = DefaultActionGroup().apply {
-        add(toggleChessboardAction)
-        add(toggleGridViewAction)
-        addSeparator()
-        add(zoomOutAction)
-        add(zoomInAction)
-        add(oneToOneAction)
-        add(fitToScreenAction)
-      }
-      val toolbar = ActionManager.getInstance().createActionToolbar("ScreenshotImageToolbar", actionGroup, true).apply {
-        targetComponent = this@ImageWithToolbarPanel
-      }
-
-      if (showTitle || showToolbar) {
-        val headerPanel = JPanel(BorderLayout())
-        if (showTitle) {
-          val titleLabel = JBLabel(title, UIUtil.ComponentStyle.LARGE)
-          titleLabel.horizontalAlignment = SwingConstants.LEFT
-          headerPanel.add(titleLabel, BorderLayout.NORTH)
-        }
-        if (showToolbar) {
-          val toolbarWrapper = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
-          toolbarWrapper.add(toolbar.component)
-          headerPanel.add(toolbarWrapper, BorderLayout.SOUTH)
-        }
-        add(headerPanel, BorderLayout.NORTH)
-      }
-      imageContainer.background = UIUtil.getPanelBackground()
-      imageContainer.add(imageLabel, BorderLayout.CENTER)
-      scrollPane.setViewportView(imageContainer)
-      add(scrollPane, BorderLayout.CENTER)
-      scrollPane.addComponentListener(object : ComponentAdapter() {
-        override fun componentResized(e: ComponentEvent?) {
-          if (isAutoFitting) fitToScreen()
-        }
-      })
-    }
-
-    fun zoomIn() {
-      isAutoFitting = false
-      currentScale = (currentScale * 1.2).coerceAtMost(dynamicMaxScale)
-      updateImage()
-    }
-
-    fun zoomOut() {
-      isAutoFitting = false
-      currentScale = (currentScale / 1.2).coerceAtLeast(dynamicMinScale)
-      updateImage()
-    }
-
-    fun setActualSize() {
-      isAutoFitting = false
-      currentScale = 1.0
-      updateImage()
-    }
-
-    fun fitToScreen() {
-      isAutoFitting = true
-      val image = originalImage ?: return
-      val viewSize = scrollPane.viewport.extentSize
-      if (viewSize.width <= 0 || viewSize.height <= 0 || image.width <= 0 || image.height <= 0) return
-      val widthScale = viewSize.width.toDouble() / image.width
-      val heightScale = viewSize.height.toDouble() / image.height
-      val fitScale = min(widthScale, heightScale)
-      dynamicMaxScale = max(fitScale, 1.0) * 2.5
-      dynamicMinScale = min(fitScale, 1.0) / 2.5
-      currentScale = fitScale
-      updateImage()
-    }
-
-    fun setGridVisible(visible: Boolean) = imageLabel.setGridVisible(visible)
-    fun isGridVisible(): Boolean = imageLabel.isGridVisible()
-    fun setChessboardVisible(visible: Boolean) = imageLabel.setChessboardVisible(visible)
-    fun isChessboardVisible(): Boolean = imageLabel.isChessboardVisible()
-    fun canZoomIn(): Boolean = originalImage != null && currentScale < dynamicMaxScale
-    fun canZoomOut(): Boolean = originalImage != null && currentScale > dynamicMinScale
-    fun hasImage(): Boolean = originalImage != null
-
-    fun setPlaceholder(text: String) {
-      placeholderLabel.text = text
-    }
-
-    fun setImage(image: BufferedImage?) {
-      originalImage = image
-      if (image == null) {
-        imageLabel.icon = null
-        scrollPane.setViewportView(placeholderLabel)
-      } else {
-        scrollPane.setViewportView(imageContainer)
-        isAutoFitting = true
-        fitToScreen()
-      }
-      revalidate()
-      repaint()
-    }
-
-    private fun updateImage() {
-      val image = originalImage ?: return
-      val newWidth = (image.width * currentScale).toInt()
-      val newHeight = (image.height * currentScale).toInt()
-      if (newWidth > 0 && newHeight > 0) {
-        val imageType = if (image.type == BufferedImage.TYPE_CUSTOM) BufferedImage.TYPE_INT_ARGB else image.type
-        val scaledImage = BufferedImage(newWidth, newHeight, imageType)
-        val g2d = scaledImage.createGraphics()
-        try {
-          g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
-          g2d.drawImage(image, 0, 0, newWidth, newHeight, null)
-        } finally {
-          g2d.dispose()
-        }
-        imageLabel.icon = ImageIcon(scaledImage)
-      }
-      scrollPane.revalidate()
-      scrollPane.repaint()
     }
   }
 }
