@@ -365,7 +365,7 @@ object AndroidStudioUsageTracker {
   @VisibleForTesting
   fun shouldRequestUserSentiment(): Boolean {
     // If showing the benchmark survey, we can also target non-opted in users
-    if (!optedIn && !shouldShowBenchmarkSurvey()) {
+    if (!optedIn && benchmarkSurveyUrl() == null) {
       return false
     }
 
@@ -415,10 +415,11 @@ object AndroidStudioUsageTracker {
   fun requestUserSentiment() {
     val id = UUID.randomUUID().toString()
 
-    val surveyType = when {
-      shouldShowBenchmarkSurvey() -> SentimentSurveyEvent.SurveyType.SURVEY_TYPE_BROWSER
-      else -> SentimentSurveyEvent.SurveyType.SURVEY_TYPE_IN_PRODUCT
-    }
+    val benchmarkSurveyUrl = benchmarkSurveyUrl()
+
+    val surveyType = benchmarkSurveyUrl?.let {
+      SentimentSurveyEvent.SurveyType.SURVEY_TYPE_BROWSER
+    } ?: SentimentSurveyEvent.SurveyType.SURVEY_TYPE_IN_PRODUCT
 
     logSentimentSurveyEvent(id, SentimentSurveyEvent.Type.TYPE_SCHEDULED, surveyType)
 
@@ -430,8 +431,8 @@ object AndroidStudioUsageTracker {
           val now = AnalyticsSettings.dateProvider.now()
           logSentimentSurveyEvent(id, SentimentSurveyEvent.Type.TYPE_DISPLAYED, surveyType)
 
-          if (surveyType == SentimentSurveyEvent.SurveyType.SURVEY_TYPE_BROWSER) {
-            showBenchmarkSurveyDialog(id, now)
+          if (benchmarkSurveyUrl != null) {
+            showBenchmarkSurveyDialog(id, benchmarkSurveyUrl, now)
           }
           else {
             val survey = ServerFlagService.instance.getProtoOrNull(SATISFACTION_SURVEY, DEFAULT_SATISFACTION_SURVEY)
@@ -451,8 +452,7 @@ object AndroidStudioUsageTracker {
     }
   }
 
-  private fun showBenchmarkSurveyDialog(id: String, now: Date) {
-    val baseUrl = ServerFlagService.instance.getString(SENTIMENT_SURVEY_URL_FLAG_NAME) ?: return
+  private fun showBenchmarkSurveyDialog(id: String, baseUrl: String, now: Date) {
     val url = if (optedIn) {
       URIBuilder(baseUrl)
         .addParameter(SENTIMENT_SURVEY_PARAMETER, id)
@@ -583,8 +583,11 @@ object AndroidStudioUsageTracker {
   }
 
   // Do not show the browser-based benchmark survey for ASwB
-  private fun shouldShowBenchmarkSurvey(): Boolean {
-    return StudioFlags.BENCHMARK_SURVEY_ENABLED.get() && !isASwB()
+  private fun benchmarkSurveyUrl(): String? {
+    return when {
+      isASwB() -> null
+      else -> ServerFlagService.instance.getString(SENTIMENT_SURVEY_URL_FLAG_NAME)
+    }
   }
 
   private fun isASwB(): Boolean {
