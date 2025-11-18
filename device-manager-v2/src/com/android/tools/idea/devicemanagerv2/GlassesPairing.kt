@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.idea.deviceprovisioner.deviceHandle
 import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
@@ -28,7 +29,11 @@ class PairGlassesAction() : DumbAwareAction("Pair Glasses") {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.updateFromDeviceAction(DeviceHandle::pairGlassesAction)
+    if (e.deviceHandle()?.state?.properties?.deviceType == DeviceType.AI_GLASSES) {
+      e.updateFromDeviceAction(DeviceHandle::pairGlassesAction)
+    } else {
+      e.presentation.isEnabledAndVisible = false
+    }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
