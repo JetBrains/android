@@ -32,6 +32,7 @@ import com.intellij.openapi.util.getOrCreateUserData
 import com.sun.jdi.ClassLoaderReference
 import com.sun.jdi.ClassType
 import com.sun.jdi.ObjectReference
+import kotlin.text.replace
 
 /*
  * Serves as a debug process wise cache of helper classes that were
@@ -40,7 +41,7 @@ import com.sun.jdi.ObjectReference
 private class AndroidHelperClassCache {
   companion object {
     val ANDROID_HELPER_CLASS_CACHE_KEY =
-      Key.create<AndroidHelperClassCache>("ANDROID_HELPER_CLASS_CACHE_KEY")
+      Key.create<AndroidHelperClassCache?>("ANDROID_HELPER_CLASS_CACHE_KEY")
   }
 
   val classToJDIType = mutableMapOf<Class<*>, ClassType>()
@@ -93,7 +94,7 @@ private fun loadClasses(
   val classesBytes = getBytes(cls, *additionalClassesToLoad) ?: return null
   val dexBytes = dex(context, classesBytes) ?: return null
   val dexByteBuffer = wrapToByteBuffer(dexBytes, context)
-  val classLoader = context.computeAndKeep {
+  val classLoader =
     context.debugProcess.newInstance(
       context,
       inMemoryClassLoader,
@@ -101,8 +102,8 @@ private fun loadClasses(
       listOf(dexByteBuffer, context.classLoader),
       0,
       true
-    )
-  } as? ClassLoaderReference ?: return null
+    ) as? ClassLoaderReference ?: return null
+  context.keep(classLoader)
   return context.debugProcess.findClass(context, cls.name, classLoader) as? ClassType
 }
 
@@ -180,7 +181,6 @@ private fun wrapToByteBuffer(bytes: ByteArray, context: EvaluationContextImpl): 
       ?: return null
   val wrapMethod =
     byteBufferClass.concreteMethodByName("wrap", "([B)Ljava/nio/ByteBuffer;") ?: return null
-  return context.computeAndKeep {
-    debugProcess.invokeMethod(context, byteBufferClass, wrapMethod, listOf(bytesMirror), true) as? ObjectReference
-  }
+  return debugProcess.invokeMethod(context, byteBufferClass, wrapMethod, listOf(bytesMirror), true)
+    as? ObjectReference
 }
