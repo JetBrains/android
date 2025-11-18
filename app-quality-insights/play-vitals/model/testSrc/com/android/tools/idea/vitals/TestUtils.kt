@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.vitals
 
-import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.FAKE_25_DAYS_AGO
 import com.android.tools.idea.insights.FAKE_6_DAYS_AGO
-import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventData
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.issue.AppInsightsIssue
 import com.android.tools.idea.insights.model.issue.FailureType
+import com.android.tools.idea.insights.model.issue.IssueDetails
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.stacktrace.Blames
 import com.android.tools.idea.insights.model.stacktrace.Caption

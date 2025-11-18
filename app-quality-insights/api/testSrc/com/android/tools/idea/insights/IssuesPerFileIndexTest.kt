@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.model.issue.AppInsightsIssue
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule

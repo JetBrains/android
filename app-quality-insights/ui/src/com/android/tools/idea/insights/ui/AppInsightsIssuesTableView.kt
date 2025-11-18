@@ -19,7 +19,6 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CancellableTimeoutException
@@ -30,6 +29,7 @@ import com.android.tools.idea.insights.NoTypesSelectedException
 import com.android.tools.idea.insights.NoVersionsSelectedException
 import com.android.tools.idea.insights.RevertibleException
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
+import com.android.tools.idea.insights.model.issue.AppInsightsIssue
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.observable.util.addMouseListener
