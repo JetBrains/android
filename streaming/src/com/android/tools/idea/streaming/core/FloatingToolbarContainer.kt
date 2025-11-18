@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.core
 
 import com.android.tools.adtui.util.makeNavigable
 import com.android.tools.adtui.util.scaled
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -28,7 +29,6 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Toggleable.SELECTED_KEY
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.project.DumbAwareAction
@@ -512,7 +512,7 @@ internal class FloatingToolbarContainer(
   }
 
   /** Action that triggers collapse of the floating toolbar. */
-  class CollapserAction : DumbAwareAction(">"), CustomComponentAction {
+  class CollapserAction : DumbAwareAction(AllIcons.Actions.ArrowExpand), CustomComponentAction {
 
     override fun actionPerformed(event: AnActionEvent) {
       triggerDeactivation(event)
@@ -521,7 +521,7 @@ internal class FloatingToolbarContainer(
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
-        ActionButtonWithText(this, presentation, place, JBDimension(0, DEFAULT_MINIMUM_BUTTON_SIZE.height, true))
+        ActionButton(this, presentation, place, JBDimension(0, DEFAULT_MINIMUM_BUTTON_SIZE.height, true))
   }
 
   companion object {
