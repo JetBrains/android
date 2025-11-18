@@ -182,9 +182,7 @@ class AndroidMavenImportFixTest {
       fixture.getIntentionAction("Add dependency on androidx.recyclerview:recyclerview")!!
 
     assertThat(action.isAvailable(project, fixture.editor, fixture.file)).isTrue()
-    WriteCommandAction.runWriteCommandAction(project) {
-      action.invoke(project, fixture.editor, fixture.file)
-    }
+    action.invoke(project, fixture.editor, fixture.file)
 
     // Wait for the sync (this is redundant, but we can't get a handle on the internal sync
     // state of the first action)
@@ -230,9 +228,7 @@ class AndroidMavenImportFixTest {
     val undoManager = UndoManager.getInstance(project)
 
     assertThat(action.isAvailable(project, fixture.editor, fixture.file)).isTrue()
-    WriteCommandAction.runWriteCommandAction(project) {
-      action.invoke(project, fixture.editor, fixture.file)
-    }
+    action.invoke(project, fixture.editor, fixture.file)
 
     // Undo.
     waitForCondition(1, TimeUnit.SECONDS) { undoManager.isUndoAvailable(fixture.fileEditor) }
