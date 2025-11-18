@@ -51,6 +51,7 @@ import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.codeStyle.JavaCodeStyleSettings
 import com.intellij.psi.impl.source.codeStyle.ImportHelper
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.util.application
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.analysis.api.analyze
@@ -308,11 +309,11 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
             .undoableActionPerformed(
               object : GlobalUndoableAction() {
                 override fun undo() {
-                  project.requestSync()
+                  application.invokeLater { project.requestSync() }
                 }
 
                 override fun redo() {
-                  project.requestSync()
+                  application.invokeLater { project.requestSync() }
                 }
               }
             )
