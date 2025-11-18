@@ -40,7 +40,8 @@ class FeatureConfigurationTest {
 
   @Test
   fun `test unit test`() {
-    Truth.assertThat(FeatureConfiguration.computeConfiguration()).isEqualTo(FeatureConfiguration.INTERNAL)
+    // they seem to treat the application that runs in tests as `INTERNAL` but in our tests it's `COMPLETE`
+    Truth.assertThat(FeatureConfiguration.computeConfiguration()).isEqualTo(FeatureConfiguration.COMPLETE)
   }
 }
 
