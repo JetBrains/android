@@ -28,17 +28,21 @@ import com.google.wireless.android.sdk.stats.EditorFileType.PROPERTIES
 import com.google.wireless.android.sdk.stats.EditorFileType.UNKNOWN
 import com.google.wireless.android.sdk.stats.EditorFileType.XML
 import com.google.wireless.android.sdk.stats.EditorHighlightingStats
+import com.intellij.codeInsight.daemon.impl.GeneralHighlightingPass
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.util.text.StringUtil;
-import org.HdrHistogram.Recorder
+import com.intellij.util.ReflectionUtil
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.HOURS
+import java.util.function.BiConsumer
+import org.HdrHistogram.Recorder
 
 /**
  * Tracks highlighting latency across file types.
@@ -55,9 +59,26 @@ class HighlightingStats : Disposable {
     }
   }
 
-  init {
-    // Send reports hourly.
-    JobScheduler.getScheduler().scheduleWithFixedDelay(this::reportHighlightingStats, 1, 1, TimeUnit.HOURS)
+  fun startRecording() {
+    // Our fork of IntelliJ adds a custom callback hook in GeneralHighlightingPass to allow
+    // measuring highlighting latency. We set the callback using reflection to avoid compilation
+    // issues in JetBrains/android. We may upstream a better solution later (b/461569054).
+    val callbackInstalled = ReflectionUtil.setField(
+      @Suppress("UnstableApiUsage")
+      GeneralHighlightingPass::class.java,
+      null,
+      BiConsumer::class.java,
+      "latencyCallbackForAndroidStudio",
+      BiConsumer<Document, Long>(::recordHighlightingLatency),
+    )
+    if (callbackInstalled) {
+      // Send reports hourly.
+      JobScheduler.getScheduler().scheduleWithFixedDelay(::reportHighlightingStats, 1, 1, HOURS)
+    } else {
+      // This might happen if we lost the platform patch for some reason,
+      // e.g. if we're running with upstream intellij-community sources.
+      thisLogger().warn("Failed to install hook for measuring highlighting latency")
+    }
   }
 
   override fun dispose() {
