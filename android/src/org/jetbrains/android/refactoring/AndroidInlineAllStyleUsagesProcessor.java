@@ -84,7 +84,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
     return usages.toArray(UsageInfo.EMPTY_ARRAY);
   }
 
-
+  @SuppressWarnings("WrongThread")  // b/461843306
   @Override
   protected void performRefactoring(@NotNull UsageInfo[] usages) {
     final List<StyleUsageData> inlineInfos = new ArrayList<StyleUsageData>();

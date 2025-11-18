@@ -87,6 +87,7 @@ public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
     return usages.toArray(UsageInfo.EMPTY_ARRAY);
   }
 
+  @SuppressWarnings("WrongThread")  // b/461843322
   @Override
   protected void performRefactoring(@NotNull UsageInfo[] usages) {
     final List<LayoutUsageData> inlineInfos = new ArrayList<LayoutUsageData>();
