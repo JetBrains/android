@@ -149,6 +149,7 @@ jvm_library(
     "//java/java-frontback-psi-impl:frontback-psi-impl",
     "//platform/forms_rt:java-guiForms-rt",
     "//java/java-impl:impl",
+    "//java/java-impl:impl_test_lib",
     "//java/java-indexing-api:indexing",
     "//java/java-psi-api:psi",
     "//platform/analysis-api:analysis",

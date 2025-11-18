@@ -29,6 +29,7 @@ jvm_library(
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//java/openapi:java",
     "//java/java-impl:impl",
+    "//java/java-impl:impl_test_lib",
     "//platform/analysis-api:analysis",
     "//platform/core-api:core",
     "//platform/core-ui",

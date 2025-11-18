@@ -26,6 +26,7 @@ jvm_library(
     "//java/java-analysis-api:analysis",
     "//java/java-analysis-impl:analysis-impl",
     "//java/java-impl:impl",
+    "//java/java-impl:impl_test_lib",
     "//java/java-psi-api:psi",
     "//java/testFramework",
     "//platform/analysis-api:analysis",

@@ -73,6 +73,7 @@ jvm_library(
     "//platform/credential-store",
     "//platform/editor-ui-ex:editor-ex",
     "//java/java-impl:impl",
+    "//java/java-impl:impl_test_lib",
     "//java/java-impl-inspections:impl-inspections",
     "//java/java-psi-api:psi",
     "//java/java-psi-impl:psi-impl",

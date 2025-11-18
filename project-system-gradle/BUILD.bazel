@@ -260,6 +260,7 @@ jvm_library(
     "//java/execution/openapi:java-execution",
     "//java/java-frontback-psi-api:frontback-psi",
     "//java/java-impl:impl",
+    "//java/java-impl:impl_test_lib",
     "//java/java-psi-api:psi",
     "//java/java-psi-impl:psi-impl",
     "//java/testFramework",

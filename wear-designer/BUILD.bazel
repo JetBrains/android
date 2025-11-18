@@ -106,6 +106,7 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//android/project-system",
     "//java/java-impl:impl",
+    "//java/java-impl:impl_test_lib",
     "//xml/xml-psi-api:psi",
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/plugin:plugin_test_lib",

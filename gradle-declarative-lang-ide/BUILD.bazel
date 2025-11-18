@@ -71,6 +71,7 @@ jvm_library(
     "//android/android-test-framework:testFramework_test_lib",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//java/java-impl:impl",
+    "//java/java-impl:impl_test_lib",
     "//java/testFramework",
     "//platform/analysis-api:analysis",
     "//platform/code-style-api:codeStyle",

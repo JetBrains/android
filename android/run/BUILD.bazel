@@ -64,6 +64,7 @@ jvm_library(
     "//java/execution/openapi:java-execution",
     "//java/execution/impl",
     "//java/java-impl:impl",
+    "//java/java-impl:impl_test_lib",
     "//java/java-psi-api:psi",
     "//java/testFramework",
     "//platform/analysis-api:analysis",

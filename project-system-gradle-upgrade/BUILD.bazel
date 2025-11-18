@@ -113,6 +113,7 @@ jvm_library(
     "//plugins/gradle:gradle-common",
     "//java/java-frontback-psi-api:frontback-psi",
     "//java/java-impl:impl",
+    "//java/java-impl:impl_test_lib",
     "//java/testFramework",
     "//platform/analysis-api:analysis",
     "//platform/core-api:core",

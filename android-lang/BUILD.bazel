@@ -89,6 +89,7 @@ jvm_library(
     "//android/intellij.android.testutils:testutils_test_lib",
     "//java/java-frontback-psi-impl:frontback-psi-impl",
     "//java/java-impl:impl",
+    "//java/java-impl:impl_test_lib",
     "//java/java-psi-api:psi",
     "//java/java-runtime:rt",
     "//java/testFramework",

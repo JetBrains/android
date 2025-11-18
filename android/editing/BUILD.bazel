@@ -27,6 +27,7 @@ jvm_library(
     "//android/intellij.android.testutils:testutils_test_lib",
     "//java/openapi:java",
     "//java/java-impl:impl",
+    "//java/java-impl:impl_test_lib",
     "//java/java-impl-refactorings:impl-refactorings",
     "//java/java-psi-api:psi",
     "//java/testFramework",
