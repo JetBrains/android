@@ -43,7 +43,6 @@ import com.intellij.openapi.ui.getUserData
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import icons.StudioIcons
 import java.awt.Dimension
 import javax.swing.Icon
 import javax.swing.JLabel
@@ -109,8 +108,8 @@ class StateInspectionPanelIntegrationTest {
 
     val panel = createPanel()
     val ui = FakeUi(panel, createFakeWindow = true)
-    val prev = panel.buttonWithIcon(StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
-    val next = panel.buttonWithIcon(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
+    val prev = panel.buttonWithIcon(AllIcons.Actions.Play_back)
+    val next = panel.buttonWithIcon(AllIcons.Actions.Play_forward)
     val minimize = panel.buttonWithIcon(AllIcons.General.HideToolWindow)
     val recompositionText = panel.getDescendant<JLabel> { it.name == RECOMPOSITION_TEXT_LABEL_NAME }
 

@@ -95,11 +95,11 @@ class TableViewImpl : TableView {
   private val readOnlyLabel = JLabel("Results are read-only")
   private val isForcedBanner = IsForcedConnectionBanner()
 
-  private val firstRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.GO_TO_START)
-  private val lastRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.GO_TO_END)
+  private val firstRowsPageButton = CommonButton(AllIcons.Actions.Play_first)
+  private val lastRowsPageButton = CommonButton(AllIcons.Actions.Play_last)
 
-  private val previousRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
-  private val nextRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
+  private val previousRowsPageButton = CommonButton(AllIcons.Actions.Play_back)
+  private val nextRowsPageButton = CommonButton(AllIcons.Actions.Play_forward)
 
   private val pageSizeComboBox = ComboBox<Int>()
 
@@ -279,15 +279,13 @@ class TableViewImpl : TableView {
   private fun createPagingControlsPanel(): Component {
     val pagingControlsPanel = JPanel().also { it.layout = BoxLayout(it, BoxLayout.X_AXIS) }
 
-    firstRowsPageButton.disabledIcon =
-      IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.GO_TO_START)
+    firstRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Actions.Play_first)
     firstRowsPageButton.toolTipText = "Go to first page"
     pagingControlsPanel.add(Box.createHorizontalStrut(2))
     pagingControlsPanel.add(firstRowsPageButton)
     firstRowsPageButton.addActionListener { listeners.forEach { it.loadFirstRowsInvoked() } }
 
-    previousRowsPageButton.disabledIcon =
-      IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
+    previousRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Actions.Play_back)
     previousRowsPageButton.toolTipText = "Go to previous page"
     pagingControlsPanel.add(Box.createHorizontalStrut(2))
     pagingControlsPanel.add(previousRowsPageButton)
@@ -306,15 +304,13 @@ class TableViewImpl : TableView {
       listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem!!.toString())) }
     }
 
-    nextRowsPageButton.disabledIcon =
-      IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
+    nextRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Actions.Play_forward)
     nextRowsPageButton.toolTipText = "Go to next page"
     pagingControlsPanel.add(Box.createHorizontalStrut(2))
     pagingControlsPanel.add(nextRowsPageButton)
     nextRowsPageButton.addActionListener { listeners.forEach { it.loadNextRowsInvoked() } }
 
-    lastRowsPageButton.disabledIcon =
-      IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.GO_TO_END)
+    lastRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Actions.Play_last)
     lastRowsPageButton.toolTipText = "Go to last page"
     pagingControlsPanel.add(Box.createHorizontalStrut(2))
     pagingControlsPanel.add(lastRowsPageButton)
