@@ -54,8 +54,10 @@ internal fun getXrInputController(event: AnActionEvent): AbstractXrInputControll
     return null
   }
   val project = event.project ?: return null
-  return getEmulatorController(event)?.let { emulatorController -> EmulatorXrInputController.getInstance(project, emulatorController) } ?:
-      getDeviceClient(event)?.let { deviceClient -> DeviceXrInputController.getInstance(project, deviceClient) }
+  val emulatorController = getEmulatorController(event) ?:
+      return getDeviceClient(event)?.let { deviceClient -> DeviceXrInputController.getInstance(project, deviceClient) }
+
+  return if (emulatorController.isShuttingDown) null else EmulatorXrInputController.getInstance(project, emulatorController)
 }
 
 internal val AnActionEvent.toolWindowContents: List<Content>
