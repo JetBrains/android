@@ -17,6 +17,7 @@ package com.android.screenshottest.ui
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotViewType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -108,14 +109,14 @@ class PreviewItemPanel(
     }
   }
 
-  fun showImageForView(viewType: UpdateReferenceImagesDialog.ScreenshotViewType) {
+  fun showImageForView(viewType: ScreenshotViewType) {
     when (viewType) {
-      UpdateReferenceImagesDialog.ScreenshotViewType.ALL -> {
+      ScreenshotViewType.ALL -> {
       }
-      UpdateReferenceImagesDialog.ScreenshotViewType.NEW -> {
+      ScreenshotViewType.NEW -> {
         previewData.srcImagePath?.let { loadImage(it, previewData.testId) } ?: showError("No New Image")
       }
-      UpdateReferenceImagesDialog.ScreenshotViewType.DIFF -> {
+      ScreenshotViewType.DIFF -> {
         val diffPath = previewData.diffImagePath
         if (diffPath != null && File(diffPath).exists()) {
           loadImage(diffPath, previewData.testId)
@@ -127,7 +128,7 @@ class PreviewItemPanel(
           }
         }
       }
-      UpdateReferenceImagesDialog.ScreenshotViewType.REFERENCE -> {
+      ScreenshotViewType.REFERENCE -> {
         val refPath = previewData.destImagePath
         if (refPath != null && File(refPath).exists()) {
           loadImage(refPath, previewData.testId)
