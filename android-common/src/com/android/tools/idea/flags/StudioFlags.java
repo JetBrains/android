@@ -2846,16 +2846,6 @@ public final class StudioFlags {
       "Enable settings to hide wifi pairable devices in device manager");
   // endregion Wifi 2.0
 
-  // region Benchmark Survey
-  private static final FlagGroup BENCHMARK_SURVEY = new FlagGroup(FLAGS, "benchmark.survey", "Benchmark Survey");
-  public static final Flag<Boolean> BENCHMARK_SURVEY_ENABLED =
-    new BooleanFlag(
-      BENCHMARK_SURVEY,
-      "enable",
-      "Enable Benchmark Survey",
-      "Enable the benchmark survey when requesting user satisfaction");
-  // endregion Benchmark Survey
-
   // region deprecation policy
   private static final FlagGroup DEPRECATION_POLICY = new FlagGroup(FLAGS, "deprecationpolicy", "Deprecation Policy");
   public static final Flag<Boolean> USE_POLICY_WITH_DEPRECATE =
