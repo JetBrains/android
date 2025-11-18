@@ -16,6 +16,7 @@
 package com.android.tools.idea.startup
 
 import com.android.tools.analytics.AnalyticsSettings
+import com.android.tools.analytics.HighlightingStats
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.analytics.SystemInfoStatsMonitor
 import com.android.tools.idea.analytics.currentIdeBrand
@@ -56,6 +57,11 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
     // the reason why emulator is never run, and that's exactly the data
     // SystemInfoStatsMonitor collects
     SystemInfoStatsMonitor().start()
+
+    HighlightingStats.getInstance().startRecording()
+
+    // Android Studio Merge: ignore vendor dependencies
+    //StudioCodeVersionAdapter.initialize()
 
     setupAndroidSdkForTests()
   }

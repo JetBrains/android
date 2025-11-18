@@ -31,6 +31,7 @@ jvm_library(
         "//platform/projectModel-api:projectModel",
         "//platform/util",
         "//platform/util-ex",
+        "//platform/analysis-impl",
     ],
 )
 
@@ -77,6 +78,8 @@ jvm_library(
         "//platform/util:util_test_lib",
         "//platform/util-ex",
         "//platform/util-ex:util-ex_test_lib",
+        "//platform/analysis-impl",
+        "//platform/analysis-impl:analysis-impl_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.analytics` end
