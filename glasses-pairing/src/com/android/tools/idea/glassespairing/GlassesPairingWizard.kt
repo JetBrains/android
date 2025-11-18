@@ -428,6 +428,21 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
           return@flow
         }
 
+        val phoneBluetoothAddress = phoneDevice.getBluetoothAddress()
+        // If phoneBluetoothAddress is null, we may not have access to it; we just have to proceed
+        // and hope for the best.
+        if (phoneBluetoothAddress == glassesBluetoothAddress) {
+          emit(
+            PairingState.Error(
+              heading = "Network simulation error",
+              detailText =
+                "The same Bluetooth address has been assigned to both $phoneName and $glassesName. " +
+                  "Please perform a Cold Boot on one device and try again.",
+            )
+          )
+          return@flow
+        }
+
         phoneDevice
           .pairToGlasses(glassesBluetoothAddress, true)
           .onEach { pairingState ->
