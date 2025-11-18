@@ -77,7 +77,7 @@ private class DatabaseInspectorConfigurable(private val project: Project) : Sear
         classPicker(DRIVER_INTERFACE).bindText(additionDriverClass).named("driverClass")
       }
       row(message("additional.connection.class")) {
-        classPicker(CONNECTION_INTERFACE)
+        classPicker(CONNECTION_INTERFACE, message("additional.connection.class.tooltip"))
           .bindText(additionConnectionClass)
           .named("connectionClass")
           .enabledIf(
@@ -132,8 +132,8 @@ private class DatabaseInspectorConfigurable(private val project: Project) : Sear
 
   override fun getId() = "database.inspector"
 
-  private fun Row.classPicker(base: String): Cell<ClassPicker> {
-    return cell(ClassPicker(project, base)).align(AlignX.FILL)
+  private fun Row.classPicker(base: String, toolTip: String? = null): Cell<ClassPicker> {
+    return cell(ClassPicker(project, base, toolTip)).align(AlignX.FILL)
   }
 }
 
