@@ -81,7 +81,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
   private val disposableRule = DisposableRule()
   private val timeoutRule = FlagRule(StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS, 30_000)
   private val headlessDialogRule = HeadlessDialogRule()
-  private val initAdbLibApplicationServiceRule = InitAdbLibApplicationServiceRule(createBridgeOnDefaultPort = true)
+  private val initAdbLibApplicationServiceRule = InitAdbLibApplicationServiceRule()
   private val projectRule = AndroidProjectRule.withAndroidModel(
     createAndroidProjectBuilderForDefaultTestProjectStructure()
       .copy(applicationIdFor = { APPLICATION_ID })
