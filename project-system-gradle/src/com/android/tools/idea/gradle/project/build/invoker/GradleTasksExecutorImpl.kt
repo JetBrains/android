@@ -229,7 +229,6 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), ProcessOutputType.STDOUT)
         val buildState = GradleBuildState.getInstance(project)
         val buildCompleter = buildState.buildStarted(BuildContext(myRequest))
-        var buildEnvironment: BuildEnvironment? = null
         var buildAttributionManager: BuildAttributionManager? = null
         val enableBuildAttribution = isBuildAttributionEnabledForProject(project)
         val listener = object : ExternalSystemTaskNotificationListener {
@@ -255,9 +254,12 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             }
           }
         }
-        val context = GradleExecutionContextImpl(gradleRootProjectPath, id, executionSettings, listener, cancellationTokenSource.token())
-        context.buildEnvironment = GradleExecutionHelper.getBuildEnvironment(connection, context)
+        var buildEnvironment: BuildEnvironment? = null
         val invocationResult = try {
+          val context = GradleExecutionContextImpl(gradleRootProjectPath, id, executionSettings, listener, cancellationTokenSource.token())
+          buildEnvironment = GradleExecutionHelper.getBuildEnvironment(connection, context).also {
+            context.buildEnvironment = it
+          }
           val buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project)
           val commandLineArguments: MutableList<String?> = Lists.newArrayList(*buildConfiguration.commandLineOptions)
           if (!commandLineArguments.contains(GradleBuilds.PARALLEL_BUILD_OPTION) &&
@@ -343,7 +345,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               handleTaskExecutionError(e)
             }
           }.exceptionOrNull() ?: e
-          GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, failure, model.get(), context.buildEnvironment)
+          GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, failure, model.get(), buildEnvironment)
         }
 
 

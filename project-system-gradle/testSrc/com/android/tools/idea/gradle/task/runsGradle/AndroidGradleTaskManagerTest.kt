@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.hookExecuteTasks
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.LocationAwareExternalSystemException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
@@ -94,7 +95,6 @@ class AndroidGradleTaskManagerTest {
   fun `Given invalid java home settings When executing any task Then no exception was thrown since invalid path is not specified to TAPI`() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open {
-      var capturedException: Exception? = null
       val executionSettings = ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(
         project, project.basePath!!, GradleConstants.SYSTEM_ID
       ).apply {
@@ -102,18 +102,17 @@ class AndroidGradleTaskManagerTest {
         javaHome = "invalid"
       }
 
-      AndroidGradleTaskManager().executeTasks(
-        project.basePath!!,
-        ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
-        executionSettings,
-        object : ExternalSystemTaskNotificationListener {
-          override fun onFailure(projectPath: String, id: ExternalSystemTaskId, exception: java.lang.Exception) {
-            capturedException = exception
-          }
-        }
-      )
+      val exception = assertThrows(ExternalSystemException::class.java) {
+        AndroidGradleTaskManager().executeTasks(
+          project.basePath!!,
+          ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
+          executionSettings,
+          ExternalSystemTaskNotificationListener.NULL_OBJECT
+        )
+      }
 
-      assertNull(capturedException)
+      assertThat(exception.cause).isInstanceOf(IllegalArgumentException::class.java)
+      assertThat(exception.message).contains("Supplied javaHome is not a valid folder")
     }
   }
 
