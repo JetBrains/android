@@ -600,13 +600,13 @@ public class AndroidGradleTests {
       for (String repositoryPath : additionalRepositories.split(File.pathSeparator)) {
         File additionalRepositoryPathFile = new File(repositoryPath.trim());
         if (additionalRepositoryPathFile.exists() && additionalRepositoryPathFile.isDirectory()) {
-          LOG.info(String.format("Added additional gradle repository '$1%s' from $2%s property",
+          LOG.info(String.format("Added additional gradle repository '%s' from %s property",
                                  additionalRepositoryPathFile, ADDITIONAL_REPOSITORY_PROPERTY));
           repositories.add(additionalRepositoryPathFile);
         }
         else {
-          LOG.info(String.format("Unable to find additional gradle repository '$1%s'\n" +
-                                 "Check you $2%s property and verify the path",
+          LOG.info(String.format("Unable to find additional gradle repository '%s'\n" +
+                                 "Check your %s property and verify the path",
                                  additionalRepositoryPathFile, ADDITIONAL_REPOSITORY_PROPERTY));
         }
       }
