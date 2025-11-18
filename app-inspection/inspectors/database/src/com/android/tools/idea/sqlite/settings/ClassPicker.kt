@@ -45,11 +45,14 @@ import javax.swing.JPanel
  *
  * Based on `SpecificActivityConfigurable`
  */
-class ClassPicker(private val project: Project, private val base: String) :
+class ClassPicker(private val project: Project, private val base: String, toolTip: String? = null) :
   JPanel(null), TextAccessor {
 
   private val editorTextField =
-    ClassTextField(project, base).apply { addDocumentListener(Validator()) }
+    ClassTextField(project, base).apply {
+      addDocumentListener(Validator())
+      toolTipText = toolTip
+    }
 
   private val textComponent =
     ComponentWithBrowseButton<EditorTextField>(editorTextField, ClassPickerActionListener()).apply {
