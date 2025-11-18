@@ -47,7 +47,6 @@ import kotlin.jvm.optionals.getOrNull
  * This class is immutable. A new instance of it will be created every time there is any change
  * to the project structure.
  */
-@JvmRecord
 data class BuildGraphDataImpl(
   private val projectDefinitionTargetPatterns: TargetPatternCollection,
   @VisibleForTesting @JvmField val storage: Storage,
