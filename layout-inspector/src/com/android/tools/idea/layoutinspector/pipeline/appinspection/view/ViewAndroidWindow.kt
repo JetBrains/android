@@ -36,6 +36,7 @@ import com.android.tools.layoutinspector.InvalidPictureException
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.android.tools.layoutinspector.SkiaViewNode
 import com.android.tools.layoutinspector.toInt
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.diagnostic.Logger
 import java.awt.Rectangle
@@ -75,6 +76,8 @@ class ViewAndroidWindow(
   private var screenshotBytes =
     if (event.hasScreenshot()) event.screenshot.bytes.toByteArray() else null
 
+  override var image: BufferedImage? = null
+
   val isXr: Boolean = event.isXr
 
   override val deviceClip =
@@ -99,24 +102,32 @@ class ViewAndroidWindow(
       val immutableScreenshotBytes = screenshotBytes
       if (immutableScreenshotBytes == null) {
         createDrawChildren(null)
+        image = null
       } else {
         if (immutableScreenshotBytes.isNotEmpty()) {
           when (imageType) {
             ImageType.BITMAP_AS_REQUESTED -> {
               val bufferedImage = processBitmap(immutableScreenshotBytes)
+              image = bufferedImage
               createDrawChildren(bufferedImage)
               logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
             }
             ImageType.SKP,
-            ImageType.SKP_PENDING -> processSkp(immutableScreenshotBytes, skiaParser, scale)
-            else ->
+            ImageType.SKP_PENDING -> {
+              image = null
+              processSkp(immutableScreenshotBytes, skiaParser, scale)
+            }
+            else -> {
+              image = null
               logEvent(
                 DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE
               ) // Shouldn't happen
+            }
           }
         }
       }
     } catch (ex: Exception) {
+      image = null
       // TODO: it seems like grpc can run out of memory landing us here. We should check for that.
       Logger.getInstance(LayoutInspector::class.java).warn(ex)
     }
@@ -156,30 +167,6 @@ class ViewAndroidWindow(
       logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)
       ComponentImageLoader(nodeMap, rootViewFromSkiaImage).loadImages(this)
     }
-  }
-
-  /** Converts [bytes] into a [BufferedImage]. */
-  private fun processBitmap(bytes: ByteArray): BufferedImage {
-    val inf = Inflater().also { it.setInput(bytes) }
-    val baos = ByteArrayOutputStream()
-    val buffer = ByteArray(4096)
-    while (!inf.finished()) {
-      val count = inf.inflate(buffer)
-      if (count <= 0) {
-        break
-      }
-      baos.write(buffer, 0, count)
-    }
-
-    val inflatedBytes = baos.toByteArray()
-    val width = inflatedBytes.toInt()
-    val height = inflatedBytes.sliceArray(4..7).toInt()
-    val bitmapType = BitmapType.fromByteVal(inflatedBytes[8])
-    return bitmapType.createImage(
-      ByteBuffer.wrap(inflatedBytes, BITMAP_HEADER_SIZE, inflatedBytes.size - BITMAP_HEADER_SIZE),
-      width,
-      height,
-    )
   }
 
   /**
@@ -236,4 +223,29 @@ class ViewAndroidWindow(
       }
     return inspectorView
   }
+}
+
+/** Converts [bytes] into a [BufferedImage]. */
+@VisibleForTesting
+fun processBitmap(bytes: ByteArray): BufferedImage {
+  val inf = Inflater().also { it.setInput(bytes) }
+  val baos = ByteArrayOutputStream()
+  val buffer = ByteArray(4096)
+  while (!inf.finished()) {
+    val count = inf.inflate(buffer)
+    if (count <= 0) {
+      break
+    }
+    baos.write(buffer, 0, count)
+  }
+
+  val inflatedBytes = baos.toByteArray()
+  val width = inflatedBytes.toInt()
+  val height = inflatedBytes.sliceArray(4..7).toInt()
+  val bitmapType = BitmapType.fromByteVal(inflatedBytes[8])
+  return bitmapType.createImage(
+    ByteBuffer.wrap(inflatedBytes, BITMAP_HEADER_SIZE, inflatedBytes.size - BITMAP_HEADER_SIZE),
+    width,
+    height,
+  )
 }
