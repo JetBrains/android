@@ -18,6 +18,7 @@ package com.android.tools.adtui
 import com.android.tools.adtui.model.AbstractPaginatedTableModel
 import com.android.tools.adtui.stdui.CommonButton
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.components.JBScrollPane
@@ -171,9 +172,9 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel, pageSizeVa
   }
 
   private companion object {
-    private val FIRST_PAGE_ICON: Icon = StudioIcons.LayoutEditor.Motion.GO_TO_START
-    private val LAST_PAGE_ICON: Icon = StudioIcons.LayoutEditor.Motion.GO_TO_END
-    private val PREV_PAGE_ICON: Icon = StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK
-    private val NEXT_PAGE_ICON: Icon = StudioIcons.LayoutEditor.Motion.NEXT_TICK
+    private val FIRST_PAGE_ICON: Icon = AllIcons.Actions.Play_first
+    private val LAST_PAGE_ICON: Icon = AllIcons.Actions.Play_last
+    private val PREV_PAGE_ICON: Icon = AllIcons.Actions.Play_back
+    private val NEXT_PAGE_ICON: Icon = AllIcons.Actions.Play_forward
   }
 }
