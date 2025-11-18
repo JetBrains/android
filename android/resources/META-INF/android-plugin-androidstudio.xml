@@ -30,10 +30,6 @@
                         overrides="true"/>
 
     <!--suppress PluginXmlValidity (this service is intentionally registered outside the module of the interface class) -->
-    <applicationService serviceInterface="com.intellij.analytics.AndroidStudioAnalytics"
-                        serviceImplementation="com.android.tools.idea.startup.AndroidStudioAnalyticsImpl"/>
-
-    <!--suppress PluginXmlValidity (this service is intentionally registered outside the module of the interface class) -->
     <applicationService serviceInterface="com.intellij.ide.AndroidStudioSystemHealthMonitorAdapter$EventsListener"
                         serviceImplementation="com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor$MyEventsListener"/>
 

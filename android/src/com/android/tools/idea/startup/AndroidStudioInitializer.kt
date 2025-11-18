@@ -62,6 +62,7 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
 
   /** Sets up collection of Android Studio specific analytics.  */
   private fun setupAnalytics() {
+    // TODO: android merge (?); see todo below (not my comment)
     // todo remove with the next sync once the fix is available in the upstream
     AnalyticsSettings.disable()
     UsageTracker.disable()
