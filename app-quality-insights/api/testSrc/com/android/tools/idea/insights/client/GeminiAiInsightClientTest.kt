@@ -21,7 +21,6 @@ import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gemini.formatForTests
 import com.android.tools.idea.insights.AI_INSIGHT_WITH_CODE_CONTEXT
 import com.android.tools.idea.insights.CONNECTION1
-import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
 import com.android.tools.idea.insights.ISSUE1
@@ -33,6 +32,7 @@ import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ExtensionTestUtil

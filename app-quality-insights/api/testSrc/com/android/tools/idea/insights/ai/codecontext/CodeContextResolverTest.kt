@@ -16,8 +16,8 @@
 package com.android.tools.idea.insights.ai.codecontext
 
 import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.stacktrace.Blames
 import com.android.tools.idea.insights.model.stacktrace.Caption
 import com.android.tools.idea.insights.model.stacktrace.ExceptionStack

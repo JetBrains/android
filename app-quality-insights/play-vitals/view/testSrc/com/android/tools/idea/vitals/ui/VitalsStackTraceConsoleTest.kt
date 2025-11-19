@@ -20,8 +20,8 @@ import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.client.IssueResponse
+import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.ui.StackTraceConsole
 import com.android.tools.idea.insights.ui.executeWithErrorProcessor
 import com.android.tools.idea.testing.AndroidProjectRule

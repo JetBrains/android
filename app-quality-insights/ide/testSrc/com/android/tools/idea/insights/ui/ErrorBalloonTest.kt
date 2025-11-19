@@ -20,8 +20,8 @@ import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.NOTE1
 import com.android.tools.idea.insights.NOTE2_BODY
-import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.client.IssueResponse
+import com.android.tools.idea.insights.client.Permission
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.wm.ToolWindowBalloonShowOptions

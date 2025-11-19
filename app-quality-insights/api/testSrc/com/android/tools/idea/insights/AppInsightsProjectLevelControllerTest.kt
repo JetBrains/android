@@ -19,6 +19,7 @@ import com.android.testutils.time.FakeClock
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.IssueResponse
+import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.event.Device

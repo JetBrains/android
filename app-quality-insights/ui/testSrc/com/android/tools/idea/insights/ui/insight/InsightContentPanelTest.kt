@@ -22,7 +22,6 @@ import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
-import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.ISSUE1
@@ -33,6 +32,7 @@ import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
 import com.android.tools.idea.insights.ai.StubInsightsOnboardingProvider
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat

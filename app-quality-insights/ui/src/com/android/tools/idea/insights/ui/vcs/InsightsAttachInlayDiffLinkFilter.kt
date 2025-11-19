@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.vcs.AppVcsInfo
 import com.android.tools.idea.insights.vcs.getVcsManager
 import com.android.tools.idea.insights.vcs.locateRepository

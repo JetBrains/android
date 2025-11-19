@@ -29,7 +29,6 @@ import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.NOTE1
 import com.android.tools.idea.insights.NOTE1_BODY
-import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.TimeIntervalFilter
@@ -40,6 +39,7 @@ import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.IssueResponse
+import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.events.AiInsightFetched
 import com.android.tools.idea.insights.events.EventsChanged
 import com.android.tools.idea.insights.events.SelectedIssueChanged
