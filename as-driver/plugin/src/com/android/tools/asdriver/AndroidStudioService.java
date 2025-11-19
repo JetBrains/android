@@ -29,7 +29,6 @@ import com.google.common.base.Objects;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
-import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -43,7 +42,6 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -54,7 +52,6 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.TextEditor;
-import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
 import com.intellij.openapi.options.advanced.AdvancedSettings;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -68,8 +65,6 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.platform.backend.observation.Observation;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.UIUtil;
 import com.jetbrains.performancePlugin.CommandLogger;
 import com.jetbrains.performancePlugin.CommandsRunner;
@@ -89,7 +84,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -462,12 +456,37 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       }
     });
 
+    StudioInteractionService studioInteractionService = new StudioInteractionService();
+    List<ASDriver.ComponentMatcher> matchers = List.of(
+      ASDriver.ComponentMatcher.newBuilder().setSwingClassRegexMatch(
+        ASDriver.SwingClassRegexMatch.newBuilder().setRegex(".*\\$TrafficLightButton$")
+      ).build());
+
+    try {
+      studioInteractionService.waitForComponent(matchers, false);
+    }
+    catch (Throwable e) {
+      System.err.println("Failed to wait for traffic light analyzer: " + e);
+    }
+
     // TODO(b/312735732): Requiring smart mode might be able to be removed if `waitForIndex` can ensure all indexing has completed.
     CountDownLatch latch = new CountDownLatch(1);
     DumbService.getInstance(project).runWhenSmart(() -> {
       try {
-        System.out.println("Creating a TrafficLightRenderer to determine analysis issues of " + filePath.get());
-        Collection<HighlightInfo> highlightInfoList = analyzeViaTrafficLightRenderer(project, virtualFile.get(), editor.get());
+        System.out.println("Waiting for DaemonCodeAnalyzerImpl to finish analysis of " + filePath.get());
+        DaemonCodeAnalyzerImpl codeAnalyzer = (DaemonCodeAnalyzerImpl)DaemonCodeAnalyzer.getInstance(project);
+        Document document = editor.get().getDocument();
+
+        while (codeAnalyzer.isRunningOrPending()) {
+          UIUtil.dispatchAllInvocationEvents();
+        }
+
+        // TODO(b/280811482): replace this horrible hack.
+        Thread.sleep(5000);
+        UIUtil.dispatchAllInvocationEvents();
+
+        Collection<HighlightInfo> highlightInfoList =
+          DaemonCodeAnalyzerImpl.getHighlights(document, null, project);
 
         System.out.printf("Found %d analysis result(s)%n", highlightInfoList.size());
         processHighlightInfo(builder, editor.get().getDocument(), highlightInfoList);
@@ -476,7 +495,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       }
       catch (Throwable e) {
         builder.setStatus(ASDriver.AnalyzeFileResponse.Status.ERROR);
-        e.printStackTrace();
+        e.printStackTrace(System.err);
       }
       finally {
         latch.countDown();
@@ -492,49 +511,6 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
 
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
-  }
-
-  /**
-   * Analyzes a file using a {@code TrafficLightRenderer}. This returns more than just issues since
-   * {@code HighlightInfo} can be informational as well; it's up to the caller to determine which
-   * ones they're interested in.
-   */
-  private static Collection<HighlightInfo> analyzeViaTrafficLightRenderer(Project project, VirtualFile virtualFile, Editor editor)
-    throws ExecutionException, InterruptedException {
-    ExecutorService appExecService = AppExecutorUtil.getAppExecutorService();
-    Document document = editor.getDocument();
-    TrafficLightRenderer renderer = ReadAction.nonBlocking(() -> new TrafficLightRenderer(project, document)).submit(appExecService).get();
-    while (true) {
-      TrafficLightRenderer.DaemonCodeAnalyzerStatus status =
-        ReadAction.nonBlocking(renderer::getDaemonCodeAnalyzerStatus).submit(appExecService).get();
-      if (status.reasonWhyDisabled != null) {
-        // One reason I've seen for why it can be disabled is loading a file through the
-        // "wrong" path, e.g. loading through the "/var" symlink on macOS will have
-        // highlighting disabled.
-        System.err.println("Highlighting is disabled: " + status.reasonWhyDisabled);
-      }
-      if (status.errorAnalyzingFinished) {
-        // TODO(b/280811482): replace this horrible hack.
-        Thread.sleep(5000);
-        break;
-      }
-      UIUtil.dispatchAllInvocationEvents();
-    }
-    UIUtil.dispatchAllInvocationEvents();
-
-    TextEditor textEditor = TextEditorProvider.getInstance().getTextEditor(editor);
-    PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
-    DaemonCodeAnalyzerImpl codeAnalyzer = (DaemonCodeAnalyzerImpl)DaemonCodeAnalyzer.getInstance(project);
-    try {
-      codeAnalyzer.runPasses(psiFile, document, textEditor, new int[]{}, false, null);
-    } catch (Exception e) {
-      System.err.println("DaemonCodeAnalyzerImpl.runPasses failed: " + e);
-    }
-
-    UIUtil.dispatchAllInvocationEvents();
-    List<HighlightInfo> highlightInfoList = DaemonCodeAnalyzerImpl.getHighlights(document, null, project);
-    renderer.dispose();
-    return highlightInfoList;
   }
 
   /**
