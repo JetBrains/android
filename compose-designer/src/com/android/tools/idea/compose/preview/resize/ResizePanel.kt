@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.resize
 import com.android.SdkConstants
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
+import com.android.tools.adtui.stdui.ERROR_VALUE
 import com.android.tools.adtui.stdui.OUTLINE_PROPERTY
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
@@ -411,10 +412,7 @@ class ResizePanel(parentDisposable: Disposable) :
       widthTextField.isEnabled = isEnabled
       heightTextField.isEnabled = isEnabled
       if (!widthTextField.hasFocus() && !heightTextField.hasFocus()) {
-        if (
-          widthTextField.getClientProperty(OUTLINE_PROPERTY) != "error" &&
-            heightTextField.getClientProperty(OUTLINE_PROPERTY) != "error"
-        ) {
+        if (!hasErrors()) {
           updateTextFieldsFromConfiguration()
         }
       }
@@ -483,16 +481,19 @@ class ResizePanel(parentDisposable: Disposable) :
             // After attempting to commit, if the fields are still in an error state
             // because of invalid input, and the focus has moved outside of the
             // dimension input fields, revert them to the configuration values.
-            if (
-              widthTextField.getClientProperty(OUTLINE_PROPERTY) == "error" ||
-                heightTextField.getClientProperty(OUTLINE_PROPERTY) == "error"
-            ) {
+            if (hasErrors()) {
               updateTextFieldsFromConfiguration()
             }
           }
         }
       widthTextField.addFocusListener(focusListener)
       heightTextField.addFocusListener(focusListener)
+    }
+
+    /** Returns true if any of the dimension text fields are in an error state. */
+    private fun hasErrors(): Boolean {
+      return widthTextField.getClientProperty(OUTLINE_PROPERTY) == ERROR_VALUE ||
+        heightTextField.getClientProperty(OUTLINE_PROPERTY) == ERROR_VALUE
     }
 
     /** Validates the dimension fields and, if they are both valid, updates the [Configuration]. */
@@ -516,7 +517,7 @@ class ResizePanel(parentDisposable: Disposable) :
     }
 
     private fun setError(field: IntegerField, message: String) {
-      field.putClientProperty(OUTLINE_PROPERTY, "error")
+      field.putClientProperty(OUTLINE_PROPERTY, ERROR_VALUE)
       field.toolTipText = message
     }
 
