@@ -20,13 +20,22 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.ProjectRule;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class SourceToGradleModuleModelTest {
   @Rule
   public ProjectRule projectRule = new ProjectRule();
+
+  @After
+  public void tearDown() {
+    // To avoid flakes if indexing tasks are still running and holding on to a reference to the
+    // project.
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.getProject());
+  }
 
   @Test
   public void testContextCreation() {
