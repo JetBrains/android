@@ -869,10 +869,11 @@ android_studio_configuration(
     name = "nightly",
     application_icon = ":nightly-icon",
     enable_debug_flags = True,
-    flag_level = "NIGHTLY",
+    flag_level = "PREVIEW",
     mac_app_name = "Android Studio Nightly",
     version_suffix = "Nightly __BUILD_DAY__",
     version_type = "Nightly",
+    vm_options = ["-Dgradle.ide.use.stable.agp.version.for.new.projects=true"],
 )
 
 android_studio_configuration(

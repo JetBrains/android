@@ -50,7 +50,6 @@ class FeatureConfigurationProvider private constructor(
     val prefix = if (currentConfig.stabilityLevel > flagConfiguration.stabilityLevel) "Disabled by default. Enabled only in" else "Enabled only in"
     when(flagConfiguration) {
       FeatureConfiguration.INTERNAL -> "$prefix internal builds"
-      FeatureConfiguration.NIGHTLY ->  "$prefix internal and nightly builds"
       FeatureConfiguration.PREVIEW -> "$prefix internal, nightly and canary builds"
       FeatureConfiguration.COMPLETE -> null // Only tag flags that vary between channels.
     }
