@@ -16,6 +16,7 @@ iml_module(
         "@intellij//:test-framework",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose.tests",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
