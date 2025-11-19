@@ -370,10 +370,10 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
       layout = BoxLayout(this, BoxLayout.Y_AXIS)
     }
 
-    val previewsByFunction = previewsToShow.groupBy { it.methodName }
-    previewsByFunction.forEach { (function, previews) ->
+    val previewsByMethod = previewsToShow.groupBy { "${it.className}.${it.methodName}" }
+    previewsByMethod.forEach { (_, previews) ->
       val functionNameLabel =
-        JBLabel(function ?: "Unnamed Function").apply {
+        JBLabel(previews.first().methodName ?: "Unnamed Function").apply {
           font = font.deriveFont(Font.BOLD, font.size + 2f)
           border = BorderFactory.createEmptyBorder(15, 5, 5, 5)
           alignmentX = JComponent.LEFT_ALIGNMENT
