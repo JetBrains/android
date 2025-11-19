@@ -18,10 +18,10 @@ package org.jetbrains.kotlin.android
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.UsefulTestCase
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.components.KaDiagnosticCheckerFilter
 import org.jetbrains.kotlin.analysis.api.diagnostics.KaSeverity
-import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages
@@ -94,7 +94,7 @@ object DirectiveBasedActionUtils {
     ) { ktFile ->
       diagnosticsProvider(ktFile)
         .filter { it.severity == Severity.ERROR }
-        .map { DefaultErrorMessages.render(it).replace("\n", "<br>") }
+        .map { "${it.factoryName}: ${it.psiElement.text.lines().first()}" }
         .sorted()
     }
   }
@@ -108,7 +108,7 @@ object DirectiveBasedActionUtils {
         analyze(ktFile) {
           ktFile.collectDiagnostics(KaDiagnosticCheckerFilter.ONLY_COMMON_CHECKERS)
             .filter { it.severity == KaSeverity.ERROR }
-            .map { it.defaultMessage.replace("\n", "<br>") }
+            .map { "${it.factoryName}: ${it.psi.text.lines().first()}" }
             .sorted()
         }
       }
