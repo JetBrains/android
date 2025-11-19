@@ -480,6 +480,15 @@ class ResizePanel(parentDisposable: Disposable) :
         object : FocusAdapter() {
           override fun focusLost(e: FocusEvent?) {
             commitDimensionChanges()
+            // After attempting to commit, if the fields are still in an error state
+            // because of invalid input, and the focus has moved outside of the
+            // dimension input fields, revert them to the configuration values.
+            if (
+              widthTextField.getClientProperty(OUTLINE_PROPERTY) == "error" ||
+                heightTextField.getClientProperty(OUTLINE_PROPERTY) == "error"
+            ) {
+              updateTextFieldsFromConfiguration()
+            }
           }
         }
       widthTextField.addFocusListener(focusListener)
