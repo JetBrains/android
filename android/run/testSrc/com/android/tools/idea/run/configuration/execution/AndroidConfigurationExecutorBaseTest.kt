@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
-import com.android.adblib.ddmlibcompatibility.testutils.waitForOnlineDevice
 import com.android.adblib.testingutils.CloseablesRule
-import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
-import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.ddmlib.IDevice
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
@@ -55,7 +52,7 @@ abstract class AndroidConfigurationExecutorBaseTest {
   val cleaner = MockitoCleanerRule()
 
   @get:Rule
-  val chain = RuleChain
+  val chain: RuleChain = RuleChain
     .outerRule(cleaner)
     .around(closeables)
     .around(projectRule)
@@ -102,7 +99,7 @@ abstract class AndroidConfigurationExecutorBaseTest {
     return runContentDescriptor
   }
 
-  protected fun FakeAdbServerRule.connectAndWaitForDevice() =
+  protected fun FakeAdbServerAdbLibRule.connectAndWaitForDevice() =
     connectDevice(deviceId = "test_device_001",
                          manufacturer = "Google",
                          deviceModel = "Pixel7",
