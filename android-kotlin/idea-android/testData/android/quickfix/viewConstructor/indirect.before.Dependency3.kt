@@ -1,5 +1,5 @@
 // "Add Android View constructors using '@JvmOverloads'" "true"
-// K2-ERROR: This type has a constructor, so it must be initialized here.
+// K2-ERROR: SUPERTYPE_NOT_INITIALIZED: TextView
 
 package android.util
 
