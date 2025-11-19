@@ -56,6 +56,7 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction("Add/Update Reference 
             previewName = previewName,
             destImagePath = artifacts["PreviewScreenshot.refImagePath"],
             srcImagePath = artifacts["PreviewScreenshot.newImagePath"],
+            diffImagePath = artifacts["PreviewScreenshot.diffImagePath"],
             diffPercent = artifacts["PreviewScreenshot.diffPercent"]
           )
           dialog.updateDialogWithTestResult(previewDetails, testCase.result == com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult.FAILED)
