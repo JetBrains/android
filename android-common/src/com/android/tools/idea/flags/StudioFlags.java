@@ -1009,6 +1009,11 @@ public final class StudioFlags {
       "SERIOUSLY, DON'T MESS WITH THIS FLAG.  See the comment in the sources for more information."
   );
 
+  /**
+   * flag to control whether the NPW build should use the last stable instead of the canary version.
+   * This is only meant to overridden for the nightly build via the build configuration in
+   * tools/adt/idea/studio/BUILD.
+   */
   public static final Flag<Boolean> USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS = new BooleanFlag(
     GRADLE_IDE, "use.stable.agp.version.for.new.projects",
     "Use the stable AGP version for new projects",

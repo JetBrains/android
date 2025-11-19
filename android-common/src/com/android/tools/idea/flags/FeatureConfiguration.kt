@@ -16,7 +16,6 @@
 package com.android.tools.idea.flags
 
 import com.android.tools.idea.flags.FeatureConfiguration.INTERNAL
-import com.android.tools.idea.flags.FeatureConfiguration.NIGHTLY
 import com.android.tools.idea.flags.FeatureConfiguration.PREVIEW
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationInfo
@@ -33,7 +32,6 @@ import java.util.regex.Pattern
  *
  * e.g. if a Flag is targeting [PREVIEW], it will be enabled in:
  * - [INTERNAL]
- * - [NIGHTLY]
  * - [PREVIEW]
  */
 enum class FeatureConfiguration(val stabilityLevel: Int) {
@@ -48,27 +46,13 @@ enum class FeatureConfiguration(val stabilityLevel: Int) {
   INTERNAL(1),
 
   /**
-   * This is the configuration for nightly builds.
-   *
-   * This should rarely be used, as we want most features to be directly enabled in the
-   * main preview build.
-   *
-   * This can be used to enable some debugging features when we want developers to
-   * try something via the nightly download.
-   *
-   * Flags targeting [PREVIEW] or [COMPLETE] are also enabled in this configuration
-   */
-  @Deprecated("Do Not Use, this is going to go away soon.")
-  NIGHTLY(2),
-
-  /**
    * This is the main preview configuration.
    *
    * Flags targeting [COMPLETE] are also enabled in this configuration
    *
    * It is published to the canary channel
    */
-  PREVIEW(3),
+  PREVIEW(2),
 
   /**
    * This is the stable configuration.
@@ -78,7 +62,7 @@ enum class FeatureConfiguration(val stabilityLevel: Int) {
    *
    * It is published to the Beta/RC and Stable channels
    */
-  COMPLETE(4);
+  COMPLETE(3);
 
   companion object {
     /**
@@ -113,7 +97,6 @@ enum class FeatureConfiguration(val stabilityLevel: Int) {
     @VisibleForTesting
     fun getConfigurationFromVersionName(versionName: String) : FeatureConfiguration = when {
       versionNameContainsChannel(versionName, "dev") -> INTERNAL
-      versionNameContainsChannel(versionName, "nightly") -> NIGHTLY
       versionNameContainsChannel(versionName, "canary") -> PREVIEW
       else -> COMPLETE
     }
