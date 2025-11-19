@@ -27,9 +27,12 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import java.awt.Container
+import java.awt.LayoutManager
 import java.awt.Point
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
+import javax.swing.JViewport
+import javax.swing.SwingUtilities
 
 private const val MARGIN = 50
 
@@ -59,8 +62,11 @@ class ZoomableContainer(
   private val floatingToolbarProvider =
     NewFloatingToolbarProvider(disposable = disposable, component = this)
 
+  private val viewportLayoutManager = CenteredViewportLayout(scrollPane.viewport)
+
   init {
     scrollPane.border = JBUI.Borders.empty()
+    scrollPane.viewport.layout = viewportLayoutManager
     contentPanel.border = JBUI.Borders.empty(MARGIN)
 
     layeredPane.setLayer(scrollPane, JLayeredPane.DEFAULT_LAYER)
@@ -77,7 +83,10 @@ class ZoomableContainer(
     val oldZoom = getZoomPercent()
     val newZoomRaw =
       when (type) {
-        ZoomType.FIT -> getZoomToFit()
+        ZoomType.FIT -> {
+          viewportLayoutManager.forceCenterOnNextLayout = true
+          getZoomToFit()
+        }
         ZoomType.ACTUAL -> ACTUAL_ZOOM_PERCENT
         ZoomType.IN -> oldZoom + ZOOM_STEP_PERCENT
         ZoomType.OUT -> oldZoom - ZOOM_STEP_PERCENT
@@ -167,5 +176,63 @@ class ZoomableContainer(
       val y = layeredPane.height - floatingToolbar.height - JBUI.scale(FLOATING_TOOLBAR_MARGIN)
       floatingToolbar.location = Point(x, y)
     }
+  }
+}
+
+/**
+ * A [LayoutManager] that keeps its center point consistent as the size of the content panel
+ * changes.
+ */
+private class CenteredViewportLayout(private val viewport: JViewport) :
+  LayoutManager by viewport.layout {
+  private val delegate = viewport.layout
+
+  /** If true, we force the view to recenter (0.5, 0.5) on the next layout pass. */
+  var forceCenterOnNextLayout = false
+
+  override fun layoutContainer(parent: Container?) {
+    val view = viewport.view ?: return
+    val viewSize = view.size
+    val viewportSize = viewport.extentSize
+
+    // Capture the current relative center
+    // If we are forcing center (like in a 'Fit' operation), use 0.5
+    val (rx, ry) =
+      if (forceCenterOnNextLayout) {
+        0.5 to 0.5
+      } else {
+        val p =
+          SwingUtilities.convertPoint(
+            viewport,
+            viewportSize.width / 2,
+            viewportSize.height / 2,
+            view,
+          )
+        (p.x.toDouble() / viewSize.width.coerceAtLeast(1)) to
+          (p.y.toDouble() / viewSize.height.coerceAtLeast(1))
+      }
+
+    // Execute the default layout (resizes the view)
+    delegate.layoutContainer(parent)
+
+    // Reset flag
+    forceCenterOnNextLayout = false
+
+    // Calculate new offsets
+    val newView = viewport.view
+    val wDiff = viewportSize.width - newView.width
+    val hDiff = viewportSize.height - newView.height
+
+    // If content is smaller (diff > 0), center it using padding.
+    val xPadding = if (wDiff > 0) wDiff / 2 else 0
+    val yPadding = if (hDiff > 0) hDiff / 2 else 0
+
+    // If content is larger (diff < 0), scroll to the relative anchor (rx/ry).
+    val xScroll = if (wDiff < 0) (newView.width * rx) - viewportSize.width / 2 else 0.0
+    val yScroll = if (hDiff < 0) (newView.height * ry) - viewportSize.height / 2 else 0.0
+
+    newView.setLocation(xPadding, yPadding)
+    viewport.viewPosition =
+      Point(xScroll.toInt().coerceAtLeast(0), yScroll.toInt().coerceAtLeast(0))
   }
 }
