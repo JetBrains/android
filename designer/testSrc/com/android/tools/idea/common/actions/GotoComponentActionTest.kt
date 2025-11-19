@@ -33,12 +33,13 @@ import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 
 class GotoComponentActionTest {
-  @get:Rule val projectRule = AndroidProjectRule.Companion.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var model: NlModel
   private lateinit var nlDesignSurface: NlDesignSurface
@@ -62,7 +63,7 @@ class GotoComponentActionTest {
     }
     projectRule.fixture.configureFromExistingVirtualFile(model.virtualFile)
 
-    designSplitEditor = mock { on { it.isDesignMode() }.thenReturn(true) }
+    designSplitEditor = mock { on { it.isDesignMode(any()) }.thenReturn(true) }
   }
 
   @Test

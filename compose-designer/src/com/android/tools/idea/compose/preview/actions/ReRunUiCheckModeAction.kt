@@ -87,7 +87,7 @@ class ReRunUiCheckModeAction : AnAction() {
       editors.filterIsInstance<SplitEditor<*>>().firstOrNull {
         it.getPreviewManager<ComposePreviewManager>() != null
       } ?: return
-    if (relevantEditor.isTextMode()) {
+    if (relevantEditor.isTextMode(e)) {
       relevantEditor.selectSplitMode(false)
     }
 
