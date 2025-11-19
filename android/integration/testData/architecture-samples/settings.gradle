@@ -30,5 +30,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "ArchitectureSamples"
 
-include(":app")
-include(":shared-test")
+include ':app'
+include ':shared-test'
