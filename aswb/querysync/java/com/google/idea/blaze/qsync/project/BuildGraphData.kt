@@ -100,11 +100,6 @@ interface BuildGraphData {
   // TODO: b/397649793 - Remove this method when fixed.
   fun dependsOnAnyOf_DO_NOT_USE_BROKEN(projectTarget: Label, deps: Set<Label>): Boolean
 
-  fun getTargetSources(
-    target: Label,
-    vararg types: ProjectTarget.SourceType
-  ): Set<Path>
-
   fun getSourceFileOwners(path: Path): Set<Label>
 
   fun getSourceFileOwners(label: Label): Set<Label>
