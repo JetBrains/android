@@ -15,7 +15,9 @@
  */
 package com.android.screenshottest.action
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testartifacts.screenshot.isClassDeclarationWithPreviewTestAnnotatedMethods
+import com.android.tools.idea.testartifacts.screenshot.isMethodDeclarationPreviewTestAnnotated
 import com.android.tools.idea.testartifacts.screenshot.isScreenshotTestSourceSet
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.icons.AllIcons
@@ -23,9 +25,14 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDirectory
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.kotlin.asJava.toLightMethods
+import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtFile
 
 class UpdateReferenceImagesInClassAction : UpdateReferenceImagesBaseAction(
   "Add/Update Reference Images",
@@ -34,6 +41,9 @@ class UpdateReferenceImagesInClassAction : UpdateReferenceImagesBaseAction(
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
+    if(!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()){
+      return
+    }
     e.presentation.isEnabledAndVisible = false
 
     val context = ConfigurationContext.getFromEvent(e)
@@ -42,8 +52,26 @@ class UpdateReferenceImagesInClassAction : UpdateReferenceImagesBaseAction(
     if (psiElement is PsiDirectory) {
       return
     }
-    val psiClass = PsiTreeUtil.getParentOfType(psiElement, PsiClass::class.java, false) ?: return
+    if (!hasScreenshotTests(psiElement)) return
+
     val facet = AndroidUtils.getAndroidModule(context)?.let { AndroidFacet.getInstance(it) } ?: return
-    e.presentation.isEnabledAndVisible = isScreenshotTestSourceSet(location, facet) && isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass)
+    e.presentation.isEnabledAndVisible = isScreenshotTestSourceSet(location, facet)
+  }
+
+  private fun hasScreenshotTests(psiElement: PsiElement): Boolean {
+    return when (psiElement) {
+      is KtFile -> {
+        val hasClassTests = psiElement.classes.any { isClassDeclarationWithPreviewTestAnnotatedMethods(it) }
+
+        val hasTopLevelTests = psiElement.declarations.any { declaration: KtDeclaration ->
+          declaration.toLightMethods().any { isMethodDeclarationPreviewTestAnnotated(it) }
+        }
+        hasClassTests || hasTopLevelTests
+      }
+      is PsiClass -> isClassDeclarationWithPreviewTestAnnotatedMethods(psiElement)
+      is PsiFile -> psiElement.children.filterIsInstance<PsiClass>().any { isClassDeclarationWithPreviewTestAnnotatedMethods(it) }
+      else -> PsiTreeUtil.getParentOfType(psiElement, PsiClass::class.java, false)
+        ?.let { isClassDeclarationWithPreviewTestAnnotatedMethods(it) } ?: false
+    }
   }
 }
