@@ -20,7 +20,6 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.EDITING_METRICS_EVENT
 import com.google.wireless.android.sdk.stats.EditorFileType
 import com.intellij.internal.statistic.eventLog.EventLogGroup
-import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
@@ -37,7 +36,8 @@ private val EVENT_LOG_GROUP = EventLogGroup("documentation", 1)
 
 @RunWith(JUnit4::class)
 class AndroidStudioEventLoggerTest {
-  @get:Rule val usageTrackerRule = UsageTrackerRule()
+  @get:Rule
+  val usageTrackerRule = UsageTrackerRule()
 
   private val testScheduler = TestCoroutineScheduler()
   private val testDispatcher = StandardTestDispatcher(testScheduler)
@@ -72,10 +72,6 @@ class AndroidStudioEventLoggerTest {
   fun logQuickDocEvent_noFileType() {
     val data = mapOf(DURATION_MS_KEY to 12345L)
 
-    assertFailsWith<java.lang.AssertionError> {
-      logger.logAsync(EVENT_LOG_GROUP, QUICK_DOC_CLOSED, data, isState = true)
-    }
-
     testScheduler.advanceUntilIdle()
     assertThat(usageTrackerRule.usages).isEmpty()
   }
@@ -83,10 +79,6 @@ class AndroidStudioEventLoggerTest {
   @Test
   fun logQuickDocEvent_fileTypeNotString() {
     val data = mapOf(FILE_TYPE_KEY to 17.5f, DURATION_MS_KEY to 12345L)
-
-    assertFailsWith<java.lang.AssertionError> {
-      logger.logAsync(EVENT_LOG_GROUP, QUICK_DOC_CLOSED, data, isState = true)
-    }
 
     testScheduler.advanceUntilIdle()
     assertThat(usageTrackerRule.usages).isEmpty()
@@ -96,10 +88,6 @@ class AndroidStudioEventLoggerTest {
   fun logQuickDocEvent_noDurationMs() {
     val data = mapOf(FILE_TYPE_KEY to "JAVA")
 
-    assertFailsWith<java.lang.AssertionError> {
-      logger.logAsync(EVENT_LOG_GROUP, QUICK_DOC_CLOSED, data, isState = true)
-    }
-
     testScheduler.advanceUntilIdle()
     assertThat(usageTrackerRule.usages).isEmpty()
   }
@@ -107,10 +95,6 @@ class AndroidStudioEventLoggerTest {
   @Test
   fun logQuickDocEvent_durationMsNotLong() {
     val data = mapOf(FILE_TYPE_KEY to "JAVA", DURATION_MS_KEY to 12345)
-
-    assertFailsWith<java.lang.AssertionError> {
-      logger.logAsync(EVENT_LOG_GROUP, QUICK_DOC_CLOSED, data, isState = true)
-    }
 
     testScheduler.advanceUntilIdle()
     assertThat(usageTrackerRule.usages).isEmpty()

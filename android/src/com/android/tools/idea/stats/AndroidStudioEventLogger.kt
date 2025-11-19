@@ -444,7 +444,7 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
     val valTyped = valAny as? V
     if (valTyped == null) {
       this@AndroidStudioEventLogger.thisLogger()
-        .error("$key not ${V::class.java}, was ${valAny?.javaClass}: $valAny")
+        .warn("$key not ${V::class.java}, was ${valAny?.javaClass}: $valAny")
     }
     return valTyped
   }
