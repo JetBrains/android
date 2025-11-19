@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.adblib.serialNumber
 import com.android.adblib.tools.aiglasses.AiGlassesPairing
+import com.android.adblib.tools.aiglasses.ShellCommandException
 import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceState
@@ -64,6 +65,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -431,8 +433,7 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
       }
 
       with(AiGlassesPairing(phoneDevice.session)) {
-        val pairedDeviceCount = glassesDevice.getPairedBluetoothDeviceCount()
-        if (pairedDeviceCount != null && pairedDeviceCount > 0) {
+        if ((glassesDevice.getPairedBluetoothDeviceCount() ?: 0) > 0) {
           emit(
             PairingState.Error(
               "Glasses already paired",
@@ -442,11 +443,31 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
           return@flow
         }
 
-        emit(PairingState.Pairing("Initiating pairing..."))
-
         if (!phoneDevice.hasGlassesCompanionApp()) {
           emit(PairingState.Error("$phoneName does not have support for Glasses."))
           return@flow
+        }
+
+        if ((phoneDevice.getPairedBluetoothDeviceCount() ?: 0) > 0) {
+          phoneDevice.launchCompanionApp()
+          try {
+            phoneDevice.sendUnpairCommand()
+          } catch (e: ShellCommandException) {}
+        }
+
+        // Reset any prior pairing attempts
+        phoneDevice.clearGlassesPackages()
+        delay(3.seconds)
+
+        emit(PairingState.Pairing("Initiating pairing..."))
+
+        if ((phoneDevice.getPairedBluetoothDeviceCount() ?: 0) > 0) {
+          emit(
+            PairingState.Pairing(
+              "Warning: $phoneName already has a Bluetooth pairing; glasses pairing will likely fail."
+            )
+          )
+          delay(3.seconds)
         }
 
         val glassesBluetoothAddress = glassesDevice.getBluetoothAddress()
