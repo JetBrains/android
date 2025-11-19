@@ -58,7 +58,7 @@ class PreviewDetailsPanelTest {
 
     val activePanel = visibleComponents[0] as JPanel
     // Check for structure specific to single preview (OnePixelSplitter)
-    val hasSplitter = activePanel.components.any { it is OnePixelSplitter }
+    val hasSplitter = activePanel.components.any { OnePixelSplitter::class.java.isInstance(it) }
     assertTrue("Single preview should contain a OnePixelSplitter", hasSplitter)
   }
 
