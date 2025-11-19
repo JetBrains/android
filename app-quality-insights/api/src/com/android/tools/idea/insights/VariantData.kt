@@ -13,22 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.vitals.datamodel
+package com.android.tools.idea.insights
 
-import com.android.tools.idea.insights.model.connection.Connection
+import com.intellij.openapi.module.Module
 
-data class VitalsConnection(
-  override val appId: String,
-  val displayName: String,
-  val isPreferred: Boolean,
-) : Connection {
-  override val isConfigured: Boolean = true
-  override val mobileSdkAppId = null
-  override val projectId = null
-  override val projectNumber = null
-  override val clientId = "apps/${appId}"
-
-  override fun isPreferredConnection() = isPreferred
-
-  override fun isMatchingProject() = isPreferred
-}
+data class VariantData(val module: Module, val variantName: String)

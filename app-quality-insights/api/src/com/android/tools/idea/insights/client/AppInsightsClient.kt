@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DetailedIssueStats
 import com.android.tools.idea.insights.FetchSource
@@ -23,30 +22,15 @@ import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
-import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.connection.AppConnection
-import com.android.tools.idea.insights.model.event.Device
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventPage
-import com.android.tools.idea.insights.model.event.OperatingSystemInfo
-import com.android.tools.idea.insights.model.event.Version
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.issue.IssueState
-
-data class IssueRequest(val connection: Connection, val filters: QueryFilters)
-
-data class IssueResponse(
-  val issues: List<AppInsightsIssue>,
-  val versions: List<WithCount<Version>>,
-  val devices: List<WithCount<Device>>,
-  val operatingSystems: List<WithCount<OperatingSystemInfo>>,
-  val permission: Permission,
-)
 
 interface AppInsightsClient {
   suspend fun listConnections(): LoadingState.Done<List<AppConnection>>

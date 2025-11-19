@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.model.connection.Connection
+
 data class TestConnection(
   override val appId: String,
   override val mobileSdkAppId: String?,

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ai.codecontext
 
-import com.android.tools.idea.insights.Connection
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
 import com.intellij.openapi.vfs.VirtualFile
 import org.mockito.Mockito.mock

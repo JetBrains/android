@@ -19,6 +19,7 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
+import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.event.CustomKey
 import com.android.tools.idea.insights.model.event.Device

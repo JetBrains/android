@@ -23,8 +23,8 @@ import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.ISSUE3
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.client.IssueResponse
+import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.insights.model.stacktrace.Blames

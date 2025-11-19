@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ai
 
-import com.android.tools.idea.insights.Connection
+import com.android.tools.idea.insights.model.connection.Connection
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager

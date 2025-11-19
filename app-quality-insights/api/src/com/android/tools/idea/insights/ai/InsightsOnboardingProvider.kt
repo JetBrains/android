@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ai
 
-import com.android.tools.idea.insights.Connection
+import com.android.tools.idea.insights.model.connection.Connection
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 

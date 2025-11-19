@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.insights.ui.insight.onboarding
 
-import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ai.InsightsOnboardingProvider
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.vitals.client.grpc
 
-import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.model.connection.AppConnection
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.Version
 import com.android.tools.idea.insights.model.issue.IssueDetails
