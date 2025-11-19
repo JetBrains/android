@@ -78,30 +78,18 @@ class FloatingToolbarProvider(
 class NewFloatingToolbarProvider(component: JComponent, disposable: Disposable) :
   EditorActionsFloatingToolbarProvider(component, disposable) {
 
-  /** Defines the groups of actions shown in the floating toolbar */
-  private val actionGroup =
-    object : EditorActionsToolbarActionGroups {
-      override val zoomLabelGroup =
-        DefaultActionGroup().apply {
-          add(ZoomLabelAction)
-          add(ZoomResetAction)
-        }
-
-      override val zoomControlsGroup =
-        DefaultActionGroup().apply {
-          add(ZoomInAction.getInstance())
-          add(ZoomOutAction.getInstance())
-          add(ZoomToFitAction.getInstance())
-        }
-
-      val panSurfaceGroup = DefaultActionGroup().apply { add(PanSurfaceAction) }
-
-      override val otherGroups: List<ActionGroup> = listOf(panSurfaceGroup)
-    }
-
   init {
     updateToolbar()
   }
 
-  override fun getActionGroups() = actionGroup
+  override fun getActionGroups() =
+    object : EditorActionsToolbarActionGroups {
+      override val zoomControlsGroup: ActionGroup
+        get() =
+          DefaultActionGroup().apply {
+            add(ZoomInAction.getInstance())
+            add(ZoomOutAction.getInstance())
+            add(ZoomToFitAction.getInstance())
+          }
+    }
 }
