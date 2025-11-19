@@ -23,6 +23,7 @@ jvm_library(
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/android-common:common",
     "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//android/android:core",
     "//android/android-lang:lang",
     "//android/android-kotlin/idea-android/common",
@@ -40,6 +41,7 @@ jvm_library(
     "//platform/projectModel-api:projectModel",
     "//platform/util:util-ui",
     "//platform/smRunner",
+    "//platform/core-impl",
     "//libraries/protobuf",
   ]
 )
