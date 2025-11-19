@@ -13,7 +13,7 @@ message StudioAd {
     // Displays an action to browse to the given URL
     message BrowseAction {
       // URL where the user needs to be redirected.
-      required string url = 1;
+      optional string url = 1;
     }
     // Displays an action to open a specific UI screen in Android Studio.
     message OpenUiAction {
@@ -25,10 +25,10 @@ message StudioAd {
         MCP_SERVERS_SETTINGS = 4;
       }
       // Screen where the user needs to be redirected to.
-      required UiScreen ui_screen = 1;
+      optional UiScreen ui_screen = 1;
     }
     // CTA Title.
-    required string title = 1;
+    optional string title = 1;
 
     // Action to be performed when the user clicks on the CTA.
     oneof action {
@@ -47,8 +47,8 @@ message StudioAd {
     }
 
     // Unique identifier for the notifications.
-    required string id = 1;
-    required string title = 2;
+    optional string id = 1;
+    optional string title = 2;
     optional string description = 3;
     // The type of ad that needs to be shown.
     optional AdType ad_type = 4;
@@ -69,19 +69,19 @@ message StudioAd {
         MODEL_PICKER = 1;
       }
       // The specific tool window where the tooltip needs to be rendered.
-      required ToolWindow tool_window = 1;
+      optional ToolWindow tool_window = 1;
       // The specific UI position in the tool window where the tooltip needs to
       // be rendered.
-      required Position position = 2;
+      optional Position position = 2;
     }
 
     // Unique identifier for the notifications.
-    required string id = 1;
-    required string title = 2;
+    optional string id = 1;
+    optional string title = 2;
     optional string description = 3;
     // Placement details for the tooltip. If not set, the tooltip will not be
     // shown.
-    required PlacementDetails placement_details = 4;
+    optional PlacementDetails placement_details = 4;
     // List of user actions associated with the notification.
     repeated Actions actions = 5;
   }
