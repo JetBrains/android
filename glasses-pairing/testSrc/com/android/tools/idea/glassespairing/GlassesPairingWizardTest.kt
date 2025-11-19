@@ -20,7 +20,9 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.android.adblib.ConnectedDevice
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.ActivationAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
@@ -29,16 +31,27 @@ import com.android.sdklib.deviceprovisioner.EmptyIcon
 import com.android.sdklib.deviceprovisioner.testing.FakeDeviceProvisionerPlugin
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
+import com.android.tools.idea.glassespairing.LaunchState.*
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.testTimeSource
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 @RunsInEdt
 class GlassesPairingWizardTest {
@@ -97,11 +110,10 @@ class GlassesPairingWizardTest {
       composeTestRule.onNodeWithText("Google Pixel 9").performClick()
       composeTestRule.onNodeWithText("Next").performClick()
 
-      pairingFlow.value =
-        PairingState.Launching("Pixel 9", LaunchState.Booting, "AI Glasses", LaunchState.Booting)
+      pairingFlow.value = PairingState.Launching("Pixel 9", Booting, "AI Glasses", Booting)
 
       composeTestRule.onNodeWithText("Starting devices...").assertIsDisplayed()
-      composeTestRule.onNodeWithText("Waiting for Pixel 9 to boot").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Waiting for AI Glasses to boot").assertIsDisplayed()
 
       pairingFlow.value = PairingState.Pairing("Pairing in progress...")
 
@@ -123,4 +135,86 @@ class GlassesPairingWizardTest {
       coroutineScope.cancel()
     }
   }
+
+  @Test
+  fun testLaunchAvds(): Unit = runTest {
+    val glasses = TestDeviceHandle(this@runTest, "G", activationDelay = 10.seconds)
+    val phone = TestDeviceHandle(this@runTest, "P", activationDelay = 10.seconds)
+
+    val states = flow { launchGlassesAndPhone(glasses, phone) }.toList()
+
+    assertThat(states)
+      .containsExactly(
+        createLaunchingState(phone = Waiting, glasses = Launching),
+        createLaunchingState(phone = Launching, glasses = Launching),
+        createLaunchingState(phone = Launching, glasses = Booting),
+        createLaunchingState(phone = Launching, glasses = Ready),
+        createLaunchingState(phone = Booting, glasses = Ready),
+        createLaunchingState(phone = Ready, glasses = Ready),
+      )
+      .inOrder()
+  }
+
+  @OptIn(ExperimentalTime::class)
+  @Test
+  fun testLaunchAvds_glassesAlreadyRunning(): Unit = runTest {
+    val glasses = TestDeviceHandle(this@runTest, "G", activationDelay = 0.seconds)
+    val phone = TestDeviceHandle(this@runTest, "P", activationDelay = 10.seconds)
+
+    glasses.activationAction!!.activate()
+
+    val duration =
+      testTimeSource.measureTime {
+        val states = flow { launchGlassesAndPhone(glasses, phone) }.toList()
+
+        assertThat(states)
+          .containsExactly(
+            createLaunchingState(phone = Waiting, glasses = Ready),
+            createLaunchingState(phone = Launching, glasses = Ready),
+            createLaunchingState(phone = Booting, glasses = Ready),
+            createLaunchingState(phone = Ready, glasses = Ready),
+          )
+          .inOrder()
+      }
+
+    assertThat(duration).isLessThan(11.seconds)
+  }
 }
+
+private class TestDeviceHandle(
+  scope: CoroutineScope,
+  val name: String,
+  val activationDelay: Duration,
+) :
+  FakeDeviceProvisionerPlugin.FakeDeviceHandle(
+    name,
+    scope,
+    initialState =
+      DeviceState.Disconnected(
+        DeviceProperties.buildForTest {
+          model = name
+          icon = EmptyIcon.DEFAULT
+        }
+      ),
+  ) {
+  override var activationAction: ActivationAction? =
+    object : FakeDeviceProvisionerPlugin.FakeActivationAction() {
+      override suspend fun activate() {
+        delay(activationDelay)
+        stateFlow.value =
+          DeviceState.Connected(
+            state.properties,
+            mock<ConnectedDevice>(),
+            com.android.adblib.DeviceState.ONLINE,
+          )
+      }
+    }
+}
+
+private fun createLaunchingState(phone: LaunchState, glasses: LaunchState) =
+  PairingState.Launching(
+    phoneName = "P",
+    phoneLaunchState = phone,
+    glassesName = "G",
+    glassesLaunchState = glasses,
+  )

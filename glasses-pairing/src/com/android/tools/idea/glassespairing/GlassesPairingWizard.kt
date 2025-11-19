@@ -63,11 +63,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -75,10 +78,12 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
@@ -298,9 +303,9 @@ internal sealed class PairingState {
 
     override val detailText
       get() =
-        when (phoneLaunchState) {
-          LaunchState.Ready -> glassesState()
-          else -> phoneState()
+        when (glassesLaunchState) {
+          LaunchState.Ready -> phoneState()
+          else -> glassesState()
         }
 
     fun phoneState(): String = stateText(phoneName, phoneLaunchState)
@@ -370,20 +375,42 @@ internal fun Project.userInvolvementRequired(deviceHandle: DeviceHandle) {
 private fun isAiGlassesCompatible(handle: DeviceHandle) =
   handle is LocalEmulatorDeviceHandle && handle.avdInfo.isAiGlassesCompatibleDevice
 
+internal suspend fun FlowCollector<PairingState>.launchGlassesAndPhone(
+  glasses: DeviceHandle,
+  phone: DeviceHandle,
+) = coroutineScope {
+  val phoneName = phone.state.properties.title
+  val glassesName = glasses.state.properties.title
+
+  val glassesLaunchState =
+    launchAvd(glasses).shareIn(this@coroutineScope, SharingStarted.Eagerly, replay = 1)
+
+  // Give the glasses a 3 second head start before starting the phone. Start the phone
+  // immediately if glasses are already booted.
+  withTimeoutOrNull(3.seconds) {
+    glassesLaunchState
+      .onEach { emit(PairingState.Launching(phoneName, LaunchState.Waiting, glassesName, it)) }
+      .takeWhile { it in setOf(LaunchState.Waiting, LaunchState.Launching) }
+      .collect()
+  }
+
+  glassesLaunchState
+    .combine(launchAvd(phone)) { glassesState, phoneState ->
+      PairingState.Launching(phoneName, phoneState, glassesName, glassesState)
+    }
+    .onEach { emit(it) }
+    .first {
+      it.phoneLaunchState == LaunchState.Ready && it.glassesLaunchState == LaunchState.Ready
+    }
+}
+
 internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flow<PairingState> {
   val logger = logger<GlassesPairingWizard>()
   val phoneName = phone.state.properties.title
   val glassesName = glasses.state.properties.title
   return flow {
       try {
-        launchAvd(glasses)
-          .combine(launchAvd(phone)) { glassesState, phoneState ->
-            PairingState.Launching(phoneName, phoneState, glassesName, glassesState)
-          }
-          .onEach { emit(it) }
-          .first {
-            it.phoneLaunchState == LaunchState.Ready && it.glassesLaunchState == LaunchState.Ready
-          }
+        launchGlassesAndPhone(glasses, phone)
       } catch (_: TimeoutCancellationException) {
         emit(PairingState.Error("Timed out waiting for devices to start."))
         return@flow
