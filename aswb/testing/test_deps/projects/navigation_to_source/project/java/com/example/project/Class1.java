@@ -17,8 +17,10 @@ package com.example.project;
 
 import com.example.external.ExternalJavaInSrcJar;
 import com.example.external.ExternalJavaSource;
+import com.example.external.ExternalKtInSrcJar;
 import com.example.external.ExternalKtSource;
 import com.example.external.gensrcjar.ExternalJavaSourceInGenSrcjar;
+import com.example.external.gensrcjar.ExternalKtSourceInGenSrcjar;
 
 /** Class1 test class */
 public class Class1 {
@@ -28,6 +30,8 @@ public class Class1 {
     return s.copy(ExternalJavaSource.STRING)
         + s.copy(ExternalKtSource.STRING)
         + ExternalJavaInSrcJar.STRING
-        + ExternalJavaSourceInGenSrcjar.STRING;
+        + ExternalJavaSourceInGenSrcjar.STRING
+        + ExternalKtInSrcJar.STRING
+        + ExternalKtSourceInGenSrcjar.STRING;
   }
 }
