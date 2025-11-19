@@ -3095,7 +3095,12 @@ Android Studio.app/Contents/plugins/gemini/lib/libgoogle_auth_intellij_lib.jar
 Android Studio.app/Contents/plugins/gemini/lib/libjourneys-java-proto.jar
 Android Studio.app/Contents/plugins/gemini/lib/libserviceusage_v1_java_lib.jar
 Android Studio.app/Contents/plugins/gemini/lib/libv1internal_java_rest.jar
+Android Studio.app/Contents/plugins/gemini/lib/lucene-analysis-common-9.12.0.jar
+Android Studio.app/Contents/plugins/gemini/lib/lucene-core-9.12.0.jar
+Android Studio.app/Contents/plugins/gemini/lib/lucene-facet-9.12.0.jar
+Android Studio.app/Contents/plugins/gemini/lib/lucene-queries-9.12.0.jar
 Android Studio.app/Contents/plugins/gemini/lib/lucene-queryparser-9.12.0.jar
+Android Studio.app/Contents/plugins/gemini/lib/lucene-sandbox-9.12.0.jar
 Android Studio.app/Contents/plugins/gemini/lib/mcp-sdk-libraries.jar
 Android Studio.app/Contents/plugins/gemini/lib/openai-java-client-okhttp-4.0.0.jar
 Android Studio.app/Contents/plugins/gemini/lib/openai-java-core-4.0.0.jar
