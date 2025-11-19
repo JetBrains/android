@@ -109,7 +109,6 @@ class FeatureConfigurationOverridesTest {
     val content = """
     #some comments
     group1.flagInternal=INTERNAL
-    group1.flagNightly=NIGHTLY
     group1.flagPreview=PREVIEW
     group1.flagComplete=COMPLETE:2025
     """.trimIndent()
@@ -118,7 +117,6 @@ class FeatureConfigurationOverridesTest {
     val group = FlagGroup(flags, "group1", "display")
     val offFlag = BooleanFlag(group, "flagOff", "name_c", "description_z")
     val internalFlag = BooleanFlag(group, "flagInternal", "name_a", "description_a")
-    val nightlyFlag = BooleanFlag(group, "flagNightly", "name_b", "description_b")
     val previewFlag = BooleanFlag(group, "flagPreview", "name_b", "description_b")
     val completeFlag = BooleanFlag(group, "flagComplete", "name_c", "description_c")
 
@@ -126,25 +124,14 @@ class FeatureConfigurationOverridesTest {
     FeatureConfigurationProvider.loadValues(content.byteInputStream()).let { internal ->
       assertThat(internal.getConfigurationExplanation(offFlag)).isNull()
       assertThat(internal.getConfigurationExplanation(internalFlag)).isEqualTo("Enabled only in internal builds")
-      assertThat(internal.getConfigurationExplanation(nightlyFlag)).isEqualTo("Enabled only in internal and nightly builds")
       assertThat(internal.getConfigurationExplanation(previewFlag)).isEqualTo("Enabled only in internal, nightly and canary builds")
       assertThat(internal.getConfigurationExplanation(completeFlag)).isNull()
-    }
-
-    StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.NIGHTLY)
-    FeatureConfigurationProvider.loadValues(content.byteInputStream()).let { nightly ->
-      assertThat(nightly.getConfigurationExplanation(offFlag)).isNull()
-      assertThat(nightly.getConfigurationExplanation(internalFlag)).isEqualTo("Disabled by default. Enabled only in internal builds")
-      assertThat(nightly.getConfigurationExplanation(nightlyFlag)).isEqualTo("Enabled only in internal and nightly builds")
-      assertThat(nightly.getConfigurationExplanation(previewFlag)).isEqualTo("Enabled only in internal, nightly and canary builds")
-      assertThat(nightly.getConfigurationExplanation(completeFlag)).isNull()
     }
 
     StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.PREVIEW)
     FeatureConfigurationProvider.loadValues(content.byteInputStream()).let { preview ->
       assertThat(preview.getConfigurationExplanation(offFlag)).isNull()
       assertThat(preview.getConfigurationExplanation(internalFlag)).isEqualTo("Disabled by default. Enabled only in internal builds")
-      assertThat(preview.getConfigurationExplanation(nightlyFlag)).isEqualTo("Disabled by default. Enabled only in internal and nightly builds")
       assertThat(preview.getConfigurationExplanation(previewFlag)).isEqualTo("Enabled only in internal, nightly and canary builds")
       assertThat(preview.getConfigurationExplanation(completeFlag)).isNull()
     }
@@ -153,7 +140,6 @@ class FeatureConfigurationOverridesTest {
     FeatureConfigurationProvider.loadValues(content.byteInputStream()).let { complete ->
       assertThat(complete.getConfigurationExplanation(offFlag)).isNull()
       assertThat(complete.getConfigurationExplanation(internalFlag)).isEqualTo("Disabled by default. Enabled only in internal builds")
-      assertThat(complete.getConfigurationExplanation(nightlyFlag)).isEqualTo("Disabled by default. Enabled only in internal and nightly builds")
       assertThat(complete.getConfigurationExplanation(previewFlag)).isEqualTo("Disabled by default. Enabled only in internal, nightly and canary builds")
       assertThat(complete.getConfigurationExplanation(completeFlag)).isNull()
     }

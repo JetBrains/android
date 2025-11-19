@@ -31,7 +31,6 @@ class FeatureConfigurationTest {
     assert(formatFullVersion()).isEqualTo(FeatureConfiguration.INTERNAL)
 
 
-    assert(formatFullVersion(channel = "Nightly")).isEqualTo(FeatureConfiguration.NIGHTLY)
     assert(formatFullVersion(channel = "Canary")).isEqualTo(FeatureConfiguration.PREVIEW)
     assert(formatFullVersion(channel = "Beta")).isEqualTo(FeatureConfiguration.COMPLETE)
     assert(formatFullVersion(channel = "RC")).isEqualTo(FeatureConfiguration.COMPLETE)
