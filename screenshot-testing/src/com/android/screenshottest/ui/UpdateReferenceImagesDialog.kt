@@ -114,7 +114,7 @@ class UpdateReferenceImagesDialog(
         populateCenterPanel()
       }
 
-      val (testId, className, methodName, previewName, destImagePath, srcImagePath) = previewDetails
+      val (testId, className, methodName, previewName, testResult, destImagePath, srcImagePath, diffImagePath, diffPercent) = previewDetails
 
       if(methodName.isNotBlank() && previewName.isNotBlank()) {
 
