@@ -27,6 +27,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.CustomizedDataContext
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
@@ -77,7 +78,7 @@ abstract class SplitEditor<P : FileEditor>(
   private val navigateLeftAction =
     object : AnAction() {
       override fun actionPerformed(e: AnActionEvent) =
-        selectAction(actions.previous(actions.indexOf(getSelectedAction())), true)
+        selectAction(actions.previous(actions.indexOf(getSelectedAction(e))), true, e)
     }
 
   override val isShowFloatingToolbar: Boolean
@@ -88,7 +89,7 @@ abstract class SplitEditor<P : FileEditor>(
   private val navigateRightAction =
     object : AnAction() {
       override fun actionPerformed(e: AnActionEvent) =
-        selectAction(actions.next(actions.indexOf(getSelectedAction())), true)
+        selectAction(actions.next(actions.indexOf(getSelectedAction(e))), true, e)
     }
 
   protected val actions: List<SplitEditorAction> by lazy {
@@ -135,8 +136,8 @@ abstract class SplitEditor<P : FileEditor>(
   override val showPreviewAction: SplitEditorAction
     get() = previewViewAction
 
-  private fun getFakeActionEvent(): AnActionEvent {
-    val parentContext = DataManager.getInstance().getDataContext(component)
+  private fun getFakeActionEvent(context: DataContext?): AnActionEvent {
+    val parentContext = context ?: DataManager.getInstance().getDataContext(component)
     return AnActionEvent.createEvent(
       CustomizedDataContext.withSnapshot(parentContext) { sink ->
         sink[PlatformCoreDataKeys.FILE_EDITOR] = this
@@ -150,11 +151,14 @@ abstract class SplitEditor<P : FileEditor>(
 
   // TODO(b/143210506): Review the current APIs for selecting and checking the current mode to be
   // backed by an enum.
-  fun isTextMode() = textViewAction.isSelected(getFakeActionEvent())
+  fun isTextMode(e: AnActionEvent? = null) =
+    textViewAction.isSelected(getFakeActionEvent(e?.dataContext))
 
-  fun isSplitMode() = splitViewAction.isSelected(getFakeActionEvent())
+  fun isSplitMode(e: AnActionEvent? = null) =
+    splitViewAction.isSelected(getFakeActionEvent(e?.dataContext))
 
-  fun isDesignMode() = previewViewAction.isSelected(getFakeActionEvent())
+  fun isDesignMode(e: AnActionEvent? = null) =
+    previewViewAction.isSelected(getFakeActionEvent(e?.dataContext))
 
   fun selectTextMode(userExplicitlyTriggered: Boolean) = selectAction(showEditorAction, userExplicitlyTriggered)
 
@@ -162,11 +166,16 @@ abstract class SplitEditor<P : FileEditor>(
 
   fun selectDesignMode(userExplicitlyTriggered: Boolean) = selectAction(showPreviewAction, userExplicitlyTriggered)
 
-  protected fun selectAction(action: SplitEditorAction, userExplicitlyTriggered: Boolean) {
-    action.setSelected(getFakeActionEvent(), true, userExplicitlyTriggered)
+  protected fun selectAction(
+    action: SplitEditorAction,
+    userExplicitlyTriggered: Boolean,
+    e: AnActionEvent? = null,
+  ) {
+    action.setSelected(getFakeActionEvent(e?.dataContext), true, userExplicitlyTriggered)
   }
 
-  protected fun getSelectedAction() = actions.firstOrNull { it.isSelected(getFakeActionEvent()) }
+  protected fun getSelectedAction(e: AnActionEvent?) =
+    actions.firstOrNull { it.isSelected(getFakeActionEvent(e?.dataContext)) }
 
   private fun List<SplitEditorAction>.next(selectedIndex: Int): SplitEditorAction {
     return this[(selectedIndex + 1) % this.size]
@@ -262,7 +271,7 @@ abstract class SplitEditor<P : FileEditor>(
 
       val shortcut =
         // Action is on the right of the selected action
-        if (actions.previous(actions.indexOf(this)) == getSelectedAction())
+        if (actions.previous(actions.indexOf(this)) == getSelectedAction(e))
           navigateRightAction.shortcutSet
         // Action is on the left of the selected action
         else navigateLeftAction.shortcutSet
