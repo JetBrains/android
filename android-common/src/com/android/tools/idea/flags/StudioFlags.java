@@ -1857,7 +1857,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> AI_GLASSES_PHONE_EMULATOR_PAIRING_WIZARD_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
     "ai.glasses.phone.emulator.pairing.wizard.enabled",
-    "Enable microai glasses emulator and phone emulator pairing wizard",
+    "Enable AI glasses emulator and phone emulator pairing wizard",
     "Enables the pairing assistant for glasses and phone emulators."
   );
   // endregion
