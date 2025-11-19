@@ -227,18 +227,6 @@ data class BuildGraphDataImpl private constructor(
 
   private data class TargetSearchNode(val targetLabel: Label, val hasDesiredRule: Boolean)
 
-  override fun getTargetSources(
-    target: Label,
-    vararg types: SourceType,
-  ): Set<Path> {
-    val sourceLabels = storage.targetMap[target]?.sourceLabels() ?: return emptySet()
-    return types
-      .flatMap { sourceLabels[it] }
-      .filter { storage.sourceFileLabels.contains(it) }
-      .map { it.toFilePath() }
-      .toSet()
-  }
-
   override fun toString(): String {
     return javaClass.getSimpleName() + "@" + Integer.toHexString(System.identityHashCode(this))
   }
