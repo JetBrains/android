@@ -16,8 +16,8 @@
 package com.android.tools.idea.insights.ai.codecontext
 
 import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState.Companion.getContextSharingState
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
 import com.android.utils.associateWithNotNull
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent

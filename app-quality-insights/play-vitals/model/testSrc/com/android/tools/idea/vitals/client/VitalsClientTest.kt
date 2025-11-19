@@ -16,14 +16,12 @@
 package com.android.tools.idea.vitals.client
 
 import com.android.testutils.time.FakeClock
-import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DataPoint
 import com.android.tools.idea.insights.FAKE_50_DAYS_AGO
 import com.android.tools.idea.insights.FakeTimeProvider
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.StatsGroup
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.ai.AiInsight
@@ -34,10 +32,12 @@ import com.android.tools.idea.insights.client.FakeAiInsightClient
 import com.android.tools.idea.insights.client.GeminiCrashInsightRequest
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
+import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.model.common.Interval
 import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.connection.AppConnection
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.DeviceType
 import com.android.tools.idea.insights.model.event.Event

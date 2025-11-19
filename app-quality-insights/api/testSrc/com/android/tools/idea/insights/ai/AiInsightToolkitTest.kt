@@ -21,10 +21,10 @@ import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus.SUPPORTED
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus.UNSUPPORTED
-import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat

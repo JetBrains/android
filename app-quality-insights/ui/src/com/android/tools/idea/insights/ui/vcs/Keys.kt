@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.tools.idea.insights.Connection
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.vcs.AppVcsInfo
 import com.intellij.openapi.util.Key
 

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.model.common.Interval
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.AppInsightsIssue
 import com.android.tools.idea.insights.model.issue.FailureType
