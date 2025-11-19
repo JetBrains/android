@@ -143,11 +143,13 @@ class NewAndroidComponentActionTest {
 
   @Before
   fun setUp() {
-    val file = projectRule.fixture.addFileToProject("app/src/Test.kt", "fun a() {}").virtualFile
-    val module = ModuleUtilCore.findModuleForFile(file, projectRule.project)!!
+    val file =
+      projectRule.fixture.addFileToProject("app/src/kotlin/Test.kt", "fun a() {}").virtualFile
+    val srcDirectory = file.parent.parent
+    val module = ModuleUtilCore.findModuleForFile(srcDirectory, projectRule.project)!!
 
     mySelectedAndroidFacet = setupFacetForModule(module)
-    myActionEvent = createTestActionEventForFile(file, module)
+    myActionEvent = createTestActionEventForFile(srcDirectory, module)
 
     val presentation = Presentation()
     presentation.setEnabled(false)
@@ -286,7 +288,7 @@ class NewAndroidComponentActionTest {
       } catch (_: InterruptedException) {}
 
       // There should only be 3 compatible templates (_main_, debug, release) since the file is in
-      // the "app/src" directory and the templates without source roots  are filtered out.
+      // the "app/src" directory and the templates without source roots are filtered out.
       val comboBox =
         fakeUi.findComponent(ComboBox::class.java) { combo: ComboBox<*> ->
           "ModuleTemplateCombo" == combo.getName()
