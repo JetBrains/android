@@ -48,6 +48,7 @@ import com.intellij.ui.components.fields.IntegerField
 import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.FocusEvent
+import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTextField
@@ -57,6 +58,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -64,6 +66,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
+@Suppress("OverrideOnly")
 @RunWith(JUnit4::class)
 class ResizePanelTest {
   private val projectRule = AndroidProjectRule.withSdk()
@@ -303,33 +306,31 @@ class ResizePanelTest {
     // Set invalid width
     widthTextField.text = "0"
     loseFocus(widthTextField)
-    assertEquals("error", widthTextField.getClientProperty(OUTLINE_PROPERTY))
-    assertEquals(null, heightTextField.getClientProperty(OUTLINE_PROPERTY))
+    // Should revert
+    assertNull(widthTextField.getClientProperty(OUTLINE_PROPERTY))
+    assertNull(heightTextField.getClientProperty(OUTLINE_PROPERTY))
     assertEquals(initialWidth, configuration.deviceSizeDp().width)
     assertEquals(initialHeight, configuration.deviceSizeDp().height)
 
     // Set invalid height
     heightTextField.text = "9999"
     loseFocus(heightTextField)
-    assertEquals("error", widthTextField.getClientProperty(OUTLINE_PROPERTY))
-    assertEquals("error", heightTextField.getClientProperty(OUTLINE_PROPERTY))
+    // Should revert
+    assertNull(widthTextField.getClientProperty(OUTLINE_PROPERTY))
+    assertNull(heightTextField.getClientProperty(OUTLINE_PROPERTY))
     assertEquals(initialWidth, configuration.deviceSizeDp().width)
     assertEquals(initialHeight, configuration.deviceSizeDp().height)
 
     // Set valid width
     val newWidth = initialWidth + 50
     changeWidthTextField(newWidth)
-    assertEquals(null, widthTextField.getClientProperty(OUTLINE_PROPERTY))
-    // Height is still invalid, so configuration should not change
-    assertEquals("error", heightTextField.getClientProperty(OUTLINE_PROPERTY))
-    assertEquals(initialWidth, configuration.deviceSizeDp().width)
-    assertEquals(initialHeight, configuration.deviceSizeDp().height)
+    assertNull(widthTextField.getClientProperty(OUTLINE_PROPERTY))
 
     // Set valid height
     val newHeight = initialHeight + 50
     changeHeightTextField(newHeight)
-    assertEquals(null, widthTextField.getClientProperty(OUTLINE_PROPERTY))
-    assertEquals(null, heightTextField.getClientProperty(OUTLINE_PROPERTY))
+    assertNull(widthTextField.getClientProperty(OUTLINE_PROPERTY))
+    assertNull(heightTextField.getClientProperty(OUTLINE_PROPERTY))
     assertEquals(newWidth, configuration.deviceSizeDp().width)
     assertEquals(newHeight, configuration.deviceSizeDp().height)
   }
@@ -361,22 +362,23 @@ class ResizePanelTest {
   }
 
   @Test
-  fun `clearing dimension fields shows error`() = runInEdtAndGet {
+  fun `clearing dimension fields reverts on focus lost`() = runInEdtAndGet {
     setupAndShowPanel()
     val initialWidth = widthTextField.value
     val initialHeight = heightTextField.value
 
     widthTextField.text = ""
     loseFocus(widthTextField)
-    assertEquals("error", widthTextField.getClientProperty(OUTLINE_PROPERTY))
-    assertEquals(null, heightTextField.getClientProperty(OUTLINE_PROPERTY))
+    assertEquals(initialWidth.toString(), widthTextField.text)
+    assertNull(widthTextField.getClientProperty(OUTLINE_PROPERTY))
     assertEquals(initialWidth, configuration.deviceSizeDp().width)
     assertEquals(initialHeight, configuration.deviceSizeDp().height)
 
     heightTextField.text = ""
     loseFocus(heightTextField)
-    assertEquals("error", widthTextField.getClientProperty(OUTLINE_PROPERTY))
-    assertEquals("error", heightTextField.getClientProperty(OUTLINE_PROPERTY))
+    assertEquals(initialHeight.toString(), heightTextField.text)
+    assertNull(widthTextField.getClientProperty(OUTLINE_PROPERTY))
+    assertNull(heightTextField.getClientProperty(OUTLINE_PROPERTY))
     // Configuration should not have changed
     assertEquals(initialWidth, configuration.deviceSizeDp().width)
     assertEquals(initialHeight, configuration.deviceSizeDp().height)
@@ -405,13 +407,14 @@ class ResizePanelTest {
   }
 
   @Test
-  fun `invalid value is kept on focus lost`() = runInEdtAndGet {
+  fun `invalid value is reverted on focus lost`() = runInEdtAndGet {
     setupAndShowPanel()
     val invalidValue = "9999" // Larger than MAXIMUM_SIZE_DP
     widthTextField.text = invalidValue
     loseFocus(widthTextField)
-    assertEquals(invalidValue, widthTextField.text)
-    assertEquals("error", widthTextField.getClientProperty(OUTLINE_PROPERTY))
+    val (initialWidth, _) = configuration.deviceSizeDp()
+    assertEquals(initialWidth.toString(), widthTextField.text)
+    assertNull(widthTextField.getClientProperty(OUTLINE_PROPERTY))
   }
 
   @Test
@@ -419,15 +422,14 @@ class ResizePanelTest {
     setupAndShowPanel()
     val invalidValue = "99999"
     widthTextField.text = invalidValue
-    loseFocus(widthTextField) // This will mark the field with an error
-    assertEquals("error", widthTextField.getClientProperty(OUTLINE_PROPERTY))
+    loseFocus(widthTextField)
+    assertNull(widthTextField.getClientProperty(OUTLINE_PROPERTY))
 
     // Simulate an external change to the configuration
     val newDevice = findDifferentDevice(configuration.device)
     configuration.setDevice(newDevice, false)
 
-    // The text field with the error should not have been updated
-    assertEquals(invalidValue, widthTextField.text)
+    assertNotEquals(invalidValue, widthTextField.text)
   }
 
   @Test
@@ -455,6 +457,44 @@ class ResizePanelTest {
     assertEquals("123", widthTextField.text)
   }
 
+  @Test
+  fun `fields with errors are reverted on focus lost`() = runInEdtAndGet {
+    setupAndShowPanel()
+    val (initialWidth, initialHeight) = configuration.deviceSizeDp()
+    val unrelatedComponent = JButton()
+    (fakeUi.root as JPanel).add(unrelatedComponent)
+
+    // Test width field
+    widthTextField.text = ""
+    loseFocus(widthTextField)
+    assertEquals(initialWidth.toString(), widthTextField.text)
+    assertNull(widthTextField.getClientProperty(OUTLINE_PROPERTY))
+
+    // Test height field
+    heightTextField.text = "0"
+    loseFocus(heightTextField)
+    assertEquals(initialHeight.toString(), heightTextField.text)
+    assertNull(heightTextField.getClientProperty(OUTLINE_PROPERTY))
+
+    // Test both fields, losing focus from width
+    widthTextField.text = ""
+    heightTextField.text = ""
+    loseFocus(widthTextField)
+    assertEquals(initialWidth.toString(), widthTextField.text)
+    assertEquals(initialHeight.toString(), heightTextField.text)
+    assertNull(widthTextField.getClientProperty(OUTLINE_PROPERTY))
+    assertNull(heightTextField.getClientProperty(OUTLINE_PROPERTY))
+
+    // Test both fields, losing focus from height
+    widthTextField.text = ""
+    heightTextField.text = ""
+    loseFocus(heightTextField)
+    assertEquals(initialWidth.toString(), widthTextField.text)
+    assertEquals(initialHeight.toString(), heightTextField.text)
+    assertNull(widthTextField.getClientProperty(OUTLINE_PROPERTY))
+    assertNull(heightTextField.getClientProperty(OUTLINE_PROPERTY))
+  }
+
   private fun findDifferentDevice(device: Device?): Device {
     return configuration.settings.devices.first { it.id != device?.id }
   }
@@ -476,7 +516,7 @@ class ResizePanelTest {
   }
 
   private fun loseFocus(component: JComponent) {
-    val focusEvent = FocusEvent(component, FocusEvent.FOCUS_LOST)
+    val focusEvent = FocusEvent(component, FocusEvent.FOCUS_LOST, false, null)
     component.focusListeners.forEach { it.focusLost(focusEvent) }
   }
 
@@ -500,7 +540,7 @@ class ResizePanelTest {
   }
 
   private fun revert() {
-    fakeUi.updateToolbars()
+    @Suppress("DEPRECATION") fakeUi.updateToolbars()
     fakeUi.layoutAndDispatchEvents()
     val revertToolbar =
       fakeUi.findComponent<ActionToolbar> { it.actions.firstOrNull() is ResizePanel.RevertAction }
