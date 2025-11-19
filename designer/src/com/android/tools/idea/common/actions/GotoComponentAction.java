@@ -76,7 +76,7 @@ public class GotoComponentAction extends DumbAwareAction {
 
     FileEditor selectedEditor = mySelectedEditorProvider.apply(surface.getProject());
     if (selectedEditor instanceof DesignToolsSplitEditor splitEditor) {
-      if (splitEditor.isDesignMode()) {
+      if (splitEditor.isDesignMode(e)) {
         // If we're in design mode, we want to change the split editor mode to split mode before navigating to the element.
         splitEditor.selectSplitMode(false);
       }
