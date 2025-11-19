@@ -1041,7 +1041,7 @@ class InferAnnotationsTest {
   private fun addAnnotationSourceExtraFiles(): Array<PsiFile> =
     arrayOf(
       fixture.addFileToProject(
-        "JavaTest.java",
+        "test/pkg/JavaTest.java",
         // language=Java
         """
           package test.pkg;
@@ -1067,7 +1067,7 @@ class InferAnnotationsTest {
           """
       ),
       fixture.addFileToProject(
-        "Constants.kt",
+        "test/pkg/Constants.kt",
         // language=kotlin
         """
           package test.pkg
