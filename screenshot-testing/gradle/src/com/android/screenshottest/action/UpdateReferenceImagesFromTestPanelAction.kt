@@ -54,6 +54,7 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction("Add/Update Reference 
             className = testCase.className,
             methodName = methodName,
             previewName = previewName,
+            testResult = testCase.result,
             destImagePath = artifacts["PreviewScreenshot.refImagePath"],
             srcImagePath = artifacts["PreviewScreenshot.newImagePath"],
             diffImagePath = artifacts["PreviewScreenshot.diffImagePath"],
