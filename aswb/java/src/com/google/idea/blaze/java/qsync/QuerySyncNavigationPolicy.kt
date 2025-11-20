@@ -41,7 +41,9 @@ class QuerySyncNavigationPolicy : ClsCustomNavigationPolicy {
 
     return CachedValuesManager.getCachedValue(clsFile) {
       Result.create(
-        ClassFileJavaSourceFinder(clsFile).findSourceFile(),
+        ClassFileJavaSourceFinder(clsFile).findSourceFile()
+        ?: ClassFileGenSrcJarJavaSourceFinder(clsFile).findSourceFile()
+        ?: ClassFileSrcJarJavaSourceFinder(clsFile).findSourceFile(),
         clsFile,
         QuerySyncManager.getInstance(project).projectModificationTracker
       )
