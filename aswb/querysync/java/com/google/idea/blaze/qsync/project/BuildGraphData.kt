@@ -62,7 +62,7 @@ interface BuildGraphData {
    * Calculates the set of direct reverse dependencies for a set of targets (including the targets
    * themselves).
    */
-  fun getSameLanguageTargetsDependingOn(targets: Set<Label>): ImmutableSet<Label>
+  fun getSameLanguageTargetsDependingOn(targets: Set<Label>): Set<Label>
 
   /**
    * Calculates the first targets of a given set of rule types along any given dependency path for a
