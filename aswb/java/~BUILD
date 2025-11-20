@@ -22,7 +22,10 @@ load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 aswb_library(
     name = "java",
     srcs = glob(
-        ["src/**/*.java"],
+        [
+            "src/**/*.java",
+            "src/**/*.kt",
+        ],
     ),
     javacopts = ["-Xep:FutureReturnValueIgnored:OFF"],
     visibility = PLUGIN_PACKAGES_VISIBILITY,
