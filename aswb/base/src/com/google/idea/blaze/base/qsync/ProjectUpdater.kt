@@ -21,13 +21,17 @@ import com.intellij.java.workspace.entities.javaSourceRoots
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.BaseProjectDirectories
+import com.intellij.openapi.project.BaseProjectDirectories.Companion.getBaseDirectories
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.RootsChangeRescanningInfo
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
 import com.intellij.openapi.util.EmptyRunnable
 import com.intellij.openapi.util.JDOMUtil
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.newvfs.RefreshQueue
 import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.workspace.jps.JpsProjectFileEntitySource
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
@@ -94,9 +98,15 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
       context.output(PrintOutput.output("IDE project structure up-to-date"))
       return
     }
+    val oldBaseDirectories = project.getBaseDirectories()
     EntityWorker(project, querySyncProject, newProjectProtoSnapshot, context).updateProjectModel()
     updateProjectModel(querySyncProject, newProjectProtoSnapshot, context)
     lastProjectProtoSnapshot = newProjectProtoSnapshot
+    val newBaseDirectories = project.getBaseDirectories()
+    val newlyAddedBaseDirectories = newBaseDirectories - oldBaseDirectories
+    if (newBaseDirectories.isNotEmpty()) {
+      VfsUtil.markDirtyAndRefresh(true, true, false, *newlyAddedBaseDirectories.toTypedArray())
+    }
   }
 
   data class ProjectData(
