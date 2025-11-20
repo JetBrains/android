@@ -37,7 +37,8 @@ enum class AndroidCoreTestProject(
   override val setup: () -> () -> Unit = { {} },
   override val patch: (AgpVersionSoftwareEnvironment.(projectRoot: File) -> Unit)? = null,
   override val expectedSyncIssues: Set<Int> = emptySet(),
-  override val verifyOpened: ((Project) -> Unit)? = null
+  override val verifyOpened: ((Project) -> Unit)? = null,
+  private val additionalRepos: Collection<File> = listOf()
 ) : TemplateBasedTestProject {
   ANDROID_KOTLIN_MULTIPLATFORM(TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM),
   ANDROID_LIBRARY_AS_TEST_DEPENDENCY(TestProjectPaths.ANDROID_LIBRARY_AS_TEST_DEPENDENCY),
@@ -97,16 +98,16 @@ enum class AndroidCoreTestProject(
   NAVIGATION_EDITOR_INCLUDE_FROM_LIB(TestProjectPaths.NAVIGATION_EDITOR_INCLUDE_FROM_LIB),
   NESTED_MODULE(TestProjectPaths.NESTED_MODULE),
   PROJECT_WITH_APPAND_LIB(TestProjectPaths.PROJECT_WITH_APPAND_LIB),
-  PSD_DEPENDENCY(TestProjectPaths.PSD_DEPENDENCY),
-  PSD_DEPENDENCY_CATALOG(TestProjectPaths.PSD_DEPENDENCY_CATALOG),
+  PSD_DEPENDENCY(TestProjectPaths.PSD_DEPENDENCY, additionalRepos = listOf(getPsdSampleRepo())),
+  PSD_DEPENDENCY_CATALOG(TestProjectPaths.PSD_DEPENDENCY_CATALOG, additionalRepos = listOf(getPsdSampleRepo())),
   PSD_BOM(TestProjectPaths.PSD_BOM),
   PSD_PROJECT_DIR(TestProjectPaths.PSD_PROJECT_DIR),
   PSD_SAMPLE_GROOVY(TestProjectPaths.PSD_SAMPLE_GROOVY),
   PSD_SAMPLE_KOTLIN(TestProjectPaths.PSD_SAMPLE_KOTLIN),
-  PSD_UPGRADE(TestProjectPaths.PSD_UPGRADE),
+  PSD_UPGRADE(TestProjectPaths.PSD_UPGRADE, additionalRepos = listOf(getPsdSampleRepo())),
   PSD_VERSION_CATALOG_SAMPLE_GROOVY(TestProjectPaths.PSD_VERSION_CATALOG_SAMPLE_GROOVY),
   PSD_MULTI_VERSION_CATALOG_SAMPLE_GROOVY(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG),
-  PSD_VARIANT_COLLISIONS(TestProjectPaths.PSD_VARIANT_COLLISIONS),
+  PSD_VARIANT_COLLISIONS(TestProjectPaths.PSD_VARIANT_COLLISIONS, additionalRepos = listOf(getPsdSampleRepo())),
   RUN_APP_36(TestProjectPaths.RUN_APP_36),
   PROJECT_WITH_APP_AND_LIB_DEPENDENCY(TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY),
   RUN_CONFIG_ACTIVITY(TestProjectPaths.RUN_CONFIG_ACTIVITY),
@@ -138,6 +139,8 @@ enum class AndroidCoreTestProject(
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData"
 
-  override fun getAdditionalRepos(): Collection<File> =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)))
+  override fun getAdditionalRepos(): Collection<File> = additionalRepos
 }
+
+private fun getPsdSampleRepo(): File =
+  File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO))
