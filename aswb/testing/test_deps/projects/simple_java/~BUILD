@@ -13,8 +13,6 @@ java_library(
 
 java_library(
     name = "lib",
-    srcs = glob(["java/com/example/lib/*.java"]),
+    srcs = glob(["java/com/example/lib/*.java"]),  # Note: lib is replaced with lib1 in some tests.
     visibility = ["//visibility:public"],
-    deps = [
-    ],
 )
