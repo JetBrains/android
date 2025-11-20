@@ -103,8 +103,8 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
   val profilers = taskHomeTabModel.profilers
 
   val canStartTask = canStartTask(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint, profilers)
-  Row(modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP).background(
-    color = JewelTheme.globalColors.panelBackground.copy(alpha = 1.0f)), verticalAlignment = Alignment.CenterVertically,
+  Row(modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP),
+      verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP)) {
 
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start) {
