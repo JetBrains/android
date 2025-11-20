@@ -1,0 +1,17 @@
+buildscript {
+  repositories {
+    jcenter()
+    google()
+  }
+  dependencies {
+    val ksp_version = "2.3.0"
+    classpath("com.android.tools.build:gradle:4.2.0")
+    classpath("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:${ksp_version}")
+  }
+}
+
+allprojects {
+  repositories {
+    jcenter()
+  }
+}
