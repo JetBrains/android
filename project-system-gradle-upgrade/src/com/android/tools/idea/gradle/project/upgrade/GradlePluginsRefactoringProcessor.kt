@@ -250,6 +250,17 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_13, VERSION_FOR_DEV -> Version.parse("1.2.4")
       }
 
+    fun `kotlin-symbol-processing-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
+      when (compatibleGradleVersion) {
+        // do not recommend a specific KSP version before 9.0
+        VERSION_4_4, VERSION_4_6, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
+        VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_8_0, VERSION_8_2,
+        VERSION_8_4, VERSION_8_6, VERSION_8_7, VERSION_8_9, VERSION_8_10_2, VERSION_8_11_1,
+        VERSION_8_13 -> UNDEFINED_VERSION
+        VERSION_FOR_DEV -> Version.parse("2.3.2")
+      }
+
+
     /**
      * This table contains both the artifact names and the plugin names of the well known plugins, as each of them can be used to
      * declare that a project uses a given plugin or set of plugins (one through a `classpath` configuration, the other through the
@@ -291,7 +302,13 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
       "androidx.benchmark:benchmark-baseline-profile-gradle-plugin" to ::`androidx-baselineprofile-gradle-plugin-compatibility-info`,
       "androidx.baselineprofile" to ::`androidx-baselineprofile-gradle-plugin-compatibility-info`,
+
+      "com.google.devtools.ksp:symbol-processing-gradle-plugin" to :: `kotlin-symbol-processing-gradle-plugin-compatibility-info`,
+      "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin" to :: `kotlin-symbol-processing-gradle-plugin-compatibility-info`,
+      "com.google.devtools.ksp" to :: `kotlin-symbol-processing-gradle-plugin-compatibility-info`,
     )
+
+    val UNDEFINED_VERSION = Version.prefixInfimum("dev")
   }
 }
 
