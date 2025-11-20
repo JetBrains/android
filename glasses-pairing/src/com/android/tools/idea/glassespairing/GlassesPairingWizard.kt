@@ -192,7 +192,8 @@ internal constructor(
         PairingStateHorizontalProgress(
           header = "No compatible AVDs found.",
           detail =
-            "Glasses pairing requires a Canary system image that includes AI Glasses support.",
+            "Glasses pairing requires a Canary system image that includes AI Glasses support.\n\n" +
+              "Please create one in Device Manager.",
           showProgressBar = false,
         )
       } else {
@@ -387,12 +388,12 @@ internal suspend fun FlowCollector<PairingState>.launchGlassesAndPhone(
   val glassesLaunchState =
     launchAvd(glasses).shareIn(this@coroutineScope, SharingStarted.Eagerly, replay = 1)
 
-  // Give the glasses a 3 second head start before starting the phone. Start the phone
+  // Give the glasses a 10 second head start before starting the phone. Start the phone
   // immediately if glasses are already booted.
-  withTimeoutOrNull(3.seconds) {
+  withTimeoutOrNull(10.seconds) {
     glassesLaunchState
       .onEach { emit(PairingState.Launching(phoneName, LaunchState.Waiting, glassesName, it)) }
-      .takeWhile { it in setOf(LaunchState.Waiting, LaunchState.Launching) }
+      .takeWhile { it != LaunchState.Ready }
       .collect()
   }
 

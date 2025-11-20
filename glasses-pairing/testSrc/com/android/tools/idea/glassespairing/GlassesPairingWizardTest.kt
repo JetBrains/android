@@ -46,6 +46,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.testTimeSource
@@ -138,15 +139,17 @@ class GlassesPairingWizardTest {
 
   @Test
   fun testLaunchAvds(): Unit = runTest {
-    val glasses = TestDeviceHandle(this@runTest, "G", activationDelay = 10.seconds)
-    val phone = TestDeviceHandle(this@runTest, "P", activationDelay = 10.seconds)
+    val glasses =
+      TestDeviceHandle(this@runTest, "G", activationDelay = 8.seconds, bootDelay = 5.seconds)
+    val phone =
+      TestDeviceHandle(this@runTest, "P", activationDelay = 8.seconds, bootDelay = 5.seconds)
 
     val states = flow { launchGlassesAndPhone(glasses, phone) }.toList()
 
     assertThat(states)
       .containsExactly(
         createLaunchingState(phone = Waiting, glasses = Launching),
-        createLaunchingState(phone = Launching, glasses = Launching),
+        createLaunchingState(phone = Waiting, glasses = Booting),
         createLaunchingState(phone = Launching, glasses = Booting),
         createLaunchingState(phone = Launching, glasses = Ready),
         createLaunchingState(phone = Booting, glasses = Ready),
@@ -159,7 +162,8 @@ class GlassesPairingWizardTest {
   @Test
   fun testLaunchAvds_glassesAlreadyRunning(): Unit = runTest {
     val glasses = TestDeviceHandle(this@runTest, "G", activationDelay = 0.seconds)
-    val phone = TestDeviceHandle(this@runTest, "P", activationDelay = 10.seconds)
+    val phone =
+      TestDeviceHandle(this@runTest, "P", activationDelay = 4.seconds, bootDelay = 4.seconds)
 
     glasses.activationAction!!.activate()
 
@@ -177,7 +181,7 @@ class GlassesPairingWizardTest {
           .inOrder()
       }
 
-    assertThat(duration).isLessThan(11.seconds)
+    assertThat(duration).isLessThan(9.seconds)
   }
 }
 
@@ -185,6 +189,7 @@ private class TestDeviceHandle(
   scope: CoroutineScope,
   val name: String,
   val activationDelay: Duration,
+  val bootDelay: Duration = 0.seconds,
 ) :
   FakeDeviceProvisionerPlugin.FakeDeviceHandle(
     name,
@@ -203,10 +208,23 @@ private class TestDeviceHandle(
         delay(activationDelay)
         stateFlow.value =
           DeviceState.Connected(
-            state.properties,
-            mock<ConnectedDevice>(),
-            com.android.adblib.DeviceState.ONLINE,
+            properties = state.properties,
+            connectedDevice = mock<ConnectedDevice>(),
+            isTransitioning = true,
+            isReady = false,
+            status = "Online",
           )
+        scope.launch {
+          delay(bootDelay)
+          stateFlow.value =
+            DeviceState.Connected(
+              properties = state.properties,
+              connectedDevice = mock<ConnectedDevice>(),
+              isTransitioning = false,
+              isReady = true,
+              status = "Online",
+            )
+        }
       }
     }
 }
