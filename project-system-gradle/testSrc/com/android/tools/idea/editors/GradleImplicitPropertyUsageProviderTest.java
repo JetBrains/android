@@ -34,8 +34,7 @@ public class GradleImplicitPropertyUsageProviderTest extends AndroidTestCase {
   public void testGradleWrapper() {
     Project project = getProject();
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(new GradleProjectSystem(project));
-    VirtualFile vFile = myFixture.copyFileToProject("projects/projectWithAppandLib/gradle/wrapper/gradle-wrapper.properties",
-                                                    "wrapper/gradle-wrapper.properties");
+    VirtualFile vFile = myFixture.copyFileToProject("gradle-wrapper.properties", "gradle-wrapper.properties");
     PsiFile file = PsiManager.getInstance(project).findFile(vFile);
     assertNotNull(file);
     PropertiesFile propertiesFile = (PropertiesFile)file;
@@ -83,7 +82,7 @@ public class GradleImplicitPropertyUsageProviderTest extends AndroidTestCase {
 
   public void testNothingUsedInNonGradleProject() {
     Map<String, String> sourceToTargetMap = Arrays.stream(new Object[][]{
-      {"projects/projectWithAppandLib/gradle/wrapper/gradle-wrapper.properties", "wrapper/gradle-wrapper.properties"},
+      {"gradle-wrapper.properties", "gradle-wrapper.properties"},
       {"test.properties", "local.properties"}
     }).collect(Collectors.toMap((o) -> (String)o[0], (o) -> (String)o[1]));
     for (Map.Entry<String, String> e : sourceToTargetMap.entrySet()) {
