@@ -15,6 +15,7 @@
  */
 package com.android.screenshottest.action
 
+import com.android.screenshottest.util.UpdateReferenceImagesActionUtils
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testartifacts.screenshot.isScreenshotTestSourceSet
 import com.intellij.execution.actions.ConfigurationContext
@@ -26,7 +27,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 
 class UpdateReferenceImagesInDirectoryAction : UpdateReferenceImagesBaseAction(
-  "Add/Update Reference Images",
+  UpdateReferenceImagesActionUtils.UPDATE_ACTION_TEXT,
   "Updates the reference images for screenshot tests in this directory.", AllIcons.FileTypes.Image
 ) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
