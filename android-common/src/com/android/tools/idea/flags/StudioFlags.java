@@ -26,7 +26,6 @@ import com.android.flags.FlagValueContainer;
 import com.android.flags.Flags;
 import com.android.flags.IntFlag;
 import com.android.flags.LongFlag;
-import com.android.flags.StaticFlagDefault;
 import com.android.flags.StringFlag;
 import com.android.flags.overrides.InMemoryFlagValueContainer;
 import com.android.flags.overrides.PropertyOverrides;
@@ -42,10 +41,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.Cancellation;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1706,6 +1702,9 @@ public final class StudioFlags {
     COMPOSE, "preview.reference.provider.enabled", "Enable Compose Preview Reference Provider",
     "If enabled, the Compose Preview Reference Provider will be available for context attachment."
   );
+  public static final Flag<Boolean> COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK = new BooleanFlag(
+    COMPOSE, "interactive.preview.predictive.back", "Enable predictive back navigation in Interactive Preview",
+    "When using navigation3, enables a bottom panel to interact with the predictive back feature.");
   //endregion
 
   // region Wear surfaces
