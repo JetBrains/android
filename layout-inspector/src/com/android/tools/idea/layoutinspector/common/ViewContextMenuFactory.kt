@@ -39,10 +39,10 @@ import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.PopupMenuListenerAdapter
 import com.intellij.util.text.nullize
-import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
 import javax.swing.event.PopupMenuEvent
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Show contextual menu.
@@ -147,7 +147,7 @@ private class HideSubtreeAction(
   val viewNode: ViewNode,
 ) : AnAction("Hide Subtree") {
   override fun actionPerformed(event: AnActionEvent) {
-    if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+    if (canUseSkp()) {
       client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
     }
     inspectorModel.hideSubtree(viewNode)
@@ -167,7 +167,7 @@ private class ShowOnlySubtreeAction(
   val viewNode: ViewNode,
 ) : AnAction("Show Only Subtree") {
   override fun actionPerformed(event: AnActionEvent) {
-    if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+    if (canUseSkp()) {
       client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
     }
     inspectorModel.showOnlySubtree(viewNode)
@@ -182,7 +182,7 @@ private class ShowOnlyParentsAction(
   val viewNode: ViewNode,
 ) : AnAction("Show Only Parents") {
   override fun actionPerformed(event: AnActionEvent) {
-    if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+    if (canUseSkp()) {
       client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
     }
     inspectorModel.showOnlyParents(viewNode)
@@ -197,7 +197,7 @@ private class ShowSubtreeAction(
   val viewNode: ViewNode,
 ) : AnAction("Show Subtree") {
   override fun actionPerformed(event: AnActionEvent) {
-    if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+    if (canUseSkp()) {
       client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
     }
     inspectorModel.showSubtree(viewNode)
@@ -229,5 +229,13 @@ class SelectViewAction(val view: ViewNode, val inspectorModel: InspectorModel) :
 
     // This action is only performed from mouse clicks on the image
     LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.selectionMadeFromImage(view)
+  }
+}
+
+private fun canUseSkp(): Boolean {
+  return when {
+    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled -> false
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_STANDALONE_V2.get() -> false
+    else -> true
   }
 }
