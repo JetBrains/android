@@ -23,6 +23,7 @@ aswb_library(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project/update",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query:querysummary_java_proto",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/traverser",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/shared:vcs",
