@@ -41,4 +41,9 @@ interface ProjectStructureReader {
     workspaceRoot: Path,
     projectDefinition: ProjectDefinition,
   ): ProjectStructureData
+
+  companion object {
+    fun create(fileExtensions: FileExtensions): ProjectStructureReader =
+      ProjectStructureReaderImpl(fileExtensions)
+  }
 }
