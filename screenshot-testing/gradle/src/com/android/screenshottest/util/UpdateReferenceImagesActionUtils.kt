@@ -13,17 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.screenshottest.action
+package com.android.screenshottest.util
 
-import com.android.screenshottest.util.UpdateReferenceImagesActionUtils
-import com.intellij.icons.AllIcons
-
-/**
- * Action to add or update the reference images for screenshot tests.
- * This action must be stateless, as the IDE creates a single instance.
- */
-class UpdateReferenceImagesAction : UpdateReferenceImagesBaseAction(
-  UpdateReferenceImagesActionUtils.UPDATE_ACTION_TEXT,
-  "Updates the reference images for screenshot tests.",
-  AllIcons.FileTypes.Image
-)
+class UpdateReferenceImagesActionUtils {
+    companion object {
+        const val UPDATE_ACTION_TEXT = "Add/Update Reference Images..."
+    }
+}
