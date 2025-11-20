@@ -84,12 +84,18 @@ class NewFloatingToolbarProvider(component: JComponent, disposable: Disposable) 
 
   override fun getActionGroups() =
     object : EditorActionsToolbarActionGroups {
-      override val zoomControlsGroup: ActionGroup
-        get() =
-          DefaultActionGroup().apply {
-            add(ZoomInAction.getInstance())
-            add(ZoomOutAction.getInstance())
-            add(ZoomToFitAction.getInstance())
-          }
+      /** Label shown when the zoom changes */
+      override val zoomLabelGroup =
+        DefaultActionGroup().apply {
+          add(ZoomLabelAction)
+          add(ZoomResetAction)
+        }
+
+      override val zoomControlsGroup =
+        DefaultActionGroup().apply {
+          add(ZoomInAction.getInstance())
+          add(ZoomOutAction.getInstance())
+          add(ZoomToFitAction.getInstance())
+        }
     }
 }
