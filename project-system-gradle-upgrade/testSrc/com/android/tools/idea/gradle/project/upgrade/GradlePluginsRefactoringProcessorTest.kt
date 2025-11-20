@@ -448,6 +448,24 @@ class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testKspVersionTo80() {
+    writeToBuildFile(TestFileName("GradlePlugins/KspVersion"))
+    val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("3.4.0"), AgpVersion.parse("8.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/KspVersion"))
+  }
+
+  @Test
+  fun testKspVersionTo90() {
+    writeToBuildFile(TestFileName("GradlePlugins/KspVersion"))
+    val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("3.4.0"), AgpVersion.parse("9.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/KspVersion90Expected"))
+  }
+
+  @Test
   fun testUnresolvableVersionInBuildscriptClasspath() {
     writeToBuildFile(TestFileName("GradlePlugins/UnresolvableVersionInBuildscriptClasspath"))
     writeToVersionCatalogFile(TestFileName("GradlePlugins/UnresolvableVersionCatalog"))
