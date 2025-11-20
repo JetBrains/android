@@ -96,7 +96,6 @@ internal class StateInspectionModelImpl(
   private val _show = MutableStateFlow(false)
   override val show = _show.asStateFlow()
 
-  // TODO(b/441353152): Request an icon for this feature:
   override val prevAction =
     createAction(
       AllIcons.Actions.Play_back,
@@ -108,7 +107,6 @@ internal class StateInspectionModelImpl(
   private val _recompositionText = MutableStateFlow("")
   override val recompositionText = _recompositionText.asStateFlow()
 
-  // TODO(b/441353152): Request an icon for this feature:
   override val nextAction =
     createAction(
       AllIcons.Actions.Play_forward,
