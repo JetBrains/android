@@ -38,6 +38,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import java.util.concurrent.Executor
 import kotlinx.coroutines.CoroutineScope
@@ -114,8 +115,16 @@ class DatabaseInspectorClient(
       }
       event.hasErrorOccurred() -> {
         val errorContent = event.errorOccurred.content
-        val errorMessage = getErrorMessage((errorContent))
+        val errorMessage = getErrorMessage(errorContent)
         onErrorEventListener(errorMessage)
+        val log = buildString {
+          append(errorMessage)
+          if (errorContent.stackTrace.isNotEmpty()) {
+            append('\n')
+            append(errorContent.stackTrace)
+          }
+        }
+        thisLogger().warn(log)
       }
     }
   }
