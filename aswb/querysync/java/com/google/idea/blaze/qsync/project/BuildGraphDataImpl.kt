@@ -17,8 +17,6 @@ package com.google.idea.blaze.qsync.project
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Preconditions
-import com.google.common.collect.ImmutableMap
-import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Queues
 import com.google.common.graph.Traverser
 import com.google.idea.blaze.common.Context
@@ -97,24 +95,24 @@ data class BuildGraphDataImpl private constructor(
    * Calculates the set of direct reverse dependencies for a set of targets (including the targets
    * themselves).
    */
-  override fun getSameLanguageTargetsDependingOn(targets: Set<Label>): ImmutableSet<Label> {
-    val directRdeps = ImmutableSet.builder<Label>()
-    directRdeps.addAll(targets)
-    for (target in targets) {
-      val targetLanguages = storage.targetMap[target]?.languages().orEmpty()
-      // filter the rdeps based on the languages, removing those that don't have a common
-      // language. This ensures we don't follow reverse deps of (e.g.) a java target depending on
-      // a cc target.
-      getRdeps(target)
-        .filter {
-          !Collections.disjoint(
-            storage.targetMap[it]?.languages().orEmpty(),
-            targetLanguages
-          )
-        }
-        .forEach { directRdeps.add(it) }
+  override fun getSameLanguageTargetsDependingOn(targets: Set<Label>): Set<Label> {
+    return buildSet {
+      addAll(targets)
+      for (target in targets) {
+        val targetLanguages = storage.targetMap[target]?.languages().orEmpty()
+        // filter the rdeps based on the languages, removing those that don't have a common
+        // language. This ensures we don't follow reverse deps of (e.g.) a java target depending on
+        // a cc target.
+        getRdeps(target)
+          .filter {
+            !Collections.disjoint(
+              storage.targetMap[it]?.languages().orEmpty(),
+              targetLanguages
+            )
+          }
+          .forEach { add(it) }
+      }
     }
-    return directRdeps.build()
   }
 
   /**
@@ -263,12 +261,12 @@ data class BuildGraphDataImpl private constructor(
      * Builder for [BuildGraphDataImpl].
      */
     class Builder {
-      private val sourceFileLabelsBuilder = ImmutableSet.builder<Label>()
-      private val targetMapBuilder = ImmutableMap.builder<Label, ProjectTarget>()
-      private val allTargetLabelsBuilder = ImmutableSet.builder<Label>()
+      private val sourceFileLabelsBuilder = mutableSetOf<Label>()
+      private val targetMapBuilder = mutableMapOf<Label, ProjectTarget>()
+      private val allTargetLabelsBuilder = mutableSetOf<Label>()
 
       fun build(projectDefinitionTargetPatterns: TargetPatternCollection, alwaysBuildRules: Set<String>): BuildGraphDataImpl {
-        val storage = Storage(sourceFileLabelsBuilder.build(), targetMapBuilder.build(), allTargetLabelsBuilder.build())
+        val storage = Storage(sourceFileLabelsBuilder, targetMapBuilder, allTargetLabelsBuilder)
         val sourceOwners = computeSourceOwners(storage)
         val alwaysBuildTargets = computeAlwaysBuildTargets(storage, sourceOwners, alwaysBuildRules)
         return BuildGraphDataImpl(
@@ -373,7 +371,7 @@ data class BuildGraphDataImpl private constructor(
         could end up selecting one that doesn't build in the current config. Allow the user to
         choose, or require the projects source -> target mapping to be unambiguous instead."""
   )
-  override fun selectLabelWithLeastDeps(candidates: Collection<Label>): Label? {
+  override fun selectLabelWithLeastDeps(candidates: Collection<Label>): Label {
     return candidates.minBy { storage.targetMap[it]?.deps()?.size ?: Int.MAX_VALUE }
   }
 
@@ -525,7 +523,7 @@ data class BuildGraphDataImpl private constructor(
       projectTargets.forEach { label ->
         val target = storage.targetMap[label]
                      ?: let {
-                       add(label); // Unknown target requested so let's just return it.
+                       add(label) // Unknown target requested so let's just return it.
                        return@forEach
                      }
         var newSourceFileAdded = false
@@ -568,20 +566,20 @@ data class BuildGraphDataImpl private constructor(
   }
 
   override fun getActiveLanguages(): Set<QuerySyncLanguage> {
-    val activeLanguages = ImmutableSet.builder<QuerySyncLanguage>()
-    if (storage.targetMap.values.asSequence()
-        .map { it.kind() }
-        .any(RuleKinds::isJava)
-    ) {
-      activeLanguages.add(QuerySyncLanguage.JVM)
+    return buildSet {
+      if (storage.targetMap.values.asSequence()
+          .map { it.kind() }
+          .any(RuleKinds::isJava)
+      ) {
+        add(QuerySyncLanguage.JVM)
+      }
+      if (storage.targetMap.values.asSequence()
+          .map { it.kind() }
+          .any(RuleKinds::isCc)
+      ) {
+        add(QuerySyncLanguage.CC)
+      }
     }
-    if (storage.targetMap.values.asSequence()
-        .map { it.kind() }
-        .any(RuleKinds::isCc)
-    ) {
-      activeLanguages.add(QuerySyncLanguage.CC)
-    }
-    return activeLanguages.build()
   }
 
   private fun getRdeps(target: Label): Set<Label> {
@@ -634,7 +632,7 @@ data class BuildGraphDataImpl private constructor(
 
     @JvmStatic
     fun builder(): Storage.Builder {
-      return Storage.Companion.builder()
+      return Storage.builder()
     }
 
     private fun computeRdeps(storage: Storage): Map<Label, Deps<out Label>> {
