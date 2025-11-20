@@ -27,8 +27,17 @@ import java.util.concurrent.atomic.AtomicInteger
 
 private val WORKER_COUNT = IntExperiment("aswb.query.sync.structure.worker.count", 50)
 
+/**
+ * Holds the results of processing a single directory, separating files and subdirectories.
+ *
+ * @property files A list of regular files found within the directory.
+ * @property subDirectories A list of subdirectories found within the directory.
+ */
+data class DirectoryContents(val files: List<Path>, val subDirectories: List<Path>)
+
+/** Defines the contract for processing a directory during traversal. */
 fun interface DirectoryProcessor {
-  suspend fun processDirectory(currentDir: Path): List<Path>
+  suspend fun processDirectory(currentDir: Path): DirectoryContents?
 }
 
 suspend fun traverseIncludedDirectories(includeAbsolute: List<Path>, directoryProcessor: DirectoryProcessor) {
@@ -48,8 +57,8 @@ suspend fun traverseIncludedDirectories(includeAbsolute: List<Path>, directoryPr
       launch(QuerySyncDispatchers.IO) {
         for (dir in directoryChannel) {
           runCatching {
-            val subDirs = directoryProcessor.processDirectory(dir)
-            subDirs.forEach { subDir ->
+            val contents = directoryProcessor.processDirectory(dir)
+            contents?.subDirectories?.forEach { subDir ->
               offerDir(subDir)
             }
           }
