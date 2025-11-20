@@ -87,7 +87,9 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
   private fun getSourceFile(ktClsFile: KtClsFile, project: Project): PsiFile? {
     return CachedValuesManager.getCachedValue(ktClsFile) {
       Result.create(
-        ClassFileKtSourceFinder(ktClsFile).findSourceFile(),
+        ClassFileKtSourceFinder(ktClsFile).findSourceFile()
+        ?: ClassFileGenSrcJarJavaSourceFinder(ktClsFile).findSourceFile()
+        ?: ClassFileSrcJarJavaSourceFinder(ktClsFile).findSourceFile(),
         ktClsFile,
         QuerySyncManager.getInstance(project).projectModificationTracker
       )
