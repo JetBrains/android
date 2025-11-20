@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.editors;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.idea.project.DefaultProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
+import com.android.tools.tests.FixtureRule;
 import com.intellij.lang.properties.IProperty;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.lang.properties.psi.Property;
@@ -24,34 +28,52 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.AndroidTestBase;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 
-public class GradleImplicitPropertyUsageProviderTest extends AndroidTestCase {
+@RunsInEdt
+public class GradleImplicitPropertyUsageProviderTest {
+  FixtureRule fixtureRule = FixtureRule.Companion.onDisk();
+  @Rule public TestRule rule = RuleChain.outerRule(fixtureRule).around(new EdtRule());
+
+  @Before
+  public void before() {
+    fixtureRule.getFixture().setTestDataPath(AndroidTestBase.getTestDataPath());
+  }
+
+  @Test
   public void testGradleWrapper() {
-    Project project = getProject();
+    Project project = fixtureRule.getProject();
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(new GradleProjectSystem(project));
-    VirtualFile vFile = myFixture.copyFileToProject("gradle-wrapper.properties", "gradle-wrapper.properties");
+    VirtualFile vFile = fixtureRule.getFixture().copyFileToProject("gradle-wrapper.properties", "gradle-wrapper.properties");
     PsiFile file = PsiManager.getInstance(project).findFile(vFile);
-    assertNotNull(file);
+    assertThat(file).isNotNull();
     PropertiesFile propertiesFile = (PropertiesFile)file;
     GradleImplicitPropertyUsageProvider provider = new GradleImplicitPropertyUsageProvider();
     for (IProperty property : propertiesFile.getProperties()) {
       // All properties are considered used in this file
       String name = property.getName();
-      assertTrue(name, provider.isUsed((Property)property));
+      assertThat(provider.isUsed((Property)property)).named("%s", name).isTrue();
     }
   }
 
+  @Test
   public void testLocalProperties() {
-    Project project = getProject();
+    Project project = fixtureRule.getProject();
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(new GradleProjectSystem(project));
-    VirtualFile vFile = myFixture.copyFileToProject("test.properties", "local.properties");
+    VirtualFile vFile = fixtureRule.getFixture().copyFileToProject("test.properties", "local.properties");
     PsiFile file = PsiManager.getInstance(project).findFile(vFile);
-    assertNotNull(file);
+    assertThat(file).isNotNull();
     PropertiesFile propertiesFile = (PropertiesFile)file;
     GradleImplicitPropertyUsageProvider provider = new GradleImplicitPropertyUsageProvider();
     for (IProperty property : propertiesFile.getProperties()) {
@@ -59,47 +81,51 @@ public class GradleImplicitPropertyUsageProviderTest extends AndroidTestCase {
       // Only but the property with "unused" in its name are considered used
       String name = property.getName();
       if (name.contains("unused")) {
-        assertFalse(name, provider.isUsed(p));
+        assertThat(provider.isUsed(p)).named("%s", name).isFalse();
       } else {
-        assertTrue(name, provider.isUsed(p));
+        assertThat(provider.isUsed(p)).named("%s", name).isTrue();
       }
     }
   }
 
   // Regression test for b/298540715
+  @Test
   public void testResourcesProperties() {
-    Project project = getProject();
+    Project project = fixtureRule.getProject();
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(new GradleProjectSystem(project));
-    VirtualFile vFile = myFixture.createFile("resources.properties", "unqualifiedResLocale=en-US");
+    VirtualFile vFile = fixtureRule.getFixture().createFile("resources.properties", "unqualifiedResLocale=en-US");
     PsiFile file = PsiManager.getInstance(project).findFile(vFile);
-    assertNotNull(file);
+    assertThat(file).isNotNull();
     PropertiesFile propertiesFile = (PropertiesFile) file;
     GradleImplicitPropertyUsageProvider provider = new GradleImplicitPropertyUsageProvider();
     IProperty unqualifiedResLocale = propertiesFile.getProperties().get(0);
     String name = unqualifiedResLocale.getName();
-    assertTrue(name, provider.isUsed((Property) unqualifiedResLocale));
+    assertThat(provider.isUsed((Property) unqualifiedResLocale)).named("%s", name).isTrue();
   }
 
+  @Test
   public void testNothingUsedInNonGradleProject() {
+    Project project = fixtureRule.getProject();
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(new DefaultProjectSystem(project));
     Map<String, String> sourceToTargetMap = Arrays.stream(new Object[][]{
       {"gradle-wrapper.properties", "gradle-wrapper.properties"},
       {"test.properties", "local.properties"}
     }).collect(Collectors.toMap((o) -> (String)o[0], (o) -> (String)o[1]));
     for (Map.Entry<String, String> e : sourceToTargetMap.entrySet()) {
-      assertNothingUsedInFile(myFixture.copyFileToProject(e.getKey(), e.getValue()));
+      assertNothingUsedInFile(fixtureRule.getFixture().copyFileToProject(e.getKey(), e.getValue()));
     }
-    assertNothingUsedInFile(myFixture.createFile("resources.properties", "unqualifiedResLocale=en-US"));
+    assertNothingUsedInFile(fixtureRule.getFixture().createFile("resources.properties", "unqualifiedResLocale=en-US"));
   }
 
   private void assertNothingUsedInFile(VirtualFile vFile) {
     GradleImplicitPropertyUsageProvider provider = new GradleImplicitPropertyUsageProvider();
-    PsiFile file = PsiManager.getInstance(getProject()).findFile(vFile);
-    assertNotNull(file);
+    PsiFile file = PsiManager.getInstance(fixtureRule.getProject()).findFile(vFile);
+    assertThat(file).isNotNull();
     PropertiesFile propertiesFile = (PropertiesFile)file;
     List<IProperty> properties = propertiesFile.getProperties();
-    assertNotEmpty(properties);
+    assertThat(properties).isNotEmpty();
     for (IProperty property : propertiesFile.getProperties()) {
-      assertFalse(property.getName(), provider.isUsed((Property)property));
+      assertThat(provider.isUsed((Property)property)).named("%s", property.getName()).isFalse();
     }
   }
 }
