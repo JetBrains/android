@@ -312,6 +312,56 @@ iml_test(
 )
 
 iml_test(
+    name = "AdbWifiPairTest",
+    timeout = "long",
+    data = [
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:system_image_android-CANARY_r11_default",
+    ],
+    exec_properties = {
+        # needed to allow mDNS traffic.
+        "dockerNetwork": "standard",
+    },
+    jvm_flags = emulator_test_jvm_flags("//prebuilts/studio/sdk:system_image_android-CANARY_r11_default"),
+    module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
+    tags_linux = [],
+    tags_mac = [],
+    tags_windows = [
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.AdbWifiPairTest",
+)
+
+iml_test(
+    name = "AdbWifiAutoEnableTest",
+    timeout = "long",
+    data = [
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:system_image_android-CANARY_r11_default",
+    ],
+    exec_properties = {
+        # needed to allow mDNS traffic.
+        "dockerNetwork": "standard",
+    },
+    jvm_flags = emulator_test_jvm_flags("//prebuilts/studio/sdk:system_image_android-CANARY_r11_default"),
+    module = ":intellij.android.core.integration",
+    tags = [
+        "studio-e2e-test",
+    ],
+    tags_linux = [],
+    tags_mac = [],
+    tags_windows = [
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.AdbWifiAutoEnableTest",
+)
+
+iml_test(
     name = "EmulatorBeforeStudioTest",
     timeout = "long",
     data = [
