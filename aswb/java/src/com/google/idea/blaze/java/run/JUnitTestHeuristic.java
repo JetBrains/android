@@ -26,6 +26,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassOwner;
 import com.intellij.psi.PsiFile;
 import java.io.File;
+import java.util.Locale;
 import javax.annotation.Nullable;
 
 /** Matches junit test sources to test targets with junit3/junit4 in their name. */
@@ -42,7 +43,7 @@ public class JUnitTestHeuristic implements TestTargetHeuristic {
     if (sourceVersion == null) {
       return false;
     }
-    String targetName = target.label.targetName().toString().toLowerCase();
+    String targetName = target.label.targetName().toString().toLowerCase(Locale.getDefault());
     switch (sourceVersion) {
       case JUNIT_4:
         return targetName.contains("junit4");

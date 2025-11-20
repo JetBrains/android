@@ -49,6 +49,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -147,8 +148,9 @@ public class EmptyLibrary {
     context.output(
         PrintOutput.log(
             String.format(
-                "Filtered %d JARs, in %dms",
-                allLibraries.size() - result.size(), System.currentTimeMillis() - startTime)));
+              Locale.getDefault(),
+              "Filtered %d JARs, in %dms",
+              allLibraries.size() - result.size(), System.currentTimeMillis() - startTime)));
 
     importResultBuilder.setEmptyJarTracker(emptyJarTracker);
     return ImmutableMap.copyOf(result);
@@ -201,12 +203,13 @@ public class EmptyLibrary {
         context.output(
             PrintOutput.log(
                 String.format(
-                    "[Empty JAR Filter] Calculated empty status of %d JARs", updated.size())));
+                  Locale.getDefault(),
+                  "[Empty JAR Filter] Calculated empty status of %d JARs", updated.size())));
       }
 
       if (!removed.isEmpty()) {
         context.output(
-            PrintOutput.log(String.format("[Empty JAR Filter] Removed %d JARs", removed.size())));
+            PrintOutput.log(String.format(Locale.getDefault(),"[Empty JAR Filter] Removed %d JARs", removed.size())));
       }
 
       return builder.build();
