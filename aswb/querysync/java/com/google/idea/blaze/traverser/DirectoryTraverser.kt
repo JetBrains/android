@@ -37,7 +37,7 @@ data class DirectoryContents(val files: List<Path>, val subDirectories: List<Pat
 
 /** Defines the contract for processing a directory during traversal. */
 fun interface DirectoryProcessor {
-  suspend fun processDirectory(currentDir: Path): DirectoryContents?
+  fun processDirectory(currentDir: Path): DirectoryContents?
 }
 
 suspend fun traverseIncludedDirectories(includeAbsolute: List<Path>, directoryProcessor: DirectoryProcessor) {
