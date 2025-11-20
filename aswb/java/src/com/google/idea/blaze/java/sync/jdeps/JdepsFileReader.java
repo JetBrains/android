@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -216,8 +217,9 @@ public class JdepsFileReader {
     context.output(
         PrintOutput.log(
             String.format(
-                "Loaded %d jdeps files, total size %dkB",
-                diff.getUpdatedOutputs().size(), totalSizeLoaded.get() / 1024)));
+              Locale.getDefault(),
+              "Loaded %d jdeps files, total size %dkB",
+              diff.getUpdatedOutputs().size(), totalSizeLoaded.get() / 1024)));
     return state.build();
   }
 

@@ -133,6 +133,7 @@ public final class BlazeSourceDirectory implements ProtoWrapper<ProjectData.Blaz
   }
 
   @Override
+  @SuppressWarnings("FileComparisons")
   public boolean equals(Object other) {
     if (this == other) {
       return true;

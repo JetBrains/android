@@ -165,6 +165,7 @@ public class BlazeCoverageProgramRunner extends DefaultProgramRunner {
     return null;
   }
 
+  @SuppressWarnings("NoNioFilesCopy")
   private static void copyCoverageOutput(Supplier<File> output, String localPath, int exitCode) {
     File file = output.get();
     if (file == null) {

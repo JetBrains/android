@@ -74,6 +74,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -238,10 +239,10 @@ public class JarCache {
 
       Futures.allAsList(futures).get();
       if (!updated.isEmpty()) {
-        context.output(PrintOutput.log(String.format("Copied %d jars", updated.size())));
+        context.output(PrintOutput.log(String.format(Locale.getDefault(), "Copied %d jars", updated.size())));
       }
       if (!removed.isEmpty()) {
-        context.output(PrintOutput.log(String.format("Removed %d jars", removed.size())));
+        context.output(PrintOutput.log(String.format(Locale.getDefault(), "Removed %d jars", removed.size())));
       }
 
       // repackage cached jars after cache has been updated
@@ -264,7 +265,7 @@ public class JarCache {
       ImmutableMap<File, Long> cacheFileSizes = FileSizeScanner.readFilesizes(cachedFiles.values());
       long total = cacheFileSizes.values().stream().mapToLong(x -> x).sum();
       String msg =
-          String.format("Total Jar Cache size: %d kB (%d files)", total / 1024, cachedFiles.size());
+          String.format(Locale.getDefault(), "Total Jar Cache size: %d kB (%d files)", total / 1024, cachedFiles.size());
       context.output(PrintOutput.log(msg));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -324,6 +325,7 @@ public class JarCache {
     return futures;
   }
 
+  @SuppressWarnings("NoNioFilesCopy")
   private static void copyLocally(BlazeArtifact output, File destination) throws IOException {
     if (output instanceof LocalFileArtifact) {
       File source = ((LocalFileArtifact) output).getFile();
