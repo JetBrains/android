@@ -47,15 +47,18 @@ import kotlin.jvm.optionals.getOrNull
  * This class is immutable. A new instance of it will be created every time there is any change
  * to the project structure.
  */
-data class BuildGraphDataImpl(
+@ConsistentCopyVisibility
+data class BuildGraphDataImpl private constructor(
   private val projectDefinitionTargetPatterns: TargetPatternCollection,
   @VisibleForTesting @JvmField val storage: Storage,
   private val sourceOwners: Map<Label, List<Label>>,
   private val alwaysBuildTargets: Set<Label>,
-  private val rdeps: Map<Label, Deps<out Label>>,
-  private val packages: PackageSet,
-  override val externalDependencyCountForStatsOnly: Int,
 ) : BuildGraphData {
+
+  private val rdeps: Map<Label, Deps<out Label>> = computeRdeps(storage)
+  private val packages: PackageSet = computePackages(storage)
+  override val externalDependencyCountForStatsOnly: Int = computeExternalDependencyCount(storage)
+
 
   class Deps<T> (val deps: MutableSet<T> = mutableSetOf())
 
@@ -273,9 +276,6 @@ data class BuildGraphDataImpl(
           storage,
           sourceOwners,
           alwaysBuildTargets,
-          rdeps = computeRdeps(storage),
-          packages = computePackages(storage),
-          externalDependencyCountForStatsOnly = computeExternalDependencyCount(storage)
         )
       }
 
@@ -321,37 +321,6 @@ data class BuildGraphDataImpl(
             .map { it.label() }
             .toSet()
         }
-
-        private fun computeRdeps(storage: Storage): Map<Label, Deps<out Label>> {
-          return buildMap<Label, Deps<Label>> {
-            fun rdepsOf(node: Label): Deps<Label> = this@buildMap.getOrPut(node) { Deps() }
-
-            for (target in storage.targetMap.values) {
-              for (rdep in target.deps()) {
-                rdepsOf(rdep).deps.add(target.label())
-              }
-              target.testRule().ifPresent { testRule -> rdepsOf(testRule).deps.add(target.label()) }
-            }
-          }
-        }
-
-        private fun computePackages(storage: Storage): PackageSet {
-          val packages = PackageSet.Builder()
-          for (sourceFile in storage.sourceFileLabels) {
-            if (sourceFile.name == "BUILD" || sourceFile.name == "BUILD.bazel") {
-              // TODO: b/334110669 - support Bazel workspaces.
-              packages.add(sourceFile.getBuildPackagePath())
-            }
-          }
-          return packages.build()
-        }
-      }
-
-      private fun computeExternalDependencyCount(storage: Storage): Int {
-        return storage.targetMap.values.asSequence()
-          .flatMap { target -> target.deps().asSequence().filter { !storage.targetMap.containsKey(it) } }
-          .distinct()
-          .count()
       }
     }
 
@@ -666,6 +635,37 @@ data class BuildGraphDataImpl(
     @JvmStatic
     fun builder(): Storage.Builder {
       return Storage.Companion.builder()
+    }
+
+    private fun computeRdeps(storage: Storage): Map<Label, Deps<out Label>> {
+      return buildMap<Label, Deps<Label>> {
+        fun rdepsOf(node: Label): Deps<Label> = this@buildMap.getOrPut(node) { Deps() }
+
+        for (target in storage.targetMap.values) {
+          for (rdep in target.deps()) {
+            rdepsOf(rdep).deps.add(target.label())
+          }
+          target.testRule().ifPresent { testRule -> rdepsOf(testRule).deps.add(target.label()) }
+        }
+      }
+    }
+
+    private fun computePackages(storage: Storage): PackageSet {
+      val packages = PackageSet.Builder()
+      for (sourceFile in storage.sourceFileLabels) {
+        if (sourceFile.name == "BUILD" || sourceFile.name == "BUILD.bazel") {
+          // TODO: b/334110669 - support Bazel workspaces.
+          packages.add(sourceFile.getBuildPackagePath())
+        }
+      }
+      return packages.build()
+    }
+
+    private fun computeExternalDependencyCount(storage: Storage): Int {
+      return storage.targetMap.values.asSequence()
+        .flatMap { target -> target.deps().asSequence().filter { !storage.targetMap.containsKey(it) } }
+        .distinct()
+        .count()
     }
   }
 }

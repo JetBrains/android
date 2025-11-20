@@ -25,7 +25,8 @@ import kotlin.math.min
  * This class uses a tree to store the set of targets so that finding all the child targets of a
  * given directory is fast.
  */
-class TargetTreeImpl private constructor(private val sortedLabels: List<Label>) : TargetTree {
+@ConsistentCopyVisibility
+data class TargetTreeImpl private constructor(private val sortedLabels: List<Label>) : TargetTree {
   override fun getTargets(): Sequence<Label> = getSubpackages(EMPTY_PATH)
 
   override fun getDirectTargets(pkg: Path): Sequence<Label> =

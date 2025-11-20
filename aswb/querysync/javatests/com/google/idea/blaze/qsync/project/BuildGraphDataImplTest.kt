@@ -80,6 +80,11 @@ class BuildGraphDataImplTest {
   }
 
   @Test
+  fun valueEquality() {
+    assert(builder().build(emptyTargetCollection, emptySet()) == builder().build(emptyTargetCollection, emptySet()))
+  }
+
+  @Test
   fun sourceFileToLabel() {
     val builder = builder()
     builder
