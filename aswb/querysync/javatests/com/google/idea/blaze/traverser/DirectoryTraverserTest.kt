@@ -41,7 +41,8 @@ class DirectoryTraverserTest {
 
     val processor = DirectoryProcessor { currentDir ->
       processedDirs.add(currentDir)
-      structure[currentDir.toString()]?.map { Path.of(it) } ?: emptyList()
+      val subDirs = structure[currentDir.toString()]?.map { Path.of(it) } ?: emptyList()
+      DirectoryContents(emptyList(), subDirs)
     }
 
     traverseIncludedDirectories(listOf(Path.of("root")), processor)

@@ -30,4 +30,15 @@ data class ProjectStructureData(
   val packages: PackageSet,
   val nonJavaSourceFiles: List<Path>,
   val activeLanguages: Set<QuerySyncLanguage>,
-)
+) {
+  companion object {
+    @JvmField
+    val EMPTY =
+      ProjectStructureData(
+        javaSourceFiles = listOf(),
+        packages = PackageSet.EMPTY,
+        nonJavaSourceFiles = listOf(),
+        activeLanguages = emptySet(),
+      )
+  }
+}
