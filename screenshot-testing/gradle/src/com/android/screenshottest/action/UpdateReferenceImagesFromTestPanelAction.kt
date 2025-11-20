@@ -18,12 +18,13 @@ package com.android.screenshottest.action
 import com.android.screenshottest.ui.PreviewDetails
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.screenshottest.ui.UpdateReferenceImagesDialog
+import com.android.screenshottest.util.UpdateReferenceImagesActionUtils
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.icons.AllIcons
 
-class UpdateReferenceImagesFromTestPanelAction : AnAction("Add/Update Reference Images...",
+class UpdateReferenceImagesFromTestPanelAction : AnAction(UpdateReferenceImagesActionUtils.UPDATE_ACTION_TEXT,
                                                           "Updates the reference images for screenshot tests from test panel.",
                                                           AllIcons.FileTypes.Image) {
 
