@@ -103,7 +103,7 @@ fun createLayoutInspectorPanel(
     createToolbarPanel(
       disposable = disposable,
       layoutInspector = layoutInspector,
-      rootComponent = inspectorPanel,
+      targetComponent = inspectorPanel,
       processPicker = processPicker,
       extraActions = extraToolbarActions,
       toolbarState = toolbarState,
@@ -196,7 +196,8 @@ private fun createToolsPanel(
 /**
  * Creates a Layout Inspector toolbar.
  *
- * @param rootComponent used to register keyboard shortcuts and as data-context retrieval.
+ * @param targetComponent used as data context provider. It is necessary because some of the actions
+ *   in the toolbar get LayoutInspector from [LayoutInspectorRootPanel] data context.
  * @param processPicker optional process/device picker.
  * @param extraActions list of extra actions to add to the toolbar.
  * @param toolbarState contains the state of some toolbar actions.
@@ -204,7 +205,7 @@ private fun createToolsPanel(
 private fun createToolbarPanel(
   disposable: Disposable,
   layoutInspector: LayoutInspector,
-  rootComponent: JComponent,
+  targetComponent: JComponent,
   processPicker: AnAction?,
   extraActions: List<AnAction> = emptyList(),
   toolbarState: ToolbarState = ToolbarState(),
@@ -223,7 +224,7 @@ private fun createToolbarPanel(
       null,
     )
   val shortcutSet = CustomShortcutSet(toggleDeepInspectShortcut)
-  toggleDeepInspectAction.registerCustomShortcutSet(shortcutSet, rootComponent)
+  toggleDeepInspectAction.registerCustomShortcutSet(shortcutSet, targetComponent)
 
   val overlayActionGroup =
     OverlayActionGroup(
@@ -235,7 +236,7 @@ private fun createToolbarPanel(
 
   return createEmbeddedLayoutInspectorToolbar(
     parentDisposable = disposable,
-    targetComponent = rootComponent,
+    targetComponent = targetComponent,
     layoutInspector = layoutInspector,
     selectProcessAction = processPicker,
     showTitleLabel = toolbarState.showTitle,
