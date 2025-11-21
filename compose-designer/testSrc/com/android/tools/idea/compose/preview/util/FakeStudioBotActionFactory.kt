@@ -56,4 +56,7 @@ open class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
   override fun screenshotToCodeAction(): AnAction {
     return fakeAction("Generate Code From Screenshot")
   }
+
+  override fun previewAgentsToolbarAction(): DropDownAction? =
+    fakeDropDownAction("previewAgentsToolbar")
 }

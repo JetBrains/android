@@ -59,6 +59,9 @@ interface ComposeStudioBotActionFactory {
   /** Action to generate Compose code from a screenshot of a UI. */
   fun screenshotToCodeAction(): AnAction
 
+  /** [DropDownAction] to list AI agent-based actions that are displayed in the toolbar. */
+  fun previewAgentsToolbarAction(): DropDownAction?
+
   companion object {
     val EP_NAME: ExtensionPointName<ComposeStudioBotActionFactory> =
       ExtensionPointName.create(
