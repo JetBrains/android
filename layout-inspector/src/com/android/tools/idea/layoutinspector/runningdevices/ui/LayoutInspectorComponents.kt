@@ -22,7 +22,6 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.runningdevices.SPLITTER_KEY
-import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
 import com.android.tools.idea.layoutinspector.stateinspection.createStateInspectionPanel
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
@@ -33,8 +32,6 @@ import com.android.tools.idea.layoutinspector.ui.toolbar.actions.OverlayActionGr
 import com.android.tools.idea.layoutinspector.ui.toolbar.createEmbeddedLayoutInspectorToolbar
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.CustomShortcutSet
-import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.JBColor
@@ -42,11 +39,8 @@ import com.intellij.ui.OnePixelSplitter
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
-import java.awt.event.InputEvent
-import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.KeyStroke
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -199,22 +193,6 @@ fun createToolbarPanel(
   extraActions: List<AnAction> = emptyList(),
   toolbarState: ToolbarState = ToolbarState(),
 ): JPanel {
-  val toggleDeepInspectAction =
-    ToggleDeepInspectAction(
-      isSelected = { toolbarState.isDeepInspectEnabled.value },
-      setSelected = { toolbarState.setDeepInspectEnabled(it) },
-      isRendering = { layoutInspector.renderModel.isActive },
-      connectedClientProvider = { layoutInspector.currentClient },
-    )
-  // TODO(b/449698912): shortcut does not work
-  val toggleDeepInspectShortcut =
-    KeyboardShortcut(
-      KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.SHIFT_DOWN_MASK + InputEvent.META_DOWN_MASK),
-      null,
-    )
-  val shortcutSet = CustomShortcutSet(toggleDeepInspectShortcut)
-  toggleDeepInspectAction.registerCustomShortcutSet(shortcutSet, targetComponent)
-
   val overlayActionGroup =
     OverlayActionGroup(
       inspectorModel = layoutInspector.inspectorModel,
@@ -231,7 +209,7 @@ fun createToolbarPanel(
     showTitleLabel = toolbarState.showTitle,
     leftAlignToolbar = toolbarState.leftAlightToolbar,
     firstGroupExtraActions = listOf(overlayActionGroup),
-    lastGroupExtraActions = listOf(toggleDeepInspectAction) + extraActions,
+    lastGroupExtraActions = extraActions,
   )
 }
 
