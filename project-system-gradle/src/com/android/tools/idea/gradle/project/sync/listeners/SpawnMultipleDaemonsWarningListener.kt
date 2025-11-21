@@ -28,6 +28,8 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.impl.NotificationsConfigurationImpl
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import org.jetbrains.android.util.AndroidBundle
@@ -41,28 +43,51 @@ class SpawnMultipleDaemonsWarningListener : GradleSyncListenerWithRoot {
     if (project.isDisposed) return
     if (!IdeInfo.getInstance().isAndroidStudio) return
     if (!NotificationsConfigurationImpl.getSettings(JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId).isShouldLog) return
-    if (IdeSdks.getInstance().isUsingJavaHomeJdk(project)) return
 
-    val gradleVersion = GradleSyncStateHolder.getInstance(project).lastSyncedGradleVersion ?: return
-    if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(rootProjectPath, gradleVersion)) return
+    ApplicationManager.getApplication().executeOnPooledThread {
+      // Use runReadAction because we are accessing Project model data
+      runReadAction {
+        if (project.isDisposed) return@runReadAction
 
-    showMultipleGradleDaemonWarning(project, rootProjectPath)
+        // This check involves IO/Path resolution, must be off EDT
+        if (IdeSdks.getInstance().isUsingJavaHomeJdk(project)) return@runReadAction
+
+        val gradleVersion = GradleSyncStateHolder.getInstance(project).lastSyncedGradleVersion ?: return@runReadAction
+        if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(rootProjectPath, gradleVersion)) return@runReadAction
+
+        // Pre-calculate strings here to avoid IO on the UI thread later
+        val gradleJvmPath = GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined"
+        val javaHome = IdeSdks.getInstance().jdkFromJavaHome ?: "Undefined"
+
+        // Dispatch back to EDT to show the notification
+        ApplicationManager.getApplication().invokeLater {
+          showMultipleGradleDaemonWarning(project, rootProjectPath, gradleJvmPath, javaHome)
+        }
+      }
+    }
   }
 
   @UiThread
-  private fun showMultipleGradleDaemonWarning(project: Project, rootProjectPath: @SystemIndependent String) {
+  private fun showMultipleGradleDaemonWarning(
+    project: Project,
+    rootProjectPath: @SystemIndependent String,
+    gradleJvmPath: String,
+    javaHome: String
+  ) {
     val hyperlinkUrl = AndroidBundle.message("project.sync.warning.multiple.gradle.daemons.url")
     val quickFixes = mutableListOf<NotificationHyperlink>(OpenUrlHyperlink(hyperlinkUrl, "More info..."))
     val selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project, rootProjectPath)
     if (selectJdkHyperlink != null) quickFixes += selectJdkHyperlink
     quickFixes.add(DoNotShowJdkHomeWarningAgainHyperlink())
 
+    // Use the pre-calculated paths passed as arguments
     var message = AndroidBundle.message(
       "project.sync.warning.multiple.gradle.daemons.message",
       project.name,
-      GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined",
-      IdeSdks.getInstance().jdkFromJavaHome ?: "Undefined"
+      gradleJvmPath,
+      javaHome
     )
+
     quickFixes.forEach { quickFix ->
       message += "<br>${quickFix.toHtml()}"
     }
