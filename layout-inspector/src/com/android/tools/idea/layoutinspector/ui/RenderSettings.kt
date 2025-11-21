@@ -25,6 +25,7 @@ private const val DRAW_LABEL_KEY = "live.layout.inspector.draw.label"
 private const val DRAW_FOLD_KEY = "live.layout.inspector.draw.fold"
 private const val RECOMPOSITION_COLOR_KEY = "live.layout.inspector.highlight.color"
 
+// Colors are defined as hex ARGB so they can be reused as-is for on-device rendering.
 const val RECOMPOSITION_DEFAULT_COLOR = RECOMPOSITION_COLOR_BLUE_ARGB
 const val HOVER_COLOR_ARGB = 0xFF6AA1D3.toInt()
 const val SELECTION_COLOR_ARGB = 0xFF1886F7.toInt()
