@@ -30,7 +30,6 @@ import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.xmlb.annotations.Transient
-import com.jetbrains.rd.util.getOrCreate
 import java.io.File
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
@@ -134,7 +133,7 @@ class SurfaceState {
 
   /** Save state of [OrganizationGroup]s in the [file]. */
   fun saveOrganizationGroupState(file: VirtualFile, methodFqn: String, isOpened: Boolean) {
-    organizationGroups.getOrCreate(file.url) { HashMap() }[methodFqn] = isOpened
+    organizationGroups.getOrPut(file.url) { HashMap() }[methodFqn] = isOpened
   }
 
   /**

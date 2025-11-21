@@ -20,11 +20,11 @@ import com.android.tools.asdriver.tests.AndroidStudio
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
-import java.nio.file.Path
-import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 
 /** Ensures that Layout Editor Preview works for an XML file. */
 class LayoutEditorPreviewTest {

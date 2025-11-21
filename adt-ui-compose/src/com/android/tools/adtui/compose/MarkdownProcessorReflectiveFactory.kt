@@ -48,7 +48,7 @@ public object MarkdownProcessorReflectiveFactory {
     commonMarkParser: Parser = MarkdownParserFactory.create(optimizeEdits = markdownMode is MarkdownMode.EditorPreview, extensions),
   ): MarkdownProcessor {
     return try {
-      MarkdownProcessor(extensions, markdownMode, commonMarkParser)
+      MarkdownProcessor(extensions = extensions, markdownMode = markdownMode, commonMarkParser = commonMarkParser)
     } catch (e: NoSuchMethodError) {
       thisLogger().warn("Cannot use default MarkdownProcessor constructor, trying reflection.", e)
       try {

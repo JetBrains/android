@@ -76,12 +76,13 @@ fun AnalysisSchema.convert(): BuildDeclarativeSchema {
     )
   }
   safeRun {
-    infixFunctions.putAll(
-      infixFunctionsByFqName.mapNotNull {
-        keyValue ->
-        keyValue.value.convert()?.let { keyValue.key.simpleName to it }
-      }.toMap()
-    )
+    //TODO IDEA-374715 Uncomment once Gradle API 9.0 migration is done
+    //infixFunctions.putAll(
+    //  infixFunctionsByFqName.mapNotNull {
+    //    keyValue ->
+    //    keyValue.value.convert()?.let { keyValue.key.simpleName to it }
+    //  }.toMap()
+    //)
   }
   topFunctions.putAll(
     externalFunctionsByFqName.mapNotNull { keyValue ->

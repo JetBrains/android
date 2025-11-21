@@ -76,6 +76,7 @@ private fun createBenchmarkTestRule(projectName: String,
     .around(DisablePhasedSyncDependencyRule())
     .maybeDisableBuiltInKotlin(project)
     .maybeDisableNewDsl(project)
+    .around(DisablePhasedSyncDependencyRule())
     .maybeAddCaptureJfrRule(projectSetupRule)
   return object : BenchmarkTestRule,
                   ProjectSetupRule by projectSetupRule,

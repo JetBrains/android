@@ -16,13 +16,13 @@
 package org.jetbrains.android.spellchecker
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.grazie.spellcheck.GrazieSpellCheckingInspection
 import com.intellij.spellchecker.SpellCheckerSeveritiesProvider
-import com.intellij.spellchecker.inspections.SpellCheckingInspection
 import org.jetbrains.android.AndroidTestCase
 
 class AndroidGradleSpellcheckingStrategyTest : AndroidTestCase() {
   fun testNoTypoInDependencyApplicationStatement() {
-    myFixture.enableInspections(setOf(SpellCheckingInspection::class.java))
+    myFixture.enableInspections(setOf(GrazieSpellCheckingInspection::class.java))
     val virtualFile = myFixture.addFileToProject(
       "build.gradle",
       //language=Groovy
@@ -37,7 +37,7 @@ class AndroidGradleSpellcheckingStrategyTest : AndroidTestCase() {
   }
 
   fun testNoTypoInDependencyCallExpression() {
-    myFixture.enableInspections(setOf(SpellCheckingInspection::class.java))
+    myFixture.enableInspections(setOf(GrazieSpellCheckingInspection::class.java))
     val virtualFile = myFixture.addFileToProject(
       "build.gradle",
       //language=Groovy
@@ -52,7 +52,7 @@ class AndroidGradleSpellcheckingStrategyTest : AndroidTestCase() {
   }
 
   fun testTypoInPrintApplicationStatement() {
-    myFixture.enableInspections(setOf(SpellCheckingInspection::class.java))
+    myFixture.enableInspections(setOf(GrazieSpellCheckingInspection::class.java))
     val virtualFile = myFixture.addFileToProject(
       "build.gradle",
       //language=Groovy
@@ -68,7 +68,7 @@ class AndroidGradleSpellcheckingStrategyTest : AndroidTestCase() {
   }
 
   fun testTypoInPrintCallExpression() {
-    myFixture.enableInspections(setOf(SpellCheckingInspection::class.java))
+    myFixture.enableInspections(setOf(GrazieSpellCheckingInspection::class.java))
     val virtualFile = myFixture.addFileToProject(
       "build.gradle",
       //language=Groovy

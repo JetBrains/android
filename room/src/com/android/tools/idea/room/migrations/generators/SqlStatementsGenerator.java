@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.room.migrations.generators;
 
-import static com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer.*;
-import static com.android.tools.idea.room.migrations.update.SchemaDiffUtil.*;
+import static com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer.getValidName;
+import static com.android.tools.idea.room.migrations.update.SchemaDiffUtil.ftsTableNeedsExternalContentSource;
 
 import com.android.tools.idea.room.migrations.json.BundleUtil;
 import com.android.tools.idea.room.migrations.json.DatabaseViewBundle;

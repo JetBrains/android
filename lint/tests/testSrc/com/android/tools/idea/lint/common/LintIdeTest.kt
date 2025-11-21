@@ -282,7 +282,7 @@ class LintIdeTest : JavaCodeInsightFixtureAdtTestCase() {
     // Make sure that we include the lint implementation checks themselves outside of Android
     // contexts
     val issues = LintIdeIssueRegistry()
-    val issue = issues.getIssue("LintImplDollarEscapes")!!
+    val issue = issues.issues.find { it.id == "LintImplDollarEscapes" }!!
     val support = object : LintIdeSupport() {}
     assertEquals(support.getPlatforms(), issue.platforms)
   }

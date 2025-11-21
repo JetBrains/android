@@ -1,0 +1,99 @@
+### auto-generated section `build intellij.android.deploy` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+resourcegroup(
+  name = "deploy_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "deploy",
+  module_name = "intellij.android.deploy",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":deploy_resources"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "//libraries/guava",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/build-common",
+    "//android/project-system",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/debugger/openapi:java-debugger",
+    "//java/debugger/impl",
+    "//java/execution/openapi:java-execution",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/xdebugger-api:debugger",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/execution",
+    "//platform/execution-impl",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+    "//android/android-adb:adb",
+  ]
+)
+
+jvm_library(
+  name = "deploy_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  associates = [":deploy"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/guava",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "@lib//:junit4",
+    "//android/artwork",
+    "//android/android-common:common",
+    "@lib//:truth",
+    "//libraries/mockito",
+    "//android/build-common",
+    "//android/project-system",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/debugger/openapi:java-debugger",
+    "//java/debugger/impl",
+    "//java/debugger/impl:impl_test_lib",
+    "//java/execution/openapi:java-execution",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/xdebugger-api:debugger",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/execution",
+    "//platform/execution-impl",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+    "//platform/util:util-ui",
+    "//platform/core-impl",
+    "//android/android-adb:adb",
+    "@lib//:mockito-kotlin",
+  ]
+)
+### auto-generated section `build intellij.android.deploy` end
+
+### auto-generated section `test intellij.android.deploy` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "deploy_test",
+  runtime_deps = [":deploy_test_lib"]
+)
+### auto-generated section `test intellij.android.deploy` end

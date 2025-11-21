@@ -52,6 +52,9 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
     return DeclaredDependenciesImpl(configurationsToCoordinates, allOutgoingProjectDependencies)
   }
 
+  private val ProjectDependency.dependencyProject: Project
+    get() = javaClass.getMethod("getDependencyProject").invoke(this) as Project
+
   companion object {
     // FIXME(xof): it would be nice to be able to have a manifest constant shared between this and the
     //  GradleModuleSystem/AndroidProjectSystem (see e.g. DependencyType.configurationName in GradleModuleSystem) except that:
@@ -76,11 +79,11 @@ interface Coordinates {
 
 data class DeclaredDependenciesImpl(
   override val configurationsToCoordinates: Map<String, List<Coordinates>>,
-  override val allOutgoingProjectDependencies: List<String>
+  override val allOutgoingProjectDependencies: List<String>,
 ) : DeclaredDependencies, Serializable
 data class CoordinatesImpl(
   override val group: String?,
   override val name: String,
-  override val version: String?
+  override val version: String?,
 ): Coordinates, Serializable
 fun Dependency.coordinates(): Coordinates = CoordinatesImpl(group, name, version)

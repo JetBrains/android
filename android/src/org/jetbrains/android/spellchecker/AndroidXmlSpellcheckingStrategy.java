@@ -23,6 +23,8 @@ import static com.android.SdkConstants.TOOLS_URI;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.client.api.LintXmlConfiguration;
 import com.android.tools.lint.detector.api.Lint;
+import com.intellij.lang.LanguageParserDefinitions;
+import com.intellij.lang.ParserDefinition;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.roots.GeneratedSourcesFilter;
 import com.intellij.openapi.util.TextRange;
@@ -94,6 +96,23 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy im
     if (!(file instanceof XmlFile)) return false;
 
     return AndroidFacet.getInstance(file) != null || isLintConfig((XmlFile)file);
+  }
+
+  @Override
+  public boolean useTextLevelSpellchecking() {
+    return false;
+  }
+
+  @Override
+  protected boolean isComment(@NotNull PsiElement element) {
+    ParserDefinition parserDefinition = LanguageParserDefinitions.INSTANCE.forLanguage(element.getLanguage());
+    return parserDefinition.getCommentTokens().contains(element.getNode().getElementType());
+  }
+
+  @Override
+  protected boolean isLiteral(@NotNull PsiElement element) {
+    ParserDefinition parserDefinition = LanguageParserDefinitions.INSTANCE.forLanguage(element.getLanguage());
+    return parserDefinition.getStringLiteralElements().contains(element.getNode().getElementType());
   }
 
   private static boolean isLintConfig(@NotNull XmlFile file) {

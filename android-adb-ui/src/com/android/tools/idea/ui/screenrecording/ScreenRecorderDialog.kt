@@ -32,6 +32,7 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
+import org.jetbrains.annotations.Nls
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -111,6 +112,7 @@ internal class ScreenRecorderDialog(
     stopButton.isEnabled = false
   }
 
+  @Nls
   private fun recordingTimeText(timeMillis: Long): String {
     val seconds = (timeMillis / 1000).toInt()
     return AndroidAdbUiBundle.message("screenrecord.dialog.progress",

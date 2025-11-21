@@ -1,0 +1,80 @@
+### auto-generated section `build intellij.android.nav.safeargs.tests.k1` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+create_kotlinc_options(
+  name = "custom_k1",
+  opt_in = [
+    "com.intellij.openapi.util.IntellijInternalApi",
+    "org.jetbrains.kotlin.utils.addToStdlib.UnsafeCastFunction",
+    "org.jetbrains.kotlin.analysis.api.KaIdeApi",
+    "org.jetbrains.kotlin.analysis.api.KaNonPublicApi",
+    "org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi",
+  ]
+)
+
+jvm_library(
+  name = "k1_test_lib",
+  module_name = "intellij.android.nav.safeargs.tests.k1",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  kotlinc_opts = ":custom_k1",
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "//libraries/mockito",
+    "@lib//:mockito-kotlin",
+    "@lib//:truth",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-fe10-provided",
+    "@lib//:kotlinc-kotlin-compiler-ir-provided",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/nav/safeargs",
+    "//android/nav/safeargs/common",
+    "//android/nav/safeargs/k1",
+    "//android/nav/safeargs/tests/common:common_test_lib",
+    "//android/project-system",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/render-resources",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//java/java-psi-api:psi",
+    "//java/testFramework",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/platform-api:ide",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//uast/uast-common:uast",
+    "//platform/usageView",
+    "//platform/util",
+    "//xml/xml-psi-api:psi",
+    "//plugins/kotlin/base/fe10/analysis",
+    "//plugins/kotlin/base/project-structure",
+    "//plugins/kotlin/base/project-structure:project-structure_test_lib",
+    "//plugins/kotlin/base/resources:kotlin-base-resources",
+    "//plugins/kotlin/core",
+    "//plugins/kotlin/uast/uast-kotlin-base",
+  ]
+)
+### auto-generated section `build intellij.android.nav.safeargs.tests.k1` end
+
+### auto-generated section `test intellij.android.nav.safeargs.tests.k1` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "k1_test",
+  runtime_deps = [":k1_test_lib"]
+)
+### auto-generated section `test intellij.android.nav.safeargs.tests.k1` end

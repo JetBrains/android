@@ -312,7 +312,7 @@ internal class VariantDiscovery(
 
       @Suppress("DEPRECATION") // Have to be backwards compatible here
       val modulesIdsByVariantName = if (parentModule.modelVersions[ModelFeature.HAS_BUILD_AWARE_PROJECT_GRAPH]) {
-        projectGraph.resolvedVariantsWithProjectInfo!!.mapNotNull { (projectInfo, variantName) ->
+        projectGraph?.resolvedVariantsWithProjectInfo!!.mapNotNull { (projectInfo, variantName) ->
           val projectPath = projectInfo.projectPath
           val buildId = parentModule.buildPathMap[projectInfo.buildTreePath] ?: error(
             "Expected android module not found in build map! Build id: ${projectInfo.buildId} Path: $projectPath")
@@ -324,7 +324,7 @@ internal class VariantDiscovery(
       } else {
         // Initial implementation of the project graph was missing the build identifier for the project paths, so just assuming same project
         // with the parent module. This is known not to work properly with composite builds and is fixed with a newer iteration.
-        projectGraph.resolvedVariants!!.mapNotNull { (projectPath, variantName) ->
+        projectGraph?.resolvedVariants!!.mapNotNull { (projectPath, variantName) ->
           val moduleId = Modules.createUniqueModuleId(parentModule.gradleProject.projectIdentifier.buildIdentifier.rootDir, projectPath)
           if (androidModulesById.contains(moduleId)) {
             moduleId to variantName

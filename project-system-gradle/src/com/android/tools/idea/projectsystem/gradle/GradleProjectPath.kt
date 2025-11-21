@@ -102,7 +102,7 @@ private fun Module.internalGetGradleProjectPath(): GradleProjectPath? {
 
   val isSourceSet = getExternalModuleType(this) == GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY
   val externalSystemId = ExternalSystemApiUtil.getExternalProjectId(this) ?: return null
-  val gradlePath = CachedModuleDataFinder.getGradleModuleData(this)?.gradlePath ?: return null
+  val gradlePath = CachedModuleDataFinder.getGradleModuleData(this)?.gradlePathOrNull ?: return null
   return createGradleProjectPath(gradlePath, externalSystemId, isSourceSet, buildRootFolder)
 }
 

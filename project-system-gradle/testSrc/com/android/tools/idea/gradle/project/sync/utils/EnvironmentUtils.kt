@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.utils
 
-import com.android.tools.idea.gradle.project.sync.model.StubEelNioBridgeService
-import com.android.tools.idea.gradle.project.sync.model.StubLocalEelDescriptor
+//import com.android.tools.idea.gradle.project.sync.model.StubEelNioBridgeService
+//import com.android.tools.idea.gradle.project.sync.model.StubLocalEelDescriptor
 import com.android.tools.idea.gradle.project.sync.model.StubLocalPosixEelApi
 import com.android.tools.idea.gradle.project.sync.utils.environment.TestSystemEnvironment
 import com.android.tools.idea.sdk.IdeSdks
@@ -26,13 +26,13 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
 import com.intellij.openapi.externalSystem.util.environment.Environment
 import com.intellij.openapi.util.Disposer
-import com.intellij.platform.eel.provider.EelNioBridgeService
 import com.intellij.platform.eel.provider.LocalPosixEelApi
 import com.intellij.testFramework.replaceService
 import org.mockito.Mockito
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 
+// TODO KMT-1388
 object EnvironmentUtils {
 
   fun overrideEnvironmentVariables(environmentVariablesMap: Map<String, String>, disposable: Disposable) {
@@ -42,11 +42,11 @@ object EnvironmentUtils {
 
     val localPosixEelApi = Mockito.spy(ApplicationManager.getApplication().getService(LocalPosixEelApi::class.java))
     doReturn(StubLocalPosixEelApi(environmentVariablesMap)).whenever(localPosixEelApi).exec
-    val localEelDescriptor = StubLocalEelDescriptor(localPosixEelApi)
+    //val localEelDescriptor = StubLocalEelDescriptor(localPosixEelApi)
 
     ApplicationManager.getApplication().replaceService(LocalPosixEelApi::class.java, localPosixEelApi, disposable)
-    ApplicationManager.getApplication().replaceService(
-      EelNioBridgeService::class.java, StubEelNioBridgeService(localEelDescriptor), disposable)
+    //ApplicationManager.getApplication().replaceService(
+    //  EelNioBridgeService::class.java, StubEelNioBridgeService(localEelDescriptor), disposable)
 
     handleSpecialCasesEnvironmentVariables(environmentVariablesMap, disposable)
   }

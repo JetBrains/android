@@ -1,0 +1,56 @@
+### auto-generated section `build intellij.android.inspectors-common.api` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "api",
+  module_name = "intellij.android.inspectors-common.api",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "//libraries/guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "//android/adt-ui-model",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/platform-api:ide",
+    "//android/codenavigation",
+  ]
+)
+
+jvm_library(
+  name = "api_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  associates = [":api"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/platform-api:ide",
+    "//android/codenavigation",
+    "//android/codenavigation:codenavigation_test_lib",
+  ]
+)
+### auto-generated section `build intellij.android.inspectors-common.api` end
+
+### auto-generated section `test intellij.android.inspectors-common.api` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "api_test",
+  runtime_deps = [":api_test_lib"]
+)
+### auto-generated section `test intellij.android.inspectors-common.api` end

@@ -1,0 +1,44 @@
+### auto-generated section `build intellij.android.core.ui.designer.overlays` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "ui.designer.overlays_test_lib",
+  module_name = "intellij.android.core.ui.designer.overlays",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:junit4",
+    "//android/android:core",
+    "//libraries/guava",
+    "//libraries/mockito",
+    "@lib//:truth",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/android:core-tests_test_lib",
+    "//android/render-resources",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util:util-ui",
+  ]
+)
+### auto-generated section `build intellij.android.core.ui.designer.overlays` end
+
+### auto-generated section `test intellij.android.core.ui.designer.overlays` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "ui.designer.overlays_test",
+  runtime_deps = [":ui.designer.overlays_test_lib"]
+)
+### auto-generated section `test intellij.android.core.ui.designer.overlays` end

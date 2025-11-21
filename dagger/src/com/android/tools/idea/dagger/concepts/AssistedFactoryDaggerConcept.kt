@@ -37,15 +37,15 @@ import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.util.containers.sequenceOfNotNull
-import java.io.DataInput
-import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.utils.printer.parentOfType
-import org.jetbrains.kotlin.idea.core.util.readString
-import org.jetbrains.kotlin.idea.core.util.writeString
+import org.jetbrains.kotlin.idea.core.script.v1.readString
+import org.jetbrains.kotlin.idea.core.script.v1.writeString
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
+import java.io.DataInput
+import java.io.DataOutput
 
 /**
  * Represents a class used to create an instance of a type via an AssistedInject constructor.

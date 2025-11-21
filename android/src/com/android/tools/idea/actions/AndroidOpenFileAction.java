@@ -24,8 +24,8 @@ import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpene
 import static com.intellij.openapi.fileTypes.ex.FileTypeChooser.associateFileType;
 import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.validation.Validator;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.GeneralLocalSettings;
 import com.intellij.ide.IdeBundle;
@@ -120,7 +120,8 @@ public class AndroidOpenFileAction extends DumbAwareAction {
         }
         doOpenFile(e, files);
       });
-    } finally {
+    }
+    finally {
       Disposer.dispose(disposable);
     }
   }
@@ -130,7 +131,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
    */
   @VisibleForTesting
   @NotNull
-  static ValidationIssue validateFiles(List<VirtualFile> files, FileChooserDescriptor descriptor) {
+  public static ValidationIssue validateFiles(List<VirtualFile> files, FileChooserDescriptor descriptor) {
     for (VirtualFile file : files) {
       if (!descriptor.isFileSelectable(file)) {
         Validator.Result result =
@@ -178,7 +179,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
       else {
         PlatformProjectOpenProcessor processor = PlatformProjectOpenProcessor.getInstanceIfItExists();
         if (processor != null) {
-          processor.doOpenProject(file, null, false);
+          PlatformProjectOpenProcessor.openProjectLegacyJavaApi(file, null, false, processor);
         }
       }
     }
@@ -212,9 +213,9 @@ public class AndroidOpenFileAction extends DumbAwareAction {
    * Returned by validateFiles after validating a project if there is an issue.
    */
   @VisibleForTesting
-  static final class ValidationIssue {
-    @NotNull Validator.Result result;
-    @Nullable VirtualFile file;
+  public static final class ValidationIssue {
+    public @NotNull Validator.Result result;
+    public @Nullable VirtualFile file;
 
     public ValidationIssue(@NotNull Validator.Result result, @Nullable VirtualFile file) {
       this.result = result;

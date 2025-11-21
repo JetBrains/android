@@ -17,10 +17,9 @@ package com.android.tools.rendering.parsers;
 
 import com.android.utils.DataBindingUtils;
 import com.google.common.collect.Lists;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * A snapshot of an attribute value pulled from PSI. Used in conjunction with {@link TagSnapshot}.

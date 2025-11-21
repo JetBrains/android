@@ -1,0 +1,29 @@
+### auto-generated section `build intellij.android.projectSystem.integration.tests` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "projectSystem-integration-tests_test_lib",
+  module_name = "intellij.android.projectSystem.integration.tests",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//android/android:core",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//android/as-driver/utils:utils_test_lib",
+  ]
+)
+### auto-generated section `build intellij.android.projectSystem.integration.tests` end
+
+### auto-generated section `test intellij.android.projectSystem.integration.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "projectSystem-integration-tests_test",
+  runtime_deps = [":projectSystem-integration-tests_test_lib"]
+)
+### auto-generated section `test intellij.android.projectSystem.integration.tests` end

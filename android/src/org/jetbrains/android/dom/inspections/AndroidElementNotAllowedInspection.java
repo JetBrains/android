@@ -2,7 +2,6 @@ package org.jetbrains.android.dom.inspections;
 
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.SdkConstants.VIEW_INCLUDE;
-import static com.android.SdkConstants.VIEW_MERGE;
 import static com.android.SdkConstants.VIEW_TAG;
 
 import com.android.resources.ResourceFolderType;

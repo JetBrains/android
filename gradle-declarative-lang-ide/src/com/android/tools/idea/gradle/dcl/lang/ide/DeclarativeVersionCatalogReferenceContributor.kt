@@ -34,7 +34,7 @@ import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.util.ProcessingContext
-import org.jetbrains.kotlin.idea.util.projectStructure.module
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.plugins.gradle.service.resolve.getVersionCatalogFiles
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 

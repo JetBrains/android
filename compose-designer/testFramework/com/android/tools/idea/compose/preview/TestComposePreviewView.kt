@@ -27,10 +27,10 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.CompletableDeferred
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
-import kotlinx.coroutines.CompletableDeferred
 
 /** A test implementation of [ComposePreviewView]. */
 class TestComposePreviewView : ComposePreviewView, JPanel {

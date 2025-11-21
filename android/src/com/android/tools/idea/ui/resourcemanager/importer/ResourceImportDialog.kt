@@ -126,7 +126,7 @@ class ResourceImportDialog(
   init {
     addWizardSteps()
     setSize(DIALOG_SIZE.width(), DIALOG_SIZE.height())
-    setResizable(false)
+    isResizable = false
     dialogViewModel.updateCallback = ::updateValues
     init()
     dialogViewModel.assetSets.forEach(this::addDesignAssetSet)
@@ -362,7 +362,7 @@ class ResourceImportDialog(
     }
   }
 
-  override fun getHelpID(): String? {
+  override fun getHelpId(): String {
     return AndroidWebHelpProvider.HELP_PREFIX + "studio/write/resource-manager"
   }
 

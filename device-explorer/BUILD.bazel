@@ -1,0 +1,110 @@
+### auto-generated section `build intellij.android.device-explorer` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+resourcegroup(
+  name = "device-explorer_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "device-explorer",
+  module_name = "intellij.android.device-explorer",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":device-explorer_resources"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "//android/android-adb:adb",
+    "//android/adt-ui",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/device-explorer-common",
+    "//android/device-explorer-files",
+    "//android/device-explorer-monitor",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+  ]
+)
+### auto-generated section `build intellij.android.device-explorer` end
+
+### auto-generated section `build intellij.android.device-explorer.integration.tests` start
+jvm_library(
+  name = "device-explorer-integration-tests_test_lib",
+  module_name = "intellij.android.device-explorer.integration.tests",
+  visibility = ["//visibility:public"],
+  srcs = glob(["integration/**/*.kt", "integration/**/*.java", "integration/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:mockito-kotlin",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//android/as-driver/utils:utils_test_lib",
+    "//android/device-explorer",
+  ]
+)
+### auto-generated section `build intellij.android.device-explorer.integration.tests` end
+
+### auto-generated section `test intellij.android.device-explorer.integration.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "device-explorer-integration-tests_test",
+  runtime_deps = [":device-explorer-integration-tests_test_lib"]
+)
+### auto-generated section `test intellij.android.device-explorer.integration.tests` end
+
+### auto-generated section `build intellij.android.device-explorer.tests` start
+jvm_library(
+  name = "device-explorer-tests_test_lib",
+  module_name = "intellij.android.device-explorer.tests",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "//libraries/guava",
+    "@lib//:junit4",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:truth",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android-common:common",
+    "//android/android-common:common-tests_test_lib",
+    "//android/device-explorer",
+    "//android/device-explorer-common",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//platform/core-api:core",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//android/project-system",
+    "//java/testFramework",
+  ]
+)
+### auto-generated section `build intellij.android.device-explorer.tests` end
+
+### auto-generated section `test intellij.android.device-explorer.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "device-explorer-tests_test",
+  runtime_deps = [":device-explorer-tests_test_lib"]
+)
+### auto-generated section `test intellij.android.device-explorer.tests` end

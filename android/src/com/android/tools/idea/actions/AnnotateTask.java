@@ -26,7 +26,7 @@ import com.intellij.util.SequentialTask;
 /**
  * This is a copy of the Intellij class {@see com.intellij.codeInspection.inferNullity.AnnotateTask}.
  */
-class AnnotateTask implements SequentialTask {
+public class AnnotateTask implements SequentialTask {
   private final Project myProject;
   private UsageInfo[] myInfos;
   private final SequentialModalProgressTask myTask;
@@ -54,7 +54,7 @@ class AnnotateTask implements SequentialTask {
       indicator.setFraction(((double)myCount) / myTotal);
     }
 
-    NullityInferrer.apply(myProject, myNotNullManager, myInfos[myCount++]);
+    NullityInferrer.apply(myNotNullManager, myInfos[myCount++]);
 
     return isDone();
   }

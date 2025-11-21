@@ -26,6 +26,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -39,6 +40,7 @@ import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
 
 /** Tests the [TranslationsEditorTextField] class. */
+@Ignore("KMT-952")
 @RunWith(JUnit4::class)
 class TranslationsEditorTextFieldTest {
   private val projectRule = AndroidProjectRule.withAndroidModel()

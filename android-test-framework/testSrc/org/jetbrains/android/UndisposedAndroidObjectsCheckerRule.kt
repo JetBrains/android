@@ -18,7 +18,6 @@ package org.jetbrains.android
 import com.android.tools.idea.testing.DisposerExplorer
 import com.android.tools.idea.testing.NamedExternalResource
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.impl.ModuleComponentManager
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Ref

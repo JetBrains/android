@@ -1,0 +1,148 @@
+### auto-generated section `build intellij.android.debuggers` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+resourcegroup(
+  name = "debuggers_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+resourcegroup(
+  name = "debuggers_resources_1",
+  srcs = glob(["testResources/**/*"]),
+  strip_prefix = "testResources"
+)
+
+jvm_library(
+  name = "debuggers",
+  module_name = "intellij.android.debuggers",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [
+    ":debuggers_resources",
+    ":debuggers_resources_1",
+  ],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "//libraries/guava",
+    "//libraries/fastutil",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "//android/analytics",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/deploy",
+    "//android/execution/common",
+    "//android/jps-model",
+    "//android/render-resources",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/debugger/openapi:java-debugger",
+    "//java/debugger/impl",
+    "//java/execution/openapi:java-execution",
+    "//java/java-frontback-psi-impl:frontback-psi-impl",
+    "//java/java-psi-api:psi",
+    "//java/java-psi-impl:psi-impl",
+    "//platform/analysis-api:analysis",
+    "//platform/util/concurrency",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/xdebugger-api:debugger",
+    "//platform/xdebugger-impl:debugger-impl",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/execution",
+    "//platform/execution-impl",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//images",
+    "//platform/indexing-impl",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util/jdom",
+    "//platform/util/nanoxml",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+    "//xml/dom-openapi:dom",
+    "//plugins/kotlin/jvm-debugger/base/util",
+    "//plugins/kotlin/jvm-debugger/core",
+    "//plugins/kotlin/jvm-debugger/coroutines",
+    "//java/openapi:java",
+    "//android/project-system",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//platform/xdebugger-impl/rpc",
+  ]
+)
+### auto-generated section `build intellij.android.debuggers` end
+
+### auto-generated section `build intellij.android.debuggers.tests` start
+jvm_library(
+  name = "debuggers-tests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  associates = ["//android/debuggers"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/fastutil",
+    "@lib//:kotlin-stdlib",
+    "//libraries/guava",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-test",
+    "//libraries/mockito",
+    "@lib//:mockito-kotlin",
+    "@lib//:truth",
+    "//android/android-test-framework:testFramework",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/util/nanoxml",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/deploy",
+    "//android/deploy:deploy_test_lib",
+    "//android/execution/common",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/debugger/openapi:java-debugger",
+    "//java/debugger/impl",
+    "//java/debugger/impl:impl_test_lib",
+    "//java/execution/openapi:java-execution",
+    "//java/java-frontback-psi-impl:frontback-psi-impl",
+    "//java/testFramework",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/xdebugger-api:debugger",
+    "//platform/execution",
+    "//platform/execution-impl",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//images",
+    "//images:images_test_lib",
+    "//platform/indexing-impl",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/testFramework/common",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util/jdom",
+    "//platform/util:util-ui",
+    "//platform/projectModel-api:projectModel",
+    "//plugins/maven",
+  ]
+)
+### auto-generated section `build intellij.android.debuggers.tests` end
+
+### auto-generated section `test intellij.android.debuggers.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "debuggers-tests_test",
+  runtime_deps = [":debuggers-tests_test_lib"]
+)
+### auto-generated section `test intellij.android.debuggers.tests` end

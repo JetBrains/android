@@ -1,0 +1,125 @@
+### auto-generated section `build intellij.android.common` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+create_kotlinc_options(
+  name = "custom_common",
+  opt_in = [
+    "com.intellij.openapi.util.IntellijInternalApi",
+    "org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction",
+  ]
+)
+
+resourcegroup(
+  name = "common_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "common",
+  module_name = "intellij.android.common",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":common_resources"],
+  kotlinc_opts = ":custom_common",
+  deps = [
+    "@lib//:studio-platform-provided",
+    "//libraries/guava",
+    "//libraries/fastutil",
+    "//libraries/http-client",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-fe10-provided",
+    "@lib//:kotlinc-kotlin-compiler-ir-provided",
+    "//android/artwork",
+    "//android/jps-model",
+    "//android/render-resources",
+    "//java/java-impl:impl",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-util-io:ide-util-io",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util/progress",
+    "//xml/dom-openapi:dom",
+    "//xml/xml-psi-api:psi",
+    "//plugins/kotlin/base/code-insight",
+    "//plugins/kotlin/base/fe10/analysis",
+    "//plugins/kotlin/base/plugin",
+    "//plugins/kotlin/core",
+    "//plugins/kotlin/base/facet",
+    "//libraries/kotlinx/datetime",
+    "//android/server-flags",
+    "@lib//:protobuf",
+  ]
+)
+### auto-generated section `build intellij.android.common` end
+
+### auto-generated section `build intellij.android.common.tests` start
+jvm_library(
+  name = "common-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
+  name = "common-tests_test_lib",
+  module_name = "intellij.android.common.tests",
+  visibility = ["//visibility:public"],
+  srcs = glob(["test/**/*.kt", "test/**/*.java", "test/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/guava",
+    "@lib//:kotlin-test",
+    "@lib//:kotlinx-coroutines-test",
+    "//libraries/kotlinx/datetime",
+    "@lib//:truth",
+    "//libraries/mockito",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//java/testFramework",
+    "@lib//:kotlinc-analysis-api",
+    "@lib//:kotlinc-kotlin-compiler-common",
+    "@lib//:kotlinc-kotlin-compiler-fe10",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/artwork",
+    "//android/server-flags",
+    "//android/server-flags:server-flags_test_lib",
+    "//android/jps-model",
+    "//android/render-resources",
+    "//android/android-common:common",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//plugins/kotlin/gradle/gradle-tooling/impl",
+    "//plugins/kotlin/gradle/gradle-tooling/impl:impl_test_lib",
+    "//plugins/kotlin/base/plugin",
+    "//plugins/kotlin/base/plugin:plugin_test_lib",
+    "//platform/editor-ui-api:editor-ui",
+    "@lib//:mockito-kotlin",
+    "@lib//:protobuf",
+  ]
+)
+### auto-generated section `build intellij.android.common.tests` end
+
+### auto-generated section `test intellij.android.common.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "common-tests_test",
+  runtime_deps = [":common-tests_test_lib"]
+)
+### auto-generated section `test intellij.android.common.tests` end

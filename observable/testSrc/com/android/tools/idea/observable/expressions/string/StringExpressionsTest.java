@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.observable.expressions.string;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.IntValueProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import org.junit.Test;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public final class StringExpressionsTest {
 

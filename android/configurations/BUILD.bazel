@@ -1,0 +1,45 @@
+### auto-generated section `build intellij.android.core.configurations` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "configurations_test_lib",
+  module_name = "intellij.android.core.configurations",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:junit4",
+    "//android/android:core",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//libraries/mockito",
+    "@lib//:truth",
+    "//android/android-common:common",
+    "//android/android:core-tests_test_lib",
+    "//android/jps-model",
+    "//android/render-resources",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//platform/core-api:core",
+    "//platform/extensions",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//java/testFramework",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//xml/dom-openapi:dom",
+    "//xml/xml-psi-api:psi",
+    "//libraries/guava",
+  ]
+)
+### auto-generated section `build intellij.android.core.configurations` end
+
+### auto-generated section `test intellij.android.core.configurations` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "configurations_test",
+  runtime_deps = [":configurations_test_lib"]
+)
+### auto-generated section `test intellij.android.core.configurations` end

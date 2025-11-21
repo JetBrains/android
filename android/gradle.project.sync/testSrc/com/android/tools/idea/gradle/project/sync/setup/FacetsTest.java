@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup;
 
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -23,9 +26,6 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 
 /**
  * Tests for {@link Facets}.

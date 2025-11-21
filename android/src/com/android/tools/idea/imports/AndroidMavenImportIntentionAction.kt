@@ -497,13 +497,13 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       if (KotlinPluginModeProvider.isK2Mode()) {
         allowAnalysisOnEdt {
           @OptIn(KaAllowAnalysisFromWriteAction::class)
-          allowAnalysisFromWriteAction {
+          //allowAnalysisFromWriteAction {
             analyze(receiverExpr) {
               (receiverExpr.expressionType as? KaClassType)?.classId?.asFqNameString()?.let {
                 return left.text to it
               }
             }
-          }
+          //}
         }
       } else {
         val receiverType = receiverExpr.resolveExprType()?.takeUnless { it is ErrorType }

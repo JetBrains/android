@@ -16,7 +16,6 @@
 package org.jetbrains.android.dom;
 
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryPackageNameFromManifestIndex;
-import static com.android.tools.idea.testing.AndroidTestUtils.goToElementAtCaret;
 import static com.android.tools.idea.testing.AndroidTestUtils.moveCaret;
 import static com.google.common.truth.Truth.assertThat;
 

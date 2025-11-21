@@ -1321,7 +1321,7 @@ private val DeviceState.Connected.serialNumber: String
     get() = connectedDevice.serialNumber
 
 private fun ContentManager.addSelectedPanelDataProvider() {
-  addUiDataProvider { sink -> DataSink.uiDataSnapshot(sink, selectedContent?.component) }
+  addUiDataProvider { sink -> DataSink.uiDataSnapshot(sink, this.selectedContent?.component) }
 }
 
 private val ContentManager.placeholderContent: Content?

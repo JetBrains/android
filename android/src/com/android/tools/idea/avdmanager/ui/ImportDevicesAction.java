@@ -24,7 +24,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
-import java.util.Locale;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.ActionEvent;

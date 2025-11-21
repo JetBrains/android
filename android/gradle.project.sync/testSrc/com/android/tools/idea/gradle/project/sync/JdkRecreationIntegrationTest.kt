@@ -32,6 +32,7 @@ import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -81,7 +82,7 @@ class JdkRecreationIntegrationTest {
       assertThat(projectJdk!!.rootProvider.getFiles(OrderRootType.CLASSES)).hasLength(originalSize - 1)
 
       // Copy project1
-      val copiedProjectPath = File(FileUtil.toSystemDependentName(projectRule.getBaseTestPath() + "/project_2"))
+      val copiedProjectPath = File(FileUtilRt.toSystemDependentName(projectRule.getBaseTestPath() + "/project_2"))
       FileUtil.copyDir(project1File, copiedProjectPath)
 
       // Open copied project and confirm that the corrupted JDK is fixed

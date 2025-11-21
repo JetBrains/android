@@ -16,9 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.java;
 
 import static com.android.tools.idea.gradle.dsl.model.java.ToolchainModelImpl.LANGUAGE_VERSION;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 

@@ -24,6 +24,7 @@ import com.android.sdklib.getFullApiName
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.adtui.device.FormFactor
+import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.platform.GradleBuildSettings.getRecommendedBuildToolsRevision
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator

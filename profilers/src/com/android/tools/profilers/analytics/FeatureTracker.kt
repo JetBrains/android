@@ -32,8 +32,6 @@ import com.android.tools.profilers.tasks.TaskStopFailedMetadata
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata
-import com.google.wireless.android.sdk.stats.TaskFailedMetadata
-import com.google.wireless.android.sdk.stats.TaskFailedMetadata.FailingPoint
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats.QueryReturnStatus
 
 /**

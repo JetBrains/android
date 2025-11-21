@@ -84,7 +84,7 @@ class CurrentWFFVersionServiceTest(val minSdkVersion: Int, val expectedFallbackV
             get() = null
 
           override fun get(): ListenableFuture<MergedManifestSnapshot> {
-            return Futures.immediateFuture(null)
+            TODO()
           }
         }
       )

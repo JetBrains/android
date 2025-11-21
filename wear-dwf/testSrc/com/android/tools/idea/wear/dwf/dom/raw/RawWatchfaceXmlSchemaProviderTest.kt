@@ -230,7 +230,7 @@ class RawWatchfaceXmlSchemaProviderSdk33Test: RawWatchfaceXmlSchemaProviderTest(
             get() = null
 
           override fun get(): ListenableFuture<MergedManifestSnapshot> {
-            return Futures.immediateFuture(null)
+            TODO()
           }
         }
       )

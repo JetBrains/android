@@ -1,0 +1,106 @@
+### auto-generated section `build intellij.android.navigator` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+resourcegroup(
+  name = "navigator_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "navigator",
+  module_name = "intellij.android.navigator",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":navigator_resources"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "//libraries/guava",
+    "//libraries/commons/io",
+    "@lib//:google-dexlib2",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc-kotlin-jps-common-provided",
+    "@lib//:protobuf",
+    "//android/analytics",
+    "//android/apkanalyzer",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//java/debugger/openapi:java-debugger",
+    "//android/android:core",
+    "//android/jps-model",
+    "//android/android-lang:lang",
+    "//android/project-system",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/smali",
+    "//plugins/gradle:gradle-common",
+    "//java/debugger/impl",
+    "//java/java-impl:impl",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/core-ui",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//jps/model-api:model",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/structure-view-impl:structureView-impl",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-rt",
+    "//plugins/kotlin/base/util",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+  ]
+)
+### auto-generated section `build intellij.android.navigator` end
+
+### auto-generated section `build intellij.android.navigator.testutils` start
+jvm_library(
+  name = "navigator-testutils",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
+  name = "navigator-testutils_test_lib",
+  module_name = "intellij.android.navigator.testutils",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testUtils/**/*.kt", "testUtils/**/*.java", "testUtils/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:truth",
+    "@lib//:junit4",
+    "//android/android:core",
+    "//android/android-navigator:navigator",
+    "//android/android-test-framework:testFramework",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/lang-api:lang",
+    "//platform/lang-impl",
+    "//platform/util",
+  ]
+)
+### auto-generated section `build intellij.android.navigator.testutils` end
+
+### auto-generated section `test intellij.android.navigator.testutils` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "navigator-testutils_test",
+  runtime_deps = [":navigator-testutils_test_lib"]
+)
+### auto-generated section `test intellij.android.navigator.testutils` end

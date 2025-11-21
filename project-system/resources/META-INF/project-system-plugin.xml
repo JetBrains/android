@@ -18,7 +18,8 @@
     <extensionPoint qualifiedName="com.android.project.projectsystem"
                     interface="com.android.tools.idea.projectsystem.AndroidProjectSystemProvider"/>
     <extensionPoint qualifiedName="com.android.androidStartupActivity"
-                    interface="com.android.tools.idea.AndroidStartupActivity"/>
+                    interface="com.android.tools.idea.AndroidStartupActivity"
+                    dynamic="true"/>
     <extensionPoint qualifiedName="com.android.tools.idea.model.mergedManifestInfoToken"
                     interface="com.android.tools.idea.model.MergedManifestInfoToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.memorysettings.memorySettingsToken"

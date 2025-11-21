@@ -608,7 +608,7 @@ class AndroidComplicationConfigurationEditorTest {
       .containsExactly(ComplicationType.LONG_TEXT, ComplicationType.SHORT_TEXT)
 
     // Choose LONG_TEXT for slot with id 17.
-    slotTypeComboBox2.item = ComplicationType.LONG_TEXT
+    (slotTypeComboBox2 as ComboBox<ComplicationType>).item = ComplicationType.LONG_TEXT
 
     assertThat(configurationConfigurable.isModified).isTrue()
 

@@ -93,6 +93,7 @@ public class PreviewProviderTest extends LayoutTestCase {
     try {
       StudioRenderService.setForTesting(getProject(), null);
       IconLoader.deactivate();
+      IconLoader.INSTANCE.clearCacheInTests();
       myPreviewProvider = null;
       myTextViewItem = null;
       myComponent = null;

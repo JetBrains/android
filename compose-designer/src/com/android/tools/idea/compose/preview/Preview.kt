@@ -1525,7 +1525,6 @@ class ComposePreviewRepresentation(
     BuildAndRefresh { psiFilePointer.element }
       .registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
   }
-
   private val delegateFastPreviewSurface =
     CommonFastPreviewSurface(
       parentDisposable = this,
@@ -1648,10 +1647,8 @@ class ComposePreviewRepresentation(
       is PreviewMode.Focus -> {
         withContext(Dispatchers.EDT) {
           composeWorkBench.focusMode = null
-          activeResizePanelInFocusMode?.let {
-            Disposer.dispose(it)
-            activeResizePanelInFocusMode = null
-          }
+          activeResizePanelInFocusMode?.let { Disposer.dispose(it) }
+          activeResizePanelInFocusMode = null
         }
       }
     }

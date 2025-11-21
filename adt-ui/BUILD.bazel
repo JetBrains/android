@@ -1,0 +1,147 @@
+### auto-generated section `build intellij.android.adt.ui` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "kt_javac_options", "resourcegroup")
+
+kt_javac_options(
+  name = "custom-javac-options",
+  x_ep_disable_all_checks = True,
+  warn = "off",
+  add_exports = [
+    "java.desktop/sun.swing=ALL-UNNAMED",
+    "java.desktop/java.awt.peer=ALL-UNNAMED",
+    "java.desktop/sun.java2d.pipe=ALL-UNNAMED",
+    "java.desktop/sun.awt=ALL-UNNAMED",
+  ],
+  no_proc = True
+)
+
+resourcegroup(
+  name = "adt-ui_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+resourcegroup(
+  name = "adt-ui_test_resources",
+  srcs = glob(["src/test/resources/**/*"]),
+  strip_prefix = "src/test/resources"
+)
+
+jvm_library(
+  name = "adt-ui",
+  module_name = "intellij.android.adt.ui",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java", "src/main/java/**/*.form"], allow_empty = True),
+  resources = [":adt-ui_resources"],
+  javac_opts = ":custom-javac-options",
+  deps = [
+    "@lib//:studio-platform-provided",
+    "//libraries/guava",
+    "//libraries/fastutil",
+    "@lib//:java_compatibility",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+    "//android/adt-ui-model",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/observable",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/forms_rt:java-guiForms-rt",
+    "//platform/analysis-api:analysis",
+    "//platform/util/concurrency",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/ide-core-impl",
+    "//platform/platform-impl:ide-impl",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-rt",
+    "//platform/util/text-matching",
+    "//platform/util:util-ui",
+    "//xml/xml-psi-impl:psi-impl",
+    "//platform/platform-impl/ui",
+  ],
+  exports = ["@lib//:android-adt-ui-ibm-db2-jcc"]
+)
+
+jvm_library(
+  name = "adt-ui_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/test/java/**/*.kt", "src/test/java/**/*.java", "src/test/java/**/*.form"], allow_empty = True),
+  resources = [":adt-ui_test_resources"],
+  javac_opts = ":custom-javac-options",
+  associates = [":adt-ui"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/guava",
+    "//libraries/fastutil",
+    "//libraries/gson",
+    "@lib//:kotlin-test",
+    "@lib//:kotlinx-coroutines-test",
+    "//libraries/mockito",
+    "@lib//:mockito-kotlin",
+    "@lib//:truth",
+    "@lib//:java_compatibility",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+    "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/observable",
+    "//android/observable:observable_test_lib",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/forms_rt:java-guiForms-rt",
+    "//platform/analysis-api:analysis",
+    "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/ide-core-impl",
+    "//platform/platform-impl:ide-impl",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+    "//platform/util/text-matching",
+    "//platform/util/text-matching:text-matching_test_lib",
+    "//platform/util:util-ui",
+    "//xml/xml-psi-impl:psi-impl",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//java/testFramework",
+    "//platform/core-impl",
+    "//platform/projectModel-impl",
+    "//platform/service-container",
+    "//platform/service-container:service-container_test_lib",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/testFramework/common",
+    "//plugins/webp",
+    "//platform/testFramework/junit5",
+    "//platform/testFramework/junit5:junit5_test_lib",
+    "//platform/platform-impl/ui",
+    "@lib//:android-adt-ui-ibm-db2-jcc",
+  ],
+  exports = ["@lib//:android-adt-ui-ibm-db2-jcc"]
+)
+### auto-generated section `build intellij.android.adt.ui` end
+
+### auto-generated section `test intellij.android.adt.ui` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "adt-ui_test",
+  runtime_deps = [":adt-ui_test_lib"]
+)
+### auto-generated section `test intellij.android.adt.ui` end

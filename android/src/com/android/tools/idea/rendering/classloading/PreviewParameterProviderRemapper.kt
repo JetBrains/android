@@ -1,7 +1,7 @@
 // Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.rendering.classloading
 
-import org.objectweb.asm.commons.Remapper
+import org.jetbrains.org.objectweb.asm.commons.Remapper
 
 /**
  * [Remapper] that renames all references to [org.jetbrains.compose.ui.tooling.preview.PreviewParameterProvider]

@@ -20,11 +20,10 @@ import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.serviceContainer.ComponentManagerImpl;
 import com.intellij.testFramework.ServiceContainerUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayDeque;
 import java.util.Deque;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ComponentStack {
   private final ComponentManagerImpl myComponentManager;

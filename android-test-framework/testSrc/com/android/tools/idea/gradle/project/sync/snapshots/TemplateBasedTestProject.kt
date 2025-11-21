@@ -31,6 +31,7 @@ import com.android.tools.idea.testing.switchVariant
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.IndexingTestUtil
 import org.jetbrains.annotations.SystemIndependent
@@ -144,9 +145,10 @@ interface TemplateBasedTestProject : TestProjectDefinition {
     name: String,
     agpVersion: AgpVersionSoftwareEnvironment,
     ndkVersion: String?,
+    sdk: Sdk?,
     syncReady: Boolean
   ): PreparedTestProject {
-    val resolvedAgpVersion = agpVersion.resolve()
+    val resolvedAgpVersion = agpVersion.resolve(sdk)
     val root = integrationTestEnvironment.prepareGradleProject(
       templateAbsolutePath,
       resolvedAgpVersion,

@@ -54,7 +54,6 @@ import com.intellij.testFramework.TestDataProvider
 import com.intellij.testFramework.common.ThreadLeakTracker
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBScrollPane
-import com.jetbrains.rd.util.forEachReversed
 import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.sdk.AndroidSdkUtils
@@ -114,7 +113,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
 
   private fun apply(base: Statement, description: Description, vararg rules: TestRule): Statement {
     var statement = super.apply(base, description)
-    rules.forEachReversed { statement = it.apply(statement, description) }
+    rules.reversed().forEach { statement = it.apply(statement, description) }
     return statement
   }
 

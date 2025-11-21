@@ -30,11 +30,11 @@ import java.awt.Toolkit;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.Action;
-import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.MenuElement;
+import javax.swing.SwingConstants;
 
 /**
  * Used for creating our own {@link CommonPopupMenu} for showing sub-menus. The base class implementation creates a {@link JPopupMenu} and
@@ -90,11 +90,11 @@ public class CommonMenu extends JMenu implements PropertyChangeListener {
   }
 
   @Override
-  public void setPopupMenuVisible(boolean visible) {
+  public void setPopupMenuVisible(boolean b) {
     boolean isVisible = isPopupMenuVisible();
-    if (visible != isVisible && (isEnabled() || !visible)) {
+    if (b != isVisible && (isEnabled() || !b)) {
       ensurePopupMenuCreated();
-      if (visible && isShowing()) {
+      if (b && isShowing()) {
         // Set location of myPopupMenu (pulldown or pullright)
         // STUDIO customization
         // Point p = getCustomMenuLocation();
@@ -313,8 +313,8 @@ public class CommonMenu extends JMenu implements PropertyChangeListener {
 
     ensurePopupMenuCreated();
     JMenuItem mi = new JMenuItem(a);
-    mi.setHorizontalTextPosition(JButton.TRAILING);
-    mi.setVerticalTextPosition(JButton.CENTER);
+    mi.setHorizontalTextPosition(SwingConstants.TRAILING);
+    mi.setVerticalTextPosition(SwingConstants.CENTER);
     myPopupMenu.insert(mi, pos);
     return mi;
   }

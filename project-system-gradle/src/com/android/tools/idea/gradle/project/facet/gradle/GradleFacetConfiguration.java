@@ -25,11 +25,14 @@ import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import org.jdom.Element;
+import org.jetbrains.android.facet.AndroidGradleFacetEditorForIdea;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Configuration options for the Android-Gradle facet. In Android Studio, these options <em>cannot</em> be directly changed by users.
+ * In Idea these options <em>cannot</em> be directly changed by users. Idea users will be prompted to visit "Android Project Structure"
+ * configuration page (see {@link AndroidGradleFacetEditorForIdea}).
  */
 public class GradleFacetConfiguration implements FacetConfiguration {
   @NonNls public String LAST_SUCCESSFUL_SYNC_AGP_VERSION;
@@ -39,7 +42,7 @@ public class GradleFacetConfiguration implements FacetConfiguration {
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext,
                                            FacetValidatorsManager validatorsManager) {
-    return new FacetEditorTab[0];
+    return new FacetEditorTab[]{new AndroidGradleFacetEditorForIdea(editorContext.getProject())};
   }
 
   @Override

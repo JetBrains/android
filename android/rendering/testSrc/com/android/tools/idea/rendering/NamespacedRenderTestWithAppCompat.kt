@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
+import com.intellij.testFramework.PlatformTestUtil
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -55,8 +56,7 @@ class NamespacedRenderTestWithAppCompat {
 
   @Test
   fun testActivityMain() {
-    val layout =
-      project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
+    val layout = PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     RenderTestUtil.checkRendering(
       projectRule.mainAndroidFacet(":app"),
       layout,

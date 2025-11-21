@@ -16,11 +16,10 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import java.awt.Color;
 import java.util.function.Function;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 import org.jetbrains.annotations.Nullable;
 
 /**

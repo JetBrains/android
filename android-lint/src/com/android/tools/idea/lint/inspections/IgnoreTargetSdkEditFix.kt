@@ -54,5 +54,5 @@ class IgnoreTargetSdkEditFix :
 
 fun stopFlaggingTargetSdkEditsForSession(project: Project) {
   GradleDetector.Companion.stopFlaggingTargetSdkEdits()
-  DaemonCodeAnalyzer.getInstance(project).restart()
+  DaemonCodeAnalyzer.getInstance(project).restart("IgnoreTargetSdkEditFixKt.stopFlaggingTargetSdkEditsForSession")
 }

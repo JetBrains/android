@@ -19,12 +19,12 @@ import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
 import com.android.tools.rendering.classloading.fromBinaryNameToPackageName
 import com.android.tools.rendering.classloading.fromPackageNameToBinaryName
 import com.intellij.util.ReflectionUtil
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Type
-import org.objectweb.asm.commons.ClassRemapper
-import org.objectweb.asm.commons.Remapper
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.commons.ClassRemapper
+import org.jetbrains.org.objectweb.asm.commons.Remapper
 
 /**
  * [Remapper] that renames all class references to certain packages and adds them the given prefix.

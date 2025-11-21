@@ -1,0 +1,106 @@
+### auto-generated section `build intellij.android.avd` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+create_kotlinc_options(
+  name = "custom_avd",
+  x_context_parameters = True,
+  x_sam_conversions = "class"
+)
+
+resourcegroup(
+  name = "avd_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "avd",
+  module_name = "intellij.android.avd",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":avd_resources"],
+  kotlinc_opts = ":custom_avd",
+  deps = [
+    "//libraries/guava",
+    "@lib//:kotlin-stdlib",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+    "@lib//:protobuf",
+    "@lib//:studio-platform-provided",
+    "//android/android-adb:adb",
+    "//android/adt-ui",
+    "//android/adt-ui-compose",
+    "//android/artwork",
+    "//android/artwork-compose",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/intellij.android.device:device",
+    "//android/render-resources",
+    "//android/wizard",
+    "//android/wizard-model",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/platform-api:ide",
+    "//platform/platform-impl:ide-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util:util-ui",
+  ],
+  plugins = ["@lib//:compose-plugin"]
+)
+
+jvm_library(
+  name = "avd_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  kotlinc_opts = ":custom_avd",
+  associates = [":avd"],
+  deps = [
+    "//libraries/guava",
+    "@lib//:kotlin-stdlib",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+    "@lib//:protobuf",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-test",
+    "//libraries/mockito",
+    "@lib//:mockito-kotlin",
+    "@lib//:truth",
+    "//android/android-adb:adb",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/adt-ui-compose",
+    "//android/adt-ui-compose:adt-ui-compose_test_lib",
+    "//android/artwork",
+    "//android/artwork-compose",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/intellij.android.device:device",
+    "//android/intellij.android.device.tests:device-tests_test_lib",
+    "//android/render-resources",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/wizard",
+    "//android/wizard-model",
+    "//android/wizard-model:wizard-model_test_lib",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/platform-api:ide",
+    "//platform/platform-impl:ide-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util:util-ui",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util-ex",
+  ],
+  plugins = ["@lib//:compose-plugin"]
+)
+### auto-generated section `build intellij.android.avd` end
+
+### auto-generated section `test intellij.android.avd` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "avd_test",
+  runtime_deps = [":avd_test_lib"]
+)
+### auto-generated section `test intellij.android.avd` end

@@ -33,8 +33,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
@@ -154,7 +154,7 @@ sealed class TestRClassesTest {
 
     fixture.configureFromExistingVirtualFile(androidTest)
 
-    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    val fileEditorManager = FileEditorManager.getInstance(project)
     assertThat(fileEditorManager.openFiles).hasLength(1)
     assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.java")
 
@@ -188,7 +188,7 @@ sealed class TestRClassesTest {
 
     fixture.configureFromExistingVirtualFile(androidTest)
 
-    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    val fileEditorManager = FileEditorManager.getInstance(project)
     assertThat(fileEditorManager.openFiles).hasLength(1)
     assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.kt")
 
@@ -222,7 +222,7 @@ sealed class TestRClassesTest {
 
     fixture.configureFromExistingVirtualFile(androidTest)
 
-    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    val fileEditorManager = FileEditorManager.getInstance(project)
     assertThat(fileEditorManager.openFiles).hasLength(1)
     assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.java")
 
@@ -256,7 +256,7 @@ sealed class TestRClassesTest {
 
     fixture.configureFromExistingVirtualFile(androidTest)
 
-    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    val fileEditorManager = FileEditorManager.getInstance(project)
     assertThat(fileEditorManager.openFiles).hasLength(1)
     assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.kt")
 
@@ -425,7 +425,7 @@ class EnableNonTransitiveRClassTest: TestRClassesTest() {
                                                                "fragment_navigation_drawer", "support_simple_spinner_dropdown_item",
                                                                "class")
 
-    val projectRoot = File(FileUtil.toSystemDependentName(project.basePath!!))
+    val projectRoot = File(FileUtilRt.toSystemDependentName(project.basePath!!))
     File(projectRoot, "gradle.properties").appendText("android.nonTransitiveRClass=true")
     projectRule.requestSyncAndWait()
     IndexingTestUtil.waitUntilIndexesAreReady(project)

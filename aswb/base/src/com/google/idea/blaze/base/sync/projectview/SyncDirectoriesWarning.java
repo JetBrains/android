@@ -52,8 +52,8 @@ public class SyncDirectoriesWarning {
                 + "%<s sync to fix it.",
             buildSystem);
     String title = String.format("Syncing without a %s build", buildSystem);
-    DialogWrapper.DoNotAskOption dontAskAgain =
-        new DialogWrapper.DoNotAskOption.Adapter() {
+    DoNotAskOption dontAskAgain =
+        new DoNotAskOption.Adapter() {
           @Override
           public void rememberChoice(boolean isSelected, int exitCode) {
             if (isSelected) {

@@ -44,6 +44,7 @@ import com.intellij.coverage.DefaultCoverageFileProvider
 import com.intellij.coverage.IDEACoverageRunner
 import com.intellij.coverage.JavaCoverageEngine
 import com.intellij.execution.actions.ConfigurationFromContextImpl
+import com.intellij.execution.process.ProcessOutputType
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -59,6 +60,7 @@ import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RunsInEdt
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import org.jetbrains.plugins.gradle.GradleManager
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
@@ -113,7 +115,7 @@ class AndroidGradleConfigurationProducersTest {
   }
 
   @Test
-  fun testTasksIsReExecuted() {
+  fun testTasksIsReExecuted(): Unit = runBlocking {
     projectRule.loadProject(TEST_RESOURCES)
 
     // Create the Run configuration.
@@ -121,7 +123,7 @@ class AndroidGradleConfigurationProducersTest {
       var messagesLog = StringBuilder()
       var finalMessage = ""
 
-      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
+      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
         messagesLog.append(text)
       }
 
@@ -140,10 +142,7 @@ class AndroidGradleConfigurationProducersTest {
 
     // Get all the UserData properties we get from creating a test RC. These need to be passed to the execution settings because they
     // determine if the task will be executed as a test and that they will be forcefully re-executed.
-    val keyMap = gradleRunConfiguration.get()
-    for (key in keyMap.keys) {
-      firstExecutionSettings.putUserData(key as Key<Any>, keyMap[key])
-    }
+    copyUserDataKeysTo(gradleRunConfiguration, firstExecutionSettings)
 
     firstExecutionSettings.tasks = listOf(":app:testDebugUnitTest")
 
@@ -161,9 +160,7 @@ class AndroidGradleConfigurationProducersTest {
     // Prepare for second tasks execution.
     val secondExecutionSettings =
       ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(project, project.basePath!!, GradleConstants.SYSTEM_ID)
-    for (key in keyMap.keys) {
-      secondExecutionSettings.putUserData(key as Key<Any>, keyMap[key])
-    }
+    copyUserDataKeysTo(gradleRunConfiguration, secondExecutionSettings)
 
     secondExecutionSettings.tasks = listOf(":app:testDebugUnitTest")
 
@@ -178,6 +175,23 @@ class AndroidGradleConfigurationProducersTest {
     val expectedMessage = "Task ':app:testDebugUnitTest' is not up-to-date because:((\r)?\n)+\\s+Task\\.upToDateWhen is false\\.".toRegex()
     assertThat(expectedMessage.containsMatchIn(listener.finalMessage)).isTrue()
     assertThat(listener.messagesLog.lines()).contains("> Task :app:testDebugUnitTest")
+  }
+
+  private fun copyUserDataKeysTo(
+    gradleRunConfiguration: GradleRunConfiguration,
+    firstExecutionSettings: GradleExecutionSettings,
+  ) {
+    val keys:List<Key<*>> = listOf(
+      com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey,
+      com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.USE_ANDROID_DEVICE.userDataKey,
+      GradleRunConfiguration.DEBUG_ALL_KEY,
+      GradleRunConfiguration.RUN_AS_TEST_KEY,
+      GradleRunConfiguration.IS_TEST_TASK_RERUN_KEY,
+    )
+    for (key in keys) {
+      val userData:Any? = gradleRunConfiguration.getUserData<Any?>(key)
+      firstExecutionSettings.putUserData(key as Key<Any?>, userData)
+    }
   }
 
   @Test
@@ -229,7 +243,7 @@ class AndroidGradleConfigurationProducersTest {
   }
 
   @Test
-  fun testCoverageEngineDoesntRequireRecompilation() {
+  fun testCoverageEngineDoesntRequireRecompilation(): Unit = runBlocking {
     projectRule.loadProject(SIMPLE_APPLICATION)
     // Run a Gradle task.
     val projectPath = project.basePath!!
@@ -427,7 +441,7 @@ class AndroidGradleConfigurationProducersTest {
 
     libGradleTestClassConfiguration = psiElement.createGradleRunConfiguration()
     assertThat(libGradleTestClassConfiguration).isNotNull()
-    assertThat(libGradleTestClassConfiguration).isNotSameAs(appGradleTestClassConfiguration)
+    assertThat(libGradleTestClassConfiguration).isNotSameInstanceAs(appGradleTestClassConfiguration)
   }
 
   private fun verifyCanCreateGradleConfigurationFromSameNameTestDirectory() {
@@ -444,7 +458,7 @@ class AndroidGradleConfigurationProducersTest {
 
     val libGradleTestPackageConfiguration = libModulePsiLocation.createGradleRunConfiguration()
     assertThat(libGradleTestPackageConfiguration).isNotNull()
-    assertThat(libGradleTestPackageConfiguration).isNotSameAs(appGradleTestPackageConfiguration)
+    assertThat(libGradleTestPackageConfiguration).isNotSameInstanceAs(appGradleTestPackageConfiguration)
   }
 
   private fun findExistingGradleTestConfigurationFromPsiElement(project: Project, psiElement: PsiElement): GradleRunConfiguration? {

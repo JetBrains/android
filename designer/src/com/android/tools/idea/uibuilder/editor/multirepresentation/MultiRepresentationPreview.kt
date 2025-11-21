@@ -57,7 +57,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.MapAnnotation
 import com.intellij.util.xmlb.annotations.Tag
-import com.jetbrains.rd.util.first
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.event.KeyAdapter
@@ -304,7 +303,7 @@ open class MultiRepresentationPreview(
         // Prefer selecting a representation with previews.
         currentRepresentationName =
           if (representationsWithPreviews.isNotEmpty()) {
-            representationsWithPreviews.first().key
+            representationsWithPreviews.keys.first()
           } else {
             representationNames.minOf { it }
           }

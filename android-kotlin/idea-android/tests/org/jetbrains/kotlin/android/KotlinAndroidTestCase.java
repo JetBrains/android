@@ -48,7 +48,6 @@ import org.jetbrains.android.ComponentStack;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Adapted from {@link org.jetbrains.android.AndroidTestCase}.

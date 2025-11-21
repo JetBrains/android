@@ -21,9 +21,9 @@ import com.intellij.openapi.util.BuildNumber
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.platform.ide.customization.ExternalProductResourceUrls
 import com.intellij.testFramework.ApplicationRule
-import org.assertj.core.api.Assumptions.assumeThat
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -37,7 +37,7 @@ class AndroidStudioResourceUrlsTest {
   @Before
   fun setUp() {
     // These tests only apply to Android Studio, not to the Android plugin running in IntelliJ.
-    assumeThat(IdeInfo.getInstance().isAndroidStudio).isTrue()
+    assumeTrue(IdeInfo.getInstance().isAndroidStudio)
   }
 
   @Test

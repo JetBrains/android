@@ -240,7 +240,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       .let { elementModelList ->
         // Reorder existing models and add placeholders altogether to improve performance and UX in
         // comparison with adding/reordering them one by one.
-        this@NlDesignSurface.addModelsWithoutRender(elementModelList.map { it.second })
+        this.addModelsWithoutRender(elementModelList.map { it.second })
           .mapIndexed { idx, sceneManager ->
             val previewElement = elementModelList[idx].first
             previewElement to
@@ -312,7 +312,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.createOrReuseModelForPreview
     Configuration.create(configurationManager, FolderConfiguration.createDefault()).also {
       // Always use the imageTransformation from the surface, regardless of whether the model is
       // reused or new.
-      it.imageTransformation = this@NlDesignSurface.getGlobalImageTransformation()
+      it.imageTransformation = this.getGlobalImageTransformation()
     }
   if (modelToReuse != null) {
     var forceReinflate = true

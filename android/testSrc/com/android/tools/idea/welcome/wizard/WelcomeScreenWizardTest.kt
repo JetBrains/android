@@ -343,9 +343,9 @@ class WelcomeScreenWizardTest {
 
     val canContinueLoading = CompletableFuture<Boolean>()
     doAnswer {
-        canContinueLoading.get()
-        it.callRealMethod()
-      }
+      canContinueLoading.get()
+      it.callRealMethod()
+    }
       .whenever(fakeRepoManager)
       .loadSynchronously(any(), anyOrNull(), any(), any(), any(), any(), any())
 

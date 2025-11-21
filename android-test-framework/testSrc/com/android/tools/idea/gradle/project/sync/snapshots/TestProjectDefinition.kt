@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.ThrowableConsumer
 import com.intellij.util.ThrowableConvertor
@@ -47,6 +48,7 @@ interface TestProjectDefinition {
     name: String,
     agpVersion: AgpVersionSoftwareEnvironment,
     ndkVersion: String?,
+    sdk: Sdk? = null,
     syncReady: Boolean = true
   ): PreparedTestProject
 
@@ -59,9 +61,10 @@ interface TestProjectDefinition {
       name: String = "project",
       agpVersion: AgpVersionSoftwareEnvironment = AgpVersionSoftwareEnvironmentDescriptor.selected,
       ndkVersion: String? = SdkConstants.NDK_DEFAULT_VERSION,
+      sdk: Sdk? = null,
       syncReady: Boolean = true
     ): PreparedTestProject {
-      return testProject.prepareTestProject(this, name, agpVersion, ndkVersion, syncReady)
+      return testProject.prepareTestProject(this, name, agpVersion, ndkVersion, sdk, syncReady)
     }
   }
 }

@@ -1,42 +1,98 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+### auto-generated section `build intellij.android.adt.ui.compose` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-# managed by go/iml_to_build
-iml_module(
-    name = "intellij.android.adt.ui.compose",
-    srcs = ["src"],
-    iml_files = ["intellij.android.adt.ui.compose.iml"],
-    kotlin_use_compose = True,
-    resources = ["resources"],
-    visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    exports = ["//tools/adt/idea/adt-ui-compose/jewel.sdkcompat"],
-    # do not sort: must match IML order
-    deps = [
-        "@intellij//:intellij-sdk",
-        "//tools/adt/idea/adt-ui-compose/jewel.sdkcompat",
-    ],
+create_kotlinc_options(
+  name = "custom_adt-ui-compose",
+  x_context_parameters = True,
+  x_sam_conversions = "class"
 )
 
-# managed by go/iml_to_build
-iml_module(
-    name = "intellij.android.adt.ui.compose.tests",
-    iml_files = ["intellij.android.adt.ui.compose.tests.iml"],
-    kotlin_use_compose = True,
-    # do not sort: must match IML order
-    test_class = "com.android.tools.adtui.compose.ComposeTestSuite",
-    # do not sort: must match IML order
-    test_deps = [
-        "@intellij//:intellij-sdk",
-        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
-        "//tools/adt/idea/.idea/libraries:junit4",
-        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
-        "@intellij//:test-framework",
-        "//tools/base/testutils:studio.android.sdktools.testutils",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
-        "//tools/adt/idea/.idea/libraries:truth",
-    ],
-    test_friends = ["//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose"],
-    test_resources = ["testResources"],
-    test_srcs = ["testSrc"],
-    visibility = ["//visibility:public"],
+resourcegroup(
+  name = "adt-ui-compose_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
 )
+
+resourcegroup(
+  name = "adt-ui-compose_test_resources",
+  srcs = glob(["testResources/**/*"]),
+  strip_prefix = "testResources"
+)
+
+jvm_library(
+  name = "adt-ui-compose",
+  module_name = "intellij.android.adt.ui.compose",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":adt-ui-compose_resources"],
+  kotlinc_opts = ":custom_adt-ui-compose",
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "//android/android-common:common",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/platform-api:ide",
+    "//platform/util:util-ui",
+    "//platform/util",
+    "//platform/compose/markdown",
+    "//platform/compose",
+  ],
+  exports = [
+    "//platform/compose/markdown",
+    "//platform/compose",
+    "//libraries/compose-foundation-desktop-junit",
+    "//platform/jewel/markdown/int-ui-standalone-styling",
+    "//platform/jewel/int-ui/int-ui-standalone:jewel-intUi-standalone",
+  ],
+  plugins = ["@lib//:compose-plugin"]
+)
+
+jvm_library(
+  name = "adt-ui-compose_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  resources = [":adt-ui-compose_test_resources"],
+  kotlinc_opts = ":custom_adt-ui-compose",
+  associates = [":adt-ui-compose"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:kotlinx-coroutines-test",
+    "//android/android-common:common",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/platform-api:ide",
+    "//platform/util:util-ui",
+    "//platform/util",
+    "//platform/compose/markdown",
+    "//platform/compose",
+    "//platform/compose:compose_test_lib",
+    "//libraries/compose-foundation-desktop-junit",
+    "//platform/jewel/markdown/int-ui-standalone-styling",
+    "//platform/jewel/int-ui/int-ui-standalone:jewel-intUi-standalone",
+  ],
+  exports = [
+    "//platform/compose/markdown",
+    "//platform/compose",
+    "//platform/compose:compose_test_lib",
+    "//libraries/compose-foundation-desktop-junit",
+    "//platform/jewel/markdown/int-ui-standalone-styling",
+    "//platform/jewel/int-ui/int-ui-standalone:jewel-intUi-standalone",
+  ],
+  plugins = ["@lib//:compose-plugin"]
+)
+### auto-generated section `build intellij.android.adt.ui.compose` end
+
+### auto-generated section `test intellij.android.adt.ui.compose` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "adt-ui-compose_test",
+  runtime_deps = [":adt-ui-compose_test_lib"]
+)
+### auto-generated section `test intellij.android.adt.ui.compose` end

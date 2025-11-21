@@ -55,6 +55,7 @@ import com.intellij.build.events.impl.FinishBuildEventImpl
 import com.intellij.build.events.impl.SkippedResultImpl
 import com.intellij.build.events.impl.StartBuildEventImpl
 import com.intellij.build.events.impl.SuccessResultImpl
+import com.intellij.execution.process.ProcessOutputType
 import com.intellij.icons.AllIcons
 import com.intellij.ide.SaveAndSyncHandler
 import com.intellij.openapi.actionSystem.ActionManager
@@ -83,7 +84,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.io.FileSystemUtil
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.RefreshQueue
@@ -548,10 +549,10 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
       super.onStatusChange(event)
     }
 
-    override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
-      buildEventDispatcher.setStdOut(stdOut)
+    override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
+      buildEventDispatcher.setStdOut(processOutputType != ProcessOutputType.STDERR)
       buildEventDispatcher.append(text)
-      super.onTaskOutput(id, text, stdOut)
+      super.onTaskOutput(id, text, processOutputType)
     }
 
     override fun onEnd(projectPath: String, id: ExternalSystemTaskId) {
@@ -594,7 +595,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
       val isAsynchronous = !ApplicationManager.getApplication().isUnitTestMode
 
       for (outputRoot in allOutputs) {
-        val attributes = FileSystemUtil.getAttributes(FileUtil.toSystemDependentName(outputRoot))
+        val attributes = FileSystemUtil.getAttributes(FileUtilRt.toSystemDependentName(outputRoot));
         val vFile = fs.findFileByPath(outputRoot)
 
         if (vFile == null) {
@@ -646,7 +647,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
         val manager: BuildAttributionManager? = project.getService(BuildAttributionManager::class.java)
         if (manager != null && manager.shouldShowBuildOutputLink()) {
           val buildAttributionTabLinkLine: String = buildOutputLine()
-          onTaskOutput(id, "\n" + buildAttributionTabLinkLine + "\n", true)
+          onTaskOutput(id, "\n" + buildAttributionTabLinkLine + "\n", ProcessOutputType.STDOUT)
         }
       }
     }

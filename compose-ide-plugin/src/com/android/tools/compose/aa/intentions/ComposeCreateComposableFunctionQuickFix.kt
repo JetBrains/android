@@ -83,7 +83,7 @@ class ComposeCreateComposableFunctionQuickFix(
   companion object {
 
     val factory =
-      KotlinQuickFixFactory.IntentionBased<KaFirDiagnostic.UnresolvedReference> { diagnostic ->
+      KotlinQuickFixFactory.IntentionBased { diagnostic: KaFirDiagnostic.UnresolvedReference ->
         listOfNotNull(createComposableFunctionQuickFixIfApplicable(diagnostic))
       }
 
@@ -125,7 +125,7 @@ class ComposeCreateComposableFunctionQuickFix(
           KtPsiFactory.CallableBuilder(KtPsiFactory.CallableBuilder.Target.FUNCTION)
             .apply {
               modifier("@$COMPOSABLE_ANNOTATION_NAME")
-              typeParams(unresolvedCall.typeArguments.mapIndexed { index, _ -> "T$index" })
+              typeParams(List(unresolvedCall.typeArguments.size) { index -> "T$index" })
               name(unresolvedName)
               val lastIndex = unresolvedCall.valueArguments.lastIndex
               unresolvedCall.valueArguments.forEachIndexed { index, arg ->

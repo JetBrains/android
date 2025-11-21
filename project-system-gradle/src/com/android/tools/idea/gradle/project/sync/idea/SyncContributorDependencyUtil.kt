@@ -46,14 +46,14 @@ import com.android.tools.idea.gradle.project.sync.ResolvedAndroidProjectPath
 import com.android.tools.idea.gradle.project.sync.SyncTestMode
 import com.android.tools.idea.gradle.project.sync.VariantDependenciesCompat
 import com.android.tools.idea.gradle.project.sync.buildVariantNameResolver
-import com.android.tools.idea.gradle.project.sync.idea.entities.AndroidGradleSourceSetEntitySource
 import com.android.tools.idea.gradle.project.sync.modelCacheV2Impl
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.intellij.openapi.diagnostic.currentClassLogger
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.AnnotationOrderRootType
 import com.intellij.openapi.roots.JavadocOrderRootType
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.platform.workspace.jps.entities.DependencyScope
 import com.intellij.platform.workspace.jps.entities.LibraryDependency
 import com.intellij.platform.workspace.jps.entities.LibraryEntity
@@ -61,6 +61,7 @@ import com.intellij.platform.workspace.jps.entities.LibraryId
 import com.intellij.platform.workspace.jps.entities.LibraryRoot
 import com.intellij.platform.workspace.jps.entities.LibraryRootTypeId
 import com.intellij.platform.workspace.jps.entities.LibraryTableId
+import com.intellij.platform.workspace.jps.entities.LibraryEntityBuilder
 import com.intellij.platform.workspace.jps.entities.ModuleDependency
 import com.intellij.platform.workspace.jps.entities.ModuleDependencyItem
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
@@ -75,7 +76,8 @@ import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.plugins.gradle.model.GradleSourceSetModel
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
-import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncProjectConfigurator.project
+import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
+import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrl
 import java.io.File
 
 private val LOG = currentClassLogger()
@@ -106,6 +108,7 @@ private class SyncContributorAndroidProjectDependenciesContext(
   val ideLibraryModelResolver: IdeLibraryModelResolver,
   val sourceSetModuleIdToEntityMap: Map<SourceSetModuleId, ModuleEntity>,
   val moduleNameToEntityMap: Map<String, ModuleEntity>,
+  val moduleNameToInstanceMap: Map<String, Module>,
   // Library id map is mutable to track newly created entities
   val libraryIdToEntityMap: MutableMap<LibraryId, LibraryEntity>,
 ) {
@@ -116,7 +119,7 @@ private class SyncContributorAndroidProjectDependenciesContext(
   /** Populates the dependencies of the module corresponding to the given artifact.  */
   fun IdeDependenciesCore.populateDependenciesForModule(scope: DependencyScope, name: IdeArtifactName) {
     val wellKnownSourceSetName = name.toWellKnownSourceSet().sourceSetName
-    val moduleName = "${androidProjectContext.resolveModuleName()}.$wellKnownSourceSetName"
+    val moduleName = "${androidProjectContext.resolveHolderModuleName()}.$wellKnownSourceSetName"
     val entitySource = AndroidGradleSourceSetEntitySource(androidProjectContext.projectEntitySource, wellKnownSourceSetName)
 
     knownEntitySources += entitySource
@@ -161,10 +164,10 @@ private class SyncContributorAndroidProjectDependenciesContext(
   fun IdeArtifactLibrary.processName() = "Gradle: $name"
 
   /** Converts a file to the exact format required by the platform .*/
-  fun File.toLibraryRootPath() = androidProjectContext.virtualFileUrlManager.getOrCreateFromUrl(VfsUtil.getUrlForLibraryRoot(this))
+  fun File.toLibraryRootPath() = androidProjectContext.context.virtualFileUrl(this)
 
   /* Creates a library entity or find an existing one from storage, also counting any newly created ones. */
-  fun getOrCreateLibraryEntity(moduleName: String, libraryEntityProvider: () -> LibraryEntity.Builder): LibraryEntity {
+  fun getOrCreateLibraryEntity(moduleName: String, libraryEntityProvider: () -> LibraryEntityBuilder): LibraryEntity {
     val libraryEntityToBeAdded = libraryEntityProvider()
     fun lookup(tableId: LibraryTableId) = libraryIdToEntityMap[LibraryId(libraryEntityToBeAdded.name, tableId)]
     // Look up existing modules, reducing specificity of the table each time
@@ -224,12 +227,13 @@ private class SyncContributorAndroidProjectDependenciesContext(
 }
 
 
-internal suspend fun setupAndroidDependenciesForAllProjects(
+internal fun setupAndroidDependenciesForAllProjects(
   context: ProjectResolverContext,
+  phase: GradleSyncPhase,
   allAndroidContexts: List<SyncContributorAndroidProjectContext>,
   storage: ImmutableEntityStorage
 ) : SourceSetUpdateResult {
-  val project = context.project()
+  val project = context.project
 
   val buildPathMap = buildBuildPathMap(context)
   val androidProjectPathResolver = buildAndroidProjectPathResolver(context, allAndroidContexts)
@@ -248,13 +252,15 @@ internal suspend fun setupAndroidDependenciesForAllProjects(
     }
   }
   val ideLibraryModelResolver: IdeLibraryModelResolver = buildIdeLibraryModelResolver(internedModels, context)
-  val sourceSetModuleIdToModuleEntityMap = buildSourceSetModuleIdToModuleEntityMap(storage, context, project, allAndroidContexts)
+  val sourceSetModuleIdToModuleEntityMap = buildSourceSetModuleIdToModuleEntityMap(storage, context, project, phase, allAndroidContexts)
 
   // Make the storage state into a mutable one to be able track newly created entities.
   val libraryIdToEntityMap: MutableMap<LibraryId, LibraryEntity> =
     updatedEntities.entities(LibraryEntity::class.java).associateBy { it.symbolicId }.toMutableMap()
   val moduleNameToEntityMap: Map<String, ModuleEntity> =
     updatedEntities.entities(ModuleEntity::class.java).associateBy { it.name }
+  val moduleNameToInstanceMap: Map<String, Module> =
+    project.modules.associateBy { it.name }
 
   val allKnownEntitySources = allContextWithDependencies.flatMap { (context, variantWithDependencies) ->
     SyncContributorAndroidProjectDependenciesContext(
@@ -263,6 +269,7 @@ internal suspend fun setupAndroidDependenciesForAllProjects(
       ideLibraryModelResolver,
       sourceSetModuleIdToModuleEntityMap,
       moduleNameToEntityMap,
+      moduleNameToInstanceMap,
       libraryIdToEntityMap,
     ).populateDependenciesForAndroidProject(variantWithDependencies)
   }
@@ -315,7 +322,7 @@ private fun SyncContributorAndroidProjectDependenciesContext.populateDependencie
     it.compileClasspathCore.populateDependenciesForModule(DependencyScope.TEST, it.name)
   }
 
-  val allKnownModuleEntities = listOfNotNull(moduleNameToEntityMap[androidProjectContext.resolveModuleName()]) +
+  val allKnownModuleEntities = listOfNotNull(moduleNameToEntityMap[androidProjectContext.resolveHolderModuleName()]) +
                                knownModuleNames.mapNotNull { moduleNameToEntityMap[it] }
   val dependencyModelFactory = GradleAndroidDependencyModel.createFactory(androidProjectContext.project, libraryResolver = ideLibraryModelResolver)
 
@@ -422,12 +429,13 @@ private fun buildSourceSetModuleIdToModuleEntityMap(
   storage: ImmutableEntityStorage,
   context: ProjectResolverContext,
   project: Project,
+  phase: GradleSyncPhase,
   allAndroidContexts: List<SyncContributorAndroidProjectContext>
 ): Map<SourceSetModuleId, ModuleEntity> {
   // First build a map of all known source sets
   val allSourceSetModuleIdsMap: Map<String, SourceSetModuleId> = (
     buildAndroidSourceSetModuleIdsMap(allAndroidContexts, context) +
-    buildJavaSourceSetModuleIdsMap(context, project)).toMap()
+    buildJavaSourceSetModuleIdsMap(context, project, phase)).toMap()
 
   // And associate them with existing entities
   return storage.entities(ModuleEntity::class.java).mapNotNull { entity ->
@@ -442,9 +450,9 @@ private fun buildSourceSetModuleIdToModuleEntityMap(
 }
 
 /** Returns the mapping from [SourceSetModuleId] to module entities for Java projects. */
-private fun buildJavaSourceSetModuleIdsMap(context: ProjectResolverContext, project: Project): Map<String, SourceSetModuleId> = context.allBuilds.flatMap { buildModel ->
+private fun buildJavaSourceSetModuleIdsMap(context: ProjectResolverContext, project: Project, phase: GradleSyncPhase): Map<String, SourceSetModuleId> = context.allBuilds.flatMap { buildModel ->
   buildModel.projects.flatMap { projectModel ->
-    with(SyncContributorProjectContext(context, project, buildModel, projectModel)) {
+    with(SyncContributorProjectContext(context, project, phase, buildModel, projectModel)) {
       val sourceSetModel = context.getProjectModel(projectModel, GradleSourceSetModel::class.java) ?: (return@flatMap emptyList()).also {
         LOG.debug("No GradleSourceSet model found for ${projectModel.path}")
       }

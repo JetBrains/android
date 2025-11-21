@@ -41,6 +41,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
+import java.util.concurrent.CompletableFuture
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import kotlinx.coroutines.delay

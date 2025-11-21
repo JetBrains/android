@@ -20,7 +20,6 @@ import static com.android.tools.idea.run.activity.DefaultActivityLocator.getActi
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ALIAS;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_DEFAULT;
-import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ENABLED;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_MANIFESTS;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_TV;
 import static org.mockito.Mockito.mock;
@@ -34,11 +33,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -135,7 +134,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
 
   public void testIndexStrategy_onEdt() {
     MergedManifestModificationListener.ensureSubscribed(getProject());
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread();
 
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     VirtualFile launcher = myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",

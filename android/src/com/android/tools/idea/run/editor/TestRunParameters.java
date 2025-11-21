@@ -287,8 +287,9 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myContentPanel = new JPanel();
     myContentPanel.setLayout(new GridLayoutManager(7, 6, new Insets(0, 0, 0, 0), -1, -1));
     myAllInPackageTestButton = new JRadioButton();
-    myAllInPackageTestButton.setActionCommand(ExecutionBundle.message("jnit.configuration.all.tests.in.package.radio"));
-    loadButtonText(myAllInPackageTestButton, AndroidBundle.message("android.run.configuration.all.in.package.radio"));
+    myAllInPackageTestButton.setActionCommand(ExecutionBundle.message("junit.configuration.all.tests.in.package.radio"));
+    loadButtonText(myAllInPackageTestButton,
+                   AndroidBundle.message("android.run.configuration.all.in.package.radio"));
     myContentPanel.add(myAllInPackageTestButton, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                                      null, null, null, 0, false));
@@ -296,14 +297,16 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myClassTestButton.setActionCommand(ExecutionBundle.message("junit.configuration.test.class.radio"));
     myClassTestButton.setEnabled(true);
     myClassTestButton.setSelected(false);
-    loadButtonText(myClassTestButton, AndroidBundle.message("android.run.configuration.class.radio"));
+    loadButtonText(myClassTestButton,
+                   AndroidBundle.message("android.run.configuration.class.radio"));
     myContentPanel.add(myClassTestButton, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
                                                               null, null, 0, false));
     myMethodTestButton = new JRadioButton();
     myMethodTestButton.setActionCommand(ExecutionBundle.message("junit.configuration.test.method.radio"));
     myMethodTestButton.setSelected(false);
-    loadButtonText(myMethodTestButton, AndroidBundle.message("android.run.configuration.method.radio"));
+    loadButtonText(myMethodTestButton,
+                   AndroidBundle.message("android.run.configuration.method.radio"));
     myContentPanel.add(myMethodTestButton, new GridConstraints(0, 4, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
                                                                null, null, 0, false));
@@ -311,7 +314,8 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     jBLabel1.setHorizontalAlignment(2);
     jBLabel1.setHorizontalTextPosition(2);
     jBLabel1.setIconTextGap(4);
-    loadLabelText(jBLabel1, ExecutionBundle.message("junit.configuration.configure.junit.test.label"));
+    loadLabelText(jBLabel1,
+                  ExecutionBundle.message("junit.configuration.configure.junit.test.label"));
     myContentPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                      0, false));
@@ -320,7 +324,8 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, 1, null,
                                                     null, null, 0, false));
     myAllInModuleTestButton = new JRadioButton();
-    loadButtonText(myAllInModuleTestButton, AndroidBundle.message("android.run.configuration.all.in.module.radio"));
+    loadButtonText(myAllInModuleTestButton,
+                   AndroidBundle.message("android.run.configuration.all.in.module.radio"));
     myContentPanel.add(myAllInModuleTestButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                                     null, null, null, 0, false));

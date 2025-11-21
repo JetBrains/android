@@ -33,16 +33,15 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Trace.TraceInitiationType;
 import com.android.tools.profiler.proto.Trace;
+import com.android.tools.profiler.proto.Trace.TraceInitiationType;
+import com.android.tools.profilers.InterimStage;
 import com.android.tools.profilers.LogUtils;
-import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.InterimStage;
 import com.android.tools.profilers.cpu.adapters.CpuDataProvider;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
@@ -51,14 +50,11 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration.AdditionalO
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel;
 import com.android.tools.profilers.tasks.TaskEventTrackerUtils;
-import com.android.tools.profilers.tasks.TaskMetadataStatus;
 import com.android.tools.profilers.tasks.TaskStartFailedMetadata;
 import com.android.tools.profilers.tasks.TaskStopFailedMetadata;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
-import com.google.wireless.android.sdk.stats.TaskFailedMetadata;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.registry.Registry;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -83,7 +79,8 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
    * A fake configuration shown when an API-initiated tracing is in progress. It exists for UX purpose only and isn't something
    * we want to preserve across stages. Therefore, it exists inside {@link CpuProfilerStage}.
    */
-  @VisibleForTesting static final ProfilingConfiguration API_INITIATED_TRACING_PROFILING_CONFIG =
+  @VisibleForTesting
+  public static final ProfilingConfiguration API_INITIATED_TRACING_PROFILING_CONFIG =
     new ArtInstrumentedConfiguration("API tracing");
 
   public enum CaptureState {

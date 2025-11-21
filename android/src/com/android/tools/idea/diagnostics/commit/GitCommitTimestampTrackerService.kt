@@ -40,7 +40,7 @@ class GitCommitTimestampTrackerService(private val project: Project) : Disposabl
         override fun directoryMappingChanged() {
           LOG.info("VCS roots updated")
           stopAllTrackers()
-          val vcsRoots = ProjectLevelVcsManager.getInstance(project).allVcsRoots
+          val vcsRoots = ProjectLevelVcsManager.getInstance(project).getAllVcsRoots()
           startTrackers(vcsRoots)
         }
       }
@@ -50,7 +50,7 @@ class GitCommitTimestampTrackerService(private val project: Project) : Disposabl
   private fun checkAndTrackGitRepository(project: Project) {
     LOG.info("Project base path: ${project.basePath}")
     val vcsManager = ProjectLevelVcsManager.getInstance(project)
-    val allVcsRoots = vcsManager.allVcsRoots
+    val allVcsRoots = vcsManager.getAllVcsRoots()
     subscribeToVcsRootChanges(project)
     startTrackers(allVcsRoots)
   }

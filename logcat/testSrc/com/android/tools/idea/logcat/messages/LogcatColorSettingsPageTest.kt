@@ -19,8 +19,8 @@ import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.utils.usLocaleCapitalize
 import com.google.common.truth.Truth.assertThat
-import java.util.Locale
 import org.junit.Test
+import java.util.Locale
 
 /** Tests for [LogcatColorSettingsPage] */
 class LogcatColorSettingsPageTest {

@@ -153,7 +153,7 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
   }
 
   @Override
-  public void loadState(CpuProfilerConfigsState state) {
+  public void loadState(@NotNull CpuProfilerConfigsState state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 }

@@ -22,6 +22,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.ui.AndroidAdbUiBundle
+import com.intellij.concurrency.ConcurrentCollectionFactory
 import com.android.tools.idea.ui.DISPLAY_ID_KEY
 import com.android.tools.idea.ui.DISPLAY_INFO_PROVIDER_KEY
 import com.android.tools.idea.ui.DisplayInfoProvider
@@ -36,7 +37,6 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import icons.StudioIcons
-import io.ktor.util.collections.ConcurrentSet
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -55,7 +55,7 @@ class ScreenRecorderAction : DumbAwareAction(
   private val logger = thisLogger()
 
   /** Serial numbers of devices that are currently recording. */
-  private val recordingInProgress = ConcurrentSet<String>()
+  private val recordingInProgress = ConcurrentCollectionFactory.createConcurrentSet<String>()
 
   override fun getActionUpdateThread(): ActionUpdateThread {
     return ActionUpdateThread.BGT

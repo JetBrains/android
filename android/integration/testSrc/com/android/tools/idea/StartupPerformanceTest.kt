@@ -21,7 +21,7 @@ import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.platform.performance.testing.PlatformPerformanceBenchmark
 import com.intellij.openapi.util.SystemInfo
-import org.apache.groovy.util.Maps
+import java.util.Map
 import org.junit.Rule
 import org.junit.Test
 
@@ -79,7 +79,7 @@ class StartupPerformanceTest {
     }
 
     // [Linux test const term, Windows test const term]
-    val metricConstTerms = Maps.of("pausedTimeInIndexingOrScanning", listOf(6, 6),
+    val metricConstTerms = Map.of("pausedTimeInIndexingOrScanning", listOf(6, 6),
                                    "indexingTimeWithoutPauses", listOf(31, 225),
                                    "scanningTimeWithoutPauses", listOf(88, 760),
                                    "startup_performance_code_loaded_and_visible_in_editor", listOf(200, 200),

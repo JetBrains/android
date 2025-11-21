@@ -190,7 +190,7 @@ class CpuCaptureStageViewTest {
   fun analysisPanelIsInitializedAfterParsing() {
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
-    assertThat(stageView.analysisPanel.component.size).isNotSameAs(0)
+    assertThat(stageView.analysisPanel.component.size).isNotSameInstanceAs(0)
   }
 
   @Test

@@ -83,4 +83,5 @@ class GradleProjectStub(
   override fun getBuildDirectory() = null
   override fun getProjectDirectory() = null
   override fun getProjectIdentifier() = projectIdentifier
+  override fun getBuildTreePath(): String? = null
 }

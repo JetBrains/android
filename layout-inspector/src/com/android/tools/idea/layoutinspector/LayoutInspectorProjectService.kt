@@ -34,15 +34,15 @@ import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.transport.manager.TransportStreamManagerService
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.concurrency.ThreadingAssertions
+import kotlinx.coroutines.CoroutineScope
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
-import kotlinx.coroutines.CoroutineScope
 
 /** Class used to keep track of open projects, for metrics purposes */
 object LayoutInspectorOpenProjectsTracker {
@@ -78,7 +78,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
    */
   @UiThread
   fun getLayoutInspector(): LayoutInspector {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     if (layoutInspector == null) {
       layoutInspector = createLayoutInspector(project, this)
@@ -88,7 +88,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
 
   @UiThread
   private fun createLayoutInspector(project: Project, disposable: Disposable): LayoutInspector {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     val layoutInspectorCoroutineScope = AndroidCoroutineScope(disposable)
 

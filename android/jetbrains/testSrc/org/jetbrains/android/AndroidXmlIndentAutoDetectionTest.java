@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.common.collect.ImmutableList;
 import com.intellij.formatting.Block;
 import com.intellij.formatting.FormattingContext;
@@ -31,13 +33,9 @@ import com.intellij.psi.codeStyle.autodetect.FormatterBasedLineIndentInfoBuilder
 import com.intellij.psi.codeStyle.autodetect.LineIndentInfo;
 import com.intellij.testFramework.DumbModeTestUtils;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.android.formatter.AndroidXmlFormattingModelBuilder;
-
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.android.formatter.AndroidXmlFormattingModelBuilder;
 
 /**
  * Test indent detection for android XML files.

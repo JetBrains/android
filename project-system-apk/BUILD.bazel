@@ -1,0 +1,42 @@
+### auto-generated section `build intellij.android.projectSystem.apk` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+resourcegroup(
+  name = "projectSystem-apk_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "projectSystem-apk",
+  module_name = "intellij.android.projectSystem.apk",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":projectSystem-apk_resources"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "//libraries/guava",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/deploy",
+    "//android/execution/common",
+    "//android/streaming",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/xdebugger-api:debugger",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/ide-core",
+    "//platform/ide-core-impl",
+    "//platform/platform-impl:ide-impl",
+    "//jps/model-api:model",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//java/java-psi-api:psi",
+    "//android/project-system",
+  ]
+)
+### auto-generated section `build intellij.android.projectSystem.apk` end

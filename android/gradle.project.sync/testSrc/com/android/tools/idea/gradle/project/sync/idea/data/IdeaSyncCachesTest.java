@@ -17,7 +17,9 @@ package com.android.tools.idea.gradle.project.sync.idea.data;
 
 import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
@@ -36,7 +38,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServicesKt;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,6 +55,18 @@ public class IdeaSyncCachesTest {
 
   @Test
   public void testCacheIsInvalidated() {
+    if (!IdeInfo.getInstance().isAndroidStudio()) return;
+    // this test is not correct. The following is happening on startup:
+    //  1. IDE starts and executes ExternalSystemStartupActivity.
+    //  2. ExternalSystemStartupActivity imports the project and publishes ProjectDataImportListener#onImportFinished
+    //  3. GradleSyncState reacts on the event and remembers state SUCCESS
+    //  4. IDEA becomes smart and executes postStartupActivities, including AndroidGradleProjectStartupActivity
+    //  5. AndroidGradleProjectStartupActivity#shouldSyncOrAttachModels finds that `gradleProjectInfo.androidModules.isNotEmpty()` and
+    //     publishes SKIPPED event
+    //  6. This test now fails because `getSyncManager().getLastSyncResult() != SyncResult.SUCCESS`
+    //
+    //  This test has worked before only because gradle import is slow enough for AndroidGradleProjectStartupActivity to run before import completes.
+    fail("Make sure this test fails in Android Studio. Ignored in IDEA");
     PreparedTestProject p = prepareTestProject(rule, AndroidCoreTestProject.SIMPLE_APPLICATION, "project");
     p.open((it) -> it, project -> {
       assertThat(ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().getLastSyncResult())
@@ -75,6 +88,19 @@ public class IdeaSyncCachesTest {
 
   @Test
   public void testMissingJarTriggersSync() throws IOException {
+    if (!IdeInfo.getInstance().isAndroidStudio()) return;
+    // this test is not correct. The following is happening on startup:
+    //  1. IDE starts and executes ExternalSystemStartupActivity.
+    //  2. ExternalSystemStartupActivity imports the project and publishes ProjectDataImportListener#onImportFinished
+    //  3. GradleSyncState reacts on the event and remembers state SUCCESS
+    //  4. IDEA becomes smart and executes postStartupActivities, including AndroidGradleProjectStartupActivity
+    //  5. AndroidGradleProjectStartupActivity#shouldSyncOrAttachModels finds that `gradleProjectInfo.androidModules.isNotEmpty()` and
+    //     publishes SKIPPED event
+    //  6. This test now fails because `getSyncManager().getLastSyncResult() != SyncResult.SUCCESS`
+    //
+    //  This test has worked before only because gradle import is slow enough for AndroidGradleProjectStartupActivity to run before import completes.
+    fail("Make sure this test fails in Android Studio. Ignored in IDEA");
+
     PreparedTestProject p = prepareTestProject(rule, AndroidCoreTestProject.SIMPLE_APPLICATION, "project");
     p.open((it) -> it, project -> {
       assertThat(ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().getLastSyncResult())
@@ -130,7 +156,7 @@ public class IdeaSyncCachesTest {
           file.delete(this);
         }
         catch (IOException e) {
-          Assert.fail(e.getMessage());
+          fail(e.getMessage());
         }
       });
     });

@@ -27,10 +27,12 @@ import com.android.adblib.syncSend
 import com.android.annotations.concurrency.GuardedBy
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.diagnostics.report.GenericReport
+import com.android.tools.idea.downloads.AndroidProfilerDownloader
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
@@ -176,7 +178,10 @@ class DeviceClient(
    */
   suspend fun establishAgentConnection(
       maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
+
     try {
+      AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace()
+
       streamingSessionTracker.streamingStarted()
       val newConnection = Connection(this)
       val connection = connectionHolder.compareAndExchange(null, newConnection) ?: newConnection
@@ -221,7 +226,7 @@ class DeviceClient(
    * Starts the screen sharing agent and connects to it.
    */
   private suspend fun startAgentAndConnect(
-      connection: Connection, maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
+    connection: Connection, maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
     val adbSession = AdbLibApplicationService.instance.session
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
     val agentPushed = coroutineScope {
@@ -374,7 +379,7 @@ class DeviceClient(
 
     var soFile: Path? = null
     var jarFile: Path? = null
-    if (ApplicationManager.getApplication().isInternal) {
+    if (ApplicationManager.getApplication().isInternal && IdeInfo.getInstance().isAndroidStudio) {
       val projectDir = project.guessProjectDir()?.toNioPath()
       if (projectDir != null && projectDir.endsWith(SCREEN_SHARING_AGENT_SOURCE_PATH)) {
         // Development environment for the screen sharing agent.
@@ -397,9 +402,11 @@ class DeviceClient(
       }
       else {
         // Installed Studio.
-        val agentDir = PluginPathManager.getPluginHome("android/resources/screen-sharing-agent").toPath()
-        soFile = agentDir.resolve("$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
-        jarFile = agentDir.resolve(SCREEN_SHARING_AGENT_JAR_NAME)
+        val screenSharingAgentDir = AndroidProfilerDownloader.getInstance()
+        .getHostDir("plugins/android/resources/screen-sharing-agent")
+        .toPath()
+        soFile = screenSharingAgentDir.resolve("$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
+        jarFile = screenSharingAgentDir.resolve(SCREEN_SHARING_AGENT_JAR_NAME)
       }
     }
 

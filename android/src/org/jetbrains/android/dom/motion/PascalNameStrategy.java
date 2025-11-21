@@ -17,13 +17,9 @@ package org.jetbrains.android.dom.motion;
 
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.codeStyle.NameUtil;
-import com.intellij.util.Function;
 import com.intellij.util.xml.DomNameStrategy;
 
-import java.util.Arrays;
-
 public class PascalNameStrategy extends DomNameStrategy {
-  public static final Function<String,String> CAPITALIZE_FUNCTION = s -> StringUtil.capitalize(s);
 
   @Override
   public final String convertName(String propertyName) {
@@ -32,6 +28,6 @@ public class PascalNameStrategy extends DomNameStrategy {
 
   @Override
   public final String splitIntoWords(final String tagName) {
-    return StringUtil.join(Arrays.asList(NameUtil.nameToWords(tagName)), CAPITALIZE_FUNCTION, " ");
+    return StringUtil.join(NameUtil.nameToWordList(tagName), StringUtil::capitalize, " ");
   }
 }

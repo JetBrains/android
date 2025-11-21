@@ -28,7 +28,7 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.dumpSourceProviders
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
+import com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName
 import com.intellij.testFramework.PlatformTestUtil
 import java.io.File
 import org.junit.Rule

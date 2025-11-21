@@ -18,16 +18,15 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Resolve a CDep multipackage component.
  */
-class CDepMultipackageIncludeResolver extends IncludeResolver {
+public class CDepMultipackageIncludeResolver extends IncludeResolver {
   @NotNull private final static Pattern PATTERN = Pattern.compile("^(.*/.*?/exploded)(/(.*?)/(.*?)/(.*?)/(.*?)/.*?\\.zip(/.*))$");
 
   @Override

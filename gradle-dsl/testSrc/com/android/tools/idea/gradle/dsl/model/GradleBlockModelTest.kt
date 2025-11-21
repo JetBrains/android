@@ -111,6 +111,7 @@ class GradleBlockModelTest : GradleFileModelTestCase() {
     assertEmpty(modelMap.childrenOf(MyNestedDslModel::class.java, kind))
   }
 
+
   @Test
   fun testThrowsExceptionForUnregisteredModel() {
     writeToBuildFile("")
@@ -211,6 +212,7 @@ class MyTestDslModelImpl(private val dslElement: MyTestDslElement) : MyTestDslMo
 
 }
 
+//=========== below classes are required for nested DSL element injection
 interface MyNestedDslModel : GradleDslModel {
   fun getValue(): String
   fun setValue(v: String)

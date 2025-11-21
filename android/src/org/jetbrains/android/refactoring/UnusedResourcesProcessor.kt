@@ -113,7 +113,7 @@ class UnusedResourcesProcessor(
   override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor =
     UnusedResourcesUsageViewDescriptor(elements)
 
-  public override fun findUsages(): Array<UsageInfo> {
+  protected override fun findUsages(): Array<UsageInfo> {
     elements = computeUnusedDeclarationElements()
     val result = elements.map { UsageInfo(it) }.toTypedArray()
     return UsageViewUtil.removeDuplicatedUsages(result)
@@ -316,7 +316,7 @@ class UnusedResourcesProcessor(
     return map.filterKeys(allowedIssues::contains)
   }
 
-  override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>) = true
+  protected override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>) = true
 
   override fun refreshElements(elements: Array<PsiElement>) {
     System.arraycopy(elements, 0, this.elements, 0, elements.size)

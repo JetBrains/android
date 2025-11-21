@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.Version.ANDROID_TOOLS_BASE_VERSION
 import com.android.sdklib.devices.Abi
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.EmbeddedDistributionPaths
@@ -216,6 +217,10 @@ class ProjectDumper(
         }
         else it
       }
+      .let {
+        if (IdeInfo.getInstance().isAndroidStudio) it
+        else it.replace("/jetified-", "/", ignoreCase = false) // flaky GradleSyncProjectComparisonTest tests in IDEA
+      }
       .removeAndroidVersionsFromPath()
       .replace(transformFolderPattern, "/<TRANSFORMS>/")
       .replace(gradleVersionWithoutPrefixPattern, "/<GRADLE_VERSION>/")
@@ -287,10 +292,10 @@ class ProjectDumper(
       ?: this
   }
 
-  private val javaVersionRegex = Regex("(jbr|corretto)-(21|17|11|1\\.8)")
+  private val javaVersionRegex = Regex("(homebrew|jbr|corretto)-(21|17|11|1\\.8)")
   fun String.replaceJdkName(): String = replaceJavaVersionLikeMatch(javaVersionRegex, 2, "JDK_NAME")
 
-  private val jdkVersionRegex = Regex("(JetBrains Runtime|Amazon Corretto)( version)? (1\\.8|1[17]|21)\\.0\\.[0-9]+")
+  private val jdkVersionRegex = Regex("(Homebrew OpenJDK|JetBrains Runtime|Amazon Corretto)( version)? (1\\.8|1[17]|21)\\.0\\.[0-9]+( - aarch64)?")
   fun String.replaceJdkVersion(): String {
     return replaceJavaVersionLikeMatch(jdkVersionRegex, 3, "JDK_VERSION")
       .replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")

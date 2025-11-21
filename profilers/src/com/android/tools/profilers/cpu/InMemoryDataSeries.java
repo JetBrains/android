@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * Implementers of this class should implement {@link #inMemoryDataList}, which should return all the {@link DataSeries} that would be
  * returned if {@link #getDataForRange(Range)} receives a range with maximum length.
  */
-abstract class InMemoryDataSeries<T> implements DataSeries<T> {
+public abstract class InMemoryDataSeries<T> implements DataSeries<T> {
   /**
    * @return list of {@link SeriesData} within the given range, plus the data points before/after unless they match exactly the boundaries
    * of the given range.

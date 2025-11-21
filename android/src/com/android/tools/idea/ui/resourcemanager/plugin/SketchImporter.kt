@@ -16,10 +16,10 @@
 package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.importer.DesignAssetImporter
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
+import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.IMPORT_DIALOG_TITLE
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchImporterPresenter
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchImporterView

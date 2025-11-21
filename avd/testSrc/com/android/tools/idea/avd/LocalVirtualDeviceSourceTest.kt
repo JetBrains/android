@@ -41,6 +41,7 @@ import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.google.common.truth.Truth.assertThat
+import com.intellij.idea.IJIgnore
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -52,6 +53,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -218,6 +220,7 @@ class LocalVirtualDeviceSourceTest {
   }
 
   @Test
+  @IJIgnore(issue = "IDEA-370408")
   fun configurationPage_preferredAbi() {
     with(SdkFixture()) {
       val api34Image = api34()
@@ -365,6 +368,7 @@ class LocalVirtualDeviceSourceTest {
   }
 
   @Test
+  @Ignore("IDEA-369982")
   fun systemImageLoading_remoteError() {
     with(SdkFixture()) {
       val api34Image = api34()

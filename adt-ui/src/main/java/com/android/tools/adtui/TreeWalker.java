@@ -17,7 +17,8 @@ package com.android.tools.adtui;
 
 import com.intellij.util.Function;
 import com.intellij.util.containers.Stack;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Container;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;

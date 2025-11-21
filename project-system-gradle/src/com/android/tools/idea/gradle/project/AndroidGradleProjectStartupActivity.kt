@@ -62,6 +62,7 @@ import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
@@ -84,6 +85,7 @@ import com.intellij.openapi.roots.ModuleSourceOrderEntry
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
@@ -115,7 +117,10 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
   @Service(Service.Level.PROJECT)
   class StartupService(private val project: Project) : AndroidGradleProjectStartupService<Unit>() {
 
-    suspend fun performStartupActivity() {
+    suspend fun performStartupActivity(isJpsProjectLoaded: Boolean = false) {
+      LOG.debug { "AndroidGradleProjectStartupActivity.performStartupActivity(isJpsProjectLoaded = $isJpsProjectLoaded)" }
+      if (Registry.`is`("android.gradle.project.startup.activity.disabled")) return
+
       runInitialization {
         // Need to wait for both JpsProjectLoadingManager and ExternalProjectsManager, as well as the completion of
         // AndroidNewProjectInitializationStartupActivity.  In old-skool thread
@@ -127,7 +132,7 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
           val newProjectStartupJob = async { project.service<AndroidNewProjectInitializationStartupActivity.StartupService>().awaitInitialization() }
 
           ExternalProjectsManager.getInstance(project).runWhenInitializedInBackground { externalProjectsJob.complete(Unit) }
-          whenAllModulesLoaded(project) { jpsProjectJob.complete(Unit) }
+          whenAllModulesLoaded(project, isJpsProjectLoaded) { jpsProjectJob.complete(Unit) }
           awaitAll(newProjectStartupJob, externalProjectsJob, jpsProjectJob)
         }
 
@@ -196,8 +201,8 @@ private fun subscribeToGradleSettingChanges(project: Project) {
   })
 }
 
-private fun whenAllModulesLoaded(project: Project, callback: () -> Unit) {
-  if (project.getUserData(PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES) == true) {
+private fun whenAllModulesLoaded(project: Project, isJpsProjectLoaded: Boolean, callback: () -> Unit) {
+  if (isJpsProjectLoaded || project.getUserData(PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES) == true) {
     // All modules are loaded at this point and JpsProjectLoadingManager.jpsProjectLoaded is not triggered, so invoke callback directly.
     callback()
   } else {

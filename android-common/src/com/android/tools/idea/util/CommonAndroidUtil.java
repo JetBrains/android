@@ -3,7 +3,6 @@ package com.android.tools.idea.util;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class CommonAndroidUtil {

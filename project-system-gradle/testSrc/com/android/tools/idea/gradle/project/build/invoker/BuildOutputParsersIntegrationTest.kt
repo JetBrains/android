@@ -41,6 +41,7 @@ import com.intellij.build.events.impl.FinishEventImpl
 import com.intellij.build.events.impl.StartEventImpl
 import com.intellij.build.events.impl.SuccessResultImpl
 import com.intellij.execution.impl.ConsoleViewImpl
+import com.intellij.execution.process.ProcessOutputType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -177,7 +178,7 @@ class BuildOutputParsersIntegrationTest {
         )
       }
     }
-    buildListener.onTaskOutput(myTaskId, output, true)
+    buildListener.onTaskOutput(myTaskId, output, ProcessOutputType.STDOUT)
     if (exception != null) {
       buildListener.onFailure(basePath, myTaskId, exception)
     }

@@ -16,7 +16,6 @@
 package com.android.tools.idea.wear.dwf.importer.wfs.honeyface
 
 import com.android.SdkConstants.TAG_WATCH_FACE
-import com.intellij.ui.ColorUtil
 import java.awt.Color
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.io.path.nameWithoutExtension

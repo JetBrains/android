@@ -129,31 +129,30 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
   private fun runRenderer(renderer: (Project) -> Unit) {
     object :
-        Task.Backgroundable(
-          null,
-          message("android.compile.messages.generating.r.java.content.name"),
-          false,
-        ) {
-        override fun run(indicator: ProgressIndicator) {
-          val projectName = applicationName.get()
-          val projectBaseDirectory = File(projectLocation.get())
-          val newProject =
-            GradleProjectImporter.getInstance()
-              .createProject(projectName, projectBaseDirectory, useDefaultProjectAsTemplate = true)
+      Task.Backgroundable(
+        null,
+        message("android.compile.messages.generating.r.java.content.name"),
+        false,
+      ) {
+      override fun run(indicator: ProgressIndicator) {
+        val projectName = applicationName.get()
+        val projectBaseDirectory = File(projectLocation.get())
+        val newProject =
+          GradleProjectImporter.getInstance()
+            .createProject(projectName, projectBaseDirectory, useDefaultProjectAsTemplate = true)
 
-          // Arguably some of these things should be in the OpenProjectTask's beforeOpen
-          newProject.service<ProjectSystemService>().setProviderId(GradleProjectSystemProvider.ID)
-          MakeBeforeRunTaskProviderUtil.ensureMakeBeforeRunTaskInConfigurationTemplate(newProject)
+        // Arguably some of these things should be in the OpenProjectTask's beforeOpen
+        newProject.service<ProjectSystemService>().setProviderId(GradleProjectSystemProvider.ID)
+        MakeBeforeRunTaskProviderUtil.ensureMakeBeforeRunTaskInConfigurationTemplate(newProject)
 
-          this@NewProjectModel.project = newProject
+        this@NewProjectModel.project = newProject
 
-          newProject
-            .service<AndroidNewProjectInitializationStartupActivity.StartupService>()
-            .setProjectInitializer {
-              logger.info("Rendering a new project.")
-              NonProjectFileWritingAccessProvider.disableChecksDuring { renderer(newProject) }
-
-              if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && !prompt.isEmpty.get()) {
+        newProject
+          .service<AndroidNewProjectInitializationStartupActivity.StartupService>()
+          .setProjectInitializer {
+            logger.info("Rendering a new project.")
+            NonProjectFileWritingAccessProvider.disableChecksDuring { renderer(newProject) }
+if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && !prompt.isEmpty.get()) {
                 // When the Gradle project is linked to the IDE project, the Gradle tool window is
                 // shown, and any existing tool window in the same area is hidden (see
                 // ExternalToolWindowManager). We want the Gemini window to be shown instead, so
@@ -164,15 +163,15 @@ class NewProjectModel : WizardModel(), ProjectModelData {
               }
             }
 
-          val openProjectTask = OpenProjectTask {
-            project = newProject
-            isNewProject = false
-            forceOpenInNewFrame = true
-          }
-          ProjectManagerEx.getInstanceEx()
-            .openProject(projectBaseDirectory.toPath(), openProjectTask)
+        val openProjectTask = OpenProjectTask {
+          project = newProject
+          isNewProject = false
+          forceOpenInNewFrame = true
         }
+        ProjectManagerEx.getInstanceEx()
+          .openProject(projectBaseDirectory.toPath(), openProjectTask)
       }
+    }
       .queue()
   }
 
@@ -216,7 +215,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         try {
           if (
             VfsUtil.createDirectoryIfMissing(projectLocation) != null &&
-              CancellableFileIo.isWritable(Paths.get(projectLocation))
+            CancellableFileIo.isWritable(Paths.get(projectLocation))
           ) {
             return@runWriteCommandAction true
           }
@@ -347,8 +346,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
           val initialLanguageLevel: LanguageLevel? =
             LanguageLevel.JDK_1_7.takeIf {
               sdkData != null &&
-                sdk != null &&
-                jdk.getVersion(sdk)?.isAtLeast(JavaSdkVersion.JDK_1_7) == true
+              sdk != null &&
+              jdk.getVersion(sdk)?.isAtLeast(JavaSdkVersion.JDK_1_7) == true
             }
 
           val request =

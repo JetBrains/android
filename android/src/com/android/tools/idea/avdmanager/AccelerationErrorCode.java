@@ -31,7 +31,7 @@ import static com.android.tools.idea.avdmanager.EmulatorAccelerationCheck.MINIMU
 
 import com.android.SdkConstants;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.system.OS;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -106,40 +106,38 @@ public enum AccelerationErrorCode {
   }
 
   public static AccelerationErrorCode fromExitCode(int code) {
-    switch (code) {
-      case  0: return ALREADY_INSTALLED;
-      case  3: return NO_CPU_SUPPORT;
-      case  4: return NO_CPU_VTX_SUPPORT;
-      case  5: return NO_CPU_NX_SUPPORT;
-      case  6: return SystemInfo.isLinux ? ACCELERATION_NOT_INSTALLED_LINUX :
-                      (SystemInfo.isWindows ? ACCELERATION_NOT_INSTALLED_WIN :
-                       UNKNOWN_ERROR);
-      case  8: return SystemInfo.isLinux ? DEV_NOT_FOUND_LINUX :
-                      (SystemInfo.isWindows ? DEV_NOT_FOUND_WIN :
-                       UNKNOWN_ERROR);
-      case  9: return VT_DISABLED;
-      case 10: return NX_DISABLED;
-      case 11: return SystemInfo.isLinux ? DEV_PERMISSION_LINUX :
-                      (SystemInfo.isWindows ? DEV_PERMISSION_WIN :
-                       UNKNOWN_ERROR);
-      case 12: return SystemInfo.isLinux ? DEV_OPEN_FAILED_LINUX :
-                      (SystemInfo.isWindows ? DEV_OPEN_FAILED_WIN :
-                       UNKNOWN_ERROR);
-      case 13: return SystemInfo.isLinux ? DEV_IOCTL_FAILED_LINUX :
-                      (SystemInfo.isWindows ? DEV_IOCTL_FAILED_WIN :
-                       UNKNOWN_ERROR);
-      case 14: return SystemInfo.isLinux ? DEV_OBSOLETE_LINUX :
-                      (SystemInfo.isWindows ? DEV_OBSOLETE_WIN :
-                       UNKNOWN_ERROR);
-      case 15: return HYPER_V_ENABLED;
-      case 134:
-        if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("12.7")) {
-          return MACOS_VERSION_TOO_OLD;
-        }
-        // fallthrough
-      default:
+    return switch (code) {
+      case   0 -> ALREADY_INSTALLED;
+      case   3 -> NO_CPU_SUPPORT;
+      case   4 -> NO_CPU_VTX_SUPPORT;
+      case   5 -> NO_CPU_NX_SUPPORT;
+      case   6 -> OS.CURRENT == OS.Linux ? ACCELERATION_NOT_INSTALLED_LINUX :
+                  OS.CURRENT == OS.Windows ? ACCELERATION_NOT_INSTALLED_WIN :
+                  UNKNOWN_ERROR;
+      case   8 -> OS.CURRENT == OS.Linux ? DEV_NOT_FOUND_LINUX :
+                  OS.CURRENT == OS.Windows ? DEV_NOT_FOUND_WIN :
+                  UNKNOWN_ERROR;
+      case   9 -> VT_DISABLED;
+      case  10 -> NX_DISABLED;
+      case  11 -> OS.CURRENT == OS.Linux ? DEV_PERMISSION_LINUX :
+                  OS.CURRENT == OS.Windows ? DEV_PERMISSION_WIN :
+                  UNKNOWN_ERROR;
+      case  12 -> OS.CURRENT == OS.Linux ? DEV_OPEN_FAILED_LINUX :
+                  OS.CURRENT == OS.Windows ? DEV_OPEN_FAILED_WIN :
+                  UNKNOWN_ERROR;
+      case  13 -> OS.CURRENT == OS.Linux ? DEV_IOCTL_FAILED_LINUX :
+                  OS.CURRENT == OS.Windows ? DEV_IOCTL_FAILED_WIN :
+                  UNKNOWN_ERROR;
+      case  14 -> OS.CURRENT == OS.Linux ? DEV_OBSOLETE_LINUX :
+                  OS.CURRENT == OS.Windows ? DEV_OBSOLETE_WIN :
+                  UNKNOWN_ERROR;
+      case  15 -> HYPER_V_ENABLED;
+      case 134 -> OS.CURRENT == OS.macOS && !OS.CURRENT.isAtLeast(12, 7) ? MACOS_VERSION_TOO_OLD :
+                  UNKNOWN_ERROR;
+      default -> {
         Logger.getInstance(AccelerationErrorCode.class).warn(SdkConstants.FN_EMULATOR_CHECK + " terminated with code " + code);
-        return UNKNOWN_ERROR;
-    }
+        yield UNKNOWN_ERROR;
+      }
+    };
   }
 }

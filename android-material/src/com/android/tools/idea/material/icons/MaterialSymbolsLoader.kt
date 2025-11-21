@@ -27,7 +27,6 @@ import com.android.tools.idea.material.icons.common.Symbols
 import com.android.tools.idea.material.icons.download.MaterialSymbolsUpdater
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
-import com.jetbrains.rd.util.reflection.toPath
 import java.io.File
 import java.time.Duration
 import java.time.Instant
@@ -35,6 +34,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import java.nio.file.Path
 
 /**
  * Class providing the loading of Metadata and [VdIcon] for Material Symbols, and ensures the font
@@ -92,7 +92,7 @@ class MaterialSymbolsLoader {
      */
     private fun tryToParseMetadata(callback: (MaterialIconsMetadata) -> Unit): Boolean {
       val metadataUrl = SdkMetadataUrlProvider().getMetadataUrl() ?: return false
-      val shouldRefresh = checkAgeForRefresh(metadataUrl.toPath(), METADATA_REFRESH_INTERVAL_DAYS)
+      val shouldRefresh = checkAgeForRefresh(Path.of(metadataUrl.toURI()).toFile(), METADATA_REFRESH_INTERVAL_DAYS)
       val metadataParseResult = metadataUrl.let { MaterialIconsMetadata.parse(it) }
 
       if (metadataParseResult.isSuccess) {

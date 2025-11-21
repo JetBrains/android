@@ -18,10 +18,11 @@ package com.android.tools.idea.gradle.util.ui;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.util.ui.JBUI;
+import java.awt.BorderLayout;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 public abstract class LabeledComboBoxAction extends ComboBoxAction {
   @NotNull private final String myLabel;

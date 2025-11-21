@@ -1,0 +1,17 @@
+### auto-generated section `build intellij.android.design-plugin.descriptor` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+resourcegroup(
+  name = "descriptor_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "descriptor",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  resources = [":descriptor_resources"],
+  runtime_deps = ["//android/android-plugin/descriptor"]
+)
+### auto-generated section `build intellij.android.design-plugin.descriptor` end

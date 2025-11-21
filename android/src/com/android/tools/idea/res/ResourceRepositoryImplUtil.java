@@ -17,13 +17,12 @@ package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Helper methods for classes implementing {@link org.gradle.internal.impldep.aQute.bnd.service.repository.ResourceRepository} interface.
+ * Helper methods for classes implementing {@link aQute.bnd.service.repository.ResourceRepository} interface.
  */
 class ResourceRepositoryImplUtil {
   /**

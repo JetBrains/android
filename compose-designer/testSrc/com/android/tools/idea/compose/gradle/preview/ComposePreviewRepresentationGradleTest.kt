@@ -63,12 +63,6 @@ import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import java.awt.Point
-import java.awt.Rectangle
-import java.nio.file.Paths
-import java.util.concurrent.TimeUnit
-import kotlin.test.assertFails
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -80,6 +74,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Point
+import java.awt.Rectangle
+import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
+import kotlin.test.assertFails
+import kotlin.time.Duration.Companion.seconds
 
 class ComposePreviewRepresentationGradleTest {
   @get:Rule

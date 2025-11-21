@@ -1,0 +1,51 @@
+### auto-generated section `build intellij.android.core.editors.manifest` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "editors.manifest_test_lib",
+  module_name = "intellij.android.core.editors.manifest",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:junit4",
+    "//android/android:core",
+    "//libraries/mockito",
+    "@lib//:truth",
+    "//android/android-common:common",
+    "//android/android:core-tests_test_lib",
+    "//android/project-system",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/project-system-gradle-models:projectSystem-gradle-models",
+    "//android/rendering",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/testFramework",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/lang-core",
+    "//plugins/properties/properties-psi-impl:backend-psi",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/extensions",
+    "//platform/ide-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/testFramework/common",
+    "//platform/util",
+    "//xml/xml-parser:parser",
+    "//xml/xml-psi-api:psi",
+    "//libraries/guava",
+  ]
+)
+### auto-generated section `build intellij.android.core.editors.manifest` end
+
+### auto-generated section `test intellij.android.core.editors.manifest` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "editors.manifest_test",
+  runtime_deps = [":editors.manifest_test_lib"]
+)
+### auto-generated section `test intellij.android.core.editors.manifest` end

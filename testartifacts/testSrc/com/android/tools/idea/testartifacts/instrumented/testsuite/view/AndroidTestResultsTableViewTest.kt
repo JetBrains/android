@@ -59,6 +59,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.anyBoolean
 import org.mockito.Mockito.atLeast
 import org.mockito.Mockito.isNull
@@ -101,9 +102,9 @@ class AndroidTestResultsTableViewTest {
   @Mock lateinit var mockAndroidTestRunConfiguration: AndroidTestRunConfiguration
 
   // Workaround for Kotlin nullability check.
-  // ArgumentMatchers.argThat returns null for interface types.
+  // Mockito.argThat returns null for interface types.
   private fun argThat(matcher: (AndroidTestResults) -> Boolean): AndroidTestResults {
-    ArgumentMatchers.argThat(matcher)
+    Mockito.argThat(matcher)
     return object : AndroidTestResults {
       override val methodName: String = ""
       override val className: String = ""
@@ -980,7 +981,7 @@ class AndroidTestResultsTableViewTest {
 
       val location = Location.DATA_KEY.getData(dataContext)
       assertThat(location).isInstanceOf(PsiLocation::class.java)
-      assertThat((location as PsiLocation<*>).psiElement).isSameAs(mockPsiMethod)
+      assertThat((location as PsiLocation<*>).psiElement).isSameInstanceAs(mockPsiMethod)
     }
 
     // Select the test class.
@@ -993,7 +994,7 @@ class AndroidTestResultsTableViewTest {
 
       val locationForClass = Location.DATA_KEY.getData(dataContext)
       assertThat(locationForClass).isInstanceOf(PsiLocation::class.java)
-      assertThat((locationForClass as PsiLocation<*>).psiElement).isSameAs(mockPsiClass)
+      assertThat((locationForClass as PsiLocation<*>).psiElement).isSameInstanceAs(mockPsiClass)
       val runConfiguration = RunConfiguration.DATA_KEY.getData(dataContext)
       assertThat(runConfiguration).isInstanceOf(AndroidTestRunConfiguration::class.java)
     }

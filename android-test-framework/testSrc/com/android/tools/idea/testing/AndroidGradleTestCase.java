@@ -138,7 +138,7 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
   public final void setUpFixture(IdeaProjectTestFixture projectFixture) throws Exception {
     JavaCodeInsightTestFixture fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectFixture);
     fixture.setUp();
-    fixture.setTestDataPath(TestUtils.getWorkspaceRoot().toRealPath().resolve(getTestDataDirectoryWorkspaceRelativePath()).toString());
+    fixture.setTestDataPath(TestUtils.resolveWorkspacePath(getTestDataDirectoryWorkspaceRelativePath()).toRealPath().toString());
     ensureSdkManagerAvailable(AndroidVersion.fromString(agpVersionSoftwareEnvironment.getCompileSdk()));
 
     Project project = fixture.getProject();
@@ -175,6 +175,9 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
     finally {
       try {
         assertEquals(0, ProjectManager.getInstance().getOpenProjects().length);
+      }
+      catch (Throwable e) {
+        addSuppressedException(e);
       }
       finally {
         // Added more logging because of http://b/184293946

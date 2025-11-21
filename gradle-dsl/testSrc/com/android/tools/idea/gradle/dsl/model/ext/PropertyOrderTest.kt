@@ -42,7 +42,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Assume.assumeTrue
-import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 

@@ -19,6 +19,7 @@ import com.intellij.debugger.MultiRequestPositionManager
 import com.intellij.debugger.NoDataException
 import com.intellij.debugger.SourcePosition
 import com.intellij.debugger.engine.DebugProcess
+import com.intellij.debugger.engine.PositionManagerAsync
 import com.intellij.debugger.engine.PositionManagerWithMultipleStackFrames
 import com.intellij.debugger.engine.evaluation.EvaluationContext
 import com.intellij.debugger.jdi.StackFrameProxyImpl
@@ -47,11 +48,12 @@ import org.jetbrains.kotlin.psi.KtFile
 class ComposePositionManager(
   private val debugProcess: DebugProcess,
   private val kotlinPositionManager: KotlinPositionManager,
-) : MultiRequestPositionManager by kotlinPositionManager, PositionManagerWithMultipleStackFrames {
+) : MultiRequestPositionManager by kotlinPositionManager, PositionManagerWithMultipleStackFrames, PositionManagerAsync {
   override fun getAcceptedFileTypes(): Set<FileType> = KOTLIN_FILE_TYPES
 
-  override fun createStackFrames(descriptor: StackFrameDescriptorImpl): List<XStackFrame>? =
-    kotlinPositionManager.createStackFrames(descriptor)
+  override suspend fun createStackFramesAsync(descriptor: StackFrameDescriptorImpl): List<XStackFrame>? {
+    return kotlinPositionManager.createStackFramesAsync(descriptor)
+  }
 
   override fun evaluateCondition(
     context: EvaluationContext,
@@ -143,5 +145,13 @@ class ComposePositionManager(
     position: SourcePosition,
   ): ClassPrepareRequest? {
     return createPrepareRequests(requestor, position).firstOrNull()
+  }
+
+  override suspend fun getSourcePositionAsync(location: Location?): SourcePosition? {
+    return kotlinPositionManager.getSourcePositionAsync(location)
+  }
+
+  override fun getSourcePosition(location: Location?): SourcePosition? {
+    return kotlinPositionManager.getSourcePosition(location)
   }
 }

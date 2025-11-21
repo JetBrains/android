@@ -43,7 +43,6 @@ import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.ColorUtil
@@ -309,7 +308,7 @@ class LayoutlibSceneRenderer(
     val renderStartTimeMs = System.currentTimeMillis()
 
     // Wrapping into blockingContext because model.file requires read action
-    val file = blockingContext { model.file }
+    val file = model.file
     try {
       // Inflate only if needed
       if (renderTask == null && !sceneRenderConfiguration.needsInflation.get()) {
@@ -408,7 +407,7 @@ class LayoutlibSceneRenderer(
     // delegate XML parsers for non-layout files (meaning layoutlib will read the
     // disk contents, so we have to push any edits to disk before rendering)
     // Wrapping into blockingContext because model.file requires read action
-    val file = blockingContext { model.file }
+    val file = model.file
     file.saveFileIfNecessary()
 
     // Record the current version we're rendering from; we'll use that in #activate to make sure

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering.classloading
 
-import org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.ClassVisitor
 
 /**
  * Transform to replace every newly created [java.lang.ThreadLocal] object with [com.android.layoutlib.reflection.TrackingThreadLocal]

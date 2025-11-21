@@ -27,6 +27,7 @@ import com.intellij.openapi.vfs.encoding.EncodingProjectManager
 import com.intellij.testFramework.ProjectRule
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times

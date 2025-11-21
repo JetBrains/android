@@ -19,7 +19,6 @@ import com.google.common.base.Function
 import com.google.common.collect.Iterables
 import com.google.common.collect.Lists
 import com.google.common.collect.Maps
-import com.google.common.collect.Sets
 import java.lang.ref.WeakReference
 
 /**
@@ -51,9 +50,9 @@ import java.lang.ref.WeakReference
 class ScopedStateStore(
   private val scope: Scope, private val parent: ScopedStateStore?, listener: ScopedStoreListener?
 ) : Function<ScopedStateStore.Key<*>, Any?> { // Map of the current state
-  private val state = Maps.newHashMap<Key<*>, Any>()
+  private val state = HashMap<Key<*>, Any>()
   // Set of changed key/scope pairs which have been modified since the last call to clearRecentUpdates()
-  private val recentlyUpdated = Sets.newHashSet<Key<*>>()
+  private val recentlyUpdated = HashSet<Key<*>>()
   private val listeners = Lists.newArrayListWithCapacity<WeakReference<ScopedStoreListener>>(4)
   // Note that this should live as long as the store instance. Otherwise it gets GCed and no notifications are propagated.
   private val parentListener = ScopedStoreListenerImpl()
@@ -137,13 +136,18 @@ class ScopedStateStore(
    * @param value the value to store.
    * @return true iff the state changed as a result of this operation
    */
-  fun <T> put(key: Key<T>, value: T?): Boolean {
+  fun <T : Any> put(key: Key<T>, value: T?): Boolean {
     val stateChanged: Boolean
     require(!scope.isGreaterThan(key.scope)) { "Attempted to store a value of scope ${key.scope.name} in greater scope of ${scope.name}" }
     when {
       scope == key.scope -> {
         stateChanged = !state.containsKey(key) || state[key] != value
-        state[key] = value
+        if (value == null) {
+          state.remove(key)
+        }
+        else {
+          state.put(key, value)
+        }
         if (stateChanged) {
           notifyListeners(key)
         }
@@ -157,7 +161,9 @@ class ScopedStateStore(
   }
 
   private fun <T> notifyListeners(key: Key<T>?) {
-    recentlyUpdated.add(key)
+    if (key != null) {
+      recentlyUpdated.add(key)
+    }
     val iterator = listeners.iterator()
     while (iterator.hasNext()) {
       val listener = iterator.next().get()
@@ -223,14 +229,14 @@ class ScopedStateStore(
    *
    * @throws ClassCastException if the value is not null and cannot be casted to the key type
    */
-  fun <T> unsafePut(key: Key<T>, `object`: Any?) {
+  fun <T : Any> unsafePut(key: Key<T>, `object`: Any?) {
     put(key, key.expectedClass.cast(`object`))
   }
 
   /**
    * Store a set of values into the store with the given scope according to the rules laid out in [put].
    */
-  fun <T> putAll(map: Map<Key<T>, T>) {
+  fun <T : Any> putAll(map: Map<Key<T>, T>) {
     for (key in map.keys) {
       put(key, map[key])
     }
@@ -241,14 +247,15 @@ class ScopedStateStore(
    */
   fun putAllInWizardScope(store: ScopedStateStore) {
     for (key in store.allKeys) {
-      copyValue(store, key)
+      @Suppress("UNCHECKED_CAST")
+      copyValue(store, key as Key<Any>)
     }
   }
 
   /**
    * Typesafe copy operation for copying key value between stores.
    */
-  private fun <T> copyValue(store: ScopedStateStore, key: Key<T>) {
+  private fun <T : Any> copyValue(store: ScopedStateStore, key: Key<T>) {
     val newKey = Key(key.name, Scope.WIZARD, key.expectedClass)
     put(newKey, store[key])
   }

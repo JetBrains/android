@@ -113,7 +113,7 @@ public class FakeArtifactElement extends FakeElement {
         if (elem.getReferenceItem() != null) {
           String externalText =
             resolved.getDslFile().getParser().convertReferenceToExternalText(resolved, elem.getReferenceItem().getReferredElement(), true);
-          builder.append(externalText != "" ? externalText : elem.getReferenceItem().getReferredElement().getFullName());
+          builder.append(!externalText.isEmpty() ? externalText : elem.getReferenceItem().getReferredElement().getFullName());
         }
       }
       strValue = builder.toString();

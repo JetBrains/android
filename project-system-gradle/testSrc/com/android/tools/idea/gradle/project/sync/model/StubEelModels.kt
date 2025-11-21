@@ -15,49 +15,66 @@
  */
 package com.android.tools.idea.gradle.project.sync.model
 
+import com.intellij.platform.eel.EelApi
 import com.intellij.platform.eel.EelDescriptor
 import com.intellij.platform.eel.EelExecApi
 import com.intellij.platform.eel.EelExecPosixApi
+import com.intellij.platform.eel.EelMachine
 import com.intellij.platform.eel.EelOsFamily
 import com.intellij.platform.eel.EelPosixProcess
 import com.intellij.platform.eel.ExecuteProcessException
 import com.intellij.platform.eel.path.EelPath
-import com.intellij.platform.eel.provider.EelNioBridgeService
-import com.intellij.platform.eel.provider.LocalEelDescriptor
 import com.intellij.platform.eel.provider.LocalPosixEelApi
+import kotlinx.coroutines.CompletableDeferred
 import org.jetbrains.annotations.NonNls
-import java.nio.file.FileSystem
-import java.nio.file.Path
-import java.nio.file.spi.FileSystemProvider
 
+// TODO KMT-1388
 class StubLocalPosixEelApi(private val envVariables: Map<String, String>) : EelExecPosixApi {
+  private val executeResultMock by lazy {
+    ExecuteProcessException(errno = 12345, message = "mock result")
+  }
   override val descriptor: EelDescriptor get() = throw UnsupportedOperationException()
-  override suspend fun spawnProcess(generatedBuilder: EelExecApi.ExecuteProcessOptions): EelPosixProcess = throw ExecuteProcessException(12345, "mock result")
-  override suspend fun fetchLoginShellEnvVariables(): Map<String, String> = envVariables
-  override suspend fun findExeFilesInPath(binaryName: String): List<EelPath> = error("not implemented in mock")
-  override suspend fun createExternalCli(options: EelExecApi.ExternalCliOptions): EelExecApi.ExternalCliEntrypoint = error("not implemented in mock")
+  override fun environmentVariables(opts: EelExecApi.EnvironmentVariablesOptions): EelExecApi.EnvironmentVariablesDeferred =
+    EelExecApi.EnvironmentVariablesDeferred(CompletableDeferred(envVariables))
+  override suspend fun findExeFilesInPath(binaryName: String): List<EelPath> {
+    return emptyList()
+  }
+
+  override suspend fun createExternalCli(options: EelExecApi.ExternalCliOptions): EelExecApi.ExternalCliEntrypoint {
+    throw UnsupportedOperationException()
+  }
+
+  override suspend fun spawnProcess(builder: EelExecApi.ExecuteProcessOptions): EelPosixProcess {
+    throw executeResultMock
+  }
 }
 
-class StubEelNioBridgeService(private val eelDescriptor: EelDescriptor) : EelNioBridgeService {
-  override fun tryGetEelDescriptor(nioPath: Path) = eelDescriptor
-  override fun tryGetNioRoots(eelDescriptor: EelDescriptor) = null
-  override fun tryGetId(eelDescriptor: EelDescriptor) = null
-  override fun tryGetDescriptorByName(name: String) = eelDescriptor
-  override fun register(localRoot: String,
-                        descriptor: EelDescriptor,
-                        internalName: @NonNls String,
-                        prefix: Boolean,
-                        caseSensitive: Boolean,
-                        fsProvider: (FileSystemProvider, FileSystem?) -> FileSystem?) {}
-  override fun unregister(descriptor: EelDescriptor): Boolean = true
-}
+//class StubEelNioBridgeService(private val eelDescriptor: EelDescriptor) : EelNioBridgeService {
+//  override fun tryGetEelDescriptor(nioPath: Path) = eelDescriptor
+//  override fun tryGetNioRoots(eelDescriptor: EelDescriptor) = null
+//  override fun tryGetId(eelDescriptor: EelDescriptor) = null
+//  override fun tryGetDescriptorByName(name: String) = eelDescriptor
+//  override fun register(localRoot: String,
+//                        descriptor: EelDescriptor,
+//                        internalName: @NonNls String,
+//                        prefix: Boolean,
+//                        caseSensitive: Boolean,
+//                        fsProvider: (FileSystemProvider, FileSystem?) -> FileSystem?) {}
+//
+//  override fun unregister(descriptor: EelDescriptor): Boolean {
+//    return true
+//  }
+//}
 
-class StubLocalEelDescriptor(private val eelApi: LocalPosixEelApi) : EelDescriptor {
-  override val userReadableDescription: @NonNls String = LocalEelDescriptor.userReadableDescription
-  override val osFamily: EelOsFamily = LocalEelDescriptor.osFamily
-  override suspend fun toEelApi() = eelApi
-  override suspend fun upgrade() = eelApi
-  override fun equals(other: Any?) = true
-  override fun hashCode() = LocalEelDescriptor.hashCode()
-  override fun toString() = LocalEelDescriptor.toString()
+class StubEelDescriptor(private val eelApi: LocalPosixEelApi) : EelDescriptor {
+  override val operatingSystem = EelPath.OS.UNIX
+
+  override val machine: EelMachine = object : EelMachine {
+    override val name: @NonNls String
+      get() = ""
+    override val osFamily: EelOsFamily
+      get() = EelOsFamily.Posix
+
+    override suspend fun toEelApi(descriptor: EelDescriptor): EelApi = eelApi
+  }
 }

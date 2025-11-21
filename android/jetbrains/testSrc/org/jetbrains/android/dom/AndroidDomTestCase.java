@@ -25,13 +25,14 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
+import com.intellij.grazie.spellcheck.GrazieSpellCheckingInspection;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.lang.documentation.ExternalDocumentationProvider;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.spellchecker.quickfixes.RenameTo;
 import com.intellij.spellchecker.quickfixes.SaveTo;
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -42,7 +43,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.inspections.AndroidDomInspection;
 import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
@@ -260,13 +260,13 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
 
   protected final void doTestSpellcheckerQuickFixes() throws IOException {
     //noinspection unchecked
-    myFixture.enableInspections(SpellCheckingInspection.class);
+    myFixture.enableInspections(GrazieSpellCheckingInspection.class);
     // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(virtualFile);
     List<IntentionAction> fixes = highlightAndFindQuickFixes(null);
     assertEquals(2, fixes.size());
-    assertInstanceOf(QuickFixWrapper.unwrap(fixes.get(0)), RenameTo.class);
+    assertInstanceOf(fixes.get(0), RenameTo.class);
     assertInstanceOf(QuickFixWrapper.unwrap(fixes.get(1)), SaveTo.class);
   }
 

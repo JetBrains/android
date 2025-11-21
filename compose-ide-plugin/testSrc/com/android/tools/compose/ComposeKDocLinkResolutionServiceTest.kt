@@ -26,9 +26,11 @@ import com.intellij.openapi.externalSystem.model.project.LibraryPathType
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.PathUtil
 import com.intellij.util.PathUtil.toSystemDependentName
 import java.io.File
 import java.nio.file.Paths
+import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName

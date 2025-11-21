@@ -29,6 +29,8 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
+import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
+import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentUtil.resolveAgpVersionSoftwareEnvironment;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -41,6 +43,7 @@ import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.jetbrains.plugins.gradle.properties.GradlePropertiesFileKt.GRADLE_JAVA_HOME_PROPERTY;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -67,7 +70,6 @@ import com.android.tools.idea.project.AndroidRunConfigurationsManager;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
-import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -85,12 +87,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.util.ThrowableConsumer;
+import com.intellij.util.ThrowableRunnable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -131,6 +133,7 @@ public class AndroidGradleTests {
   private static final String ADDITIONAL_REPOSITORY_PROPERTY = "idea.test.gradle.additional.repositories";
   private static final long DEFAULT_TIMEOUT_SOURCES_FOLDER_UPDATES_MILLIS = 1000;
   private static final String NDK_VERSION_PLACEHOLDER = "// ndkVersion \"{placeholder}\"";
+  @Nullable private static Boolean useRemoteRepositories = null;
 
   public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project) throws Exception {
     waitForSourceFolderManagerToProcessUpdates(project, null);
@@ -476,6 +479,11 @@ public class AndroidGradleTests {
       current.add(androidVersion.getApiStringWithoutExtension());
       gradleProperties.getProperties().setProperty("android.suppressUnsupportedCompileSdk", Joiner.on(",").join(current));
     }
+
+    // IDEA does not use AndroidStudioGradleInstallationManager, Gradle JVM in this case is not deterministic, and often falls back
+    // to JAVA_HOME, which produces different results in different environments.
+    gradleProperties.getProperties().setProperty(GRADLE_JAVA_HOME_PROPERTY, TestUtils.getJava17Jdk().toString());
+
     gradleProperties.save();
   }
 
@@ -497,8 +505,8 @@ public class AndroidGradleTests {
   public static String getLocalRepositoriesForGroovy(@NotNull List<File> localRepos) {
     // Add metadataSources to work around http://b/144088459. Wrap it in try-catch because
     // we are also using older Gradle versions that do not have this method.
-    return StringUtil.join(
-      Iterables.concat(getLocalRepositoryDirectories(), localRepos),
+    String localRepositoriesStr = StringUtil.join(
+      Iterables.concat(getLocalRepositoryDirectories(), Lists.newArrayList(localRepos)),
       file -> "maven {\n" +
               "  url \"" + file.toURI() + "\"\n" +
               "  try {\n" +
@@ -508,13 +516,15 @@ public class AndroidGradleTests {
               "    }\n" +
               "  } catch (Throwable ignored) { /* In case this Gradle version does not support this. */}\n" +
               "}", "\n");
+
+    return appendRemoteRepositoriesIfNeeded(localRepositoriesStr);
   }
 
   @NotNull
   public static String getLocalRepositoriesForKotlin(@NotNull List<File> localRepos) {
     // Add metadataSources to work around http://b/144088459.
-    return StringUtil.join(
-      Iterables.concat(getLocalRepositoryDirectories(), localRepos),
+    String localRepositoriesStr = StringUtil.join(
+      Iterables.concat(getLocalRepositoryDirectories(), Lists.newArrayList(localRepos)),
       file -> "maven {\n" +
               "  setUrl(\"" + file.toURI() + "\")\n" +
               "  metadataSources() {\n" +
@@ -522,6 +532,36 @@ public class AndroidGradleTests {
               "    artifact()\n" +
               "  }\n" +
               "}", "\n");
+
+    return appendRemoteRepositoriesIfNeeded(localRepositoriesStr);
+  }
+
+  private static String appendRemoteRepositoriesIfNeeded(@NotNull String localRepositories) {
+    if (shouldUseRemoteRepositories()) {
+      assert !IdeInfo.getInstance().isAndroidStudio() : "In Android Studio all the tests are hermetic. Remote repositories never needed.";
+      return localRepositories + "\n" +
+             "maven { setUrl(\"https://cache-redirector.jetbrains.com/jcenter/\") } // jcenter(_)\n" +
+             "maven { setUrl(\"https://cache-redirector.jetbrains.com/dl.google.com.android.maven2/\") } // google(_)\n";
+    }
+    else {
+      return localRepositories;
+    }
+  }
+
+  public static boolean shouldUseRemoteRepositories() {
+    if (useRemoteRepositories != null){
+      return useRemoteRepositories;
+    }
+    return !IdeInfo.getInstance().isAndroidStudio();
+  }
+
+  public static <T extends Throwable> void disableRemoteRepositoriesDuring(ThrowableRunnable<T> r) throws T {
+    useRemoteRepositories = false;
+    try {
+      r.run();
+    } finally {
+      useRemoteRepositories = null;
+    }
   }
 
   @NotNull
@@ -537,13 +577,18 @@ public class AndroidGradleTests {
   @NotNull
   public static Collection<File> getLocalRepositoryDirectories() {
     List<File> repositories = new ArrayList<>();
-    repositories.add(TestUtils.getPrebuiltOfflineMavenRepo().toFile());
 
-    if (!TestUtils.runningFromBazel()) {
-      Path repo = TestUtils.getWorkspaceRoot().resolve("out/repo");
-      if (Files.exists(repo)) {
-        repositories.add(repo.toFile());
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      repositories.add(TestUtils.getPrebuiltOfflineMavenRepo().toFile());
+
+      if (!TestUtils.runningFromBazel()) {
+        Path repo = TestUtils.resolveWorkspacePath("out/repo");
+        if (Files.exists(repo)) {
+          repositories.add(repo.toFile());
+        }
       }
+    } else {
+      assert shouldUseRemoteRepositories(): "IDEA should use real remote repositories";
     }
 
     // Read optional repositories passed as JVM property (see ADDITIONAL_REPOSITORY_PROPERTY)
@@ -610,7 +655,7 @@ public class AndroidGradleTests {
   public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion, boolean syncEnabled) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot, GradleVersion.version(gradleVersion), null);
     File path = GradleProjectSystemUtil.findEmbeddedGradleDistributionFile(gradleVersion);
-    if(syncEnabled) {
+    if(IdeInfo.getInstance().isAndroidStudio() && syncEnabled) {
       assertThat(path).named("Gradle zip file with version: %s", gradleVersion).isNotNull();
       assertAbout(file()).that(path).named("Gradle distribution path").isFile();
       wrapper.updateDistributionUrl(path);
@@ -798,31 +843,6 @@ public class AndroidGradleTests {
   }
 
   public static String getEmbeddedJdk8Path() {
-    Path jdkRootPath = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/jdk/jdk8");
-    if (SystemInfo.isWindows) {
-      // For JDK8 we have 32 and 64 bits versions on Windows
-      jdkRootPath = jdkRootPath.resolve("win64");
-    }
-    else if (SystemInfo.isLinux) {
-      jdkRootPath = jdkRootPath.resolve("linux");
-    }
-    else if (SystemInfo.isMac) {
-      jdkRootPath = jdkRootPath.resolve("mac").resolve(MAC_JDK_CONTENT_PATH);
-    }
-
-    // Resolve real path
-    //
-    // Gradle prior to 6.9 don't work well with symlinks
-    // see https://discuss.gradle.org/t/gradle-daemon-different-context/2146/3
-    // see https://github.com/gradle/gradle/issues/12840
-    //
-    // [WARNING] This effective escapes Bazel's sandbox. Remove as soon as possible.
-    try {
-      Path wellKnownJdkFile = jdkRootPath.resolve("release");
-      jdkRootPath = wellKnownJdkFile.toRealPath().getParent();
-    }
-    catch (IOException ignore) {
-    }
-    return jdkRootPath.toString();
+    return TestUtils.getJava8Jdk().toAbsolutePath().toString();
   }
 }

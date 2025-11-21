@@ -35,9 +35,9 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import java.text.ParseException
 import org.junit.Rule
 import org.junit.Test
+import java.text.ParseException
 
 private val STRING_KEYS = listOf("tag", "package", "process", "message", "line")
 private val NON_STRING_KEYS = listOf("level", "age", "is", "name")

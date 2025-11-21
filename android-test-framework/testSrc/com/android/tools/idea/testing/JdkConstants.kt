@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.testutils.TestUtils
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.intellij.openapi.projectRoots.JavaSdk
@@ -27,12 +29,48 @@ object JdkConstants {
   val JDK_1_8 by lazy { JavaSdk.getInstance().suggestSdkName(null, JDK_1_8_PATH) }
   val JDK_EMBEDDED by lazy { JavaSdk.getInstance().suggestSdkName(null, JDK_EMBEDDED_PATH) }
 
-  val JDK_INVALID_PATH by lazy { JDK_EMBEDDED_PATH.plus("-invalid-path") }
-  val JDK_21_PATH by lazy { EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr-next").toString() }
-  val JDK_17_PATH by lazy { EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk17").toString() }
-  val JDK_11_PATH by lazy { EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11").toString() }
-  val JDK_1_8_PATH by lazy { EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk8").toString() }
-  val JDK_EMBEDDED_PATH by lazy { IdeSdks.getInstance().embeddedJdkPath.absolutePathString() }
-
+  const val JDK_INVALID_PATH = "jdk-invalid-path"
   val JDK_EMBEDDED_VERSION by lazy { JdkVersionDetector.getInstance().detectJdkVersionInfo(JDK_EMBEDDED_PATH)!!.version.feature.toString() }
+
+  val JDK_21_PATH by lazy {
+    if(IdeInfo.getInstance().isAndroidStudio) {
+      EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr-next").toString()
+    } else {
+      TestUtils.getJava21Jdk().toString()
+    }
+  }
+
+
+  val JDK_17_PATH by lazy {
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk17").toString()
+    }
+    else {
+      TestUtils.getJava17Jdk().toString()
+    }
+  }
+  val JDK_11_PATH by lazy {
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11").toString()
+    }
+    else {
+      TestUtils.getJava11Jdk().toString()
+    }
+  }
+  val JDK_1_8_PATH by lazy {
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      IdeSdks.getInstance().embeddedJdkPath.absolutePathString()
+    }
+    else {
+      TestUtils.getJava8Jdk().toString()
+    }
+  }
+  val JDK_EMBEDDED_PATH by lazy {
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      IdeSdks.getInstance().embeddedJdkPath.absolutePathString()
+    }
+    else {
+      IdeSdks.getInstance().jdkPath?.toAbsolutePath().toString()
+    }
+  }
 }

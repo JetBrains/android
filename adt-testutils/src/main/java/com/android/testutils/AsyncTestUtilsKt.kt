@@ -16,6 +16,7 @@
 @file:JvmName("AsyncTestUtils")
 package com.android.testutils
 
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ui.EDT
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +44,7 @@ fun waitForCondition(timeout: Duration, condition: () -> Boolean) {
   val isEdt = EDT.isCurrentThreadEdt()
   while (waitUnit > 0) {
     if (isEdt) {
-      UIUtil.dispatchAllInvocationEvents()
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     }
     if (condition()) {
       return

@@ -1,0 +1,68 @@
+### auto-generated section `build intellij.android.core.modularize` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "modularize_test_lib",
+  module_name = "intellij.android.core.modularize",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "//libraries/guava",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-test",
+    "//libraries/mockito",
+    "@lib//:mockito-kotlin",
+    "@lib//:truth",
+    "@lib//:kotlinc-kotlin-compiler-common",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/android:core-tests_test_lib",
+    "//android/project-system",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/openapi:java",
+    "//java/java-frontback-psi-impl:frontback-psi-impl",
+    "//java/java-impl:impl",
+    "//java/java-psi-api:psi",
+    "//java/java-impl-refactorings:impl-refactorings",
+    "//java/testFramework",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor/shared:editor",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/lang-core",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/refactoring",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//xml/xml-psi-api:psi",
+    "//plugins/kotlin/base/analysis",
+    "//plugins/kotlin/idea",
+    "//plugins/kotlin/base/plugin",
+    "//plugins/kotlin/base/plugin:plugin_test_lib",
+    "//plugins/kotlin/refactorings/kotlin.refactorings.move.k2:kotlin-refactorings-move",
+    "//plugins/kotlin/refactorings/kotlin.refactorings.move.k2:kotlin-refactorings-move_test_lib",
+    "@lib//:kotlinc-analysis-api-provided",
+  ]
+)
+### auto-generated section `build intellij.android.core.modularize` end
+
+### auto-generated section `test intellij.android.core.modularize` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "modularize_test",
+  runtime_deps = [":modularize_test_lib"]
+)
+### auto-generated section `test intellij.android.core.modularize` end

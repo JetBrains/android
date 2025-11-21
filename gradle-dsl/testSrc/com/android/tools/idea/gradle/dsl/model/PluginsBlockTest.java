@@ -21,6 +21,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 import static com.intellij.openapi.util.io.FileUtil.loadFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.loadText;
 
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
@@ -30,16 +31,27 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.impl.source.PostprocessReformattingAspect;
 import java.io.File;
 import java.util.List;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
-import org.jetbrains.plugins.gradle.model.VersionCatalogsModel;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 public class PluginsBlockTest extends GradleFileModelTestCase {
+
+  @Before
+  public void before() throws Exception {
+    DeclarativeIdeSupport.INSTANCE.override(true);
+    super.before();
+  }
+
+  @After
+  public void onAfter() {
+    DeclarativeIdeSupport.INSTANCE.clearOverride();
+  }
 
   @Test
   public void testPluginsBlockWithRepeatedPlugins() throws Exception {

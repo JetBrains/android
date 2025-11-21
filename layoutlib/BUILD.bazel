@@ -1,0 +1,56 @@
+### auto-generated section `build intellij.android.layoutlib` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+resourcegroup(
+  name = "layoutlib_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "layoutlib",
+  module_name = "intellij.android.layoutlib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":layoutlib_resources"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "//libraries/guava",
+    "//libraries/asm-tools",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:layoutlib",
+    "//libraries/asm",
+    "//android/layoutlib-loader",
+  ]
+)
+### auto-generated section `build intellij.android.layoutlib` end
+
+### auto-generated section `build intellij.android.layoutlib.tests` start
+jvm_library(
+  name = "layoutlib-tests_test_lib",
+  module_name = "intellij.android.layoutlib.tests",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "//libraries/asm",
+    "//libraries/guava",
+    "@lib//:junit4",
+    "@lib//:kotlin-test",
+    "@lib//:layoutlib",
+    "//android/layoutlib",
+  ]
+)
+### auto-generated section `build intellij.android.layoutlib.tests` end
+
+### auto-generated section `test intellij.android.layoutlib.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "layoutlib-tests_test",
+  runtime_deps = [":layoutlib-tests_test_lib"]
+)
+### auto-generated section `test intellij.android.layoutlib.tests` end

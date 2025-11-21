@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.process.ProcessOutputType
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -50,7 +51,7 @@ data class GradleAndroidTestsTaskManagerTest(
         }
         val sb = StringBuilder()
         GradleTaskManager().executeTasks(requireNotNull(project.basePath), id, settings, object : ExternalSystemTaskNotificationListener {
-          override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
+          override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
             sb.append(text)
           }
         })

@@ -50,7 +50,7 @@ class AndroidManifestPlaceholderDomTest {
   @Before
   fun setup() {
     projectRule.loadProject(TestProjectPaths.BASIC) { root ->
-      modifyGradleFiles(root, "[hostName:\"www.example.com\"]")
+    modifyGradleFiles(root, "[hostName:\"www.example.com\"]")
     }
     fixture.allowTreeAccessForAllFiles()
   }

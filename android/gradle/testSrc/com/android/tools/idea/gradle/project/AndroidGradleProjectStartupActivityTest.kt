@@ -31,13 +31,13 @@ import com.intellij.execution.actions.RunConfigurationProducer
 import com.intellij.execution.junit.JUnitConfigurationType
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.mock.MockModule
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
-import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.runBlocking
@@ -55,7 +55,7 @@ import java.util.Calendar
  * Tests for [AndroidGradleProjectStartupActivity].
  */
 class AndroidGradleProjectStartupActivityTest {
-  private val myProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule val myProjectRule = AndroidProjectRule.inMemory()
 
   @Mock
   private lateinit var myInfo: Info
@@ -63,12 +63,13 @@ class AndroidGradleProjectStartupActivityTest {
   private var myRequest: GradleSyncInvoker.Request? = null
   private val myProject: Project
     get() = myProjectRule.project
+  @get:Rule
   private val notificationRule = NotificationRule(myProjectRule)
 
   private lateinit var calendar: Calendar
 
-  @get:Rule
-  val ruleChain = RuleChain(myProjectRule, notificationRule)
+  private val myTestRootDisposable: Disposable
+    get() = myProjectRule.testRootDisposable
 
   val syncDueNotifications: List<NotificationRule.NotificationInfo>
     get() = notificationRule.notifications.filter { it.groupId == SYNC_DUE_BUT_AUTO_SYNC_DISABLED_ID }
@@ -87,7 +88,7 @@ class AndroidGradleProjectStartupActivityTest {
         myRequest = request
       }
     }
-    ApplicationManager.getApplication().replaceService(GradleSyncInvoker::class.java, syncInvoker, myProjectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(GradleSyncInvoker::class.java, syncInvoker, myTestRootDisposable)
     myInfo = mock()
     myStartupActivity = AndroidGradleProjectStartupActivity()
     TestDialogManager.setTestDialog { Messages.CANCEL }

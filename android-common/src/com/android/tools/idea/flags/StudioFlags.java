@@ -35,6 +35,7 @@ import com.android.tools.idea.flags.overrides.FeatureConfigurationProvider;
 import com.android.tools.idea.flags.overrides.MendelOverrides;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.Cancellation;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;

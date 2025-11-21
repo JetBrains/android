@@ -114,7 +114,8 @@ object OfflineIdeGoogleMavenRepository : GoogleMavenRepository(getCacheDir(), us
 }
 
 private fun getCacheDir(): Path? {
-  if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode) {
+  val guiTestingServiceOrNull = GuiTestingService.getInstanceIfCreated()
+  if (ApplicationManager.getApplication().isUnitTestMode || guiTestingServiceOrNull?.isGuiTestingMode == true) {
     return null
   }
   return Paths.get(PathManager.getSystemPath()).normalize().resolve(MAVEN_GOOGLE_CACHE_DIR_KEY)

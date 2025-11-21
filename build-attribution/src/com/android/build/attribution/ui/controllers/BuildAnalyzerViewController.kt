@@ -16,7 +16,6 @@
 package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
-import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.build.attribution.analyzers.CHECK_JETIFIER_TASK_NAME
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
@@ -37,6 +36,7 @@ import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.view.WindowsDefenderPageHandler
 import com.android.build.attribution.ui.view.details.JetifierWarningDetailsView
+import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.buildanalyzer.common.TaskCategory
 import com.android.builder.model.PROPERTY_CHECK_JETIFIER_RESULT_FILE
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel

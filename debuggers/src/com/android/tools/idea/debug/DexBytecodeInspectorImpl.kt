@@ -28,7 +28,6 @@ import kexter.DexMethodDebugInfo
 import kexter.InvokeInstruction
 import kexter.LineTableEntry
 import kexter.Opcode
-import org.jetbrains.kotlin.idea.debugger.base.util.safeLocation
 import org.jetbrains.kotlin.idea.debugger.base.util.safeMethod
 import org.jetbrains.kotlin.idea.debugger.core.DexBytecodeInspector
 import org.jetbrains.kotlin.idea.debugger.core.getInlineFunctionAndArgumentVariablesToBordersMap
@@ -101,9 +100,7 @@ class DexBytecodeInspectorImpl : DexBytecodeInspector {
     targets: List<KotlinMethodSmartStepTarget>,
     context: SmartStepIntoContext,
   ): List<KotlinMethodSmartStepTarget> {
-    val (expression, debugProcess, _, _) = context
-    val location =
-      debugProcess.suspendManager.pausedContext?.frameProxy?.safeLocation() ?: return targets
+    val (expression, debugProcess, _, _, location) = context
     val method = location.safeMethod() ?: return targets
 
     val dex = DexFinder.findDex(debugProcess, expression, location) ?: return targets

@@ -58,7 +58,7 @@ class OverlayActionGroup(
   private val alphaSlider =
     AlphaSliderAction(setAlpha = setAlpha, isVisible = { getImage() != null })
 
-  override fun getChildren(e: AnActionEvent?): Array<out AnAction?> {
+  override fun getChildren(e: AnActionEvent?): Array<out AnAction> {
     return arrayOf(toggleButton, alphaSlider)
   }
 }

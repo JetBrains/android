@@ -26,9 +26,9 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
 import icons.StudioIcons
-import javax.swing.JComponent
 import kotlinx.coroutines.launch
 import org.jetbrains.android.util.AndroidBundle
+import javax.swing.JComponent
 
 /** Action used to Toggle Live Updates on/off. */
 class ToggleLiveUpdatesAction(private val layoutInspector: LayoutInspector) :

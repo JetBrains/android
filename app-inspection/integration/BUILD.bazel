@@ -1,0 +1,28 @@
+### auto-generated section `build intellij.android.app-inspection.integration` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "integration_test_lib",
+  module_name = "intellij.android.app-inspection.integration",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//android/as-driver/utils:utils_test_lib",
+    "//platform/util",
+  ]
+)
+### auto-generated section `build intellij.android.app-inspection.integration` end
+
+### auto-generated section `test intellij.android.app-inspection.integration` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "integration_test",
+  runtime_deps = [":integration_test_lib"]
+)
+### auto-generated section `test intellij.android.app-inspection.integration` end

@@ -51,6 +51,7 @@ import junit.framework.Assert.fail
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -66,6 +67,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * Tests for [AndroidJavaDebugger] code.
  */
+@Ignore("FakeAdbTestRule hangs")
 class AndroidJavaDebuggerTest {
 
   @get:Rule(order = 0)

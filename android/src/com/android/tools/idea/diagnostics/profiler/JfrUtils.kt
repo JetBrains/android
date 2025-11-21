@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.diagnostics.profiler
 
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.util.concurrency.ThreadingAssertions
 import jdk.jfr.Configuration
 import jdk.jfr.FlightRecorder
 import jdk.jfr.Recording
@@ -35,12 +35,12 @@ class Jfr {
   var r: Recording? = null
 
   fun isProfilerActive(): Boolean {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
     return r != null
   }
 
   fun start() {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     if (isProfilerActive()) {
       return
@@ -59,7 +59,7 @@ class Jfr {
   }
 
   fun stop() {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     if (!isProfilerActive()) {
       return
@@ -72,7 +72,7 @@ class Jfr {
   }
 
   fun dump(): Path? {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     if (r == null) {
       return null

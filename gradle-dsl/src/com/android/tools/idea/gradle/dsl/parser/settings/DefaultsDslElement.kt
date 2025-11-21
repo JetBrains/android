@@ -41,7 +41,6 @@ class DefaultsDslElement(parent: GradleDslElement, name: GradleNameElement): Gra
                                            { data: Array<*> -> data[1] as PropertiesElementDescription<*> }))
 
   }
-
   override fun getChildPropertiesElementsDescriptionMap(
     kind: GradleDslNameConverter.Kind
   ): Map<String, PropertiesElementDescription<*>> {

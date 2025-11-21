@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.util
 
-import com.android.testutils.TestUtils
 import com.android.testutils.truth.PathSubject.assertThat
+import com.android.tools.idea.aar.AarTestUtils
 import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
@@ -43,7 +43,7 @@ class FileExtensionsTest : AndroidTestCase() {
   }
 
   fun testApk() {
-    val apkFile = TestUtils.resolveWorkspacePath("${getTestDataPath()}/configurations/activity/apkWithDefaultActivity.apk")
+    val apkFile = AarTestUtils.resolveAarTestData("configurations/activity/apkWithDefaultActivity.apk")
     assertThat(apkFile).exists()
     val entryPath = FileUtilRt.toSystemIndependentName(apkFile.toString()) + ApkFileSystem.APK_SEPARATOR + "res/6E.png"
     val apkFsUrl = ApkFileSystem.PROTOCOL + "://" + entryPath

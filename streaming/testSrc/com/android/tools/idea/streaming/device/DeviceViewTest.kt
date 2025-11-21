@@ -31,6 +31,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.analytics.crash.CrashReport
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
@@ -1229,7 +1230,7 @@ internal class DeviceViewTest {
   }
 
   private fun isRunningInBazelTest(): Boolean {
-    return System.getenv().containsKey("TEST_WORKSPACE")
+    return IdeInfo.getInstance().isAndroidStudio && System.getenv().containsKey("TEST_WORKSPACE")
   }
 }
 

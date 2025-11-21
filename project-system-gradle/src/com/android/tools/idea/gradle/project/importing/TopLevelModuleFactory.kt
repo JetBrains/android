@@ -78,8 +78,7 @@ class TopLevelModuleFactory() {
       gradleRoot.name + ".iml"
     )
     val projectModifieableModel = moduleManager.getModifiableModel()
-    // Find or create the top level module. Normally, when invoked from `AndroidGradleProjectConfigurator` it already exists as it is
-    // created by `PlatformProjectConfigurator`, which runs first.
+    // Find or create the top level module
     val module = projectModifieableModel
       .modules
       .singleOrNull { ModuleRootManager.getInstance(it).contentEntries.singleOrNull()?.url == gradleRootUrl }

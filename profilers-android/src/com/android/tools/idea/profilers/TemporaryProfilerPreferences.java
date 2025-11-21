@@ -16,10 +16,9 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.profilers.ProfilerPreferences;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * per-studio session caching of key-value pairs.

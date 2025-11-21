@@ -20,12 +20,19 @@
   Adds support for building native UI on Android via the <a href="https://developer.android.com/jetpack/compose">Jetpack Compose</a> toolkit.
 ]]></description>
   <category>Android</category>
-  <vendor url="http://www.android.com">Android, JetBrains</vendor>
+  <vendor url="https://www.android.com">JetBrains, Google</vendor>
 
   <depends>org.jetbrains.android</depends>
   <depends>com.intellij.java</depends>
   <depends>org.jetbrains.kotlin</depends>
   <depends>com.intellij.modules.json</depends>
+
+  <change-notes><![CDATA[
+    This release contains updates from Android Studio Narwhal Feature Drop STABLE.
+
+    For detailed information, please refer to the release notes available at:
+    <a href="https://androidstudio.googleblog.com/2025/07/android-studio-narwhal-feature-drop_31.html">Android Studio Narwhal Feature Drop</a>.]]>
+  </change-notes>
 
   <extensions defaultExtensionNs="com.intellij">
     <dependencySupport coordinate="androidx.compose.runtime:runtime" kind="java" displayName="Jetpack Compose"/>
@@ -186,6 +193,6 @@
     </action>
   </actions>
 
-  <xi:include href="plugin.k1.xml" includeUnless="idea.kotlin.plugin.use.k2" />
-  <xi:include href="plugin.k2.xml" includeIf="idea.kotlin.plugin.use.k2"/>
+  <xi:include href="plugin.k1.xml" includeIf="idea.kotlin.plugin.use.k1" />
+  <xi:include href="plugin.k2.xml" includeUnless="idea.kotlin.plugin.use.k1"/>
 </idea-plugin>

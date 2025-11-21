@@ -78,7 +78,7 @@ class AndroidBuildScriptsGroupNodeTest {
   @Test
   fun appProject() {
     overrideShowBuildFilesInModule = false
-    val setting_gradle = projectRule.fixture.addFileToProject("settings.gradle", "include('app')")
+    val setting_gradle = projectRule.fixture.addFileToProject("settings.gradle", "include(\":app\")")
     val build_gradle = projectRule.fixture.addFileToProject("build.gradle", "")
     val app_build_gradle = projectRule.fixture.addFileToProject("app/build.gradle", "")
     val app_proguard_rules_pro = projectRule.fixture.addFileToProject("app/proguard-rules.pro", "")

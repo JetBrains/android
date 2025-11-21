@@ -17,10 +17,9 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import com.google.common.truth.Truth.assertThat
 import org.gradle.tooling.BuildException
-
+import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.junit.Test
 
 class DuplicateClassIssueCheckerTest {

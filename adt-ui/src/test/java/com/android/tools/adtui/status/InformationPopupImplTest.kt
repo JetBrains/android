@@ -18,7 +18,6 @@ package com.android.tools.adtui.status
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -46,8 +45,6 @@ import org.mockito.Mockito.verify
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.EventQueue.invokeLater
-import java.awt.event.InputEvent
-import java.awt.event.MouseEvent
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.JLabel

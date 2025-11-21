@@ -34,7 +34,6 @@ import com.android.tools.adtui.compose.StudioComposePanel
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
-import javax.swing.JComponent
 import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
@@ -42,6 +41,7 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
+import javax.swing.JComponent
 
 private val toolbarSpacing = 6.dp
 private const val descriptionOpened = "Hide preview group"

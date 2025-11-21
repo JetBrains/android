@@ -37,9 +37,9 @@ class CopyAllSelectedActionTest {
     frozenColumnTable = FrozenColumnTable(
       DefaultTableModel(
         arrayOf(
-          arrayOf("east", "app/src/main/res", false, "east"),
-          arrayOf("west", "app/src/main/res", false, "west"),
-          arrayOf("north", "app/src/main/res", false, "north"),
+          arrayOf<Any>("east", "app/src/main/res", false, "east"),
+          arrayOf<Any>("west", "app/src/main/res", false, "west"),
+          arrayOf<Any>("north", "app/src/main/res", false, "north"),
         ),
         arrayOf("Key", "Resource Folder", "Untranslatable", "Default Value"),
       ),

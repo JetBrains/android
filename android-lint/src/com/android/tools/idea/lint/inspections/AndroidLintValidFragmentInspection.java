@@ -17,8 +17,8 @@ package com.android.tools.idea.lint.inspections;
 
 import static com.android.tools.lint.checks.FragmentDetector.ISSUE;
 
-import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 
 public class AndroidLintValidFragmentInspection extends AndroidLintInspectionBase {
   public AndroidLintValidFragmentInspection() {

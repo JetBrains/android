@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.apk;
 
+import static com.android.SdkConstants.EXT_ANDROID_PACKAGE;
+
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-
-import static com.android.SdkConstants.EXT_ANDROID_PACKAGE;
 
 public class ApkFileType implements FileType {
   public static final ApkFileType INSTANCE = new ApkFileType();

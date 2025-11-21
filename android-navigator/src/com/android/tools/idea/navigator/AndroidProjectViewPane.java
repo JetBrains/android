@@ -200,7 +200,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
 
   @NotNull
   @Override
-  protected ProjectAbstractTreeStructureBase createStructure() {
+  public ProjectAbstractTreeStructureBase createStructure() {
     return new AndroidProjectTreeStructure(myProject, ID);
   }
 
@@ -371,15 +371,15 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
 
   @Override
   public boolean isDefaultPane(@NotNull Project project) {
-    return isDefaultPane(project, IdeInfo.getInstance(), AndroidProjectViewSettings.Companion.getInstance());
+    IdeInfo ideInfo = IdeInfo.getInstance();
+    return isDefaultPane(project, ideInfo, ideInfo.isAndroidStudio() ? AndroidProjectViewSettings.Companion.getInstance() : null);
   }
 
   @VisibleForTesting
-  boolean isDefaultPane(@NotNull Project project, @NotNull IdeInfo ideInfo, @NotNull AndroidProjectViewSettings settings) {
+  public boolean isDefaultPane(@NotNull Project project, @NotNull IdeInfo ideInfo, @Nullable AndroidProjectViewSettings settings) {
     if (!(ProjectSystemUtil.getProjectSystem(myProject).isAndroidProjectViewSupported() && CommonAndroidUtil.getInstance().isAndroidProject(myProject))) {
       return false;
     }
-
     if ((!ideInfo.isAndroidStudio()) && (!ideInfo.isGameTools())) {
       return super.isDefaultPane(project);
     }
@@ -388,7 +388,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
       handleCustomDefaultProjectViewProperty(project, settings);
     }
 
-    return !settings.isProjectViewDefault();
+    return settings != null && !settings.isProjectViewDefault();
   }
 
   /**
@@ -545,7 +545,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     }
 
     @Override
-    protected AbstractTreeNode createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
+    protected AbstractTreeNode<?> createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
       return new AndroidViewProjectNode(project, settings);
     }
   }

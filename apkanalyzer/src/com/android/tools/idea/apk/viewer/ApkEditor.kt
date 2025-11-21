@@ -60,6 +60,7 @@ import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.io.URLUtil
 import org.jetbrains.annotations.VisibleForTesting
 import java.beans.PropertyChangeListener
 import java.io.File
@@ -385,7 +386,9 @@ internal class ApkEditor(
       }
     }
 
-    val file = JarFileSystem.getInstance().findFileByPath(archive.getPath().toString())
+    var jarRootPath: String = archive.path.toString()
+    if (URLUtil.JAR_SEPARATOR !in jarRootPath) jarRootPath += URLUtil.JAR_SEPARATOR
+    val file = JarFileSystem.getInstance().findFileByPath(jarRootPath)
     return file?.findFileByRelativePath(p.toString()) ?: ApkVirtualFile.create(p, content)
   }
 

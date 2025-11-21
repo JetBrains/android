@@ -1,0 +1,18 @@
+### auto-generated section `build intellij.android.gmaven` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "gmaven",
+  module_name = "intellij.android.gmaven",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  deps = [
+    "//android/android:core",
+    "//libraries/guava",
+    "//platform/core-api:core",
+    "//platform/util",
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+  ]
+)
+### auto-generated section `build intellij.android.gmaven` end

@@ -1,0 +1,76 @@
+### auto-generated section `build intellij.android.render-resources` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+resourcegroup(
+  name = "render-resources_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "render-resources",
+  module_name = "intellij.android.render-resources",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":render-resources_resources"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "//libraries/guava",
+    "//libraries/asm-tools",
+    "//libraries/fastutil",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kxml2",
+    "//libraries/asm",
+    "//android/layoutlib-loader",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/java-psi-api:psi",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//jps/model-serialization",
+    "//platform/projectModel-api:projectModel",
+    "//platform/projectModel-impl",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util/trove",
+  ]
+)
+### auto-generated section `build intellij.android.render-resources` end
+
+### auto-generated section `build intellij.android.render-resources.tests` start
+jvm_library(
+  name = "render-resources-tests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  associates = ["//android/render-resources"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "//libraries/guava",
+    "@lib//:junit4",
+    "@lib//:kxml2",
+    "//libraries/mockito",
+    "@lib//:truth",
+    "//android/layoutlib-loader",
+    "//android/layoutlib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//platform/core-api:core",
+    "//platform/extensions",
+    "//platform/util",
+    "//platform/util/trove",
+  ]
+)
+### auto-generated section `build intellij.android.render-resources.tests` end
+
+### auto-generated section `test intellij.android.render-resources.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "render-resources-tests_test",
+  runtime_deps = [":render-resources-tests_test_lib"]
+)
+### auto-generated section `test intellij.android.render-resources.tests` end

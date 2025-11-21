@@ -37,8 +37,6 @@ import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEdit
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.containers.addIfNotNull
 import org.jetbrains.kotlin.backend.common.output.OutputFile
-import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPINGS_CLASS_NAME_POSTFIX
-import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPING_ARRAY_FIELD_PREFIX
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.TimeUnit
 import kotlin.metadata.jvm.KotlinClassMetadata
@@ -270,6 +268,8 @@ private fun isWhenMapping(clazz: IrClass) : Boolean {
   return clazz.name.endsWith(MAPPINGS_CLASS_NAME_POSTFIX) && clazz.fields.all { it.name.startsWith(MAPPING_ARRAY_FIELD_PREFIX)}
 }
 
+private const val MAPPING_ARRAY_FIELD_PREFIX = "\$EnumSwitchMapping$"
+private const val MAPPINGS_CLASS_NAME_POSTFIX = "\$WhenMappings"
 
 // First diff is against the APK, so the diff for the constructors and static initializers is likely to be noisy. We skip this check
 // for that particular case, and rely on the PSI validation that happened before.

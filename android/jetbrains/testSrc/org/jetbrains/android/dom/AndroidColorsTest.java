@@ -15,8 +15,8 @@
  */
 package org.jetbrains.android.dom;
 
+import com.intellij.grazie.spellcheck.GrazieSpellCheckingInspection;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 
 public class AndroidColorsTest extends AndroidDomTestCase {
   public AndroidColorsTest() {
@@ -32,7 +32,7 @@ public class AndroidColorsTest extends AndroidDomTestCase {
     copyFileToProject("color_layout.xml", "res/layout/color_layout.xml");
     VirtualFile virtualFile = copyFileToProject("colors_value.xml");
     myFixture.configureFromExistingVirtualFile(virtualFile);
-    myFixture.enableInspections(new SpellCheckingInspection());
+    myFixture.enableInspections(new GrazieSpellCheckingInspection());
     myFixture.checkHighlighting(true, true, true);
   }
 }

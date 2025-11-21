@@ -59,7 +59,7 @@ fun showInProjectBuildScriptsGroup(psiFile: PsiFile): Boolean {
 }
 
 fun showBuildFilesInModule(): Boolean {
-  return overrideShowBuildFilesInModule ?: ProjectToolWindowSettings.getInstance().showBuildFilesInModule
+  return overrideShowBuildFilesInModule ?: (ProjectToolWindowSettings.getInstanceIfCreated()?.showBuildFilesInModule == true)
 }
 
 @VisibleForTesting

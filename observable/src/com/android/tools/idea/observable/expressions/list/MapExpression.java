@@ -17,9 +17,8 @@ package com.android.tools.idea.observable.expressions.list;
 
 import com.android.tools.idea.observable.collections.ObservableList;
 import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An expression which maps one list to another.

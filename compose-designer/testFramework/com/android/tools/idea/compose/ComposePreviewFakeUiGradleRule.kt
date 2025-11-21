@@ -39,12 +39,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.util.ui.UIUtil
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.awt.image.BufferedImage
-import javax.swing.JPanel
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -53,6 +47,12 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.rules.RuleChain
 import org.junit.runner.Description
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.awt.image.BufferedImage
+import javax.swing.JPanel
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 private val DEFAULT_REFRESH_TIMEOUT = 10.seconds
 private val DEFAULT_BUILD_AND_REFRESH_TIMEOUT = 40.seconds

@@ -20,7 +20,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.SmartList;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
@@ -52,8 +51,7 @@ public class GradleDeclarativeScriptCollector implements GradleAutoReloadSetting
           public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
             String fileName = path.getFileName().toString();
             if (fileName.endsWith('.' + "gradle.dcl")) {
-              File file = path.toFile();
-              if (file.isFile()) files.add(path);
+              if (path.toFile().isFile()) files.add(path);
             }
             return FileVisitResult.CONTINUE;
           }

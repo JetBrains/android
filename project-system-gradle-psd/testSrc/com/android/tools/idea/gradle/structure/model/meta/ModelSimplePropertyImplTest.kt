@@ -18,13 +18,13 @@ package com.android.tools.idea.gradle.structure.model.meta
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
-import com.android.tools.idea.gradle.structure.PsdGradleFileModelTestCase
 import com.android.tools.idea.gradle.structure.MODEL_SIMPLE_PROPERTY_IMPL_PROPERTY_INITIALIZER
 import com.android.tools.idea.gradle.structure.MODEL_SIMPLE_PROPERTY_IMPL_PROPERTY_VALUES
 import com.android.tools.idea.gradle.structure.MODEL_SIMPLE_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY
 import com.android.tools.idea.gradle.structure.MODEL_SIMPLE_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY_EXPECTED
 import com.android.tools.idea.gradle.structure.MODEL_SIMPLE_PROPERTY_IMPL_RESOLVED_VALUE_MATCHING
 import com.android.tools.idea.gradle.structure.MODEL_SIMPLE_PROPERTY_IMPL_WRITE_PROPERTY_VALUES
+import com.android.tools.idea.gradle.structure.PsdGradleFileModelTestCase
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.helpers.parseBoolean
 import com.android.tools.idea.gradle.structure.model.helpers.parseInt

@@ -36,7 +36,6 @@ import com.intellij.psi.PsiType
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import java.io.File
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.visitor.AbstractUastVisitor
@@ -46,6 +45,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
+import java.io.File
 
 @RunsInEdt
 class SafeArgsGeneratedJavaCodeMatchTest {

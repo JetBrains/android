@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
-import org.jetbrains.android.AndroidTestBase;
-import org.jetbrains.annotations.NotNull;
+import static com.android.tools.idea.wizard.dynamic.DynamicWizardStepTest.SampleDynamicWizardStep;
 
 import java.util.Set;
-
-import static com.android.tools.idea.wizard.dynamic.DynamicWizardStepTest.SampleDynamicWizardStep;
+import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link DynamicWizardPath}

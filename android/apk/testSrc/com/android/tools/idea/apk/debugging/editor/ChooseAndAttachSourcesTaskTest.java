@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.apk.debugging.editor;
 
+import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject;

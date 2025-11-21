@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_ALPHA_VALUE
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
 import com.google.common.annotations.VisibleForTesting
+import org.jetbrains.annotations.TestOnly
 import java.awt.Image
 import java.awt.Rectangle
 import java.awt.Shape
@@ -38,7 +39,6 @@ import kotlin.math.atan
 import kotlin.math.hypot
 import kotlin.math.min
 import kotlin.math.sqrt
-import org.jetbrains.annotations.TestOnly
 
 data class ViewDrawInfo(
   val bounds: Shape,

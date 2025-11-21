@@ -15,22 +15,24 @@
  */
 package com.android.tools.adtui.stdui.menu;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.CommonToggleButton;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.PopupMenuListenerAdapter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.PopupMenuEvent;
-import java.awt.*;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
+import javax.swing.Action;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.event.PopupMenuEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This control takes a {@link CommonAction} as the model and when clicked, populates and shows a dropdown menu that mirrors the

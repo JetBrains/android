@@ -31,16 +31,12 @@ import com.intellij.ui.colorpicker.ColorPickerBuilder
 import com.intellij.ui.colorpicker.MaterialGraphicalColorPipetteProvider
 import com.intellij.ui.picker.ColorListener
 import com.intellij.util.ui.ColorIcon
-import java.awt.Color
-import java.awt.MouseInfo
-import java.awt.event.MouseEvent
-import java.util.Locale
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.codeinsight.utils.getInitializerOrGetterInitializer
 import org.jetbrains.kotlin.idea.inspections.AbstractRangeInspection.Companion.constantValueOrNull
-import org.jetbrains.kotlin.j2k.resolve
+import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
@@ -52,6 +48,10 @@ import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UExpression
 import org.jetbrains.uast.UastCallKind
 import org.jetbrains.uast.toUElement
+import java.awt.Color
+import java.awt.MouseInfo
+import java.awt.event.MouseEvent
+import java.util.Locale
 
 private const val ICON_SIZE = 8
 
@@ -68,7 +68,7 @@ private fun KtReferenceExpression.resolveAll(allowedDepth: Int = 3): KtCallExpre
 
   var current: KtReferenceExpression? = this
   while (current != null) {
-    when (@Suppress("UnstableApiUsage") val resolved = current.resolve()) {
+    when (@Suppress("UnstableApiUsage") val resolved = current.mainReference.resolve()) {
       is KtCallExpression -> return resolved
       is KtProperty -> {
         return (resolved.getInitializerOrGetterInitializer() as? KtReferenceExpression)?.resolveAll(

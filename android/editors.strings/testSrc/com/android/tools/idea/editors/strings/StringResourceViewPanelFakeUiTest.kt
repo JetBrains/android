@@ -48,6 +48,7 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.concurrency.SameThreadExecutor
 import org.jetbrains.android.facet.AndroidFacet
@@ -93,8 +94,10 @@ class StringResourceViewPanelFakeUiTest {
   }
 
   @Test
+  @RunsInEdt
   fun toolbarConstructedProperly() {
     val toolbar: ActionToolbar = stringResourceViewPanel.loadingPanel.getDescendant { it.component.name == "toolbar" }
+    PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
     assertThat(toolbar.actions).hasSize(7)
     assertThat(toolbar.actions[0]).isInstanceOf(AddKeyAction::class.java)
     assertThat(toolbar.actions[1]).isInstanceOf(RemoveKeysAction::class.java)

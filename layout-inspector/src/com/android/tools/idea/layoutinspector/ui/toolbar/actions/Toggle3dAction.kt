@@ -26,10 +26,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
 import icons.StudioIcons
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
-import org.jetbrains.annotations.VisibleForTesting
 
 private const val ROTATION_FRAMES = 20L
 private const val ROTATION_TIMEOUT = 10_000L

@@ -42,11 +42,11 @@ class RoomSqlBooleanLiteralInspectionTest(private val minSdk: Int, private val e
     @JvmStatic
     @get:Parameters(name = "minSdk={0}")
     val data = listOf(
-      arrayOf(28, /* expectWarning = */ true),
-      arrayOf(29, /* expectWarning = */ true),
-      arrayOf(30, /* expectWarning = */ false),
-      arrayOf(31, /* expectWarning = */ false),
-      arrayOf(32, /* expectWarning = */ false))
+      arrayOf<Any>(28, /* expectWarning = */ true),
+      arrayOf<Any>(29, /* expectWarning = */ true),
+      arrayOf<Any>(30, /* expectWarning = */ false),
+      arrayOf<Any>(31, /* expectWarning = */ false),
+      arrayOf<Any>(32, /* expectWarning = */ false))
   }
 
   @get:Rule

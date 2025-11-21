@@ -61,7 +61,6 @@ import com.android.utils.usLocaleCapitalize
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.pom.java.LanguageLevel
-import com.jetbrains.rd.util.getOrCreate
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.util.EnumSet
@@ -178,15 +177,15 @@ open class GradleAndroidModelImpl(
 
   override val isDebuggable: Boolean
     get() {
-    // TODO(b/288091803): Figure out if kotlin multiplatform android modules should be marked debuggable
-    if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM) {
-      return true
-    }
+      // TODO(b/288091803): Figure out if kotlin multiplatform android modules should be marked debuggable
+      if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM) {
+        return true
+      }
 
-    val buildTypeContainer = myBuildTypesByName[selectedVariant.buildType]
-      ?: error("Build type ${selectedVariant.buildType} not found")
-    return buildTypeContainer.buildType.isDebuggable
-  }
+      val buildTypeContainer = myBuildTypesByName[selectedVariant.buildType]
+                               ?: error("Build type ${selectedVariant.buildType} not found")
+      return buildTypeContainer.buildType.isDebuggable
+    }
 
   override fun getBuildType(variant: IdeBasicVariant): IdeBuildTypeContainer? {
     return variant.buildType?.let { myBuildTypesByName[it] }
@@ -281,10 +280,10 @@ open class GradleAndroidModelImpl(
 
   override val namespacing: Namespacing
     get() =
-       when (androidProject.aaptOptions.namespacing) {
-         IdeAaptOptions.Namespacing.DISABLED -> Namespacing.DISABLED
-         IdeAaptOptions.Namespacing.REQUIRED -> Namespacing.REQUIRED
-       }
+      when (androidProject.aaptOptions.namespacing) {
+        IdeAaptOptions.Namespacing.DISABLED -> Namespacing.DISABLED
+        IdeAaptOptions.Namespacing.REQUIRED -> Namespacing.REQUIRED
+      }
 
   override val desugaring: Set<Desugaring>
     get() = getGradleDesugaring(
@@ -297,23 +296,23 @@ open class GradleAndroidModelImpl(
 
   override val testOptions: TestOptions
     get() {
-    val testArtifact = selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
-    val testOptions = testArtifact?.testOptions
-    val executionOption: TestExecutionOption? =
-      when (testOptions?.execution) {
-        null -> null
-        IdeTestOptions.Execution.ANDROID_TEST_ORCHESTRATOR -> TestExecutionOption.ANDROID_TEST_ORCHESTRATOR
-        IdeTestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR -> TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR
-        IdeTestOptions.Execution.HOST -> TestExecutionOption.HOST
-      }
-    val animationsDisabled = testOptions != null && testOptions.animationsDisabled
-    return TestOptions(
-      executionOption,
-      animationsDisabled,
-      selectedVariant.testInstrumentationRunner,
-      selectedVariant.testInstrumentationRunnerArguments
-    )
-  }
+      val testArtifact = selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
+      val testOptions = testArtifact?.testOptions
+      val executionOption: TestExecutionOption? =
+        when (testOptions?.execution) {
+          null -> null
+          IdeTestOptions.Execution.ANDROID_TEST_ORCHESTRATOR -> TestExecutionOption.ANDROID_TEST_ORCHESTRATOR
+          IdeTestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR -> TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR
+          IdeTestOptions.Execution.HOST -> TestExecutionOption.HOST
+        }
+      val animationsDisabled = testOptions != null && testOptions.animationsDisabled
+      return TestOptions(
+        executionOption,
+        animationsDisabled,
+        selectedVariant.testInstrumentationRunner,
+        selectedVariant.testInstrumentationRunnerArguments
+      )
+    }
 
   override val resourcePrefix: String?
     get() = androidProject.resourcePrefix
@@ -434,7 +433,7 @@ sealed interface GradleAndroidDependencyModel: GradleAndroidModel {
     fun createFactory(project: Project, libraryResolver: IdeLibraryModelResolver): (GradleAndroidModelData) -> GradleAndroidDependencyModel {
       val models = mutableMapOf<GradleAndroidModelData, GradleAndroidDependencyModel>()
       return fun(data: GradleAndroidModelData): GradleAndroidDependencyModel {
-        return models.getOrCreate(data) { GradleAndroidDependencyModelImpl(GradleAndroidModel.create(project, data) as GradleAndroidModelImpl,
+        return models.computeIfAbsent(data) { GradleAndroidDependencyModelImpl(GradleAndroidModel.create(project, data) as GradleAndroidModelImpl,
                                                                            libraryResolver as IdeLibraryModelResolverImpl) }
       }
     }

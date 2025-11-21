@@ -21,10 +21,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
-import com.intellij.util.SlowOperations
 
 object EditorUtil {
   /**
@@ -51,9 +49,6 @@ object EditorUtil {
 
     val psiFile = PsiManager.getInstance(project).findFile(file) ?: return
     val currentPane = ProjectView.getInstance(project).currentProjectViewPane ?: return
-
-    SlowOperations.allowSlowOperations(
-      ThrowableComputable { ProjectViewSelectInPaneTarget(project, currentPane, true).select(psiFile, false) }
-    )
+    ProjectViewSelectInPaneTarget(project, currentPane, true).select(psiFile, false)
   }
 }

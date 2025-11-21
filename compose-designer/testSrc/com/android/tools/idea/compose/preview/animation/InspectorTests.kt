@@ -35,7 +35,7 @@ import org.junit.Before
 import org.junit.Rule
 
 /** A base for tests creating inspector. */
-open class InspectorTests {
+abstract class InspectorTests {
 
   lateinit var psiFilePointer: SmartPsiElementPointer<PsiFile>
 

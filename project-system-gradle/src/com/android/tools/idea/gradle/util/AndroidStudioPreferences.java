@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.util;
 
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
-import static org.jetbrains.kotlin.idea.core.script.ScriptUtilsKt.getAllDefinitions;
 
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.application.ApplicationManager;
@@ -29,7 +28,8 @@ import com.intellij.ui.EditorNotificationProvider;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.core.script.settings.KotlinScriptingSettingsStorage;
+import org.jetbrains.kotlin.idea.core.script.v1.settings.KotlinScriptingSettings;
+import org.jetbrains.kotlin.scripting.definitions.ScriptDefinitionProvider;
 
 public final class AndroidStudioPreferences {
   private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = Arrays.asList(
@@ -65,12 +65,14 @@ public final class AndroidStudioPreferences {
     // Tests do not rely on this but it causes test flakiness as it can be executed after test finish during project disposal.
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       // Disable KotlinScriptingSettings.autoReloadConfigurations flag, avoiding unexpected re-sync project with kotlin scripts
-      getAllDefinitions(project).forEach(scriptDefinition -> {
-        var settings = KotlinScriptingSettingsStorage.Companion.getInstance(project);
+      var iterator = ScriptDefinitionProvider.Companion.getInstance(project).getCurrentDefinitions().iterator();
+      var settings = KotlinScriptingSettings.getInstance(project);
+      while (iterator.hasNext()) {
+        var scriptDefinition = iterator.next();
         if (settings.isScriptDefinitionEnabled(scriptDefinition) && settings.autoReloadConfigurations(scriptDefinition)) {
           settings.setAutoReloadConfigurations(scriptDefinition, false);
         }
-      });
+      }
     }
 
     // Note: This unregisters the extensions when the predicate returns False.

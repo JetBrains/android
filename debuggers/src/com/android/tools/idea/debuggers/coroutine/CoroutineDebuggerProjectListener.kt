@@ -22,6 +22,8 @@ import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.XDebuggerManagerListener
+import com.intellij.xdebugger.impl.XDebugSessionImpl
+import com.intellij.xdebugger.impl.frame.XDebugManagerProxy
 import org.jetbrains.android.AndroidStartupManager.ProjectDisposableScope
 import org.jetbrains.kotlin.idea.debugger.coroutine.DebuggerConnection
 
@@ -51,11 +53,14 @@ private class CoroutineDebuggerListener(private val project: Project) : XDebugge
       return
     }
 
-    val debuggerConnection = DebuggerConnection(project, null, null, false, alwaysShowPanel = true)
+    val debuggerConnection = DebuggerConnection(project, null, null, shouldAttachCoroutineAgent = false, alwaysShowPanel = true)
+
+    val sessionId = (debugProcess.session as XDebugSessionImpl).id
+    val sessionProxy = XDebugManagerProxy.getInstance().findSessionProxy(project, sessionId) ?: return
 
     // creating the [DebuggerConnection] object does nothing on its own. In order for the panel to be created
     // we need to forward the "processStarted" call to the Kotlin plugin DebuggerConnection component,
     // which is responsible for creating the Coroutines Debugger panel
-    debuggerConnection.processStarted(debugProcess)
+    debuggerConnection.sessionStarted(sessionProxy)
   }
 }

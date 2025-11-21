@@ -16,12 +16,10 @@
 package com.android.tools.profilers.perfetto
 
 import com.android.tools.adtui.model.Range
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.MainProcessSelector
 import com.android.tools.profilers.cpu.TraceParser
-import com.android.tools.profilers.cpu.systemtrace.AtraceParser
 import com.android.tools.profilers.cpu.systemtrace.ProcessListSorter
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCaptureBuilder
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceSurfaceflingerManager

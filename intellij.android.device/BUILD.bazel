@@ -1,0 +1,39 @@
+### auto-generated section `build intellij.android.device` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+create_kotlinc_options(
+  name = "custom_device",
+  x_context_parameters = True,
+  x_sam_conversions = "class"
+)
+
+jvm_library(
+  name = "device",
+  module_name = "intellij.android.device",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  kotlinc_opts = ":custom_device",
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "//libraries/guava",
+    "@lib//:kotlinx-coroutines-core",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+    "//android/adt-ui-compose",
+    "//android/android-common:common",
+    "//android/wizard",
+    "//android/wizard-model",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//android/artwork",
+    "//android/artwork-compose",
+  ],
+  plugins = ["@lib//:compose-plugin"]
+)
+### auto-generated section `build intellij.android.device` end

@@ -15,10 +15,10 @@
  */
 package com.android.tools.adtui.stdui;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
+import javax.swing.AbstractAction;
+import javax.swing.JTabbedPane;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A simple tabbed pane

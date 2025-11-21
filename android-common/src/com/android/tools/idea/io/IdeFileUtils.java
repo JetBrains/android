@@ -16,8 +16,8 @@
 package com.android.tools.idea.io;
 
 import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.configurations.PathEnvironmentVariableUtil;
 import com.intellij.execution.util.ExecUtil;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
@@ -38,7 +38,7 @@ public class IdeFileUtils {
   public static Path getDesktopDirectory() {
     Path desktop = Paths.get(SystemProperties.getUserHome(), "Desktop");
 
-    if (!Files.isDirectory(desktop) && SystemInfo.hasXdgOpen()) {
+    if (!Files.isDirectory(desktop) && PathEnvironmentVariableUtil.isOnPath("xdg-user-dir")) {
       String path = ExecUtil.execAndReadLine(new GeneralCommandLine("xdg-user-dir", "DESKTOP"));
       if (path != null) {
         desktop = Paths.get(path);

@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
+import static com.google.common.truth.Truth.assertThat;
+
 
 public class GradleProjectSettingsFinderTest {
   private GradleProjectSettingsFinder mySettingsFinder;

@@ -146,6 +146,10 @@ private fun getProjectSpecificIdeModelIssues(testProject: TestProject) = when(te
   TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
     "generated/source/kaptKotlin",
   )
+  // TODO(b/428221750) BytecodeTransforms is missing for phased sync entities
+  TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE -> setOf(
+    "/BytecodeTransforms",
+  )
   TestProject.MULTI_FLAVOR_SWITCH_VARIANT -> setOf(
       // TODO:(b/384022658): This is a quirk of this project where we have to capture the intermediate state switching variants (essentially
       // a second sync). We don't normally expect the library table to be present but in this case it is because a full sync has completed.

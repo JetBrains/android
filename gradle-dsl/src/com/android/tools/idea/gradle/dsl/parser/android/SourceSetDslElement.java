@@ -91,11 +91,6 @@ public class SourceSetDslElement extends GradleDslBlockElement implements Gradle
     super(parent, name);
   }
 
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    super.addParsedElement(element);
-  }
-
   @Nullable
   private String methodName;
 

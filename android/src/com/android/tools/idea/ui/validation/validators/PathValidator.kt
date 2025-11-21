@@ -19,6 +19,7 @@ import com.android.io.CancellableFileIo
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.Validator.Result
 import com.android.tools.adtui.validation.Validator.Severity
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.ui.validation.validators.PathValidator.Companion.createDefault
 import com.google.common.base.CharMatcher
 import com.intellij.openapi.application.Application
@@ -130,7 +131,9 @@ class PathValidator
       withError(LOCATION_IS_A_FILE)
       withError(LOCATION_IS_ROOT)
       withError(PARENT_IS_NOT_A_DIRECTORY)
-      withError(PATH_INSIDE_ANDROID_STUDIO)
+      if (IdeInfo.getInstance().isAndroidStudio) {
+        withError(PATH_INSIDE_ANDROID_STUDIO)
+      }
       return this
     }
 

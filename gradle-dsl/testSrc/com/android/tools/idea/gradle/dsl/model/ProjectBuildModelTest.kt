@@ -45,6 +45,11 @@ import java.io.IOException
 
 class ProjectBuildModelTest : GradleFileModelTestCase() {
 
+  override fun setUp(){
+    super.setUp()
+    GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled = true
+  }
+
   @Test
   fun testAppliedFilesShared() {
     val b = writeToNewProjectFile("b", TestFile.APPLIED_FILES_SHARED_APPLIED)

@@ -48,7 +48,7 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
     * The source of the clash is the mismatch between the platform models and our models. Platform models for the projects don't have source
     * set information whereas Android models do, so some sort of inconsistency will always be there with the current definition of phases.
    */
-  override fun getPhase() =  GradleModelFetchPhase.PROJECT_SOURCE_SET_PHASE
+  override fun getPhase(): GradleModelFetchPhase = GradleModelFetchPhase.PROJECT_SOURCE_SET_PHASE
 
   override fun populateModels(controller: BuildController,
                               buildModels: MutableCollection<out GradleBuild>,
@@ -72,15 +72,14 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
                              // TODO(b/384022658): Reconsider this check if we implement a cache between model providers to avoid fetching the models twice
                              ?.takeIf { it.isAtLeastAgp8() } ?: return@BuildAction null
             val modelVersions = versions.convert()
-            val basicAndroidProject = controller.findModel(gradleProject, BasicAndroidProject::class.java)
-            val androidProject = controller.findModel(gradleProject, AndroidProject::class.java)
-            val androidDsl = controller.findModel(gradleProject, AndroidDsl::class.java)
-            val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
+            val basicAndroidProject = controller.findModel(gradleProject, BasicAndroidProject::class.java)!!
+            val androidProject = controller.findModel(gradleProject, AndroidProject::class.java)!!
+            val androidDsl = controller.findModel(gradleProject, AndroidDsl::class.java)!!
+            val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)!!
 
-            val selectedVariantName = computeVariantNameToBeSynced(syncOptions, gradleProject.moduleId(), basicAndroidProject, androidDsl)
-                                      ?: return@BuildAction null
+          val selectedVariantName = computeVariantNameToBeSynced(syncOptions, gradleProject.moduleId(), basicAndroidProject, androidDsl) ?: return@BuildAction null
 
-            val modelCache = modelCacheV2Impl(internedModels, modelVersions, syncTestMode = syncOptions.syncTestMode)
+          val modelCache = modelCacheV2Impl(internedModels, modelVersions, syncTestMode = syncOptions.syncTestMode)
 
             val ideAndroidProject = modelCache.androidProjectFrom(
               rootBuildId,
@@ -98,8 +97,8 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
               basicAndroidProject,
               androidProject,
               androidDsl,
-              controller.findModel(gradleProject, DeclaredDependencies::class.java),
-              controller.findModel(gradleProject, GradlePluginModel::class.java),
+              controller.findModel(gradleProject, DeclaredDependencies::class.java)!!,
+              controller.findModel(gradleProject, GradlePluginModel::class.java)!!,
               ideAndroidProject,
               selectedVariantName,
               shouldSkipRuntimeClasspathForLibraries(androidProject.flags, gradlePropertiesModel)

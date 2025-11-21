@@ -81,7 +81,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
                                                                      Configurable.NoScroll {
   private var myHistory = History(this)
   private val myDetails = Wrapper()
-  private val myConfigurables = Maps.newLinkedHashMap<Configurable, JComponent>()
+  private val myConfigurables = Maps.newLinkedHashMap<Configurable, JComponent?>()
   private val myUiState = UIState().also { it.load(myProject) }
   private val myEmptySelection = JLabel(
     "<html><body><center>Select a setting to view or edit its details here</center></body></html>",
@@ -420,7 +420,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       Presentation(configurable.displayName),
       counterDisplayConfigurable?.let { { SidePanel.ProblemStats(it.count, it.containsErrors()) } },
       validationDisplayConfigurable?.let { { it.hasValidationErrors() } }
-      )
+    )
     counterDisplayConfigurable?.add({ UIUtil.invokeLaterIfNeeded { mySidePanel!!.repaint() } }, myDisposable)
     // refresh side panel to update error bubble
     validationDisplayConfigurable?.add({ UIUtil.invokeLaterIfNeeded { mySidePanel!!.repaint() } }, myDisposable)

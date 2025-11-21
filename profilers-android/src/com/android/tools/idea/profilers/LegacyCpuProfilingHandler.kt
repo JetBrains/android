@@ -20,9 +20,7 @@ import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.TransportServiceUtils
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Trace
-import java.io.IOException
 
 /**
  * A singleton handler that implements [ClientData.setMethodProfilingHandler] since ddmlib only supports one such handler at a time.

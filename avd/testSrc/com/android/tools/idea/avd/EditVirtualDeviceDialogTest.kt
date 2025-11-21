@@ -42,6 +42,7 @@ import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.cre
 import com.android.tools.adtui.compose.utils.lingerMouseHover
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.google.common.truth.Truth.assertThat
+import com.intellij.idea.IJIgnore
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -109,9 +110,11 @@ class EditVirtualDeviceDialogTest {
     }
 
     fun parseIniFile(): Map<String, String> =
-      AvdManager.parseIniFile(
-        PathFileWrapper(sdkFixture.avdRoot.resolve("Pixel_7.avd").resolve("config.ini")),
-        null,
+      checkNotNull(
+        AvdManager.parseIniFile(
+          PathFileWrapper(sdkFixture.avdRoot.resolve("Pixel_7.avd").resolve("config.ini")),
+          null,
+        )
       )
   }
 
@@ -141,6 +144,7 @@ class EditVirtualDeviceDialogTest {
   /** Edit an existing AVD, changing its RAM. */
   @OptIn(ExperimentalTestApi::class)
   @Test
+  @IJIgnore(issue = "IDEA-376024")
   fun editAvdRam() {
     with(SdkFixture()) {
       with(EditAvdFixture(sdkFixture = this, localPackages = listOf(api34Play()))) {

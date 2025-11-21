@@ -33,9 +33,9 @@ import com.intellij.openapi.externalSystem.issue.BuildIssueException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.jetbrains.rd.util.concurrentMapOf
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.util.GradleBundle
+import java.util.concurrent.ConcurrentHashMap
 
 private val LOG = Logger.getInstance(SyncFailureUsageReporter::class.java)
 
@@ -51,9 +51,9 @@ private val LOG = Logger.getInstance(SyncFailureUsageReporter::class.java)
  */
 @Service(Service.Level.APP)
 class SyncFailureUsageReporter {
-  private val collectedFailureTypesByProjectPath = concurrentMapOf<String, GradleSyncFailure>()
-  private val collectedFailureDetailsByProjectPath = concurrentMapOf<String, GradleFailureDetails>()
-  private val collectedFailureDetailsByBuildId = concurrentMapOf<Any, AndroidStudioEvent.Builder>()
+  private val collectedFailureTypesByProjectPath = ConcurrentHashMap<String, GradleSyncFailure>()
+  private val collectedFailureDetailsByProjectPath = ConcurrentHashMap<String, GradleFailureDetails>()
+  private val collectedFailureDetailsByBuildId = ConcurrentHashMap<Any, AndroidStudioEvent.Builder>()
 
   companion object {
     @JvmStatic

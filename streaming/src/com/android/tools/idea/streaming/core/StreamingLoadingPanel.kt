@@ -68,7 +68,7 @@ class StreamingLoadingPanel(
     panel: JPanel,
     parentDisposable: Disposable,
     startDelayMs: Int = 0
-  ) : LoadingDecorator(panel, parentDisposable, startDelayMs, false, AsyncProcessIcon.Big("Loading")) {
+  ) : LoadingDecorator(panel, parentDisposable, startDelayMs, false, AsyncProcessIcon.createBig("Loading")) {
 
     override fun customizeLoadingLayer(parent: JPanel, text: JLabel, icon: AnimatedIcon): NonOpaquePanel {
       @Suppress("UnstableApiUsage")

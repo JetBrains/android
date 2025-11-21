@@ -17,18 +17,17 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * Resolve Cocos components.
  */
-class CocosIncludeResolver extends IncludeResolver {
+public class CocosIncludeResolver extends IncludeResolver {
   @NotNull private final IncludeResolver[] myResolvers;
 
-  CocosIncludeResolver() {
+  public CocosIncludeResolver() {
     myResolvers = new IncludeResolver[]{
       PlainFolderRegularExpressionIncludeResolver.include("^.*/cocos2d[^//]*/external/$"),
       PlainFolderRegularExpressionIncludeResolver.include("^.*/cocos2d[^//]*/cocos/editor-support/$"),

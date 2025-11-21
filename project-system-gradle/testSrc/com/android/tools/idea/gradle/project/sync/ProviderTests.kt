@@ -44,14 +44,14 @@ import com.android.tools.idea.testing.withoutKtsRelatedIndexing
 import com.google.common.truth.Expect
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
-import org.jetbrains.annotations.Contract
-import com.intellij.openapi.application.runReadAction
 import org.hamcrest.CoreMatchers
+import org.jetbrains.annotations.Contract
 import org.junit.Assume
 import org.junit.Assume.assumeFalse
 import org.junit.Rule

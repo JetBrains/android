@@ -1,0 +1,61 @@
+### auto-generated section `build intellij.android.core.actions` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "actions_test_lib",
+  module_name = "intellij.android.core.actions",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//libraries/guava",
+    "@lib//:junit4",
+    "//android/android:core",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//libraries/mockito",
+    "@lib//:truth",
+    "@lib//:kotlinc-kotlin-compiler-common",
+    "//android/project-system-gradle-psd:projectSystem-gradle-psd",
+    "//android/android-common:common",
+    "//android/android:core-tests_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//java/java-frontback-psi-impl:frontback-psi-impl",
+    "//java/testFramework",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/xdebugger-api:debugger",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/lang-api:lang",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+    "//platform/util:util-ui",
+    "//xml/xml-psi-api:psi",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "@lib//:mockito-kotlin",
+    "//plugins/kotlin/base/plugin",
+    "//plugins/kotlin/base/plugin:plugin_test_lib",
+  ]
+)
+### auto-generated section `build intellij.android.core.actions` end
+
+### auto-generated section `test intellij.android.core.actions` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "actions_test",
+  runtime_deps = [":actions_test_lib"]
+)
+### auto-generated section `test intellij.android.core.actions` end

@@ -1,0 +1,61 @@
+### auto-generated section `build intellij.android.transportDatabase` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+resourcegroup(
+  name = "transport-database_test_resources",
+  srcs = glob(["testData/**/*"]),
+  strip_prefix = "testData"
+)
+
+jvm_library(
+  name = "transport-database",
+  module_name = "intellij.android.transportDatabase",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java", "src/main/java/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:jetbrains-annotations",
+    "@lib//:protobuf",
+    "@lib//:kotlin-stdlib",
+    "@lib//:sqlite",
+    "//libraries/guava",
+    "//android/adt-ui-model",
+    "//android/android-common:common",
+  ]
+)
+
+jvm_library(
+  name = "transport-database_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  resources = [":transport-database_test_resources"],
+  associates = [":transport-database"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:jetbrains-annotations",
+    "@lib//:protobuf",
+    "@lib//:kotlin-stdlib",
+    "@lib//:sqlite",
+    "//libraries/guava",
+    "@lib//:truth",
+    "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
+    "//libraries/mockito",
+    "@lib//:junit4",
+    "@lib//:jaxb-api",
+    "//android/android-common:common",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//libraries/hamcrest",
+  ]
+)
+### auto-generated section `build intellij.android.transportDatabase` end
+
+### auto-generated section `test intellij.android.transportDatabase` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "transport-database_test",
+  runtime_deps = [":transport-database_test_lib"]
+)
+### auto-generated section `test intellij.android.transportDatabase` end

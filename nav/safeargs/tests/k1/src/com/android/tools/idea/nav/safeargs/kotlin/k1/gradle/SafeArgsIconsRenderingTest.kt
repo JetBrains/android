@@ -31,12 +31,12 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.ui.IconManager
 import com.intellij.ui.PlatformIcons
-import java.io.File
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.io.File
 
 @RunsInEdt
 class SafeArgsIconsRenderingTest {

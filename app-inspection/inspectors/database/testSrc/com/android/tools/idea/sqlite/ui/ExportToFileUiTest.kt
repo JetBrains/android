@@ -48,6 +48,14 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.treeStructure.Tree
+import org.mockito.AdditionalAnswers.answer
+import org.mockito.AdditionalAnswers.delegatesTo
+import org.mockito.Mockito
+import org.mockito.Mockito.any
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
 import java.awt.event.ActionEvent
 import java.awt.event.InputEvent.BUTTON3_DOWN_MASK
 import java.awt.event.MouseEvent
@@ -58,14 +66,6 @@ import javax.swing.AbstractButton
 import javax.swing.JComponent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
-import org.mockito.AdditionalAnswers.answer
-import org.mockito.AdditionalAnswers.delegatesTo
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 
 private const val TABLE_ACTION_PANEL_COMPONENT_NAME = "table-actions-panel"

@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.editors.manifest;
 
+import static com.android.tools.idea.testing.TestProjectPaths.MANIFEST_CONFLICT_ATTRIBUTE;
+import static com.android.tools.idea.testing.TestProjectPaths.MANIFEST_CONFLICT_DYN_FEATURE_ATTR_CONFLICT_IN_XML;
+import static com.android.tools.idea.testing.TestProjectPaths.MANIFEST_CONFLICT_DYN_FEATURE_ATTR_CONFLICT_NOT_IN_XML;
+import static com.android.tools.idea.testing.TestProjectPaths.MANIFEST_CONFLICT_MIN_SDK;
+
 import com.android.manifmerger.MergingReport;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.google.common.collect.ImmutableList;
-
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;

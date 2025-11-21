@@ -23,7 +23,7 @@ class KotlinPluginRule(private val pluginKind: KotlinPluginMode) : ExternalResou
   private var oldPropertyValue: String? = null
   override fun before() {
     oldPropertyValue = System.getProperty(PROPERTY_NAME)
-    System.setProperty(PROPERTY_NAME, (pluginKind == KotlinPluginMode.K2).toString())
+    System.setProperty(PROPERTY_NAME, (pluginKind == KotlinPluginMode.K1).toString())
   }
 
   override fun after() {
@@ -39,6 +39,6 @@ class KotlinPluginRule(private val pluginKind: KotlinPluginMode) : ExternalResou
   }
 
   companion object {
-    private const val PROPERTY_NAME = "idea.kotlin.plugin.use.k2"
+    private const val PROPERTY_NAME = "idea.kotlin.plugin.use.k1"
   }
 }

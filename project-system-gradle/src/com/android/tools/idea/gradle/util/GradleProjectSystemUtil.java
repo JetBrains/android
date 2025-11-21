@@ -338,7 +338,7 @@ public class GradleProjectSystemUtil {
             GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
             if (gradleSettings != null) {
               gradleSettings.setDistributionType(LOCAL);
-              gradleSettings.setGradleHome(embeddedGradlePath.getPath());
+              gradleSettings.setGradleHomePath(embeddedGradlePath.toPath());
             }
           }
         }

@@ -20,8 +20,8 @@ import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.openapi.project.Project
-import java.time.Duration
 import kotlinx.coroutines.flow.Flow
+import java.time.Duration
 
 /** Reads and clears a logcat from a device */
 interface LogcatService {

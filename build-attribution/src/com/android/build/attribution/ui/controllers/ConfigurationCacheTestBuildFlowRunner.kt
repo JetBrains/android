@@ -134,7 +134,7 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
 
     val future = GradleBuildInvoker.getInstance(project).executeTasks(request)
     Futures.addCallback(future, object : FutureCallback<GradleInvocationResult> {
-      override fun onSuccess(result: GradleInvocationResult?) {
+      override fun onSuccess(result: GradleInvocationResult) {
         runningFirstConfigurationCacheBuild = false
         testConfigurationCacheBuildRequest = null
         if (result!!.isBuildSuccessful) onSuccess()

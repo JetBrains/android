@@ -34,6 +34,11 @@ class ProjectToolWindowSettings: PersistentStateComponent<ProjectToolWindowSetti
     fun getInstance(): ProjectToolWindowSettings {
       return ApplicationManager.getApplication().getService(ProjectToolWindowSettings::class.java)
     }
+
+    @JvmStatic
+    fun getInstanceIfCreated(): ProjectToolWindowSettings? {
+      return ApplicationManager.getApplication().getServiceIfCreated(ProjectToolWindowSettings::class.java)
+    }
   }
 
   override fun getState(): ProjectToolWindowSettings {

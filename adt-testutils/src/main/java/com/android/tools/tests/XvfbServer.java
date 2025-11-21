@@ -91,7 +91,7 @@ class XvfbServer {
       return new ProcessBuilder(
         launcher.toString(),
         display,
-        TestUtils.getWorkspaceRoot().toString(),
+        com.android.testutils.TestUtils.getWorkspaceRoot().toString(),
         DEFAULT_RESOLUTION
       )
         .redirectErrorStream(true)

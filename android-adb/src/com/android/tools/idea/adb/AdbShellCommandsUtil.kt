@@ -25,9 +25,9 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.diagnostic.thisLogger
-import java.time.Duration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.single
+import java.time.Duration
 
 abstract class AdbShellCommandsUtil {
   private val logger = thisLogger()

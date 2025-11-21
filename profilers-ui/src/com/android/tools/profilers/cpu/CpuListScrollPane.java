@@ -19,17 +19,19 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Special {@link JScrollPane} used in CPU profiler panels that have a {@link JList} as the main viewport.
  * It needs to make sure the vertical scrollbar overlaps the viewport instead of shifting it to the left.
  */
-class CpuListScrollPane extends JBScrollPane {
+public class CpuListScrollPane extends JBScrollPane {
 
   CpuListScrollPane(@NotNull JList viewportView, @NotNull JComponent dispatchComponent) {
     super();

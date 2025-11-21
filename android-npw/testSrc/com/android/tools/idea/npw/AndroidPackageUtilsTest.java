@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw;
 
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;

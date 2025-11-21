@@ -62,19 +62,19 @@ import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.lifecycle.BuildPhaseFinishEvent
 import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent
-import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.util.GradleVersion
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionContext
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelperExtension
-import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-private val SYNC_NOTIFICATION_GROUP: NotificationGroup =
+private val SYNC_NOTIFICATION_GROUP: NotificationGroup by lazy {
   NotificationGroupManager.getInstance().getNotificationGroup("Gradle Sync")
+}
 
 /**
  * This class manages the state of Gradle sync for a project.
@@ -561,20 +561,11 @@ class GradleSyncStateHolder constructor(private val project: Project) {
 
   class BuildPhaseListenerExecutionHelperExtension : GradleExecutionHelperExtension {
 
-    override fun prepareForExecution(id: ExternalSystemTaskId,
-                                     operation: LongRunningOperation,
-                                     gradleExecutionSettings: GradleExecutionSettings,
-                                     buildEnvironment: BuildEnvironment?) {
-      val project = id.findProject()
-      if (project != null) {
-        if (id.type == ExternalSystemTaskType.RESOLVE_PROJECT) {
-          prepareForSync(operation, project)
-        }
-        val gradleVersion = buildEnvironment?.gradle?.gradleVersion
-        if (gradleVersion != null) {
-          getInstance(project).recordGradleVersion(GradleVersion.version(gradleVersion))
-        }
+    override fun configureOperation(operation: LongRunningOperation, context: GradleExecutionContext) {
+      if (context.taskId.type == ExternalSystemTaskType.RESOLVE_PROJECT) {
+        prepareForSync(operation, context.project)
       }
+      getInstance(context.project).recordGradleVersion(context.gradleVersion)
     }
 
     private fun prepareForSync(operation: LongRunningOperation, project: Project) {

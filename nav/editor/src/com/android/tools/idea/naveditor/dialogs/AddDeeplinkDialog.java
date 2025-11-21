@@ -63,16 +63,16 @@ import org.jetbrains.annotations.Nullable;
 
 public class AddDeeplinkDialog extends DialogWrapper {
   @VisibleForTesting
-  CommonTextField<UriTextFieldModel> myUriField;
+  public CommonTextField<UriTextFieldModel> myUriField;
   @VisibleForTesting
-  JCheckBox myAutoVerify;
+  public JCheckBox myAutoVerify;
   @VisibleForTesting
-  CommonTextField<MimeTypeTextFieldModel> myMimeTypeField;
+  public CommonTextField<MimeTypeTextFieldModel> myMimeTypeField;
   @VisibleForTesting
-  CommonTextField<ActionTextFieldModel> myActionField;
+  public CommonTextField<ActionTextFieldModel> myActionField;
 
-  JBLabel myMimeTypeLabel;
-  JBLabel myActionLabel;
+  public JBLabel myMimeTypeLabel;
+  public JBLabel myActionLabel;
 
   private JPanel myContentPanel;
   @Nullable private final NlComponent myExistingComponent;

@@ -24,7 +24,6 @@ import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
-import com.intellij.openapi.util.NlsSafe
 import java.io.File
 import java.util.function.Consumer
 

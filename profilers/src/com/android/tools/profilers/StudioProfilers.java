@@ -128,7 +128,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   // Device directory where the transport daemon lives.
   public static final String DAEMON_DEVICE_DIR_PATH = "/data/local/tmp/perfd";
 
-  @VisibleForTesting static final int AGENT_STATUS_MAX_RETRY_COUNT = 10;
+  @VisibleForTesting
+  public static final int AGENT_STATUS_MAX_RETRY_COUNT = 10;
 
   /**
    * The number of updates per second our simulated object models receive.

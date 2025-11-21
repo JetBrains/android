@@ -28,11 +28,11 @@ import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import icons.StudioIcons
-import javax.swing.Icon
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.Icon
 
 class LocalEmulatorProvisionerFactoryTest {
   @get:Rule val projectRule = ProjectRule()

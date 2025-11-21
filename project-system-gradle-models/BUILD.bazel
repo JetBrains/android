@@ -1,0 +1,50 @@
+### auto-generated section `build intellij.android.projectSystem.gradle.models` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+create_kotlinc_options(
+  name = "custom_projectSystem-gradle-models",
+  jvm_target = "8",
+  x_sam_conversions = "class"
+)
+
+jvm_library(
+  name = "projectSystem-gradle-models",
+  module_name = "intellij.android.projectSystem.gradle.models",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  kotlinc_opts = ":custom_projectSystem-gradle-models",
+  deps = [
+    "@lib//:studio-platform-provided",
+    "//libraries/guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+  ]
+)
+### auto-generated section `build intellij.android.projectSystem.gradle.models` end
+
+### auto-generated section `build intellij.android.projectSystem.gradle.models.tests` start
+jvm_library(
+  name = "projectSystem-gradle-models-tests_test_lib",
+  module_name = "intellij.android.projectSystem.gradle.models.tests",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "//android/android-test-framework:testFramework",
+    "//android/android-test-framework:testFramework_test_lib",
+  ]
+)
+### auto-generated section `build intellij.android.projectSystem.gradle.models.tests` end
+
+### auto-generated section `test intellij.android.projectSystem.gradle.models.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "projectSystem-gradle-models-tests_test",
+  runtime_deps = [":projectSystem-gradle-models-tests_test_lib"]
+)
+### auto-generated section `test intellij.android.projectSystem.gradle.models.tests` end

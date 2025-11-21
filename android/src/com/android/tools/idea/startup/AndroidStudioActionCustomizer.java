@@ -36,7 +36,6 @@ public class AndroidStudioActionCustomizer implements ActionConfigurationCustomi
   }
 
   private static void setupResourceManagerActions(ActionManager actionManager) {
-    Actions.hideAction(actionManager, "Images.ShowThumbnails");
   }
 
   // Remove popup actions that we don't use

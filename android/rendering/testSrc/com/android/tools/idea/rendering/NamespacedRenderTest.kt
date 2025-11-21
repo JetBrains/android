@@ -21,6 +21,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
+import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
@@ -48,7 +49,7 @@ class NamespacedRenderTest {
   fun testSimpleStrings() {
     checkRendering(
       facet,
-      project.baseDir.findFileByRelativePath("app/src/main/res/layout/simple_strings.xml")!!,
+      PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath("app/src/main/res/layout/simple_strings.xml")!!,
       projectRule.resolveTestDataPath("/layouts/namespaced/simple_strings.png").path,
     )
   }
@@ -57,7 +58,7 @@ class NamespacedRenderTest {
   fun testAttrsFromLib() {
     withRenderTask(
       facet,
-      project.baseDir.findFileByRelativePath("app/src/main/res/layout/attrs_from_lib.xml")!!,
+      PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath("app/src/main/res/layout/attrs_from_lib.xml")!!,
       "@style/AttrsFromLib",
     ) {
       checkRendering(
@@ -71,7 +72,7 @@ class NamespacedRenderTest {
   fun testParentFromLib() {
     withRenderTask(
       facet,
-      project.baseDir.findFileByRelativePath("app/src/main/res/layout/parent_from_lib.xml")!!,
+      PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath("app/src/main/res/layout/parent_from_lib.xml")!!,
       "@style/ParentFromLib",
     ) {
       checkRendering(

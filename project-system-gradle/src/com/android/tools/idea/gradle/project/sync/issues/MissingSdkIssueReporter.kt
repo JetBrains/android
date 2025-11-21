@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.SetSdkDirHyperlink
 import com.android.tools.idea.project.messages.MessageType
 import com.android.tools.idea.project.messages.SyncMessage
-import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile

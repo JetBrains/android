@@ -70,7 +70,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.BasicUndoableAction;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.command.undo.UnexpectedUndoException;
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -115,7 +115,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   @Override
   public Promise<Void> addModuleDependency(@NotNull Module from, @NotNull Module to, @NotNull DependencyScope scope, boolean exported) {
     Project project = from.getProject();
-    VirtualFile openedFile = FileEditorManagerEx.getInstanceEx(from.getProject()).getCurrentFile();
+    VirtualFile openedFile = FileEditorManager.getInstance(from.getProject()).getCurrentFile();
     GradleProjectPath gradlePath = getGradleProjectPath(to);
     GradleBuildModel buildModel = GradleBuildModel.get(from);
 
@@ -170,7 +170,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     }
     Project project = firstModule.getProject();
 
-    VirtualFile openedFile = FileEditorManagerEx.getInstanceEx(firstModule.getProject()).getCurrentFile();
+    VirtualFile openedFile = FileEditorManager.getInstance(firstModule.getProject()).getCurrentFile();
     ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
 
     List<GradleFileModel> buildModelsToUpdate = new ArrayList<>();
@@ -240,8 +240,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
   @NotNull
   private static String getConfigurationName(@NotNull Module module,
-                                                   @NotNull DependencyScope scope,
-                                                   @Nullable VirtualFile openedFile) {
+                                             @NotNull DependencyScope scope,
+                                             @Nullable VirtualFile openedFile) {
     if (!scope.isForProductionCompile()) {
       TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
 
@@ -253,7 +253,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   @Nullable
-  private static String selectVersion(@NotNull ExternalLibraryDescriptor descriptor) {
+  static String selectVersion(@NotNull ExternalLibraryDescriptor descriptor) {
     String libraryArtifactId = descriptor.getLibraryArtifactId();
     String libraryGroupId = descriptor.getLibraryGroupId();
     String groupAndId = libraryGroupId + ":" + libraryArtifactId;

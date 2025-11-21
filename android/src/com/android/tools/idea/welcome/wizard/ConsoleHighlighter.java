@@ -29,7 +29,6 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.ScrollType;
-import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.editor.highlighter.EditorHighlighter;
 import com.intellij.openapi.editor.highlighter.HighlighterClient;
@@ -121,18 +120,8 @@ public final class ConsoleHighlighter implements EditorHighlighter, DocumentList
   }
 
   @Override
-  public void setText(@NotNull CharSequence text) {
-
-  }
-
-  @Override
   public void setEditor(@NotNull HighlighterClient editor) {
     myEditor = editor;
-  }
-
-  @Override
-  public void setColorScheme(@NotNull EditorColorsScheme scheme) {
-
   }
 
   private synchronized HighlightRange getRange(int index) {

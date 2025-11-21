@@ -150,6 +150,7 @@ public class AndroidProjectViewTest {
       }
       return Unit.INSTANCE;
     };
+    // TODO add noSync variant in case of test failures
     projectRule.loadProject(SIMPLE_APPLICATION, null, null, patch);
 
     Module appModule = TestModuleUtil.findAppModule(projectRule.getProject());
@@ -206,6 +207,7 @@ public class AndroidProjectViewTest {
       }
       return Unit.INSTANCE;
     };
+    // TODO add noSync variant in case of test failures
     projectRule.loadProject(SIMPLE_APPLICATION, null, null, patch);
 
     Module appModule = TestModuleUtil.findAppModule(projectRule.getProject());
@@ -316,6 +318,8 @@ public class AndroidProjectViewTest {
 
       settings.setDefaultToProjectView(true);
       override.setProperty(PROJECT_VIEW_DEFAULT_KEY, "false");
+      StudioFlags.SHOW_DEFAULT_PROJECT_VIEW_SETTINGS.override(true);
+    try {
       assertThat(settings.isDefaultToProjectViewEnabled()).isTrue();
       when(ideInfo.isAndroidStudio()).thenReturn(false);
       when(ideInfo.isGameTools()).thenReturn(false);
@@ -328,7 +332,10 @@ public class AndroidProjectViewTest {
       when(ideInfo.isAndroidStudio()).thenReturn(false);
       when(ideInfo.isGameTools()).thenReturn(true);
       assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(GameTools, settings)").isFalse();
+    } finally {
+      StudioFlags.SHOW_DEFAULT_PROJECT_VIEW_SETTINGS.clearOverride();
     }
+  }
 
     commonAndroidUtilMockedStatic.close();
     projectSystemUtilMockedStatic.close();
@@ -509,20 +516,22 @@ public class AndroidProjectViewTest {
 
   @Test
   public void testAndroidViewIsDefaultMetrics() throws Exception {
-    myPane = createPane();
-    IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
-    GradleProjectSystem mockGradleProjectSystem = Mockito.mock(GradleProjectSystem.class);
+    StudioFlags.SHOW_DEFAULT_PROJECT_VIEW_SETTINGS.override(true);
+
+    try {
+      myPane = createPane();
+      IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
+      GradleProjectSystem mockGradleProjectSystem = Mockito.mock(GradleProjectSystem.class);
     CommonAndroidUtil commonAndroidUtil = Mockito.mock(CommonAndroidUtil.class);
     MockedStatic<CommonAndroidUtil> commonAndroidUtilMockedStatic = Mockito.mockStatic(CommonAndroidUtil.class);
     MockedStatic<ProjectSystemUtil> projectSystemUtilMockedStatic = Mockito.mockStatic(ProjectSystemUtil.class);
-    commonAndroidUtilMockedStatic.when(CommonAndroidUtil::getInstance).thenReturn(commonAndroidUtil);
-    AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
-    Project project = projectRule.getProject();
+    commonAndroidUtilMockedStatic.when(CommonAndroidUtil::getInstance).thenReturn(commonAndroidUtil);AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
+      Project project = projectRule.getProject();
     projectSystemUtilMockedStatic.when(() -> ProjectSystemUtil.getProjectSystem(project)).thenReturn(mockGradleProjectSystem);
     when(mockGradleProjectSystem.isAndroidProjectViewSupported()).thenReturn(true);
     when(commonAndroidUtil.isAndroidProject(project)).thenReturn(true);
 
-    try (SystemPropertyOverrides override = new SystemPropertyOverrides()) {
+      try (SystemPropertyOverrides override = new SystemPropertyOverrides()) {
       override.setProperty(PROJECT_VIEW_DEFAULT_KEY, "false");
       settings.setDefaultToProjectView(true);
 
@@ -561,9 +570,12 @@ public class AndroidProjectViewTest {
         ProjectViewDefaultViewEvent.DefaultView.PROJECT_VIEW);
     }
 
-    UsageTracker.cleanAfterTesting();
-    commonAndroidUtilMockedStatic.close();
-    projectSystemUtilMockedStatic.close();
+      UsageTracker.cleanAfterTesting();
+      commonAndroidUtilMockedStatic.close();
+      projectSystemUtilMockedStatic.close();
+    } finally {
+      StudioFlags.SHOW_DEFAULT_PROJECT_VIEW_SETTINGS.clearOverride();
+    }
   }
 
   private static Set<List<String>> getAllNodes(TestAndroidTreeStructure structure) {
@@ -584,7 +596,8 @@ public class AndroidProjectViewTest {
         ArrayList<String> newPath = new ArrayList<>(path);
         newPath.add(nodeName);
         result.add(newPath);
-      } else {
+      }
+      else {
         path.push(nodeName);
         getAllNodes(structure, child, path, result);
         path.pop();
@@ -607,7 +620,7 @@ public class AndroidProjectViewTest {
     }
 
     @Override
-    protected AbstractTreeNode createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
+    protected AbstractTreeNode<?> createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
       return new AndroidViewProjectNode(project, settings);
     }
 

@@ -88,6 +88,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancelAndJoin
 import org.mockito.InOrder
 import org.mockito.Mockito
+import org.mockito.Mockito.anyString
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
@@ -99,6 +100,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import kotlin.Unit
 
 class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   private lateinit var databaseInspectorView: FakeDatabaseInspectorView
@@ -169,7 +171,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     whenever(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(emptyList()))
 
     mockDatabaseConnection = mock(DatabaseConnection::class.java)
-    whenever(mockDatabaseConnection.close()).thenReturn(Futures.immediateFuture(null))
+    whenever(mockDatabaseConnection.close()).thenReturn(Futures.immediateFuture(Unit))
     whenever(mockDatabaseConnection.query(any()))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
 
@@ -1477,7 +1479,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
           Futures.immediateFuture(null)
 
         override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> =
-          Futures.immediateFuture(null)
+          Futures.immediateFuture(Unit)
       }
 
     runDispatching {
@@ -1508,7 +1510,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
           Futures.immediateFuture(null)
 
         override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> =
-          Futures.immediateFuture(null)
+          Futures.immediateFuture(Unit)
       }
 
     runDispatching {
@@ -1548,7 +1550,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
           Futures.immediateFuture(null)
 
         override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> =
-          Futures.immediateFuture(null)
+          Futures.immediateFuture(Unit)
       }
 
     // Act

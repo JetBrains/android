@@ -1,0 +1,23 @@
+### auto-generated section `build intellij.android.design-plugin` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "design-plugin",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "@lib//:layoutlib",
+    "//android/compose-designer",
+    "//android/designer",
+    "//android/designer/gradle",
+    "//android/designer/customview",
+    "//android/glance-designer",
+    "//android/layoutlib",
+    "//android/nav/editor",
+    "//android/wear-designer",
+    "//android/design-plugin/descriptor",
+    "//android/nav/editor/gradle",
+  ]
+)
+### auto-generated section `build intellij.android.design-plugin` end

@@ -156,7 +156,7 @@ class ServerFlagDownloaderTest : TestCase() {
       server.stop(0)
     }
 
-    override fun handle(httpExchange: HttpExchange) {
+    override fun handle(httpExchange: HttpExchange) = httpExchange.use { httpExchange ->
       val response = "Internal Server Error".toByteArray(Charsets.UTF_8)
       httpExchange.sendResponseHeaders(error.value, response.size.toLong())
       val body = httpExchange.responseBody

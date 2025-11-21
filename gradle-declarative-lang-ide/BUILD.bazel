@@ -1,0 +1,97 @@
+### auto-generated section `build intellij.android.gradle.declarative.lang.ide` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+resourcegroup(
+  name = "gradle-declarative-lang-ide_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "gradle-declarative-lang-ide",
+  module_name = "intellij.android.gradle.declarative.lang.ide",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":gradle-declarative-lang-ide_resources"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "//libraries/guava",
+    "//libraries/commons/lang3",
+    "@lib//:jetbrains-annotations",
+    "//libraries/jsoup",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//platform/code-style-api:codeStyle",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/platform-impl:ide-impl",
+    "//java/java-impl:impl",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/extensions",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//android/gradle-declarative-lang",
+    "//android/gradle-declarative-lang-sync",
+    "//android/gradle-declarative-lang-flags",
+    "//platform/code-style-impl:codeStyle-impl",
+    "//plugins/kotlin/base/util",
+    "//plugins/gradle",
+    "//plugins/gradle/java",
+  ]
+)
+### auto-generated section `build intellij.android.gradle.declarative.lang.ide` end
+
+### auto-generated section `build intellij.android.gradle.declarative.lang.ide.tests` start
+jvm_library(
+  name = "gradle-declarative-lang-ide-tests_test_lib",
+  module_name = "intellij.android.gradle.declarative.lang.ide.tests",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:truth",
+    "//libraries/guava",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "//libraries/jsoup",
+    "//libraries/mockito",
+    "@lib//:mockito-kotlin",
+    "//android/android:core",
+    "//android/android:core-tests_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//java/java-impl:impl",
+    "//java/testFramework",
+    "//platform/analysis-api:analysis",
+    "//platform/code-style-api:codeStyle",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//android/gradle-declarative-lang",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/gradle-declarative-lang-sync",
+    "//android/gradle-declarative-lang-ide",
+    "//android/gradle-declarative-lang-flags",
+  ]
+)
+### auto-generated section `build intellij.android.gradle.declarative.lang.ide.tests` end
+
+### auto-generated section `test intellij.android.gradle.declarative.lang.ide.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "gradle-declarative-lang-ide-tests_test",
+  runtime_deps = [":gradle-declarative-lang-ide-tests_test_lib"]
+)
+### auto-generated section `test intellij.android.gradle.declarative.lang.ide.tests` end

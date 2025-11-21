@@ -17,11 +17,10 @@ package com.android.tools.idea.templates.parse;
 
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.util.io.FileUtil;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
-
-import java.io.File;
 
 /**
  * Helper methods used by the template system when parsing XML with Java SAX (Simple API for XML).

@@ -18,10 +18,9 @@ package com.android.tools.idea.res;
 import com.android.sdklib.devices.Device;
 import com.android.tools.configurations.Configuration;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Utilities for dealing with float values in resources.

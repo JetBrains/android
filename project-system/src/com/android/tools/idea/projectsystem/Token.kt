@@ -16,7 +16,6 @@
 package com.android.tools.idea.projectsystem
 
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.extensions.Extensions
 
 /**
  * This interface is to be extended by concrete project systems with a suitable implementation of

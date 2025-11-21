@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import org.jetbrains.annotations.NotNull;
-
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The delegate fires events using delegate indices. SubTableModel listeners expect model indices. This listener converts delegate indices
  * to model ones.
  */
-final class SubTableModelListener implements TableModelListener {
+public final class SubTableModelListener implements TableModelListener {
   private final SubTableModel myModel;
   private final TableModelListener myDelegate;
 

@@ -1,0 +1,91 @@
+### auto-generated section `build intellij.android.room` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+resourcegroup(
+  name = "room_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "room",
+  module_name = "intellij.android.room",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":room_resources"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "//libraries/guava",
+    "//libraries/gson",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//android/android-lang:lang",
+    "//android/project-system",
+    "//java/openapi:java",
+    "//java/java-analysis-impl:analysis-impl",
+    "//java/java-frontback-psi-api:frontback-psi",
+    "//java/java-impl:impl",
+    "//java/java-psi-api:psi",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//jps/model-api:model",
+    "//platform/projectModel-api:projectModel",
+    "//platform/refactoring",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+  ]
+)
+### auto-generated section `build intellij.android.room` end
+
+### auto-generated section `build intellij.android.room.tests` start
+jvm_library(
+  name = "room-tests_test_lib",
+  module_name = "intellij.android.room.tests",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:truth",
+    "//libraries/guava",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "//libraries/mockito",
+    "@lib//:mockito-kotlin",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//android/android-lang:lang",
+    "//platform/projectModel-api:projectModel",
+    "//android/room",
+    "//android/android-test-framework:testFramework",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//java/java-psi-api:psi",
+    "//java/testFramework",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+  ]
+)
+### auto-generated section `build intellij.android.room.tests` end
+
+### auto-generated section `test intellij.android.room.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "room-tests_test",
+  runtime_deps = [":room-tests_test_lib"]
+)
+### auto-generated section `test intellij.android.room.tests` end

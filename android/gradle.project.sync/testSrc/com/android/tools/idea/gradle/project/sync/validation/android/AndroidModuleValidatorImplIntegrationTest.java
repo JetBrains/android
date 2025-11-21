@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator.AndroidModuleValidatorImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ProjectRule;

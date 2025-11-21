@@ -16,11 +16,7 @@
 package com.android.testutils.junit4;
 
 import com.android.testutils.TestUtils;
-import com.android.testutils.ignore.IgnoreTestRule;
-import com.android.testutils.ignore.IgnoreWithCondition;
-import org.junit.Assume;
 import org.junit.AssumptionViolatedException;
-import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;

@@ -53,12 +53,5 @@ public class AndroidLintGradleDeprecatedConfigurationInspection extends AndroidL
                       @NotNull AndroidQuickfixContexts.Context context) {
       LintIdeSupport.get().updateDeprecatedConfigurations(startElement.getProject(), startElement);
     }
-
-    @Override
-    public boolean isApplicable(@NotNull PsiElement startElement,
-                                @NotNull PsiElement endElement,
-                                @NotNull AndroidQuickfixContexts.ContextType contextType) {
-      return true;
-    }
   }
 }

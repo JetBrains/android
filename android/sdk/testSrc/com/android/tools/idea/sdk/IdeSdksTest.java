@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sdk;
 
-import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
@@ -23,9 +22,9 @@ import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_7;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_9;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.spy;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -84,7 +83,7 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
     myIdeInfo = IdeInfo.getInstance();
 
     AndroidTestCaseHelper.removeExistingAndroidSdks();
-    myAndroidSdkPath = getSdk().toFile();
+    myAndroidSdkPath = TestUtils.getSdk().toFile();
 
     AndroidFacet facet = createAndAddAndroidFacet(myModule);
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;

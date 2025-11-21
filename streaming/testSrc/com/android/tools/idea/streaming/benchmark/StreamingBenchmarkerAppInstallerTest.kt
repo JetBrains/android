@@ -24,7 +24,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
-import io.ktor.util.encodeBase64
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -42,6 +41,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.io.InputStream
 import java.nio.file.Paths
+import java.util.Base64
 
 private const val SERIAL_NUMBER = "abc123"
 private const val DISABLE_IMMERSIVE_CONFIRMATION_COMMAND = "settings put secure immersive_mode_confirmations confirmed"
@@ -88,7 +88,7 @@ class StreamingBenchmarkerAppInstallerTest {
       @Suppress("DeferredResultUnused")
       verify(urlFileCache).get(eq(apkUrl), any(), eq(indicator), transformCaptor.capture())
       val helloWorld = "Hello World"
-      assertThat(String(transformCaptor.firstValue.invoke(helloWorld.encodeBase64().byteInputStream()).readBytes()))
+      assertThat(String(transformCaptor.firstValue.invoke(Base64.getEncoder().encode(helloWorld.toByteArray()).inputStream()).readBytes()))
         .isEqualTo(helloWorld)
 
       // Installation

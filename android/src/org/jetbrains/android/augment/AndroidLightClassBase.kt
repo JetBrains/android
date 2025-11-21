@@ -58,7 +58,7 @@ import org.jetbrains.annotations.NonNls
 import org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE
 import org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE
 import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
-import org.jetbrains.kotlin.idea.base.fir.projectStructure.K2KaModuleFactory
+import org.jetbrains.kotlin.idea.base.fir.projectStructure.FirKaModuleFactory
 import org.jetbrains.kotlin.idea.base.projectStructure.KaSourceModuleKind
 import org.jetbrains.kotlin.idea.base.projectStructure.KotlinResolveScopeEnlarger
 import org.jetbrains.kotlin.idea.base.projectStructure.customLibrary
@@ -449,7 +449,7 @@ private constructor(
   // Note that this only works for the new K2-specific project structure provider (KTIJ-31422).
   // The original ModuleInfo-based ProjectStructureProvider will pick up the customSourceRootType /
   // customLibrary / customSdk attributes used by K1.
-  internal class AndroidLightClassKaModuleFactory : K2KaModuleFactory {
+  internal class AndroidLightClassKaModuleFactory : FirKaModuleFactory {
     override fun createKaModuleByPsiFile(file: PsiFile): KaModule? = file.getUserData(KA_MODULE)
   }
 }

@@ -46,6 +46,7 @@ import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES
 import com.intellij.compiler.CompilerConfiguration
 import com.intellij.compiler.CompilerManagerImpl
+import com.intellij.execution.process.ProcessOutputType
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -67,6 +68,7 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.VetoableProjectManagerListener
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx
@@ -87,8 +89,10 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager
+import org.gradle.tooling.model.build.BuildEnvironment
+import org.jetbrains.plugins.gradle.service.GradleFileModificationTracker
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionContextImpl
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
@@ -134,6 +138,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
     private val myListener: ExternalSystemTaskNotificationListener,
     private val myResultFuture: SettableFuture<GradleInvocationResult>
   ) : Task.Backgroundable(myRequest.project, "Gradle Build Running", true) {
+
     @Volatile
     private var myErrorCount = 0
 
@@ -215,11 +220,13 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         val id = myRequest.taskId
         val taskListener = myListener
         val cancellationTokenSource = GradleConnector.newCancellationTokenSource()
+        val cancellationToken = cancellationTokenSource.token()
         myBuildStopper.register(id, cancellationTokenSource)
         taskListener.onStart(gradleRootProjectPath, id)
-        taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), true)
+        taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), ProcessOutputType.STDOUT)
         val buildState = GradleBuildState.getInstance(project)
         val buildCompleter = buildState.buildStarted(BuildContext(myRequest))
+        var buildEnvironment: BuildEnvironment? = null
         var buildAttributionManager: BuildAttributionManager? = null
         val enableBuildAttribution = isBuildAttributionEnabledForProject(project)
         val invocationResult = try {
@@ -278,7 +285,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               }
             }
 
-            override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
+            override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
               // For test use only: save the logs to a file. Note that if there are multiple tasks at once
               // the output will be interleaved.
               if (StudioFlags.GRADLE_SAVE_LOG_TO_FILE.get()) {
@@ -290,7 +297,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
                 }
               }
               if (myBuildStopper.contains(id)) {
-                taskListener.onTaskOutput(id, text, stdOut)
+                taskListener.onTaskOutput(id, text, processOutputType)
               }
             }
           }
@@ -310,6 +317,11 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             (operation as BuildActionExecuter<*>).forTasks(*ArrayUtil.toStringArray(gradleTasks))
           } else {
             (operation as BuildLauncher).forTasks(*ArrayUtil.toStringArray(gradleTasks))
+          }
+          if (Registry.`is`("gradle.report.recently.saved.paths")) {
+            ApplicationManager.getApplication()
+              .getService(GradleFileModificationTracker::class.java)
+              .notifyConnectionAboutChangedPaths(connection)
           }
           if (isRunBuildAction) {
             model.set((operation as BuildActionExecuter<*>).run())
@@ -352,7 +364,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               taskListener.onFailure(
                 gradleRootProjectPath, id,
                 GradleProjectResolver.createProjectResolverChain()
-                  .getUserFriendlyError(null, buildError, gradleRootProjectPath, null)
+                  .getUserFriendlyError(buildEnvironment, buildError, gradleRootProjectPath, null)
               )
             }
           }

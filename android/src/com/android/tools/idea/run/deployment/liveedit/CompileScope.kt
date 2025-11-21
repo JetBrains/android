@@ -19,7 +19,10 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.runBlockingMaybeCancellable
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
@@ -41,7 +44,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.source.PsiSourceFile
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
-import java.util.concurrent.Semaphore
 
 private fun handleCompilerErrors(e: Throwable): Nothing {
   // These should be rethrown as per the javadoc for ProcessCanceledException. This allows the
@@ -133,7 +135,12 @@ private object CompileScopeImpl : CompileScope {
 
   override fun fetchResolution(project: Project, input: List<KtFile>): ResolutionFacade {
     val kotlinCacheService = KotlinCacheService.getInstance(project)
-    val androidModule = input.first().module?.implementingModules?.firstOrNull { it.isAndroidModule() }
+    val module = input.first().module
+    val androidModule = when {
+      module == null -> null
+      module.isAndroidModule() -> module
+      else -> module.implementingModules.firstOrNull { it.isAndroidModule() }
+    }
     return kotlinCacheService.getResolutionFacadeWithForcedPlatform(input, androidModule?.platform ?: JvmPlatforms.defaultJvmPlatform)
   }
 
@@ -230,11 +237,8 @@ private object CompileScopeImpl : CompileScope {
  * phases.
  * Only one caller of this method will have access to the [CompileScope] at the moment.
  */
-fun <T> runWithCompileLock(callable: CompileScope.() -> T) : T {
-  try {
-    CompileScopeImpl.compileLock.acquire()
-    return CompileScopeImpl.callable()
-  } finally{
-    CompileScopeImpl.compileLock.release()
+fun <T> runWithCompileLock(callable: suspend CompileScope.() -> T) = runBlockingMaybeCancellable {
+  CompileScopeImpl.compileLock.withPermit {
+    CompileScopeImpl.callable()
   }
 }

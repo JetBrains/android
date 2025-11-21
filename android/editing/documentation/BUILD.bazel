@@ -1,0 +1,93 @@
+### auto-generated section `build intellij.android.core.editing.documentation` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+resourcegroup(
+  name = "documentation_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "documentation",
+  module_name = "intellij.android.core.editing.documentation",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":documentation_resources"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "//libraries/guava",
+    "@lib//:protobuf",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/project-system",
+    "//platform/platform-impl:ide-impl",
+    "//android/render-resources",
+    "//android/rendering",
+    "//platform/lang-impl",
+    "//platform/core-ui",
+    "//java/java-impl:impl",
+    "//xml/xml-psi-api:psi",
+    "//xml/dom-openapi:dom",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//libraries/gson",
+  ]
+)
+
+jvm_library(
+  name = "documentation_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  associates = [":documentation"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "//libraries/guava",
+    "@lib//:protobuf",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/project-system",
+    "//platform/platform-impl:ide-impl",
+    "//android/render-resources",
+    "//android/rendering",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "@lib//:truth",
+    "//android/android:core-tests_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
+    "@lib//:kotlin-test",
+    "//libraries/mockito",
+    "//platform/lang-impl",
+    "//platform/core-ui",
+    "//java/java-impl:impl",
+    "//xml/xml-psi-api:psi",
+    "//xml/dom-openapi:dom",
+    "@lib//:mockito-kotlin",
+    "//java/testFramework",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//libraries/jsoup",
+    "//libraries/gson",
+  ]
+)
+### auto-generated section `build intellij.android.core.editing.documentation` end
+
+### auto-generated section `test intellij.android.core.editing.documentation` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "documentation_test",
+  runtime_deps = [":documentation_test_lib"]
+)
+### auto-generated section `test intellij.android.core.editing.documentation` end

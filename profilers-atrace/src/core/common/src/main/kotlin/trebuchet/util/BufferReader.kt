@@ -131,7 +131,7 @@ class BufferReader : BufferReaderState() {
             get() = endIndexExclusive - index
 
         override fun get(index: Int): Char {
-            return buffer[this@BufferReader.index + index].toChar()
+            return buffer[this@BufferReader.index + index].toInt().toChar()
         }
 
         override fun subSequence(startIndex: Int, endIndex: Int): CharSequence {

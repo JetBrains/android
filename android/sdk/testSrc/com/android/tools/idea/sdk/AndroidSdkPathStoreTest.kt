@@ -21,6 +21,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.application
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import java.nio.file.Paths
 
@@ -40,7 +41,7 @@ internal class AndroidSdkPathStoreTest : LightPlatformTestCase() {
     }
   }
 
-  fun testAndroidSDKPathMigration() {
+  fun testAndroidSDKPathMigration() = runBlocking(Dispatchers.Default) {
     // Set Android SDK path in old non-roamable storage
     PropertiesComponent.getInstance().setValue("android.sdk.path", ANDROID_SDK_PATH.toString())
 
@@ -50,7 +51,7 @@ internal class AndroidSdkPathStoreTest : LightPlatformTestCase() {
     }
   }
 
-  fun testSaveAndroidSdkPathWhenStoreIsEmptyAndMigrationIsNotRequired() {
+  fun testSaveAndroidSdkPathWhenStoreIsEmptyAndMigrationIsNotRequired() = runBlocking(Dispatchers.Default) {
     setMigrationNotRequired()
 
     service<IComponentStore>().createAndroidSdkPathStore { androidSdkPathStore ->
@@ -64,7 +65,7 @@ internal class AndroidSdkPathStoreTest : LightPlatformTestCase() {
     }
   }
 
-  fun testSaveAndroidSdkPathWhenStoreIsNotEmptyAndMigrationIsNotRequired() {
+  fun testSaveAndroidSdkPathWhenStoreIsNotEmptyAndMigrationIsNotRequired() = runBlocking(Dispatchers.Default) {
     setMigrationNotRequired()
 
     service<IComponentStore>().createAndroidSdkPathStore(initialAndroidSdkPathState = ANDROID_SDK_PATH.toString()) { androidSdkPathStore ->
@@ -83,7 +84,7 @@ internal class AndroidSdkPathStoreTest : LightPlatformTestCase() {
     PropertiesComponent.getInstance().setValue("migrate.android.sdk.path.to.roamable.storage", false, true)
   }
 
-  private fun IComponentStore.createAndroidSdkPathStore(
+  private suspend fun IComponentStore.createAndroidSdkPathStore(
     initialAndroidSdkPathState: String? = null,
     action: (AndroidSdkPathStore) -> Unit
   ) {
