@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapHorizon
 import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapLeftVerticalSplitAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapRightVerticalSplitAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapVerticalSplitAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
 import com.android.tools.idea.layoutinspector.runningdevices.actions.VerticalSplitAction
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.RenderingComponents
@@ -191,14 +192,23 @@ data class SelectedTabState(
           DimensionUnitAction,
         )
 
+      val toggleDeepInspectAction =
+        ToggleDeepInspectAction(
+          isSelected = { toolbarState.isDeepInspectEnabled.value },
+          setSelected = { toolbarState.setDeepInspectEnabled(it) },
+          isRendering = { layoutInspector.renderModel.isActive },
+          connectedClientProvider = { layoutInspector.currentClient },
+        )
+
       val rootPanel = BorderLayoutPanel()
+
       val toolbar =
         createToolbarPanel(
           disposable = disposable,
           targetComponent = rootPanel,
           layoutInspector = layoutInspector,
           processPicker = processPicker,
-          extraActions = listOf(gearAction),
+          extraActions = listOf(toggleDeepInspectAction, gearAction),
           toolbarState = toolbarState,
         )
       // We use a wrapper panel as the root so we can pass it as targetComponent to
