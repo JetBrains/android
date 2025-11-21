@@ -33,6 +33,7 @@ import javax.swing.JComponent
 import kotlin.reflect.KMutableProperty1
 import org.jetbrains.annotations.VisibleForTesting
 
+// Colors are defined as hex ARGB so they can be reused as-is for on-device rendering.
 const val RECOMPOSITION_COLOR_RED_ARGB = 0xFFFF0000.toInt()
 const val RECOMPOSITION_COLOR_BLUE_ARGB = 0xFF4F9EE3.toInt()
 const val RECOMPOSITION_COLOR_GREEN_ARGB = 0xFF479345.toInt()

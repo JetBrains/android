@@ -56,6 +56,10 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel.Status
+import java.nio.file.Path
+import java.util.EnumSet
+import java.util.concurrent.TimeUnit
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -63,10 +67,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
-import java.nio.file.Path
-import java.util.EnumSet
-import java.util.concurrent.TimeUnit
-import kotlin.coroutines.cancellation.CancellationException
 
 const val SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY = "system.image.live.unsupported"
 
@@ -529,7 +529,8 @@ fun checkSystemImageForAppInspectionCompatibility(
   val avd = AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvdWithFolder(avdFolder)
 
   return if (SystemImageTags.PLAY_STORE_TAG == avd?.tag) {
-    // We don't support Play Store images on API 29: b/180622424
+    // TODO(b/461825292) remove this check once standalone Layout Inspector V2 is enabled.
+    // We don't support Play Store images on API 29, when using SKIA: b/180622424
     Compatibility.NotCompatible(API_29_PLAY_STORE)
   } else {
     Compatibility.Compatible
