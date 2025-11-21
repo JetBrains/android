@@ -372,15 +372,12 @@ class ActionDispatcher(
               }
             }
             else -> {
-              val timeFilter =
-                state.filters.timeInterval.selected ?: state.filters.timeInterval.items.last()
               appInsightsClient.fetchInsight(
                 connection,
                 action.id,
                 action.variantId,
                 action.issueFatality,
                 action.event,
-                timeFilter,
               )
             }
           }
