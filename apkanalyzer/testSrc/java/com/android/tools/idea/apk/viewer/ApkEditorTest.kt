@@ -22,6 +22,7 @@ import com.android.tools.apk.analyzer.ArchiveNode
 import com.android.tools.apk.analyzer.ArchivePathEntry
 import com.android.tools.apk.analyzer.dex.tree.DexClassNode
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode
+import com.android.tools.idea.apk.viewer.ApkViewPanel.ApkTreeModel
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer
 import com.android.tools.idea.apk.viewer.pagealign.AlignmentWarningViewer
@@ -71,11 +72,23 @@ import org.junit.runners.Parameterized
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import com.intellij.ui.SimpleColoredComponent
+import java.awt.Component
+import java.awt.Container
+import javax.swing.JLabel
+import javax.swing.text.JTextComponent
+import javax.swing.tree.TreePath
 
 
-// Flakiness note: The prior value of 3 seconds was occasionally too low, causing tests to fail.
-// This was observed on Windows.
-private val TIMEOUT = 6.seconds
+// Timeout to use when waiting for isLoaded condition
+// IsLoaded occurs when the APK has been read and the download size is available.
+// At this point app info isn't necessarily available nor have warning nodes been
+// expanded.
+private val IS_LOADED_TIMEOUT = 6.seconds
+// Timeout to use when waiting for isUpdated condition.
+// IsUpdated occurs when tree data has been populated, when app info has been read,
+// and tree nodes with warning messages have been expanded.
+private val IS_UPDATED_TIMEOUT = 6.seconds
 
 /**
  * Tests for [ApkEditor]
@@ -317,6 +330,172 @@ class ApkEditorTest(
     assertThat(apkEditor.proguardMapping).isNotNull()
   }
 
+  // APK .so is:
+  // - compressed and not zip-aligned
+  // - RELRO end is not aligned
+  // expect:
+  // - top level warning message and per-.so RELRO end warning
+  // note:
+  //   Requires building with:
+  //     - NDK 18.1.5063045
+  //     - Linker flags: -fuse-ld=lld -Wl,-z,relro -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=4096
+  //     - C++ code to bloat the RELRO section:
+  //          int target_var = 100;
+  //          int * const relro_block[4096] = { [0 ... 4095] = &target_var };
+  //          int rw_var = 200;
+  @Test
+  fun `check tree pagealign-compressed-RELRO-end-not-aligned APK`() {
+    val editor = apkEditor("/pagealign-compressed-RELRO-end-not-aligned.apk")
+    val dump = editor.dumpAlignmentTree()
+    if (isPageAlignFeatureEnabled) {
+      assertThat(dump).isEqualTo("""
+        Does not support 16 KB devices
+          lib
+            arm64-v8a
+              liba16kbbugbashflamingo.so | RELRO is not a suffix and its end is not 16 KB aligned
+      """.trimIndent())
+      editor.assertAlignmentWarning("/lib/arm64-v8a/liba16kbbugbashflamingo.so", """
+          *All ELF Alignment Problems*
+          - PT_GNU_RELRO start: 0x00024000 [end: 0x0002d000] align: 0x00000001 RELRO is not a suffix and its end is not 16 KB aligned
+        """.trimIndent())
+    } else {
+      assertThat(dump).isEqualTo("")
+      editor.assertAlignmentWarning("/lib/arm64-v8a/liba16kbbugbashflamingo.so", "")
+    }
+  }
+
+  // AAB .so is:
+  // - compressed and not zip-aligned
+  // - RELRO end is not aligned
+  // expect:
+  // - top level warning message and per-.so RELRO end warning
+  // note:
+  //   Requires building with:
+  //     - NDK 18.1.5063045
+  //     - Linker flags: -fuse-ld=lld -Wl,-z,relro -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=4096
+  //     - C++ code to bloat the RELRO section:
+  //          int target_var = 100;
+  //          int * const relro_block[4096] = { [0 ... 4095] = &target_var };
+  //          int rw_var = 200;
+  @Test
+  fun `check tree pagealign-compressed-RELRO-end-not-aligned AAB`() {
+    val editor = apkEditor("/pagealign-compressed-RELRO-end-not-aligned.aab")
+    val dump = editor.dumpAlignmentTree()
+    if (isPageAlignFeatureEnabled) {
+      assertThat(dump).isEqualTo("""
+        Does not support 16 KB devices
+          base
+            lib
+              arm64-v8a
+                liba16kbbugbashflamingo.so | RELRO is not a suffix and its end is not 16 KB aligned
+      """.trimIndent())
+      editor.assertAlignmentWarning("/base/lib/arm64-v8a/liba16kbbugbashflamingo.so", """
+          *All ELF Alignment Problems*
+          - PT_GNU_RELRO start: 0x00024000 [end: 0x0002d000] align: 0x00000001 RELRO is not a suffix and its end is not 16 KB aligned
+        """.trimIndent())
+    } else {
+      assertThat(dump).isEqualTo("")
+      editor.assertAlignmentWarning("/base/lib/arm64-v8a/liba16kbbugbashflamingo.so", "")
+    }
+  }
+
+  // APK .so is:
+  // - compressed and not zip-aligned
+  // - not LOAD aligned
+  // expect:
+  // - top level warning message and per-.so warnings
+  @Test
+  fun `check tree pagealign-compressed-so-not-LOAD-aligned APK`() {
+    val editor = apkEditor("/pagealign-compressed-so-not-LOAD-aligned.apk")
+    val dump = editor.dumpAlignmentTree()
+    if (isPageAlignFeatureEnabled) {
+      assertThat(dump).isEqualTo("""
+        Does not support 16 KB devices
+          lib
+            x86_64
+              libtensorflowlite_jni.so | 4 KB LOAD section alignment, but 16 KB is required
+              liba16kbbash.so | 4 KB LOAD section alignment, but 16 KB is required
+            arm64-v8a
+              libtensorflowlite_jni.so | 4 KB LOAD section alignment, but 16 KB is required
+              liba16kbbash.so | 4 KB LOAD section alignment, but 16 KB is required
+      """.trimIndent())
+      editor.assertAlignmentWarning("/lib/arm64-v8a/libtensorflowlite_jni.so", """
+        *All ELF Alignment Problems*
+        - PT_LOAD start: 0x00000000 end: 0x0039c394 [align: 0x00001000] 4 KB LOAD section alignment, but 16 KB is required
+        - PT_GNU_RELRO start: 0x0039d778 [end: 0x003a6000] align: 0x00000001 RELRO is not a suffix and its end is not 16 KB aligned
+        """.trimIndent())
+      editor.assertAlignmentWarning("/lib/x86_64/liba16kbbash.so", """
+        *All ELF Alignment Problems*
+        - PT_LOAD start: 0x00000000 end: 0x00054380 [align: 0x00001000] 4 KB LOAD section alignment, but 16 KB is required
+        """.trimIndent())
+    } else {
+      assertThat(dump).isEqualTo("")
+      editor.assertAlignmentWarning("/lib/arm64-v8a/libtensorflowlite_jni.so", "")
+      editor.assertAlignmentWarning("/lib/x86_64/liba16kbbash.so", "")
+    }
+  }
+
+  // AAB .so is:
+  // - compressed and not zip-aligned
+  // - not LOAD aligned
+  // expect:
+  // - top level warning message and per-.so warnings
+  @Test
+  fun `check tree pagealign-compressed-so-not-LOAD-aligned AAB`() {
+    val editor = apkEditor("/pagealign-compressed-so-not-LOAD-aligned.aab")
+    val dump = editor.dumpAlignmentTree()
+    if (isPageAlignFeatureEnabled) {
+      assertThat(dump).isEqualTo("""
+        Does not support 16 KB devices
+          base
+            lib
+              x86_64
+                libtensorflowlite_jni.so | 4 KB LOAD section alignment, but 16 KB is required
+                liba16kbbash.so | 4 KB LOAD section alignment, but 16 KB is required
+              arm64-v8a
+                libtensorflowlite_jni.so | 4 KB LOAD section alignment, but 16 KB is required
+                liba16kbbash.so | 4 KB LOAD section alignment, but 16 KB is required
+      """.trimIndent())
+      editor.assertAlignmentWarning("/base/lib/arm64-v8a/libtensorflowlite_jni.so", """
+        *All ELF Alignment Problems*
+        - PT_LOAD start: 0x00000000 end: 0x0039c394 [align: 0x00001000] 4 KB LOAD section alignment, but 16 KB is required
+        - PT_GNU_RELRO start: 0x0039d778 [end: 0x003a6000] align: 0x00000001 RELRO is not a suffix and its end is not 16 KB aligned
+        """.trimIndent())
+      editor.assertAlignmentWarning("/base/lib/x86_64/liba16kbbash.so", """
+        *All ELF Alignment Problems*
+        - PT_LOAD start: 0x00000000 end: 0x00054380 [align: 0x00001000] 4 KB LOAD section alignment, but 16 KB is required
+        """.trimIndent())
+    } else {
+      assertThat(dump).isEqualTo("")
+      editor.assertAlignmentWarning("/base/lib/arm64-v8a/libtensorflowlite_jni.so", "")
+      editor.assertAlignmentWarning("/base/lib/x86_64/liba16kbbash.so", "")
+    }
+  }
+
+  // APK .so is:
+  // - compressed and not zip-aligned
+  // - LOAD aligned
+  // expect:
+  // - no top level warning message
+  @Test
+  fun `check tree pagealign-compressed-so-not-zipaligned APK`() {
+    val editor = apkEditor("/pagealign-compressed-so-not-zipaligned.apk")
+    val dump = editor.dumpAlignmentTree()
+    assertThat(dump).isEqualTo("")
+  }
+
+  // AAB .so is:
+  // - compressed and not zip-aligned
+  // - LOAD aligned
+  // expect:
+  // - no top level warning message
+  @Test
+  fun `check tree pagealign-compressed-so-not-zipaligned AAB`() {
+    val editor = apkEditor("/pagealign-compressed-so-not-zipaligned.aab")
+    val dump = editor.dumpAlignmentTree()
+    assertThat(dump).isEqualTo("")
+  }
+
   private fun apkEditor(path: String, isResource: Boolean = true): ApkEditor {
     val file = if (isResource) TestResources.getFile(path) else File(path)
     val archive = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file) ?: fail("File not found: $path")
@@ -328,7 +507,7 @@ class ApkEditorTest(
       FakeAndroidApplicationInfoProvider(),
       isPageAlignFeatureEnabled)
     Disposer.register(disposableRule.disposable, apkEditor)
-    waitForCondition { apkEditor.isLoaded() }
+    apkEditor.waitForLoaded()
     return apkEditor
   }
 
@@ -337,6 +516,39 @@ class ApkEditorTest(
     // Since we call ApkEditor.getEditor() directly, it doesn't get disposed automatically when ApkEditor is disposed.
     Disposer.register(disposableRule.disposable, editor)
     return editor as? T ?: fail("Expected ${T::class.java.name} but got ${editor::class.java.name}")
+  }
+
+  /**
+   * Assert the content of the [AlignmentWarningViewer].
+   */
+  private fun ApkEditor.assertAlignmentWarning(file: String, expected: String) {
+    val node = getNode(file)
+    if (expected.isEmpty()) {
+      // Make sure it's not a warning viewer
+      getEditor<FileEditorComponent>(node)
+      return
+    }
+    val fe = getEditor<AlignmentWarningViewer>(node)
+    val warning = htmlToMarkdown(fe.warningContent())
+    if (warning != expected) {
+      println(warning)
+      assertThat(warning).isEqualTo(expected)
+    }
+  }
+
+  /**
+   * A simple converter from HTML to Markdown for more readable tests.
+   */
+  private fun htmlToMarkdown(html: String): String {
+    return html
+      .replace("<h3>", "*")
+      .replace("</h3>", "*\n")
+      .replace("<br/>", "\n")
+      .replace("<li>", "- ")
+      .replace("</li>", "\n")
+      .replace("<strong>", "[")
+      .replace("</strong>", "]")
+      .trim()
   }
 
   /**
@@ -377,9 +589,20 @@ class ApkEditorTest(
   }
 }
 
-private fun ApkEditor.isLoaded(): Boolean {
-  val root = getNodesModel().root as? ArchiveTreeNode ?: return false
-  return root.data.downloadFileSize > 0
+private fun ApkEditor.waitForLoaded() {
+  waitForCondition(IS_LOADED_TIMEOUT) {
+    (getNodesModel().root as? ArchiveTreeNode)?.let {
+      it.data.downloadFileSize > 0
+    } ?: false
+  }
+}
+
+private fun ApkEditor.waitForUpdateComplete() {
+  waitForCondition(IS_UPDATED_TIMEOUT) {
+    val tree = getTopPane().findComponent<Tree>("nodeTree")
+    val model = tree.model as ApkTreeModel
+    model.isUpdateComplete
+  }
 }
 
 private fun ApkEditor.getTopPane() = (component as Splitter).firstComponent
@@ -404,6 +627,117 @@ private fun ApkEditor.getNode(path: String): ArchiveTreeNode {
   return nodes.first { it.getFilePath() == path } as ArchiveTreeNode
 }
 
+/**
+ * Dump the content of the tree for rows that have alignment issues reported.
+ */
+private fun ApkEditor.dumpAlignmentTree() = dumpTree("Name", "AlignmentCell") { type, value ->
+  type == "AlignmentCell" && value != ""
+}
+
+/**
+ * Dump the content of the tree by calling the individual renderers.
+ * Dump the columns with renderers matching [columns].
+ * Take only the rows where [predicate] returns true for one of the cells.
+ */
+private fun ApkEditor.dumpTree(
+  vararg columns: String,
+  predicate: (columnName: String, columnValue: String) -> Boolean
+): String {
+  val columns = columns.map { "${it}Renderer" }
+  fun columnPredicate(columnName: String, columnValue: String) =
+    predicate(columnName.substringBefore("Renderer"), columnValue)
+  // Wait for tree node warnings to complete expanding.
+  waitForUpdateComplete()
+  val tree = getTopPane().findComponent<Tree>("nodeTree")
+  val sb = StringBuilder()
+  val renderer = tree.cellRenderer
+
+  data class RowSnapshot(
+    val path: TreePath,
+    val formattedText: String,
+    val depth: Int
+  )
+
+  fun collectRowValues(
+    component: Component,
+    accumulator: MutableList<Pair<String, String>>
+  ) {
+    val renderType = component.javaClass.simpleName
+
+    if (renderType in columns) {
+      val text = when (component) {
+        is JLabel -> component.text
+        is JTextComponent -> component.text
+        is SimpleColoredComponent -> component.toString()
+        else -> null
+      }
+
+      if (!text.isNullOrBlank()) {
+        accumulator.add(renderType to text)
+      }
+    }
+
+    if (component is Container) {
+      for (child in component.components) {
+        collectRowValues(child, accumulator)
+      }
+    }
+  }
+
+  val rows = mutableListOf<RowSnapshot>()
+  val pathsToKeep = HashSet<TreePath>()
+
+  // PASS 1: Extract data, check predicate, and mark ancestors
+  for (i in 0 until tree.rowCount) {
+    val path = tree.getPathForRow(i) ?: continue
+    val value = path.lastPathComponent
+
+    val component = renderer.getTreeCellRendererComponent(
+      tree,
+      value,
+      tree.isRowSelected(i),
+      tree.isExpanded(i),
+      tree.model.isLeaf(value),
+      i,
+      tree.hasFocus() && tree.leadSelectionRow == i
+    )
+
+    val rowValues = mutableListOf<Pair<String, String>>()
+    collectRowValues(component, rowValues)
+
+    // Check if this specific row matches
+    val isMatch = rowValues.any { (type, value) -> columnPredicate(type, value) }
+
+    if (isMatch) {
+      // Mark this path AND all ancestors as "keep"
+      var currentPath: TreePath? = path
+      while (currentPath != null) {
+        pathsToKeep.add(currentPath)
+        currentPath = currentPath.parentPath
+      }
+    }
+
+    rows.add(
+      RowSnapshot(
+        path = path,
+        formattedText = rowValues.joinToString(" | ") { it.second },
+        depth = (path.pathCount - 1).coerceAtLeast(0)
+      )
+    )
+  }
+
+  // PASS 2: Render only the kept paths
+  for (row in rows) {
+    if (pathsToKeep.contains(row.path)) {
+      sb.append("  ".repeat(row.depth))
+      sb.append(row.formattedText)
+      sb.append("\n")
+    }
+  }
+
+  return sb.toString().trimEnd()
+}
+
 private fun DefaultMutableTreeNode.getFilePath(): String {
   return when (userObject) {
     is ArchivePathEntry -> (userObject as ArchivePathEntry).path.pathString
@@ -416,7 +750,7 @@ private inline fun <reified T : JComponent> JComponent.findComponent(name: Strin
          ?: fail("${T::class.simpleName} named $name was not found")
 }
 
-private fun waitForCondition(condition: () -> Boolean) = waitForCondition(TIMEOUT, condition)
+private fun waitForCondition(condition: () -> Boolean) = waitForCondition(IS_LOADED_TIMEOUT, condition)
 
 private fun DexFileViewer.getClassCount(): Int {
   val tree = component.findComponent<Tree>("DexTree")

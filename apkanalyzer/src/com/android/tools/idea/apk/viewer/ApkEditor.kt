@@ -275,14 +275,13 @@ internal class ApkEditor(
     }
 
     if (isPageAlignFeatureEnabled) {
-      val extractNativeLibs = apkViewPanel?.treeModel?.extractNativeLibs
       // Check whether there is an alignment warning and show a warning panel.
       // If there are multiple, then give precedence to other viewers.
-      if (extractNativeLibs != null && nodes.size == 1) {
+      if (nodes.size == 1) {
         val archiveEntry = nodes[0].data
-        val alignment = archiveEntry.getAlignmentFinding(extractNativeLibs)
+        val alignment = archiveEntry.getAlignmentFinding(apkViewPanel?.treeModel?.extractNativeLibs)
         if (alignment.hasWarning) {
-          return AlignmentWarningViewer()
+          return AlignmentWarningViewer(alignment)
         }
       }
     }

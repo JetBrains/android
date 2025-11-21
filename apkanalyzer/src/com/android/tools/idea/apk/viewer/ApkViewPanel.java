@@ -47,6 +47,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
+import com.intellij.openapi.fileTypes.UnknownFileType;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -69,7 +70,6 @@ import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.FlowLayout;
 import java.awt.Insets;
-import java.io.IOException;
 import java.nio.file.ClosedFileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -87,7 +87,9 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.ide.PooledThreadExecutor;
+
 
 public class ApkViewPanel implements TreeSelectionListener {
   private static final Logger LOG = Logger.getInstance(ApkViewPanel.class);
@@ -171,28 +173,25 @@ public class ApkViewPanel implements TreeSelectionListener {
       }
     }, EdtExecutorService.getInstance());
 
-    // kick off computation of the compressed archive, and once its available, refresh the tree
-    Futures.addCallback(apkParser.updateTreeWithDownloadSizes(), new FutureCallBackAdapter<>() {
-      @Override
-      public void onSuccess(ArchiveNode result) {
+
+    // kick off computation of the compressed archive, and once it's available, refresh the tree
+    ListenableFuture<ArchiveNode> treeStructureFuture = Futures.transform(apkParser.updateTreeWithDownloadSizes(), result -> {
+      try {
         if (myArchiveDisposed) {
-          return;
+          return null;
         }
         ArchiveTreeStructure
           .sort(result, (o1, o2) -> Longs.compare(o2.getData().getDownloadFileSize(), o1.getData().getDownloadFileSize()));
-        try {
-          refreshTree();
-          if (isPageAlignFeatureEnabled) {
-            myTree.expandPaths(findPageAlignWarningsPaths(result, myTreeModel.getExtractNativeLibs()));
-          }
-        }
-        catch (Exception e) {
-          // Ignore exceptions if the archive was disposed (b/351919218)
-          if (!myArchiveDisposed) {
-            throw e;
-          }
+
+        refreshTree();
+      }
+      catch (Exception e) {
+        // Ignore exceptions if the archive was disposed (b/351919218)
+        if (!myArchiveDisposed) {
+          throw e; // propagate failure
         }
       }
+      return result;
     }, EdtExecutorService.getInstance());
 
     myContainer.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
@@ -236,13 +235,33 @@ public class ApkViewPanel implements TreeSelectionListener {
     ListenableFuture<Long> uncompressedApkSize = apkParser.getUncompressedApkSize();
     ListenableFuture<Long> compressedFullApkSize = apkParser.getCompressedFullApkSize();
     ListenableFuture<ApkParser.Align16kbCompliance> align16kbCompliance = apkParser.getAlign16kbCompliance();
-    Futures.addCallback(applicationInfo, new FutureCallBackAdapter<>() {
-      @Override
-      public void onSuccess(AndroidApplicationInfo result) {
+    ListenableFuture<AndroidApplicationInfo> appInfoUpdated = Futures.transform(applicationInfo, result -> {
+      try {
         if (myArchiveDisposed) {
-          return;
+          return null;
         }
         setAppInfo(result);
+      }
+      finally {
+        // We used to set flags here, now we will wait for all.
+      }
+      return result;
+    }, EdtExecutorService.getInstance());
+
+
+    Futures.addCallback(Futures.successfulAsList(treeStructureFuture, appInfoUpdated), new FutureCallBackAdapter<>() {
+      @Override
+      public void onSuccess(List<Object> result) {
+        myTreeModel.setUpdateTreeWithDownloadSizesComplete();
+        myTreeModel.setUpdateTreeWithApplicationInfo();
+        expandTreeNodesWhenInformationComplete();
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        myTreeModel.setUpdateTreeWithDownloadSizesComplete();
+        myTreeModel.setUpdateTreeWithApplicationInfo();
+        expandTreeNodesWhenInformationComplete();
       }
     }, EdtExecutorService.getInstance());
 
@@ -267,10 +286,13 @@ public class ApkViewPanel implements TreeSelectionListener {
 
     Futures.FutureCombiner<Object> combiner = Futures.whenAllComplete(uncompressedApkSize, compressedFullApkSize, applicationInfo);
     combiner.call(() -> {
-        String applicationId = applicationInfo.get().packageId;
+
+
+      // Record stats.
+      String applicationId = applicationInfo.get().packageId;
       ApkAnalyzerStats.Builder stats = ApkAnalyzerStats.newBuilder()
-          .setCompressedSize(compressedFullApkSize.get())
-          .setUncompressedSize(uncompressedApkSize.get());
+            .setCompressedSize(compressedFullApkSize.get())
+            .setUncompressedSize(uncompressedApkSize.get());
       if (align16kbCompliance.get() != ApkParser.Align16kbCompliance.NO_ELF_FILES) {
         stats.setAlign16Type(align16kbCompliance.get() == ApkParser.Align16kbCompliance.COMPLIANT
                              ? ALIGN_NATIVE_COMPLIANT_APK_ANALYZED
@@ -286,6 +308,23 @@ public class ApkViewPanel implements TreeSelectionListener {
       .addListener(() -> {
       }, MoreExecutors.directExecutor());
     myContainer.setName("ApkViewPanel");
+  }
+
+  private void expandTreeNodesWhenInformationComplete() {
+    // Exit if required information isn't available yet.
+    if (!myTreeModel.isUpdateTreeWithDownloadSizesComplete() ||
+        !myTreeModel.isUpdateTreeWithApplicationInfoComplete()) return;
+    // Exit if we've already expanded nodes.
+    if (myTreeModel.isUpdateTreeWithWarningExpansionsComplete()) return;
+    try {
+      if (!myIsPageAlignFeatureEnabled) return;
+      Object root = myTreeModel.getRoot();
+      if (root instanceof ArchiveNode) {
+        myTree.expandPaths(findPageAlignWarningsPaths((ArchiveNode)root, myTreeModel.getExtractNativeLibs()));
+      }
+    } finally {
+      myTreeModel.setUpdateTreeWithWarningExpansions();
+    }
   }
 
   private void setToZipMode(@NotNull String fileName) {
@@ -511,7 +550,14 @@ public class ApkViewPanel implements TreeSelectionListener {
 
   public static class ApkTreeModel extends DefaultTreeModel {
     private Boolean myExtractNativeLibs = null;
-    private boolean myExtractNativeLibsSet = false;
+    // Update flags track the completion of the futures that provide the data needed to
+    // render the tree. These flags will be set to true when the corresponding future
+    // completes regardless of whether the future completed with success or failure.
+    private boolean myUpdateTreeWithDownloadSizesComplete = false;
+    private boolean myUpdateTreeWithApplicationInfoComplete = false;
+
+    // This flag tracks if the tree expansion for warnings has been performed.
+    private boolean myUpdateTreeWithWarningExpansionsComplete = false;
 
     public ApkTreeModel(TreeNode root) {
       super(root);
@@ -519,15 +565,44 @@ public class ApkViewPanel implements TreeSelectionListener {
 
     public void setExtractNativeLibs(Boolean extractNativeLibs) {
       myExtractNativeLibs = extractNativeLibs;
-      myExtractNativeLibsSet = true;
     }
 
     public Boolean getExtractNativeLibs() {
-      // If myExtractNativeLibs hasn't been set yet then the APK is still loading and we don't
-      // yet know if it will be true or false.
-      // In this case, return 'true' so that we don't prematurely show page alignment warnings.
-      if (!myExtractNativeLibsSet) return true;
       return myExtractNativeLibs;
+    }
+
+    public void setUpdateTreeWithDownloadSizesComplete() {
+      myUpdateTreeWithDownloadSizesComplete = true;
+    }
+
+    public boolean isUpdateTreeWithDownloadSizesComplete() {
+      return myUpdateTreeWithDownloadSizesComplete;
+    }
+
+    public void setUpdateTreeWithApplicationInfo() {
+      myUpdateTreeWithApplicationInfoComplete = true;
+    }
+
+    public boolean isUpdateTreeWithApplicationInfoComplete() {
+      return myUpdateTreeWithApplicationInfoComplete;
+    }
+
+    public void setUpdateTreeWithWarningExpansions() {
+      myUpdateTreeWithWarningExpansionsComplete = true;
+    }
+
+    public boolean isUpdateTreeWithWarningExpansionsComplete() {
+      return myUpdateTreeWithWarningExpansionsComplete;
+    }
+
+    /**
+     * Return true if the tree has been populated and any warning nodes expanded.
+     */
+    @TestOnly
+    public boolean isUpdateComplete() {
+      return myUpdateTreeWithDownloadSizesComplete
+        && myUpdateTreeWithApplicationInfoComplete
+        && myUpdateTreeWithWarningExpansionsComplete;
     }
   }
 
@@ -590,18 +665,15 @@ public class ApkViewPanel implements TreeSelectionListener {
       String fileName = base == null ? "" : base.toString();
       boolean isDirectory = false;
       try {
-        Files.isDirectory(path);
+        isDirectory = Files.isDirectory(path);
       } catch (ClosedFileSystemException e) {
-        // Can happen when the underlying APK is replaced
-        LOG.warn(e);
+        // When the APK tab is closed, the APK file gets closed in another thread but the
+        // UI still tries to render it (b/402589243).
       }
 
       if (!isDirectory) {
         if (fileName.equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
           return StudioIcons.Shell.Filetree.MANIFEST_FILE;
-        }
-        else if (fileName.endsWith(SdkConstants.DOT_DEX)) {
-          return AllIcons.FileTypes.JavaClass;
         }
         else if (fileName.equals("baseline.prof") || fileName.equals("baseline.profm")) {
           // TODO: Use dedicated icon for this.
@@ -613,6 +685,18 @@ public class ApkViewPanel implements TreeSelectionListener {
         //}
 
         FileType fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(fileName);
+        // Don't override icons for known file types. Just fall back if they are otherwise unknown.
+        if (fileType == UnknownFileType.INSTANCE) {
+          if (fileName.endsWith(SdkConstants.DOT_DEX)) {
+            return AllIcons.FileTypes.JavaClass;
+          } else if (entry.getElfAlignmentProblems() != null) {
+            return AllIcons.FileTypes.BinaryData;
+          }
+          else if (fileName.endsWith(".pb")) {
+            return AllIcons.FileTypes.BinaryData;
+          }
+        }
+        // Use the file type icon if available.
         Icon ftIcon = fileType.getIcon();
         return ftIcon == null ? AllIcons.FileTypes.Any_type : ftIcon;
       }
