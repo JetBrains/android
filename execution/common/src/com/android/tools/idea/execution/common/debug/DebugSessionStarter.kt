@@ -81,7 +81,9 @@ object DebugSessionStarter {
     )
     val session = withContext(uiThread) {
       indicator.text = "Attaching debugger"
-      XDebuggerManager.getInstance(environment.project).startSession(environment, debugProcessStarter) as XDebugSessionImpl
+      XDebuggerManager.getInstance(environment.project).newSessionBuilder(debugProcessStarter)
+        .environment(environment)
+        .startSession().session as XDebugSessionImpl
     }
 
     val debugProcessHandler = session.debugProcess.processHandler
@@ -180,15 +182,17 @@ object DebugSessionStarter {
     LOG.info("Start first session")
 
     withContext(uiThread) {
-      val session = XDebuggerManager.getInstance(environment.project).startSession(environment, debugProcessStarter)
+      val sessionResult = XDebuggerManager.getInstance(environment.project).newSessionBuilder(debugProcessStarter)
+        .environment(environment)
+        .startSession()
 
-      val debugProcessHandler = session.debugProcess.processHandler
+      val debugProcessHandler = sessionResult.session.debugProcess.processHandler
       debugProcessHandler.startNotify()
       reattachingProcessHandler.subscribeOnDebugProcess(debugProcessHandler)
-      session.runContentDescriptor.processHandler = reattachingProcessHandler
+      sessionResult.runContentDescriptor!!.processHandler = reattachingProcessHandler
 
       AndroidSessionInfo.create(debugProcessHandler, listOf(device), applicationContext.applicationId)
-      session as XDebugSessionImpl
+      sessionResult.session as XDebugSessionImpl
     }
   }
 
@@ -210,7 +214,11 @@ object DebugSessionStarter {
     val starter = androidDebugger.getDebugProcessStarterForExistingProcess(project, client, applicationContext, androidDebuggerState)
 
     val session = withContext(uiThread) {
-      XDebuggerManager.getInstance(project).startSessionAndShowTab(sessionName, StudioIcons.Common.ANDROID_HEAD, null, false, starter)
+      XDebuggerManager.getInstance(project).newSessionBuilder(starter)
+        .sessionName(sessionName)
+        .icon(StudioIcons.Common.ANDROID_HEAD)
+        .showTab(true)
+        .startSession().session
     }
     val debugProcessHandler = session.debugProcess.processHandler
     if (applicationContext != null) {

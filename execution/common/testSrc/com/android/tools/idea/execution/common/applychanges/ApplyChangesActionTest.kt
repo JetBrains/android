@@ -89,12 +89,15 @@ class ApplyChangesActionTest  {
     val executionEnvironment = createFakeExecutionEnvironment(project, "fake env")
 
     // Start debug session
-    XDebuggerManager.getInstance(project).startSession(executionEnvironment, object : XDebugProcessStarter() {
+    val starter = object : XDebugProcessStarter() {
       override fun start(session: XDebugSession) = object : XDebugProcess(session) {
         override fun getEditorsProvider() = mock<XDebuggerEditorsProvider>()
         override fun doGetProcessHandler() = debugProcessHandler
       }
-    })
+    }
+    XDebuggerManager.getInstance(project).newSessionBuilder(starter)
+      .environment(executionEnvironment)
+      .startSession().session
 
     // Update
     val action = ApplyChangesAction()
