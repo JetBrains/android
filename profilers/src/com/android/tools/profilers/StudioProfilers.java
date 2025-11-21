@@ -805,21 +805,32 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       setAutoProfilingEnabled(false);
     }
 
+    boolean isTaskBasedUXEnabled = getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
+
+    // Update the process state to latest but continue in the same session
+    // if it is just an exposure level change due to JVMTI agent attach
+    if (isTaskBasedUXEnabled && isAgentAttachUpdate(myProcess, process)) {
+      updateProcessState(process);
+      return;
+    }
+
     // If the process changes OR the process was set in via a non-startup task initiation in the Task-Based UX, we end the current session
     // and begin a new one. In regard to startup tasks, a change in process to end the current session and begin a new one.
-    if (!Objects.equals(process, myProcess) || (!isStartupTask && getIdeServices().getFeatureConfig().isTaskBasedUxEnabled())) {
+    if (!Objects.equals(process, myProcess) || (!isStartupTask && isTaskBasedUXEnabled)) {
       // First make sure to end the previous session.
       mySessionsManager.endCurrentSession();
-
-      myProcess = process;
-      changed(ProfilerAspect.PROCESSES);
-      myIdeServices.getFeatureTracker().trackChangeProcess(myProcess);
-
+      updateProcessState(process);
       // Only start a new session if the process is valid.
       if (myProcess != null && myProcess.getState() == Common.Process.State.ALIVE) {
         mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess, taskType, isStartupTask);
       }
     }
+  }
+
+  private void updateProcessState(@NotNull  Common.Process process) {
+    myProcess = process;
+    changed(ProfilerAspect.PROCESSES);
+    myIdeServices.getFeatureTracker().trackChangeProcess(myProcess);
   }
 
   /**
@@ -1013,6 +1024,27 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       agentData = group.getEvents(group.getEventsCount() - 1).getAgentData();
     }
     return agentData;
+  }
+
+  /**
+   * Determines if the {@code newProcess} is effectively the same instance as {@code currentProcess},
+   * explicitly handling the metadata update that occurs when the Profiler Agent attaches.
+   * <p>
+   * When the Java Virtual Machine Tool Interface (JVMTI) agent attaches, `perfd` sends a process update that
+   * changes exposure from PROFILEABLE to DEBUGGABLE.
+   * <p>
+   * This does not indicate a process restart, and we would want to continue
+   * in the same session to prevent loss of startup artifacts.
+   */
+  private static boolean isAgentAttachUpdate(@Nullable Common.Process currentProcess, @Nullable Common.Process newProcess) {
+    return currentProcess != null &&
+           newProcess != null &&
+           currentProcess.getPid() == newProcess.getPid() &&
+           currentProcess.getDeviceId() == newProcess.getDeviceId() &&
+           StringUtil.equals(currentProcess.getName(), newProcess.getName()) &&
+           currentProcess.getState() == newProcess.getState() &&
+           currentProcess.getExposureLevel() == Common.Process.ExposureLevel.PROFILEABLE &&
+           newProcess.getExposureLevel() == Common.Process.ExposureLevel.DEBUGGABLE;
   }
 
   /**
