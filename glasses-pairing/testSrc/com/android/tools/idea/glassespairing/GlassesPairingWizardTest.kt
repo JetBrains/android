@@ -31,10 +31,16 @@ import com.android.sdklib.deviceprovisioner.EmptyIcon
 import com.android.sdklib.deviceprovisioner.testing.FakeDeviceProvisionerPlugin
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.UsageTrackerWriter
 import com.android.tools.idea.glassespairing.LaunchState.*
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.play.playlog.proto.ClientAnalytics
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.GlassesPairingEvent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
@@ -62,6 +68,8 @@ class GlassesPairingWizardTest {
   @Test
   fun testGlassesPairingWizard() {
     val coroutineScope = CoroutineScope(UnconfinedTestDispatcher())
+    val tracker = TestTracker()
+    UsageTracker.setWriterForTest(tracker)
 
     try {
       val phone =
@@ -109,7 +117,14 @@ class GlassesPairingWizardTest {
 
       composeTestRule.onNodeWithText("Select a device", substring = true).assertIsDisplayed()
       composeTestRule.onNodeWithText("Google Pixel 9").performClick()
+
+      // Verify selection event
+      assertThat(tracker.events).contains(GlassesPairingEvent.EventKind.PAIRING_DEVICE_SELECTED)
+
       composeTestRule.onNodeWithText("Next").performClick()
+
+      // Verify initiated event
+      assertThat(tracker.events).contains(GlassesPairingEvent.EventKind.PAIRING_INITIATED)
 
       pairingFlow.value = PairingState.Launching("Pixel 9", Booting, "AI Glasses", Booting)
 
@@ -126,6 +141,9 @@ class GlassesPairingWizardTest {
       composeTestRule.waitForIdle()
       composeTestRule.onNodeWithText("Pairing complete.").assertIsDisplayed()
 
+      // Verify success event
+      assertThat(tracker.events).contains(GlassesPairingEvent.EventKind.SHOW_SUCCESSFUL_PAIRING)
+
       composeTestRule.onNodeWithText("Previous").assertIsNotEnabled()
       composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
       composeTestRule.onNodeWithText("Cancel").assertIsNotEnabled()
@@ -134,6 +152,7 @@ class GlassesPairingWizardTest {
       wizard.awaitClose()
     } finally {
       coroutineScope.cancel()
+      UsageTracker.cleanAfterTesting()
     }
   }
 
@@ -183,6 +202,22 @@ class GlassesPairingWizardTest {
 
     assertThat(duration).isLessThan(9.seconds)
   }
+}
+
+private class TestTracker : UsageTrackerWriter<AndroidStudioEvent.Builder>() {
+  val events = CopyOnWriteArrayList<GlassesPairingEvent.EventKind>()
+
+  override fun logDetails(logEvent: ClientAnalytics.LogEvent.Builder) {}
+
+  override fun processMessage(eventTimeMs: Long, studioEvent: AndroidStudioEvent.Builder) {
+    if (studioEvent.kind == AndroidStudioEvent.EventKind.GLASSES_PAIRING_EVENT) {
+      events.add(studioEvent.glassesPairingEvent.kind)
+    }
+  }
+
+  override fun close() {}
+
+  override fun flush() {}
 }
 
 private class TestDeviceHandle(
