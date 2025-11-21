@@ -64,7 +64,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.File
 import java.nio.file.Path
-import org.junit.Ignore
 
 @RunWith(JUnit4::class)
 class OpenProjectIntegrationTest {
