@@ -152,7 +152,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
 
   private final Runnable onSchemaChange = () -> {
     SceneManager manager = Iterables.getFirst(getSceneManagers(), null);
-    if (manager != null) manager.requestRender();
+    if (manager != null && !isDisposed()) manager.requestRender();
   };
 
   @TestOnly
