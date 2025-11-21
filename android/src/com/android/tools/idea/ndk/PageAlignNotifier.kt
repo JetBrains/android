@@ -57,10 +57,10 @@ abstract class PageAlignNotifier(
         event.buildCharacteristics = buildCharacteristics
       }
       logUsage(AndroidStudioEvent.newBuilder()
-                         .setKind(AndroidStudioEvent.EventKind.ALIGN16KB_EVENT)
-                         .setProjectId(AnonymizerUtil.anonymizeUtf8(apkInfo.applicationId))
-                         .setRawProjectId(apkInfo.applicationId)
-                         .setAlign16KbEvent(event))
+                 .setKind(AndroidStudioEvent.EventKind.ALIGN16KB_EVENT)
+                 .setProjectId(AnonymizerUtil.anonymizeUtf8(apkInfo.applicationId))
+                 .setRawProjectId(apkInfo.applicationId)
+                 .setAlign16KbEvent(event))
     }
     // Determine whether this is an ARM64 device or emulator.
     val deviceIsArm64 = productCpuAbiList.contains(SdkConstants.ABI_ARM64_V8A)
