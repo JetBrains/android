@@ -30,6 +30,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
 import com.android.tools.idea.layoutinspector.runningdevices.ui.STATE_READ_SPLITTER_NAME
 import com.android.tools.idea.layoutinspector.runningdevices.ui.ToolbarState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.createLayoutInspectorPanel
+import com.android.tools.idea.layoutinspector.runningdevices.ui.createToolbarPanel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.EmbeddedRendererModel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.StandaloneRendererPanel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.navigateToSelectedViewFromRendererDoubleClick
@@ -56,8 +57,10 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.EditorNotificationPanel
+import com.intellij.ui.JBColor
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.JPanel
@@ -205,16 +208,36 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         setZoomPercent = { layoutInspector.renderSettings.scalePercent = it },
       )
 
+    // The main panel is passed as target component to createToolbarPanel. This is needed to make
+    // sure that all actions in the toolbar can resolve Layout Inspector from the data context
+    // provided by LayoutInspectorRootPanel.
+    val mainPanel = BorderLayoutPanel()
+
     val toolbarState = ToolbarState(showTitle = false, leftAlightToolbar = true)
+    val toolbar =
+      createToolbarPanel(
+        disposable = disposable,
+        targetComponent = mainPanel,
+        layoutInspector = layoutInspector,
+        processPicker = processPicker?.dropDownAction,
+        extraActions = emptyList(),
+        toolbarState = toolbarState,
+      )
+    toolbar.border = JBUI.Borders.customLineBottom(JBColor.border())
+
+    mainPanel.apply {
+      addToTop(toolbar)
+      addToCenter(container)
+    }
+
     val rootPanel =
       createLayoutInspectorPanel(
         project = project,
         disposable = disposable,
         layoutInspector = layoutInspector,
         uiConfig = UiConfig.VERTICAL,
-        centerPanel = container,
-        processPicker = processPicker?.dropDownAction,
-        toolbarState = toolbarState,
+        centerPanel = mainPanel,
+        toolbarPanel = null,
       )
 
     scope.launch {
