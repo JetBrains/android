@@ -40,6 +40,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CoroutineExceptionHandler
 
 /**
  * Handles LeakCanary logcat tracking commands, capturing and processing LeakCanary logs from a connected Android device.
@@ -53,12 +54,11 @@ class LeakCanaryLogcatCommandHandler(
   private var logCollectionJob: Job? = null
   private var pid = 0
   private var sessionId = 0L
-  private val logcatService: LogcatService = LogcatService.getInstance(ProjectManager.getInstance().defaultProject)
   private val bytesRetainedText = "bytes retained by leaking objects"
   private val logger: Logger = Logger.getInstance(LeakCanaryLogcatCommandHandler::class.java)
   private var startTimeNs: Long = 0
   private val TWO_SECONDS = TimeUnit.SECONDS.toSeconds(2)
-  private var isEnded = false
+  private var isEnded = true
 
   private var prevLogTimeStampOfPartialTrace = 0L
   private var inLastFrameOfPartialTrace = false
@@ -77,6 +77,18 @@ class LeakCanaryLogcatCommandHandler(
            command.type == Commands.Command.CommandType.STOP_LOGCAT_TRACKING
   }
 
+  private fun resetTrackingState(){
+    isEnded = true
+    logCollectionJob?.cancel()
+    logCollectionJob = null
+    prevLogTimeStampOfPartialTrace = 0L
+    inLastFrameOfPartialTrace = false
+    capturedLogsForPartialTrace = StringBuilder()
+    inMetaSectionOfCompleteTrace = false
+    isCapturingCompleteTrace = false
+    capturedLogsForCompleteTrace = StringBuilder()
+  }
+
   /**
    * Starts listening and detecting LeakCanary logs from Logcat and sends a started status info event.
    */
@@ -84,6 +96,7 @@ class LeakCanaryLogcatCommandHandler(
     startTimeNs = getCurrentTimestampInNs()
     pid = command.pid
     sessionId = command.sessionId
+    resetTrackingState()
     readLeakLog()
     sendLeakCanaryLogcatInfoEvent(timestampNs = startTimeNs, isStarted = true)
   }
@@ -94,8 +107,7 @@ class LeakCanaryLogcatCommandHandler(
    */
   private fun stopTrace(command: Commands.Command) {
     val endTime = getCurrentTimestampInNs()
-    isEnded = true
-    logCollectionJob?.cancel()
+    resetTrackingState()
     sendLeakCanaryLogcatInfoEvent(timestampNs = endTime, isStarted = false, stopStatus = SUCCESS)
     addSessionEndedEvent(eventQueue, endTime, pid, command.sessionId)
   }
@@ -174,15 +186,18 @@ class LeakCanaryLogcatCommandHandler(
    * Identifies and reads leakCanary logs from logcat and sends them to the event queue.
    */
   private fun readLeakLog() {
-    logCollectionJob = CoroutineScope(Dispatchers.Default + Job()).launch {
+    isEnded = false
+    val handler = CoroutineExceptionHandler { _, error ->
+      logger.info("Coroutine exception", error)
+    }
+    logCollectionJob = CoroutineScope(Dispatchers.Default + Job() + handler).launch {
+      logger.info("Coroutine Started")
       try {
-        logcatService.readLogcat(
+        LogcatService.getInstance(ProjectManager.getInstance().defaultProject).readLogcat(
           serialNumber = device.serialNumber,
           sdk = device.version.androidApiLevel,
           maxHistoryEntries = 0,
         ).collect { logcatMessages ->
-          if (logCollectionJob?.isCancelled == true) return@collect
-
           logcatMessages.forEach { logcatMessage ->
             detectAndHandleObjectRetainedAndAnalysis(logcatMessage)
             detectAndHandlePartialLeakTraces(logcatMessage)
@@ -196,8 +211,7 @@ class LeakCanaryLogcatCommandHandler(
         if (!isEnded) {
           // Send a failed status and end session when there is error reading logcat.
           logger.error("Error reading logcat: ${e.message}", e)
-          isEnded = true
-          logCollectionJob?.cancel()
+          resetTrackingState()
           val currentTimeNs = getCurrentTimestampInNs()
           sendLeakCanaryLogcatInfoEvent(timestampNs = currentTimeNs, isStarted = false, stopStatus = FAILURE)
           addSessionEndedEvent(eventQueue, currentTimeNs, pid, sessionId)

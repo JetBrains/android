@@ -218,7 +218,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
       return myLeakCanaryParser.parseLogcatMessage(logcatMessage)
     }
     catch (e: Exception) {
-      logger.warn("Leak canary serializer detected issue while parsing .. skipping leak event ")
+      logger.warn("LeakCanary serializer detected issue while parsing .. skipping leak event", e)
       return null
     }
   }
