@@ -24,7 +24,6 @@ import com.android.tools.idea.insights.MINIMUM_PERCENTAGE_TO_SHOW
 import com.android.tools.idea.insights.MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
-import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppInsightsCache
@@ -220,7 +219,6 @@ class VitalsClient(
     variantId: String?,
     failureType: FailureType,
     event: Event,
-    timeInterval: TimeIntervalFilter,
   ): LoadingState.Done<AiInsight> {
     when {
       failureType != FailureType.FATAL ->
