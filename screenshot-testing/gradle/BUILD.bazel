@@ -43,6 +43,7 @@ jvm_library(
     "//platform/smRunner",
     "//platform/core-impl",
     "//libraries/protobuf",
+    "//platform/core-ui",
   ]
 )
 ### auto-generated section `build intellij.android.screenshot-test.gradle` end
