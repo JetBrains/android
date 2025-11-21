@@ -416,7 +416,10 @@ public class NavigationSchema implements Disposable {
     synchronized (ourListenerLock) {
       listeners = new ArrayList<>(ourListeners.get(module));
     }
-    listeners.forEach(Runnable::run);
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      if (module.isDisposed()) return;
+      listeners.forEach(Runnable::run);
+    });
   }
 
   /**
@@ -845,6 +848,8 @@ public class NavigationSchema implements Disposable {
   /**
    * Add a listener that will be run on a worker thread when schema rebuild is complete.
    * The listener will also automatically be propagated to the new NavigationSchema object.
+   *
+   * The listener will be called in a background thread after the schema has changed.
    */
   public static void addSchemaRebuildListener(@NotNull Disposable parentDisposable, @NotNull Module module, @NotNull Runnable listener) {
     if (Disposer.tryRegister(parentDisposable, () -> removeSchemaRebuildListener(module, listener))) {
