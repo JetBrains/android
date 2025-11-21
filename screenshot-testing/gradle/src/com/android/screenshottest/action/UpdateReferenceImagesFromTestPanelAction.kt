@@ -19,14 +19,19 @@ import com.android.screenshottest.ui.PreviewDetails
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.screenshottest.ui.UpdateReferenceImagesDialog
 import com.android.screenshottest.util.UpdateReferenceImagesActionUtils
+import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
+import javax.swing.JButton
+import javax.swing.JComponent
 
 class UpdateReferenceImagesFromTestPanelAction : AnAction(UpdateReferenceImagesActionUtils.UPDATE_ACTION_TEXT,
                                                           "Updates the reference images for screenshot tests from test panel.",
-                                                          AllIcons.FileTypes.Image) {
+                                                          null), CustomComponentAction {
 
   var testResults: AndroidTestResults? = null
 
@@ -67,5 +72,33 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UpdateReferenceImagesA
 
     dialog.onTestSuiteFinished()
     dialog.show()
+  }
+
+  override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
+    return JButton(presentation.text).apply {
+      isFocusable = true
+      toolTipText = presentation.description
+      addActionListener {
+        val dataContext = DataManager.getInstance().getDataContext(this)
+        val event = AnActionEvent.createEvent(
+          this@UpdateReferenceImagesFromTestPanelAction,
+          dataContext,
+          presentation,
+          place,
+          ActionUiKind.TOOLBAR,
+          null
+        )
+        actionPerformed(event)
+      }
+    }
+  }
+
+  override fun updateCustomComponent(component: JComponent, presentation: Presentation) {
+    if (component is JButton) {
+      component.text = presentation.text
+      component.isEnabled = presentation.isEnabled
+      component.isVisible = presentation.isVisible
+      component.toolTipText = presentation.description
+    }
   }
 }
