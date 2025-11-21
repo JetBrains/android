@@ -40,6 +40,7 @@ jvm_library(
     "//android/artwork-compose",
     "@lib//:studio-platform-provided",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+    "//libraries/protobuf",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
@@ -81,6 +82,7 @@ jvm_library(
     "//libraries/mockito",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     "//libraries/kotlinx/coroutines/test",
+    "//libraries/protobuf",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
