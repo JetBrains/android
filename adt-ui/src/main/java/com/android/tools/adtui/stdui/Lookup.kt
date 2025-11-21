@@ -305,7 +305,7 @@ class Matcher {
   }
 
   fun matchingFragments(element: String): List<TextRange>? {
-    return internalMatcher?.matchingFragments(element)
+    return internalMatcher?.match(element)
   }
 }
 
