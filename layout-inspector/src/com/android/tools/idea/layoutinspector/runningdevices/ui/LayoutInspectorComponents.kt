@@ -83,9 +83,8 @@ class ToolbarState(val showTitle: Boolean = true, val leftAlightToolbar: Boolean
  * @param uiConfig defines the configuration of the panel - where to place the main and side panels.
  * @param centerPanel optional center panel rendered in the workbench. When null the workbench only
  *   has the side panels.
- * @param processPicker optional process/device picker.
- * @param extraToolbarActions list of extra actions to add to the toolbar.
- * @param toolbarState contains the state of some toolbar actions.
+ * @param toolbarPanel optional panel contain the toolbar. Can be null if callers prefer to place
+ *   the toolbar outside the [LayoutInspectorRootPanel].
  */
 fun createLayoutInspectorPanel(
   project: Project,
@@ -93,21 +92,9 @@ fun createLayoutInspectorPanel(
   layoutInspector: LayoutInspector,
   uiConfig: UiConfig,
   centerPanel: JComponent?,
-  processPicker: AnAction?,
-  extraToolbarActions: List<AnAction> = emptyList(),
-  toolbarState: ToolbarState = ToolbarState(),
+  toolbarPanel: JPanel?,
 ): LayoutInspectorRootPanel {
   val inspectorPanel = BorderLayoutPanel()
-
-  val toolbarPanel =
-    createToolbarPanel(
-      disposable = disposable,
-      layoutInspector = layoutInspector,
-      targetComponent = inspectorPanel,
-      processPicker = processPicker,
-      extraActions = extraToolbarActions,
-      toolbarState = toolbarState,
-    )
 
   val mainPanel =
     when (uiConfig) {
@@ -171,12 +158,11 @@ private fun createToolsPanel(
   layoutInspector: LayoutInspector,
   uiConfig: UiConfig,
   centerPanel: JComponent?,
-  toolbarPanel: JPanel,
+  toolbarPanel: JPanel?,
 ): JPanel {
   val workBench =
     createLayoutInspectorWorkbench(project, disposable, layoutInspector, uiConfig, centerPanel)
   workBench.isFocusCycleRoot = false
-  workBench.component.border = JBUI.Borders.customLineTop(JBColor.border())
 
   // Split panel used for inspection of State Reads in Compose.
   val splitPanel =
@@ -188,7 +174,10 @@ private fun createToolsPanel(
     }
 
   return BorderLayoutPanel().apply {
-    add(toolbarPanel, BorderLayout.NORTH)
+    if (toolbarPanel != null) {
+      add(toolbarPanel, BorderLayout.NORTH)
+      toolbarPanel.border = JBUI.Borders.customLineBottom(JBColor.border())
+    }
     add(splitPanel, BorderLayout.CENTER)
   }
 }
@@ -202,7 +191,7 @@ private fun createToolsPanel(
  * @param extraActions list of extra actions to add to the toolbar.
  * @param toolbarState contains the state of some toolbar actions.
  */
-private fun createToolbarPanel(
+fun createToolbarPanel(
   disposable: Disposable,
   layoutInspector: LayoutInspector,
   targetComponent: JComponent,

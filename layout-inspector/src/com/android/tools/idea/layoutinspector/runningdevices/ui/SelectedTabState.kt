@@ -43,6 +43,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -190,15 +191,28 @@ data class SelectedTabState(
           DimensionUnitAction,
         )
 
+      val rootPanel = BorderLayoutPanel()
+      val toolbar =
+        createToolbarPanel(
+          disposable = disposable,
+          targetComponent = rootPanel,
+          layoutInspector = layoutInspector,
+          processPicker = processPicker,
+          extraActions = listOf(gearAction),
+          toolbarState = toolbarState,
+        )
+      // We use a wrapper panel as the root so we can pass it as targetComponent to
+      // createToolbarPanel. This is needed to make sure that all actions in the toolbar can resolve
+      // Layout Inspector from the data context provided by LayoutInspectorRootPanel.
+      rootPanel.addToCenter(toolbar)
+
       createLayoutInspectorPanel(
         project = project,
         disposable = disposable,
         layoutInspector = layoutInspector,
         uiConfig = uiConfig,
         centerPanel = component,
-        processPicker = processPicker,
-        extraToolbarActions = listOf(gearAction),
-        toolbarState = toolbarState,
+        toolbarPanel = rootPanel,
       )
     }
   }
