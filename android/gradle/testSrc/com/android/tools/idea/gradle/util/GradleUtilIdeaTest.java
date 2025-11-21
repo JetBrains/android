@@ -20,12 +20,8 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 
 import com.android.tools.idea.gradle.model.impl.FileImpl;
-import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity;
-import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntityKt;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntityModifications;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -90,9 +86,12 @@ public class GradleUtilIdeaTest extends HeavyPlatformTestCase {
         ModuleEntity entity = it.resolve(new ModuleId(myModule.getName()));
         Objects.requireNonNull(entity);
         ModuleEntityModifications.modifyModuleEntity(it, entity, builder -> {
-          GradleModuleModelEntityModifications.setGradleModuleModel(builder,
-                                                                    GradleModuleModelEntityModifications.createGradleModuleModelEntity(
-                                                                      gradleModuleModel, entity.getEntitySource()));
+          GradleModuleModelEntityModifications.setGradleModuleModel(
+            builder,
+            GradleModuleModelEntityModifications.createGradleModuleModelEntity(
+              gradleModuleModel, entity.getEntitySource()
+            )
+          );
           return Unit.INSTANCE;
         });
         return Unit.INSTANCE;
