@@ -56,5 +56,6 @@
     <orderEntry type="module" module-name="intellij.platform.externalSystem" scope="TEST" />
     <orderEntry type="module" module-name="intellij.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testartifacts" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
   </component>
 </module>

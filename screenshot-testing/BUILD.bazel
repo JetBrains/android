@@ -218,6 +218,8 @@ jvm_library(
         "//plugins/gradle:gradle_test_lib",
         "//android/testartifacts",
         "//android/testartifacts:testartifacts_test_lib",
+        "//libraries/mockito",
+        "//libraries/mockito:mockito_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.screenshot-test.tests` end
