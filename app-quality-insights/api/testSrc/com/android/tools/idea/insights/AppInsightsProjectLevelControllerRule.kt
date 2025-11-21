@@ -422,7 +422,6 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
     variantId: String?,
     failureType: FailureType,
     event: Event,
-    timeInterval: TimeIntervalFilter,
   ): LoadingState.Done<AiInsight> = fetchInsightCall.initiateCall()
 
   suspend fun completeFetchInsightCallWith(value: LoadingState.Done<AiInsight>) =

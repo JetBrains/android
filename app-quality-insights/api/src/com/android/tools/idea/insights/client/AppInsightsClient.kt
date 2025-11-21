@@ -22,7 +22,6 @@ import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
-import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.model.connection.AppConnection
 import com.android.tools.idea.insights.model.connection.Connection
@@ -87,6 +86,5 @@ interface AppInsightsClient {
     variantId: String?,
     failureType: FailureType,
     event: Event,
-    timeInterval: TimeIntervalFilter,
   ): LoadingState.Done<AiInsight>
 }
