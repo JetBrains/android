@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,64 +15,137 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.debugger
 
-import com.android.ddmlib.Client
-import com.intellij.debugger.engine.DebugProcessImpl
+import com.android.adblib.ConnectedDevice
+import com.android.adblib.serialNumber
+import com.android.adblib.tools.debugging.JdwpProcess
+import com.android.adblib.tools.debugging.getOrNull
+import com.android.adblib.tools.debugging.jdwpProcessTracker
+import com.android.adblib.tools.debugging.jdwpProxySocketServer
+import com.android.adblib.utils.createChildScope
+import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.intellij.debugger.engine.JavaDebugProcess
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
-fun isPausedInDebugger(client: Client): Boolean =
-  runInAttachedDebugger(client) { debugSession -> debugSession.isPaused }
+val DEBUGGER_CHECK_DELAY = 200.milliseconds
 
-fun resumeDebugger(client: Client) =
-  runInAttachedDebugger(client) { debugSession ->
-    val paused = debugSession.isPaused
-    if (paused) {
-      debugSession.resume()
-    }
-    // Do not stop after resuming a debugger since the app may be paused in 2 debuggers: native &
-    // Java
-    false
-  }
+/** Detect if a debugger is attached to the [client] process during LI start up. */
+class DebuggerDetection(private val client: AbstractInspectorClient, parentScope: CoroutineScope) {
+  private val project = client.project
+  private val process = client.process
+  private val deviceProvisioner =
+    project.getService(DeviceProvisionerService::class.java).deviceProvisioner
+  private val debuggerManager = XDebuggerManager.getInstance(project)
+  private val scope = parentScope.createChildScope()
+  private var debuggingPort = 0
 
-/**
- * Run the [operation] on the [XDebugSession]s that are attached to the current [client]. If the app
- * on the client has both JVM and native code, there may be a [XDebugSession] for each i.e. a total
- * of 2 sessions. The run will stop first time [operation] returns true in which case this function
- * returns true.
- */
-private fun runInAttachedDebugger(client: Client, operation: (XDebugSession) -> Boolean): Boolean {
-  return client.isDebuggerAttached &&
-    ProjectManager.getInstance().openProjects.any { anyProject ->
-      // This will find both native and Java debugger sessions:
-      XDebuggerManager.getInstance(anyProject).debugSessions.any {
-        it.debugProcess.isDebuggingClient(client) && operation(it)
+  data class DebuggerState(val attached: Boolean = false, val isPaused: Boolean = false)
+
+  private val _state = MutableStateFlow<DebuggerState>(DebuggerState())
+  val state: StateFlow<DebuggerState> = _state.asStateFlow()
+
+  init {
+    scope.launch { debuggingPort().collect { port -> debuggingPort = port } }
+    scope.launch {
+      while (isActive) {
+        val sessions = findDebugSessions(debuggingPort)
+        _state.emit(DebuggerState(sessions.isNotEmpty(), sessions.any { it.isPaused }))
+        delay(DEBUGGER_CHECK_DELAY)
       }
     }
-}
-
-/** Return true if this [XDebugProcess] is attached to this [client]. */
-private fun XDebugProcess.isDebuggingClient(client: Client): Boolean {
-  if (this is JavaDebugProcess) {
-    return debuggerSession.process.isDebuggingClient(client)
   }
 
-  // TODO(b/264545884): Remove these reflection calls when we have the ability to detect if a client
-  // is attached to a XDebugProcess.
-  var processClass: Class<*>? = javaClass
-  while (processClass != null && processClass.name != Object::class.java.name) {
-    try {
-      val method = processClass.getDeclaredMethod("getClient")
-      val attachedClient = method.invoke(this) as? Client
-      return attachedClient?.clientData?.pid == client.clientData.pid
-    } catch (ignore: Exception) {}
-    processClass = processClass.superclass
+  /** After a successful start of the LayoutInspector, stop debugger detection. */
+  fun attachCompleted() {
+    scope.cancel()
   }
-  return false
-}
 
-/** Return true if this [DebugProcessImpl] is attached to this [client]. */
-private fun DebugProcessImpl.isDebuggingClient(client: Client): Boolean =
-  connection.debuggerAddress.trim() == client.debuggerListenPort.toString()
+  /** Resume the current paused debugger. */
+  fun resumeDebugger() {
+    findDebugSessions(debuggingPort).filter { it.isPaused }.forEach { it.resume() }
+  }
+
+  /** Provide the ConnectedDevice of the current process */
+  private fun connectedDevice(): Flow<ConnectedDevice?> = flow {
+    deviceProvisioner.devices.collect { handles ->
+      emit(
+        handles
+          .mapNotNull { it.state.connectedDevice }
+          .firstOrNull { it.serialNumber == process.device.serial }
+      )
+    }
+  }
+
+  /** Provide the JdwpProcess of the current process */
+  private fun jdwpProcess(): Flow<JdwpProcess?> = flow {
+    connectedDevice().collect { device ->
+      device?.jdwpProcessTracker?.processesFlow?.collect { list ->
+        emit(list.find { it.pid == process.pid })
+      }
+    }
+  }
+
+  /** Provide the debugging port of the current process or 0. */
+  private fun debuggingPort(): Flow<Int> = flow {
+    jdwpProcess().collect { process ->
+      if (process == null) {
+        emit(0)
+      } else {
+        process.jdwpProxySocketServer.proxyStatusFlow.collect {
+          emit(it.socketAddress.getOrNull()?.port ?: 0)
+        }
+      }
+    }
+  }
+
+  /**
+   * Return the debug sessions on the specified debugging port. Both Java and Hybrid debug sessions
+   * are returned.
+   */
+  private fun findDebugSessions(debuggingPort: Int): List<XDebugSession> {
+    return debuggerManager.debugSessions.filter { session ->
+      val javaProcess = session.debugProcess.javaProcess
+      val port = javaProcess?.debuggerSession?.process?.connection?.debuggerAddress?.toIntOrNull()
+      port == debuggingPort
+    }
+  }
+
+  /**
+   * The XDebugProcess can be a JavaDebugProcess or a hybrid process with an associated Java
+   * session. Return the JavaDebugProcess of either.
+   */
+  private val XDebugProcess.javaProcess: JavaDebugProcess?
+    get() {
+      (this as? JavaDebugProcess)?.let {
+        return it
+      }
+      return hybridJavaSession?.debugProcess as? JavaDebugProcess
+    }
+
+  /**
+   * Return the JavaDebugProcess if present. The Layout Inspector can only attach to JVM processes.
+   * As such we are only interested in JavaDebugProcess or a hybrid process that is associated with
+   * a JavaDebugProcess.
+   */
+  private val XDebugProcess.hybridJavaSession: XDebugSession?
+    get() =
+      try {
+        val method = javaClass.getMethod("getJavaSession").apply { isAccessible = true }
+        method.invoke(this) as? XDebugSession
+      } catch (_: Throwable) {
+        null
+      }
+}

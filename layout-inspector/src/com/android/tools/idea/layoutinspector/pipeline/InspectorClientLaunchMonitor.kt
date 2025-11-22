@@ -16,16 +16,12 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.ddmlib.Client
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
-import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
-import com.android.tools.idea.layoutinspector.pipeline.adb.findClient
-import com.android.tools.idea.layoutinspector.pipeline.debugger.isPausedInDebugger
-import com.android.tools.idea.layoutinspector.pipeline.debugger.resumeDebugger
+import com.android.tools.idea.layoutinspector.pipeline.debugger.DebuggerDetection
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
@@ -35,18 +31,17 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel.Status
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import kotlin.time.Duration.Companion.seconds
 
 @VisibleForTesting val CONNECTED_STATE = AttachErrorState.MODEL_UPDATED
 @VisibleForTesting const val CONNECT_TIMEOUT_SECONDS: Long = 30L
 @VisibleForTesting const val CONNECT_TIMEOUT_MESSAGE_KEY = "connect.timeout"
-@VisibleForTesting const val DEBUGGER_CHECK_SECONDS: Long = 2L
 @VisibleForTesting const val DEBUGGER_CHECK_MESSAGE_KEY = "debugger.paused"
 
 class InspectorClientLaunchMonitor(
@@ -60,8 +55,8 @@ class InspectorClientLaunchMonitor(
 ) {
   private var lastUpdate: Long = 0L
   private var timeoutJob: Job? = null
-  private var debuggerJob: Job? = null
   private val clientLock = Any()
+  private var debuggerDetection: DebuggerDetection? = null
 
   var currentProgress = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
     private set
@@ -70,11 +65,11 @@ class InspectorClientLaunchMonitor(
   // Note: a stop() call could happen while updateProgress is being executed (on different threads).
   @GuardedBy("clientLock") private var client: InspectorClient? = null
 
-  fun start(client: InspectorClient) {
+  fun start(client: AbstractInspectorClient) {
     assert(this.client == null)
     synchronized(clientLock) { this.client = client }
     updateProgress(AttachErrorState.NOT_STARTED)
-    debuggerJob = debuggerCheckScope.launch { debuggerCheck() }
+    setUpDebuggerCheck(client)
     timeoutJob = timeoutScope.launch { timeoutCheck() }
   }
 
@@ -92,37 +87,40 @@ class InspectorClientLaunchMonitor(
     if (currentProgress < CONNECTED_STATE) {
       lastUpdate = System.currentTimeMillis()
     } else {
-      stopAsyncJobs()
+      stopAsyncJob()
+      notificationModel.removeNotification(DEBUGGER_CHECK_MESSAGE_KEY)
+      debuggerDetection?.attachCompleted()
     }
     notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
-    notificationModel.removeNotification(DEBUGGER_CHECK_MESSAGE_KEY)
   }
 
-  private suspend fun debuggerCheck() {
-    while (true) {
-      delay(DEBUGGER_CHECK_SECONDS.seconds)
-
-      val adb = adbClient
-      val currentClient = synchronized(clientLock) { client } ?: return
-      if (adb == null || !isPausedInDebugger(adb)) {
-        currentClient.stats.debuggerInUse(isPaused = false)
-        notificationModel.removeNotification(DEBUGGER_CHECK_MESSAGE_KEY)
-      } else {
-        currentClient.stats.debuggerInUse(isPaused = true)
-        val actions = mutableListOf<StatusNotificationAction>()
-        actions.add(createResumeDebuggerAction())
-        if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
-          // Do not offer disconnect action in embedded Layout Inspector. Since disconnecting is not
-          // possible, we would have to un-toggle [ToggleLayoutInspectorAction].
-          actions.add(createDisconnectAction(attemptDumpViews = false))
+  private fun setUpDebuggerCheck(client: AbstractInspectorClient) {
+    val debug = DebuggerDetection(client, debuggerCheckScope)
+    debuggerDetection = debug
+    debuggerCheckScope.launch {
+      debug.state.collect { state ->
+        if (!state.attached || !state.isPaused) {
+          notificationModel.removeNotification(DEBUGGER_CHECK_MESSAGE_KEY)
         }
-        notificationModel.addNotification(
-          DEBUGGER_CHECK_MESSAGE_KEY,
-          LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY),
-          Status.Error,
-          actions,
-        )
-        notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
+        if (state.attached) {
+          client.stats.debuggerInUse(state.isPaused)
+          if (state.isPaused) {
+            val actions = mutableListOf<StatusNotificationAction>()
+            actions.add(createResumeDebuggerAction(debug))
+            if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+              // Do not offer disconnect action in embedded Layout Inspector. Since disconnecting is
+              // not possible, we would have to un-toggle [ToggleLayoutInspectorAction].
+              actions.add(createDisconnectAction(attemptDumpViews = false))
+            }
+            notificationModel.addNotification(
+              DEBUGGER_CHECK_MESSAGE_KEY,
+              LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY),
+              Status.Error,
+              actions,
+            )
+            notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
+          }
+        }
       }
     }
   }
@@ -136,8 +134,7 @@ class InspectorClientLaunchMonitor(
         return
       }
     }
-    val adb = adbClient
-    if (adb?.let { isPausedInDebugger(it) } == true) {
+    if (debuggerDetection?.state?.value?.isPaused == true) {
       // Ignore the timeout if we know we are stuck in the debugger
       return
     }
@@ -179,18 +176,10 @@ class InspectorClientLaunchMonitor(
     }
   }
 
-  private fun createResumeDebuggerAction() =
+  private fun createResumeDebuggerAction(debug: DebuggerDetection) =
     StatusNotificationAction("Resume Debugger") {
-      notificationModel.removeNotification(DEBUGGER_CHECK_MESSAGE_KEY)
-      synchronized(clientLock) {
-        if (client != null) {
-          adbClient?.let { resumeDebugger(it) }
-        }
-      }
+      synchronized(clientLock) { debug.resumeDebugger() }
     }
-
-  private val adbClient: Client?
-    get() = client?.process?.let { AdbUtils.getAdbFuture(project).get()?.findClient(it) }
 
   /** Log an attach error from the Dynamic Layout Inspector to metrics. */
   fun logAttachErrorToMetrics(errorCode: AttachErrorCode) {
@@ -206,13 +195,11 @@ class InspectorClientLaunchMonitor(
 
   fun stop() {
     synchronized(clientLock) { client = null }
-    stopAsyncJobs()
+    stopAsyncJob()
   }
 
-  private fun stopAsyncJobs() {
+  private fun stopAsyncJob() {
     timeoutJob?.cancel()
     timeoutJob = null
-    debuggerJob?.cancel()
-    debuggerJob = null
   }
 }

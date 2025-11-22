@@ -74,6 +74,7 @@ iml_module(
         "//tools/base/adblib:studio.android.sdktools.adblib",
         "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
+        "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
     ],
 )
 
@@ -139,6 +140,7 @@ iml_module(
         "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
         "//tools/adt/idea/android-adb:intellij.android.adb.testUtil",
+        "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
     ],
     test_jvm_flags = select({
         "//tools/base/bazel/platforms:macos-arm64": ["-Djava.library.path=prebuilts/studio/skiaparser/test_support/mac-arm"],
