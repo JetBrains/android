@@ -15,53 +15,66 @@
  */
 package com.google.gct.studio.samples;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.appspot.gsamplesindex.samplesindex.model.Sample;
 import com.appspot.gsamplesindex.samplesindex.model.SampleCollection;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.ui.treeStructure.Tree;
-import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Tests for {@link com.google.gct.studio.samples.SampleImportTreeManager}
  */
-public class SampleImportTreeManagerTest extends TestCase {
+@RunsInEdt
+public class SampleImportTreeManagerTest {
+
+  @Rule
+  public EdtRule edtRule = new EdtRule();
 
   SampleImportTreeManager mySampleManager;
-  final List<Sample> mySamples = new ArrayList<Sample>(3);
+  final List<Sample> mySamples = new ArrayList<>(3);
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void setUp() {
     initSamples();
     mySampleManager = new SampleImportTreeManager(new Tree(), new SampleCollection().setItems(mySamples));
   }
 
+  @Test
   public void testFormatName_emptyFormat() {
-    assertTrue(SampleImportTreeManager.formatName("  ").equals("Unnamed"));
-    assertTrue(SampleImportTreeManager.formatName("").equals("Unnamed"));
-    assertTrue(SampleImportTreeManager.formatName(null).equals("Unnamed"));
+    assertThat(SampleImportTreeManager.formatName("  ")).isEqualTo("Unnamed");
+    assertThat(SampleImportTreeManager.formatName("").equals("Unnamed"));
+    assertThat(SampleImportTreeManager.formatName(null).equals("Unnamed"));
   }
 
+  @Test
   public void testFormatName_format() {
-    assertTrue(SampleImportTreeManager.formatName("GooseMoose").equals("Goose Moose"));
-    assertTrue(SampleImportTreeManager.formatName("goosemoose").equals("goosemoose"));
-    assertTrue(SampleImportTreeManager.formatName("GooseMoose-Juice").equals("Goose Moose - Juice"));
-    assertTrue(SampleImportTreeManager.formatName("GooseMoose - Juice").equals("Goose Moose - Juice"));
-    assertTrue(SampleImportTreeManager.formatName("Goose        Moose  - Juice         ").equals("Goose Moose - Juice"));
-    assertTrue(SampleImportTreeManager.formatName("TV Input Framework (TIF)").equals("TV Input Framework (TIF)"));
-    assertTrue(SampleImportTreeManager.formatName("(TIF)").equals("(TIF)"));
+    assertThat(SampleImportTreeManager.formatName("GooseMoose").equals("Goose Moose"));
+    assertThat(SampleImportTreeManager.formatName("goosemoose").equals("goosemoose"));
+    assertThat(SampleImportTreeManager.formatName("GooseMoose-Juice").equals("Goose Moose - Juice"));
+    assertThat(SampleImportTreeManager.formatName("GooseMoose - Juice").equals("Goose Moose - Juice"));
+    assertThat(SampleImportTreeManager.formatName("Goose        Moose  - Juice         ").equals("Goose Moose - Juice"));
+    assertThat(SampleImportTreeManager.formatName("TV Input Framework (TIF)").equals("TV Input Framework (TIF)"));
+    assertThat(SampleImportTreeManager.formatName("(TIF)").equals("(TIF)"));
   }
 
+  @Test
   public void testFilterSamples_emptySearch() {
     doFilterCheck("", 3);
     doFilterCheck("          ", 3);
   }
 
+  @Test
   public void testFilterSamples_singleWord() {
     doFilterCheck("Test", 3);
     doFilterCheck("goose", 1);
@@ -76,6 +89,7 @@ public class SampleImportTreeManagerTest extends TestCase {
     doFilterCheck("o", 3);
   }
 
+  @Test
   public void testFilterSamples_twoWords() {
     doFilterCheck("Test Sample", 3);
     doFilterCheck("Animal Thing", 0);
@@ -87,6 +101,7 @@ public class SampleImportTreeManagerTest extends TestCase {
     doFilterCheck("Tomato Antlers", 0);
   }
 
+  @Test
   public void testFilterSamples_lotsOfWords() {
     doFilterCheck("Test Sample of", 3);
     doFilterCheck("Moose Goose House", 0);
@@ -99,7 +114,7 @@ public class SampleImportTreeManagerTest extends TestCase {
 
   private void doFilterCheck(@NotNull String query, int resultSize) {
     Set<Sample> result = mySampleManager.filterSamples(query);
-    assertEquals(result.size(), resultSize);
+    assertThat(result.size()).isEqualTo(resultSize);
   }
 
   private void initSamples() {
