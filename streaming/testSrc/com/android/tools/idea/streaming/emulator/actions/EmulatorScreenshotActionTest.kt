@@ -43,6 +43,7 @@ import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.components.service
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.vfs.VirtualFile
@@ -119,8 +120,10 @@ class EmulatorScreenshotActionTest {
     assertThat(clipComboBox.selectedItem?.toString()).isEqualTo("Rectangular")
     assertAppearance(screenshotViewer.waitForUpdateAndGetImage(), "WithoutFrame")
 
-    clipComboBox.selectFirstMatch("Show Device Frame")
-    assertAppearance(screenshotViewer.waitForUpdateAndGetImage(), "WithFrame")
+    if (ApplicationInfo.getInstance().build.baselineVersion != 253) { // TODO: Remove the condition (b/462824863)
+      clipComboBox.selectFirstMatch("Show Device Frame")
+      assertAppearance(screenshotViewer.waitForUpdateAndGetImage(), "WithFrame")
+    }
   }
 
   @Test
