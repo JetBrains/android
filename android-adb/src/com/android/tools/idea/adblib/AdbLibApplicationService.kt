@@ -48,6 +48,7 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.startup.StartupActivity
 import java.time.Duration
+import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -252,6 +253,8 @@ class AdbLibApplicationService : Disposable {
             val adbLibFile =
               try {
                 adbFileLocationTracker.get()
+              } catch (e: CancellationException) {
+                throw e
               } catch (e: Exception) {
                 // Suppress exceptions caused by a missing adb file.
                 logger.warn("Failed to retrieve adb file location", e)
