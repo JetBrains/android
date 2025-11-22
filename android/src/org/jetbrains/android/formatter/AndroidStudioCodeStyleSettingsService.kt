@@ -29,7 +29,7 @@ import com.intellij.psi.codeStyle.CustomCodeStyleSettingsFactory
  * This is all tested by AndroidCodeStyleSettingsTest.
  */
 class AndroidStudioCodeStyleSettingsService(
-  private val delegate: CodeStyleSettingsService = CodeStyleSettingsServiceImpl(),
+  private val delegate: CodeStyleSettingsService = CodeStyleSettingsServiceImpl()
 ) : CodeStyleSettingsService by delegate {
 
   override fun getCustomCodeStyleSettingsFactories(): List<CustomCodeStyleSettingsFactory?> {
