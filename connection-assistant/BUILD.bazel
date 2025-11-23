@@ -37,6 +37,12 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.connection-assistant-test` start
 jvm_library(
+  name = "connection-assistant-test",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
   name = "connection-assistant-test_test_lib",
   module_name = "intellij.android.connection-assistant-test",
   visibility = ["//visibility:public"],

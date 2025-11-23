@@ -8,6 +8,12 @@ resourcegroup(
 )
 
 jvm_library(
+  name = "designer-perf-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
   name = "designer-perf-tests_test_lib",
   module_name = "intellij.android.designer-perf-tests",
   visibility = ["//visibility:public"],

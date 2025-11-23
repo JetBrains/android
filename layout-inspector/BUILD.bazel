@@ -215,6 +215,12 @@ resourcegroup(
 )
 
 jvm_library(
+  name = "layout-inspector-integration",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
   name = "layout-inspector-integration_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["integration/testSrc/**/*.kt", "integration/testSrc/**/*.java", "integration/testSrc/**/*.form"], allow_empty = True),
@@ -252,6 +258,12 @@ resourcegroup(
   name = "layout-inspector-tests_test_resources",
   srcs = glob(["testResources/**/*"]),
   strip_prefix = "testResources"
+)
+
+jvm_library(
+  name = "layout-inspector-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
 )
 
 jvm_library(

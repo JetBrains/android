@@ -222,6 +222,12 @@ jps_test(
 
 ### auto-generated section `build intellij.android.designer.integration` start
 jvm_library(
+  name = "designer-integration",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
   name = "designer-integration_test_lib",
   module_name = "intellij.android.designer.integration",
   visibility = ["//visibility:public"],

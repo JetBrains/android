@@ -28,6 +28,12 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.threading-checker.tests` start
 jvm_library(
+  name = "threading-checker-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
   name = "threading-checker-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

@@ -93,6 +93,12 @@ resourcegroup(
 )
 
 jvm_library(
+  name = "databinding-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
   name = "databinding-tests_test_lib",
   module_name = "intellij.android.databinding.tests",
   visibility = ["//visibility:public"],

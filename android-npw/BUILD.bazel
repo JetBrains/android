@@ -98,6 +98,12 @@ resourcegroup(
 )
 
 jvm_library(
+  name = "newProjectWizard-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
   name = "newProjectWizard-tests_test_lib",
   module_name = "intellij.android.newProjectWizard.tests",
   visibility = ["//visibility:public"],

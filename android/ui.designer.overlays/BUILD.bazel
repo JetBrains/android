@@ -2,6 +2,12 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
+  name = "ui.designer.overlays",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
   name = "ui.designer.overlays_test_lib",
   module_name = "intellij.android.core.ui.designer.overlays",
   visibility = ["//visibility:public"],

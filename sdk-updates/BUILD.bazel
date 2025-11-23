@@ -55,6 +55,12 @@ resourcegroup(
 )
 
 jvm_library(
+  name = "sdkUpdates-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
   name = "sdkUpdates-tests_test_lib",
   module_name = "intellij.android.sdkUpdates.tests",
   visibility = ["//visibility:public"],

@@ -49,6 +49,12 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.adb.ui.tests` start
 jvm_library(
+  name = "adb-ui-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
   name = "adb-ui-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

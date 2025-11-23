@@ -79,6 +79,12 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.debuggers.tests` start
 jvm_library(
+  name = "debuggers-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
   name = "debuggers-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),

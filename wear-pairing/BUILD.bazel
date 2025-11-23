@@ -110,3 +110,11 @@ jps_test(
   runtime_deps = [":wear-pairing_test_lib"]
 )
 ### auto-generated section `test intellij.android.wear-pairing` end
+
+### auto-generated section `build intellij.android.wear-pairing.tests` start
+jvm_library(
+  name = "wear-pairing-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+### auto-generated section `build intellij.android.wear-pairing.tests` end

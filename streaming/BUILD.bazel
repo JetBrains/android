@@ -72,6 +72,12 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.streaming.integration` start
 jvm_library(
+  name = "streaming-integration",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
   name = "streaming-integration_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["integration/**/*.kt", "integration/**/*.java", "integration/**/*.form"], allow_empty = True, exclude = [
@@ -207,6 +213,12 @@ jps_test(
 ### auto-generated section `test intellij.android.streaming.testUtil` end
 
 ### auto-generated section `build intellij.android.streaming.tests` start
+jvm_library(
+  name = "streaming-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
 jvm_library(
   name = "streaming-tests_test_lib",
   visibility = ["//visibility:public"],

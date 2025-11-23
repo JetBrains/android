@@ -14,6 +14,12 @@ create_kotlinc_options(
 )
 
 jvm_library(
+  name = "k1",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
   name = "k1_test_lib",
   module_name = "intellij.android.nav.safeargs.tests.k1",
   visibility = ["//visibility:public"],

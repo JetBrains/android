@@ -17,6 +17,12 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.wear-preview-elements.tests` start
 jvm_library(
+  name = "wear-preview-elements-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
   name = "wear-preview-elements-tests_test_lib",
   module_name = "intellij.android.wear-preview-elements.tests",
   visibility = ["//visibility:public"],
