@@ -17,6 +17,7 @@ package com.android.screenshottest.action
 
 import com.android.screenshottest.listener.UpdateScreenshotTestResultsListener
 import com.android.screenshottest.ui.UpdateReferenceImagesDialog
+import com.android.screenshottest.util.UpdateReferenceImagesDialogManager
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.intellij.execution.DefaultExecutionTarget
 import com.intellij.execution.ExecutionManager
@@ -45,6 +46,9 @@ abstract class UpdateReferenceImagesBaseAction(
     val context = ConfigurationContext.getFromEvent(e)
     val project = context.project ?: return
 
+    // Use Manager to prevent multiple dialogs/runs
+    val dialog = UpdateReferenceImagesDialogManager.getInstance(project).showOrGetDialog() ?: return
+
     val validateRunconfigSettings = context.createConfigurationsFromContext()
                                       ?.firstOrNull { it.configurationSettings.name.startsWith("Screenshot Tests") }
                                       ?.configurationSettings
@@ -54,7 +58,6 @@ abstract class UpdateReferenceImagesBaseAction(
     updateRunconfigSettings.isActivateToolWindowBeforeRun = false
 
     val executor = ExecutorRegistry.getInstance().getExecutorById(DefaultRunExecutor.EXECUTOR_ID) ?: return
-    val dialog = UpdateReferenceImagesDialog(project, LOG)
 
     project.messageBus.connect(dialog.disposable)
       .subscribe(AndroidTestSuiteView.ANDROID_TEST_SUITE_TOPIC, UpdateScreenshotTestResultsListener(dialog))

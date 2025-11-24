@@ -19,6 +19,7 @@ import com.android.screenshottest.ui.PreviewDetails
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.screenshottest.ui.UpdateReferenceImagesDialog
 import com.android.screenshottest.util.UpdateReferenceImagesActionUtils
+import com.android.screenshottest.util.UpdateReferenceImagesDialogManager
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -35,7 +36,6 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UpdateReferenceImagesA
 
   var testResults: AndroidTestResults? = null
 
-
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = true
   }
@@ -46,7 +46,9 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UpdateReferenceImagesA
     val project = e.project ?: return
     val results = testResults ?: return
 
-    val dialog = UpdateReferenceImagesDialog(project)
+    // Use Manager Service to prevent multiple dialogs
+    val dialog = UpdateReferenceImagesDialogManager.getInstance(project).showOrGetDialog() ?: return
+
     val allTestCases = results.getAllTestCases()
 
     for (testCase in allTestCases) {
