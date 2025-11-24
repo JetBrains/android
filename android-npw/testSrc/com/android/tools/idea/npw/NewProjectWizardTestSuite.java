@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 public class NewProjectWizardTestSuite extends IdeaTestSuiteBase {
   static {
+    linkIntoOfflineMavenRepo("tools/base/build-system/gradle-runtime-maven.manifest");
     linkIntoOfflineMavenRepo("tools/adt/idea/android-npw/test_deps.manifest");
     unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
     linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");

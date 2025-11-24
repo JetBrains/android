@@ -17,6 +17,7 @@ iml_module(
         "//tools/adt/idea/android:test_deps",
         "//tools/adt/idea/android/testData",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+        "//tools/base/build-system:gradle-runtime-maven",
         "//tools/base/resource-repository/test/resources",
     ],
     # do not sort: must match IML order

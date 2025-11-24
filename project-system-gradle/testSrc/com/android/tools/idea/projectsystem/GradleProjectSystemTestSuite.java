@@ -45,6 +45,7 @@ public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
       linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
       linkIntoOfflineMavenRepo("tools/adt/idea/project-system-gradle/test_deps.manifest");
       linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
+      linkIntoOfflineMavenRepo("tools/base/build-system/gradle-runtime-maven.manifest");
     }
     Path dataBindingSupportFile = TestUtils.getWorkspaceRoot().resolve("tools/data-binding/data_binding_runtime.zip");
     if (Files.exists(dataBindingSupportFile)) {
