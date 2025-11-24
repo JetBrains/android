@@ -167,11 +167,8 @@ class GlassesPairingWizardTest {
 
     assertThat(states)
       .containsExactly(
-        createLaunchingState(phone = Waiting, glasses = Launching),
-        createLaunchingState(phone = Waiting, glasses = Booting),
-        createLaunchingState(phone = Launching, glasses = Booting),
-        createLaunchingState(phone = Launching, glasses = Ready),
-        createLaunchingState(phone = Booting, glasses = Ready),
+        createLaunchingState(phone = Launching, glasses = Launching),
+        createLaunchingState(phone = Booting, glasses = Booting),
         createLaunchingState(phone = Ready, glasses = Ready),
       )
       .inOrder()
@@ -192,7 +189,6 @@ class GlassesPairingWizardTest {
 
         assertThat(states)
           .containsExactly(
-            createLaunchingState(phone = Waiting, glasses = Ready),
             createLaunchingState(phone = Launching, glasses = Ready),
             createLaunchingState(phone = Booting, glasses = Ready),
             createLaunchingState(phone = Ready, glasses = Ready),
