@@ -36,13 +36,11 @@ public class QuerySync {
    * Checks if query sync for new project is enabled via experiment or settings page or Query-Sync auto-convert experiment is set.
    */
   public static boolean useForNewProjects() {
-    if (!legacySyncIsReenabled()) return true;
-    return QuerySyncSettings.getInstance().useQuerySync()
-           || BaseQuerySyncConversionUtility.AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled();
+    return true;
   }
 
   public static boolean syncModeSelectionEnabled() {
-    return legacySyncIsReenabled() && !BaseQuerySyncConversionUtility.AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled();
+    return false;
   }
 
   public static boolean legacySyncEnabled() {

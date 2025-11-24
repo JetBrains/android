@@ -54,8 +54,6 @@ import java.util.Optional;
 public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtility {
   private static final Logger logger = Logger.getInstance(BaseQuerySyncConversionUtility.class);
 
-  public static final FeatureRolloutExperiment AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT =
-    new FeatureRolloutExperiment("aswb.auto.convert.legacy.sync.to.query.sync");
   public static final FeatureRolloutExperiment AUTO_CONVERT_MULTI_SHARD_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT =
     new FeatureRolloutExperiment("aswb.auto.convert.multi.shard.legacy.sync.to.query.sync");
   public static final BoolExperiment ENABLE_CODE_ANALYSIS_ON_SYNC_MULTI_SHARD_EXPERIMENT =
@@ -81,8 +79,7 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
       return false;
     }
     var useQuerySync = parseUseQuerySync(blazeImportSettings, projectViewFilePath);
-    return AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled() &&
-           !hasConversionIndicator(projectViewFilePath) &&
+    return !hasConversionIndicator(projectViewFilePath) &&
            useQuerySync.isPresent() &&
            !useQuerySync.get() &&
            canConvertSharding(blazeImportSettings, projectViewFilePath, blazeImportSettings.getLegacySyncShardCount());
