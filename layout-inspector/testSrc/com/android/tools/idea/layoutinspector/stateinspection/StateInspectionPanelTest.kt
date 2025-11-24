@@ -264,7 +264,7 @@ class StateInspectionPanelTest {
     model.nextAction.enabled = true
     model.stackTraceText.value =
       """
-      State read value: [b, c] 🟢 (Explain with AI)
+      State read value: [b, c] <invalidated> (Explain with AI)
           at com.example.recompositiontest.MainActivityKt.Item(MainActivity.kt:60)
 
     """
@@ -306,8 +306,9 @@ class StateInspectionPanelTest {
     assertThat(focusManager.focusOwner).isSameAs(next)
 
     // Activate a link in the editor:
-    waitForCondition(10.seconds) { editor.markupModel.allHighlighters.size == 2 }
+    waitForCondition(10.seconds) { editor.markupModel.allHighlighters.size == 3 }
     validateMarkupModel(editor.markupModel) {
+      region(1, "<invalidated>")
       region(1, "(Explain with AI)")
       region(2, "MainActivity.kt:60")
     }
