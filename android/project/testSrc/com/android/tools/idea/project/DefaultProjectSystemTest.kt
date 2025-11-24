@@ -20,6 +20,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -50,6 +52,12 @@ class DefaultProjectSystemTest {
 
   @Test
   fun testSameInstanceIsReturnedFromMultipleCalls() {
+    // This behaviour was never guaranteed 100%, since ProjectSystemService implementation uses tryRunReadAction which
+    // in case there are pending write actions it returns a DefaultProjectSystem when the read lock is unavailable.
+    // However, with IntelliJ 2025.3 this scenario started to happen for test execution.
+    runInEdtAndWait {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
     Truth.assertThat(myProject.getProjectSystem()).isSameAs(myProject.getProjectSystem())
   }
 
