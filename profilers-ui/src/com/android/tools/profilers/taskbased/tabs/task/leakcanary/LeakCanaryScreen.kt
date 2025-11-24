@@ -109,10 +109,12 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel) {
         second = {
           val selectedLeak by leakCanaryModel.selectedLeak.collectAsState()
           val isRecording by leakCanaryModel.isRecording.collectAsState()
+          val isLeakCanaryPresent by leakCanaryModel.isLeakCanaryPresent.collectAsState()
           LeakDetailsPanel(
             selectedLeak = selectedLeak,
             gotoDeclaration = leakCanaryModel::goToDeclaration,
             isRecording = isRecording,
+            isLeakCanaryPresent = isLeakCanaryPresent,
             isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
             openStates = openStates,
             onOpenStatesChange = { newStates -> openStates = newStates }

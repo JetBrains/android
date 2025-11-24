@@ -71,10 +71,13 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
   val objectRetainedCount = _objectRetainedCount.asStateFlow()
   private val _analysisProgress = MutableStateFlow(0)
   val analysisProgress = _analysisProgress.asStateFlow()
+  private val _isLeakCanaryPresent = MutableStateFlow(true)
+  val isLeakCanaryPresent = _isLeakCanaryPresent.asStateFlow()
 
   fun startListening() {
     profilers.updater.register(this)
     setIsRecording(true)
+    checkLeakCanaryPresence()
     setObjectRetainedCount(0)
     setAnalysisProgress(0)
     registerLeakCanaryListeners()
@@ -140,6 +143,37 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
                                                            false
                                                          })
     profilers.transportPoller.registerListener(hostAnalysisTriggerListener)
+  }
+
+  private fun checkLeakCanaryPresence() {
+    val command = Commands.Command.newBuilder().apply {
+      streamId = profilers.session.streamId
+      pid = profilers.session.pid
+      type = Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT
+    }.build()
+
+    profilers.ideServices.poolExecutor.execute {
+      val response = profilers.client.transportClient.execute(
+        Transport.ExecuteRequest.newBuilder().setCommand(command).build()
+      )
+
+      val listener = TransportEventListener(
+        eventKind = Common.Event.Kind.LEAKCANARY_PRESENCE_CHECK,
+        executor = profilers.ideServices.poolExecutor,
+        filter = { it.commandId == response.commandId },
+        streamId = { profilers.session.streamId },
+        processId = { profilers.session.pid },
+        callback = { event ->
+          val isPresent = event.leakcanaryPresenceCheck.isPresent
+          logger.info("LeakCanary presence check returned: $isPresent")
+          profilers.ideServices.mainExecutor.execute {
+            _isLeakCanaryPresent.value = isPresent
+          }
+          true // Unregister listener after first event.
+        }
+      )
+      profilers.transportPoller.registerListener(listener)
+    }
   }
 
   private fun deregisterLeakCanaryListeners() {
