@@ -12,6 +12,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:sources",
         "//tools/adt/idea/android/testData",
+        "//tools/base/build-system:gradle-runtime-maven",
     ],
     # do not sort: must match IML order
     test_deps = [

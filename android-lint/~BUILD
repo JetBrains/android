@@ -89,6 +89,7 @@ iml_module(
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:declarative_android_gradle_plugin.zip",
         "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:gradle-runtime-maven",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     # do not sort: must match IML order

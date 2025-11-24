@@ -39,8 +39,8 @@ class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
           "tools/adt/idea/ide-perf-tests/testData/SantaTrackerKotlin",
           DiffSpec("prebuilts/studio/buildbenchmarks/SantaTrackerKotlin/setupForIdeTest.diff", 0))
         unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/SantaTrackerKotlin/repo.zip")
-
         unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
+        linkIntoOfflineMavenRepo("tools/base/build-system/gradle-runtime-maven.manifest")
         linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest")
         linkIntoOfflineMavenRepo("tools/adt/idea/ide-perf-tests/test_deps.manifest")
         linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest")
