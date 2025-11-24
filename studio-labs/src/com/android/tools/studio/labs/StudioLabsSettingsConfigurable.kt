@@ -153,14 +153,14 @@ class StudioLabsSettingsConfigurable :
           ),
           StudioLabsFeaturePanelUi(
             flag = StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI,
-            heading = "Transform Compose UI",
+            heading = "Change Compose UI",
             description =
               """
-              Allows the transformation of existing UI within the Compose Preview environment using AI.
+              Allows the changing of existing UI within the Compose Preview environment using AI.
             """
                 .trimIndent(),
             imageKey = StudioLabsIcons.Features.TransformComposePreview,
-            imageDescription = "Transform Compose UI action",
+            imageDescription = "Change UI action",
           ),
           /*
           Disabled pending move to agent
