@@ -24,6 +24,7 @@ import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
+import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.grazie.spellcheck.GrazieSpellCheckingInspection;
 import com.intellij.lang.documentation.DocumentationProvider;
@@ -266,7 +267,10 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(virtualFile);
     List<IntentionAction> fixes = highlightAndFindQuickFixes(null);
     assertEquals(2, fixes.size());
-    assertInstanceOf(fixes.get(0), RenameTo.class);
+
+    // TODO(b/463392037): After 2025.3 merge, remove unwrapping of first fix.
+    LocalQuickFix unwrapped = QuickFixWrapper.unwrap(fixes.get(0));
+    assertInstanceOf(unwrapped == null ? fixes.get(0) : unwrapped, RenameTo.class);
     assertInstanceOf(QuickFixWrapper.unwrap(fixes.get(1)), SaveTo.class);
   }
 
