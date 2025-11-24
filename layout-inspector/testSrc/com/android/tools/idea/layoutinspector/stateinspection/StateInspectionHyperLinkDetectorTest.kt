@@ -16,8 +16,8 @@
 package com.android.tools.idea.layoutinspector.stateinspection
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.layoutinspector.FakeSessionStats
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.execution.impl.EditorHyperlinkListener
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.testFramework.EdtRule
@@ -60,11 +60,8 @@ class StateInspectionHyperLinkDetectorTest {
   fun testHyperLinks() = runTest {
     val file = "${TEST_DATA_PATH}/state_reads_1_2.txt"
     val text = TestUtils.resolveWorkspacePathUnchecked(file).readText()
-    val stats = FakeSessionStats()
     val editor = projectRule.createEditorWithContent(text) as EditorEx
-    val project = projectRule.project
-    val detector =
-      StateInspectionHyperLinkDetector(project, editor, stats, this, projectRule.testRootDisposable)
+    val detector = SynchronousHyperLinkDetector(editor, this, EditorHyperlinkListener {})
     detector.filterJob.join()
     runWriteAction {
       // The write action allows the AsyncFilterRunner used by EditorHyperlinkSupport to run all

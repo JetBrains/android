@@ -55,7 +55,6 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import org.jetbrains.annotations.NonNls
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -250,7 +249,6 @@ class StateInspectionPanelTest {
     assertThat(focusManager.focusOwner).isSameAs(button)
   }
 
-  @Ignore("b/463358545")
   @Test
   fun testActiveContent() {
     // Necessary to properly update toolbar button states.
@@ -258,7 +256,9 @@ class StateInspectionPanelTest {
 
     installFakeExtensionPoints(projectRule.testRootDisposable)
     projectRule.fixture.addFileToProject("src/com/example/recompositiontest/MainActivity.kt", "")
-    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
+    val project = projectRule.project
+    val detectorFactory = SynchronousHyperLinkDetectorFactory()
+    val panel = StateInspectionPanel(model, project, stats, testScope, disposable, detectorFactory)
     model.show.value = true
     model.prevAction.enabled = true
     model.nextAction.enabled = true
