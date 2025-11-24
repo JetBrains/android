@@ -58,7 +58,7 @@ class LeakCanaryLogcatCommandHandler(
   private val logger: Logger = Logger.getInstance(LeakCanaryLogcatCommandHandler::class.java)
   private var startTimeNs: Long = 0
   private val TWO_SECONDS = TimeUnit.SECONDS.toSeconds(2)
-  private var isEnded = true
+  private var isLogReadingActive = false
 
   private var prevLogTimeStampOfPartialTrace = 0L
   private var inLastFrameOfPartialTrace = false
@@ -78,7 +78,7 @@ class LeakCanaryLogcatCommandHandler(
   }
 
   private fun resetTrackingState(){
-    isEnded = true
+    isLogReadingActive = false
     logCollectionJob?.cancel()
     logCollectionJob = null
     prevLogTimeStampOfPartialTrace = 0L
@@ -186,7 +186,7 @@ class LeakCanaryLogcatCommandHandler(
    * Identifies and reads leakCanary logs from logcat and sends them to the event queue.
    */
   private fun readLeakLog() {
-    isEnded = false
+    isLogReadingActive = true
     val handler = CoroutineExceptionHandler { _, error ->
       logger.info("Coroutine exception", error)
     }
@@ -207,8 +207,8 @@ class LeakCanaryLogcatCommandHandler(
         }
       }
       catch (e: Exception) {
-        // Exception that can occur when isEnded = true is not taken into account because we stop listening and session is ended.
-        if (!isEnded) {
+        // Exception that can occur when isLogReadingActive = false is not taken into account because we stop listening and session is ended.
+        if (isLogReadingActive) {
           // Send a failed status and end session when there is error reading logcat.
           logger.error("Error reading logcat: ${e.message}", e)
           resetTrackingState()
