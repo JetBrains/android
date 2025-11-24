@@ -17,12 +17,14 @@
 package com.android.tools.idea.logcat.actions
 
 import com.android.tools.idea.logcat.LogcatBundle
+import com.android.tools.idea.logcat.LogcatR8MappingsToken
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.vfs.VirtualFileManager
 
 private val MAPPING_FILE_EXTENSIONS = setOf("txt", "map", "pgmap")
 
@@ -36,15 +38,23 @@ internal class SetProguardMappingAction :
   override fun getActionUpdateThread() = BGT
 
   override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project ?: return
     val logcatPresenter = e.getLogcatPresenter() ?: return
     val descriptor =
       FileChooserDescriptor(true, false, true, true, false, false)
         .withTitle(LogcatBundle.message("logcat.proguard.mapping.action.chooser.title"))
         .withFileFilter { it.name.substringAfterLast('.') in MAPPING_FILE_EXTENSIONS }
+    val mappingsFiles = LogcatR8MappingsToken.getR8Mappings(project)
+    val mappingsFile =
+      when (mappingsFiles.isNotEmpty()) {
+        true -> VirtualFileManager.getInstance().findFileByNioPath(mappingsFiles.first().text)
+        false -> null
+      }
+
     val path =
       FileChooserFactory.getInstance()
-        .createFileChooser(descriptor, e.project, null)
-        .choose(e.project)
+        .createFileChooser(descriptor, project, null)
+        .choose(project, mappingsFile)
         .firstOrNull()
         ?.toNioPath()
         ?.normalize() ?: return
