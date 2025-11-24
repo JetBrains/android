@@ -45,7 +45,9 @@ abstract class UpdateReferenceImagesBaseAction(
     val context = ConfigurationContext.getFromEvent(e)
     val project = context.project ?: return
 
-    val validateRunconfigSettings = context.createConfigurationsFromContext()?.firstOrNull()?.configurationSettings
+    val validateRunconfigSettings = context.createConfigurationsFromContext()
+                                      ?.firstOrNull { it.configurationSettings.name.startsWith("Screenshot Tests") }
+                                      ?.configurationSettings
                                     ?: return
     val updateRunconfigSettings = RunManagerImpl.getInstanceImpl(project).createConfiguration(validateRunconfigSettings.configuration, validateRunconfigSettings.factory)
     updateRunconfigSettings.isTemporary = true
