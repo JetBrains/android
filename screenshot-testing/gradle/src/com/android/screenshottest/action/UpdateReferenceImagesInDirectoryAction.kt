@@ -33,10 +33,10 @@ class UpdateReferenceImagesInDirectoryAction : UpdateReferenceImagesBaseAction(
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
+    e.presentation.isEnabledAndVisible = false
     if(!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()){
       return
     }
-    e.presentation.isEnabledAndVisible = false
 
     val context = ConfigurationContext.getFromEvent(e)
     val location = context.location ?: return
