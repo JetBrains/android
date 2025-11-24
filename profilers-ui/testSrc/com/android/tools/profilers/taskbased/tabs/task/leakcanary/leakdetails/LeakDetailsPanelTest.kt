@@ -104,6 +104,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         selectedLeak = selectedLeak,
         gotoDeclaration = leakCanaryModel::goToDeclaration,
         isRecording = true,
+        isLeakCanaryPresent = true,
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = openStates,
         onOpenStatesChange = { openStates = it }
@@ -137,6 +138,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         selectedLeak = selectedLeak,
         gotoDeclaration = leakCanaryModel::goToDeclaration,
         isRecording = true,
+        isLeakCanaryPresent = true,
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = openStates,
         onOpenStatesChange = { openStates = it }
@@ -184,6 +186,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         selectedLeak = selectedLeak,
         gotoDeclaration = mockLeakCanaryModel::goToDeclaration,
         isRecording = true,
+        isLeakCanaryPresent = true,
         isDeclarationAvailableAsync = mockLeakCanaryModel::isDeclarationAvailableAsync,
         openStates = openStates,
         onOpenStatesChange = { openStates = it }
@@ -229,6 +232,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         selectedLeak = null,
         gotoDeclaration = leakCanaryModel::goToDeclaration,
         isRecording = true,
+        isLeakCanaryPresent = true,
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = emptyList(),
         onOpenStatesChange = {}
@@ -245,6 +249,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         selectedLeak = null,
         gotoDeclaration = leakCanaryModel::goToDeclaration,
         isRecording = false,
+        isLeakCanaryPresent = true,
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = emptyList(),
         onOpenStatesChange = {}
@@ -298,6 +303,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         selectedLeak = selectedLeak,
         gotoDeclaration = mockLeakCanaryModel::goToDeclaration,
         isRecording = true,
+        isLeakCanaryPresent = true,
         isDeclarationAvailableAsync = mockLeakCanaryModel::isDeclarationAvailableAsync,
         openStates = openStates,
         onOpenStatesChange = { openStates = it }
@@ -344,6 +350,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         selectedLeak = selectedLeak,
         gotoDeclaration = leakCanaryModel::goToDeclaration,
         isRecording = true,
+        isLeakCanaryPresent = true,
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = openStates,
         onOpenStatesChange = { openStates = it }

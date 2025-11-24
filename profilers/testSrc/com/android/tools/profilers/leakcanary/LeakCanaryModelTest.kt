@@ -33,6 +33,7 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.LeakCanary
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisStatus
+import com.android.tools.profiler.proto.Common.LeakCanaryPresenceCheck
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
@@ -48,6 +49,7 @@ import kotlin.test.assertTrue
 class LeakCanaryModelTest : WithFakeTimer {
   override val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
+
   @Rule
   @JvmField
   val grpcChannel = FakeGrpcChannel("LeakCanaryModelTestChannel", transportService)
@@ -72,6 +74,8 @@ class LeakCanaryModelTest : WithFakeTimer {
                                          "MultiApplicationLeak.txt", // 2 application leak with different signature
                                          "NoLeak.txt"
                                        ), startTime))
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     stage.startListening()
@@ -99,6 +103,8 @@ class LeakCanaryModelTest : WithFakeTimer {
                                          "MultiApplicationLeak.txt", // 2 application leak with different signature
                                          "NoLeak.txt"
                                        ), startTime))
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     stage.startListening()
@@ -126,6 +132,8 @@ class LeakCanaryModelTest : WithFakeTimer {
                                          "SingleApplicationLeak.txt",
                                          "InValidLeak.txt"
                                        ), startTime))
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     stage.startListening()
@@ -146,6 +154,8 @@ class LeakCanaryModelTest : WithFakeTimer {
   fun `Leak canary stage enter - no leak events`() {
     val startTime = System.currentTimeMillis()
     transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
@@ -170,6 +180,8 @@ class LeakCanaryModelTest : WithFakeTimer {
                                          "InValidLeak.txt",
                                          "InValidLeak.txt"
                                        ), startTime))
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     stage.startListening()
@@ -184,7 +196,7 @@ class LeakCanaryModelTest : WithFakeTimer {
     assertEmpty(stage.leaks.value) // 0 event are sent
 
     val leakInfoEvents = LeakCanaryModel.getLeakCanaryLogcatInfo(profilers.client, profilers.session,
-                                                         Range(startTime.toDouble(), endTime.toDouble()))
+                                                                 Range(startTime.toDouble(), endTime.toDouble()))
     assertEquals(1, leakInfoEvents.size) // Fetching only ended events
     assertEquals(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS, leakInfoEvents[0].kind)
     assertTrue(leakInfoEvents[0].isEnded)
@@ -343,49 +355,56 @@ class FakeLeakCanaryCommandHandler(timer: FakeTimer,
   override fun handleCommand(command: Commands.Command,
                              events: MutableList<Common.Event>) {
 
-    if (command.type == Commands.Command.CommandType.START_LOGCAT_TRACKING) {
-      // Start tracking info event
-      events.add(Common.Event.newBuilder()
-                   .setGroupId(profilers.session.pid.toLong())
-                   .setPid(profilers.session.pid)
-                   .setIsEnded(false)
-                   .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS)
-                   .setLeakCanaryAnalysisStatus(LeakCanaryAnalysisStatus.newBuilder()
-                                              .setAnalysisStarted(
-                                                LeakCanary.LeakCanaryAnalysisStarted
-                                                  .newBuilder()
-                                                  .setTimestamp(startTimestamp)
+    when (command.type) {
+      Commands.Command.CommandType.START_LOGCAT_TRACKING -> {
+        // Start tracking info event
+        events.add(Common.Event.newBuilder()
+                     .setGroupId(profilers.session.pid.toLong())
+                     .setPid(profilers.session.pid)
+                     .setIsEnded(false)
+                     .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS)
+                     .setLeakCanaryAnalysisStatus(LeakCanaryAnalysisStatus.newBuilder()
+                                                  .setAnalysisStarted(
+                                                    LeakCanary.LeakCanaryAnalysisStarted
+                                                      .newBuilder()
+                                                      .setTimestamp(startTimestamp)
+                                                      .build())
                                                   .build())
-                                              .build())
-                   .setTimestamp(startTimestamp)
-                   .build())
-      leaksToSendFiles.forEach {leakToSendFile ->
-        events.add(getLeakCanaryEvent(profilers, leakToSendFile))
+                     .setTimestamp(startTimestamp)
+                     .build())
+        leaksToSendFiles.forEach { leakToSendFile ->
+          events.add(getLeakCanaryEvent(profilers, leakToSendFile))
+        }
       }
-    } else {
-      // Stop tracking info event
-      events.add(Common.Event.newBuilder()
-                   .setGroupId(profilers.session.pid.toLong())
-                   .setPid(profilers.session.pid)
-                   .setIsEnded(true)
-                   .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS)
-                   .setLeakCanaryAnalysisStatus(LeakCanaryAnalysisStatus.newBuilder()
-                                              .setAnalysisEnded(LeakCanary.LeakCanaryAnalysisEnded
-                                                               .newBuilder()
-                                                               .setStatus(LeakCanary.LeakCanaryAnalysisEnded.Status.SUCCESS)
-                                                               .setStartTimestamp(startTimestamp)
-                                                               .setEndTimestamp(System.currentTimeMillis())
-                                                               .build())
-                                              .build())
-                   .setTimestamp(System.currentTimeMillis())
-                   .build())
 
-      // Stop session event
-      Common.Event.newBuilder().setTimestamp(System.currentTimeMillis())
-        .setPid(profilers.session.pid)
-        .setGroupId(profilers.session.sessionId)
-        .setKind(Common.Event.Kind.SESSION)
-        .setIsEnded(true).build();
+      Commands.Command.CommandType.STOP_LOGCAT_TRACKING -> {
+        // Stop tracking info event
+        events.add(Common.Event.newBuilder()
+                     .setGroupId(profilers.session.pid.toLong())
+                     .setPid(profilers.session.pid)
+                     .setIsEnded(true)
+                     .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS)
+                     .setLeakCanaryAnalysisStatus(LeakCanaryAnalysisStatus.newBuilder()
+                                                  .setAnalysisEnded(LeakCanary.LeakCanaryAnalysisEnded
+                                                                    .newBuilder()
+                                                                    .setStatus(LeakCanary.LeakCanaryAnalysisEnded.Status.SUCCESS)
+                                                                    .setStartTimestamp(startTimestamp)
+                                                                    .setEndTimestamp(System.currentTimeMillis())
+                                                                    .build())
+                                                  .build())
+                     .setTimestamp(System.currentTimeMillis())
+                     .build())
+      }
+
+      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT -> {
+        events.add(Common.Event.newBuilder()
+                     .setPid(profilers.session.pid)
+                     .setTimestamp(System.currentTimeMillis())
+                     .setKind(Common.Event.Kind.LEAKCANARY_PRESENCE_CHECK)
+                     .setLeakcanaryPresenceCheck(LeakCanaryPresenceCheck.newBuilder().setIsPresent(true).build())
+                     .build())
+      }
+      else -> {}
     }
   }
 

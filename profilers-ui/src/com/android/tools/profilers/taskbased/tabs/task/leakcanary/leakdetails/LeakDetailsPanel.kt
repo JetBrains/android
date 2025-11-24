@@ -62,6 +62,7 @@ import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedU
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_GC_ROOT
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_GO_TO_DECLARATION
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_MISSING_MESSAGE
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_NO_DECLARATION_FOUND
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_NO_DECLARATION_FOUND_TOOLTIP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE
@@ -88,6 +89,7 @@ import java.util.concurrent.CompletableFuture
 fun LeakDetailsPanel(selectedLeak: Leak?,
                      gotoDeclaration: (Node) -> Unit,
                      isRecording: Boolean,
+                     isLeakCanaryPresent: Boolean,
                      isDeclarationAvailableAsync: (Node) -> CompletableFuture<Boolean>,
                      openStates: List<Boolean>,
                      onOpenStatesChange: (List<Boolean>) -> Unit) {
@@ -96,7 +98,12 @@ fun LeakDetailsPanel(selectedLeak: Leak?,
   val onExpandAll = { onOpenStatesChange(List(traceNodes.size) { true })}
   val onCollapseAll = { onOpenStatesChange(List(traceNodes.size) { false })}
 
-  if (selectedLeak == null) {
+  if (isLeakCanaryPresent == false) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+      EllipsisText(text = LEAKCANARY_MISSING_MESSAGE, maxLines = 3)
+    }
+  }
+  else if (selectedLeak == null) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
       EllipsisText(text = emptyLeakMessage, maxLines = 3)
     }
