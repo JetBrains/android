@@ -97,7 +97,7 @@ class TestSuiteUtilsTest {
                   name = "myTestSuiteWithMultipleTargets",
                   sources = listOf(
                     createAssetsTestSuiteSource(
-                      testSuitePath = moduleBasePath.resolve("src/myTestSuite")
+                      testSuitePath = moduleBasePath.resolve("src/myTestSuiteWithMultipleTargets")
                     )
                   ),
                   junitEngineInfo = IdeJUnitEngineInfoImpl(includedEngines = setOf("engine1")),
