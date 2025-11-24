@@ -52,11 +52,32 @@ data class BuildGraphDataImpl private constructor(
   private val sourceOwners: Map<Label, List<Label>>,
   private val alwaysBuildTargets: Set<Label>,
 ) : BuildGraphData {
-  private val rdeps: Map<Label, Deps<out Label>> = computeRdeps(storage)
+
+  private val nodes: Map<Label, GraphNode> = computeNodes(storage)
   private val packages: PackageSet = computePackages(storage)
   override val externalDependencyCountForStatsOnly: Int = computeExternalDependencyCount(storage)
 
-  class Deps<T> (val deps: MutableSet<T> = mutableSetOf())
+  private interface GraphNode {
+    val label: Label
+    val deps: Collection<GraphNode>
+    val rdeps: Collection<GraphNode>
+    val data: NodeData
+  }
+
+  private sealed interface NodeData
+  private class ProjectNodeData(val target: ProjectTarget) : NodeData
+  private object ExternalNodeData : NodeData
+
+  private class GraphNodeImpl(
+    override val label: Label,
+    override val data: NodeData
+  ) : GraphNode {
+    override val deps = mutableListOf<GraphNodeImpl>()
+    override val rdeps = mutableListOf<GraphNodeImpl>()
+    override fun toString(): String {
+      return "GraphNodeImpl(label=$label, data=$data)"
+    }
+  }
 
   override fun packages(): PackageSet = packages
   override fun getProjectTarget(label: Label): ProjectTarget? = storage.targetMap[label]
@@ -102,12 +123,13 @@ data class BuildGraphDataImpl private constructor(
         // a cc target.
         getRdeps(target)
           .filter {
+            val depTarget = it.data as? ProjectNodeData ?: return@filter false
             !Collections.disjoint(
-              storage.targetMap[it]?.languages().orEmpty(),
+              depTarget.target.languages(),
               targetLanguages
             )
           }
-          .forEach { add(it) }
+          .forEach { add(it.label) }
       }
     }
   }
@@ -126,11 +148,12 @@ data class BuildGraphDataImpl private constructor(
     while (!toVisit.isEmpty()) {
       val next = toVisit.remove()
       if (visited.add(next)) {
-        val target = storage.targetMap[next]
+        val node = nodes[next]
+        val target = (node?.data as? ProjectNodeData)?.target
         if (target != null && ruleKinds.contains(target.kind())) {
           result.add(target)
         } else {
-          toVisit.addAll(getRdeps(next))
+          toVisit.addAll(getRdeps(next).map { it.label })
         }
       }
     }
@@ -148,7 +171,7 @@ data class BuildGraphDataImpl private constructor(
   override fun getReverseDepsForSource(sourcePath: Path): Collection<ProjectTarget> {
     val targetOwners = getSourceFileOwners(sourcePath).takeUnless { it.isEmpty() } ?: return emptyList()
 
-    return Traverser.forGraph<Label> { this.getRdeps(it) }.breadthFirst(targetOwners)
+    return Traverser.forGraph<Label> { this.getRdeps(it).map { it.label } }.breadthFirst(targetOwners)
       .asSequence()
       .mapNotNull { storage.targetMap[it] }
       .toSet()
@@ -179,9 +202,10 @@ data class BuildGraphDataImpl private constructor(
       val current = toVisit.remove()
       if (visited.add(current)) {
         val currentLabel = current.targetLabel
-        val currentLabelKind = targetMap[currentLabel]?.kind()
+        val node = nodes[currentLabel]
+        val currentLabelKind = (node?.data as? ProjectNodeData)?.target?.kind()
 
-        val hasDesiredRule = current.hasDesiredRule || ruleKinds.contains(currentLabelKind)
+        val hasDesiredRule = current.hasDesiredRule || (currentLabelKind != null && ruleKinds.contains(currentLabelKind))
 
         if (hasDesiredRule && consumingTargetLabels.contains(currentLabel)) {
           // We've found one of the consuming targets and the path here contained one of
@@ -192,8 +216,8 @@ data class BuildGraphDataImpl private constructor(
           // possible that further up the dependency graph we'll run into a different one
           // of the consuming targets - and potentially have found one of the rules we
           // need along the way.
-          for (nextTargetLabel in getRdeps(currentLabel)) {
-            toVisit.add(TargetSearchNode(nextTargetLabel, hasDesiredRule))
+          for (nextTarget in getRdeps(currentLabel)) {
+            toVisit.add(TargetSearchNode(nextTarget.label, hasDesiredRule))
           }
         }
       }
@@ -576,8 +600,8 @@ data class BuildGraphDataImpl private constructor(
     }
   }
 
-  private fun getRdeps(target: Label): Set<Label> {
-    return rdeps[target]?.deps.orEmpty()
+  private fun getRdeps(target: Label): Collection<GraphNode> {
+    return nodes[target]?.rdeps.orEmpty()
   }
 
   /**
@@ -629,17 +653,24 @@ data class BuildGraphDataImpl private constructor(
       return Storage.builder()
     }
 
-    private fun computeRdeps(storage: Storage): Map<Label, Deps<out Label>> {
-      return buildMap<Label, Deps<Label>> {
-        fun rdepsOf(node: Label): Deps<Label> = this@buildMap.getOrPut(node) { Deps() }
+    private fun computeNodes(storage: Storage): Map<Label, GraphNode> {
+      return buildGraph(storage)
+    }
 
-        for (target in storage.targetMap.values) {
-          for (rdep in target.deps()) {
-            rdepsOf(rdep).deps.add(target.label())
-          }
-          target.testRule().ifPresent { testRule -> rdepsOf(testRule).deps.add(target.label()) }
+    private fun buildGraph(storage: Storage): MutableMap<Label, GraphNodeImpl> {
+      val nodes: MutableMap<Label, GraphNodeImpl> = hashMapOf()
+      for ((label, target) in storage.targetMap) {
+        nodes[label] = GraphNodeImpl(label, ProjectNodeData(target))
+      }
+      for (node in nodes.values.toList()) {
+        val target = (node.data as? ProjectNodeData)?.target ?: continue
+        for (depLabel in target.allDeps()) {
+          val depNode = nodes.getOrPut(depLabel) { GraphNodeImpl(depLabel, ExternalNodeData) }
+          depNode.rdeps.add(node)
+          node.deps.add(depNode)
         }
       }
+      return nodes
     }
 
     private fun computePackages(storage: Storage): PackageSet {
@@ -691,3 +722,9 @@ inline fun <N, V> Collection<N>.traverseDag(
     }
   }
 }
+
+private fun ProjectTarget.allDeps(): Sequence<Label> =
+  sequence {
+    yieldAll(deps())
+    testRule().getOrNull()?.let { yield(it) }
+  }
