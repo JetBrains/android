@@ -222,7 +222,7 @@ class PreviewPickerTests {
 
     Sdks.addLatestAndroidSdk(fixture.projectDisposable, module)
     val model = getFirstModel(fileContent)
-    assertEquals("1.0", model.properties["", "fontScale"].defaultValue)
+    assertEquals(1.0f, model.properties["", "fontScale"].defaultValue!!.toFloat(), 0f)
     assertEquals("false", model.properties["", "showBackground"].defaultValue)
     assertEquals("false", model.properties["", "showSystemUi"].defaultValue)
     assertEquals("Default (en-US)", model.properties["", "locale"].defaultValue)
