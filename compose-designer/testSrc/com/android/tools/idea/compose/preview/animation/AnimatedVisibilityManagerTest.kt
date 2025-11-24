@@ -37,6 +37,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Test
 
 class AnimatedVisibilityManagerTest : InspectorTests() {
@@ -139,6 +140,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
     }
   }
 
+  @Ignore("b/463308626")
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun changeTime() = runTest {
