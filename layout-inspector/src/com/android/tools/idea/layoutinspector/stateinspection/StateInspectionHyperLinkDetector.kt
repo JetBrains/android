@@ -15,19 +15,15 @@
  */
 package com.android.tools.idea.layoutinspector.stateinspection
 
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.intellij.codeInsight.navigation.actions.ClickLinkAction
 import com.intellij.execution.filters.CompositeFilter
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkListener
 import com.intellij.execution.impl.EditorHyperlinkSupport
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorEx
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Expirable
 import com.intellij.psi.search.GlobalSearchScope
 import kotlinx.coroutines.CoroutineScope
@@ -37,30 +33,28 @@ import org.jetbrains.annotations.TestOnly
 
 private const val CLICK_LINK_ACTION_ID = "ClickLink"
 
+internal class StateInspectionHyperLinkDetectorFactory : HyperLinkDetectorFactory {
+  override fun create(
+    editor: EditorEx,
+    scope: CoroutineScope,
+    activatedLinkListener: EditorHyperlinkListener,
+  ): HyperLinkDetector = StateInspectionHyperLinkDetector(editor, scope, activatedLinkListener)
+}
+
 /** A Hyperlink detector that adds hyperlinks to an [Editor] */
-internal class StateInspectionHyperLinkDetector(
-  private val project: Project,
+internal open class StateInspectionHyperLinkDetector(
   private val editor: EditorEx,
-  private val stats: SessionStatistics,
   scope: CoroutineScope,
-  parentDisposable: Disposable,
-) {
+  private val activatedLinkListener: EditorHyperlinkListener,
+) : HyperLinkDetector {
+  private val project = editor.project!!
   private val editorHyperlinkSupport = EditorHyperlinkSupport.get(editor)
   private val filter = CompositeFilter(project)
-  private var isDisposed = false
-  private val expirableToken = Expirable { isDisposed }
-  private val hyperLinkListener = EditorHyperlinkListener { linkInfo ->
-    if (linkInfo is LayoutInspectorExplainWithAIHyperLinkInfo) {
-      stats.stateReadsExplainWithAiClicked()
-    } else {
-      stats.stateReadsGotoSourceFromStackTrace()
-    }
-  }
+  private val expirableToken = Expirable { editor.isDisposed }
 
   @TestOnly val filterJob: Job
 
   init {
-    Disposer.register(parentDisposable) { isDisposed = true }
     filterJob =
       scope.launch {
         // Add all standard filters (this will include hyperlinks of the fileName of each line)
@@ -87,10 +81,10 @@ internal class StateInspectionHyperLinkDetector(
 
     // addEditorHyperlinkListener is marked @ApiStatus.Internal, but there doesn't seem
     // to be a different way to track these hyperlink events.
-    editorHyperlinkSupport.addEditorHyperlinkListener(hyperLinkListener)
+    editorHyperlinkSupport.addEditorHyperlinkListener(activatedLinkListener)
   }
 
-  fun detectHyperlinks() {
+  override fun detectHyperlinks() {
     // The state reads is static content, so we will always detect links in the entire document:
     val startLine = 0
     val endLine = editor.document.getLineNumber(editor.document.textLength)
@@ -106,6 +100,6 @@ internal class StateInspectionHyperLinkDetector(
       // See b/458791627. Remove this if IJPL-217477 provides a different way to track link actions.
       manager.replaceAction(CLICK_LINK_ACTION_ID, ClickLinkActionWithLogging())
     }
-    editor.putUserData(CLICK_LINK_LOGGING_KEY, hyperLinkListener)
+    editor.putUserData(CLICK_LINK_LOGGING_KEY, activatedLinkListener)
   }
 }

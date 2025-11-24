@@ -21,6 +21,8 @@ import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.intellij.execution.filters.HyperlinkInfo
+import com.intellij.execution.impl.EditorHyperlinkListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces.UNKNOWN
 import com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
@@ -83,6 +85,7 @@ internal class StateInspectionPanel(
   stats: SessionStatistics,
   scope: CoroutineScope,
   parentDisposable: Disposable,
+  hyperLinkDetectorFactory: HyperLinkDetectorFactory = StateInspectionHyperLinkDetectorFactory(),
 ) : AdtSecondaryPanel(BorderLayout()) {
   private var innerPanel: InnerStateInspectionPanel? = null
     set(value) {
@@ -109,6 +112,7 @@ internal class StateInspectionPanel(
               stats,
               project,
               scope,
+              hyperLinkDetectorFactory,
               parentDisposable,
             )
       }
@@ -123,9 +127,10 @@ internal class StateInspectionPanel(
 private class InnerStateInspectionPanel(
   private val parent: StateInspectionPanel,
   model: StateInspectionModel,
-  stats: SessionStatistics,
+  private val stats: SessionStatistics,
   project: Project,
   parentScope: CoroutineScope,
+  hyperLinkDetectorFactory: HyperLinkDetectorFactory,
   parentDisposable: Disposable,
 ) : AdtSecondaryPanel(BorderLayout()), Disposable {
   private val scope = parentScope.createChildScope()
@@ -139,8 +144,8 @@ private class InnerStateInspectionPanel(
   private val recompositionText = JBLabel().apply { name = RECOMPOSITION_TEXT_LABEL_NAME }
   private val stateReadCountText = JBLabel().apply { name = STATE_READ_TEXT_LABEL_NAME }
   private val editor = createStateReadEditor(project, this)
-  private val hyperlinkDetector =
-    StateInspectionHyperLinkDetector(project, editor, stats, scope, this)
+  private val listener = EditorHyperlinkListener { logUsageEvent(it) }
+  private val hyperlinkDetector = hyperLinkDetectorFactory.create(editor, scope, listener)
   private val foldingDetector = StateInspectionFoldingDetector(editor, scope)
 
   init {
@@ -233,6 +238,13 @@ private class InnerStateInspectionPanel(
       startOffset = text.indexOf(INVALIDATED, endOffset)
     }
   }
+
+  private fun logUsageEvent(linkInfo: HyperlinkInfo?) =
+    when (linkInfo) {
+      is LayoutInspectorExplainWithAIHyperLinkInfo -> stats.stateReadsExplainWithAiClicked()
+      is HyperlinkInfo -> stats.stateReadsGotoSourceFromStackTrace()
+      else -> {}
+    }
 
   private fun createStateReadEditor(project: Project, disposable: Disposable): EditorEx {
     val editorFactory = EditorFactory.getInstance()
