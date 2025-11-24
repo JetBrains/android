@@ -51,6 +51,7 @@ class LeakCanaryLogcatCommandHandler(
   private val eventQueue: BlockingDeque<Common.Event>
 ) : TransportProxy.ProxyCommandHandler {
 
+  private val logcatService: LogcatService = LogcatService.getInstance(ProjectManager.getInstance().defaultProject)
   private var logCollectionJob: Job? = null
   private var pid = 0
   private var sessionId = 0L
@@ -193,7 +194,7 @@ class LeakCanaryLogcatCommandHandler(
     logCollectionJob = CoroutineScope(Dispatchers.Default + Job() + handler).launch {
       logger.info("Coroutine Started")
       try {
-        LogcatService.getInstance(ProjectManager.getInstance().defaultProject).readLogcat(
+        logcatService.readLogcat(
           serialNumber = device.serialNumber,
           sdk = device.version.androidApiLevel,
           maxHistoryEntries = 0,
