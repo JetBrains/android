@@ -1611,15 +1611,15 @@ PROJECT                       : BuildSrcWithComposite
             IsModuleLevel                 : true
             LIBRARY                       : Gradle: javaparser-core-3.27.0.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.27.0.jar!/
-        LIBRARY                       : Gradle: kotlin-reflect-2.2.0.jar [=]
+        LIBRARY                       : Gradle: kotlin-reflect-2.2.20.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-reflect-2.2.0.jar
+            LIBRARY                       : Gradle: kotlin-reflect-2.2.20.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle: kotlin-stdlib-2.2.0.jar [=]
+        LIBRARY                       : Gradle: kotlin-stdlib-2.2.20.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-stdlib-2.2.0.jar
+            LIBRARY                       : Gradle: kotlin-stdlib-2.2.20.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         Classes
             -                             : file://<PROJECT>/buildSrc/build/classes/java/main
@@ -1717,15 +1717,15 @@ PROJECT                       : BuildSrcWithComposite
             IsModuleLevel                 : true
             LIBRARY                       : Gradle: javaparser-core-3.27.0.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.27.0.jar!/
-        LIBRARY                       : Gradle: kotlin-reflect-2.2.0.jar [=]
+        LIBRARY                       : Gradle: kotlin-reflect-2.2.20.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-reflect-2.2.0.jar
+            LIBRARY                       : Gradle: kotlin-reflect-2.2.20.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle: kotlin-stdlib-2.2.0.jar [=]
+        LIBRARY                       : Gradle: kotlin-stdlib-2.2.20.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-stdlib-2.2.0.jar
+            LIBRARY                       : Gradle: kotlin-stdlib-2.2.20.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         BUILD_TASKS
     MODULE                        : java-included
