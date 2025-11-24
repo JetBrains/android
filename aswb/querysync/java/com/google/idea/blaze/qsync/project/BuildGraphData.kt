@@ -182,6 +182,11 @@ interface BuildGraphData {
 
   companion object {
     @JvmField
-    val EMPTY: BuildGraphData = BuildGraphDataImpl.builder().build(TargetPatternCollection.create(emptyList()), emptySet(), emptySet())
+    val EMPTY: BuildGraphData =
+      BuildGraphDataImpl.builder()
+        .build(
+          projectDefinitionTargetPatterns = TargetPatternCollection.create(emptyList()),
+          alwaysBuildRules = emptySet(),
+          supportedBuildRules = emptySet())
   }
 }
