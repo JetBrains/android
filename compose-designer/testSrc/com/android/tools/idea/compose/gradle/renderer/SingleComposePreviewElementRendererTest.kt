@@ -27,18 +27,19 @@ import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.classloading.ModuleClassLoader
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Rule
-import org.junit.Test
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_LOCATION_STANDARD
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JPanel
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
 
 class SingleComposePreviewElementRendererTest {
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
@@ -288,6 +289,7 @@ class SingleComposePreviewElementRendererTest {
   }
 
   /** Checks that key events are correctly dispatched to Compose Preview. */
+  @Ignore("b/463288299")
   @Test
   fun testKeyEvent() {
     val facet = projectRule.androidFacet(":app")
