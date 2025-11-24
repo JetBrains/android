@@ -8,6 +8,7 @@ import org.junit.runner.RunWith
 class AndroidLintTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
+      linkIntoOfflineMavenRepo("tools/base/build-system/gradle-runtime-maven.manifest")
       linkIntoOfflineMavenRepo("tools/adt/idea/android-lint/test_deps.manifest")
       unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
       unzipIntoOfflineMavenRepo("tools/base/build-system/declarative_android_gradle_plugin.zip")

@@ -32,6 +32,7 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
       if (TestUtils.workspaceFileExists(ANDROID_GRADLE_PLUGIN_ZIP)) {
         unzipIntoOfflineMavenRepo(ANDROID_GRADLE_PLUGIN_ZIP);
       }
+      linkIntoOfflineMavenRepo("tools/base/build-system/gradle-runtime-maven.manifest");
       linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
       linkIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.manifest");
       linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");

@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 public class GradleProjectSystemStructureTestSuite extends IdeaTestSuiteBase {
 
   static {
+    linkIntoOfflineMavenRepo("tools/base/build-system/gradle-runtime-maven.manifest");
     unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
     unzipIntoOfflineMavenRepo("tools/base/build-system/declarative_android_gradle_plugin.zip");
     linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");

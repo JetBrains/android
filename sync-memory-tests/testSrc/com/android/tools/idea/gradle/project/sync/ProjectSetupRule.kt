@@ -168,6 +168,7 @@ class ProjectSetupRuleImpl(
         unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
         unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip")
         linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest")
+        linkIntoOfflineMavenRepo("tools/base/build-system/gradle-runtime-maven.manifest")
         "tools/base/build-system/previous-versions/8.13.0.manifest".linkIfExists()
         "tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest".linkIfExists()
         "tools/base/build-system/integration-test/latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks.manifest".linkIfExists()
