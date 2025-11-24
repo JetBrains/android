@@ -97,16 +97,7 @@ fun HeapDumpAndAnalysisStatus(leakCanaryModel: LeakCanaryModel) {
   val analysisProgress by leakCanaryModel.analysisProgress.collectAsState()
   val requiredRetainedObjectCount = leakCanaryModel.requiredRetainedObjectCount
 
-  if (objectRetainedCount < requiredRetainedObjectCount) {
-    val text = AnnotatedString.Builder().apply {
-      withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-        append("$objectRetainedCount ${objectRetainedText(objectRetainedCount)}")
-      }
-      append(" $LEAKCANARY_WAITING_HEAP_DUMP $requiredRetainedObjectCount ${objectRetainedText(requiredRetainedObjectCount)}")
-    }.toAnnotatedString()
-    Text(text, modifier = Modifier.padding(end = 10.dp))
-  }
-  else {
+  if(analysisProgress > 0 || objectRetainedCount >= requiredRetainedObjectCount){
     Text(LEAKCANARY_ANALYSIS)
     HorizontalProgressBar(analysisProgress/100f,
                           modifier = Modifier
@@ -114,6 +105,15 @@ fun HeapDumpAndAnalysisStatus(leakCanaryModel: LeakCanaryModel) {
                             .height(4.dp)
                             .padding(horizontal = 10.dp)
                             .testTag("AnalysisProgressBar"))
+  }
+  else {
+    val text = AnnotatedString.Builder().apply {
+      withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+        append("$objectRetainedCount ${objectRetainedText(objectRetainedCount)}")
+      }
+      append(" $LEAKCANARY_WAITING_HEAP_DUMP $requiredRetainedObjectCount ${objectRetainedText(requiredRetainedObjectCount)}")
+    }.toAnnotatedString()
+    Text(text, modifier = Modifier.padding(end = 10.dp))
   }
 }
 
