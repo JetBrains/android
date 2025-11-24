@@ -57,7 +57,6 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTree
-import javax.swing.SwingConstants
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreePath
 import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
@@ -150,6 +149,7 @@ class UpdateReferenceImagesDialog(
           panel.loadImage(srcImagePath, testId)
         }
         else {
+          logger.warn("Source image path missing. Test did not produce an image for testId: $testId")
           panel.showError("Test did not produce an image")
         }
         updateRightPane(tree)
@@ -164,10 +164,12 @@ class UpdateReferenceImagesDialog(
     // failure or that no tests were found to run. Close the dialog and show an error.
     ApplicationManager.getApplication().invokeLater {
       if (!isFirstTestDiscovered) {
+        logger.error("No tests were discovered in the test suite")
         close(CANCEL_EXIT_CODE)
         Messages.showErrorDialog(project, "Error while generating screenshots", "Failed to generate screenshots")
       } else {
         isTestSuiteFinished = true
+        logger.debug("TestSuite finished. Enabling the 'Add' button.")
         updateOkButtonState()
       }
     }
@@ -358,6 +360,7 @@ class UpdateReferenceImagesDialog(
     val failedPreviews = panelsToCopy.filter { !it.isLoadedSuccessfully }
     if (failedPreviews.isNotEmpty()) {
       val failedNames = failedPreviews.joinToString(separator = "\n") { "- ${it.previewData.previewName}" }
+      logger.error("The following selected previews have not rendered successfully: $failedNames")
       Messages.showErrorDialog(
         project,
         "The following selected previews have not rendered successfully. Please uncheck them to proceed:\n\n$failedNames",
@@ -394,9 +397,11 @@ class UpdateReferenceImagesDialog(
             }.withProjectId(project)
           )
           close(OK_EXIT_CODE)
+          logger.info("Reference images were updated successfully")
           Messages.showInfoMessage(project, "Reference images were updated successfully.", "Update Successful")
         } else {
           val failedNames = failures.joinToString(separator = "\n") { "- ${it.previewData.previewName}" }
+          logger.error("Failed to copy the following previews: $failedNames")
           Messages.showErrorDialog(project, "Failed to copy the following previews:\n\n$failedNames", "Copy Failed")
           okButton?.text = originalText
           okButton?.icon = null

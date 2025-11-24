@@ -328,8 +328,8 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
         val file = File(filePath)
         if (file.exists()) ImageIO.read(file) else null
       } catch (e: Exception) {
-        LOG.warn("Error loading screenshot image: $filePath", e)
-        null // Silently fail, the placeholder text will be shown.
+        LOG.error("Error loading screenshot image from path: $filePath", e)
+        null // Log the error, the placeholder text will be shown.
       }
       UIUtil.invokeLaterIfNeeded {
         targetPanel.setImage(image)
