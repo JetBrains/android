@@ -51,6 +51,10 @@ private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule
 /**
  * A [TestRule] providing the same behaviour as [AndroidProjectRule] but with the correct setup for
  * testing Compose preview elements.
+ *
+ * The rule is used by the Compose Preview as a convenience wrapper on top of [AndroidProjectRule].
+ * This rule is not intended to test Compose UI elements and should not be used in test that are
+ * checking UI state as it depends on IntelliJ infrastructure making the test inherently flaky.
  */
 class ComposeProjectRule(
   private val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
