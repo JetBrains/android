@@ -17,6 +17,7 @@ package com.android.screenshottest.ui
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
@@ -24,18 +25,32 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
+import java.io.File
+import java.util.Base64
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.contains
 
 class UpdateReferenceImagesDialogTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
+  @get:Rule
+  val tempFolder = TemporaryFolder()
+
   private var dialog: UpdateReferenceImagesDialog? = null
+  private val mockLogger: Logger = mock(Logger::class.java)
+
+  // A tiny 1x1 transparent PNG
+  private val TINY_PNG_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+  private val TINY_PNG_BYTES = Base64.getDecoder().decode(TINY_PNG_BASE64)
 
   @After
   fun tearDown() {
@@ -46,7 +61,8 @@ class UpdateReferenceImagesDialogTest {
 
   @Test
   fun testTreePopulation() = runInEdtAndWait {
-    dialog = UpdateReferenceImagesDialog(projectRule.project)
+    dialog = createDialog()
+    val imagePath = createTempImage("preview1.png")
 
     val details = PreviewDetails(
       testId = "id",
@@ -54,7 +70,7 @@ class UpdateReferenceImagesDialogTest {
       methodName = "testMethod",
       previewName = "preview1",
       testResult = AndroidTestCaseResult.PASSED,
-      srcImagePath = "/tmp/fake.png"
+      srcImagePath = imagePath
     )
 
     dialog?.updateDialogWithTestResult(details, isChecked = true)
@@ -79,17 +95,18 @@ class UpdateReferenceImagesDialogTest {
 
   @Test
   fun testOkButtonState() = runInEdtAndWait {
-    dialog = UpdateReferenceImagesDialog(projectRule.project)
+    dialog = createDialog()
     // Initially OK disabled
     assertFalse("OK button should be disabled initially", dialog!!.isOKActionEnabled)
 
+    val imagePath = createTempImage("preview2.png")
     val details = PreviewDetails(
       testId = "id",
       className = "com.example.TestClass",
       methodName = "testMethod",
       previewName = "preview1",
       testResult = AndroidTestCaseResult.PASSED,
-      srcImagePath = "/tmp/fake.png"
+      srcImagePath = imagePath
     )
 
     dialog?.updateDialogWithTestResult(details, isChecked = true)
@@ -107,14 +124,15 @@ class UpdateReferenceImagesDialogTest {
 
   @Test
   fun testSelectionUpdatesOkButton() = runInEdtAndWait {
-    dialog = UpdateReferenceImagesDialog(projectRule.project)
+    dialog = createDialog()
+    val imagePath = createTempImage("preview3.png")
     val details = PreviewDetails(
       testId = "id",
       className = "TestClass",
       methodName = "testMethod",
       previewName = "preview1",
       testResult = AndroidTestCaseResult.PASSED,
-      srcImagePath = "/tmp/fake.png"
+      srcImagePath = imagePath
     )
 
     dialog?.updateDialogWithTestResult(details, isChecked = true)
@@ -145,21 +163,64 @@ class UpdateReferenceImagesDialogTest {
 
   @Test
   fun testNoTestsDiscovered() = runInEdtAndWait {
-    dialog = UpdateReferenceImagesDialog(projectRule.project)
+    dialog = createDialog()
     // No tests added
 
     // Handle expected error dialog
     TestDialogManager.setTestDialog(TestDialog.OK)
 
-    try {
-        dialog?.onTestSuiteFinished()
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    dialog?.onTestSuiteFinished()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-        // Verify dialog was closed (exit code should be CANCEL)
-        assertEquals(DialogWrapper.CANCEL_EXIT_CODE, dialog!!.exitCode)
-    } finally {
-        TestDialogManager.setTestDialog(TestDialog.DEFAULT)
-    }
+    // Verify the logger was called with expected message
+    verify(mockLogger).error(contains("No tests were discovered"))
+
+    // Verify dialog was closed
+    assertEquals(DialogWrapper.CANCEL_EXIT_CODE, dialog!!.exitCode)
+
+    TestDialogManager.setTestDialog(TestDialog.DEFAULT)
+  }
+
+  @Test
+  fun testMissingMetadataLogsWarning() = runInEdtAndWait {
+    dialog = createDialog()
+    val imagePath = createTempImage("preview4.png")
+
+    // Missing methodName and previewName (empty strings)
+    val details = PreviewDetails(
+      testId = "id",
+      className = "com.example.TestClass",
+      methodName = "",
+      previewName = "",
+      testResult = AndroidTestCaseResult.PASSED,
+      srcImagePath = imagePath
+    )
+
+    dialog?.updateDialogWithTestResult(details, isChecked = true)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Verify warn was logged
+    verify(mockLogger).warn(contains("Missing methodName or previewName"))
+  }
+
+  @Test
+  fun testMissingImageLogsError() = runInEdtAndWait {
+    dialog = createDialog()
+    // No image path provided (null)
+    val details = PreviewDetails(
+      testId = "testMissingImage",
+      className = "com.example.TestClass",
+      methodName = "testMethod",
+      previewName = "preview1",
+      testResult = AndroidTestCaseResult.PASSED,
+      srcImagePath = null
+    )
+
+    dialog?.updateDialogWithTestResult(details, isChecked = true)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Verify warn was logged
+    verify(mockLogger).warn(contains("Source image path missing"))
   }
 
   private fun findTree(dialog: UpdateReferenceImagesDialog): CheckboxTree {
@@ -172,5 +233,15 @@ class UpdateReferenceImagesDialogTest {
     val method = UpdateReferenceImagesDialog::class.java.getDeclaredMethod("updateOkButtonState")
     method.isAccessible = true
     method.invoke(dialog)
+  }
+
+  private fun createTempImage(name: String): String {
+    val file = tempFolder.newFile(name)
+    file.writeBytes(TINY_PNG_BYTES)
+    return file.absolutePath
+  }
+
+  private fun createDialog(): UpdateReferenceImagesDialog {
+    return UpdateReferenceImagesDialog(projectRule.project, mockLogger)
   }
 }
