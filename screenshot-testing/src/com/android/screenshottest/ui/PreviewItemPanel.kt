@@ -159,6 +159,7 @@ class PreviewItemPanel(
 
           isLoadedSuccessfully = true
         } else {
+          logger.error("Couldn't load image from path: $newPath")
           showError("Couldn't load image")
         }
       }
@@ -169,7 +170,7 @@ class PreviewItemPanel(
     val ioFile = File(path)
     val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(ioFile)
     if (virtualFile == null || virtualFile.length == 0L) {
-      logger.warn("Image file not found or is empty after build: $path")
+      logger.warn("Image file not found or is empty after build. Image path: $path")
       return null
     }
     return try {
@@ -201,7 +202,7 @@ class PreviewItemPanel(
       val scaledImage = ImageUtil.scaleImage(image, finalW, finalH)
       JBImageIcon(scaledImage)
     } catch (e: IOException) {
-      logger.error("IOException while loading image: $path", e)
+      logger.error("IOException occurred while loading image from path: $path", e)
       null
     }
   }
