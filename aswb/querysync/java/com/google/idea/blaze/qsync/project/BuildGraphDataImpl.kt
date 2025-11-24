@@ -47,14 +47,16 @@ import kotlin.jvm.optionals.getOrNull
  */
 @ConsistentCopyVisibility
 data class BuildGraphDataImpl private constructor(
-  private val projectDefinitionTargetPatterns: TargetPatternCollection,
   @VisibleForTesting @JvmField val storage: Storage,
-  private val sourceOwners: Map<Label, List<Label>>,
-  private val alwaysBuildTargets: Set<Label>,
 ) : BuildGraphData {
 
+  private val projectDefinitionTargetPatterns: TargetPatternCollection = storage.projectDefinitionTargetPatterns
+  private val alwaysBuildTargets: Set<Label> = computeAlwaysBuildTargets(storage)
+  private val sourceOwners: Map<Label, List<Label>> = computeSourceOwners(storage)
   private val nodes: Map<Label, GraphNode> = computeNodes(storage)
   private val packages: PackageSet = computePackages(storage)
+  @VisibleForTesting
+  val allSupportedTargets: TargetTree = TargetTree.create(storage.allSupportedTargetLabels)
   override val externalDependencyCountForStatsOnly: Int = computeExternalDependencyCount(storage)
 
   private interface GraphNode {
@@ -248,23 +250,17 @@ data class BuildGraphDataImpl private constructor(
 
   private data class TargetSearchNode(val targetLabel: Label, val hasDesiredRule: Boolean)
 
-  override fun toString(): String {
-    return javaClass.getSimpleName() + "@" + Integer.toHexString(System.identityHashCode(this))
-  }
-
   /**
    * Build graph data in one place.
    */
   data class Storage(
     val sourceFileLabels: Set<Label>,
     val targetMap: Map<Label, ProjectTarget>,
-    val allSupportedTargets: TargetTree,
+    val allSupportedTargetLabels: Set<Label>,
+    val projectDefinitionTargetPatterns: TargetPatternCollection,
+    val alwaysBuildRules: Set<String>,
+    val supportedBuildRules: Set<String>
   ) {
-    constructor(
-      sourceFileLabels: Set<Label>,
-      targetMap: Map<Label, ProjectTarget>,
-      allSupportedTargetLabels: Set<Label>,
-    ) : this(sourceFileLabels, targetMap, TargetTree.create(allSupportedTargetLabels))
 
     /**
      * Builder for [BuildGraphDataImpl].
@@ -279,15 +275,16 @@ data class BuildGraphDataImpl private constructor(
         alwaysBuildRules: Set<String>,
         supportedBuildRules: Set<String>,
       ): BuildGraphDataImpl {
-        val storage = Storage(sourceFileLabelsBuilder, targetMapBuilder, allTargetLabelsBuilder)
-        val sourceOwners = computeSourceOwners(storage)
-        val alwaysBuildTargets = computeAlwaysBuildTargets(storage, sourceOwners, alwaysBuildRules, supportedBuildRules)
-        return BuildGraphDataImpl(
-          projectDefinitionTargetPatterns,
-          storage,
-          sourceOwners,
-          alwaysBuildTargets,
-        )
+        val storage =
+          Storage(
+            sourceFileLabels = sourceFileLabelsBuilder,
+            targetMap = targetMapBuilder,
+            allSupportedTargetLabels = allTargetLabelsBuilder,
+            projectDefinitionTargetPatterns = projectDefinitionTargetPatterns,
+            alwaysBuildRules = alwaysBuildRules,
+            supportedBuildRules = supportedBuildRules
+          )
+        return BuildGraphDataImpl(storage)
       }
 
       fun addSourceFileLabel(label: Label): Builder {
@@ -303,40 +300,6 @@ data class BuildGraphDataImpl private constructor(
       fun addSupportedTargetLabel(label: Label): Builder {
         allTargetLabelsBuilder.add(label)
         return this
-      }
-
-      companion object {
-        private fun computeSourceOwners(storage: Storage): Map<Label, List<Label>> {
-          return storage.targetMap.values.asSequence()
-            .flatMap { target ->
-              target.sourceLabels()
-                .values()
-                .asSequence()
-                .map { it to target.label() }
-            }
-            .groupBy({ it.first }, { it.second })
-        }
-
-        private fun computeAlwaysBuildTargets(
-          storage: Storage,
-          sourceOwners: Map<Label, List<Label>>,
-          alwaysBuildRules: Set<String>,
-          supportedBuildRules: Set<String>,
-        ): Set<Label> {
-          return storage.targetMap.values
-            .filter { target ->
-              val sourceLabels = target.sourceLabels()
-              return@filter (if (supportedBuildRules.isEmpty()) {
-                target.kind() in alwaysBuildRules
-              } else {
-                target.kind() !in supportedBuildRules
-              }) ||
-              sourceLabels[SourceType.AIDL].isNotEmpty() ||
-              sourceLabels.values().any { !sourceOwners.containsKey(it) }
-            }
-            .map { it.label() }
-            .toSet()
-        }
       }
     }
 
@@ -460,9 +423,9 @@ data class BuildGraphDataImpl private constructor(
     // TODO: support Bazel.
     if (workspaceRelativePath.endsWith("BUILD")) {
       val packagePath = workspaceRelativePath.parent
-      return targetGroup(storage.allSupportedTargets.getDirectTargets(packagePath).toList())
+      return targetGroup(allSupportedTargets.getDirectTargets(packagePath).toList())
     } else {
-      val targets = storage.allSupportedTargets.getSubpackages(workspaceRelativePath).toList()
+      val targets = allSupportedTargets.getSubpackages(workspaceRelativePath).toList()
       if (targets.isNotEmpty()) {
         // this will only be non-empty for directories
         return targetGroup(targets)
@@ -515,7 +478,7 @@ data class BuildGraphDataImpl private constructor(
   }
 
   override val projectSupportedTargetCountForStatsOnly: Int
-    get() = storage.allSupportedTargets.targetCountForStatsOnly
+    get() = allSupportedTargets.targetCountForStatsOnly
 
   override val targetMapSizeForStatsOnly: Int
     get() = storage.targetMap.size
@@ -562,7 +525,7 @@ data class BuildGraphDataImpl private constructor(
 
   override fun computeWholeProjectTargets(): RequestedTargets {
     return computeRequestedTargets(
-      storage.allSupportedTargets.getTargets().filter { projectDefinitionTargetPatterns.inScope(it).status == INCLUDED }.toList()
+      allSupportedTargets.getTargets().filter { projectDefinitionTargetPatterns.inScope(it).status == INCLUDED }.toList()
     )
   }
 
@@ -651,6 +614,35 @@ data class BuildGraphDataImpl private constructor(
     @JvmStatic
     fun builder(): Storage.Builder {
       return Storage.builder()
+    }
+
+    private fun computeSourceOwners(storage: Storage): Map<Label, List<Label>> {
+      return storage.targetMap.values.asSequence()
+        .flatMap { target ->
+          target.sourceLabels()
+            .values()
+            .asSequence()
+            .map { it to target.label() }
+        }
+        .groupBy({ it.first }, { it.second })
+    }
+
+    private fun computeAlwaysBuildTargets(
+      storage: Storage
+    ): Set<Label> {
+      val sourceOwners = computeSourceOwners(storage)
+      return storage.targetMap.values
+        .filter { target ->
+          val sourceLabels = target.sourceLabels()
+          return@filter (
+                          if (storage.supportedBuildRules.isEmpty()) target.kind() in storage.alwaysBuildRules
+                          else target.kind() !in storage.supportedBuildRules
+                        ) ||
+                        sourceLabels[SourceType.AIDL].isNotEmpty() ||
+                        sourceLabels.values().any { !sourceOwners.containsKey(it) }
+        }
+        .map { it.label() }
+        .toSet()
     }
 
     private fun computeNodes(storage: Storage): Map<Label, GraphNode> {

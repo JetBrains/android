@@ -19,6 +19,7 @@ import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.RuleKinds
+import com.google.idea.blaze.common.TargetPattern
 import com.google.idea.blaze.common.TargetPatternCollection
 import com.google.idea.blaze.common.TargetPatternCollection.Companion.create
 import com.google.idea.blaze.qsync.BlazeQueryParser
@@ -81,7 +82,40 @@ class BuildGraphDataImplTest {
 
   @Test
   fun valueEquality() {
-    assert(builder().build(emptyTargetCollection, emptySet(), emptySet()) == builder().build(emptyTargetCollection, emptySet(), emptySet()))
+    assertThat(builder().build(emptyTargetCollection, emptySet(), emptySet()))
+      .isEqualTo(builder().build(emptyTargetCollection, emptySet(), emptySet()))
+  }
+
+  @Test
+  fun valueInequality_differentProjectDefinition() {
+    val projectDefinition1 = TargetPatternCollection.create(listOf(TargetPattern.parse("//:target1")))
+    val projectDefinition2 = TargetPatternCollection.create(listOf(TargetPattern.parse("//:target2")))
+    assertThat(builder().build(projectDefinition1, emptySet(), emptySet()))
+      .isNotEqualTo(builder().build(projectDefinition2, emptySet(), emptySet()))
+  }
+
+  @Test
+  fun valueInequality_differentAlwaysBuildRules() {
+    val alwaysBuildRules1 = setOf("rule1")
+    val alwaysBuildRules2 = setOf("rule2")
+    assertThat(builder().build(emptyTargetCollection, alwaysBuildRules1, emptySet()))
+      .isNotEqualTo(builder().build(emptyTargetCollection, alwaysBuildRules2, emptySet()))
+  }
+
+  @Test
+  fun valueInequality_differentSupportedBuildRules() {
+    val supportedBuildRules1 = setOf("rule1")
+    val supportedBuildRules2 = setOf("rule2")
+    assertThat(builder().build(emptyTargetCollection, emptySet(), supportedBuildRules1))
+      .isNotEqualTo(builder().build(emptyTargetCollection, emptySet(), supportedBuildRules2))
+  }
+
+  @Test
+  fun valueInequality_differentSupportedTargets() {
+    val builder1 = builder().addSupportedTargetLabel(Label.of("//:target1"))
+    val builder2 = builder().addSupportedTargetLabel(Label.of("//:target2"))
+    assertThat(builder1.build(emptyTargetCollection, emptySet(), emptySet()))
+      .isNotEqualTo(builder2.build(emptyTargetCollection, emptySet(), emptySet()))
   }
 
   @Test
@@ -129,7 +163,7 @@ class BuildGraphDataImplTest {
       )
         .parseForTesting()
     assertThat(
-        graph.storage.allSupportedTargets.getTargets().toList()
+        graph.allSupportedTargets.getTargets().toList()
     )
       .containsExactly(Label.of("//$TESTDATA_ROOT/nodeps:nodeps"))
     assertThat(graph.storage.sourceFileLabels)
@@ -363,7 +397,7 @@ class BuildGraphDataImplTest {
         emptySet()
       )
         .parseForTesting()
-    assertThat(graph.storage.allSupportedTargets.getTargets().toList())
+    assertThat(graph.allSupportedTargets.getTargets().toList())
       .containsExactly(
         Label.of("//$TESTDATA_ROOT/multitarget:nodeps"),
         Label.of("//$TESTDATA_ROOT/multitarget:externaldep")
