@@ -80,12 +80,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
@@ -393,19 +391,7 @@ internal suspend fun FlowCollector<PairingState>.launchGlassesAndPhone(
   val phoneName = phone.state.properties.title
   val glassesName = glasses.state.properties.title
 
-  val glassesLaunchState =
-    launchAvd(glasses).shareIn(this@coroutineScope, SharingStarted.Eagerly, replay = 1)
-
-  // Give the glasses a 10 second head start before starting the phone. Start the phone
-  // immediately if glasses are already booted.
-  withTimeoutOrNull(10.seconds) {
-    glassesLaunchState
-      .onEach { emit(PairingState.Launching(phoneName, LaunchState.Waiting, glassesName, it)) }
-      .takeWhile { it != LaunchState.Ready }
-      .collect()
-  }
-
-  glassesLaunchState
+  launchAvd(glasses)
     .combine(launchAvd(phone)) { glassesState, phoneState ->
       PairingState.Launching(phoneName, phoneState, glassesName, glassesState)
     }
