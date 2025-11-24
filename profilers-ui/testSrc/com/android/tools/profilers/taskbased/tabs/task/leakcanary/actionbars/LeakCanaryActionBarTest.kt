@@ -88,6 +88,8 @@ class LeakCanaryActionBarTest: WithFakeTimer {
     val startTimestamp = System.currentTimeMillis()
     transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTimestamp))
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTimestamp))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTimestamp))
     leakCanaryModel.startListening()

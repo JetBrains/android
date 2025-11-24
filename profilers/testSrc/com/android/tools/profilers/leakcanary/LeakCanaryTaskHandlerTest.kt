@@ -98,6 +98,8 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
                                         "MultiApplicationLeak.txt",
                                         "NoLeak.txt"
                                       ), startTime))
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     leakCanaryTaskHandler.setupStage()
@@ -127,6 +129,8 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
                                          "MultiApplicationLeak.txt",
                                          "NoLeak.txt"
                                        ), startTime))
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     leakCanaryTaskHandler.setupStage()
@@ -239,6 +243,8 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
     val startTime = System.currentTimeMillis()
     transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf("ActivityLeak.txt"), startTime))
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     leakCanaryTaskHandler.setupStage()
@@ -262,6 +268,8 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
     val startTime = System.currentTimeMillis()
     transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf("FragmentLeak.txt"), startTime))
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     leakCanaryTaskHandler.setupStage()
@@ -289,6 +297,8 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
     val startTime = System.currentTimeMillis()
     transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf("FragmentViewLeak.txt"), startTime))
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     leakCanaryTaskHandler.setupStage()
@@ -316,6 +326,8 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
     val startTime = System.currentTimeMillis()
     transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf("ViewModelLeak.txt"), startTime))
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     leakCanaryTaskHandler.setupStage()
@@ -343,6 +355,8 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
     val startTime = System.currentTimeMillis()
     transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf("ServiceLeak.txt"), startTime))
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     leakCanaryTaskHandler.setupStage()
