@@ -28,6 +28,7 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
 import com.intellij.codeInsight.daemon.impl.IdentifierHighlighterPassFactory;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
+import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.grazie.spellcheck.GrazieSpellCheckingInspection;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -1150,7 +1151,10 @@ public class AndroidValueResourcesTest {
     myFixture.configureFromExistingVirtualFile(virtualFile);
     List<IntentionAction> fixes = highlightAndFindQuickFixes(null);
     assertThat(fixes.size()).isEqualTo(2);
-    assertThat(fixes.get(0)).isInstanceOf(RenameTo.class);
+
+    // TODO(b/463392037): After 2025.3 merge, remove unwrapping of first fix.
+    LocalQuickFix unwrapped = QuickFixWrapper.unwrap(fixes.get(0));
+    assertThat(unwrapped == null ? fixes.get(0) : unwrapped).isInstanceOf(RenameTo.class);
     assertThat(QuickFixWrapper.unwrap(fixes.get(1))).isInstanceOf(SaveTo.class);
   }
 
