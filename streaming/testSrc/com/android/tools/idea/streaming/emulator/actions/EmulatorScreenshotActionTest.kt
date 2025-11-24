@@ -53,7 +53,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.util.ui.EDT
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.IOException
@@ -268,7 +267,7 @@ class EmulatorScreenshotActionTest {
 }
 
 private fun ScreenshotViewer.waitForUpdateAndGetImage(expectTransparentCorner: Boolean? = null): BufferedImage {
-  EDT.dispatchAllInvocationEvents()
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   val fileEditor = fileEditor()
   waitForCondition(2.seconds) {
