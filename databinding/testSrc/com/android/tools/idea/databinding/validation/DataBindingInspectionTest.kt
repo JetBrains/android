@@ -20,7 +20,7 @@ import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.facet.FacetManager
-import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -39,7 +39,7 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
 
   @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
-  private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
+  private val fixture: JavaCodeInsightTestFixture by lazy { projectRule.fixture }
 
   @Before
   fun setUp() {
