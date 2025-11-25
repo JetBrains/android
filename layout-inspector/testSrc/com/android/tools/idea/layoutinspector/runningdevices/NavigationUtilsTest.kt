@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.tree.GotoDeclaration
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.runDispatching
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
@@ -131,7 +132,10 @@ private class FakeInspectorClient : InspectorClient {
 
   override fun refresh() {}
 
-  override suspend fun saveSnapshot(path: Path) {}
+  override suspend fun saveSnapshot(
+    path: Path,
+    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type,
+  ) {}
 
   override val clientType = DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
   override val state = InspectorClient.State.CONNECTED

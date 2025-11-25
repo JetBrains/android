@@ -33,14 +33,14 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.write
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
-import layoutinspector.snapshots.Metadata
-import layoutinspector.snapshots.Snapshot
 import java.io.ByteArrayOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
+import layoutinspector.snapshots.Metadata
+import layoutinspector.snapshots.Snapshot
 
 val APP_INSPECTION_SNAPSHOT_VERSION = ProtocolVersion.Version4
 
@@ -103,6 +103,10 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
               treeLoader.loadComponentTree(data, model.resourceLookup, processDescriptor)
                 ?: throw Exception()
             capabilities.addAll(treeData.dynamicCapabilities)
+
+            // Trigger a refresh to make sure that the bitmap bytes are converted to an actual image
+            treeData.window?.refreshImages(1.0)
+
             model.update(treeData.window, rootIds, treeData.generation)
             viewPropertiesCache.setAllFrom(windowInfo.properties)
             composeInfo?.composeParameters?.let { composeParametersCache.setAllFrom(it) }

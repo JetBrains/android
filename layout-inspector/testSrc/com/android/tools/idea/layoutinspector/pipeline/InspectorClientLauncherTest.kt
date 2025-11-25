@@ -30,6 +30,7 @@ import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.metrics.MetricsTrackerRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -797,7 +798,10 @@ private open class FakeInspectorClient(
 
   override fun refresh() = throw NotImplementedError()
 
-  override suspend fun saveSnapshot(path: Path) = throw NotImplementedError()
+  override suspend fun saveSnapshot(
+    path: Path,
+    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type,
+  ) = throw NotImplementedError()
 
   override suspend fun doConnect() {}
 

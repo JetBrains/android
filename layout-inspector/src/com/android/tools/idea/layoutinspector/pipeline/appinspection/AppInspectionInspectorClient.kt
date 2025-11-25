@@ -453,9 +453,12 @@ class AppInspectionInspectorClient(
     }
   }
 
-  override suspend fun saveSnapshot(path: Path) {
+  override suspend fun saveSnapshot(
+    path: Path,
+    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type,
+  ) {
     val startTime = System.currentTimeMillis()
-    val metadata = viewInspector?.saveSnapshot(path)
+    val metadata = viewInspector?.saveSnapshot(path, screenshotType)
     metadata?.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
     val saveMetrics = LayoutInspectorSessionMetrics(model.project, snapshotMetadata = metadata)
