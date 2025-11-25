@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
@@ -25,14 +26,16 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
+import com.intellij.ui.EditorNotificationPanel
 import icons.StudioIcons
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val ROTATION_FRAMES = 20L
 private const val ROTATION_TIMEOUT = 10_000L
+private const val DEPRECATION_WARNING = "3d.mode.deprecation.warning"
 
 class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
   AnAction(StudioIcons.LayoutInspector.Toolbar.MODE_3D),
@@ -47,8 +50,16 @@ class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
     val client = inspector?.currentClient
 
     if (renderModel.isRotated) {
+      inspector?.notificationModel?.removeNotification(id = DEPRECATION_WARNING)
       renderModel.resetRotation()
     } else {
+      inspector
+        ?.notificationModel
+        ?.addNotification(
+          id = DEPRECATION_WARNING,
+          text = LayoutInspectorBundle.message(DEPRECATION_WARNING),
+          status = EditorNotificationPanel.Status.Warning,
+        )
       client?.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
       val timerStart = getCurrentTimeMillis()
       val executor = executorFactory()
