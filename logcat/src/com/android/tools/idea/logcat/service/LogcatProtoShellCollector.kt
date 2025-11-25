@@ -24,11 +24,14 @@ import com.android.tools.idea.logcat.message.LogcatHeader
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.util.LOGGER
 import com.google.protobuf.ByteString
-import kotlinx.coroutines.flow.FlowCollector
 import java.nio.ByteBuffer
 import java.nio.ByteOrder.LITTLE_ENDIAN
 import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Instant
+import kotlinx.coroutines.flow.FlowCollector
+
+private const val TEXT_PREFIX = "--------- beginning of "
 
 /**
  * A [ShellV2Collector] implementation that collects `stdout` as a sequence of lists of
@@ -48,6 +51,7 @@ class LogcatProtoShellCollector(
 ) : ShellV2Collector<List<LogcatMessage>> {
   // Bytes left over from the last call. These bytes are the start of the next message to be read.
   private var leftoverBytes: ByteArray = ByteArray(0)
+  private var firstTime = true
 
   override suspend fun start(collector: FlowCollector<List<LogcatMessage>>) {}
 
@@ -84,8 +88,14 @@ class LogcatProtoShellCollector(
    *   bytes.
    */
   private fun getFirstLogMessage(buffer: ByteBuffer): LogcatMessage? {
+    if (firstTime) {
+      // Workaround for b/459864815
+      if (buffer.startsWith(TEXT_PREFIX)) {
+        buffer.readLine()
+      }
+      firstTime = false
+    }
     val remaining = buffer.remaining()
-
     // Get the size, so we can check if we have enough bytes to read the message.
     val size =
       when {
@@ -96,8 +106,9 @@ class LogcatProtoShellCollector(
             leftoverBytes = buffer.getBytes(remaining)
             return null
           }
+          buffer.mark()
           val size = buffer.getSize()
-          buffer.position(0)
+          buffer.reset()
           size
         }
 
@@ -116,9 +127,10 @@ class LogcatProtoShellCollector(
             leftoverBytes += buffer.getBytes(remaining)
             return null
           }
+          buffer.mark()
           val bytes = leftoverBytes + buffer.getBytes(needed)
           // Reset the buffer because we will read the remainder again below
-          buffer.position(0)
+          buffer.reset()
           bytes.getSize()
         }
       }
@@ -237,3 +249,50 @@ private fun ByteString.toMessage(): String {
 }
 
 private fun ByteString.endsWithNewline() = size() > 0 && byteAt(size() - 1) == NEWLINE
+
+private fun ByteBuffer.startsWith(text: String): Boolean {
+  mark()
+  try {
+    val prefixBytes = text.toByteArray(UTF_8)
+    if (remaining() < prefixBytes.size) {
+      return false
+    }
+    val bytes = ByteArray(prefixBytes.size)
+    get(bytes)
+    return bytes.contentEquals(prefixBytes)
+  } finally {
+    reset()
+  }
+}
+
+private fun ByteBuffer.readLine(charset: Charset = UTF_8): String {
+  if (!hasRemaining()) {
+    throw IllegalArgumentException("Buffer starts with $TEXT_PREFIX but has no remaining bytes")
+  }
+
+  val startPosition = position()
+  var endOfLine = -1
+
+  for (i in startPosition until limit()) {
+    if (get(i) == '\n'.code.toByte()) {
+      endOfLine = i
+      break
+    }
+  }
+
+  val lineBytes: ByteArray
+  if (endOfLine != -1) {
+    val length = endOfLine - startPosition
+    lineBytes = ByteArray(length)
+    get(lineBytes)
+    get()
+  } else {
+    throw IllegalArgumentException("Buffer starts with $TEXT_PREFIX but has no newline")
+  }
+
+  return if (lineBytes.isNotEmpty() && lineBytes.last() == '\r'.code.toByte()) {
+    String(lineBytes, 0, lineBytes.size - 1, charset)
+  } else {
+    String(lineBytes, charset)
+  }
+}
