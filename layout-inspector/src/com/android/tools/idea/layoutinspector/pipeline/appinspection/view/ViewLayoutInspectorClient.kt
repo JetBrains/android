@@ -372,7 +372,7 @@ class ViewLayoutInspectorClient(
     }
   }
 
-  suspend fun saveSnapshot(path: Path): SnapshotMetadata {
+  suspend fun saveSnapshot(path: Path, screenshotType: Screenshot.Type): SnapshotMetadata {
     val snapshotMetadata =
       SnapshotMetadata(
         snapshotVersion = APP_INSPECTION_SNAPSHOT_VERSION,
@@ -387,7 +387,7 @@ class ViewLayoutInspectorClient(
 
     try {
       if (isFetchingContinuously) {
-        fetchAndSaveSnapshot(path, snapshotMetadata)
+        fetchAndSaveSnapshot(path, snapshotMetadata, screenshotType)
       } else {
         saveNonLiveSnapshot(path, snapshotMetadata)
       }
@@ -429,16 +429,15 @@ class ViewLayoutInspectorClient(
     )
   }
 
-  private suspend fun fetchAndSaveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
+  private suspend fun fetchAndSaveSnapshot(
+    path: Path,
+    snapshotMetadata: SnapshotMetadata,
+    screenshotType: Screenshot.Type,
+  ) {
     val response =
       messenger.sendCommand {
         captureSnapshotCommand =
-          CaptureSnapshotCommand.newBuilder()
-            .apply {
-              // TODO: support bitmap
-              screenshotType = Screenshot.Type.SKP
-            }
-            .build()
+          CaptureSnapshotCommand.newBuilder().setScreenshotType(screenshotType).build()
       }
 
     val snapshotResponse =

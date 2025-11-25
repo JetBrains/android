@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED_ARGB
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
@@ -188,7 +189,7 @@ interface InspectorClient : Disposable {
    * Save a snapshot of the current view, including all data needed to reconstitute it (e.g.
    * properties information) to the given [path].
    */
-  suspend fun saveSnapshot(path: Path)
+  suspend fun saveSnapshot(path: Path, screenshotType: LayoutInspectorViewProtocol.Screenshot.Type)
 
   /** The type of client (app inspection or legacy client) */
   val clientType: ClientType
@@ -253,7 +254,10 @@ object DisconnectedClient : InspectorClient {
 
   override fun refresh() {}
 
-  override suspend fun saveSnapshot(path: Path) {}
+  override suspend fun saveSnapshot(
+    path: Path,
+    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type,
+  ) {}
 
   override val clientType: ClientType = ClientType.UNKNOWN_CLIENT_TYPE
 

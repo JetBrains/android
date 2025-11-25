@@ -119,7 +119,10 @@ class AppInspectionSnapshotSupportTest {
     inspectorRule.processes.selectedProcess = PROCESS
     waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }
 
-    inspectorRule.inspectorClient.saveSnapshot(savePath)
+    inspectorRule.inspectorClient.saveSnapshot(
+      savePath,
+      LayoutInspectorViewProtocol.Screenshot.Type.SKP,
+    )
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel =
       InspectorModel(inspectorRule.project, AndroidCoroutineScope(inspectorRule.disposable))
@@ -148,7 +151,10 @@ class AppInspectionSnapshotSupportTest {
     inspectorRule.processes.selectedProcess = PROCESS
     waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }
 
-    inspectorRule.inspectorClient.saveSnapshot(savePath)
+    inspectorRule.inspectorClient.saveSnapshot(
+      savePath,
+      LayoutInspectorViewProtocol.Screenshot.Type.SKP,
+    )
     inspectorRule.inspectorModel.resourceLookup.updateConfiguration(null, null)
 
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
@@ -193,7 +199,10 @@ class AppInspectionSnapshotSupportTest {
     inspectorRule.processes.selectedProcess = PROCESS
     waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }
 
-    inspectorRule.inspectorClient.saveSnapshot(savePath)
+    inspectorRule.inspectorClient.saveSnapshot(
+      savePath,
+      LayoutInspectorViewProtocol.Screenshot.Type.SKP,
+    )
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel =
       InspectorModel(inspectorRule.project, AndroidCoroutineScope(inspectorRule.disposable))
@@ -263,7 +272,10 @@ class AppInspectionSnapshotSupportTest {
     // Try to save the snapshot right away, before we've gotten any events
     val snapshotJob = launch {
       deferred.complete(Unit)
-      inspectorRule.inspectorClient.saveSnapshot(savePath)
+      inspectorRule.inspectorClient.saveSnapshot(
+        savePath,
+        LayoutInspectorViewProtocol.Screenshot.Type.SKP,
+      )
     }
 
     // Now send the events

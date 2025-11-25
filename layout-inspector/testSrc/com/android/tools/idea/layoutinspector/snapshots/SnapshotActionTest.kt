@@ -130,7 +130,7 @@ class SnapshotActionTest {
         path.write(byteArrayOf(1, 2, 3))
       }
       .whenever(client)
-      .saveSnapshot(any())
+      .saveSnapshot(any(), any())
     doAnswer { isConnected }.whenever(client).isConnected
     val dataContext = SimpleDataContext.getSimpleContext(LAYOUT_INSPECTOR_DATA_KEY, inspector)
     AnActionEvent.createEvent(
