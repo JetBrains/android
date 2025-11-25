@@ -66,4 +66,7 @@ interface IdeAndroidGradlePluginProjectFlags {
 
   /** Whether to use Gradle managed devices.  */
   val useCustomManagedDevices: Boolean
+
+  /** Whether Studio needs to highlight gradual R8 */
+  val highlightGradualR8Api: Boolean
 }

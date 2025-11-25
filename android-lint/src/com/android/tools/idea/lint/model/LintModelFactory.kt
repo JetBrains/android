@@ -109,7 +109,6 @@ class LintModelFactory : LintModelModuleLoader {
     deep: Boolean = true,
   ): LintModelModule {
     val agpVersion = getAgpVersion(project)
-
     return if (deep) {
       val variantList = mutableListOf<LintModelVariant>()
       val module =

@@ -87,7 +87,7 @@ data class IdeAndroidProjectImpl(
     desugarLibraryConfigFiles,
     defaultVariantName,
     lintJar,
-    testSuites,
+    testSuites
   )) : IdeAndroidProject, Serializable {
   constructor(
     agpVersion: String,

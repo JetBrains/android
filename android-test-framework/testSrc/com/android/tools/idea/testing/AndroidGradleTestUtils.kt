@@ -1039,6 +1039,7 @@ fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub(): IdeAndroidGradlePlugin
     generateManifestClass = true,
     disableAgpUpgradePrompt = false,
     useCustomManagedDevices = false,
+    highlightGradualR8Api = false,
   )
 
 fun AndroidProjectStubBuilder.buildDefaultConfigStub() =
