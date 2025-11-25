@@ -64,6 +64,7 @@ data class BuildGraphDataImpl private constructor(
     val deps: Collection<GraphNode>
     val rdeps: Collection<GraphNode>
     val data: NodeData
+    val protoModes: Set<BuildGraphData.ProtoMode>
   }
 
   private sealed interface NodeData
@@ -76,6 +77,15 @@ data class BuildGraphDataImpl private constructor(
   ) : GraphNode {
     override val deps = mutableListOf<GraphNodeImpl>()
     override val rdeps = mutableListOf<GraphNodeImpl>()
+    val downwardProtoModes = mutableSetOf<BuildGraphData.ProtoMode>()
+    val upwardProtoModes = mutableSetOf<BuildGraphData.ProtoMode>()
+    override val protoModes: Set<BuildGraphData.ProtoMode>
+      get() = buildSet {
+        explicitProtoMode?.let { add(it) }
+        addAll(downwardProtoModes)
+        addAll(upwardProtoModes)
+      }
+    var explicitProtoMode: BuildGraphData.ProtoMode? = null
     override fun toString(): String {
       return "GraphNodeImpl(label=$label, data=$data)"
     }
@@ -649,7 +659,9 @@ data class BuildGraphDataImpl private constructor(
     }
 
     private fun computeNodes(storage: Storage): Map<Label, GraphNode> {
-      return buildGraph(storage)
+      val nodes = buildGraph(storage)
+      propagateProtoModes(nodes.values, storage.protoRules)
+      return nodes
     }
 
     private fun buildGraph(storage: Storage): MutableMap<Label, GraphNodeImpl> {
@@ -666,6 +678,69 @@ data class BuildGraphDataImpl private constructor(
         }
       }
       return nodes
+    }
+
+    private fun propagateProtoModes(nodes: Collection<GraphNodeImpl>, protoRules: BuildGraphData.ProtoRules) {
+      fun initializeExplicitNodes(): List<GraphNodeImpl> {
+        return buildList {
+          for (node in nodes) {
+            val explicitProtoMode = getProtoMode(node.data, protoRules)
+            if (explicitProtoMode != null) {
+              node.explicitProtoMode = explicitProtoMode
+              add(node)
+            }
+          }
+        }
+      }
+
+      fun propagateDownward(explicitNodes: List<GraphNodeImpl>) {
+        val queue = ArrayDeque(explicitNodes)
+        while (queue.isNotEmpty()) {
+          val u = queue.removeFirst()
+          for (v in u.deps) {
+            if (v.explicitProtoMode == null) {
+              val modesToPropagate = buildSet {
+                u.explicitProtoMode?.let { add(it) }
+                addAll(u.downwardProtoModes)
+              }
+              if (v.downwardProtoModes.addAll(modesToPropagate)) {
+                queue.addLast(v)
+              }
+            }
+          }
+        }
+      }
+
+      fun propagateUpward(explicitNodes: List<GraphNodeImpl>) {
+        val queue = ArrayDeque(explicitNodes)
+        while (queue.isNotEmpty()) {
+          val u = queue.removeFirst()
+          for (v in u.rdeps) {
+            val modesToPropagate = buildSet {
+              u.explicitProtoMode?.let { add(it) }
+              addAll(u.upwardProtoModes)
+            }
+            if (v.upwardProtoModes.addAll(modesToPropagate)) {
+              queue.addLast(v)
+            }
+          }
+        }
+      }
+
+      val explicitNodes = initializeExplicitNodes()
+      propagateDownward(explicitNodes)
+      propagateUpward(explicitNodes)
+    }
+
+    private fun getProtoMode(data: NodeData, protoRules: BuildGraphData.ProtoRules): BuildGraphData.ProtoMode? {
+      if (data is ProjectNodeData) {
+        return when (data.target.kind()) {
+          in protoRules.fullModeRuleNames -> BuildGraphData.ProtoMode.FULL
+          in protoRules.liteModeRuleNames -> BuildGraphData.ProtoMode.LITE
+          else -> null
+        }
+      }
+      return null
     }
 
     private fun computePackages(storage: Storage): PackageSet {
@@ -685,6 +760,10 @@ data class BuildGraphDataImpl private constructor(
         .distinct()
         .count()
     }
+  }
+
+  override fun getProtoModes(label: Label): Set<BuildGraphData.ProtoMode> {
+    return nodes[label]?.protoModes ?: emptySet()
   }
 }
 
