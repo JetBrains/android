@@ -115,19 +115,6 @@ import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
-import junit.framework.TestCase
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.takeWhile
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.TestCoroutineScheduler
-import kotlinx.coroutines.test.TestScope
-import org.junit.Before
-import org.junit.Ignore
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.mockito.Mockito.mock
-import org.mockito.kotlin.whenever
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
@@ -142,7 +129,20 @@ import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JViewport
 import javax.swing.plaf.basic.BasicScrollBarUI
+import junit.framework.TestCase
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
+import org.junit.Before
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 private val MODERN_PROCESS =
   MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -258,9 +258,12 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(scheduler.isShutdown).isTrue()
     assertThat(renderModel.isRotated).isTrue()
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(notificationModel.notifications).hasSize(2)
+    assertThat(notificationModel.notifications).hasSize(3)
     val notification1 = notificationModel.notifications[1]
     assertThat(notification1.message)
+      .isEqualTo(LayoutInspectorBundle.message("3d.mode.deprecation.warning"))
+    val notification2 = notificationModel.notifications[2]
+    assertThat(notification2.message)
       .isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_3D))
 
     // Turn 3D mode off:
