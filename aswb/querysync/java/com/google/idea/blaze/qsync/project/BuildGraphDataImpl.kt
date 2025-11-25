@@ -146,31 +146,6 @@ data class BuildGraphDataImpl private constructor(
     }
   }
 
-  /**
-   * Calculates the first targets of a given set of rule types along any given dependency path for a
-   * given source.
-   */
-  override fun getFirstReverseDepsOfType(sourcePath: Path, ruleKinds: Set<String>): Collection<ProjectTarget> {
-    val targetOwners = getSourceFileOwners(sourcePath).takeUnless { it.isEmpty() } ?: return emptyList()
-    val result = mutableListOf<ProjectTarget>()
-
-    val toVisit: Queue<Label> = Queues.newArrayDeque(targetOwners)
-    val visited: MutableSet<Label> = HashSet()
-
-    while (!toVisit.isEmpty()) {
-      val next = toVisit.remove()
-      if (visited.add(next)) {
-        val node = nodes[next]
-        val target = (node?.data as? ProjectNodeData)?.target
-        if (target != null && ruleKinds.contains(target.kind())) {
-          result.add(target)
-        } else {
-          toVisit.addAll(getRdeps(next).map { it.label })
-        }
-      }
-    }
-    return result
-  }
 
   /**
    * Returns all in project targets that depend on the source file at `sourcePath` via an
@@ -187,56 +162,6 @@ data class BuildGraphDataImpl private constructor(
       .asSequence()
       .mapNotNull { storage.targetMap[it] }
       .toSet()
-  }
-
-  /**
-   * Checks whether a given dependency path contains any of a specified set of rule kinds.
-   *
-   *
-   * All dependency paths are considered starting at any target containing {@param sourcePath}
-   * and going to any target containing {@param consumingSourcePath}. If any rule on one of these
-   * paths is of a kind contained in {@param ruleKinds}, the method will return true.
-   */
-  override fun doesDependencyPathContainRules(
-    sourcePath: Path, consumingSourcePath: Path, ruleKinds: Set<String>,
-  ): Boolean {
-    val sourceTargets = getSourceFileOwners(sourcePath).takeUnless { it.isEmpty() } ?: return false
-    val consumingTargetLabels = getSourceFileOwners(consumingSourcePath).takeUnless { it.isEmpty() } ?: return false
-    val targetMap = storage.targetMap
-
-    // Do a BFS up the dependency graph, looking both at the labels and the set of rule kinds
-    // we've found so far at any given point.
-    val toVisit: Queue<TargetSearchNode> =
-      Queues.newArrayDeque(sourceTargets.map { TargetSearchNode(it, false) })
-    val visited: MutableSet<TargetSearchNode> = HashSet()
-
-    while (!toVisit.isEmpty()) {
-      val current = toVisit.remove()
-      if (visited.add(current)) {
-        val currentLabel = current.targetLabel
-        val node = nodes[currentLabel]
-        val currentLabelKind = (node?.data as? ProjectNodeData)?.target?.kind()
-
-        val hasDesiredRule = current.hasDesiredRule || (currentLabelKind != null && ruleKinds.contains(currentLabelKind))
-
-        if (hasDesiredRule && consumingTargetLabels.contains(currentLabel)) {
-          // We've found one of the consuming targets and the path here contained one of
-          // the desired rule types, so we can terminate.
-          return true
-        } else {
-          // Continue searching. Even if this is one of the consuming target labels, it's
-          // possible that further up the dependency graph we'll run into a different one
-          // of the consuming targets - and potentially have found one of the rules we
-          // need along the way.
-          for (nextTarget in getRdeps(currentLabel)) {
-            toVisit.add(TargetSearchNode(nextTarget.label, hasDesiredRule))
-          }
-        }
-      }
-    }
-
-    // We never found any of the desired rules.
-    return false
   }
 
   // TODO: b/397649793 - Remove this method when fixed.
@@ -257,8 +182,6 @@ data class BuildGraphDataImpl private constructor(
     }
     return false
   }
-
-  private data class TargetSearchNode(val targetLabel: Label, val hasDesiredRule: Boolean)
 
   /**
    * Build graph data in one place.
