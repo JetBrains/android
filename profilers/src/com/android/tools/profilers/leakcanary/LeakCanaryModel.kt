@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,10 +42,10 @@ import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
+import java.util.concurrent.CompletableFuture
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.NotNull
-import java.util.concurrent.CompletableFuture
 
 class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelStage(profilers), Updatable {
 
@@ -194,15 +194,15 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
    * @param event: The LeakCanary logcat event.
    */
   private fun leakDetected(event: Common.Event) {
-    val logcatMessage = event.leakcanaryAnalysis.data
-    handleRetainedObject(logcatMessage)
-    handleAnalysisProgress(logcatMessage)
+    val analysis = event.leakcanaryAnalysis.data
+    handleRetainedObject(analysis)
+    handleAnalysisProgress(analysis)
     handleLeakAnalysis(event.leakcanaryAnalysis.data)
   }
 
-  private fun handleRetainedObject(logcatMessage: String) {
+  private fun handleRetainedObject(analysisStr: String) {
     val retainedObjectsRegex = """Found (\d+) objects retained""".toRegex()
-    retainedObjectsRegex.find(logcatMessage)?.let { matchResult ->
+    retainedObjectsRegex.find(analysisStr)?.let { matchResult ->
       matchResult.groupValues.getOrNull(1)?.toIntOrNull()?.let { count ->
         setObjectRetainedCount(count)
       }
@@ -210,9 +210,9 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
     }
   }
 
-  private fun handleAnalysisProgress(logcatMessage: String) {
+  private fun handleAnalysisProgress(analysisStr: String) {
     val analysisProgressRegex = """Analysis in progress, (\d+)% done""".toRegex()
-    analysisProgressRegex.find(logcatMessage)?.let { matchResult ->
+    analysisProgressRegex.find(analysisStr)?.let { matchResult ->
       matchResult.groupValues.getOrNull(1)?.toIntOrNull()?.let { progress ->
         setAnalysisProgress(progress)
       }
@@ -222,7 +222,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
 
   private fun handleLeakAnalysis(analysisReport: String) {
     if (analysisReport.isEmpty()) return
-    val leakAnalysisEvent = getEventFromLogcatMessage(analysisReport)
+    val leakAnalysisEvent = getEventFromAnalysisData(analysisReport)
     if (leakAnalysisEvent == null) return
 
     setObjectRetainedCount(0)
@@ -243,13 +243,13 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
   }
 
   /**
-   * Extracts the leak analysis event from a LeakCanary logcat message.
-   * @param logcatMessage: The LeakCanary logcat message.
-   * @return The leak analysis event, or null if there's an issue parsing the message.
+   * Extracts the leak analysis event from a LeakCanary analysis data.
+   * @param data: The LeakCanary analysis data.
+   * @return The leak analysis event, or null if there's an issue parsing the data.
    */
-  private fun getEventFromLogcatMessage(logcatMessage: String): Analysis? {
+  private fun getEventFromAnalysisData(data: String): Analysis? {
     try {
-      return myLeakCanaryParser.parseLogcatMessage(logcatMessage)
+      return myLeakCanaryParser.parseLogcatMessage(data)
     }
     catch (e: Exception) {
       logger.warn("LeakCanary serializer detected issue while parsing .. skipping leak event", e)
@@ -309,7 +309,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
                                      startTimestamp: Long,
                                      endTimeStamp: Long): List<Analysis> {
     val eventList = getLeaksFromRange(profilers.client, session, Range(startTimestamp.toDouble(), endTimeStamp.toDouble()))
-    return eventList.mapNotNull { event -> getEventFromLogcatMessage(event.leakcanaryAnalysis.data) }
+    return eventList.mapNotNull { event -> getEventFromAnalysisData(event.leakcanaryAnalysis.data) }
   }
 
   fun goToDeclaration(node: Node) {
@@ -352,7 +352,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
      * Fetches all LeakCanary logcat dump events within a given session. It returns leaks that are within a given range, which is
      * the session start and end time provided by `getSessionArtifacts`.
      */
-    fun getLeakCanaryLogcatInfo(
+    fun getLeakCanaryAnalysisInfo(
       profilerClient: ProfilerClient,
       session: Common.Session,
       range: Range): List<Common.Event> {

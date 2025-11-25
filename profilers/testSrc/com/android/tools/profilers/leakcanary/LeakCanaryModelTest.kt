@@ -195,7 +195,7 @@ class LeakCanaryModelTest : WithFakeTimer {
     // After stage exit we get all events
     assertEmpty(stage.leaks.value) // 0 event are sent
 
-    val leakInfoEvents = LeakCanaryModel.getLeakCanaryLogcatInfo(profilers.client, profilers.session,
+    val leakInfoEvents = LeakCanaryModel.getLeakCanaryAnalysisInfo(profilers.client, profilers.session,
                                                                  Range(startTime.toDouble(), endTime.toDouble()))
     assertEquals(1, leakInfoEvents.size) // Fetching only ended events
     assertEquals(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS, leakInfoEvents[0].kind)
