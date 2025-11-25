@@ -220,7 +220,8 @@ class KotlinModelConverter {
 
     // b/425320603 - For now, not implemented in KMP only projects. Should be read from gradle.properties.
     disableAgpUpgradePrompt = false,
-    useCustomManagedDevices = false // Gradle managed devices are not supported for KMP
+    useCustomManagedDevices = false, // Gradle managed devices are not supported for KMP
+    highlightGradualR8Api = false // Does not support gradual R8 for KMP
   )
 
   private fun SigningConfig.convert() = IdeSigningConfigImpl(
