@@ -145,6 +145,23 @@ class LogcatProtoShellCollectorTest {
       )
   }
 
+  /**
+   * Some devices seem to have a text prefix that looks like this:
+   *
+   * --------- beginning of (HKS)17EB...(HKE)
+   *
+   * b/459864815
+   */
+  @Test
+  fun testProtoWithTextPrefix() {
+    val collector = LogcatProtoShellCollector("serial", fakeProcessNameMonitor)
+
+    val messages = collector.loadMessageFromFile("/logcatFiles/proto-with-text-prefix.proto")
+
+    // The sample log file has 5 message
+    assertThat(messages).hasSize(5)
+  }
+
   private fun testFromFile(
     filename: String,
     expectedCount: Int,
