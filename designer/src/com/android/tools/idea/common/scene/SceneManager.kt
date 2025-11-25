@@ -75,6 +75,11 @@ abstract class SceneManager(
     val configuration = model.configuration
 
     override fun resourcesChanged(reason: ImmutableSet<ResourceNotificationManager.Reason>) {
+      if (notificationExecutorService.isShutdown) {
+        Logger.getInstance(ResourceChangeListenerImpl::class.java)
+          .warn("Notification executor service is shut down")
+        return
+      }
       val shouldClearRenderCache =
         reason
           .map { NL_MODEL_CHANGE_TYPE.getOrDefault(it, ChangeType.BUILD) }
