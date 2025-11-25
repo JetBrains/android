@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.TargetPatternCollection;
 import com.google.idea.blaze.qsync.BlazeQueryParser;
+import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl;
 import java.io.IOException;
 
@@ -32,6 +33,7 @@ public class BuildGraphs {
 
   public static BuildGraphDataImpl forTestProject(TestData project) throws IOException {
     return new BlazeQueryParser(TargetPatternCollection.create(ImmutableList.of()),
-        getQuerySummary(project), NOOP_CONTEXT, ImmutableSet.of()).parseForTesting();
+        getQuerySummary(project), NOOP_CONTEXT, ImmutableSet.of(),
+        BuildGraphData.ProtoRules.forTests()).parseForTesting();
   }
 }

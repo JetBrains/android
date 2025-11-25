@@ -102,6 +102,7 @@ class QuerySyncProject(
   override val buildSystem: BuildSystem,
   val projectProtoUpdateOperations: Collection<ProjectProtoUpdateOperation>,
   val handledRuleKinds: Set<String>,
+  val protoRules: BuildGraphData.ProtoRules,
 ) : ReadonlyQuerySyncProject {
   override val projectData: QuerySyncProjectData
     get() {
@@ -219,6 +220,7 @@ class QuerySyncProject(
       context,
       ImmutableSet.copyOf(handledRuleKinds),
       HandledRulesProvider.getNotHandledRuleKinds(handledRuleKinds),
+      protoRules
     ).parse()
   }
 

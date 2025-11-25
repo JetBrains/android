@@ -16,7 +16,6 @@
 package com.google.idea.blaze.qsync.project
 
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.ImmutableSet
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.TargetPatternCollection
@@ -29,6 +28,20 @@ interface BuildGraphData {
    */
   enum class LanguageClass {
     JVM, CC
+  }
+
+  data class ProtoRules(
+    val fullModeRuleNames: Set<String>,
+    val liteModeRuleNames: Set<String>
+  ) {
+    companion object {
+      @VisibleForTesting
+      @JvmStatic
+      fun forTests(): ProtoRules = ProtoRules(
+        setOf("java_proto_library"),
+        setOf("java_lite_proto_library")
+      )
+    }
   }
 
   /** A set of all the BUILD files  */
@@ -187,6 +200,8 @@ interface BuildGraphData {
         .build(
           projectDefinitionTargetPatterns = TargetPatternCollection.create(emptyList()),
           alwaysBuildRules = emptySet(),
-          supportedBuildRules = emptySet())
+          supportedBuildRules = emptySet(),
+          protoRules = ProtoRules(emptySet(), emptySet())
+        )
   }
 }

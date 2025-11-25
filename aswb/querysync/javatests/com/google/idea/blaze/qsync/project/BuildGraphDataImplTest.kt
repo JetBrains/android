@@ -21,7 +21,6 @@ import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.RuleKinds
 import com.google.idea.blaze.common.TargetPattern
 import com.google.idea.blaze.common.TargetPatternCollection
-import com.google.idea.blaze.common.TargetPatternCollection.Companion.create
 import com.google.idea.blaze.qsync.BlazeQueryParser
 import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl.Companion.builder
@@ -43,6 +42,7 @@ class BuildGraphDataImplTest {
   var expect: Expect = Expect.create()
 
   private val emptyTargetCollection = TargetPatternCollection.create(emptyList())
+  private val defaultProtoRules = BuildGraphData.ProtoRules.forTests()
 
   @Test
   fun pathToLabel() {
@@ -60,7 +60,7 @@ class BuildGraphDataImplTest {
       .addSupportedTargetLabel(Label.of("//nested:nested"))
       .addSupportedTargetLabel(Label.of("//nested/inner:inner"))
 
-    val graph: BuildGraphData = builder.build(emptyTargetCollection, emptySet(), emptySet())
+    val graph: BuildGraphData = builder.build(emptyTargetCollection, emptySet(), emptySet(), defaultProtoRules)
     expect.that(graph.pathToLabel(Path.of("abc.txt"))).isEqualTo(Label.of("//:abc.txt"))
     expect.that(graph.pathToLabel(Path.of("BUILD"))).isEqualTo(Label.of("//:BUILD"))
     expect.that(graph.pathToLabel(Path.of("nested/abc.txt"))).isEqualTo(Label.of("//nested:abc.txt"))
@@ -82,40 +82,40 @@ class BuildGraphDataImplTest {
 
   @Test
   fun valueEquality() {
-    assertThat(builder().build(emptyTargetCollection, emptySet(), emptySet()))
-      .isEqualTo(builder().build(emptyTargetCollection, emptySet(), emptySet()))
+    assertThat(builder().build(emptyTargetCollection, emptySet(), emptySet(), defaultProtoRules))
+      .isEqualTo(builder().build(emptyTargetCollection, emptySet(), emptySet(), defaultProtoRules))
   }
 
   @Test
   fun valueInequality_differentProjectDefinition() {
     val projectDefinition1 = TargetPatternCollection.create(listOf(TargetPattern.parse("//:target1")))
     val projectDefinition2 = TargetPatternCollection.create(listOf(TargetPattern.parse("//:target2")))
-    assertThat(builder().build(projectDefinition1, emptySet(), emptySet()))
-      .isNotEqualTo(builder().build(projectDefinition2, emptySet(), emptySet()))
+    assertThat(builder().build(projectDefinition1, emptySet(), emptySet(), defaultProtoRules))
+      .isNotEqualTo(builder().build(projectDefinition2, emptySet(), emptySet(), defaultProtoRules))
   }
 
   @Test
   fun valueInequality_differentAlwaysBuildRules() {
     val alwaysBuildRules1 = setOf("rule1")
     val alwaysBuildRules2 = setOf("rule2")
-    assertThat(builder().build(emptyTargetCollection, alwaysBuildRules1, emptySet()))
-      .isNotEqualTo(builder().build(emptyTargetCollection, alwaysBuildRules2, emptySet()))
+    assertThat(builder().build(emptyTargetCollection, alwaysBuildRules1, emptySet(), defaultProtoRules))
+      .isNotEqualTo(builder().build(emptyTargetCollection, alwaysBuildRules2, emptySet(), defaultProtoRules))
   }
 
   @Test
   fun valueInequality_differentSupportedBuildRules() {
     val supportedBuildRules1 = setOf("rule1")
     val supportedBuildRules2 = setOf("rule2")
-    assertThat(builder().build(emptyTargetCollection, emptySet(), supportedBuildRules1))
-      .isNotEqualTo(builder().build(emptyTargetCollection, emptySet(), supportedBuildRules2))
+    assertThat(builder().build(emptyTargetCollection, emptySet(), supportedBuildRules1, defaultProtoRules))
+      .isNotEqualTo(builder().build(emptyTargetCollection, emptySet(), supportedBuildRules2, defaultProtoRules))
   }
 
   @Test
   fun valueInequality_differentSupportedTargets() {
     val builder1 = builder().addSupportedTargetLabel(Label.of("//:target1"))
     val builder2 = builder().addSupportedTargetLabel(Label.of("//:target2"))
-    assertThat(builder1.build(emptyTargetCollection, emptySet(), emptySet()))
-      .isNotEqualTo(builder2.build(emptyTargetCollection, emptySet(), emptySet()))
+    assertThat(builder1.build(emptyTargetCollection, emptySet(), emptySet(), defaultProtoRules))
+      .isNotEqualTo(builder2.build(emptyTargetCollection, emptySet(), emptySet(), defaultProtoRules))
   }
 
   @Test
@@ -133,7 +133,7 @@ class BuildGraphDataImplTest {
       .addSupportedTargetLabel(Label.of("//nested:nested"))
       .addSupportedTargetLabel(Label.of("//nested/inner:inner"))
 
-    val graph: BuildGraphData = builder.build(emptyTargetCollection, emptySet(), emptySet())
+    val graph: BuildGraphData = builder.build(emptyTargetCollection, emptySet(), emptySet(), defaultProtoRules)
     expect.that(graph.sourceFileToLabel(Path.of("abc.txt"))).isNull()
     expect.that(graph.sourceFileToLabel(Path.of("BUILD"))).isEqualTo(Label.of("//:BUILD"))
     expect.that(graph.sourceFileToLabel(Path.of("nested/abc.txt"))).isNull()
@@ -159,7 +159,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_NO_DEPS_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     assertThat(
@@ -198,7 +199,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     assertThat(
@@ -218,7 +220,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_INTERNAL_DEP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     // Sanity check:
@@ -241,7 +244,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_TRANSITIVE_DEP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     // Sanity check:
@@ -265,7 +269,7 @@ class BuildGraphDataImplTest {
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_PROTO_DEP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
         emptySet(),
-        setOf("java_proto_library"),
+        defaultProtoRules
       )
         .parseForTesting()
     assertThat(
@@ -309,7 +313,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.DOES_DEPENDENCY_PATH_CONTAIN_RULES),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
 
@@ -394,7 +399,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_MULTI_TARGETS),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     assertThat(graph.allSupportedTargets.getTargets().toList())
@@ -436,7 +442,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_EXPORTED_DEP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     val sourceFile: Path = TESTDATA_ROOT.resolve("exports/TestClassUsingExport.java")
@@ -458,7 +465,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.ANDROID_LIB_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     assertThat(graph.storage.sourceFileLabels)
@@ -491,7 +499,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.ANDROID_AIDL_SOURCE_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     assertThat(graph.storage.sourceFileLabels)
@@ -521,7 +530,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.ANDROID_AIDL_SOURCE_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     assertThat(graph.storage.sourceFileLabels)
@@ -549,7 +559,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.FILEGROUP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     val sourceFile: Path = TESTDATA_ROOT.resolve("filegroup/TestFileGroupSource.java")
@@ -576,7 +587,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.CC_LIBRARY_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     assertThat(graph.storage.sourceFileLabels)
@@ -657,7 +669,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     val targets =
@@ -686,7 +699,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_MULTI_TARGETS),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     val targets =
@@ -720,7 +734,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_NESTED_PACKAGE),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     val targets =
@@ -747,7 +762,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_NESTED_PACKAGE),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     val targets =
@@ -780,7 +796,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.CC_EXTERNAL_DEP_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     val targets =
@@ -869,7 +886,8 @@ class BuildGraphDataImplTest {
         emptyTargetCollection,
         QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_NO_DEPS_QUERY),
         QuerySyncTestUtils.NOOP_CONTEXT,
-        emptySet()
+        emptySet(),
+        defaultProtoRules
       )
         .parseForTesting()
     assertThat(
@@ -883,7 +901,6 @@ class BuildGraphDataImplTest {
     )
       .containsExactlyElementsIn(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.assumedLabels)
   }
-
 
   @Test
   fun traverseDag() {
@@ -902,7 +919,6 @@ class BuildGraphDataImplTest {
     expect.that(setOf("a", "b").traverseDag()).isEqualTo(setOf("a").traverseDag())
     expect.that(setOf("c").traverseDag()).containsExactly("c", "x", "z").inOrder()
   }
-
 
   private fun getRequiredTargets(
     graph: BuildGraphData,

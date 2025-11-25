@@ -33,6 +33,7 @@ import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.ProjectDirectoryConfigurator;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
@@ -322,6 +323,11 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     @Override
     public @NotNull Set<@NotNull String> getEmptyJarDigests() {
       return Collections.emptySet();
+    }
+
+    @Override
+    public @NotNull BuildGraphData.ProtoRules getProtoRules() {
+      return inner.getProtoRules();
     }
   }
 }
