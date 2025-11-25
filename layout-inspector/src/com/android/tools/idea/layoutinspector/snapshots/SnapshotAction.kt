@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -89,7 +90,7 @@ object ExportSnapshotAction :
       "Saving snapshot",
       TaskCancellation.cancellable(),
     ) {
-      inspector.currentClient.saveSnapshot(filePath)
+      inspector.currentClient.saveSnapshot(filePath, screenshotType = Screenshot.Type.SKP)
       invokeLater {
         FileEditorManager.getInstance(project)
           .openEditor(OpenFileDescriptor(project, virtualFile), false)

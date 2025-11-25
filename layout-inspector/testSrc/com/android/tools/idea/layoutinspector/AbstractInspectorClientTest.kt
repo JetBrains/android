@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
@@ -113,7 +114,10 @@ private class MyClient(
 
   override fun refresh() {}
 
-  override suspend fun saveSnapshot(path: Path) {}
+  override suspend fun saveSnapshot(
+    path: Path,
+    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type,
+  ) {}
 
   override val treeLoader: TreeLoader = mock()
   override val inLiveMode = false

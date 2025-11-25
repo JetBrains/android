@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.snapshots.saveLegacySnapshot
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.LEGACY_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
@@ -120,7 +121,10 @@ class LegacyClient(
     reloadAllWindows()
   }
 
-  override suspend fun saveSnapshot(path: Path) {
+  override suspend fun saveSnapshot(
+    path: Path,
+    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type,
+  ) {
     assertBackgroundThread()
     val startTime = System.currentTimeMillis()
     val snapshotMetadata =

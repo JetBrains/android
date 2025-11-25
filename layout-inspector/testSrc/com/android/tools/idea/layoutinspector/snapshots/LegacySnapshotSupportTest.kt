@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyDeviceRule
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.SNAPSHOT_CLIENT
 import java.awt.image.BufferedImage
@@ -81,7 +82,7 @@ DONE.
 
     legacyClient.refresh()
     waitForCondition(5, TimeUnit.SECONDS) { !legacyClient.model.isEmpty }
-    legacyClient.saveSnapshot(savePath)
+    legacyClient.saveSnapshot(savePath, LayoutInspectorViewProtocol.Screenshot.Type.SKP)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(legacyRule.project, AndroidCoroutineScope(legacyRule.disposable))
     val newNotificationModel = NotificationModel(legacyRule.project)

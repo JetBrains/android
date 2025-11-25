@@ -26,15 +26,16 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
+import java.nio.file.Path
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Path
 
 class ToggleDeepInspectActionTest {
   @get:Rule val projectRule = ProjectRule()
@@ -158,7 +159,10 @@ private open class FakeInspectorClient(
 
   override fun refresh() = throw NotImplementedError()
 
-  override suspend fun saveSnapshot(path: Path) = throw NotImplementedError()
+  override suspend fun saveSnapshot(
+    path: Path,
+    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type,
+  ) = throw NotImplementedError()
 
   override suspend fun doConnect() {}
 
