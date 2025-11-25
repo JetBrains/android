@@ -37,7 +37,6 @@ import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.blaze.qsync.query.QueryData;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import com.google.idea.common.experiments.BoolExperiment;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -79,6 +78,7 @@ public class BlazeQueryParser {
   private final Set<String> supportedRuleKinds;
 
   private final QuerySummary query;
+  private final BuildGraphData.ProtoRules protoRules;
 
   private final BuildGraphDataImpl.Storage.Builder graphBuilder = BuildGraphDataImpl.builder();
 
@@ -154,8 +154,8 @@ public class BlazeQueryParser {
 
   @VisibleForTesting
   public BlazeQueryParser(
-    TargetPatternCollection targetPatterns, QuerySummary query, Context<?> context, Set<String> handledRuleKinds) {
-    this(targetPatterns, query, context, handledRuleKinds, ImmutableSet.of());
+    TargetPatternCollection targetPatterns, QuerySummary query, Context<?> context, Set<String> handledRuleKinds, BuildGraphData.ProtoRules protoRules) {
+    this(targetPatterns, query, context, handledRuleKinds, ImmutableSet.of(), protoRules);
   }
 
   public BlazeQueryParser(
@@ -163,12 +163,14 @@ public class BlazeQueryParser {
       QuerySummary query,
       Context<?> context,
       Set<String> handledRuleKinds,
-      Set<String> notHandledRuleKinds) {
+      Set<String> notHandledRuleKinds,
+      BuildGraphData.ProtoRules protoRules) {
     this.targetPatterns = targetPatterns;
     this.context = context;
     this.query = query;
     this.alwaysBuildRuleKinds = Sets.difference(ALWAYS_BUILD_RULE_KINDS, handledRuleKinds);
     this.supportedRuleKinds =  getAllKnownRuleClasses(notHandledRuleKinds);
+    this.protoRules = protoRules;
   }
 
   public BuildGraphData parse() {
@@ -227,7 +229,7 @@ public class BlazeQueryParser {
     context.output(PrintOutput.log("%-10d Targets (%d ms):", nTargets, elapsedMs));
 
     BuildGraphDataImpl graph =
-        graphBuilder.build(targetPatterns, alwaysBuildRuleKinds, supportedRuleKinds);
+        graphBuilder.build(targetPatterns, alwaysBuildRuleKinds, supportedRuleKinds, protoRules);
 
     graph.outputStats(context);
     context.output(PrintOutput.log("%-10d Dependencies", javaDeps.size()));

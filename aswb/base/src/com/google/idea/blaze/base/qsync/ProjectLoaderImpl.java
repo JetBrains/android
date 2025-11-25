@@ -64,6 +64,7 @@ import com.google.idea.blaze.qsync.java.JavaArtifactMetadata;
 import com.google.idea.blaze.qsync.java.PackageReader;
 import com.google.idea.blaze.qsync.java.PackageStatementParser;
 import com.google.idea.blaze.qsync.java.ParallelPackageReader;
+import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectDirectoryConfigurator;
 import com.google.idea.blaze.qsync.project.ProjectPath;
@@ -125,7 +126,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
       ProjectBuilder projectBuilder,
       ProjectQuerier projectQuerier,
       QuerySyncSourceToTargetMap sourceToTargetMap,
-      ImmutableSet<String> handledRuleKinds) {}
+      ImmutableSet<String> handledRuleKinds,
+      BuildGraphData.ProtoRules protoRules) {}
 
   public ProjectLoaderImpl(Project project) {
     this(
@@ -175,7 +177,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
                 .addAll(result.projectProtoUpdateOperations())
                 .addAll(ProjectProtoTransformProvider.getAll(result.latestProjectDef()))
                 .build(),
-            result.handledRuleKinds());
+            result.handledRuleKinds(),
+            result.protoRules());
 
     return querySyncProject;
   }
@@ -326,7 +329,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
         snapshotBuilder,
         projectQuerier,
         sourceToTargetMap,
-        handledRules);
+        handledRules,
+        buildSystem.getProtoRules());
   }
 
   private static Map<BuildArtifact, ? extends Collection<? extends ArtifactMetadata.Extractor<?>>>

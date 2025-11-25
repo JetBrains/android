@@ -259,7 +259,8 @@ data class BuildGraphDataImpl private constructor(
     val allSupportedTargetLabels: Set<Label>,
     val projectDefinitionTargetPatterns: TargetPatternCollection,
     val alwaysBuildRules: Set<String>,
-    val supportedBuildRules: Set<String>
+    val supportedBuildRules: Set<String>,
+    val protoRules: BuildGraphData.ProtoRules
   ) {
 
     /**
@@ -274,6 +275,7 @@ data class BuildGraphDataImpl private constructor(
         projectDefinitionTargetPatterns: TargetPatternCollection,
         alwaysBuildRules: Set<String>,
         supportedBuildRules: Set<String>,
+        protoRules: BuildGraphData.ProtoRules,
       ): BuildGraphDataImpl {
         val storage =
           Storage(
@@ -282,7 +284,8 @@ data class BuildGraphDataImpl private constructor(
             allSupportedTargetLabels = allTargetLabelsBuilder,
             projectDefinitionTargetPatterns = projectDefinitionTargetPatterns,
             alwaysBuildRules = alwaysBuildRules,
-            supportedBuildRules = supportedBuildRules
+            supportedBuildRules = supportedBuildRules,
+            protoRules = protoRules
           )
         return BuildGraphDataImpl(storage)
       }

@@ -186,5 +186,4 @@ public interface BuildSystemProvider {
     possibleModuleFileNames().forEach(s -> list.add(new ExactFileNameMatcher(s)));
     return list.build();
   }
-
 }

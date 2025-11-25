@@ -20,6 +20,7 @@ import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.GraphToProjectConverter.Companion.initializeProjectStructureData
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
+import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
@@ -64,6 +65,7 @@ class TestDataSyncRunner(
           querySummary,
           context,
           ImmutableSet.of(),
+          BuildGraphData.ProtoRules.forTests()
         )
         .parse()
     val converter =
@@ -92,6 +94,7 @@ class TestDataSyncRunner(
             querySummary,
             context,
             ImmutableSet.of(),
+            BuildGraphData.ProtoRules.forTests()
           )
           .parse(),
       artifactState = ArtifactTracker.State.EMPTY,
