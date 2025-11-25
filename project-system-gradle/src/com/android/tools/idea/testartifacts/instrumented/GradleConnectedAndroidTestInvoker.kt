@@ -46,6 +46,7 @@ import com.intellij.execution.ExecutionManager
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.process.ProcessOutputType
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentManager
@@ -133,9 +134,9 @@ class GradleConnectedAndroidTestInvoker(
         testRunIsCancelled.set(true)
       }
 
-      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
-        super.onTaskOutput(id, text, stdOut)
-        if (stdOut) {
+      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
+        super.onTaskOutput(id, text, processOutputType)
+        if (ProcessOutputType.isStdout(processOutputType)) {
           outputLineProcessor.append(text)
         }
         else {

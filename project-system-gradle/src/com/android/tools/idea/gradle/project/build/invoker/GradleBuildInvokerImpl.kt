@@ -556,7 +556,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
 
     override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
       if (startBuildEventPosted) {
-        buildEventDispatcher.setStdOut(processOutputType != ProcessOutputType.STDERR)
+        buildEventDispatcher.setStdOut(ProcessOutputType.isStdout(processOutputType))
         buildEventDispatcher.append(text)
       }
       super.onTaskOutput(id, text, processOutputType)
