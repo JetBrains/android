@@ -71,7 +71,7 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
   }
 
   @Test
-  fun `artifactProto - check for LeakCanaryLogcatData instance`() {
+  fun `artifactProto - check for LeakCanaryAnalysisData instance`() {
       assertNotNull(leakCanarySessionArtifact.artifactProto)
   }
 

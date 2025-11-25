@@ -25,16 +25,16 @@ import com.android.tools.profilers.sessions.SessionArtifact
 class LeakCanarySessionArtifact(override val profilers: StudioProfilers,
                                 override val session: Common.Session,
                                 override val sessionMetaData: SessionMetaData,
-                                leakCanaryLogcatEnded: LeakCanary.LeakCanaryAnalysisEnded): SessionArtifact<LeakCanary.LeakCanaryAnalysisEnded> {
+                                leakCanaryAnalysisEnded: LeakCanary.LeakCanaryAnalysisEnded): SessionArtifact<LeakCanary.LeakCanaryAnalysisEnded> {
 
-  override val artifactProto: LeakCanary.LeakCanaryAnalysisEnded = leakCanaryLogcatEnded
+  override val artifactProto: LeakCanary.LeakCanaryAnalysisEnded = leakCanaryAnalysisEnded
 
   // When export/import is supported (Milestone 2) we need to fetch from the Info.
   override val name = "LeakCanary"
 
-  override val timestampNs = leakCanaryLogcatEnded.endTimestamp
+  override val timestampNs = leakCanaryAnalysisEnded.endTimestamp
 
-  override val isOngoing = (leakCanaryLogcatEnded.endTimestamp == Long.MAX_VALUE)
+  override val isOngoing = (leakCanaryAnalysisEnded.endTimestamp == Long.MAX_VALUE)
 
   // Export/Import is currently not supported. Will support in future (Milestone 2).
   override val canExport = false
@@ -61,8 +61,8 @@ class LeakCanarySessionArtifact(override val profilers: StudioProfilers,
                             session: Common.Session,
                             sessionMetadata: SessionMetaData): List<SessionArtifact<*>> {
       val artifacts: MutableList<SessionArtifact<*>> = mutableListOf()
-      val leakInfoEvents = LeakCanaryModel.getLeakCanaryLogcatInfo(profilers.client, session,
-                                                                   Range(session.startTimestamp.toDouble(),
+      val leakInfoEvents = LeakCanaryModel.getLeakCanaryAnalysisInfo(profilers.client, session,
+                                                                     Range(session.startTimestamp.toDouble(),
                                                                          session.endTimestamp.toDouble()))
       leakInfoEvents.forEach { leakEvent ->
         run {
