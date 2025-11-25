@@ -74,7 +74,7 @@ class SystemPropertyInjectionForSyncTest {
       var successDetected = false
       var taskOutput = StringBuilder()
 
-      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
+      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
         taskOutput.append(text)
       }
 
@@ -124,7 +124,7 @@ class SystemPropertyInjectionForSyncTest {
       var successDetected = false
       var taskOutput = StringBuilder()
 
-      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
+      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, outputType: ProcessOutputType) {
         taskOutput.append(text)
       }
 
