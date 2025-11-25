@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
@@ -39,6 +39,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProce
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_LOADED
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_LOAD_ERROR
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
@@ -111,22 +112,17 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
     }
     modificationCount = file?.modificationCount ?: -1
 
-    val contentPanel = JPanel(BorderLayout())
     val rootPanel: LayoutInspectorRootPanel
 
-    val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_SNAPSHOT_ID, null, this)
     var snapshotLoader: SnapshotLoader? = null
     val startTime = System.currentTimeMillis()
     var metadata: SnapshotMetadata? = null
     try {
+      val scope = createCoroutineScope()
+      val model = InspectorModel(project, scope)
       val notificationModel = NotificationModel(project)
-      contentPanel.add(InspectorBanner(this, notificationModel), BorderLayout.NORTH)
-      contentPanel.add(workbench, BorderLayout.CENTER)
 
-      // TODO: error handling
       snapshotLoader = SnapshotLoader.createSnapshotLoader(path)
-      val layoutInspectorCoroutineScope = AndroidCoroutineScope(this)
-      val model = InspectorModel(project, layoutInspectorCoroutineScope)
       stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
       metadata =
         snapshotLoader?.loadFile(path, model, notificationModel, stats) ?: throw Exception()
@@ -137,33 +133,18 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
       val inspectorClientSettings = InspectorClientSettings(project)
       val layoutInspector =
         LayoutInspector(
-          layoutInspectorCoroutineScope,
-          inspectorClientSettings,
-          client,
-          model,
-          notificationModel,
-          treeSettings,
+          coroutineScope = scope,
+          layoutInspectorClientSettings = inspectorClientSettings,
+          client = client,
+          layoutInspectorModel = model,
+          notificationModel = notificationModel,
+          treeSettings = treeSettings,
         )
-      val deviceViewPanel =
-        DeviceViewPanel(layoutInspector = layoutInspector, disposableParent = workbench)
-      rootPanel = LayoutInspectorRootPanel(content = contentPanel, layoutInspector)
-      workbench.init(
-        deviceViewPanel,
-        layoutInspector,
-        listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()),
-        false,
-      )
+
+      rootPanel = createLayoutInspectorUi(this, project, layoutInspector)
 
       metadata.loadDuration = System.currentTimeMillis() - startTime
       model.updateConnection(client)
-      // Since the model was updated before the panel was created, we need to zoom to fit
-      // explicitly.
-      // If startup is in progress we have to wait until after so tools windows are opened and the
-      // window is its final size.
-      // TODO: save zoom in editor state
-      StartupManager.getInstance(project).runAfterOpened {
-        invokeLater(ModalityState.any()) { deviceViewPanel.zoom(ZoomType.FIT) }
-      }
       metrics =
         LayoutInspectorSessionMetrics(
           project,
@@ -203,6 +184,41 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
     }
     component = rootPanel
     return rootPanel
+  }
+
+  private fun createLayoutInspectorUi(
+    disposable: Disposable,
+    project: Project,
+    layoutInspector: LayoutInspector,
+  ): LayoutInspectorRootPanel {
+    val deviceViewPanel =
+      DeviceViewPanel(layoutInspector = layoutInspector, disposableParent = disposable)
+
+    val workbench =
+      WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_SNAPSHOT_ID, null, disposable).apply {
+        init(
+          deviceViewPanel,
+          layoutInspector,
+          listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()),
+          false,
+        )
+      }
+
+    val rootPanel =
+      JPanel(BorderLayout()).apply {
+        add(InspectorBanner(disposable, layoutInspector.notificationModel), BorderLayout.NORTH)
+        add(workbench, BorderLayout.CENTER)
+      }
+
+    // Since the model was updated before the panel was created, we need to zoom to fit explicitly.
+    // If startup is in progress we have to wait until after so tools windows are opened and the
+    // window is its final size.
+    // TODO: save zoom in editor state
+    StartupManager.getInstance(project).runAfterOpened {
+      invokeLater(ModalityState.any()) { deviceViewPanel.zoom(ZoomType.FIT) }
+    }
+
+    return LayoutInspectorRootPanel(content = rootPanel, layoutInspector)
   }
 
   override fun getPreferredFocusedComponent(): JComponent? = null
