@@ -44,6 +44,19 @@ interface BuildGraphData {
     }
   }
 
+  /**
+   * A protobuf runtime variant.
+   */
+  enum class ProtoMode { FULL, LITE }
+
+  /**
+   * The protobuf runtime modes the target is used in.
+   *
+   * For java targets it is the variant of the runtime it depends on and for proto_library-like
+   * targets it is the set of modes of tergets that depend on it.
+   */
+  fun getProtoModes(label: Label): Set<ProtoMode>
+
   /** A set of all the BUILD files  */
   fun packages(): PackageSet
 

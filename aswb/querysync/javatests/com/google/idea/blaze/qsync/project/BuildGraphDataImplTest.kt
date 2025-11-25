@@ -818,6 +818,63 @@ class BuildGraphDataImplTest {
   }
 
   @Test
+  fun testProtoModePropagation() {
+    val builder = builder()
+    val fullProto = Label.of("//:full_proto")
+    val liteProto = Label.of("//:lite_proto")
+    val depOfFull = Label.of("//:dep_of_full")
+    val depOfLite = Label.of("//:dep_of_lite")
+    val sharedDep = Label.of("//:shared_dep")
+    val explicitOverridden = Label.of("//:explicit_overridden")
+    val transitiveSharedDep = Label.of("//:transitive_shared_dep")
+    val intermediateLite = Label.of("//:intermediate_lite")
+
+    fun addTarget(label: Label, kind: String, deps: List<Label>) {
+      val targetBuilder = ProjectTarget.builder()
+        .label(label)
+        .kind(kind)
+        .tags(emptyList())
+      deps.forEach { targetBuilder.depsBuilder().add(it) }
+      builder.addTarget(label, targetBuilder.build())
+    }
+
+    val consumerOfFull = Label.of("//:consumer_of_full")
+    val consumerOfLite = Label.of("//:consumer_of_lite")
+    val consumerOfShared = Label.of("//:consumer_of_shared")
+
+    addTarget(fullProto, "java_proto_library", listOf(depOfFull, sharedDep, explicitOverridden))
+    addTarget(liteProto, "java_lite_proto_library", listOf(depOfLite, intermediateLite))
+    addTarget(intermediateLite, "java_library", listOf(sharedDep))
+    addTarget(depOfFull, "java_library", emptyList())
+    addTarget(depOfLite, "java_library", emptyList())
+    addTarget(sharedDep, "java_library", listOf(transitiveSharedDep))
+    addTarget(explicitOverridden, "java_proto_library", emptyList())
+    addTarget(transitiveSharedDep, "java_library", emptyList())
+    addTarget(consumerOfFull, "java_library", listOf(fullProto))
+    addTarget(consumerOfLite, "java_library", listOf(liteProto))
+    addTarget(consumerOfShared, "java_library", listOf(sharedDep))
+
+    val graph = builder.build(emptyTargetCollection, emptySet(), emptySet(), defaultProtoRules)
+
+    // Downward propagation checks
+    assertThat(graph.getProtoModes(fullProto)).containsExactly(BuildGraphData.ProtoMode.FULL)
+    assertThat(graph.getProtoModes(liteProto)).containsExactly(BuildGraphData.ProtoMode.LITE)
+    assertThat(graph.getProtoModes(depOfFull)).containsExactly(BuildGraphData.ProtoMode.FULL)
+    assertThat(graph.getProtoModes(depOfLite)).containsExactly(BuildGraphData.ProtoMode.LITE)
+    assertThat(graph.getProtoModes(intermediateLite)).containsExactly(BuildGraphData.ProtoMode.LITE)
+    assertThat(graph.getProtoModes(sharedDep)).containsExactly(BuildGraphData.ProtoMode.FULL, BuildGraphData.ProtoMode.LITE)
+    assertThat(graph.getProtoModes(explicitOverridden)).containsExactly(BuildGraphData.ProtoMode.FULL)
+    assertThat(graph.getProtoModes(transitiveSharedDep)).containsExactly(BuildGraphData.ProtoMode.FULL, BuildGraphData.ProtoMode.LITE)
+
+    // Upward propagation checks
+    assertThat(graph.getProtoModes(consumerOfFull)).containsExactly(BuildGraphData.ProtoMode.FULL)
+    assertThat(graph.getProtoModes(consumerOfLite)).containsExactly(BuildGraphData.ProtoMode.LITE)
+    // consumerOfShared depends on sharedDep, which has FULL/LITE via downward propagation.
+    // But sharedDep is not a proto library itself, so it does not propagate modes upward.
+    assertThat(graph.getProtoModes(consumerOfShared)).isEmpty()
+  }
+
+  @Test
   @Throws(Exception::class)
   fun filterRedundantTargets_scenario1() {
     val graph =
