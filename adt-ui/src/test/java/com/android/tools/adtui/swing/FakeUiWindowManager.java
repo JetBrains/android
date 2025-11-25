@@ -49,10 +49,11 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.event.HyperlinkListener;
-import kotlin.jvm.functions.Function0;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.flow.StateFlow;
+import kotlinx.coroutines.flow.StateFlowKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import kotlinx.coroutines.CoroutineScope;
 
 /**
  * Slightly modified copy of {@link com.intellij.openapi.wm.impl.TestWindowManager} that
@@ -203,15 +204,15 @@ public final class FakeUiWindowManager extends WindowManagerEx {
 
     @Nullable
     @Override
-    public StatusBar createChild(@NotNull CoroutineScope scope,
+    public StatusBar createChild(@NotNull CoroutineScope coroutineScope,
                                  @NotNull IdeFrame frame,
-                                 @NotNull Function0<? extends FileEditor> function0) {
+                                 @NotNull StateFlow<? extends FileEditor> currentFileEditorFlow) {
       return null;
     }
 
     @Override
-    public @NotNull Function0<FileEditor> getCurrentEditor() {
-      return () -> null;
+    public @NotNull StateFlow<FileEditor> getCurrentEditor() {
+      return StateFlowKt.MutableStateFlow(null);
     }
 
     @Override
