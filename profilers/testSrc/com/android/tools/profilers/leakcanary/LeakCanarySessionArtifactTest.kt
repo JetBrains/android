@@ -105,8 +105,8 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
   }
 
   @Test
-  fun `canExport - LeakCanary can't be exported`() {
-    assertFalse(leakCanarySessionArtifact.canExport)
+  fun `canExport - LeakCanary can be exported`() {
+    assertTrue(leakCanarySessionArtifact.canExport)
   }
 
   @Test

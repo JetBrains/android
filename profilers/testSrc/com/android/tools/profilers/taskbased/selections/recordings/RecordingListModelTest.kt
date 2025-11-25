@@ -20,15 +20,14 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
-import com.android.tools.profiler.proto.LeakCanary
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeSessionArtifact
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.SessionArtifactUtils
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.leakcanary.LeakCanarySessionArtifact
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
@@ -167,11 +166,11 @@ class RecordingListModelTest {
   @Test
   fun `recording with one non-exportable artifact is not exportable`() {
     val sessionId = 1L
-    val session = Common.Session.newBuilder().setSessionId(sessionId).build()
-    val leakCanaryEnded = LeakCanary.LeakCanaryAnalysisEnded.newBuilder().setStatus(LeakCanary.LeakCanaryAnalysisEnded.Status.SUCCESS).build()
-    val leakCanaryArtifact = LeakCanarySessionArtifact(myProfilers, session, Common.SessionMetaData.getDefaultInstance(), leakCanaryEnded)
+    val session = Common.Session.newBuilder().setSessionId(sessionId).setEndTimestamp(1).build()
+    val nonExportableArtifact = FakeSessionArtifact(myProfilers, session, Common.SessionMetaData.getDefaultInstance(),
+                                                    Trace.TraceInfo.getDefaultInstance(), canExportArtifact = false)
 
-    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(leakCanaryArtifact))
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(nonExportableArtifact))
     recordingListModel.onRecordingSelection(sessionItem)
     assertThat(recordingListModel.isSelectedRecordingExportable()).isFalse()
   }

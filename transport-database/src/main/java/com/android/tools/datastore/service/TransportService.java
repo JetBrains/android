@@ -22,8 +22,6 @@ import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.DeviceProcessTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.poller.UnifiedEventsDataPoller;
-import com.android.tools.idea.io.grpc.Channel;
-import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
@@ -53,10 +51,13 @@ import com.android.tools.profiler.proto.Transport.UnsetTaskDbResponse;
 import com.android.tools.profiler.proto.Transport.VersionResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.android.tools.idea.io.grpc.Channel;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.intellij.openapi.diagnostic.Logger;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.IOException;
 import java.sql.Connection;
@@ -79,7 +80,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   private static final Logger LOG = Logger.getInstance(TransportService.class);
   /**
    * A set of event kinds that should be stored in a task-specific database ("task DB") if one is active.
-   * The task DB is a separate database file dedicated to a single, profiler task (e.g., Live View, Allocations),
+   * The task DB is a separate database file dedicated to a single, profiler task (e.g., Live View, Allocations, LeakCanary),
    * which can be exported and shared as a file.
    * All other events are stored in the main, shared profiler database.
    */
@@ -103,7 +104,9 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
 
       Event.Kind.VIEW,
       Event.Kind.INTERACTION,
-      Event.Kind.LIVE_VIEW_STATUS
+      Event.Kind.LIVE_VIEW_STATUS,
+      Event.Kind.LEAKCANARY_ANALYSIS,
+      Event.Kind.LEAKCANARY_ANALYSIS_STATUS
     );
 
   /**
@@ -117,7 +120,29 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     ImmutableSet.of(
       Event.Kind.SESSION,
       Event.Kind.MEMORY_ALLOC_TRACKING,
-      Event.Kind.LIVE_VIEW_STATUS
+      Event.Kind.LIVE_VIEW_STATUS,
+      Event.Kind.LEAKCANARY_ANALYSIS_STATUS
+    );
+
+  /**
+   * A set of task types for which a dedicated task database should be automatically created
+   * when a session for that task begins.
+   */
+  private static final Set<Common.ProfilerTaskType> AUTO_START_TASK_DB_TYPES =
+    ImmutableSet.of(
+      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
+      Common.ProfilerTaskType.LIVE_VIEW,
+      Common.ProfilerTaskType.LEAKCANARY
+    );
+
+  /**
+   * A map from task types to a short string hint used for generating the task database filename.
+   */
+  private static final Map<Common.ProfilerTaskType, String> TASK_DB_NAME_HINTS =
+    ImmutableMap.of(
+      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS, "java-kotlin-allocs",
+      Common.ProfilerTaskType.LIVE_VIEW, "live-view",
+      Common.ProfilerTaskType.LEAKCANARY, "leakcanary"
     );
 
   private final Consumer<Runnable> myFetchExecutor;
@@ -241,13 +266,13 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
 
     var sessionStarted = event.getSession().getSessionStarted();
     var taskType = sessionStarted.getTaskType();
-    if (taskType != Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS && taskType != Common.ProfilerTaskType.LIVE_VIEW) {
+    if (!AUTO_START_TASK_DB_TYPES.contains(taskType)) {
       return;
     }
 
     String dbPath;
     try {
-      dbPath = FileUtil.createTempFile(getTaskDbPath(taskType, event.getTimestamp()), ".asdb", true).getAbsolutePath();
+      dbPath = FileUtil.createTempFile(getTaskDatabaseName(taskType, event.getTimestamp()), ".asdb", true).getAbsolutePath();
     }
     catch (IOException e) {
       throw new RuntimeException(e);
@@ -260,14 +285,15 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     myTable.insertFile(streamId, Long.toString(event.getTimestamp()), FileResponse.newBuilder().setFilePath(dbPath).build());
   }
 
-  private String getTaskDbPath(Common.ProfilerTaskType taskType, long timestamp) {
-    String nameHint = "task";
-    if (taskType == Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS) {
-      nameHint = "java-kotlin-allocs";
-    }
-    else if (taskType == Common.ProfilerTaskType.LIVE_VIEW) {
-      nameHint = "live-view";
-    }
+  /**
+   * Generates a name for a task database file based on the task type and a timestamp.
+   *
+   * @param taskType The type of the profiler task.
+   * @param timestamp A timestamp to be included in the name, typically the session start time.
+   * @return A formatted string to be used as the base name for the task database file.
+   */
+  public static String getTaskDatabaseName(Common.ProfilerTaskType taskType, long timestamp) {
+    String nameHint = TASK_DB_NAME_HINTS.getOrDefault(taskType, "task");
     return nameHint + "-" + timestamp;
   }
 

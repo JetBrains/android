@@ -16,6 +16,7 @@
 package com.android.tools.profilers
 
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.LeakCanary
 import com.android.tools.profilers.memory.MemoryProfiler
 import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.openapi.diagnostic.Logger
@@ -320,9 +321,33 @@ object ImportedSessionUtils {
     when (metadata["task_type"]) {
       Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS.toString() -> MemoryProfiler.importAllocations(profilers, file)
       Common.ProfilerTaskType.LIVE_VIEW.toString() -> importLiveTask(profilers, file)
+      Common.ProfilerTaskType.LEAKCANARY.toString() -> importLeakCanaryTask(profilers, file)
       else -> {
         getLogger().error("Imported .asdb file is not a recognized task type or is missing metadata: ${file.path}")
       }
+    }
+  }
+
+  /**
+   * Imports a Leak Canary task from an `.asdb` file.
+   */
+  private fun importLeakCanaryTask(profilers: StudioProfilers, file: File) {
+    importEventBasedArtifact(profilers.sessionsManager,
+                             file,
+                             Common.SessionData.SessionStarted.SessionType.FULL,
+                             Common.SessionMetaData.SessionType.FULL) { start, end ->
+      listOf(
+        makeStartedEvent(start, start, Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS) {
+          setLeakCanaryAnalysisStatus(LeakCanary.LeakCanaryAnalysisStatus.newBuilder().setAnalysisEnded(
+            LeakCanary.LeakCanaryAnalysisEnded.newBuilder().setStartTimestamp(start)
+          ));
+        },
+        makeEndedEvent(start, end, Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS) {
+          setLeakCanaryAnalysisStatus(LeakCanary.LeakCanaryAnalysisStatus.newBuilder().setAnalysisEnded(
+            LeakCanary.LeakCanaryAnalysisEnded.newBuilder().setStartTimestamp(start).setEndTimestamp(end)
+          ));
+        },
+      )
     }
   }
 

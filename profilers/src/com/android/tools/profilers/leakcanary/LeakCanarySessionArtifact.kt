@@ -19,13 +19,24 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.SessionMetaData
 import com.android.tools.profiler.proto.LeakCanary
+import com.android.tools.profiler.proto.Transport
+import com.android.tools.profilers.ExportableArtifact
+import com.android.tools.profilers.LiveViewSessionArtifact
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.sessions.SessionArtifact
+import com.intellij.openapi.diagnostic.Logger
+import java.io.File
+import java.io.IOException
+import java.io.OutputStream
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class LeakCanarySessionArtifact(override val profilers: StudioProfilers,
                                 override val session: Common.Session,
                                 override val sessionMetaData: SessionMetaData,
-                                leakCanaryAnalysisEnded: LeakCanary.LeakCanaryAnalysisEnded): SessionArtifact<LeakCanary.LeakCanaryAnalysisEnded> {
+                                leakCanaryAnalysisEnded: LeakCanary.LeakCanaryAnalysisEnded) : SessionArtifact<LeakCanary.LeakCanaryAnalysisEnded>, ExportableArtifact {
+
+  private val logger = Logger.getInstance(LeakCanarySessionArtifact::class.java)
 
   override val artifactProto: LeakCanary.LeakCanaryAnalysisEnded = leakCanaryAnalysisEnded
 
@@ -36,8 +47,35 @@ class LeakCanarySessionArtifact(override val profilers: StudioProfilers,
 
   override val isOngoing = (leakCanaryAnalysisEnded.endTimestamp == Long.MAX_VALUE)
 
-  // Export/Import is currently not supported. Will support in future (Milestone 2).
-  override val canExport = false
+  override val canExport: Boolean
+    get() = !isOngoing
+
+  override val exportableName: String
+    get() = "leakcanary-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss"))}"
+
+  override val exportExtension: String
+    get() = "asdb"
+
+  override fun export(outputStream: OutputStream) {
+    assert(canExport)
+    val request = Transport.BytesRequest.newBuilder()
+      .setStreamId(session.streamId)
+      .setId(session.startTimestamp.toString())
+      .build()
+    val response = profilers.client.transportClient.getFile(request)
+
+    if (response.filePath.isNotEmpty()) {
+      try {
+        File(response.filePath).inputStream().use { it.copyTo(outputStream) }
+      }
+      catch (e: IOException) {
+        logger.warn("Failed to export Leak Canary file", e)
+      }
+    }
+    else {
+      logger.warn("Failed to export Leak Canary file, file path is empty.")
+    }
+  }
 
   override fun doSelect() {
     // If the capture selected is not part of the currently selected session, we need to select the session containing the capture.
@@ -63,7 +101,7 @@ class LeakCanarySessionArtifact(override val profilers: StudioProfilers,
       val artifacts: MutableList<SessionArtifact<*>> = mutableListOf()
       val leakInfoEvents = LeakCanaryModel.getLeakCanaryAnalysisInfo(profilers.client, session,
                                                                      Range(session.startTimestamp.toDouble(),
-                                                                         session.endTimestamp.toDouble()))
+                                                                           session.endTimestamp.toDouble()))
       leakInfoEvents.forEach { leakEvent ->
         run {
           artifacts.add(LeakCanarySessionArtifact(profilers, session, sessionMetadata, leakEvent.leakCanaryAnalysisStatus.analysisEnded))
