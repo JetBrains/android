@@ -91,15 +91,6 @@ interface BuildGraphData {
   fun getSameLanguageTargetsDependingOn(targets: Set<Label>): Set<Label>
 
   /**
-   * Calculates the first targets of a given set of rule types along any given dependency path for a
-   * given source.
-   */
-  fun getFirstReverseDepsOfType(
-    sourcePath: Path,
-    ruleKinds: Set<String>
-  ): Collection<ProjectTarget>
-
-  /**
    * Returns all in project targets that depend on the source file at `sourcePath` via an
    * in-project dependency chain. Used to determine possible test targets for a given file.
    *
@@ -108,20 +99,6 @@ interface BuildGraphData {
    * target C, target A is *not* included in `getReverseDeps` for a source file in target C.
    */
   fun getReverseDepsForSource(sourcePath: Path): Collection<ProjectTarget>
-
-  /**
-   * Checks whether a given dependency path contains any of a specified set of rule kinds.
-   *
-   *
-   * All dependency paths are considered starting at any target containing {@param sourcePath}
-   * and going to any target containing {@param consumingSourcePath}. If any rule on one of these
-   * paths is of a kind contained in {@param ruleKinds}, the method will return true.
-   */
-  fun doesDependencyPathContainRules(
-    sourcePath: Path,
-    consumingSourcePath: Path,
-    ruleKinds: Set<String>
-  ): Boolean
 
   // TODO: b/397649793 - Remove this method when fixed.
   fun dependsOnAnyOf_DO_NOT_USE_BROKEN(projectTarget: Label, deps: Set<Label>): Boolean
