@@ -19,13 +19,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.projectview.ProjectViewManager;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.projectview.section.sections.BazelBinarySection;
 import com.google.idea.blaze.base.qsync.BazelQueryRunner;
 import com.google.idea.blaze.base.settings.BuildSystemName;
+import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.intellij.openapi.project.Project;
-import java.io.File;
 import java.util.Optional;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +30,11 @@ import org.jetbrains.annotations.NotNull;
 class BazelBuildSystem implements BuildSystem {
 
   private static final String EMPTY_ZIP_SHA_256 = "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85";
+  private final BuildGraphData.ProtoRules protoRules;
+
+  public BazelBuildSystem(BuildGraphData.ProtoRules protoRules) {
+    this.protoRules = protoRules;
+  }
 
   @Override
   public BuildSystemName getName() {
@@ -73,5 +75,10 @@ class BazelBuildSystem implements BuildSystem {
   public @NotNull Set<@NotNull String> getEmptyJarDigests() {
     // Bazel uses sha256sum by default.
     return ImmutableSet.of(EMPTY_ZIP_SHA_256);
+  }
+
+  @Override
+  public @NotNull BuildGraphData.ProtoRules getProtoRules() {
+    return protoRules;
   }
 }

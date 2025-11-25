@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.base.bazel
 
+import com.google.common.collect.ImmutableSet
 import com.google.errorprone.annotations.MustBeClosed
 import com.google.idea.blaze.base.command.BlazeCommand
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider
@@ -29,6 +30,7 @@ import com.google.idea.blaze.base.settings.BuildBinaryType
 import com.google.idea.blaze.base.settings.BuildSystemName
 import com.google.idea.blaze.base.sync.SyncScope
 import com.google.idea.blaze.exception.BuildException
+import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.project.Project
 import java.io.InputStream
@@ -186,6 +188,11 @@ interface BuildSystem {
    * This is used for optimization purposes only.
    */
   val emptyJarDigests: Set<String>
+
+  /**
+   * Returns the names of proto related rules used in the current build system.
+   */
+  fun getProtoRules(): BuildGraphData.ProtoRules
 
   /**
    * Get a Blaze invoker with desired capabilities.

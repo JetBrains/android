@@ -21,6 +21,7 @@ import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.BazelQueryRunner;
 import com.google.idea.blaze.base.settings.BuildSystemName;
+import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import java.util.Optional;
@@ -79,6 +80,11 @@ public abstract class FakeBuildSystem implements BuildSystem {
   @Override
   public @NotNull Optional<@NotNull String> getInvocationLink(@NotNull String invocationId) {
     return Optional.empty();
+  }
+
+  @Override
+  public @NotNull BuildGraphData.ProtoRules getProtoRules() {
+    return BuildGraphData.ProtoRules.forTests();
   }
 
   @Override

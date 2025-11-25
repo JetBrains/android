@@ -509,6 +509,7 @@ class GraphToProjectConverterTest {
           QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_NO_DEPS_QUERY),
           QuerySyncTestUtils.NOOP_CONTEXT,
           emptySet(),
+          BuildGraphData.ProtoRules.forTests()
         )
         .parse()
     val converter =
@@ -625,6 +626,7 @@ class GraphToProjectConverterTest {
           QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_NO_DEPS_QUERY),
           QuerySyncTestUtils.NOOP_CONTEXT,
           emptySet(),
+          BuildGraphData.ProtoRules.forTests()
         )
         .parse()
     val project = converter.configureProject(buildGraphData, emptyRepositoryFinder)
@@ -647,6 +649,7 @@ class GraphToProjectConverterTest {
           QuerySyncTestUtils.getQuerySummary(TestData.CC_LIBRARY_QUERY),
           QuerySyncTestUtils.NOOP_CONTEXT,
           emptySet(),
+          BuildGraphData.ProtoRules.forTests()
         )
         .parse()
 
@@ -706,6 +709,7 @@ class GraphToProjectConverterTest {
           QuerySyncTestUtils.getQuerySummary(TestData.ANDROID_LIB_QUERY),
           QuerySyncTestUtils.NOOP_CONTEXT,
           emptySet(),
+          BuildGraphData.ProtoRules.forTests()
         )
         .parse()
 

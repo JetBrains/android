@@ -21,8 +21,10 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.DefaultProjectDirectoryConfigurator;
 import com.google.idea.blaze.base.qsync.ProjectLoader;
 import com.google.idea.blaze.base.qsync.ProjectLoaderImpl;
+import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.ProjectDirectoryConfigurator;
 import com.intellij.openapi.project.Project;
+import java.util.Collections;
 import java.util.Optional;
 
 /** Provides the bazel build system name string. */
@@ -33,7 +35,7 @@ public class BazelBuildSystemProvider implements BuildSystemProvider {
   private static final ImmutableList<String> BUILD_FILE_NAMES =
       ImmutableList.of("BUILD.bazel", "BUILD");
 
-  private final BuildSystem buildSystem = new BazelBuildSystem();
+  private final BuildSystem buildSystem = new BazelBuildSystem(getProtoRules());
 
   @Override
   public BuildSystem getBuildSystem() {
@@ -97,4 +99,8 @@ public class BazelBuildSystemProvider implements BuildSystemProvider {
   public ImmutableList<String> possibleModuleFileNames() {
     return ImmutableList.of("MODULE.bazel");
   }
+
+  public BuildGraphData.ProtoRules getProtoRules() {
+    return new BuildGraphData.ProtoRules(Collections.emptySet(), Collections.emptySet());
+  };
 }
