@@ -38,6 +38,10 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
   override fun getNavigationElement(ktDeclaration: KtDeclaration): KtElement {
     val classIdToKtClsFile = localCache.get()
     var classId: ClassId? = null
+    val project = ktDeclaration.project
+    if (!project.isQuerySyncProject()) {
+      return super.getNavigationElement(ktDeclaration)
+    }
 
     try {
       val psiFile = ktDeclaration.containingFile
