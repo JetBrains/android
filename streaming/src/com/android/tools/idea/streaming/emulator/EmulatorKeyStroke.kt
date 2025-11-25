@@ -53,7 +53,7 @@ private fun EmulatorController.pressModifierKeys(modifiers: Int) {
     for ((modifier, key) in EMULATOR_MODIFIER_KEYS) {
       if ((modifiers and modifier) != 0) {
         currentModifiers = currentModifiers or modifier
-        keyboardEvent.setKey(key)
+        keyboardEvent.key = key
         getOrCreateInputEventSender().onNext(inputEvent.build())
         if (currentModifiers == modifiers) {
           break
@@ -73,7 +73,7 @@ private fun EmulatorController.releaseModifierKeys(modifiers: Int) {
     for ((modifier, key) in EMULATOR_MODIFIER_KEYS.asReversed()) {
       if ((currentModifiers and modifier) != 0) {
         currentModifiers = currentModifiers and modifier.inv()
-        keyboardEvent.setKey(key)
+        keyboardEvent.key = key
         getOrCreateInputEventSender().onNext(inputEvent.build())
         if (currentModifiers == 0) {
           break
