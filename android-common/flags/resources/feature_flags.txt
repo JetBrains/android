@@ -31,6 +31,7 @@ compose.preview.generate.preview.action.agentic=PREVIEW
 compose.preview.generate.preview.action=PREVIEW
 compose.preview.invalidate.on.resource.change=COMPLETE:2023
 compose.preview.match.ui.agent=PREVIEW
+compose.preview.reference.provider.enabled=PREVIEW
 compose.preview.render.tool=PREVIEW
 compose.preview.resizing=COMPLETE:2025
 compose.preview.screenshot.to.code=PREVIEW
