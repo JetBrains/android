@@ -40,6 +40,7 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.fileTypes.UnknownFileType
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.vfs.VirtualFile
@@ -150,10 +151,9 @@ class AndroidPositionManagerTest {
   }
 
   @Test
-  fun testGetAcceptedFileTypes_acceptsJavaFiles() {
-    val acceptedFileTypes = myPositionManager.acceptedFileTypes
-    assertThat(acceptedFileTypes).hasSize(1)
-    assertThat(acceptedFileTypes).containsExactly(JavaFileType.INSTANCE)
+  fun testIsAcceptedFileType_acceptsJavaFiles() {
+    assertThat(myPositionManager.isAcceptedFileType(JavaFileType.INSTANCE)).isTrue()
+    assertThat(myPositionManager.isAcceptedFileType(PlainTextFileType.INSTANCE)).isFalse()
   }
 
   @Test

@@ -31,7 +31,7 @@ import com.intellij.xdebugger.frame.XStackFrame
 import com.sun.jdi.Location
 import com.sun.jdi.ReferenceType
 import com.sun.jdi.request.ClassPrepareRequest
-import org.jetbrains.kotlin.idea.base.util.KOTLIN_FILE_TYPES
+import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.debugger.KotlinPositionManager
 import org.jetbrains.kotlin.psi.KtFile
 
@@ -49,7 +49,7 @@ class ComposePositionManager(
   private val debugProcess: DebugProcess,
   private val kotlinPositionManager: KotlinPositionManager,
 ) : MultiRequestPositionManager by kotlinPositionManager, PositionManagerWithMultipleStackFrames, PositionManagerAsync {
-  override fun getAcceptedFileTypes(): Set<FileType> = KOTLIN_FILE_TYPES
+  override fun isAcceptedFileType(fileType: FileType): Boolean = fileType == KotlinFileType.INSTANCE
 
   override suspend fun createStackFramesAsync(descriptor: StackFrameDescriptorImpl): List<XStackFrame>? {
     return kotlinPositionManager.createStackFramesAsync(descriptor)

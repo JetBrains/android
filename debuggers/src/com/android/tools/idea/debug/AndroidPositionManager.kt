@@ -116,7 +116,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
 
   // When setting breakpoints or debugging into SDK source, the Location's sourceName() method
   // returns a string of the form "FileName.java"; this resolves into a JavaFileType.
-  override fun getAcceptedFileTypes(): Set<FileType> = setOf(JavaFileType.INSTANCE)
+  override fun isAcceptedFileType(fileType: FileType): Boolean = fileType == JavaFileType.INSTANCE
 
   @Throws(NoDataException::class)
   override fun getSourcePosition(location: Location?): SourcePosition {
