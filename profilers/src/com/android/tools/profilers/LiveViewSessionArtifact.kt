@@ -29,6 +29,8 @@ class LiveViewSessionArtifact(
   override val sessionMetaData: Common.SessionMetaData
 ) : SessionArtifact<Common.Session>, ExportableArtifact {
 
+  private val logger = Logger.getInstance(LiveViewSessionArtifact::class.java)
+
   override val artifactProto: Common.Session
     get() = session
 
@@ -62,8 +64,11 @@ class LiveViewSessionArtifact(
         File(response.filePath).inputStream().use { it.copyTo(outputStream) }
       }
       catch (e: IOException) {
-        Logger.getInstance(LiveViewSessionArtifact::class.java).warn("Failed to export Live View file", e)
+        logger.warn("Failed to export Live View file", e)
       }
+    }
+    else {
+      logger.warn("Failed to export Live View file, file path is empty.")
     }
   }
 

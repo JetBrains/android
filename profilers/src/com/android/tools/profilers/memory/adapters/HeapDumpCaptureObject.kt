@@ -54,6 +54,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Loading
+import com.intellij.openapi.diagnostic.Logger
 import it.unimi.dsi.fastutil.Hash
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.io.File
@@ -68,6 +69,8 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
                                  private val proguardMap: ProguardMap?,
                                  private val featureTracker: FeatureTracker,
                                  private val ideProfilerServices: IdeProfilerServices) : CaptureObject {
+  private val logger = Logger.getInstance(HeapDumpCaptureObject::class.java)
+
   private val _heapSets: MutableMap<Int, HeapSet> = HashMap()
 
   // A load factor of 0.5 is used for performance reasons due to the interaction of two hash tables. See b/372321482 for details.
@@ -124,6 +127,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
 
     if (file == null || !file.exists() || file.length() == 0L) {
       // If any check fails, enter the error state and return false.
+      logger.warn("Heap dump file is missing or empty. Path: ${response.filePath}")
       false.also { isLoadingError = true }
     }
     else {

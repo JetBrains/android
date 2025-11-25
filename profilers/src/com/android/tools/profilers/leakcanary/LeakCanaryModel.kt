@@ -74,6 +74,19 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
   private val _isLeakCanaryPresent = MutableStateFlow(true)
   val isLeakCanaryPresent = _isLeakCanaryPresent.asStateFlow()
 
+  override fun enter() {
+    // If we are entering this stage for a past recording (i.e., the session is not live),
+    // we need to tell the TransportService to use task specific database to query.
+    // For a new, live recording, this is handled by TransportService when the session starts.
+    if (!profilers.sessionsManager.isSessionAlive) {
+      profilers.sessionsManager.setTaskDb(profilers.session)
+    }
+  }
+
+  override fun exit() {
+    profilers.sessionsManager.unsetTaskDb(profilers.session)
+  }
+
   fun startListening() {
     profilers.updater.register(this)
     setIsRecording(true)
