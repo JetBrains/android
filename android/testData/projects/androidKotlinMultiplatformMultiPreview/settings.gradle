@@ -1,0 +1,32 @@
+pluginManagement {
+    repositories {
+        maven {
+            url "https://cache-redirector.jetbrains.com/dl.google.com.android.maven2"
+            mavenContent {
+                includeGroupAndSubgroups("androidx")
+                includeGroupAndSubgroups("com.android")
+                includeGroupAndSubgroups("com.google")
+            }
+        }
+        maven { url "https://cache-redirector.jetbrains.com/maven-central" }
+        maven { url "https://cache-redirector.jetbrains.com/plugins.gradle.org" }
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        maven {
+            url "https://cache-redirector.jetbrains.com/dl.google.com.android.maven2"
+            mavenContent {
+                includeGroupAndSubgroups("androidx")
+                includeGroupAndSubgroups("com.android")
+                includeGroupAndSubgroups("com.google")
+            }
+        }
+        maven { url "https://cache-redirector.jetbrains.com/maven-central" }
+    }
+}
+
+rootProject.name = "androidKotlinMultiplatformMultiPreview"
+
+include ':composeApp'
