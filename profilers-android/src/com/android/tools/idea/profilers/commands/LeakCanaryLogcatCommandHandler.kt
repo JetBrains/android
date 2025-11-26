@@ -19,12 +19,12 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.transport.TransportProxy
+import com.android.tools.leakcanarylib.LeakCanaryParser
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisData
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisEnded
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisEnded.Status
-import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisEnded.Status.FAILURE
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisEnded.Status.STATUS_UNSPECIFIED
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisEnded.Status.SUCCESS
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisStarted
@@ -34,13 +34,12 @@ import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.ProjectManager
 import java.security.MessageDigest
+import java.util.concurrent.BlockingDeque
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.util.concurrent.BlockingDeque
-import java.util.concurrent.TimeUnit
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.SupervisorJob
 
 /**
@@ -78,7 +77,7 @@ class LeakCanaryLogcatCommandHandler(
            command.type == Commands.Command.CommandType.STOP_LOGCAT_TRACKING
   }
 
-  private fun resetTrackingState(){
+  private fun resetTrackingState() {
     logCollectionJob?.cancel()
     logCollectionJob = null
     prevLogTimeStampOfPartialTrace = 0L
@@ -162,15 +161,21 @@ class LeakCanaryLogcatCommandHandler(
    * @param analysisData The LeakCanary analysis data to be sent.
    */
   private fun sendLeakCanaryAnalysisEvent(analysisData: String) {
-    val leakCanaryEvent = LeakCanaryAnalysisData.newBuilder().setData(analysisData).build()
-    eventQueue.offer(Common.Event.newBuilder()
-                       .setGroupId(pid.toLong())
-                       .setPid(pid)
-                       .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS)
-                       .setLeakcanaryAnalysis(leakCanaryEvent)
-                       .setTimestamp(getCurrentTimestampInNs())
-                       .build()
-    )
+    try {
+      val analysis = LeakCanaryParser().parseLogcatMessage(analysisData)
+      val leakCanaryEvent = LeakCanaryAnalysisData.newBuilder().setData(analysis.toString()).build()
+      eventQueue.offer(Common.Event.newBuilder()
+                         .setGroupId(pid.toLong())
+                         .setPid(pid)
+                         .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS)
+                         .setLeakcanaryAnalysis(leakCanaryEvent)
+                         .setTimestamp(getCurrentTimestampInNs())
+                         .build()
+      )
+    }
+    catch (e: Exception) {
+      logger.info("Failed to parse LeakCanary report. Skipping event.", e)
+    }
   }
 
   override fun execute(command: Commands.Command): Transport.ExecuteResponse {
@@ -266,7 +271,7 @@ Learn more at https://squ.re/leaks.
 ${
       if (!isBytesAvailable)
         """
--1 bytes retained by leaking objects
+0 bytes retained by leaking objects
 Signature: $hashedSignature
 ┬───"""
       else ""

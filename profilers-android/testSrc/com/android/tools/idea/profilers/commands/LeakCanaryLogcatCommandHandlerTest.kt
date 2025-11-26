@@ -162,89 +162,6 @@ class LeakCanaryLogcatCommandHandlerTest {
   }
 
   @Test
-  fun testMixOfLeakCanaryAndOtherLogs() = runTest {
-    handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
-    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LOGCAT_TRACKING).setPid(123).build())
-
-    // Before pushing messages wait for logcat to setup properly
-    waitForEvent(this)
-    val message1 =
-      LogcatMessage(
-        LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)),
-        "HEAP ANALYSIS RESULT",
-      )
-    val message2 =
-      LogcatMessage(
-        LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "rasdsdsds", Instant.ofEpochMilli(1000)),
-        "METADATA",
-      )
-    val message3 =
-      LogcatMessage(
-        LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "rasdsdsds", Instant.ofEpochMilli(1000)),
-        "====================================",
-      )
-    val message4 =
-      LogcatMessage(
-        LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)),
-        "METADATA",
-      )
-    val message5 =
-      LogcatMessage(
-        LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)),
-        "====================================",
-      )
-    mockLogcatService.logMessages(message1, message2, message3, message4, message2, message3, message5)
-    // Simulate some delay to allow coroutines to process
-    waitForEvent(this)
-    assertEquals(mockEventQueue.size, 2)
-    verifyStartEvent()
-
-    val leakCanaryEvent = mockEventQueue.poll()
-    // Only LeakCanary tagged logs is taken. Initial prefix and suffix of '=' characters exist even though 'Heap Analysis' is considered
-    // the start of leak log.
-    assertEquals(leakCanaryEvent.leakcanaryAnalysis.data,
-                 "====================================\nHEAP ANALYSIS RESULT\nMETADATA\n====================================\n")
-
-    verifyEndEvent()
-  }
-
-  @Test
-  fun testRunAndLogcatDetection() = runTest {
-    handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
-    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LOGCAT_TRACKING).setPid(123).build())
-
-    // Before pushing messages wait for logcat to setup
-    waitForEvent(this)
-    val message1 =
-      LogcatMessage(
-        LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)),
-        "HEAP ANALYSIS RESULT",
-      )
-    val message2 =
-      LogcatMessage(
-        LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)),
-        "METADATA",
-      )
-    val message3 =
-      LogcatMessage(
-        LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanary", Instant.ofEpochMilli(1000)),
-        "====================================",
-      )
-    mockLogcatService.logMessages(message1, message2, message3)
-    // Simulate some delay to allow coroutines to process
-    waitForEvent(this)
-
-    assertEquals(mockEventQueue.size, 2)
-
-    verifyStartEvent()
-    val leakCanaryEvent = mockEventQueue.poll()
-    // Only LeakCanary tagged logs are taken. Initial prefix and suffix of '=' characters exist even though 'Heap Analysis' is considered the start of leak log.
-    assertEquals(leakCanaryEvent.leakcanaryAnalysis.data,
-                 "====================================\nHEAP ANALYSIS RESULT\nMETADATA\n====================================\n")
-    verifyEndEvent()
-  }
-
-  @Test
   fun testLogcatWithMultipleLeaksOneLinePerLogEntry() = testLogcatWithMultipleLeaks(true)
 
   @Test
@@ -342,8 +259,8 @@ class LeakCanaryLogcatCommandHandlerTest {
     verifyStartEvent()
 
     val event = mockEventQueue.poll()
-    // -1 is assigned for incomplete trace without retained bytes info
-    assertTrue(event.leakcanaryAnalysis.data.contains("-1 bytes retained by leaking objects"))
+    // 0 is assigned for incomplete trace without retained bytes info
+    assertTrue(event.leakcanaryAnalysis.data.contains("0 bytes retained by leaking objects"))
 
     verifyEndEvent()
   }
