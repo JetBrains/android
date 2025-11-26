@@ -34,7 +34,7 @@ CodecHandle::~CodecHandle() {
 
 bool CodecHandle::Start() {
   unique_lock lock(mutex_);
-  if (stop_pending_) {
+  if (stopped_) {
     return false;
   }
   media_status_t res = AMediaCodec_start(codec_);
@@ -48,13 +48,17 @@ bool CodecHandle::Start() {
 
 void CodecHandle::Stop() {
   unique_lock lock(mutex_);
+  stopped_ = true;
   if (running_) {
     Log::D("%sstopping codec", log_prefix_.c_str());
     AMediaCodec_stop(codec_);
     running_ = false;
-  } else {
-    stop_pending_ = true;
   }
+}
+
+bool CodecHandle::IsStopped() {
+  unique_lock lock(mutex_);
+  return stopped_;
 }
 
 }  // namespace screensharing

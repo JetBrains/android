@@ -35,6 +35,7 @@ public:
   [[nodiscard]] bool Start();
   // Stops the codec if is is running. Otherwise creates a pending stop request.
   void Stop();
+  bool IsStopped();
 
   AMediaCodec* codec() const { return codec_; }
 
@@ -43,7 +44,7 @@ private:
   std::recursive_mutex mutex_;
   AMediaCodec* codec_ = nullptr;  // GUARDED_BY(mutex_)
   bool running_ = false;  // GUARDED_BY(mutex_)
-  bool stop_pending_ = false;  // GUARDED_BY(mutex_)
+  bool stopped_ = false;  // GUARDED_BY(mutex_)
 
   DISALLOW_COPY_AND_ASSIGN(CodecHandle);
 };
