@@ -19,6 +19,10 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import com.android.tools.asdriver.tests.integration.AndroidDeviceManager
+import com.android.tools.testlib.Emulator
+import com.android.tools.testlib.LogFile
+import com.intellij.openapi.util.SystemInfo
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -54,7 +58,8 @@ class BuildAndRunTest {
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
 
     system.runAdb { adb ->
-      system.runEmulator { emulator ->
+      val androidDeviceManager = AndroidDeviceManager()
+      androidDeviceManager.runEmulator(system.fileSystem, system.sdk, system.display).use { emulator ->
         system.runStudio(project, watcher.dashboardName) { studio ->
           studio.waitForSync()
           studio.waitForIndex()
@@ -65,14 +70,18 @@ class BuildAndRunTest {
           studio.executeAction("MakeGradleProject")
           studio.waitForBuild()
 
+          val logCat: LogFile = if (SystemInfo.isWindows) adb.logcat() else emulator.logCat
+
           studio.executeAction("Run")
           studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.example\\.minapp", 60, TimeUnit.SECONDS)
-          emulator.logCat.waitForMatchingLine(".*Hello Minimal World!.*", 30, TimeUnit.SECONDS)
+          logCat.waitForMatchingLine(".*Hello Minimal World!.*", 30, TimeUnit.SECONDS)
 
           val path = project.targetProject.resolve("src/main/java/com/example/minapp/MainActivity.kt")
           studio.editFile(project.targetProject.fileName.toString(), path.toString(), "Hello Minimal", "Hey Minimal")
           studio.executeAction("Run")
-          emulator.logCat.waitForMatchingLine(".*Hey Minimal World!.*", 30, TimeUnit.SECONDS)
+          logCat.waitForMatchingLine(".*Hey Minimal World!.*", 30, TimeUnit.SECONDS)
+
+          if(SystemInfo.isWindows) androidDeviceManager.tearDown()
         }
       }
     }
