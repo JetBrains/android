@@ -78,6 +78,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
   @Test
   fun `test leak canary left and right panel data with the first selected leak`() {
     val analysis = getMultipleLeaksAnalysis()
+    Truth.assertThat(analysis).isNotNull()
     leakCanaryModel.addLeaks((analysis as AnalysisSuccess).leaks)
     leakCanaryModel.onLeakSelection(leakCanaryModel.leaks.value[0])
     composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel) }
@@ -126,6 +127,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
   @Test
   fun `test leak canary left and right panel data changes on the selected leak changes`() {
     val analysis = getMultipleLeaksAnalysis()
+    Truth.assertThat(analysis).isNotNull()
     composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel) }
     // Initially, it's an empty leak list
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_HEADER_TEXT).isDisplayed()
@@ -236,6 +238,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
   @Test
   fun  `test leak canary left and right panel data with leaks having className in multiple lines`() {
     val analysis = getLeaksAnalysisWithClassNameInMultipleLine()
+    Truth.assertThat(analysis).isNotNull()
     composeTestRule.setContent {
       LeakCanaryScreen(leakCanaryModel = leakCanaryModel)
     }
@@ -424,6 +427,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
   @Test
   fun `test expand and collapse all via buttons`() {
     val analysis = getMultipleLeaksAnalysis()
+    Truth.assertThat(analysis).isNotNull()
     leakCanaryModel.addLeaks((analysis as AnalysisSuccess).leaks)
     leakCanaryModel.onLeakSelection(leakCanaryModel.leaks.value[0])
     composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel) }
@@ -453,6 +457,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
   @Test
   fun `test expand and collapse all via shortcuts`() {
     val analysis = getMultipleLeaksAnalysis()
+    Truth.assertThat(analysis).isNotNull()
     leakCanaryModel.addLeaks((analysis as AnalysisSuccess).leaks)
     leakCanaryModel.onLeakSelection(leakCanaryModel.leaks.value[0])
     composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel) }
@@ -491,6 +496,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
   @Test
   fun `clicking copy to clipboard button should capture the correct leak string`() {
     val analysis = getMultipleLeaksAnalysis()
+    Truth.assertThat(analysis).isNotNull()
     val selectedLeak = (analysis as AnalysisSuccess).leaks[0]
     leakCanaryModel.addLeaks(analysis.leaks)
     leakCanaryModel.onLeakSelection(selectedLeak)

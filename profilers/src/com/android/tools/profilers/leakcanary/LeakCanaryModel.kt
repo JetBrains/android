@@ -195,35 +195,34 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
    */
   private fun leakDetected(event: Common.Event) {
     val analysis = event.leakcanaryAnalysis.data
-    handleRetainedObject(analysis)
-    handleAnalysisProgress(analysis)
-    handleLeakAnalysis(event.leakcanaryAnalysis.data)
+    if (handleRetainedObject(analysis)) return
+    if (handleAnalysisProgress(analysis)) return
+    handleLeakAnalysis(analysis)
   }
 
-  private fun handleRetainedObject(analysisStr: String) {
+  private fun handleRetainedObject(analysisStr: String): Boolean {
     val retainedObjectsRegex = """Found (\d+) objects retained""".toRegex()
-    retainedObjectsRegex.find(analysisStr)?.let { matchResult ->
+    return retainedObjectsRegex.find(analysisStr)?.let { matchResult ->
       matchResult.groupValues.getOrNull(1)?.toIntOrNull()?.let { count ->
         setObjectRetainedCount(count)
       }
-      return
-    }
+      true
+    } ?: false
   }
 
-  private fun handleAnalysisProgress(analysisStr: String) {
+  private fun handleAnalysisProgress(analysisStr: String): Boolean {
     val analysisProgressRegex = """Analysis in progress, (\d+)% done""".toRegex()
-    analysisProgressRegex.find(analysisStr)?.let { matchResult ->
+    return analysisProgressRegex.find(analysisStr)?.let { matchResult ->
       matchResult.groupValues.getOrNull(1)?.toIntOrNull()?.let { progress ->
         setAnalysisProgress(progress)
       }
-      return
-    }
+      true
+    } ?: false
   }
 
   private fun handleLeakAnalysis(analysisReport: String) {
     if (analysisReport.isEmpty()) return
-    val leakAnalysisEvent = getEventFromAnalysisData(analysisReport)
-    if (leakAnalysisEvent == null) return
+    val leakAnalysisEvent = getEventFromAnalysisData(analysisReport) ?: return
 
     setObjectRetainedCount(0)
     setAnalysisProgress(0)
