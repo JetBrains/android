@@ -70,11 +70,15 @@ void AudioRecordReader::Run() {
     return;
   }
   Log::D("AudioRecordReader::Run: 3"); // b/457620853
-  audio_record_.Start();
-  Log::D("AudioRecordReader::Run: 4"); // b/457620853
-  ReadUntilStopped();
-  Log::D("AudioRecordReader::Run: 5"); // b/457620853
-  audio_record_.Stop();
+  if (audio_record_.Start()) {
+    Log::D("AudioRecordReader::Run: 4"); // b/457620853
+    ReadUntilStopped();
+    Log::D("AudioRecordReader::Run: 5"); // b/457620853
+    audio_record_.Stop();
+  } else {
+    Log::E("Audio: AudioRecord.startRecording failed");
+    fprintf(stderr, "NOTIFICATION Unable to start audio streaming\n");
+  }
   Log::D("AudioRecordReader::Run: 6"); // b/457620853
   audio_record_.Release();
   Log::D("AudioRecordReader::Run: 7"); // b/457620853
