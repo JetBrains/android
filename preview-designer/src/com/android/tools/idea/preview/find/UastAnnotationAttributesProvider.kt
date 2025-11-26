@@ -55,7 +55,7 @@ class UastAnnotationAttributesProvider(
   }
 
   override fun <T> getDeclaredAttributeValue(attributeName: String): T? =
-    annotation.findDeclaredAttributeValue(attributeName)?.getValueOfType() as T? as T? ?: findAttributeConstantValue(attributeName) as? T
+    annotation.findDeclaredAttributeValue(attributeName)?.getValueOfType() ?: findAttributeConstantValue(attributeName) as? T
 
   override fun findClassNameValue(name: String): String? =
     (annotation.findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText ?: findAttributeClassLiteralClassId(name)
