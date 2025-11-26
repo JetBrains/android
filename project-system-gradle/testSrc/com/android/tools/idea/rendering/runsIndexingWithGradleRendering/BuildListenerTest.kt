@@ -89,9 +89,9 @@ class BuildListenerTest {
         WorkspaceEntityLifecycleSupporterUtils.withAllEntitiesInWorkspaceFromProvidersDefinedOnEdt(project) {
           assertThat(collectedEvents()).isEqualTo(
             """
-          * syncSkipped
           * firstSourceRootsAdded
           * setupBuildListener
+          * syncSkipped
           ->startedListening
         """.trimIndent() // Note that `->startedListening` comes only after `* syncSkipped`.
           )
