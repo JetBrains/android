@@ -1,10 +1,9 @@
-// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
-package com.android.tools.idea.streaming;
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+package com.android.tools.idea.testing.ui;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.Balloon;
@@ -67,9 +66,8 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     myProject = project;
   }
 
-  @NotNull
   @Override
-  public List<ToolWindow> getToolWindows() {
+  public @NotNull List<ToolWindow> getToolWindows() {
     return List.copyOf(myToolWindows.values());
   }
 
@@ -189,9 +187,8 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     return Collections.emptyList();
   }
 
-  @NotNull
   @Override
-  public ToolWindowAnchor getMoreButtonSide() {
+  public @NotNull ToolWindowAnchor getMoreButtonSide() {
     return ToolWindowAnchor.LEFT;
   }
 
@@ -491,10 +488,6 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
         return;
       }
       myDispatcher.getListeners().add(0, l);
-    }
-
-    @Override
-    public void addDataProvider(final @NotNull DataProvider provider) {
     }
 
     @Override

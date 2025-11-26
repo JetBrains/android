@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming
+package com.android.tools.idea.testing.ui
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
@@ -27,18 +27,18 @@ import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.impl.InternalDecorator
 import com.intellij.testFramework.replaceService
-import icons.StudioIcons
 import org.mockito.kotlin.mock
 import javax.swing.Icon
 
 /** Creates a [FakeToolWindow] for testing. */
-internal fun createFakeToolWindow(
+fun createFakeToolWindow(
   windowFactory: ToolWindowFactory,
   toolWindowId: String,
+  icon: Icon,
   project: Project,
   parentDisposable: Disposable,
 ): FakeToolWindow {
-  val windowManager = FakeToolWindowManager(windowFactory, toolWindowId, project)
+  val windowManager = FakeToolWindowManager(windowFactory, toolWindowId, icon, project)
   project.replaceService(ToolWindowManager::class.java, windowManager, parentDisposable)
   val toolWindow = windowManager.toolWindow
   assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
@@ -46,8 +46,9 @@ internal fun createFakeToolWindow(
   return toolWindow
 }
 
-internal class FakeToolWindow(
+class FakeToolWindow(
   private val windowFactory: ToolWindowFactory,
+  private var icon: Icon,
   private val manager: ToolWindowManager,
   project: Project,
 ) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
@@ -60,7 +61,6 @@ internal class FakeToolWindow(
   private var visible = false
   private var active = false
   private var type = ToolWindowType.DOCKED
-  private var icon = StudioIcons.Shell.ToolWindows.EMULATOR
   private val decorator = mock<InternalDecorator>()
 
   override fun setAvailable(available: Boolean) {
@@ -134,9 +134,10 @@ internal class FakeToolWindow(
 private class FakeToolWindowManager(
   windowFactory: ToolWindowFactory,
   private val toolWindowId: String,
+  icon: Icon,
   project: Project,
 ) : ToolWindowHeadlessManagerImpl(project) {
-  var toolWindow = FakeToolWindow(windowFactory, this, project)
+  var toolWindow = FakeToolWindow(windowFactory, icon, this, project)
 
   override fun getToolWindow(id: String?): ToolWindow? {
     return if (id == toolWindowId) toolWindow else super.getToolWindow(id)
