@@ -15,14 +15,12 @@
  */
 package com.android.tools.profilers;
 
-import com.android.sdklib.AndroidVersion
 import com.android.tools.profilers.cpu.LiveCpuUsageModel
 import com.android.tools.profilers.event.EventMonitor
 import com.android.tools.profilers.memory.LiveMemoryFootprintModel
-import com.android.tools.profilers.memory.adapters.MemoryDataProvider
 import com.android.tools.profilers.sessions.SessionAspect
-import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskFinished
-import com.android.tools.profilers.tasks.TaskFinishedState
+import com.android.tools.profilers.tasks.analytics.TaskFinishedState
+import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import org.jetbrains.annotations.NotNull
 import java.util.Optional
@@ -38,8 +36,7 @@ class LiveStage(@NotNull private val profilers : StudioProfilers, val stopTask: 
 
   private var sessionData = profilers.session
 
-  override fun enter() {
-    logEnterStage()
+  override fun onEnter() {
     sessionData = profilers.session
     // If we are entering this stage for a past recording (i.e., the session is not live),
     // we need to tell the backend which database to query. For a new, live recording,
@@ -67,10 +64,11 @@ class LiveStage(@NotNull private val profilers : StudioProfilers, val stopTask: 
       if (isSessionAlive) {
         studioProfilers.sessionsManager.addDependency(this).onChange(SessionAspect.SESSIONS) {
           if (!studioProfilers.sessionsManager.isSessionAlive) {
-            // Track Live View task finish here. If the session goes from alive to not alive here, it is assumed that there  was no failure
+            // If the session goes from alive to not alive here, it is assumed that there  was no failure
             // and the task completed successfully. The value of 'true' is passed in for the 'isNewlyRecordedTask' as the session went from
             // being alive to dead within this stage, indicating that this is a newly recorded task.
-            trackTaskFinished(studioProfilers, true, TaskFinishedState.COMPLETED)
+            // hence also reassigning the task tracker here to reflect the same.
+            myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED)
 
             // De-register the aspect SESSIONS aspect listener in this class.
             studioProfilers.sessionsManager.removeDependencies(this)
@@ -80,12 +78,12 @@ class LiveStage(@NotNull private val profilers : StudioProfilers, val stopTask: 
       else {
         // The value of 'false' is passed in for the 'isNewlyRecordedTask' as the session was not alive on entering this stage, indicating
         // that this is a previously recorded task. The assumption here is that if the live task made it to this point, it did not fail.
-        trackTaskFinished(studioProfilers, false, TaskFinishedState.COMPLETED)
+        myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED)
       }
     }
   }
 
-  override fun exit() {
+  override fun onExit() {
     liveModels.stream().forEach { liveModel -> liveModel.exit() }
     liveModels.clear()
     eventMonitor.ifPresent(EventMonitor::exit)

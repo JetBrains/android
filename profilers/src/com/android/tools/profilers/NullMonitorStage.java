@@ -43,13 +43,12 @@ public class NullMonitorStage extends StreamingStage {
   }
 
   @Override
-  public void enter() {
-    logEnterStage();
+  public void onEnter() {
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
   }
 
   @Override
-  public void exit() {
+  public void onExit() {
   }
 
   @Override

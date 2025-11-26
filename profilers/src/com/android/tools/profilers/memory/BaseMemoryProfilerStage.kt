@@ -21,10 +21,9 @@ import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.MemoryDataProvider
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.android.tools.profilers.tasks.ProfilerTaskType
-import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackProcessingTaskFailed
-import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskFinished
-import com.android.tools.profilers.tasks.TaskFinishedState
-import com.android.tools.profilers.tasks.TaskProcessingFailedMetadata
+import com.android.tools.profilers.tasks.analytics.TaskFinishedState
+import com.android.tools.profilers.tasks.analytics.TaskProcessingFailedMetadata
+import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.intellij.openapi.application.ApplicationNamesInfo
@@ -51,7 +50,7 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
       get() = Logger.getInstance(BaseMemoryProfilerStage::class.java)
   }
 
-  override fun exit() {
+  override fun onExit() {
     hasExited = true
   }
 
@@ -112,7 +111,7 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
               val isJavaKotlinAllocationsTask = studioProfilers.sessionsManager.currentTaskType == ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS
               val isLegacy = !MemoryDataProvider.getIsLiveAllocationTrackingSupported(studioProfilers)
               if ((!isJavaKotlinAllocationsTask || isLegacy) && isTaskBasedUxEnabled) {
-                trackTaskFinished(studioProfilers, isSessionAlive, TaskFinishedState.COMPLETED)
+                myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED)
               }
             }
             else {
@@ -120,30 +119,27 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
               // TODO: loading has somehow failed - we need to inform users about the error status.
               doSelectCaptureDuration(null, null)
               if (isTaskBasedUxEnabled) {
-                trackProcessingTaskFailed(studioProfilers, studioProfilers.sessionsManager.isSessionAlive,
-                                          TaskProcessingFailedMetadata(cpuCaptureMetadata = null))
+                myTaskTracker.trackProcessingTaskFailed(TaskProcessingFailedMetadata(cpuCaptureMetadata = null))
               }
             }
             // Triggers the aspect to inform listeners that the heap content/filter has changed.
             captureSelection.refreshSelectedHeap()
           }
-          catch (exception: InterruptedException) {
+          catch (_: InterruptedException) {
             Thread.currentThread().interrupt()
             doSelectCaptureDuration(null, null)
             if (isTaskBasedUxEnabled) {
-              trackProcessingTaskFailed(studioProfilers, studioProfilers.sessionsManager.isSessionAlive,
-                                        TaskProcessingFailedMetadata(cpuCaptureMetadata = null))
+              myTaskTracker.trackProcessingTaskFailed(TaskProcessingFailedMetadata(cpuCaptureMetadata = null))
             }
           }
           catch (exception: ExecutionException) {
             doSelectCaptureDuration(null, null)
             logger.error(exception)
             if (isTaskBasedUxEnabled) {
-              trackProcessingTaskFailed(studioProfilers, studioProfilers.sessionsManager.isSessionAlive,
-                                        TaskProcessingFailedMetadata(cpuCaptureMetadata = null))
+              myTaskTracker.trackProcessingTaskFailed(TaskProcessingFailedMetadata(cpuCaptureMetadata = null))
             }
           }
-          catch (ignored: CancellationException) {
+          catch (_: CancellationException) {
             // No-op: a previous load-capture task is canceled due to another capture being selected and loaded.
           }
         },

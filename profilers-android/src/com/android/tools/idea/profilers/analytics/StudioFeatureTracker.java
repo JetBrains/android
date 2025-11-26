@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers.analytics;
 
 import static com.android.ide.common.util.DeviceUtils.isMdnsAutoConnectTls;
 import static com.android.ide.common.util.DeviceUtils.isMdnsAutoConnectUnencrypted;
-import static com.android.tools.profilers.tasks.TaskMetadataStatus.Companion;
 
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
@@ -52,12 +51,13 @@ import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionItem;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
-import com.android.tools.profilers.tasks.TaskAttachmentPoint;
-import com.android.tools.profilers.tasks.TaskDataOrigin;
-import com.android.tools.profilers.tasks.TaskFinishedState;
-import com.android.tools.profilers.tasks.TaskProcessingFailedMetadata;
-import com.android.tools.profilers.tasks.TaskStartFailedMetadata;
-import com.android.tools.profilers.tasks.TaskStopFailedMetadata;
+import com.android.tools.profilers.tasks.analytics.TaskAttachmentPoint;
+import com.android.tools.profilers.tasks.analytics.TaskDataOrigin;
+import com.android.tools.profilers.tasks.analytics.TaskFinishedState;
+import com.android.tools.profilers.tasks.analytics.TaskMetadataMappersKt;
+import com.android.tools.profilers.tasks.analytics.TaskProcessingFailedMetadata;
+import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata;
+import com.android.tools.profilers.tasks.analytics.TaskStopFailedMetadata;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AdtUiBoxSelectionMetadata;
 import com.google.wireless.android.sdk.stats.AdtUiTrackGroupMetadata;
@@ -793,7 +793,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     return taskConfigBuilder.build();
   }
 
-  private TaskMetadata buildStatsTaskMetadata(com.android.tools.profilers.tasks.TaskMetadata taskMetadata) {
+  private TaskMetadata buildStatsTaskMetadata(com.android.tools.profilers.tasks.analytics.TaskMetadata taskMetadata) {
     TaskMetadata.Builder taskMetadataBuilder = TaskMetadata.newBuilder().setTaskType(
         PROFILER_TASK_TYPE_MAP.getOrDefault(taskMetadata.getTaskType(), TaskMetadata.ProfilerTaskType.PROFILER_TASK_TYPE_UNSPECIFIED))
       .setTaskId(taskMetadata.getTaskId())
@@ -814,13 +814,13 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackTaskEntered(com.android.tools.profilers.tasks.@NotNull TaskMetadata taskMetadata) {
+  public void trackTaskEntered(com.android.tools.profilers.tasks.analytics.@NotNull TaskMetadata taskMetadata) {
     newTracker(AndroidProfilerEvent.Type.TASK_ENTERED).setTaskEnteredMetadata(TaskEnteredMetadata.newBuilder().setTaskData(
       buildStatsTaskMetadata(taskMetadata)).build()).track();
   }
 
   @Override
-  public void trackTaskFinished(com.android.tools.profilers.tasks.@NotNull TaskMetadata taskMetadata,
+  public void trackTaskFinished(com.android.tools.profilers.tasks.analytics.@NotNull TaskMetadata taskMetadata,
                                 @NotNull TaskFinishedState taskFinishedState) {
     newTracker(AndroidProfilerEvent.Type.TASK_FINISHED).setTaskFinishedMetadata(
       TaskFinishedMetadata.newBuilder().setTaskData(buildStatsTaskMetadata(taskMetadata)).setTaskFinishedState(
@@ -828,14 +828,14 @@ public final class StudioFeatureTracker implements FeatureTracker {
         .build()).track();
   }
 
-  public void trackTaskFailed(com.android.tools.profilers.tasks.@NotNull TaskMetadata taskMetadata,
+  public void trackTaskFailed(com.android.tools.profilers.tasks.analytics.@NotNull TaskMetadata taskMetadata,
                               @NotNull TaskStartFailedMetadata taskStartFailedMetadata) {
     TaskFailedMetadata.Builder taskMetadataBuilder = getTaskFailedMetadata(taskMetadata, FailingPoint.TASK_START);
     taskMetadataBuilder.setTaskStartFailureMetadata(buildStatsTaskStartFailedMetadata(taskStartFailedMetadata));
     newTracker(AndroidProfilerEvent.Type.TASK_FAILED).setTaskFailedMetadata(taskMetadataBuilder.build()).track();
   }
 
-  public void trackTaskFailed(com.android.tools.profilers.tasks.@NotNull TaskMetadata taskMetadata,
+  public void trackTaskFailed(com.android.tools.profilers.tasks.analytics.@NotNull TaskMetadata taskMetadata,
                               @Nullable TaskStopFailedMetadata taskStopFailedMetadata) {
     TaskFailedMetadata.Builder taskMetadataBuilder = getTaskFailedMetadata(taskMetadata, FailingPoint.TASK_STOP);
     if (taskStopFailedMetadata != null) {
@@ -844,7 +844,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     newTracker(AndroidProfilerEvent.Type.TASK_FAILED).setTaskFailedMetadata(taskMetadataBuilder.build()).track();
   }
 
-  public void trackTaskFailed(com.android.tools.profilers.tasks.@NotNull TaskMetadata taskMetadata,
+  public void trackTaskFailed(com.android.tools.profilers.tasks.analytics.@NotNull TaskMetadata taskMetadata,
                               @NotNull TaskProcessingFailedMetadata taskProcessingFailedMetadata) {
     TaskFailedMetadata.Builder taskMetadataBuilder = getTaskFailedMetadata(taskMetadata, FailingPoint.TASK_PROCESSING);
     taskMetadataBuilder.setTaskProcessingFailureMetadata(buildStatsTaskProcessingFailedMetadata(taskProcessingFailedMetadata));
@@ -865,10 +865,10 @@ public final class StudioFeatureTracker implements FeatureTracker {
       result.setCpuCaptureMetadata(CpuCaptureParser.getCpuCaptureMetadata(metadata.getCpuCaptureMetadata()));
     }
     else if (metadata.getTraceStopStatus() != null) {
-      result.setTraceStopStatus(Companion.getTaskFailedTraceStopStatus(metadata.getTraceStopStatus()));
+      result.setTraceStopStatus(TaskMetadataMappersKt.toStatsProto(metadata.getTraceStopStatus()));
     }
     else if (metadata.getAllocationTrackStatus() != null) {
-      result.setTrackStatus(Companion.getTaskFailedAllocationTrackStatus(metadata.getAllocationTrackStatus()));
+      result.setTrackStatus(TaskMetadataMappersKt.toStatsProto(metadata.getAllocationTrackStatus()));
     }
     return result.build();
   }
@@ -876,18 +876,18 @@ public final class StudioFeatureTracker implements FeatureTracker {
   TaskFailedMetadata.TaskStartFailedMetadata buildStatsTaskStartFailedMetadata(TaskStartFailedMetadata metadata) {
     TaskFailedMetadata.TaskStartFailedMetadata.Builder result = TaskFailedMetadata.TaskStartFailedMetadata.newBuilder();
     if (metadata.getTraceStartStatus() != null) {
-      result.setTraceStartStatus(Companion.getTaskFailedTraceStartStatus(metadata.getTraceStartStatus()));
+      result.setTraceStartStatus(TaskMetadataMappersKt.toStatsProto(metadata.getTraceStartStatus()));
     }
     else if (metadata.getAllocationTrackStatus() != null) {
-      result.setTrackStatus(Companion.getTaskFailedAllocationTrackStatus(metadata.getAllocationTrackStatus()));
+      result.setTrackStatus(TaskMetadataMappersKt.toStatsProto(metadata.getAllocationTrackStatus()));
     }
     else if (metadata.getHeapDumpStatus() != null) {
-      result.setHeapDumpStartStatus(Companion.getTaskFailedHeapDumpStatus(metadata.getHeapDumpStatus()));
+      result.setHeapDumpStartStatus(TaskMetadataMappersKt.toStatsProto(metadata.getHeapDumpStatus()));
     }
     return result.build();
   }
 
-  private TaskFailedMetadata.Builder getTaskFailedMetadata(com.android.tools.profilers.tasks.@NotNull TaskMetadata taskMetadata,
+  private TaskFailedMetadata.Builder getTaskFailedMetadata(com.android.tools.profilers.tasks.analytics.@NotNull TaskMetadata taskMetadata,
                                                            FailingPoint failingPoint) {
     return TaskFailedMetadata.newBuilder().setTaskData(buildStatsTaskMetadata(taskMetadata))
       .setFailingPoint(Objects.requireNonNull(TASK_FAILED_STATE_MAP.getOrDefault(failingPoint, FailingPoint.FAILING_POINT_UNSPECIFIED)));
