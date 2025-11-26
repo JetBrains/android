@@ -19,7 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
-import com.android.tools.idea.welcome.wizard.deprecated.SdkComponentsStepForm
+import com.android.tools.idea.welcome.wizard.forms.SdkComponentsStepForm
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.wireless.android.sdk.stats.SetupWizardEvent

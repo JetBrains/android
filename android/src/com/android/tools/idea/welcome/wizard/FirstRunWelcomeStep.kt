@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWelcomeStepForm
+import com.android.tools.idea.welcome.wizard.forms.FirstRunWelcomeStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import javax.swing.JComponent

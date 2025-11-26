@@ -43,7 +43,6 @@ import com.android.tools.idea.avdmanager.DeviceSkinUpdaterService
 import com.android.tools.idea.avdmanager.SystemImageDescription
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.IdeAvdManagers
-import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath.findLatestPlatform
 import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.execution.ui.ConsoleViewContentType
@@ -258,4 +257,38 @@ class AndroidVirtualDeviceSdkComponentTreeNode(
       } ?: throw WizardException("No device definition with \"$DEFAULT_DEVICE_ID\" ID found")
     }
   }
+}
+
+/**
+ * Returns the latest platform from a given list.
+ *
+ * It is possible to select whether one wants the last extension of the latest platform or whether
+ * one wants the latest base extension.
+ *
+ * @param remotePackages the list of packages to search for the last platform.
+ * @param returnBaseExtension whether to always return the base extension of the latest platform.
+ * @return
+ */
+fun findLatestPlatform(
+  remotePackages: Collection<RemotePackage>,
+  returnBaseExtension: Boolean,
+): RemotePackage? {
+  var max: AndroidVersion? = null
+  var latest: RemotePackage? = null
+  for (pkg in remotePackages) {
+    val details = pkg.getTypeDetails()
+    if (details !is DetailsTypes.PlatformDetailsType) {
+      continue
+    }
+    val version = details.getAndroidVersion()
+    if (version.isPreview() || (returnBaseExtension && !version.isBaseExtension())) {
+      // We only want stable platforms, and possibly only base extension if requested
+      continue
+    }
+    if (max == null || version.compareTo(max) > 0) {
+      latest = pkg
+      max = version
+    }
+  }
+  return latest
 }

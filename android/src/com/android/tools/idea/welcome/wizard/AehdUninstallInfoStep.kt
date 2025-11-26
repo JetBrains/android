@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.welcome.wizard.deprecated.AehdUninstallInfoStepForm
+import com.android.tools.idea.welcome.wizard.forms.AehdUninstallInfoStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.openapi.util.SystemInfo

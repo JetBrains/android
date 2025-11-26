@@ -41,7 +41,7 @@ import com.android.tools.idea.welcome.config.InstallerData
 import com.android.tools.idea.welcome.config.installerData
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults
 import com.android.tools.idea.welcome.install.SdkComponentInstaller
-import com.android.tools.idea.welcome.wizard.deprecated.LinuxKvmInfoStepForm
+import com.android.tools.idea.welcome.wizard.forms.LinuxKvmInfoStepForm
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.openapi.editor.impl.EditorComponentImpl

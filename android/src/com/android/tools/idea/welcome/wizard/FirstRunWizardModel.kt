@@ -38,12 +38,13 @@ import com.android.tools.idea.welcome.install.SdkComponentCategoryTreeNode
 import com.android.tools.idea.welcome.install.SdkComponentInstaller
 import com.android.tools.idea.welcome.install.SdkComponentTreeNode
 import com.android.tools.idea.welcome.install.WizardException
-import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath
 import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.containers.orNull
 import java.io.File
+import java.io.IOException
 import java.nio.file.Path
 import java.util.Optional
 import java.util.function.Supplier
@@ -165,7 +166,7 @@ class FirstRunWizardModel(
 
     sdkComponentInstaller.installComponents(
       componentTree.childrenToInstall,
-      InstallContext(InstallComponentsPath.createTempDir(), progressStep),
+      InstallContext(createTempDir(), progressStep),
       mode.installerTimestamp,
       ModalityState.stateForComponent(progressStep.component),
       sdkHandler,
@@ -185,4 +186,14 @@ class FirstRunWizardModel(
   }
 
   override fun handleFinished() {}
+}
+
+fun createTempDir(): File {
+  val tempDirectory: File
+  try {
+    tempDirectory = FileUtil.createTempDirectory("AndroidStudio", "FirstRun", true)
+  } catch (e: IOException) {
+    throw WizardException("Unable to create temporary folder: " + e.message, e)
+  }
+  return tempDirectory
 }

@@ -17,7 +17,7 @@ package com.android.tools.idea.welcome.wizard
 
 import com.android.repository.api.RemotePackage
 import com.android.tools.idea.welcome.isWritable
-import com.android.tools.idea.welcome.wizard.deprecated.InstallSummaryStepForm
+import com.android.tools.idea.welcome.wizard.forms.InstallSummaryStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.utils.HtmlBuilder
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
