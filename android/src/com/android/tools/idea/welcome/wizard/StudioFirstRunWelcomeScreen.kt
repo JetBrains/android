@@ -25,8 +25,6 @@ import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults
 import com.android.tools.idea.welcome.install.SdkComponentInstaller
-import com.android.tools.idea.welcome.wizard.deprecated.CancelableWelcomeWizard
-import com.android.tools.idea.welcome.wizard.deprecated.WelcomeScreenWindowListener
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizard.WizardResult
 import com.android.tools.idea.wizard.model.ModelWizardDialog

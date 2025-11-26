@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.welcome.wizard.deprecated.InstallationTypeWizardStepForm
+import com.android.tools.idea.welcome.wizard.forms.InstallationTypeWizardStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import javax.swing.JComponent

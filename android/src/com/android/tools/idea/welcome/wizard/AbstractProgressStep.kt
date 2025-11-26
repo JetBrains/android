@@ -16,7 +16,7 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.annotations.concurrency.AnyThread
-import com.android.tools.idea.welcome.wizard.deprecated.ProgressStepForm
+import com.android.tools.idea.welcome.wizard.forms.ProgressStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.execution.process.ProcessHandler
