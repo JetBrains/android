@@ -20,6 +20,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/platform-performance-testing",
+        "//tools/adt/idea/as-driver:as-driver.integration",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -504,16 +505,16 @@ iml_test(
     name = "BuildAndRunTest",
     timeout = "long",
     data = build_and_run_test_data,
+    exec_properties = {
+        "dockerNetwork": "standard",
+    },
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
     ],
     tags_linux = ["block-network"],
     tags_mac = [],
-    tags_windows = [
-        "block-network",
-        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
-    ],
+    tags_windows = [],
     test_class = "com.android.tools.idea.BuildAndRunTest",
 )
 

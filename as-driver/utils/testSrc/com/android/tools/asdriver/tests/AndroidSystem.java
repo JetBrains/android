@@ -321,6 +321,14 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     env.put(name, value);
   }
 
+  public TestFileSystem getFileSystem() {
+    return fileSystem;
+  }
+
+  public Display getDisplay() {
+    return display;
+  }
+
   @Override
   public void close() throws Exception {
     display.close();

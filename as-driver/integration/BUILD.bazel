@@ -20,6 +20,10 @@ jvm_library(
     "@lib//:junit4",
     "//android/as-driver/utils:utils_test_lib",
     "//libraries/hamcrest",
+    "//libraries/guava",
+    "@lib//:kotlinx-coroutines-core",
+    "//libraries/gson",
+    "//platform/util",
   ],
   runtime_deps = [":integration"]
 )
