@@ -32,13 +32,14 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.tree.TreeUtil
+import javax.swing.SwingUtilities
+import javax.swing.event.TreeModelEvent
+import javax.swing.tree.TreeSelectionModel
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.SwingUtilities
-import javax.swing.event.TreeModelEvent
-import javax.swing.tree.TreeSelectionModel
 
 class TreeTableModelImplTest {
   companion object {
@@ -215,6 +216,8 @@ class TreeTableModelImplTest {
     var autoScrollCount = 0
     model.treeRoot = item1
     UIUtil.dispatchAllInvocationEvents()
+    TreeUtil.expandAll(table.tree)
+    UIUtil.dispatchAllInvocationEvents()
     model.addTreeModelListener(count)
     selectionModel.addSelectionListener { selectionChangeCount++ }
     table.selectionModel.addListSelectionListener { tableSelectionChangeCount++ }
@@ -228,7 +231,7 @@ class TreeTableModelImplTest {
     assertThat(treeSelectionChangeCount).isEqualTo(1)
     assertThat(autoScrollCount).isEqualTo(0)
     assertThat(count.anyChanges()).isFalse()
-    assertThat(selectionModel.currentSelection).containsExactly(item3)
+    assertThat(selectionModel.currentSelection).containsExactly(style1)
   }
 
   @Test
