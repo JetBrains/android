@@ -54,13 +54,12 @@ public class CustomEventProfilerStage extends StreamingStage {
   }
 
   @Override
-  public void enter() {
-    logEnterStage();
+  public void onEnter() {
     initTrackGroupList();
   }
 
   @Override
-  public void exit() {
+  public void onExit() {
     // Unregister all of the user counter models so that the updater does not hold a reference to them when the stage is deleted.
     for (UserCounterModel model : myUserCounterModels) {
       getStudioProfilers().getUpdater().unregister(model);

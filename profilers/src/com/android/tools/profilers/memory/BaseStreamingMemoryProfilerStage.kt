@@ -150,14 +150,14 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     allocationSamplingRateUpdatable.update(0)
   }
 
-  override fun enter() {
+  override fun onEnter() {
     loader.start()
     eventMonitor.enter()
     updatables.forEach(studioProfilers.updater::register)
     studioProfilers.ideServices.featureTracker.trackEnterStage(stageType)
   }
 
-  override fun exit() {
+  override fun onExit() {
     eventMonitor.exit()
     updatables.forEach(studioProfilers.updater::unregister)
     loader.stop()

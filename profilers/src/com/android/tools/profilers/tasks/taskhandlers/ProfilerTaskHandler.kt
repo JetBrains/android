@@ -22,7 +22,7 @@ import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
-import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskEntered
+import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.intellij.openapi.diagnostic.Logger
 
@@ -32,6 +32,9 @@ import com.intellij.openapi.diagnostic.Logger
  * the task is defined as terminated, what to return for the task name, and whether the task supports a specific artifact.
  */
 abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager) {
+  protected var myTaskTracker: TaskTracker = TaskTracker.createNullTaskTracker(sessionsManager.studioProfilers)
+    private set
+
   private fun getLogger(): Logger {
     return Logger.getInstance(ProfilerTaskHandler::class.java)
   }
@@ -49,7 +52,13 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
    * successful, it does not tell us if the startTask or loadTask functionality was successful.
    */
   open fun enter(args: TaskArgs) : Boolean {
-    trackTaskEntered(sessionsManager.studioProfilers)
+    myTaskTracker = TaskTracker.createTaskTracker(
+      sessionsManager.studioProfilers,
+      sessionsManager.isSessionAlive
+    )
+
+    myTaskTracker.trackTaskEntered()
+
     if (sessionsManager.isSessionAlive) {
       startTask(args)
     }

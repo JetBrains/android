@@ -34,9 +34,9 @@ import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.android.tools.profilers.cpu.systemtrace.AtraceParser;
 import com.android.tools.profilers.perfetto.PerfettoParser;
-import com.android.tools.profilers.tasks.TaskEventTrackerUtils;
-import com.android.tools.profilers.tasks.TaskFinishedState;
-import com.android.tools.profilers.tasks.TaskProcessingFailedMetadata;
+import com.android.tools.profilers.tasks.analytics.TaskFinishedState;
+import com.android.tools.profilers.tasks.analytics.TaskProcessingFailedMetadata;
+import com.android.tools.profilers.tasks.analytics.TaskTracker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -203,7 +203,7 @@ public class CpuCaptureParser {
     @NotNull TraceType preferredProfilerType,
     int processIdHint,
     String processNameHint,
-    @NotNull Consumer<TaskFinishedState> trackTaskFinished) {
+    @NotNull TaskTracker taskTracker) {
     if (myCaptures.containsKey(traceId)) {
       return myCaptures.get(traceId);
     }
@@ -217,7 +217,7 @@ public class CpuCaptureParser {
         .thenApplyAsync(
           new ProcessTraceAction(traceFile, traceId, preferredProfilerType, processIdHint, processNameHint, myServices),
           myServices.getPoolExecutor())
-        .whenCompleteAsync(new TraceResultHandler(traceFile, traceId, isImportedTrace, trackTaskFinished), myServices.getMainExecutor());
+        .whenCompleteAsync(new TraceResultHandler(traceFile, traceId, isImportedTrace, taskTracker), myServices.getMainExecutor());
     myCaptures.put(traceId, cpuCapture);
     return cpuCapture;
   }
@@ -490,16 +490,16 @@ public class CpuCaptureParser {
     private final File traceFile;
     private final long traceId;
     private final boolean isImportedTrace;
-    private final Consumer<TaskFinishedState> trackTaskFinished;
+    private final TaskTracker myTaskTracker;
 
     private TraceResultHandler(@NotNull File traceFile,
                                long traceId,
                                boolean isImportedTrace,
-                               @NotNull Consumer<TaskFinishedState> trackTaskFinished) {
+                               @NotNull TaskTracker taskTracker) {
       this.traceFile = traceFile;
       this.traceId = traceId;
       this.isImportedTrace = isImportedTrace;
-      this.trackTaskFinished = trackTaskFinished;
+      this.myTaskTracker = taskTracker;
     }
 
     @Override
@@ -529,7 +529,7 @@ public class CpuCaptureParser {
           metadata.setStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
           myServices.showNotification(CpuProfilerNotifications.PARSING_ABORTED);
           // Track that the task has finished with user cancellation.
-          trackTaskFinished.accept(TaskFinishedState.USER_CANCELLED);
+          myTaskTracker.trackTaskFinished(TaskFinishedState.USER_CANCELLED);
         }
         else if (throwable.getCause() instanceof PreProcessorFailureException) {
           myServices.showNotification(CpuProfilerNotifications.PREPROCESS_FAILURE);
@@ -582,8 +582,7 @@ public class CpuCaptureParser {
           var isSuccess = capture != null;
           if (myServices.getFeatureConfig().isTaskBasedUxEnabled()) {
             if (!isSuccess) {
-              TaskEventTrackerUtils.trackProcessingTaskFailed(myProfilers, myProfilers.getSessionsManager().isSessionAlive(),
-                                                              new TaskProcessingFailedMetadata(metadata));
+              myTaskTracker.trackProcessingTaskFailed(new TaskProcessingFailedMetadata(metadata));
             }
           }
           else {

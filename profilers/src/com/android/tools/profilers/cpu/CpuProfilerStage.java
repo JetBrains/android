@@ -49,9 +49,8 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.AdditionalOptions;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel;
-import com.android.tools.profilers.tasks.TaskEventTrackerUtils;
-import com.android.tools.profilers.tasks.TaskStartFailedMetadata;
-import com.android.tools.profilers.tasks.TaskStopFailedMetadata;
+import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata;
+import com.android.tools.profilers.tasks.analytics.TaskStopFailedMetadata;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -287,8 +286,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
   }
 
   @Override
-  public void enter() {
-    logEnterStage();
+  public void onEnter() {
     myEventMonitor = getEventMonitorInstance();
     if (myEventMonitor != null) {
       myEventMonitor.enter();
@@ -312,7 +310,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
   }
 
   @Override
-  public void exit() {
+  public void onExit() {
     if (myEventMonitor != null) {
       myEventMonitor.exit();
     }
@@ -403,8 +401,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
       cleanupFailedCapture();
 
       if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
-        TaskEventTrackerUtils.trackStartTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
-                                                   new TaskStartFailedMetadata(status, null, null));
+        myTaskTracker.trackStartTaskFailed(new TaskStartFailedMetadata(status, null, null));
       }
     }
   }
@@ -442,8 +439,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
     else if (!status.getStatus().equals(Trace.TraceStopStatus.Status.SUCCESS)) {
       CpuCaptureMetadata captureMetadata = trackAndLogTraceStopFailures(status);
       if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
-        TaskEventTrackerUtils.trackStopTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
-                                                  new TaskStopFailedMetadata(null, null, captureMetadata));
+        myTaskTracker.trackStopTaskFailed(new TaskStopFailedMetadata(null, null, captureMetadata));
       }
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);

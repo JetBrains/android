@@ -29,14 +29,13 @@ class MemoryCaptureStage(profilers: StudioProfilers,
                          private val joiner: Executor?)
       : BaseMemoryProfilerStage(profilers, loader) {
 
-  override fun enter() {
-    logEnterStage()
+  override fun onEnter() {
     studioProfilers.ideServices.featureTracker.trackEnterStage(stageType)
     loader.start()
     doSelectCaptureDuration(durationData, joiner)
   }
-  override fun exit() {
-    super.exit()
+  override fun onExit() {
+    super.onExit()
     loader.stop()
   }
 

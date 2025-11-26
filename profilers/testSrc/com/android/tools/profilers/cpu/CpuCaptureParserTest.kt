@@ -30,6 +30,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuCaptureParser.FileHeaderParsingFailureException
 import com.android.tools.profilers.cpu.CpuCaptureParser.ProcessTraceAction
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
+import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata.ImportStatus
 import org.junit.Assert.fail
@@ -899,6 +900,6 @@ class CpuCaptureParserTest {
                                             type: TraceType = TraceType.UNSPECIFIED,
                                             idHint: Int = 0,
                                             nameHint: String = ""): CompletableFuture<CpuCapture> {
-    return this.parse(traceFile, traceId, type, idHint, nameHint) {}
+    return this.parse(traceFile, traceId, type, idHint, nameHint, TaskTracker.createNullTaskTracker(myProfilers))
   }
 }

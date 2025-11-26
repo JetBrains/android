@@ -24,11 +24,11 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
-import com.android.tools.profilers.tasks.TaskFinishedState;
-import com.android.tools.profilers.tasks.TaskMetadata;
-import com.android.tools.profilers.tasks.TaskProcessingFailedMetadata;
-import com.android.tools.profilers.tasks.TaskStartFailedMetadata;
-import com.android.tools.profilers.tasks.TaskStopFailedMetadata;
+import com.android.tools.profilers.tasks.analytics.TaskFinishedState;
+import com.android.tools.profilers.tasks.analytics.TaskMetadata;
+import com.android.tools.profilers.tasks.analytics.TaskProcessingFailedMetadata;
+import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata;
+import com.android.tools.profilers.tasks.analytics.TaskStopFailedMetadata;
 import com.android.utils.Pair;
 import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
@@ -104,6 +104,12 @@ public final class FakeFeatureTracker implements FeatureTracker {
   private PowerProfilerCaptureMetadata myPowerProfilerCaptureMetadata;
 
   private boolean isTaskSettingChanged;
+
+  private TaskMetadata myLastTaskMetadata;
+  private TaskFinishedState myLastTaskFinishedState;
+  private TaskStartFailedMetadata myLastTaskStartFailedMetadata;
+  private TaskStopFailedMetadata myLastTaskStopFailedMetadata;
+  private TaskProcessingFailedMetadata myLastTaskProcessingFailedMetadata;
 
   @Override
   public void trackPreTransportDaemonStarts(@NotNull Common.Device transportDevice) {
@@ -550,21 +556,55 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackTaskEntered(@NotNull com.android.tools.profilers.tasks.TaskMetadata taskMetadata) { }
+  public void trackTaskEntered(@NotNull com.android.tools.profilers.tasks.analytics.TaskMetadata taskMetadata) {
+    myLastTaskMetadata = taskMetadata;
+  }
 
   @Override
-  public void trackTaskFinished(@NotNull com.android.tools.profilers.tasks.TaskMetadata taskMetadata,
-                                @NotNull TaskFinishedState taskFinishedState) { }
-
-  @Override
-  public void trackTaskFailed(@NotNull TaskMetadata taskMetadata,
-                              @NotNull TaskStartFailedMetadata taskStartFailedMetadata) { }
-
-  @Override
-  public void trackTaskFailed(@NotNull TaskMetadata taskMetadata,
-                              @NotNull TaskStopFailedMetadata taskStopFailedMetadata) { }
+  public void trackTaskFinished(@NotNull com.android.tools.profilers.tasks.analytics.TaskMetadata taskMetadata,
+                                @NotNull TaskFinishedState taskFinishedState) {
+    myLastTaskMetadata = taskMetadata;
+    myLastTaskFinishedState = taskFinishedState;
+  }
 
   @Override
   public void trackTaskFailed(@NotNull TaskMetadata taskMetadata,
-                              @NotNull TaskProcessingFailedMetadata taskProcessingFailedMetadata) { }
+                              @NotNull TaskStartFailedMetadata taskStartFailedMetadata) {
+    myLastTaskMetadata = taskMetadata;
+    myLastTaskStartFailedMetadata = taskStartFailedMetadata;
+  }
+
+  @Override
+  public void trackTaskFailed(@NotNull TaskMetadata taskMetadata,
+                              @NotNull TaskStopFailedMetadata taskStopFailedMetadata) {
+    myLastTaskMetadata = taskMetadata;
+    myLastTaskStopFailedMetadata = taskStopFailedMetadata;
+  }
+
+  @Override
+  public void trackTaskFailed(@NotNull TaskMetadata taskMetadata,
+                              @NotNull TaskProcessingFailedMetadata taskProcessingFailedMetadata) {
+    myLastTaskMetadata = taskMetadata;
+    myLastTaskProcessingFailedMetadata = taskProcessingFailedMetadata;
+  }
+
+  public TaskMetadata getLastTaskMetadata() {
+    return myLastTaskMetadata;
+  }
+
+  public TaskFinishedState getLastTaskFinishedState() {
+    return myLastTaskFinishedState;
+  }
+
+  public TaskStartFailedMetadata getLastTaskStartFailedMetadata() {
+    return myLastTaskStartFailedMetadata;
+  }
+
+  public TaskStopFailedMetadata getLastTaskStopFailedMetadata() {
+    return myLastTaskStopFailedMetadata;
+  }
+
+  public TaskProcessingFailedMetadata getLastTaskProcessingFailedMetadata() {
+    return myLastTaskProcessingFailedMetadata;
+  }
 }

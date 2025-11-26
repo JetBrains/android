@@ -25,6 +25,7 @@ import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
+import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -55,7 +56,7 @@ class CpuCaptureHandlerTest {
                   assertThat(it).isNotNull()
                   assertThat(model.range.min).isEqualTo(0.0)
                   assertThat(model.range.max).isEqualTo(0.0)
-                }) {}
+                }, TaskTracker.createNullTaskTracker(myProfilers))
   }
 
   @Test
@@ -69,7 +70,7 @@ class CpuCaptureHandlerTest {
                   assertThat(services.notification).isNotNull()
                   assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.status).isEqualTo(
                     CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_FILE_HEADER_ERROR)
-                }) {}
+                }, TaskTracker.createNullTaskTracker(myProfilers))
   }
 
   @Test
@@ -81,6 +82,6 @@ class CpuCaptureHandlerTest {
     model.parse({
                   assertThat(it).isNotNull()
                   assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.profilingConfiguration).isEqualTo(config)
-                }) {}
+                }, TaskTracker.createNullTaskTracker(myProfilers))
   }
 }

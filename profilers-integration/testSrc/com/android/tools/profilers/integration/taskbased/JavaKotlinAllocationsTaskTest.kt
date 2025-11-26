@@ -27,7 +27,7 @@ class JavaKotlinAllocationsTaskTest : ProfilersTaskTestBase() {
 
   override fun verifyTaskStarted(studio: AndroidStudio) {
     verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 180)
-    verifyIdeaLog(".*PROFILER\\:\\s+Enter\\s+AllocationStage", 120)
+    verifyIdeaLog(".*PROFILER\\:\\s+Entering\\s+AllocationStage", 120)
 
     // Collecting the session data with Allocation tracking set to "Full" (which is by default)
     // Verifying if the task started.

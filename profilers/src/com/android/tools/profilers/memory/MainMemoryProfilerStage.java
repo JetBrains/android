@@ -46,9 +46,9 @@ import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCapture
 import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel;
-import com.android.tools.profilers.tasks.TaskEventTrackerUtils;
-import com.android.tools.profilers.tasks.TaskStartFailedMetadata;
-import com.android.tools.profilers.tasks.TaskStopFailedMetadata;
+import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata;
+import com.android.tools.profilers.tasks.analytics.TaskStopFailedMetadata;
+import com.android.tools.profilers.tasks.analytics.TaskTracker;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Arrays;
 import java.util.List;
@@ -198,10 +198,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
   }
 
   @Override
-  public void enter() {
-    logEnterStage();
-    super.enter();
-
+  public void onEnter() {
+    super.onEnter();
     BiConsumer<SupportLevel.Feature, RecordingOption> adder = (feature, option) -> {
       myRecordingOptionsModel.addBuiltInOptions(option);
       if (!getStudioProfilers().getSelectedSessionSupportLevel().isFeatureSupported(feature)) {
@@ -225,8 +223,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
   }
 
   @Override
-  public void exit() {
-    super.exit();
+  public void onExit() {
+    super.onExit();
     enableSelectLatestCapture(false, null);
     selectCaptureDuration(null, null);
     // Deregister recording screen model updatable so timer does not continue in background.
@@ -419,11 +417,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
         break;
       case FAILURE:
         if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
-          TaskEventTrackerUtils.trackStartTaskFailed(getStudioProfilers(),
-                                                     getStudioProfilers().getSessionsManager().isSessionAlive(),
-                                                     new TaskStartFailedMetadata(status, null, null)
-          );
-
+          myTaskTracker.trackStartTaskFailed(new TaskStartFailedMetadata(status, null, null));
           cleanupFailedCapture();
         }
         getLogger().error("Failure with error code " + status.getErrorCode());
@@ -455,8 +449,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
       default:
         getLogger().error(status.getErrorMessage());
         if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
-          TaskEventTrackerUtils.trackStopTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
-                                                    new TaskStopFailedMetadata(status, null, null));
+          myTaskTracker.trackStopTaskFailed(new TaskStopFailedMetadata(status, null, null));
         }
         break;
     }
@@ -514,8 +507,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
       case FAILURE_UNKNOWN:
       case UNRECOGNIZED:
         if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
-          TaskEventTrackerUtils.trackStartTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
-                                                     new TaskStartFailedMetadata(null, null, status));
+          myTaskTracker.trackStartTaskFailed(new TaskStartFailedMetadata(null, null, status));
         }
         break;
     }
@@ -547,17 +539,11 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
           if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
             if (enable) {
               // Start task failure
-              TaskEventTrackerUtils.trackStartTaskFailed(
-                getStudioProfilers(),
-                getStudioProfilers().getSessionsManager().isSessionAlive(),
-                new TaskStartFailedMetadata(null, status, null));
+              myTaskTracker.trackStartTaskFailed(new TaskStartFailedMetadata(null, status, null));
             }
             else {
               // Stop task failure
-              TaskEventTrackerUtils.trackStopTaskFailed(
-                getStudioProfilers(),
-                getStudioProfilers().getSessionsManager().isSessionAlive(),
-                new TaskStopFailedMetadata(null, status, null));
+              myTaskTracker.trackStopTaskFailed(new TaskStopFailedMetadata(null, status, null));
             }
           }
           break;

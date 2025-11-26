@@ -22,7 +22,7 @@ import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
  */
 open class ModelStage(profilers: StudioProfilers) : TaskStage, Stage<DefaultTimeline>(profilers) {
   override fun getTimeline() = DefaultTimeline()
-  override fun enter() {}
-  override fun exit() {}
+  override fun onEnter() {}
+  override fun onExit() {}
   override fun getStageType() = AndroidProfilerEvent.Stage.UNKNOWN_STAGE
 }
