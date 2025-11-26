@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.SupervisorJob
 
 /**
  * Handles LeakCanary logcat tracking commands, capturing and processing LeakCanary logs from a connected Android device.
@@ -51,7 +52,8 @@ class LeakCanaryLogcatCommandHandler(
   private val eventQueue: BlockingDeque<Common.Event>
 ) : TransportProxy.ProxyCommandHandler {
 
-  private val logcatService: LogcatService = LogcatService.getInstance(ProjectManager.getInstance().defaultProject)
+  private val scopeJob = SupervisorJob()
+  private val scope = CoroutineScope(Dispatchers.IO + scopeJob)
   private var logCollectionJob: Job? = null
   private var pid = 0
   private var sessionId = 0L
@@ -59,8 +61,6 @@ class LeakCanaryLogcatCommandHandler(
   private val logger: Logger = Logger.getInstance(LeakCanaryLogcatCommandHandler::class.java)
   private var startTimeNs: Long = 0
   private val TWO_SECONDS = TimeUnit.SECONDS.toSeconds(2)
-  private var isLogReadingActive = false
-
   private var prevLogTimeStampOfPartialTrace = 0L
   private var inLastFrameOfPartialTrace = false
   private var capturedLogsForPartialTrace = StringBuilder()
@@ -79,7 +79,6 @@ class LeakCanaryLogcatCommandHandler(
   }
 
   private fun resetTrackingState(){
-    isLogReadingActive = false
     logCollectionJob?.cancel()
     logCollectionJob = null
     prevLogTimeStampOfPartialTrace = 0L
@@ -187,35 +186,19 @@ class LeakCanaryLogcatCommandHandler(
    * Identifies and reads leakCanary logs from logcat and sends them to the event queue.
    */
   private fun readLeakLog() {
-    isLogReadingActive = true
-    val handler = CoroutineExceptionHandler { _, error ->
-      logger.info("Coroutine exception", error)
-    }
-    logCollectionJob = CoroutineScope(Dispatchers.Default + Job() + handler).launch {
+    val logcatService: LogcatService = LogcatService.getInstance(ProjectManager.getInstance().defaultProject)
+    logCollectionJob = scope.launch {
       logger.info("Coroutine Started")
-      try {
-        logcatService.readLogcat(
-          serialNumber = device.serialNumber,
-          sdk = device.version.androidApiLevel,
-          maxHistoryEntries = 0,
-        ).collect { logcatMessages ->
-          logcatMessages.forEach { logcatMessage ->
-            detectAndHandleObjectRetainedAndAnalysis(logcatMessage)
-            detectAndHandlePartialLeakTraces(logcatMessage)
-            detectAndHandleCompleteLeakTraces(logcatMessage)
-            detectAndHandleHostAnalysisTrigger(logcatMessage)
-          }
-        }
-      }
-      catch (e: Exception) {
-        // Exception that can occur when isLogReadingActive = false is not taken into account because we stop listening and session is ended.
-        if (isLogReadingActive) {
-          // Send a failed status and end session when there is error reading logcat.
-          logger.error("Error reading logcat: ${e.message}", e)
-          resetTrackingState()
-          val currentTimeNs = getCurrentTimestampInNs()
-          sendLeakCanaryAnalysisInfoEvent(timestampNs = currentTimeNs, isStarted = false, stopStatus = FAILURE)
-          addSessionEndedEvent(eventQueue, currentTimeNs, pid, sessionId)
+      logcatService.readLogcat(
+        serialNumber = device.serialNumber,
+        sdk = device.version.androidApiLevel,
+        maxHistoryEntries = 0,
+      ).collect { logcatMessages ->
+        logcatMessages.forEach { logcatMessage ->
+          detectAndHandleObjectRetainedAndAnalysis(logcatMessage)
+          detectAndHandlePartialLeakTraces(logcatMessage)
+          detectAndHandleCompleteLeakTraces(logcatMessage)
+          detectAndHandleHostAnalysisTrigger(logcatMessage)
         }
       }
     }
