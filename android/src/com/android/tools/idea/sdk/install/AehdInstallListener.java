@@ -19,7 +19,6 @@ import com.android.repository.api.Installer;
 import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.Uninstaller;
-import com.android.tools.idea.sdk.wizard.AehdWizard;
 import com.android.tools.idea.sdk.wizard.AehdWizardService;
 import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode;
 import com.intellij.openapi.application.ApplicationManager;
@@ -28,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * {@link PackageOperation.StatusChangeListener} for installing AEHD. Runs the {@link AehdWizard} instead of the normal quickfix wizard.
+ * {@link PackageOperation.StatusChangeListener} for installing AEHD. Runs the AEHD wizard instead of the normal quickfix wizard.
  */
 public class AehdInstallListener implements PackageOperation.StatusChangeListener {
   @Override

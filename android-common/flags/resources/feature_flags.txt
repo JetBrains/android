@@ -279,6 +279,5 @@ wear.runconfigs.autocreate.enabled=COMPLETE:2023
 wear.surfaces.glance.preview.appwidget.enabled=COMPLETE:2024
 wear.surfaces.wear.tile.preview.animation.inspector.enabled=COMPLETE:2024
 wear.surfaces.wear.tile.preview.enabled=COMPLETE:2024
-wizard.migration.aehd.configuration.migrated.wizard.enabled=COMPLETE:2025
 wizard.migration.first.run.migrated.wizard.enabled=COMPLETE:2025
 wizard.migration.sdk.setup.migrated.wizard.enabled=COMPLETE:2025

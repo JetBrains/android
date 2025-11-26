@@ -2885,12 +2885,6 @@ public final class StudioFlags {
     "Migrated SDK Setup Wizard Enabled",
     "Show the migrated version of the SDK setup wizard"
   );
-  public static final Flag<Boolean> AEHD_CONFIGURATION_MIGRATED_WIZARD_ENABLED = new BooleanFlag(
-    WIZARD_MIGRATION,
-    "aehd.configuration.migrated.wizard.enabled",
-    "Migrated AEHD Configuration Wizard Enabled",
-    "Show the migrated version fo the AEHD configuration wizard"
-  );
   // endregion WIZARD_MIGRATION
 
   public static Boolean isBuildOutputShowsDownloadInfo() {
