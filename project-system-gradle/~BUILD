@@ -15,6 +15,8 @@ iml_module(
     ],
     iml_files = ["intellij.android.projectSystem.gradle.iml"],
     lint_baseline = "lint_baseline.xml",
+    # TODO(b/463634019): Disabling lint due to timeouts.
+    lint_enabled = False,
     # NOTE: For edits to module_visibility, please see note at end of list
     module_visibility = [
         # Gradle Project System tools
