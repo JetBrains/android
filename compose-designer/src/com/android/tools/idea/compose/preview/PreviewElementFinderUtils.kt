@@ -227,7 +227,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
 
   val rootAnnotation = subtreeInfo?.topLevelAnnotation ?: annotation
   val defaultValues = readAction { annotation.findPreviewDefaultValues() }
-  val attributesProvider = UastAnnotationAttributesProvider(annotation, defaultValues)
+  val attributesProvider = UastAnnotationAttributesProvider(annotation, defaultValues, composableMethod)
   val previewElementDefinitionPsi = readAction { rootAnnotation.toSmartPsiPointer() }
   val annotatedMethod =
     UastAnnotatedMethod(composableMethod, setOf(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN, MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN))

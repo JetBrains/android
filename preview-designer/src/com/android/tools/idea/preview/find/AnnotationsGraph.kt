@@ -233,6 +233,7 @@ suspend fun UElement.getUAnnotations(): List<UAnnotation> {
       ?: (this@getUAnnotations.tryResolve() as? PsiModifierListOwner)?.annotations?.mapNotNull {
         it.toUElementOfType() as? UAnnotation
       }
+      ?: resolveKaAnnotationAnnotations()
       ?: emptyList()
   }
   return annotations.flatMap { annotation ->
