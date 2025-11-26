@@ -91,8 +91,8 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.jetbrains.plugins.gradle.service.GradleFileModificationTracker
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionContextImpl
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionContextImpl
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
@@ -120,9 +120,9 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
     val frame = (WindowManager.getInstance() as WindowManagerEx).findFrameFor(project)
     val statusBar = (if (frame == null) null else frame.statusBar as StatusBarEx?) ?: return false
     for (backgroundProcess in statusBar.backgroundProcessModels) {
-      val task = backgroundProcess.getFirst()
+      val task = backgroundProcess.first
       if (task is TaskImpl) {
-        val second = backgroundProcess.getSecond()
+        val second = backgroundProcess.second
         if (second.isRunning()) {
           return true
         }
@@ -131,7 +131,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
     return false
   }
 
-  private class TaskImpl constructor(
+  private class TaskImpl(
     private val myRequest: GradleBuildInvoker.Request,
     private val myBuildAction: BuildAction<*>?,
     private val myBuildStopper: BuildStopper,
@@ -151,7 +151,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         indicator.text = this.title
         val projectManager = ProjectManager.getInstance()
         val project = myRequest.project
-        val closeListener: CloseListener = CloseListener()
+        val closeListener = CloseListener()
         projectManager.addProjectManagerListener(project, closeListener)
         val semaphore = (CompilerManager.getInstance(project) as CompilerManagerImpl).compilationSemaphore
         while (!semaphore.tryAcquire(300, TimeUnit.MILLISECONDS)) {
