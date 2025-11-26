@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.preview.find
 
+import com.android.tools.idea.preview.find.AnnotationPreviewNameHelper.Companion.create
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.psi.PsiClass
@@ -23,12 +24,19 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.compiled.ClsClassImpl
 import com.intellij.psi.impl.compiled.ClsMethodImpl
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.resolution.KaAnnotationCall
+import org.jetbrains.kotlin.analysis.api.resolution.singleCallOrNull
+import org.jetbrains.kotlin.analysis.api.resolution.symbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaClassLikeSymbol
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.elements.KtLightMethod
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
+import org.jetbrains.uast.toUElementOfType
 import org.jetbrains.uast.tryResolve
 
 /** Helper method that returns a map with all the default values of a preview annotation */
@@ -130,7 +138,10 @@ private constructor(
         node?.parent?.let { parent ->
           val parentAnnotation = parent.element as? UAnnotation ?: return@let null
           ParentAnnotationInfo(
-            annotationName = readAction { (parentAnnotation.tryResolve() as PsiClass).name },
+            annotationName = readAction {
+              (parentAnnotation.tryResolve() as? PsiClass)?.name
+              ?: parentAnnotation.resolveKaAnnotationName()
+            },
             traversedPreviewChildrenCount =
               parent.subtreeInfo?.children?.count { it.element.isPreviewAnnotation() } ?: 0,
             directPreviewChildrenCount =
@@ -144,3 +155,23 @@ private constructor(
     }
   }
 }
+
+/**
+ * Be aware not to get some [org.jetbrains.kotlin.analysis.api.lifetime.KaLifetimeOwner] from
+ * the `analyze` block, as this can lead to serious memory leaks.
+ */
+private inline fun <T> UElement.analyzeAnnotationClassSymbol(f: KaClassLikeSymbol.() -> T): T? {
+  val ktAnnotationEntry = sourcePsi as? KtAnnotationEntry ?: return null
+  return analyze(ktAnnotationEntry) {
+    val resolvedAnnotationCall = ktAnnotationEntry.resolveToCall()?.singleCallOrNull<KaAnnotationCall>() ?: return null
+    val resolvedAnnotationConstructorSymbol = resolvedAnnotationCall.symbol
+    val containingClassSymbol = resolvedAnnotationConstructorSymbol.containingDeclaration as? KaClassLikeSymbol
+    containingClassSymbol?.let(f)
+  }
+}
+
+private fun UElement.resolveKaAnnotationName(): String? =
+  analyzeAnnotationClassSymbol { name?.asString() }
+
+internal fun UElement.resolveKaAnnotationAnnotations(): List<UAnnotation>? =
+  analyzeAnnotationClassSymbol { annotations.mapNotNull { it.psi.toUElementOfType<UAnnotation>() } }

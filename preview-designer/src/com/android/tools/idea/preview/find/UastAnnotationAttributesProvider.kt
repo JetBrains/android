@@ -20,20 +20,28 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.util.text.nullize
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
+import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClassLiteralExpression
 import org.jetbrains.uast.UExpression
+import org.jetbrains.uast.UMethod
 
 /** [AnnotationAttributesProvider] implementation based on [UAnnotation]. */
 class UastAnnotationAttributesProvider(
   private val annotation: UAnnotation,
   private val defaultValues: Map<String, String?>,
+  private val ktResolveContext: UMethod?,
 ) : AnnotationAttributesProvider {
 
   override fun <T> getAttributeValue(attributeName: String): T? =
     try {
       val expression = annotation.findAttributeValue(attributeName)
-      expression?.getValueOfType()
+      expression?.getValueOfType() ?: findAttributeConstantValue(attributeName) as? T
     } catch (e: IndexNotReadyException) {
       // TODO(b/398265392): Remove this catch once all paths ensure that we are in smart mode
       thisLogger().warn("Resolution of $attributeName attempted while index not ready", e)
@@ -59,7 +67,7 @@ class UastAnnotationAttributesProvider(
   override fun <T> getDeclaredAttributeValue(attributeName: String): T? =
     try {
       val expression = annotation.findDeclaredAttributeValue(attributeName)
-      expression?.getValueOfType() as T?
+      expression?.getValueOfType() as T? ?: findAttributeConstantValue(attributeName) as? T
     } catch (e: IndexNotReadyException) {
       // TODO(b/398265392): Remove this catch once all paths ensure that we are in smart mode
       thisLogger()
@@ -70,11 +78,33 @@ class UastAnnotationAttributesProvider(
   override fun findClassNameValue(name: String): String? =
     try {
       (annotation.findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText
+      ?: findAttributeClassLiteralClassId(name)
     } catch (e: IndexNotReadyException) {
       // TODO(b/398265392): Remove this catch once all paths ensure that we are in smart mode
       thisLogger().warn("Resolution of class name $name attempted while index not ready", e)
       null
     }
+
+  /**
+   * Be aware not to get some [org.jetbrains.kotlin.analysis.api.lifetime.KaLifetimeOwner] from
+   * the `analyze` block, as this can lead to serious memory leaks.
+   */
+  private inline fun <T> findAttributeValue(attributeName: String, f: (KaAnnotationValue) -> T): T? {
+    val context = ktResolveContext?.sourcePsi as? KtElement ?: return null
+    val entry = annotation.sourcePsi as? KtAnnotationEntry ?: return null
+    val declaration = entry.parent.parent as? KtDeclaration ?: return null
+    return analyze(context) {
+      val argument = declaration.symbol.annotations.singleOrNull { it.psi == entry }?.arguments
+        ?.singleOrNull { it.name.asString() == attributeName }
+      argument?.expression?.let(f)
+    }
+  }
+
+  private fun findAttributeConstantValue(attributeName: String): Any? =
+    findAttributeValue(attributeName) { (it as? KaAnnotationValue.ConstantValue)?.value?.value }
+
+  private fun findAttributeClassLiteralClassId(attributeName: String): String? =
+    findAttributeValue(attributeName) { (it as? KaAnnotationValue.ClassLiteralValue)?.classId?.asFqNameString() }
 }
 
 private inline fun <T> UExpression.getValueOfType(): T? {

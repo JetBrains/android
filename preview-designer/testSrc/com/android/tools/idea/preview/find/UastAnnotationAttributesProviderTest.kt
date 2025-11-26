@@ -75,7 +75,7 @@ class UastAnnotationAttributesProviderTest {
     val outputInSmartMode =
       annotations.joinToString("\n") {
         runReadAction {
-          UastAnnotationAttributesProvider(it, emptyMap()).getStringAttribute("name") ?: "<null>"
+          UastAnnotationAttributesProvider(it, emptyMap(), null).getStringAttribute("name") ?: "<null>"
         }
       }
     Assert.assertEquals(
@@ -91,7 +91,7 @@ class UastAnnotationAttributesProviderTest {
       DumbModeTestUtils.computeInDumbModeSynchronously(project) {
         annotations.joinToString("\n") {
           runReadAction {
-            UastAnnotationAttributesProvider(it, emptyMap()).getStringAttribute("name") ?: "<null>"
+            UastAnnotationAttributesProvider(it, emptyMap(), null).getStringAttribute("name") ?: "<null>"
           }
         }
       }
