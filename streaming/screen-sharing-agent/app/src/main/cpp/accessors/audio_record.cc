@@ -26,18 +26,20 @@ using namespace std;
 
 namespace {
 
-// From https://android.googlesource.com/platform/frameworks/base/+/master/media/java/android/media/AudioAttributes.java.
+// From https://android.googlesource.com/platform/frameworks/base/+/main/media/java/android/media/AudioAttributes.java.
 constexpr int AudioAttributes_USAGE_VEHICLE_STATUS = 1000 + 2;
 constexpr int AudioAttributes_USAGE_SPEAKER_CLEANUP = 1000 + 4;
-// From https://android.googlesource.com/platform/frameworks/base/+/master/media/java/android/media/AudioFormat.java.
+// From https://android.googlesource.com/platform/frameworks/base/+/main/media/java/android/media/AudioFormat.java.
 constexpr int AudioFormat_ENCODING_PCM_16BIT = 2;
 constexpr int AudioFormat_CHANNEL_OUT_STEREO = 0x4 | 0x8;
-// From https://android.googlesource.com/platform/frameworks/base/+/master/media/java/android/media/audiopolicy/AudioMix.java.
+// From https://android.googlesource.com/platform/frameworks/base/+/main/media/java/android/media/audiopolicy/AudioMix.java.
 constexpr int AudioMix_ROUTE_FLAG_LOOP_BACK = 0x1 << 1;
-// From https://android.googlesource.com/platform/frameworks/base/+/master/media/java/android/media/audiopolicy/AudioMixingRule.java.
+// From https://android.googlesource.com/platform/frameworks/base/+/main/media/java/android/media/audiopolicy/AudioMixingRule.java.
 constexpr int AudioMixingRule_RULE_MATCH_ATTRIBUTE_USAGE = 0x1;
-// From https://android.googlesource.com/platform/frameworks/base/+/18c0cfb/media/java/android/media/AudioTimestamp.java.
+// From https://android.googlesource.com/platform/frameworks/base/+/main/media/java/android/media/AudioTimestamp.java.
 constexpr int AudioTimestamp_TIMEBASE_MONOTONIC = 0;
+// From https://android.googlesource.com/platform/frameworks/base/+/main/media/java/android/media/AudioRecord.java
+constexpr int AudioRecord_RECORDSTATE_RECORDING = 3;
 
 JObject CreateAudioRecord(Jni jni, int32_t audio_sample_rate) {
   // Create an AudioAttributes object representing an unused usage type.
@@ -134,6 +136,7 @@ AudioRecord::AudioRecord(Jni jni, int32_t audio_sample_rate)
   JClass clazz = audio_record_.GetClass();
   release_method_ = clazz.GetMethod("release", "()V");
   start_recording_method_ = clazz.GetMethod("startRecording", "()V");
+  get_recording_state_method_ = clazz.GetMethod("getRecordingState", "()I");
   stop_method_ = clazz.GetMethod("stop", "()V");
   read_method_ = clazz.GetMethod("read", "([SII)I");
   get_timestamp_method_ = clazz.GetMethod("getTimestamp", "(Landroid/media/AudioTimestamp;I)I");
@@ -152,6 +155,7 @@ AudioRecord& AudioRecord::operator=(AudioRecord&& other) noexcept {
   audio_record_ = std::move(other.audio_record_);
   release_method_ = other.release_method_;
   start_recording_method_ = other.start_recording_method_;
+  get_recording_state_method_ = other.get_recording_state_method_;
   stop_method_ = other.stop_method_;
   read_method_ = other.read_method_;
   get_timestamp_method_ = other.get_timestamp_method_;
@@ -167,9 +171,11 @@ void AudioRecord::Release() {
   }
 }
 
-void AudioRecord::Start() {
+bool AudioRecord::Start() {
   Log::D("AudioRecord::Start: audio_record_=%p", audio_record_.ref()); // b/457620853
   audio_record_.CallVoidMethod(start_recording_method_);
+  int32_t state = audio_record_.CallIntMethod(get_recording_state_method_);
+  return state == AudioRecord_RECORDSTATE_RECORDING;
 }
 
 void AudioRecord::Stop() {

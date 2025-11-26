@@ -32,7 +32,8 @@ public:
   // Destroys the AudioRecord.
   void Release();
 
-  void Start();
+  // Returns true if recording started successfully, false otherwise.
+  bool Start();
   void Stop();
   // Returns the number of audio samples read or a negative error code.
   int32_t Read(JShortArray* buf, int32_t num_samples);
@@ -44,6 +45,7 @@ private:
   JObject audio_record_;
   jmethodID release_method_;
   jmethodID start_recording_method_;
+  jmethodID get_recording_state_method_;
   jmethodID stop_method_;
   jmethodID read_method_;
   jmethodID get_timestamp_method_;
