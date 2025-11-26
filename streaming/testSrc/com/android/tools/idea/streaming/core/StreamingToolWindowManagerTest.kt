@@ -48,12 +48,9 @@ import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.EmulatorSettings
-import com.android.tools.idea.streaming.FakeToolWindow
 import com.android.tools.idea.streaming.MirroringManager
 import com.android.tools.idea.streaming.MirroringState
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.android.tools.idea.streaming.ToolWindowHeadlessManagerImpl
-import com.android.tools.idea.streaming.createFakeToolWindow
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
@@ -65,6 +62,9 @@ import com.android.tools.idea.streaming.emulator.sendKeyEvent
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.DisposerExplorer
 import com.android.tools.idea.testing.override
+import com.android.tools.idea.testing.ui.FakeToolWindow
+import com.android.tools.idea.testing.ui.ToolWindowHeadlessManagerImpl
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.LafManager
@@ -125,8 +125,15 @@ class StreamingToolWindowManagerTest {
                             EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule)
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
-  private val toolWindow: FakeToolWindow
-      by lazy { createFakeToolWindow(windowFactory, RUNNING_DEVICES_TOOL_WINDOW_ID, project, testRootDisposable) }
+  private val toolWindow: FakeToolWindow by lazy {
+      createFakeToolWindow(
+        windowFactory,
+        RUNNING_DEVICES_TOOL_WINDOW_ID,
+        StudioIcons.Shell.ToolWindows.EMULATOR,
+        project,
+        testRootDisposable,
+      )
+    }
   private val contentManager: ContentManager by lazy { toolWindow.contentManager }
 
   private val deviceMirroringSettings: DeviceMirroringSettings by lazy { DeviceMirroringSettings.getInstance() }
