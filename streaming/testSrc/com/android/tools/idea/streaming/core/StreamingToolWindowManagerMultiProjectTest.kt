@@ -18,13 +18,13 @@ package com.android.tools.idea.streaming.core
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.streaming.DeviceMirroringSettings
-import com.android.tools.idea.streaming.FakeToolWindow
 import com.android.tools.idea.streaming.MirroringManager
 import com.android.tools.idea.streaming.MirroringState
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.android.tools.idea.streaming.createFakeToolWindow
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.testing.AndroidExecutorsRule
+import com.android.tools.idea.testing.ui.FakeToolWindow
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -35,14 +35,15 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.content.ContentManager
+import icons.StudioIcons
+import java.awt.Dimension
+import java.util.concurrent.Executors
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Dimension
-import java.util.concurrent.Executors
-import kotlin.time.Duration.Companion.seconds
 
 /** Tests for [StreamingToolWindowManager] involving two projects. */
 @RunsInEdt
@@ -55,10 +56,24 @@ class StreamingToolWindowManagerMultiProjectTest {
   val ruleChain = RuleChain(agentRule, project2Rule, androidExecutorsRule, EdtRule())
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
-  private val toolWindow1: FakeToolWindow
-      by lazy { createFakeToolWindow(windowFactory, RUNNING_DEVICES_TOOL_WINDOW_ID, project1, testRootDisposable) }
-  private val toolWindow2: FakeToolWindow
-      by lazy { createFakeToolWindow(windowFactory, RUNNING_DEVICES_TOOL_WINDOW_ID, project2, testRootDisposable) }
+  private val toolWindow1: FakeToolWindow by lazy {
+      createFakeToolWindow(
+        windowFactory,
+        RUNNING_DEVICES_TOOL_WINDOW_ID,
+        StudioIcons.Shell.ToolWindows.EMULATOR,
+        project1,
+        testRootDisposable,
+      )
+    }
+  private val toolWindow2: FakeToolWindow by lazy {
+      createFakeToolWindow(
+        windowFactory,
+        RUNNING_DEVICES_TOOL_WINDOW_ID,
+        StudioIcons.Shell.ToolWindows.EMULATOR,
+        project2,
+        testRootDisposable,
+      )
+    }
   private val contentManager1: ContentManager by lazy { toolWindow1.contentManager }
   private val contentManager2: ContentManager by lazy { toolWindow2.contentManager }
 
