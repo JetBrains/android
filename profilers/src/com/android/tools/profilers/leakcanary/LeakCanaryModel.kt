@@ -23,6 +23,7 @@ import com.android.tools.inspectors.common.api.actions.NavigateToCodeAction
 import com.android.tools.leakcanarylib.LeakCanaryParser
 import com.android.tools.leakcanarylib.data.Analysis
 import com.android.tools.leakcanarylib.data.AnalysisFailure
+import com.android.tools.leakcanarylib.data.AnalysisUpdate
 import com.android.tools.leakcanarylib.data.AnalysisSuccess
 import com.android.tools.leakcanarylib.data.Leak
 import com.android.tools.leakcanarylib.data.LeakingStatus
@@ -52,10 +53,9 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
   private lateinit var statusListener: TransportEventListener
   private lateinit var hostAnalysisTriggerListener: TransportEventListener
   private val logger: Logger = Logger.getInstance(LeakCanaryModel::class.java)
-  private val myLeakCanaryParser = LeakCanaryParser()
   private val heapDumper = LeakCanaryHeapDumper(profilers).apply {
-    onHostAnalysisFinished = { heapAnalysis ->
-      handleLeakAnalysis(heapAnalysis.toString())
+    onHostAnalysisFinished = { analysis ->
+      handleLeakAnalysis(analysis)
     }
   }
   val requiredRetainedObjectCount = 5
@@ -194,15 +194,16 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
    * @param event: The LeakCanary logcat event.
    */
   private fun leakDetected(event: Common.Event) {
-    val analysis = event.leakcanaryAnalysis.data
+    val analysis = Analysis.fromString(event.leakcanaryAnalysis.data)?: return
     if (handleRetainedObject(analysis)) return
     if (handleAnalysisProgress(analysis)) return
     handleLeakAnalysis(analysis)
   }
 
-  private fun handleRetainedObject(analysisStr: String): Boolean {
+  private fun handleRetainedObject(analysis: Analysis): Boolean {
+    if (analysis !is AnalysisUpdate) return false
     val retainedObjectsRegex = """Found (\d+) objects retained""".toRegex()
-    return retainedObjectsRegex.find(analysisStr)?.let { matchResult ->
+    return retainedObjectsRegex.find(analysis.message)?.let { matchResult ->
       matchResult.groupValues.getOrNull(1)?.toIntOrNull()?.let { count ->
         setObjectRetainedCount(count)
       }
@@ -210,9 +211,10 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
     } ?: false
   }
 
-  private fun handleAnalysisProgress(analysisStr: String): Boolean {
+  private fun handleAnalysisProgress(analysis: Analysis): Boolean {
+    if (analysis !is AnalysisUpdate) return false
     val analysisProgressRegex = """Analysis in progress, (\d+)% done""".toRegex()
-    return analysisProgressRegex.find(analysisStr)?.let { matchResult ->
+    return analysisProgressRegex.find(analysis.message)?.let { matchResult ->
       matchResult.groupValues.getOrNull(1)?.toIntOrNull()?.let { progress ->
         setAnalysisProgress(progress)
       }
@@ -220,39 +222,22 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
     } ?: false
   }
 
-  private fun handleLeakAnalysis(analysisReport: String) {
-    if (analysisReport.isEmpty()) return
-    val leakAnalysisEvent = getEventFromAnalysisData(analysisReport) ?: return
-
+  private fun handleLeakAnalysis(analysis: Analysis?) {
+    if (analysis == null) return
     setObjectRetainedCount(0)
     setAnalysisProgress(0)
 
-    if (leakAnalysisEvent is AnalysisSuccess) {
-      addLeaks(leakAnalysisEvent.leaks)
+    if (analysis is AnalysisSuccess) {
+      addLeaks(analysis.leaks)
     }
-    else {
+    else if (analysis is AnalysisFailure){
       // There is failure in leak analysis.
-      logger.warn("Leak analysis failure", (leakAnalysisEvent as AnalysisFailure).exception)
+      logger.warn("Leak analysis failure", analysis.exception)
     }
 
     // The first leak is selected, so its leakTrace is displayed by default in UI.
     if (_selectedLeak.value == null && _leaks.value.isNotEmpty()) {
       onLeakSelection(_leaks.value.first())
-    }
-  }
-
-  /**
-   * Extracts the leak analysis event from a LeakCanary analysis data.
-   * @param data: The LeakCanary analysis data.
-   * @return The leak analysis event, or null if there's an issue parsing the data.
-   */
-  private fun getEventFromAnalysisData(data: String): Analysis? {
-    try {
-      return myLeakCanaryParser.parseLogcatMessage(data)
-    }
-    catch (e: Exception) {
-      logger.warn("LeakCanary serializer detected issue while parsing .. skipping leak event", e)
-      return null
     }
   }
 
@@ -308,7 +293,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
                                      startTimestamp: Long,
                                      endTimeStamp: Long): List<Analysis> {
     val eventList = getLeaksFromRange(profilers.client, session, Range(startTimestamp.toDouble(), endTimeStamp.toDouble()))
-    return eventList.mapNotNull { event -> getEventFromAnalysisData(event.leakcanaryAnalysis.data) }
+    return eventList.mapNotNull { event -> Analysis.fromString(event.leakcanaryAnalysis.data) }
   }
 
   fun goToDeclaration(node: Node) {

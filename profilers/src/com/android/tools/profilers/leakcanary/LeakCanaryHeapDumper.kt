@@ -16,6 +16,8 @@
 package com.android.tools.profilers.leakcanary
 
 import com.android.tools.idea.transport.poller.TransportEventListener
+import com.android.tools.leakcanarylib.LeakCanaryParser
+import com.android.tools.leakcanarylib.data.Analysis
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
@@ -25,18 +27,16 @@ import com.intellij.openapi.diagnostic.Logger
 import java.io.File
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
-import shark.HeapAnalysis
 import shark.HeapAnalysisSuccess
 
 /**
  * Handles the orchestration of triggering a heap dump on the device, downloading the resulting
  * .hprof file, and passing it to the [SharkHostAnalyzer] for analysis.
  */
-class LeakCanaryHeapDumper(private val profilers: StudioProfilers)
-{
+class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
   private val logger = Logger.getInstance(LeakCanaryHeapDumper::class.java)
   private val isHeapDumpInProgress = AtomicBoolean(false)
-  lateinit var onHostAnalysisFinished: (HeapAnalysis) -> Unit
+  lateinit var onHostAnalysisFinished: (Analysis) -> Unit
 
   /**
    * This function orchestrates the entire host-side analysis workflow.
@@ -158,7 +158,14 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers)
     val analysisResult = SharkHostAnalyzer().analyze(hprofFile)
     if (analysisResult is HeapAnalysisSuccess) {
       profilers.ideServices.mainExecutor.execute {
-        onHostAnalysisFinished(analysisResult)
+        // TODO: Create and use an adapter from [shark.HeapAnalysisSuccess] to [Analysis] instead.
+        // This will be more efficient and robust than parsing the string output. An adapter
+        // will allow us to extract all leaks of the same signature, which we aren't getting
+        // from parsing `analysisResult.toString()` which only outputs one leak per signature.
+        val analysis = LeakCanaryParser().parseLogcatMessage(analysisResult.toString())
+        if (analysis != null) {
+          onHostAnalysisFinished(analysis)
+        }
       }
     }
     else {
