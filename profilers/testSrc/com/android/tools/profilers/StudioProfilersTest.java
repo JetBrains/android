@@ -1819,11 +1819,11 @@ public final class StudioProfilersTest {
     }
 
     @Override
-    public void enter() {
+    public void onEnter() {
     }
 
     @Override
-    public void exit() {
+    public void onExit() {
     }
 
     @Override

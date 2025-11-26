@@ -20,7 +20,7 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
-import com.android.tools.profilers.tasks.TaskFinishedState;
+import com.android.tools.profilers.tasks.analytics.TaskTracker;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
@@ -128,11 +128,11 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
    * @param captureCompleted The callback will be called on both success and failure to parse. When a failure is encountered the callback
    *                         will be passed a null {@link CpuCapture}.
    */
-  public void parse(Consumer<CpuCapture> captureCompleted, @NotNull Consumer<TaskFinishedState> trackTaskFinished) {
+  public void parse(Consumer<CpuCapture> captureCompleted, @NotNull TaskTracker myTaskTracker) {
     myIsParsing = true;
     myParseRange.set(0, 0);
     CompletableFuture<CpuCapture> capture = myCaptureParser.parse(
-      myCaptureFile, myTraceId, myConfiguration.getTraceType(), myCaptureProcessIdHint, myCaptureProcessNameHint, trackTaskFinished);
+      myCaptureFile, myTraceId, myConfiguration.getTraceType(), myCaptureProcessIdHint, myCaptureProcessNameHint, myTaskTracker);
 
     // Parsing is in progress. Handle it asynchronously and set the capture afterwards using the main executor.
     capture.handleAsync((parsedCapture, exception) -> {

@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.updater.Updatable
 import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.inspectors.common.api.actions.NavigateToCodeAction
-import com.android.tools.leakcanarylib.LeakCanaryParser
 import com.android.tools.leakcanarylib.data.Analysis
 import com.android.tools.leakcanarylib.data.AnalysisFailure
 import com.android.tools.leakcanarylib.data.AnalysisUpdate
@@ -34,8 +33,8 @@ import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.ModelStage
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskFinished
-import com.android.tools.profilers.tasks.TaskFinishedState
+import com.android.tools.profilers.tasks.analytics.TaskFinishedState
+import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -75,7 +74,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
   private val _isLeakCanaryPresent = MutableStateFlow(true)
   val isLeakCanaryPresent = _isLeakCanaryPresent.asStateFlow()
 
-  override fun enter() {
+  override fun onEnter() {
     sessionData = profilers.session
     // If we are entering this stage for a past recording (i.e., the session is not live),
     // we need to tell the TransportService to use task specific database to query.
@@ -85,7 +84,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
     }
   }
 
-  override fun exit() {
+  override fun onExit() {
     profilers.sessionsManager.unsetTaskDb(sessionData)
   }
 
@@ -106,7 +105,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
     profilers.updater.unregister(this)
 
     // Track the successful completion of the user-initiated leakCanary recording task.
-    trackTaskFinished(profilers, true, TaskFinishedState.COMPLETED)
+    myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED)
   }
 
   fun setIsRecording(isRecording: Boolean) {
@@ -303,7 +302,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
     }
 
     // Track the successful completion of loading a past Leak Canary session.
-    trackTaskFinished(profilers, false, TaskFinishedState.COMPLETED)
+    myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED)
   }
 
   private fun getAllLeakCanaryEvents(session: Common.Session,

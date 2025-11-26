@@ -33,8 +33,7 @@ public class StudioMonitorStage extends StreamingStage {
   }
 
   @Override
-  public void enter() {
-    logEnterStage();
+  public void onEnter() {
     // Clear the selection
     getTimeline().getSelectionRange().clear();
 
@@ -53,7 +52,7 @@ public class StudioMonitorStage extends StreamingStage {
   }
 
   @Override
-  public void exit() {
+  public void onExit() {
     myMonitors.forEach(ProfilerMonitor::exit);
     myMonitors.clear();
   }

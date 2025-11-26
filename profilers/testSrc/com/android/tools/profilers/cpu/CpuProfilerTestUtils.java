@@ -30,6 +30,7 @@ import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.android.tools.profilers.tasks.analytics.TaskTracker;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -86,7 +87,7 @@ public class CpuProfilerTestUtils {
 
   public static CompletableFuture<CpuCapture> getCaptureFuture(StudioProfilers profilers, File traceFile, TraceType profilerType) {
     CpuCaptureParser parser = new CpuCaptureParser(profilers);
-    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, 0, "", x -> {});
+    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, 0, "", TaskTracker.createNullTaskTracker(profilers));
   }
 
   public static CompletableFuture<CpuCapture> getCaptureFuture(StudioProfilers profilers,
@@ -95,7 +96,7 @@ public class CpuProfilerTestUtils {
                                                                int processIdHint,
                                                                String processNameHint) {
     CpuCaptureParser parser = new CpuCaptureParser(profilers);
-    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, processIdHint, processNameHint, x -> {});
+    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, processIdHint, processNameHint, TaskTracker.createNullTaskTracker(profilers));
   }
 
   public static CpuCapture getCapture(StudioProfilers profilers, File traceFile, TraceType profilerType)

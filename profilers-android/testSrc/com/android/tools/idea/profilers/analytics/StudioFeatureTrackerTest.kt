@@ -20,10 +20,10 @@ import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.cpu.CpuCaptureMetadata
 import com.android.tools.profilers.cpu.CpuCaptureParser
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
-import com.android.tools.profilers.tasks.TaskMetadataStatus
-import com.android.tools.profilers.tasks.TaskProcessingFailedMetadata
-import com.android.tools.profilers.tasks.TaskStartFailedMetadata
-import com.android.tools.profilers.tasks.TaskStopFailedMetadata
+import com.android.tools.profilers.tasks.analytics.TaskProcessingFailedMetadata
+import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata
+import com.android.tools.profilers.tasks.analytics.TaskStopFailedMetadata
+import com.android.tools.profilers.tasks.analytics.toStatsProto
 import com.intellij.mock.MockProjectEx
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
@@ -72,7 +72,7 @@ class StudioFeatureTrackerTest {
     )
     val resultWithTraceStopStatus = studioFeatureTracker.buildStatsTaskStopFailedMetadata(metadataWithTraceStopStatus)
     assertEquals(resultWithTraceStopStatus.traceStopStatus,
-                 TaskMetadataStatus.getTaskFailedTraceStopStatus(traceStopStatus))
+                 traceStopStatus.toStatsProto())
 
     // Build allocation track status
     val allocationTrackStatus = buildAllocationTrackStatus()
@@ -83,7 +83,7 @@ class StudioFeatureTrackerTest {
     )
     val resultWithAllocationTrackStatus = studioFeatureTracker.buildStatsTaskStopFailedMetadata(metadataWithAllocationTrackStatus)
     assertEquals(resultWithAllocationTrackStatus.trackStatus,
-                 TaskMetadataStatus.getTaskFailedAllocationTrackStatus(allocationTrackStatus))
+                 allocationTrackStatus.toStatsProto())
   }
 
   @Test
@@ -99,7 +99,7 @@ class StudioFeatureTrackerTest {
       heapDumpStatus = heapDumpMetadata
     )
     val resultWithCpuCapture = studioFeatureTracker.buildStatsTaskStartFailedMetadata(heapDumpFailedMetadata)
-    assertEquals(resultWithCpuCapture.heapDumpStartStatus, TaskMetadataStatus.getTaskFailedHeapDumpStatus(heapDumpMetadata))
+    assertEquals(resultWithCpuCapture.heapDumpStartStatus, heapDumpMetadata.toStatsProto())
 
     // Build trace start status
     val traceStartStatus = Trace.TraceStartStatus.newBuilder()
@@ -113,7 +113,7 @@ class StudioFeatureTrackerTest {
       heapDumpStatus = null
     )
     val resultWithTraceStopStatus = studioFeatureTracker.buildStatsTaskStartFailedMetadata(metadataWithTraceStartStatus)
-    assertEquals(resultWithTraceStopStatus.traceStartStatus, TaskMetadataStatus.getTaskFailedTraceStartStatus(traceStartStatus))
+    assertEquals(resultWithTraceStopStatus.traceStartStatus, traceStartStatus.toStatsProto())
 
     // Build allocation track status
     val allocationTrackStatus = buildAllocationTrackStatus()
@@ -124,7 +124,7 @@ class StudioFeatureTrackerTest {
     )
     val resultWithAllocationTrackStatus = studioFeatureTracker.buildStatsTaskStartFailedMetadata(metadataWithAllocationTrackStatus)
     assertEquals(resultWithAllocationTrackStatus.trackStatus,
-                 TaskMetadataStatus.getTaskFailedAllocationTrackStatus(allocationTrackStatus))
+                 allocationTrackStatus.toStatsProto())
   }
 
   @Test

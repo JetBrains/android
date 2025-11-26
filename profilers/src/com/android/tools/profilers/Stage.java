@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.TooltipModel;
+import com.android.tools.profilers.tasks.analytics.TaskTracker;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +33,8 @@ public abstract class Stage<T extends Timeline> extends AspectObserver {
 
   protected static final long PROFILING_INSTRUCTIONS_EASE_OUT_NS = TimeUnit.SECONDS.toNanos(3);
 
+  protected @NotNull TaskTracker myTaskTracker;
+
   private final StudioProfilers myProfilers;
 
   /**
@@ -42,6 +45,7 @@ public abstract class Stage<T extends Timeline> extends AspectObserver {
 
   public Stage(@NotNull StudioProfilers profilers) {
     myProfilers = profilers;
+    myTaskTracker = TaskTracker.createNullTaskTracker(profilers);
   }
 
   @NotNull
@@ -55,9 +59,23 @@ public abstract class Stage<T extends Timeline> extends AspectObserver {
   @NotNull
   public abstract T getTimeline();
 
-  abstract public void enter();
+  public final void enter() {
+    logEnterStage();
+    if (myProfilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      myTaskTracker = TaskTracker.createTaskTracker(myProfilers, myProfilers.getSessionsManager().isSessionAlive());
+    }
 
-  abstract public void exit();
+    onEnter();
+  }
+
+  abstract public void onEnter();
+
+  public final void exit() {
+    logExitStage();
+    onExit();
+  }
+
+  abstract public void onExit();
 
   /**
    * @return the stage enum for Studio feature tracker.
@@ -126,6 +144,10 @@ public abstract class Stage<T extends Timeline> extends AspectObserver {
    * Log a message (e.g., to idea.log) indicating the entering of a profiler stage.
    */
   protected void logEnterStage() {
-    LogUtils.logIfInTestingMode(myProfilers.getIdeServices(), this.getClass(), "Enter " + this.getClass().getSimpleName());
+    LogUtils.log(this.getClass(), "Entering " + this.getClass().getSimpleName());
+  }
+
+  protected void logExitStage() {
+    LogUtils.log(this.getClass(), "Exiting " + this.getClass().getSimpleName());
   }
 }

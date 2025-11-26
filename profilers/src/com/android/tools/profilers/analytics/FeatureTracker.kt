@@ -24,11 +24,11 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager.SessionCreationSource
-import com.android.tools.profilers.tasks.TaskFinishedState
-import com.android.tools.profilers.tasks.TaskMetadata
-import com.android.tools.profilers.tasks.TaskProcessingFailedMetadata
-import com.android.tools.profilers.tasks.TaskStartFailedMetadata
-import com.android.tools.profilers.tasks.TaskStopFailedMetadata
+import com.android.tools.profilers.tasks.analytics.TaskFinishedState
+import com.android.tools.profilers.tasks.analytics.TaskMetadata
+import com.android.tools.profilers.tasks.analytics.TaskProcessingFailedMetadata
+import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata
+import com.android.tools.profilers.tasks.analytics.TaskStopFailedMetadata
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata

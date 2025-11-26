@@ -8,11 +8,10 @@ import com.android.tools.profiler.proto.Memory.TrackStatus
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
 import com.android.tools.profilers.memory.adapters.CaptureObject
-import com.android.tools.profilers.tasks.TaskEventTrackerUtils
-import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskFinished
-import com.android.tools.profilers.tasks.TaskFinishedState
-import com.android.tools.profilers.tasks.TaskStartFailedMetadata
-import com.android.tools.profilers.tasks.TaskStopFailedMetadata
+import com.android.tools.profilers.tasks.analytics.TaskFinishedState
+import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata
+import com.android.tools.profilers.tasks.analytics.TaskStopFailedMetadata
+import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import java.util.concurrent.Executor
@@ -96,24 +95,22 @@ class AllocationStage private constructor(profilers: StudioProfilers,
            timeline.selectionRange.max.almostEqual(min(maxTrackingTimeUs, timeline.dataRange.max))
   }
 
-  override fun enter() {
-    logEnterStage()
-    super.enter()
+  override fun onEnter() {
+    super.onEnter()
     if (isStatic) {
       studioProfilers.sessionsManager.setTaskDb(sessionData)
       timeline.viewRange.set(minTrackingTimeUs, maxTrackingTimeUs)
       timeline.selectionRange.set(minTrackingTimeUs, maxTrackingTimeUs)
-      // Entering a static allocation stage indicates the opening of a task recorded in the past.
       if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
-        trackTaskFinished(studioProfilers, false, TaskFinishedState.COMPLETED)
+        myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED)
       }
     } else {
       startTracking()
     }
   }
 
-  override fun exit() {
-    super.exit()
+  override fun onExit() {
+    super.onExit()
     if (!isStatic) {
       stopTracking()
     }
@@ -141,9 +138,8 @@ class AllocationStage private constructor(profilers: StudioProfilers,
     stopTracking()
     hasAgentError = true
     if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
-      TaskEventTrackerUtils.trackStartTaskFailed(studioProfilers, studioProfilers.sessionsManager.isSessionAlive, TaskStartFailedMetadata(
-        allocationTrackStatus = TrackStatus.newBuilder().setStatus(TrackStatus.Status.AGENT_UNATTACHABLE).build(), traceStartStatus = null,
-        heapDumpStatus = null))
+      myTaskTracker.trackStartTaskFailed(TaskStartFailedMetadata(
+          allocationTrackStatus = TrackStatus.newBuilder().setStatus(TrackStatus.Status.AGENT_UNATTACHABLE).build()))
     }
     aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS)
   }
@@ -197,7 +193,7 @@ class AllocationStage private constructor(profilers: StudioProfilers,
           // At this point, allocation tracking has been stopped by the user, indicating that the task is complete.
           else {
             if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
-              trackTaskFinished(studioProfilers, true, TaskFinishedState.COMPLETED)
+              myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED)
             }
             logger.info("PROFILER: Java/Kotlin Allocations capture stop succeeded")
           }
@@ -213,20 +209,14 @@ class AllocationStage private constructor(profilers: StudioProfilers,
           if (enable) {
             // start task failure
             if (isTaskBasedUxEnabled) {
-              TaskEventTrackerUtils.trackStartTaskFailed(
-                studioProfilers,
-                studioProfilers.sessionsManager.isSessionAlive,
-                TaskStartFailedMetadata(allocationTrackStatus = status, traceStartStatus = null, heapDumpStatus = null))
+              myTaskTracker.trackStartTaskFailed(TaskStartFailedMetadata(allocationTrackStatus = status))
             }
             logger.info("PROFILER: Java/Kotlin Allocations capture start failed")
           }
           else {
             // stop task failure
             if (isTaskBasedUxEnabled) {
-              TaskEventTrackerUtils.trackStopTaskFailed(
-                studioProfilers,
-                studioProfilers.sessionsManager.isSessionAlive,
-                TaskStopFailedMetadata(allocationTrackStatus = status, traceStopStatus = null, cpuCaptureMetadata = null))
+              myTaskTracker.trackStopTaskFailed(TaskStopFailedMetadata(allocationTrackStatus = status, traceStopStatus = null, cpuCaptureMetadata = null))
             }
             logger.info("PROFILER: Java/Kotlin Allocations capture stop failed")
           }

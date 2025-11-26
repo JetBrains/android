@@ -28,7 +28,7 @@ class LiveViewTaskTest : ProfilersTaskTestBase() {
 
   override fun verifyTaskStarted(studio: AndroidStudio) {
     verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
-    verifyIdeaLog(".*PROFILER\\:\\s+Enter\\s+LiveStage", 120)
+    verifyIdeaLog(".*PROFILER\\:\\s+Entering\\s+LiveStage", 120)
   }
 
   override fun verifyTaskStopped(studio: AndroidStudio) {
