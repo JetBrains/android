@@ -268,6 +268,10 @@ Task                          : :lib:kaptGenerateStubsDebugKotlin
     PrimaryTaskCategory           : KOTLIN
     SecondaryTaskCategories       : COMPILATION
     Plugin                        : binary plugin org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+Task                          : :lib:mapDebugSourceSetPaths
+    TaskType                      : com.android.build.gradle.tasks.MapSourceSetPathsTask
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:mergeDebugAssets
     TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
     PrimaryTaskCategory           : UNCATEGORIZED
