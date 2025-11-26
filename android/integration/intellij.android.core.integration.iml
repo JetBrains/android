@@ -21,5 +21,6 @@
     <orderEntry type="module" module-name="intellij.platform.analysis.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.guava" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.platform-performance-testing" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.as-driver.integration" scope="TEST" />
   </component>
 </module>
