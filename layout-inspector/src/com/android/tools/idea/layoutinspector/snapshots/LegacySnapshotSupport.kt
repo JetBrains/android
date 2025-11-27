@@ -32,7 +32,6 @@ import com.android.tools.idea.layoutinspector.resource.data.createReference
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.write
-import layoutinspector.snapshots.Metadata
 import org.jetbrains.kotlin.idea.core.script.v1.readString
 import org.jetbrains.kotlin.idea.core.script.v1.writeString
 import java.io.ByteArrayInputStream
@@ -43,6 +42,7 @@ import java.io.ObjectOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import javax.imageio.ImageIO
+import layoutinspector.snapshots.Metadata
 
 class LegacySnapshotLoader : SnapshotLoader {
   override val propertiesProvider = LegacyPropertiesProvider()
@@ -106,7 +106,7 @@ class LegacySnapshotLoader : SnapshotLoader {
               id = windowName,
               imageType = ImageType.BITMAP_AS_REQUESTED,
             ) {
-            override suspend fun refreshImages(scale: Double) {
+            override fun refreshImages(scale: Double) {
               ViewNode.writeAccess {
                 root.flatten().forEach { it.drawChildren.clear() }
                 if (image != null) {

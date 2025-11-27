@@ -97,7 +97,7 @@ class ViewAndroidWindow(
     }
   }
 
-  override suspend fun refreshImages(scale: Double) {
+  override fun refreshImages(scale: Double) {
     try {
       val immutableScreenshotBytes = screenshotBytes
       if (immutableScreenshotBytes == null) {
