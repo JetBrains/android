@@ -28,7 +28,7 @@ CodecInputBuffer::CodecInputBuffer(AMediaCodec* codec, std::string&& log_prefix)
 bool CodecInputBuffer::Deque(int64_t timeout_us) {
   index = AMediaCodec_dequeueInputBuffer(codec_, timeout_us);
   if (index < 0) {
-    Log::W("%sMediaCodec_dequeueInputBuffer returned %ld", log_prefix_.c_str(), static_cast<long>(index));
+    Log::W("%sAMediaCodec_dequeueInputBuffer returned %ld", log_prefix_.c_str(), static_cast<long>(index));
     return false;
   }
   buffer = AMediaCodec_getInputBuffer(codec_, static_cast<size_t>(index), &size);
