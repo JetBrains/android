@@ -449,6 +449,9 @@ private fun ProjectDumper.dump(kotlinFacetConfiguration: KotlinFacetConfiguratio
     prop("TestOutputPath") { testOutputPath?.replaceKnownPaths() }
     prop("UseProjectSettings") { useProjectSettings.toString() }
     prop("Version") { version.toString() }
+    additionalVisibleModuleNames.takeIf { it.isNotEmpty() }?.let {
+      prop("AdditionalVisibleModuleNames") { additionalVisibleModuleNames.sorted().toString() }
+    }
   }
 }
 

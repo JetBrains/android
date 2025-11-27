@@ -786,6 +786,7 @@ PROJECT                       : Kotlin Multiplatform
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:kmpFirstLib:androidMain, :kmpFirstLib:commonMain]
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest
             JavaSource (test)             : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest/kotlin
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest/java [-]
@@ -981,6 +982,7 @@ PROJECT                       : Kotlin Multiplatform
             - SourceSetName               : Kotlin_Multiplatform.kmpFirstLib.commonTest
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:kmpFirstLib:androidMain, :kmpFirstLib:commonMain]
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/androidHostTest
             JavaSource (test)             : file://<PROJECT>/kmpFirstLib/src/androidHostTest/kotlin
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpFirstLib/src/androidHostTest/java [-]
@@ -1234,6 +1236,7 @@ PROJECT                       : Kotlin Multiplatform
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:kmpFirstLib:androidMain, :kmpFirstLib:commonMain]
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/commonTest
             TestSourceKotlin (test)       : file://<PROJECT>/kmpFirstLib/src/commonTest/kotlin
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/commonTest/resources [-]
@@ -1399,6 +1402,7 @@ PROJECT                       : Kotlin Multiplatform
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:kmpJvmOnly:commonMain, :kmpJvmOnly:jvmMain]
         CONENT_ENTRY                  : file://<PROJECT>/kmpJvmOnly/src/commonTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpJvmOnly/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -1524,6 +1528,7 @@ PROJECT                       : Kotlin Multiplatform
             - SourceSetName               : Kotlin_Multiplatform.kmpJvmOnly.commonTest
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:kmpJvmOnly:commonMain, :kmpJvmOnly:jvmMain]
         CONENT_ENTRY                  : file://<PROJECT>/kmpJvmOnly/src/jvmTest [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpJvmOnly/src/jvmTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpJvmOnly/src/jvmTest/kotlin [-]
@@ -1786,6 +1791,7 @@ PROJECT                       : Kotlin Multiplatform
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:kmpSecondLib:commonMain, :kmpSecondLib:jvmMain]
         CONENT_ENTRY                  : file://<PROJECT>/kmpSecondLib/src/commonTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpSecondLib/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -1911,6 +1917,7 @@ PROJECT                       : Kotlin Multiplatform
             - SourceSetName               : Kotlin_Multiplatform.kmpSecondLib.commonTest
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:kmpSecondLib:commonMain, :kmpSecondLib:jvmMain]
         CONENT_ENTRY                  : file://<PROJECT>/kmpSecondLib/src/jvmTest [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpSecondLib/src/jvmTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpSecondLib/src/jvmTest/kotlin [-]

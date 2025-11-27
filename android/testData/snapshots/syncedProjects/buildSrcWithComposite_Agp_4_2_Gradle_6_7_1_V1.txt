@@ -128,6 +128,7 @@ PROJECT                       : BuildSrcWithComposite
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -559,6 +560,7 @@ PROJECT                       : BuildSrcWithComposite
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
@@ -1146,6 +1148,7 @@ PROJECT                       : BuildSrcWithComposite
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:android-included:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/android-included/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/android-included/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/android-included/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -1456,6 +1459,7 @@ PROJECT                       : BuildSrcWithComposite
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:android-included:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/android-included/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/android-included/app/src/test
             JavaSource (test)             : file://<PROJECT>/android-included/app/src/test/java
@@ -1661,6 +1665,7 @@ PROJECT                       : BuildSrcWithComposite
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:android-included:lib:main]
         CONENT_ENTRY                  : file://<PROJECT>/android-included/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/android-included/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/android-included/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -1885,6 +1890,7 @@ PROJECT                       : BuildSrcWithComposite
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:android-included:lib:main]
         CONENT_ENTRY                  : file://<PROJECT>/android-included/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/android-included/lib/src/test
             JavaSource (test)             : file://<PROJECT>/android-included/lib/src/test/java

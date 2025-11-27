@@ -2169,6 +2169,7 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
@@ -2464,6 +2465,7 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
@@ -2683,6 +2685,7 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:lib:main]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest
             JavaSource (test)             : file://<PROJECT>/lib/src/androidTest/java
@@ -2955,6 +2958,7 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:lib:main]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/test
             JavaSource (test)             : file://<PROJECT>/lib/src/test/java
