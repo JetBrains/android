@@ -128,6 +128,7 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
@@ -421,6 +422,7 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
@@ -995,6 +997,7 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : Native (ios_arm64)/Native (ios_simulator_arm64)/Native (ios_x64)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:module2:appleMain, :module2:commonMain, :module2:iosMain, :module2:nativeMain]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/appleTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/appleTest/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
@@ -1474,6 +1477,7 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : JVM (21)/Native (general)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:module2:commonMain]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
@@ -1757,6 +1761,7 @@ PROJECT                       : kotlinMultiPlatform
             - SourceSetName               : kotlinMultiPlatform.module2.commonTest
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:module2:appleMain, :module2:commonMain, :module2:iosArm64Main, :module2:iosMain, :module2:nativeMain]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/iosArm64Test [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/iosArm64Test/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
@@ -2643,6 +2648,7 @@ PROJECT                       : kotlinMultiPlatform
             - SourceSetName               : kotlinMultiPlatform.module2.commonTest
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:module2:appleMain, :module2:commonMain, :module2:iosMain, :module2:iosSimulatorArm64Main, :module2:nativeMain]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/iosSimulatorArm64Test [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/iosSimulatorArm64Test/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
@@ -3072,6 +3078,7 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : Native (ios_arm64)/Native (ios_simulator_arm64)/Native (ios_x64)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:module2:appleMain, :module2:commonMain, :module2:iosMain, :module2:nativeMain]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/iosTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/iosTest/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
@@ -3719,6 +3726,7 @@ PROJECT                       : kotlinMultiPlatform
             - SourceSetName               : kotlinMultiPlatform.module2.commonTest
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:module2:appleMain, :module2:commonMain, :module2:iosMain, :module2:iosX64Main, :module2:nativeMain]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/iosX64Test [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/iosX64Test/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
@@ -4496,6 +4504,7 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : Native (ios_arm64)/Native (ios_simulator_arm64)/Native (ios_x64)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:module2:appleMain, :module2:commonMain, :module2:iosMain, :module2:nativeMain]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/nativeTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/nativeTest/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK

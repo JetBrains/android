@@ -125,6 +125,7 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/gradle_project_1/app/src/androidTest/java
@@ -432,6 +433,7 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/src/test
             JavaSource (test)             : file://<PROJECT>/gradle_project_1/app/src/test/java
@@ -666,6 +668,7 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/gradle_project_2/app/src/androidTest/java
@@ -973,6 +976,7 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/src/test
             JavaSource (test)             : file://<PROJECT>/gradle_project_2/app/src/test/java

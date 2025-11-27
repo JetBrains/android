@@ -16,11 +16,13 @@
 
 package org.jetbrains.kotlin.android.configure
 
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.utils.usLocaleCapitalize
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
+import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService
@@ -44,6 +46,7 @@ class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataServ
             val moduleNode = ExternalSystemApiUtil.findParent(moduleModelNode, ProjectKeys.MODULE) ?: continue
             val moduleData = moduleNode.data
             val sourceSetNodes = ExternalSystemApiUtil.findAll(moduleNode, GradleSourceSetData.KEY)
+            val additionalVisibleSourceSetsForTests = getAdditionalVisibleModuleNames(moduleNode)
 
             // If module per source set is enabled then we will have source set data nodes
             if (sourceSetNodes.isNotEmpty()) {
@@ -53,6 +56,11 @@ class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataServ
                                           (sourceSetNode.data.moduleName.takeUnless { it == "main" }?.usLocaleCapitalize() ?: "")
                 val kotlinFacet = configureFacetByGradleModule(ideModule, modelsProvider, moduleNode, sourceSetNode, kotlinSourceSetName)
                                   ?: return@forEach
+                // Set up the additionalVisibleModuleNames for all the test sourceSets.
+                if (sourceSetNode.data.moduleName != IdeModuleWellKnownSourceSet.MAIN.sourceSetName &&
+                    sourceSetNode.data.moduleName != IdeModuleWellKnownSourceSet.TEST_FIXTURES.sourceSetName) {
+                  kotlinFacet.configuration.settings.additionalVisibleModuleNames = additionalVisibleSourceSetsForTests
+                }
                 GradleProjectImportHandler.getInstances(project).forEach { it.importBySourceSet(kotlinFacet, sourceSetNode) }
               }
               continue
@@ -64,4 +72,16 @@ class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataServ
             GradleProjectImportHandler.getInstances(project).forEach { it.importByModule(kotlinFacet, moduleNode) }
         }
     }
+
+  /**
+   * Get the List of "friends" srcSet modules that are visible to other sourceSets of the project.
+   * This is used to extend the visibility between sourceSets of their internals for example.
+   */
+  private fun getAdditionalVisibleModuleNames(moduleNode: DataNode<ModuleData>): Set<String> {
+    return moduleNode.children.map { it.data }
+      .filterIsInstance<GradleSourceSetData>().filter { otherGradleSourceSetData ->
+        otherGradleSourceSetData.moduleName.contains(IdeModuleWellKnownSourceSet.MAIN.sourceSetName) ||
+        otherGradleSourceSetData.moduleName.contains(IdeModuleWellKnownSourceSet.TEST_FIXTURES.sourceSetName)
+      }.map { it.id }.toSet()
+  }
 }
