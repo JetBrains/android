@@ -150,6 +150,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
@@ -350,6 +351,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
@@ -529,6 +531,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:common:commonMain, :common:jvmMain]
         CONENT_ENTRY                  : file://<PROJECT>/common/src/commonTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/common/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -652,6 +655,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             - SourceSetName               : NonStandardSourceSetDependencies.common.commonTest
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:common:commonMain, :common:jvmMain]
         CONENT_ENTRY                  : file://<PROJECT>/common/src/jvmTest [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/common/src/jvmTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/common/src/jvmTest/kotlin [-]
@@ -802,6 +806,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:desktop:main]
         CONENT_ENTRY                  : file://<PROJECT>/desktop/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/desktop/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/desktop/src/test/kotlin [-]
@@ -925,6 +930,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:feature-a:main]
         CONENT_ENTRY                  : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-a/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-a/src/androidTestDebug [-]
@@ -1187,6 +1193,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:feature-a:main]
         CONENT_ENTRY                  : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-a/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-a/src/testDebug [-]
@@ -1846,6 +1853,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:javaLibrary:main]
         CONENT_ENTRY                  : file://<PROJECT>/javaLibrary/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/javaLibrary/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/javaLibrary/src/test/kotlin [-]
@@ -2333,6 +2341,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:kmp-java:sample:commonMain, :kmp-java:sample:jvmMain]
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/commonTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -2457,6 +2466,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             - SourceSetName               : NonStandardSourceSetDependencies.kmp-java.sample.commonTest
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:kmp-java:sample:commonMain, :kmp-java:sample:jvmMain]
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/jvmTest [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample/src/jvmTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample/src/jvmTest/kotlin [-]
@@ -2616,6 +2626,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:lib:main]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTestDebug [-]
@@ -2829,6 +2840,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:lib:main]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/testDebug [-]
