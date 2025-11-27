@@ -210,7 +210,7 @@ private fun SnapshotComparisonTest.getExpectedTextAndFileFor(project: String, su
       ?: (candidateFiles
         .joinToString(separator = "\n", prefix = "No snapshot files found. Candidates considered:\n\n") {
           it.relativeTo(resolveWorkspacePath("").toFile()).toString()
-        } to candidateFiles.first())
+        } to candidateFiles.last())
     }
 
 data class ProjectViewSettings(
