@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
 import com.intellij.icons.AllIcons
@@ -90,7 +91,14 @@ object ExportSnapshotAction :
       "Saving snapshot",
       TaskCancellation.cancellable(),
     ) {
-      inspector.currentClient.saveSnapshot(filePath, screenshotType = Screenshot.Type.SKP)
+      val screenshotType =
+        if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_STANDALONE_V2.get()) {
+          Screenshot.Type.BITMAP
+        } else {
+          Screenshot.Type.SKP
+        }
+
+      inspector.currentClient.saveSnapshot(filePath, screenshotType)
       invokeLater {
         FileEditorManager.getInstance(project)
           .openEditor(OpenFileDescriptor(project, virtualFile), false)
