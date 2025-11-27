@@ -253,6 +253,10 @@ iml_test(
             "-Demulator.test.sdk.path=prebuilts/studio/sdk/linux",
             "-Demulator.test.emulator.path=prebuilts/studio/sdk/linux/emulator/emulator",
         ],
+        "//tools/base/bazel/platforms:macos-arm64": [
+            "-Demulator.test.sdk.path=prebuilts/studio/sdk/darwin",
+            "-Demulator.test.emulator.path=prebuilts/studio/sdk/darwin/emulator-arm64/emulator",
+        ],
         "@platforms//os:windows": [
             "-Demulator.test.sdk.path=prebuilts/studio/sdk/windows",
             "-Demulator.test.emulator.path=prebuilts/studio/sdk/windows/emulator/emulator",
