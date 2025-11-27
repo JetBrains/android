@@ -5,10 +5,11 @@ import "google/protobuf/timestamp.proto";
 option java_package = "com.android.tools.idea.serverflags.protos";
 option java_multiple_files = true;
 
-// A spec for showing an advert in Android Studio.
-// You can read more about Studio Ads here: go/as-server-driven-ad-notification
-message StudioAd {
-  // The user action that can be performed in ads.
+// A spec for showing a push notification in Android Studio.
+// You can read more about Studio Push notifications here:
+// go/as-server-driven-push-notification
+message StudioPushNotification {
+  // The user action that can be performed.
   message Actions {
     // Displays an action to browse to the given URL
     message BrowseAction {
@@ -36,11 +37,11 @@ message StudioAd {
       OpenUiAction openui_action = 3;
     }
   }
-  // A spec for showing an advert as an IntelliJ notification -
+  // A spec for showing a push notification as an IntelliJ notification -
   // https://plugins.jetbrains.com/docs/intellij/balloon.html
-  message NotificationAdSpec {
-    enum AdType {
-      AD_TYPE_UNKNOWN = 0;
+  message NotificationSpec {
+    enum PushNoficationType {
+      PUSH_NOTIFICATION_TYPE_UNKNOWN = 0;
       INFORMATION = 1;
       WARNING = 2;
       ERROR = 3;
@@ -50,15 +51,15 @@ message StudioAd {
     optional string id = 1;
     optional string title = 2;
     optional string description = 3;
-    // The type of ad that needs to be shown.
-    optional AdType ad_type = 4;
+    // The type of notification that needs to be shown.
+    optional PushNoficationType push_notification_type = 4;
     // List of user actions associated with the notification
     repeated Actions actions = 5;
   }
 
-  // A spec for showing an advert as a IntelliJ got-it tooltip.
+  // A spec for showing a push notification as a IntelliJ got-it tooltip.
   // https://plugins.jetbrains.com/docs/intellij/got-it-tooltip.html
-  message GotItTooltipAdSpec {
+  message GotItTooltipSpec {
     message PlacementDetails {
       enum ToolWindow {
         TOOL_WINDOW_UNKNOWN = 0;
@@ -87,7 +88,8 @@ message StudioAd {
   }
 
   message Requirement {
-    // The model provider type that must be configured for the ad to be shown.
+    // The model provider type that must be configured for the push notification
+    // to be shown.
     enum ModelProviderType {
       MODEL_PROVIDER_TYPE_UNKNOWN = 0;
       FREE_TIER = 1;
@@ -110,13 +112,13 @@ message StudioAd {
     }
   }
 
-  // List of requirements that need to be met for the ad to be shown.
-  // All requirements need to be met for the ad to be shown.
+  // List of requirements that need to be met for the notification to be shown.
+  // All requirements need to be met for the notification to be shown.
   repeated Requirement requirements = 1;
 
-  // Ad specifications for the notification.
-  oneof ad_spec {
-    NotificationAdSpec notification_ad_spec = 2;
-    GotItTooltipAdSpec got_it_tooltip_ad_spec = 3;
+  // Push notification specifications for the notification.
+  oneof push_notification_spec {
+    NotificationSpec notification_spec = 2;
+    GotItTooltipSpec got_it_tooltip_spec = 3;
   }
 }
