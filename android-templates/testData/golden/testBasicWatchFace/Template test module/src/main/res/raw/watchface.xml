@@ -11,7 +11,6 @@
             x="0"
             y="0">
             <TimeText
-                align="CENTER"
                 format="hh:mm"
                 height="100"
                 width="450"
@@ -27,7 +26,6 @@
                     size="128" />
             </TimeText>
             <TimeText
-                align="CENTER"
                 alpha="0"
                 format="hh:mm"
                 height="100"
@@ -60,7 +58,7 @@
                     mode="AMBIENT"
                     target="alpha"
                     value="0" />
-                <Text align="CENTER">
+                <Text>
                     <Font
                         color="#ffffffff"
                         family="SYNC_TO_DEVICE"
