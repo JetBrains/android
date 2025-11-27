@@ -1314,7 +1314,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> DEVICE_MIRRORING_B386236480_TESTING = new DebugFlag(
     DEVICE_MIRRORING, "b386236480.testing", "Turn device screen off on Android versions affected by b/386236480",
     "If enabled, Studio will turn off the screen of a mirrored device even if that device is affected by b/386236480.");
-
+  public static final Flag<Boolean> DEVICE_MIRRORING_USE_REMOTE_SUBMIX = new BooleanFlag(
+    DEVICE_MIRRORING, "use.remote.submix", "Use REMOTE_SUBMIX audio device instead of AudioRecord",
+    "If enabled, use REMOTE_SUBMIX audio device instead of AudioRecord.");
   //endregion
 
   //region Screenshot and Screen Recording
