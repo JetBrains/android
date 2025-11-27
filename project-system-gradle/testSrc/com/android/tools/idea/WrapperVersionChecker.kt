@@ -43,6 +43,7 @@ class WrapperVersionChecker {
   @Test
   fun `check gradle versions are mapped to respective sha-256`() {
     listOf(
+      "9.2.1",
       "9.2.0",
       "9.1.0",
       "9.0.0",
@@ -52,7 +53,7 @@ class WrapperVersionChecker {
       val distributionSha = GradleWrapper.getDistributionSha256(version, true)
       assertWithMessage("Cannot find SHA-256 for Gradle distribution $version. " +
                         "Run ./update-gradle-sha256-list script to update the 'gradle-sha256-list.txt' file.")
-        .that(distributionSha)
+        .that(distributionSha ?: "[no entry found]")
         .hasLength(64)
     }
   }
@@ -77,7 +78,7 @@ class WrapperVersionChecker {
     val distributionSha256 = GradleWrapper.getDistributionSha256(version, true)
     assertWithMessage("Cannot find SHA-256 for NPW Gradle distribution $version. " +
                       "Run ./update-gradle-sha256-list script to update the 'gradle-sha256-list.txt' file.")
-      .that(distributionSha256)
+      .that(distributionSha256 ?: "[no entry found]")
       .hasLength(64)
   }
 
