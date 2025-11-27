@@ -176,6 +176,7 @@ jvm_library(
     "//plugins/kotlin/base/scripting/scripting.k1",
     "//plugins/kotlin/base/scripting/scripting.shared",
     "//platform/util-class-loader:util-classLoader",
+    "//platform/forms_rt:java-guiForms-rt",
   ]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle` end

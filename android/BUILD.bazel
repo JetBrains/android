@@ -336,6 +336,7 @@ jvm_library(
     "//plugins/kotlin/code-insight/api",
     "//android/android/editing/documentation",
     "//android/android/editing/documentation:documentation_test_lib",
+    "//platform/execution",
     "//xml/xml-psi-impl:psi-impl",
   ],
   runtime_deps = [

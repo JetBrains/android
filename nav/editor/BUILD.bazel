@@ -61,6 +61,7 @@ jvm_library(
     "//xml/xml-psi-api:psi",
     "//plugins/kotlin/base/project-structure",
     "//plugins/kotlin/base/util",
+    "//platform/forms_rt:java-guiForms-rt",
   ]
 )
 ### auto-generated section `build intellij.android.nav.editor` end

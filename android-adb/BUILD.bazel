@@ -56,6 +56,7 @@ jvm_library(
     "//android/adt-ui-compose",
     "//android/artwork-compose",
     "//android/intellij.android.device:device",
+    "//platform/forms_rt:java-guiForms-rt",
   ],
   plugins = ["@lib//:compose-plugin"]
 )

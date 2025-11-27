@@ -92,6 +92,7 @@ jvm_library(
     "//plugins/kotlin/code-insight/utils",
     "//jvm/jvm-analysis-impl:analysis-impl",
     "//xml/impl",
+    "//platform/forms_rt:java-guiForms-rt",
   ]
 )
 ### auto-generated section `build intellij.android.lint` end

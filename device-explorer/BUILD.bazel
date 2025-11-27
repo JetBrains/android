@@ -36,6 +36,7 @@ jvm_library(
     "//platform/util",
     "//platform/util-rt",
     "//platform/util:util-ui",
+    "//platform/forms_rt:java-guiForms-rt",
   ]
 )
 ### auto-generated section `build intellij.android.device-explorer` end

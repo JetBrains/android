@@ -33,6 +33,7 @@ jvm_library(
     "//android/android-common:common",
     "//android/render-resources",
     "@lib//:truth",
+    "//platform/execution",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
     "//libraries/mockito",

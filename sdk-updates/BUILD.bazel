@@ -43,6 +43,7 @@ jvm_library(
     "//platform/util/base",
     "//platform/ide-core",
     "//platform/util:util-ui",
+    "//platform/forms_rt:java-guiForms-rt",
   ]
 )
 ### auto-generated section `build intellij.android.sdkUpdates` end

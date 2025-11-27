@@ -91,6 +91,7 @@ jvm_library(
     "//platform/extensions",
     "//platform/external-system-api:externalSystem",
     "//platform/platform-api:ide",
+    "//platform/execution",
     "//platform/ide-core",
     "//platform/platform-impl:ide-impl",
     "//platform/platform-impl:ide-impl_test_lib",

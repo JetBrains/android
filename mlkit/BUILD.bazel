@@ -61,6 +61,7 @@ jvm_library(
     "//xml/dom-openapi:dom",
     "//jps/model-api:model",
     "//plugins/kotlin/base/project-structure",
+    "//platform/forms_rt:java-guiForms-rt",
   ]
 )
 ### auto-generated section `build intellij.android.mlkit` end

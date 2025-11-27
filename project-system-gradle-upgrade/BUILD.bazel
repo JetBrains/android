@@ -60,6 +60,8 @@ jvm_library(
     "//xml/xml-psi-api:psi",
     "//android/gmaven",
     "//libraries/ktor/client",
+    "//platform/execution",
+    "//platform/forms_rt:java-guiForms-rt",
   ]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.upgrade` end

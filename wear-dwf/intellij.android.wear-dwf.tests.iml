@@ -37,6 +37,7 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="module" module-name="intellij.android.lang.tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.execution" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.wear-dwf" />
 </module>

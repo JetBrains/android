@@ -50,6 +50,7 @@ jvm_library(
     "//platform/service-container",
     "//platform/service-container:service-container_test_lib",
     "//platform/projectModel-impl",
+    "//platform/execution",
   ]
 )
 ### auto-generated section `build intellij.android.old-agp-tests` end

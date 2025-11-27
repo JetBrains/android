@@ -64,6 +64,7 @@ jvm_library(
     "//platform/core-ui",
     "//platform/editor-ui-api:editor-ui",
     "//platform/execution-impl",
+    "//platform/execution",
     "//platform/platform-api:ide",
     "//platform/ide-core-impl",
     "//platform/platform-impl:ide-impl",
@@ -80,6 +81,7 @@ jvm_library(
     "//android/ml-api",
     "//android/artwork-compose",
     "//android/adt-ui-compose",
+    "//platform/forms_rt:java-guiForms-rt",
   ],
   plugins = ["@lib//:compose-plugin"]
 )

@@ -20,11 +20,10 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import java.awt.BorderLayout;
 import java.awt.Insets;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
-public class DeviceMonitorPanel {
+public final class DeviceMonitorPanel {
   static final int TEXT_RENDERER_HORIZ_PADDING = 6;
   static final int TEXT_RENDERER_VERT_PADDING = 4;
   private JPanel mainComponent;

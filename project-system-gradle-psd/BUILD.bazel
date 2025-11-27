@@ -72,6 +72,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util:util-ui",
     "//plugins/kotlin/base/facet",
+    "//platform/lang-api:lang",
   ]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.psd` end

@@ -54,6 +54,8 @@ jvm_library(
     "//android/adt-ui-model",
     "//java/java-psi-api:psi",
     "//platform/lang-impl",
+    "//platform/forms_rt:java-guiForms-rt",
+    "//platform/execution",
   ]
 )
 ### auto-generated section `build intellij.android.apkanalyzer` end
