@@ -20,6 +20,7 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
@@ -262,7 +263,10 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
       val client = layoutInspector.currentClient
       if (client.inLiveMode) {
         // The current agent protocol requires bitmaps to be resized based on to the current scale
-        client.updateScreenshotType(null, renderSettings.scaleFraction.toFloat())
+        client.updateScreenshotType(
+          type = AndroidWindow.ImageType.BITMAP_AS_REQUESTED,
+          scale = renderSettings.scaleFraction.toFloat(),
+        )
       }
     }
 
