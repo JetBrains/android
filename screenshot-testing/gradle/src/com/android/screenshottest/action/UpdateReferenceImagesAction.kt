@@ -24,6 +24,6 @@ import com.intellij.icons.AllIcons
  */
 class UpdateReferenceImagesAction : UpdateReferenceImagesBaseAction(
   UpdateReferenceImagesActionUtils.UPDATE_ACTION_TEXT,
-  "Updates the reference images for screenshot tests.",
+  "Updates the reference images for screenshot tests",
   AllIcons.FileTypes.Image
 )

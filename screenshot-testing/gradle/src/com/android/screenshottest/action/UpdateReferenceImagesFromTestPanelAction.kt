@@ -31,7 +31,7 @@ import javax.swing.JButton
 import javax.swing.JComponent
 
 class UpdateReferenceImagesFromTestPanelAction : AnAction(UpdateReferenceImagesActionUtils.UPDATE_ACTION_TEXT,
-                                                          "Updates the reference images for screenshot tests from test panel.",
+                                                          "Updates the reference images for screenshot tests",
                                                           null), CustomComponentAction {
 
   var testResults: AndroidTestResults? = null
