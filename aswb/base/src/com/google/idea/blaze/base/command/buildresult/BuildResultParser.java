@@ -79,7 +79,7 @@ public final class BuildResultParser {
       return BuildEventProtocolOutputReader.parseTestResults(bepStream);
     }
     catch (BuildEventStreamProvider.BuildEventStreamException e) {
-      BuildResultHelper.logger.warn(e);
+      Logger.getInstance(BuildResultParser.class).warn(e);
       throw new GetArtifactsException(
         String.format("Failed to parse bep for build id: %s", bepStream.getId()), e);
     }
