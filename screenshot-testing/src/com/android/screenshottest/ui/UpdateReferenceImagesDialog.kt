@@ -48,6 +48,7 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
 import java.awt.CardLayout
@@ -379,7 +380,7 @@ class UpdateReferenceImagesDialog(
     okButton?.isEnabled = false
     cancelButton?.isEnabled = false
 
-    ApplicationManager.getApplication().executeOnPooledThread {
+    AppExecutorUtil.getAppExecutorService().submit {
       val imagesToCopy = panelsToCopy.map {
         ImageData(it.previewData, it.sourceImageToCopy)
       }

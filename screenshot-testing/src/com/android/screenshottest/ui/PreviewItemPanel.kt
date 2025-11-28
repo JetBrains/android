@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ImageLoader
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBImageIcon
@@ -159,7 +160,7 @@ class PreviewItemPanel(
       previewData.srcImagePath?.let { sourceImageToCopy[it] = simpleClassName }
     }
 
-    ApplicationManager.getApplication().executeOnPooledThread {
+    AppExecutorUtil.getAppExecutorService().submit {
       val image = createImageIcon(newPath)
       ApplicationManager.getApplication().invokeLater {
         if (image != null) {
