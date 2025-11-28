@@ -18,7 +18,6 @@ package com.google.idea.blaze.base.run.processhandler;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.async.process.BinaryPathRemapper;
-import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.filecache.FileCaches;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -59,24 +58,6 @@ public final class ScopedBlazeProcessHandler extends KillableColoredProcessHandl
 
   private final ScopedProcessHandlerDelegate scopedProcessHandlerDelegate;
   private final BlazeContext context;
-
-  /**
-   * Construct a process handler and a context to be used for the life of the process.
-   *
-   * @param blazeCommand the blaze command to run
-   * @param workspaceRoot workspace root
-   * @param scopedProcessHandlerDelegate delegate methods that will be run with the process's
-   *     context.
-   * @throws ExecutionException
-   */
-  public ScopedBlazeProcessHandler(
-      Project project,
-      BlazeCommand blazeCommand,
-      WorkspaceRoot workspaceRoot,
-      ScopedProcessHandlerDelegate scopedProcessHandlerDelegate)
-      throws ExecutionException {
-    this(project, blazeCommand.toList(), workspaceRoot, scopedProcessHandlerDelegate);
-  }
 
   public ScopedBlazeProcessHandler(
       Project project,

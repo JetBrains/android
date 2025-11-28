@@ -453,8 +453,6 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.base.lang.buildfile.Annotator" interface="com.google.idea.blaze.base.lang.buildfile.validation.BuildAnnotator"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.BlazeConsoleLineProcessorProvider" interface="com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.SyncStatusContributor" interface="com.google.idea.blaze.base.syncstatus.LegacySyncStatusContributor"/>
-    <extensionPoint qualifiedName="com.google.idea.blaze.BuildResultHelperProvider"
-                    interface="com.google.idea.blaze.base.command.buildresult.BuildResultHelperProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.OutputArtifactParser"
                     interface="com.google.idea.blaze.base.command.buildresult.bepparser.OutputArtifactParser"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.RemoteOutputArtifactParser"
@@ -570,7 +568,6 @@
     <VcsHandler implementation="com.google.idea.blaze.base.vcs.FallbackBlazeVcsHandlerProvider" order="last" id="fallback"/>
     <BuildSystemProvider implementation="com.google.idea.blaze.base.bazel.BazelBuildSystemProvider" id="BazelBuildSystemProvider" order="last"/>
     <BuildifierBinaryProvider implementation="com.google.idea.blaze.base.buildmodifier.DefaultBuildifierBinaryProvider"/>
-    <BuildResultHelperProvider order="last" implementation="com.google.idea.blaze.base.command.buildresult.BuildResultHelperBep$Provider"/>
     <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.base.run.confighandler.PendingTargetRunConfigurationHandlerProvider"/>
     <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.base.run.confighandler.BlazeCommandGenericRunConfigurationHandlerProvider" order="last"/>
     <TestTargetHeuristic implementation="com.google.idea.blaze.base.run.TargetNameHeuristic" id="TargetNameHeuristic"/>
