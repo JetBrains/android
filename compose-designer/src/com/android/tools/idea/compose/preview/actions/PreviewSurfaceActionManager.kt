@@ -114,7 +114,7 @@ internal class PreviewSurfaceActionManager(
         // Add action to transform UI with AI directly to the context-menu if the dropdown menu is
         // not enabled.
         StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.ifEnabled {
-          factory?.transformPreviewAction()
+          factory?.transformPreviewAction()?.hideIfRenderErrors()
         }
       }
       ?.visibleOnlyInStaticPreview()
