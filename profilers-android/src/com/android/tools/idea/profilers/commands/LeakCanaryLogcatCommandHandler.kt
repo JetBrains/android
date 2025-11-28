@@ -200,36 +200,57 @@ class LeakCanaryLogcatCommandHandler(
         maxHistoryEntries = 0,
       ).collect { logcatMessages ->
         logcatMessages.forEach { logcatMessage ->
-          detectAndHandleObjectRetainedAndAnalysis(logcatMessage)
-          detectAndHandlePartialLeakTraces(logcatMessage)
-          detectAndHandleCompleteLeakTraces(logcatMessage)
-          detectAndHandleHostAnalysisTrigger(logcatMessage)
+          // Handlers are called sequentially. If a handler returns true, it means it processed the event
+          // and subsequent handlers are skipped for this logcatMessage.
+          var handled = detectAndHandleObjectRetainedAndAnalysis(logcatMessage)
+
+          if (!handled) {
+            handled = detectAndHandleCompleteLeakTraces(logcatMessage)
+          }
+
+          if (!handled) {
+            handled = detectAndHandleHostAnalysisTrigger(logcatMessage)
+          }
+
+          // Partial traces should only run if the logcat message was not handled by an explicit LeakCanary event (complete trace, trigger, etc.)
+          if (!handled) {
+            detectAndHandlePartialLeakTraces(logcatMessage)
+          }
+          // Note: detectAndHandlePartialLeakTraces doesn't return a boolean because it often spans multiple logcat entries.
+          // The logic for partial trace completion is handled inside the function itself, including the TWO_SECONDS check
+          // against the previous log entry.
         }
       }
     }
   }
 
-  private fun detectAndHandleObjectRetainedAndAnalysis(logcatMessage: LogcatMessage) {
-    if (logcatMessage.header.tag != LEAKCANARY_TAG)
-      return
-
+  // Returns true if any event was sent, false otherwise.
+  private fun detectAndHandleObjectRetainedAndAnalysis(logcatMessage: LogcatMessage): Boolean {
     val retainedObjectsRegex = """Found (\d+) objects retained""".toRegex()
     val analysisProgressRegex = """Analysis in progress, (\d+)% done""".toRegex()
+    var handled = false
+
+    if (logcatMessage.header.tag != LEAKCANARY_TAG)
+      return false
 
     logcatMessage.message.split("\n").forEach { line ->
       if (retainedObjectsRegex.containsMatchIn(line) || analysisProgressRegex.containsMatchIn(line)) {
         sendLeakCanaryAnalysisEvent(line)
+        handled = true
       }
     }
+    return handled
   }
 
-  private fun detectAndHandleCompleteLeakTraces(logcatMessage: LogcatMessage) {
+  // Returns true if a complete trace was captured and sent, false otherwise.
+  private fun detectAndHandleCompleteLeakTraces(logcatMessage: LogcatMessage): Boolean {
     val startPatternSuccess = "HEAP ANALYSIS RESULT"
     val startPatternFailure = "HEAP ANALYSIS FAILED"
     val separatingLine = "===================================="
     val metaSectionPattern = "METADATA"
+    var handled = false
 
-    if (LEAKCANARY_TAG != logcatMessage.header.tag) return
+    if (LEAKCANARY_TAG != logcatMessage.header.tag) return false
 
     // The following logic reads LeakCanary's logs line by line, but LeakCanary may print multiple lines as one logcat entry
     // (with one header). Therefore, we need to break the message into lines before processing.
@@ -251,8 +272,15 @@ class LeakCanaryLogcatCommandHandler(
         inMetaSectionOfCompleteTrace = false
         sendLeakCanaryAnalysisEvent(capturedLogsForCompleteTrace.toString())
         capturedLogsForCompleteTrace.clear()
+        handled = true
+
+        // Clear the partial trace state to prevent double-handling of the same content
+        // by the partial trace handler logic.
+        capturedLogsForPartialTrace.clear()
+        inLastFrameOfPartialTrace = false
       }
     }
+    return handled
   }
 
   private fun convertPartialToCompleteTrace(leaktrace: StringBuilder): String {
@@ -327,6 +355,7 @@ Heap dump duration: Unknown
       }
     }
     else {
+      // Logic for partial trace timeout when a non-LeakCanary log message is received
       if (inLastFrameOfPartialTrace && logcatMessage.header.timestamp.epochSecond - prevLogTimeStampOfPartialTrace >= TWO_SECONDS) {
         sendLeakCanaryAnalysisEvent(convertPartialToCompleteTrace(capturedLogsForPartialTrace))
         capturedLogsForPartialTrace.clear()
@@ -335,7 +364,8 @@ Heap dump duration: Unknown
     }
   }
 
-  private fun detectAndHandleHostAnalysisTrigger(logcatMessage: LogcatMessage) {
+  // Returns true if the host analysis trigger event was sent, false otherwise.
+  private fun detectAndHandleHostAnalysisTrigger(logcatMessage: LogcatMessage): Boolean {
     val HOST_ANALYSIS_TRIGGER_STRING = "The heap dump will be collected and analyzed by the Android Studio"
     if (LEAKCANARY_TAG == logcatMessage.header.tag && HOST_ANALYSIS_TRIGGER_STRING in logcatMessage.message) {
       logger.info("Host analysis trigger detected.")
@@ -345,6 +375,8 @@ Heap dump duration: Unknown
                          .setKind(Common.Event.Kind.LEAKCANARY_HOST_ANALYSIS_TRIGGER)
                          .setTimestamp(getCurrentTimestampInNs())
                          .build())
+      return true
     }
+    return false
   }
 }
