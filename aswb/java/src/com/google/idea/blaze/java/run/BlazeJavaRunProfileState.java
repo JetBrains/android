@@ -26,7 +26,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker.Capability;
-import com.google.idea.blaze.base.bazel.LocalBazelInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeCommandRunnerExperiments;
@@ -192,7 +191,8 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
           testUiSession.getBlazeFlags(),
           getExecutorType(),
           kotlinxCoroutinesJavaAgent);
-      ConsoleView consoleView = SmRunnerUtils.getConsoleView(project, getConfiguration(), getEnvironment().getExecutor(), testUiSession);
+      ConsoleView consoleView = SmRunnerUtils.getConsoleView(project, getConfiguration(), getEnvironment().getExecutor(),
+                                                             testUiSession.getTestResultFinderStrategy());
       setConsoleBuilder(
         new TextConsoleBuilderImpl(project) {
           @Override

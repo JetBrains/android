@@ -62,7 +62,7 @@ class AitBlazeTestConsoleProvider implements ConsoleProvider {
       // test case (see ConnectBlazeTestDebuggerTask::setUpForReattachingDebugger)
       return TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
     }
-    return SmRunnerUtils.getConsoleView(project, runConfiguration, executor, testUiSession);
+    return SmRunnerUtils.getConsoleView(project, runConfiguration, executor, testUiSession.getTestResultFinderStrategy());
   }
 
   private static boolean isDebugging(Executor executor) {
