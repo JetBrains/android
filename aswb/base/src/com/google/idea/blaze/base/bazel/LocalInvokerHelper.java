@@ -29,17 +29,20 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessListener;
 import com.intellij.openapi.project.Project;
+import java.util.List;
+import java.util.Map;
 
 public class LocalInvokerHelper {
   private LocalInvokerHelper() {}
 
   public static ProcessHandler getScopedProcessHandler(
-    Project project, ImmutableList<String> command, WorkspaceRoot workspaceRoot)
+    Project project, List<String> command, WorkspaceRoot workspaceRoot, Map<String, String> environment)
     throws ExecutionException {
     return new ScopedBlazeProcessHandler(
       project,
       command,
       workspaceRoot,
+      environment,
       new ScopedBlazeProcessHandler.ScopedProcessHandlerDelegate() {
         @Override
         public void onBlazeContextStart(BlazeContext context) {

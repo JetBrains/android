@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
@@ -149,7 +150,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
         && BlazeCommandRunnerExperiments.USE_SINGLEJAR_FOR_DEBUGGING.getValue()) {
       commandBuilder.add("--singlejar");
     }
-    return getScopedProcessHandler(project, commandBuilder.build(), workspaceRoot);
+    return getScopedProcessHandler(project, commandBuilder.build(), workspaceRoot, ImmutableMap.of());
   }
 
   private ProcessHandler startProcessBazelCliCase(
