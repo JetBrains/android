@@ -29,7 +29,6 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.issueparser.ToolWindowTaskIssueOutputFilter;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
@@ -207,11 +206,15 @@ public final class BlazeCommandGenericRunConfigurationRunner
           BlazeExecutor.getInstance()
               .submit(
                   () -> {
-                    try (BuildEventStreamProvider streamProvider =
-                        invoker.invoke(blazeCommandBuilder, context)) {
-                      return BlazeBuildOutputs.fromParsedBepOutput(
-                          BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
-                    }
+                    return invoker.invoke(
+                        blazeCommandBuilder,
+                        context,
+                        streamProvider -> {
+                          BlazeBuildOutputs outputs =
+                              BlazeBuildOutputs.fromParsedBepOutput(
+                                  BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
+                          return outputs;
+                        });
                   });
       Futures.addCallback(
           blazeBuildOutputsListenableFuture,
@@ -285,10 +288,10 @@ public final class BlazeCommandGenericRunConfigurationRunner
           BlazeExecutor.getInstance()
               .submit(
                   () -> {
-                    try (BuildEventStreamProvider streamProvider =
-                        invoker.invoke(blazeCommandBuilder, context)) {
-                      return BuildResultParser.getTestResults(streamProvider);
-                    }
+                    return invoker.invoke(
+                        blazeCommandBuilder,
+                        context,
+                        BuildResultParser::getTestResults);
                   });
       Futures.addCallback(
           blazeTestResultsFuture,

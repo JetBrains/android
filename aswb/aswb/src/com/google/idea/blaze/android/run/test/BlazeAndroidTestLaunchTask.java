@@ -25,7 +25,6 @@ import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.ideinfo.AndroidInstrumentationInfo;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.ideinfo.TargetKey;
@@ -180,11 +179,16 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
                           Blaze.getBuildSystemProvider(project)
                               .getBuildSystem()
                               .getBuildInvoker(project);
-                      try (BuildEventStreamProvider streamProvider =
-                          invoker.invoke(commandBuilder, context)) {
-                        ExecutionUtils.println(console, commandBuilder.build() + "\n");
-                        testResultsHolder.setTestResults(
-                            BuildResultParser.getTestResults(streamProvider));
+                      try {
+                        invoker.invoke(
+                            commandBuilder,
+                            context,
+                            streamProvider -> {
+                              ExecutionUtils.println(console, commandBuilder.build() + "\n");
+                              testResultsHolder.setTestResults(
+                                  BuildResultParser.getTestResults(streamProvider));
+                              return null;
+                            });
                       } catch (BuildException e) {
                         LOG.error(e.getMessage());
                       }

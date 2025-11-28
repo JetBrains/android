@@ -71,8 +71,19 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
   }
 
   @Override
-  public final BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext)
+  public <T> T invoke(
+      BlazeCommand.Builder blazeCommandBuilder,
+      BlazeContext blazeContext,
+      BuildSystem.BuildEventStreamConsumer<T> consumer)
       throws BuildException {
+    try (BuildEventStreamProvider streamProvider =
+        createBuildEventStreamProvider(blazeCommandBuilder, blazeContext)) {
+      return consumer.consume(streamProvider);
+    }
+  }
+
+  private BuildEventStreamProvider createBuildEventStreamProvider(
+      BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException {
     try {
       performGuardCheck(project, blazeContext);
     } catch (ExecutionDeniedException e) {

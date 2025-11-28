@@ -32,9 +32,8 @@ import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.buildresult.BuildResult;
-import com.google.idea.blaze.base.command.buildresult.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
+import com.google.idea.blaze.base.command.buildresult.GetArtifactsException;
 import com.google.idea.blaze.base.filecache.FileCaches;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
@@ -189,8 +188,14 @@ public class FullApkBuildStep implements ApkBuildStep {
 
     command.addBlazeFlags(buildFlags);
     SaveUtil.saveAllFiles();
-    try (BuildEventStreamProvider streamProvider = invoker.invoke(command, context)) {
-      BlazeBuildOutputs outputs = BlazeBuildOutputs.fromParsedBepOutput(BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
+    try {
+      BlazeBuildOutputs outputs =
+          invoker.invoke(
+              command,
+              context,
+              streamProvider ->
+                  BlazeBuildOutputs.fromParsedBepOutput(
+                      BuildResultParser.getBuildOutput(streamProvider, Interners.STRING)));
       int exitCode = outputs.buildResult().exitCode;
       if (exitCode != 0) {
         IssueOutput.error("Blaze build failed. See Blaze Console for details.").submit(context);

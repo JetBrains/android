@@ -20,7 +20,6 @@ import com.google.errorprone.annotations.MustBeClosed;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.bazel.BuildSystem.SyncStrategy;
 import com.google.idea.blaze.base.command.BlazeCommand;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.lang.buildfile.language.semantics.RuleDefinition;
 import com.google.idea.blaze.base.model.BlazeVersionData;
@@ -212,9 +211,12 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     }
 
     @Override
-    public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext)
+    public <T> T invoke(
+        BlazeCommand.Builder blazeCommandBuilder,
+        BlazeContext blazeContext,
+        BuildSystem.BuildEventStreamConsumer<T> consumer)
         throws BuildException {
-      return inner.invoke(blazeCommandBuilder, blazeContext);
+      return inner.invoke(blazeCommandBuilder, blazeContext, consumer);
     }
 
     @Override
