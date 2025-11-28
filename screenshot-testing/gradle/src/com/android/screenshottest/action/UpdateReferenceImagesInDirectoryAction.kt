@@ -28,7 +28,7 @@ import org.jetbrains.android.util.AndroidUtils
 
 class UpdateReferenceImagesInDirectoryAction : UpdateReferenceImagesBaseAction(
   UpdateReferenceImagesActionUtils.UPDATE_ACTION_TEXT,
-  "Updates the reference images for screenshot tests in this directory.", AllIcons.FileTypes.Image
+  "Updates the reference images for screenshot tests", AllIcons.FileTypes.Image
 ) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
