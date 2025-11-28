@@ -34,6 +34,7 @@ import com.intellij.execution.process.ProcessListener;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Scoped process handler.
@@ -63,12 +64,14 @@ public final class ScopedBlazeProcessHandler extends KillableColoredProcessHandl
       Project project,
       List<String> command,
       WorkspaceRoot workspaceRoot,
+      Map<String, String> environment,
       ScopedProcessHandlerDelegate scopedProcessHandlerDelegate)
       throws ExecutionException {
     super(
         ProcessGroupUtil.newProcessGroupFor(
             new CommandLineWithRemappedPath(command)
                 .withWorkDirectory(workspaceRoot.directory().getPath())
+                .withEnvironment(environment)
                 .withRedirectErrorStream(true)));
 
     this.scopedProcessHandlerDelegate = scopedProcessHandlerDelegate;
