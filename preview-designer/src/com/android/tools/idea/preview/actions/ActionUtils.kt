@@ -102,6 +102,9 @@ fun List<AnAction>.visibleOnlyInStaticPreview(): ActionGroup =
  */
 fun AnAction.visibleOnlyInStaticPreview(): AnAction = listOf(this).visibleOnlyInStaticPreview()
 
+/** Hides the given action if the [SceneView] contains render errors. */
+fun AnAction.hideIfRenderErrors(): AnAction = listOf(this).hideIfRenderErrors().first()
+
 /** Hide the given actions if the [SceneView] contains render errors. */
 fun List<AnAction>.hideIfRenderErrors(): List<AnAction> = map {
   ShowUnderConditionWrapper(it) { context -> !hasSceneViewErrors(context) }
