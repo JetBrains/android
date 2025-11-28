@@ -37,7 +37,7 @@ import org.jetbrains.kotlin.psi.KtFile
 
 class UpdateReferenceImagesInClassAction : UpdateReferenceImagesBaseAction(
   UpdateReferenceImagesActionUtils.UPDATE_ACTION_TEXT,
-  "Updates the reference images for screenshot tests in this class.", AllIcons.FileTypes.Image
+  "Updates the reference images for screenshot tests", AllIcons.FileTypes.Image
 ) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
