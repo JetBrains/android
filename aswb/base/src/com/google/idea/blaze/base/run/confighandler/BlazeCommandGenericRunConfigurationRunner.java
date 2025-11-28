@@ -260,7 +260,7 @@ public final class BlazeCommandGenericRunConfigurationRunner
       if (testUiSession != null) {
         ConsoleView consoleView =
             SmRunnerUtils.getConsoleView(
-                project, configuration, getEnvironment().getExecutor(), testUiSession);
+              project, configuration, getEnvironment().getExecutor(), testUiSession.getTestResultFinderStrategy());
         setConsoleBuilder(
             new TextConsoleBuilderImpl(project) {
               @Override

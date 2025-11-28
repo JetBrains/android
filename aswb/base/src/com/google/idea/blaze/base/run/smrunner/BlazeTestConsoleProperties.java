@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.run.smrunner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
+import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFinderStrategy;
 import com.intellij.execution.Executor;
 import com.intellij.execution.testframework.TestConsoleProperties;
 import com.intellij.execution.testframework.actions.AbstractRerunFailedTestsAction;
@@ -35,22 +36,22 @@ public class BlazeTestConsoleProperties extends SMTRunnerConsoleProperties
     implements SMCustomMessagesParsing {
 
   private final BlazeCommandRunConfiguration runConfiguration;
-  private final BlazeTestUiSession testUiSession;
+  public BlazeTestResultFinderStrategy testResultFinderStrategy;
 
   public BlazeTestConsoleProperties(
-      BlazeCommandRunConfiguration runConfiguration,
-      Executor executor,
-      BlazeTestUiSession testUiSession) {
+    BlazeCommandRunConfiguration runConfiguration,
+    Executor executor,
+    BlazeTestResultFinderStrategy testResultFinderStrategy) {
     super(runConfiguration, SmRunnerUtils.BLAZE_FRAMEWORK, executor);
     this.runConfiguration = runConfiguration;
-    this.testUiSession = testUiSession;
+    this.testResultFinderStrategy = testResultFinderStrategy;
   }
 
   @Override
   public OutputToGeneralTestEventsConverter createTestEventsConverter(
       String framework, TestConsoleProperties consoleProperties) {
     return new BlazeXmlToTestEventsConverter(
-        framework, consoleProperties, testUiSession.getTestResultFinderStrategy());
+      framework, consoleProperties, testResultFinderStrategy);
   }
 
   @Override
