@@ -16,6 +16,9 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.stdui.EmptyStatePanel
+import com.android.tools.adtui.stdui.LabelData
+import com.android.tools.adtui.stdui.TextChunk
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
@@ -64,6 +67,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.CardLayout
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
 import kotlinx.coroutines.CoroutineScope
@@ -72,6 +76,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
+
+private const val KEY_EMPTY = "EMPTY_STATE"
+private const val KEY_CONNECTED = "CONNECTED_STATE"
 
 /** Registers Standalone Layout Inspector tool window and disables embedded Layout Inspector. */
 fun registerLayoutInspectorToolWindow(project: Project) {
@@ -209,6 +216,17 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         setZoomPercent = { layoutInspector.renderSettings.scalePercent = it },
       )
 
+    val emptyStatePanel =
+      EmptyStatePanel(LabelData(TextChunk(LayoutInspectorBundle.message("nothing.to.show"))))
+
+    // Use a card layout to switch between empty state and actual content
+    val cardLayout = CardLayout()
+    val contentPanel =
+      JPanel(cardLayout).apply {
+        add(emptyStatePanel, KEY_EMPTY)
+        add(container, KEY_CONNECTED)
+      }
+
     // The main panel is passed as target component to createToolbarPanel. This is needed to make
     // sure that all actions in the toolbar can resolve Layout Inspector from the data context
     // provided by LayoutInspectorRootPanel.
@@ -228,7 +246,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
     mainPanel.apply {
       addToTop(toolbar)
-      addToCenter(container)
+      addToCenter(contentPanel)
     }
 
     val rootPanel =
@@ -278,6 +296,12 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
           type = AndroidWindow.ImageType.BITMAP_AS_REQUESTED,
           scale = renderSettings.scaleFraction.toFloat(),
         )
+      }
+
+      if (client.isConnected) {
+        cardLayout.show(contentPanel, KEY_CONNECTED)
+      } else {
+        cardLayout.show(contentPanel, KEY_EMPTY)
       }
     }
 
