@@ -78,22 +78,33 @@ class PreviewItemPanel(
           border = BorderFactory.createEmptyBorder(8, 0, 0, 0)
         }
 
-    val diffDouble = previewData.diffPercent?.toDoubleOrNull()
-    val matchPercentage = ScreenshotTestUtils.calculateMatchPercentage(diffDouble)
-
-    val matchLabel = JBLabel(matchPercentage ?: DEFAULT_MATCH_PERCENTAGE).apply {
-      foreground = if (previewData.testResult == AndroidTestCaseResult.PASSED) JBColor.GREEN.darker() else JBColor.RED
-      font = font.deriveFont(Font.BOLD)
-      alignmentX = LEFT_ALIGNMENT
-    }
-    val previewNameLabel =
-      JBLabel(previewData.previewName).apply { alignmentX = LEFT_ALIGNMENT }
-    detailsPanel.add(matchLabel)
-    detailsPanel.add(previewNameLabel)
-    // TODO: Add Composable link
+      val matchLabel = createMatchPercentageLabel(previewData)
+      val previewNameLabel =
+        JBLabel(previewData.previewName).apply { alignmentX = LEFT_ALIGNMENT }
+      detailsPanel.add(matchLabel)
+      detailsPanel.add(previewNameLabel)
+      // TODO: Add Composable link
 
       c.gridy = 1
       add(detailsPanel, c)
+    }
+  }
+
+  private fun createMatchPercentageLabel(previewData: PreviewDetails): JBLabel {
+    val diffDouble = previewData.diffPercent?.toDoubleOrNull()
+    val matchPercentage = ScreenshotTestUtils.calculateMatchPercentage(diffDouble)
+    val text = matchPercentage ?: DEFAULT_MATCH_PERCENTAGE
+
+    val color = if (previewData.testResult == AndroidTestCaseResult.PASSED) {
+      JBColor.GREEN.darker()
+    } else {
+      JBColor.RED
+    }
+
+    return JBLabel(text).apply {
+      foreground = color
+      font = font.deriveFont(Font.BOLD)
+      alignmentX = LEFT_ALIGNMENT
     }
   }
 
