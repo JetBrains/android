@@ -52,9 +52,13 @@ import javax.swing.SwingUtilities
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
 
-
+// Keys for the CardLayout switching between single and multiple preview modes.
 private const val MULTIPLE_PREVIEWS_PANEL = "MULTIPLE_PREVIEWS_PANEL"
 private const val SINGLE_PREVIEW_PANEL = "SINGLE_PREVIEW_PANEL"
+
+private const val CHESSBOARD_ICON_PATH = "/org/intellij/images/icons/expui/chessboard.svg"
+private const val TOOLBAR_ID = "ScreenshotCommonToolbar"
+
 private val LOG = Logger.getInstance(PreviewDetailsPanel::class.java)
 
 /**
@@ -120,7 +124,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
   }
 
   private val commonToggleChessboardAction =
-    object : ToggleAction("Chessboard", "Toggle Chessboard Background", IconLoader.getIcon("/org/intellij/images/icons/expui/chessboard.svg", PreviewDetailsPanel::class.java)) {
+    object : ToggleAction("Chessboard", "Toggle Chessboard Background", IconLoader.getIcon(CHESSBOARD_ICON_PATH, PreviewDetailsPanel::class.java)) {
       override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isChessboardVisible() ?: false
       override fun setSelected(e: AnActionEvent, state: Boolean) = multiViewPanels.forEach { it.setChessboardVisible(state) }
       override fun update(e: AnActionEvent) {
@@ -259,10 +263,10 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     horizontalModels.forEach { it.addChangeListener(horizontalSyncListener) }
     verticalModels.forEach { it.addChangeListener(verticalSyncListener) }
 
-    val diffPlaceholder = if (previewData.testResult == AndroidTestCaseResult.PASSED) "No Difference" else "No Diff Image"
-    loadImageAsync(previewData.srcImagePath, newImagePanel, "No New Image")
+    val diffPlaceholder = if (previewData.testResult == AndroidTestCaseResult.PASSED) NO_DIFFERENCE_TEXT else NO_DIFF_IMAGE_TEXT
+    loadImageAsync(previewData.srcImagePath, newImagePanel, NO_NEW_IMAGE_TEXT)
     loadImageAsync(previewData.diffImagePath, diffImagePanel, diffPlaceholder)
-    loadImageAsync(previewData.destImagePath, refImagePanel, "No Reference Image")
+    loadImageAsync(previewData.destImagePath, refImagePanel, NO_REF_IMAGE_TEXT)
 
     val allImagesPanel = JPanel(BorderLayout()).apply {
       add(createCommonToolbar().component, BorderLayout.NORTH)
@@ -286,15 +290,15 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     imageContainer.add(refImagePanelSingle, ScreenshotViewType.REFERENCE.displayText)
 
     val cardLayout = imageContainer.layout as CardLayout
-    val diffPlaceholder = if (previewData.testResult == AndroidTestCaseResult.PASSED) "No Difference" else "No Diff Image"
+    val diffPlaceholder = if (previewData.testResult == AndroidTestCaseResult.PASSED) NO_DIFFERENCE_TEXT else NO_DIFF_IMAGE_TEXT
 
     when (viewType) {
       ScreenshotViewType.NEW ->
-        loadImageAsync(previewData.srcImagePath, newImagePanelSingle, "No New Image")
+        loadImageAsync(previewData.srcImagePath, newImagePanelSingle, NO_NEW_IMAGE_TEXT)
       ScreenshotViewType.DIFF ->
         loadImageAsync(previewData.diffImagePath, diffImagePanelSingle, diffPlaceholder)
       ScreenshotViewType.REFERENCE ->
-        loadImageAsync(previewData.destImagePath, refImagePanelSingle, "No Reference Image")
+        loadImageAsync(previewData.destImagePath, refImagePanelSingle, NO_REF_IMAGE_TEXT)
       else -> LOG.warn("Unexpected viewType in setupSingleImageView: $viewType") // Should not happen, as ALL is handled separately.
     }
     cardLayout.show(imageContainer, viewType.displayText)
@@ -312,7 +316,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
       add(commonOneToOneAction)
       add(commonFitToScreenAction)
     }
-    return ActionManager.getInstance().createActionToolbar("ScreenshotCommonToolbar", actionGroup, true).apply {
+    return ActionManager.getInstance().createActionToolbar(TOOLBAR_ID, actionGroup, true).apply {
       targetComponent = this@PreviewDetailsPanel
     }
   }
@@ -373,7 +377,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     val previewsByMethod = previewsToShow.groupBy { "${it.className}.${it.methodName}" }
     previewsByMethod.forEach { (_, previews) ->
       val functionNameLabel =
-        JBLabel(previews.first().methodName ?: "Unnamed Function").apply {
+        JBLabel(previews.first().methodName ?: UNNAMED_FUNCTION_TEXT).apply {
           font = font.deriveFont(Font.BOLD, font.size + 2f)
           border = BorderFactory.createEmptyBorder(15, 5, 5, 5)
           alignmentX = JComponent.LEFT_ALIGNMENT

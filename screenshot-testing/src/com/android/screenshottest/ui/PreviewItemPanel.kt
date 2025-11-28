@@ -38,7 +38,8 @@ import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JPanel
 
-// Define constraints for the image panel size.
+// Limits the maximum dimension (width or height) of the preview thumbnail
+// to ensure it fits within the list item layout without distorting the UI.
 private const val MAX_IMAGE_SIZE = 200
 
 /**
@@ -80,7 +81,7 @@ class PreviewItemPanel(
     val diffDouble = previewData.diffPercent?.toDoubleOrNull()
     val matchPercentage = ScreenshotTestUtils.calculateMatchPercentage(diffDouble)
 
-    val matchLabel = JBLabel(matchPercentage ?: "0.00%").apply {
+    val matchLabel = JBLabel(matchPercentage ?: DEFAULT_MATCH_PERCENTAGE).apply {
       foreground = if (previewData.testResult == AndroidTestCaseResult.PASSED) JBColor.GREEN.darker() else JBColor.RED
       font = font.deriveFont(Font.BOLD)
       alignmentX = LEFT_ALIGNMENT
@@ -114,7 +115,7 @@ class PreviewItemPanel(
       ScreenshotViewType.ALL -> {
       }
       ScreenshotViewType.NEW -> {
-        previewData.srcImagePath?.let { loadImage(it, previewData.testId) } ?: showError("No New Image")
+        previewData.srcImagePath?.let { loadImage(it, previewData.testId) } ?: showError(NO_NEW_IMAGE_TEXT)
       }
       ScreenshotViewType.DIFF -> {
         val diffPath = previewData.diffImagePath
@@ -122,9 +123,9 @@ class PreviewItemPanel(
           loadImage(diffPath, previewData.testId)
         } else {
           if (previewData.testResult == AndroidTestCaseResult.PASSED) {
-            showPlaceholder("No Difference", JBColor.GREEN)
+            showPlaceholder(NO_DIFFERENCE_TEXT, JBColor.GREEN)
           } else {
-            showPlaceholder("No Diff Image", JBColor.RED)
+            showPlaceholder(NO_DIFF_IMAGE_TEXT, JBColor.RED)
           }
         }
       }
@@ -133,7 +134,7 @@ class PreviewItemPanel(
         if (refPath != null && File(refPath).exists()) {
           loadImage(refPath, previewData.testId)
         } else {
-          showPlaceholder("No Reference Image", JBColor.RED)
+          showPlaceholder(NO_REF_IMAGE_TEXT, JBColor.RED)
         }
       }
     }
@@ -160,7 +161,7 @@ class PreviewItemPanel(
           isLoadedSuccessfully = true
         } else {
           logger.error("Couldn't load image from path: $newPath")
-          showError("Couldn't load image")
+          showError(COULD_NOT_LOAD_IMAGE_TEXT)
         }
       }
     }
@@ -212,7 +213,7 @@ class PreviewItemPanel(
    */
   private class ImagePanel : JPanel(GridBagLayout()) {
     private var image: JBImageIcon? = null
-    private val loadingIcon = AsyncProcessIcon("Waiting for image...")
+    private val loadingIcon = AsyncProcessIcon(WAITING_FOR_IMAGE_TEXT)
     private val initialSize = Dimension(200, 200)
 
     init {
