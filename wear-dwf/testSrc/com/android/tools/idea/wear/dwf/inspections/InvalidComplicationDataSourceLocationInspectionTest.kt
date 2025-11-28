@@ -176,4 +176,46 @@ class InvalidComplicationDataSourceLocationInspectionTest {
 
     fixture.checkHighlighting(true, false, false)
   }
+
+  @Test
+  fun `monochromatic images can be used in GOAL_PROGRESS complications`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <Complication type="GOAL_PROGRESS">
+            <Parameter expression="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+          </Complication>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    fixture.checkHighlighting(true, false, false)
+  }
+
+  @Test
+  fun `monochromatic images can be used in WEIGHTED_ELEMENTS complications`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <Complication type="WEIGHTED_ELEMENTS">
+            <Parameter expression="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+          </Complication>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    fixture.checkHighlighting(true, false, false)
+  }
 }

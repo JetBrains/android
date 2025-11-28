@@ -386,6 +386,10 @@ object WFFConstants {
         "GOAL_PROGRESS" to
           setOf(
             StaticDataSource(
+              id = "COMPLICATION.MONOCHROMATIC_IMAGE",
+              requiredVersion = WFFVersion2,
+            ),
+            StaticDataSource(
               id = "COMPLICATION.GOAL_PROGRESS_VALUE",
               requiredVersion = WFFVersion2,
             ),
@@ -406,6 +410,10 @@ object WFFConstants {
           ),
         "WEIGHTED_ELEMENTS" to
           setOf(
+            StaticDataSource(
+              id = "COMPLICATION.MONOCHROMATIC_IMAGE",
+              requiredVersion = WFFVersion2,
+            ),
             StaticDataSource(
               id = "COMPLICATION.WEIGHTED_ELEMENTS_COLORS",
               requiredVersion = WFFVersion2,
