@@ -58,8 +58,14 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
   }
 
   @Override
-  public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
-    return fakeBuildEventStreamProvider();
+  public <T> T invoke(
+      BlazeCommand.Builder blazeCommandBuilder,
+      BlazeContext blazeContext,
+      BuildSystem.BuildEventStreamConsumer<T> consumer)
+      throws BuildException {
+    try (BuildEventStreamProvider provider = fakeBuildEventStreamProvider()) {
+      return consumer.consume(provider);
+    }
   }
 
   @Override
@@ -84,7 +90,7 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     return null;
   }
 
-  private BuildEventStreamProvider fakeBuildEventStreamProvider() {
+  public BuildEventStreamProvider fakeBuildEventStreamProvider() {
     return new BuildEventStreamProvider() {
       private UnmodifiableIterator<BuildEventStreamProtos.BuildEvent> messages =
           ImmutableList.of(

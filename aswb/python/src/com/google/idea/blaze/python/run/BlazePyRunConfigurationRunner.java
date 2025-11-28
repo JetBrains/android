@@ -19,16 +19,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.buildresult.BuildResult;
-import com.google.idea.blaze.base.command.buildresult.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
 import com.google.idea.blaze.base.ideinfo.PyIdeInfo;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
@@ -313,7 +310,7 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
     }
 
     SaveUtil.saveAllFiles();
-    ListenableFuture<BuildEventStreamProvider> streamProviderFuture =
+    final var outputFuture =
         BlazeBeforeRunCommandHelper.runBlazeCommand(
             BlazeCommandName.BUILD,
             configuration,
@@ -321,13 +318,12 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
             ImmutableList.of(),
             BlazeInvocationContext.runConfigContext(
                 ExecutorType.fromExecutor(env.getExecutor()), configuration.getType(), true),
-            "Building debug binary");
+            "Building debug binary",
+            streamProvider -> BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
 
     try {
-      BuildEventStreamProvider streamProvider =
-          Uninterruptibles.getUninterruptibly(streamProviderFuture);
       ParsedBepOutput parsedBepOutput =
-          BuildResultParser.getBuildOutput(streamProvider, Interners.STRING);
+          Uninterruptibles.getUninterruptibly(outputFuture);
       BuildResult result = BuildResult.fromExitCode(parsedBepOutput.buildResult());
       if (result.status != BuildResult.Status.SUCCESS) {
         throw new ExecutionException("Blaze failure building debug binary");
@@ -359,9 +355,9 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
       LocalFileSystem.getInstance().refreshIoFiles(ImmutableList.of(file));
       return new PyExecutionInfo(file, args);
     } catch (CancellationException e) {
-      streamProviderFuture.cancel(true);
+      outputFuture.cancel(true);
       throw new RunCanceledByUserException();
-    } catch (java.util.concurrent.ExecutionException | GetArtifactsException e) {
+    } catch (java.util.concurrent.ExecutionException e) {
       throw new ExecutionException(
           String.format(
               "Failed to get output artifacts when building %s: %s", target, e.getMessage()), e);

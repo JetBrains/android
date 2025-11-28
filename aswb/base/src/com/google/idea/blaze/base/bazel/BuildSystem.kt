@@ -66,6 +66,11 @@ interface BuildSystem {
     PARALLEL,
   }
 
+  fun interface BuildEventStreamConsumer<T> {
+    @Throws(BuildException::class)
+    fun consume(streamProvider: BuildEventStreamProvider): T
+  }
+
   /**
    * Encapsulates a means of executing build commands, often as a Bazel compatible binary.
    */
@@ -108,10 +113,11 @@ interface BuildSystem {
      * Runs a blaze command, parses the build results into a [BlazeBuildOutputs] object.
      */
     @Throws(BuildException::class)
-    fun invoke(
+    fun <T> invoke(
       blazeCommandBuilder: BlazeCommand.Builder,
       blazeContext: BlazeContext,
-    ): BuildEventStreamProvider
+      consumer: BuildEventStreamConsumer<T>,
+    ): T
 
     /**
      * Runs a blaze command and returns a process handler, which can be used by the IDE to control its execution.
@@ -263,12 +269,14 @@ class TestBuildInvoker @TestOnly constructor(
 ): BuildSystem.BuildInvoker {
   data class RecordedInvocation(val method: String, val blazeCommand: List<String>)
   val invocations: MutableList<RecordedInvocation> = mutableListOf()
-  override fun invoke(
+
+  override fun <T> invoke(
     blazeCommandBuilder: BlazeCommand.Builder,
     blazeContext: BlazeContext,
-  ): BuildEventStreamProvider {
+    consumer: BuildSystem.BuildEventStreamConsumer<T>,
+  ): T {
     invocations.add(RecordedInvocation("invoke", blazeCommandBuilder.build().toList()))
-    return bepStreamProvider(blazeCommandBuilder, blazeContext)
+    return consumer.consume(bepStreamProvider(blazeCommandBuilder, blazeContext))
   }
 
   override fun invokeAsProcessHandler(

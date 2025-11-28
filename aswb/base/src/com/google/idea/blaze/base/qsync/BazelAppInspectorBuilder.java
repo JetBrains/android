@@ -24,7 +24,6 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -64,14 +63,16 @@ public class BazelAppInspectorBuilder implements AppInspectorBuilder {
         BlazeCommand.builder(invoker, BlazeCommandName.BUILD)
             .addBlazeFlags(buildTarget.toString())
             .addBlazeFlags(additionalBlazeFlags);
-
-    try (BuildEventStreamProvider streamProvider = invoker.invoke(builder, context)) {
-      BlazeBuildOutputs outputs =
-          BlazeBuildOutputs.fromParsedBepOutput(
-              BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
-      BazelExitCodeException.throwIfFailed(builder, outputs.buildResult());
-      return createAppInspectorInfo(outputs);
-    }
+    return invoker.invoke(
+        builder,
+        context,
+        streamProvider -> {
+          BlazeBuildOutputs outputs =
+              BlazeBuildOutputs.fromParsedBepOutput(
+                  BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
+          BazelExitCodeException.throwIfFailed(builder, outputs.buildResult());
+          return createAppInspectorInfo(outputs);
+        });
   }
 
   private AppInspectorInfo createAppInspectorInfo(BlazeBuildOutputs blazeBuildOutputs) {

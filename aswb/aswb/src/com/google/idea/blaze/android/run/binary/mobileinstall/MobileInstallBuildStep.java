@@ -17,7 +17,6 @@ package com.google.idea.blaze.android.run.binary.mobileinstall;
 
 import static com.google.idea.blaze.android.run.LaunchMetrics.logBuildTime;
 
-import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.DeviceFutures;
@@ -39,10 +38,8 @@ import com.google.idea.blaze.android.run.runner.ExecRootUtil;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.filecache.FileCaches;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
@@ -56,12 +53,10 @@ import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.SaveUtil;
 import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.exception.BuildException;
-import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.execution.ExecutionException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
-import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CancellationException;
@@ -171,9 +166,15 @@ public class MobileInstallBuildStep implements ApkBuildStep {
       SaveUtil.saveAllFiles();
       context.output(new StatusOutput("Invoking mobile-install..."));
       Stopwatch s = Stopwatch.createStarted();
-      try (BuildEventStreamProvider streamProvider = invoker.invoke(command, context)) {
+      try {
         Duration buildDuration = s.elapsed();
-        BlazeBuildOutputs outputs = BlazeBuildOutputs.fromParsedBepOutput(BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
+        BlazeBuildOutputs outputs =
+            invoker.invoke(
+                command,
+                context,
+                streamProvider ->
+                    BlazeBuildOutputs.fromParsedBepOutput(
+                        BuildResultParser.getBuildOutput(streamProvider, Interners.STRING)));
         int exitCode = outputs.buildResult().exitCode;
         logBuildTime(launchId, buildDuration, exitCode, ImmutableMap.of());
         if (exitCode != 0) {

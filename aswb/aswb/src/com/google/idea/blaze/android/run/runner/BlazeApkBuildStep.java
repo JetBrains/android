@@ -31,7 +31,6 @@ import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
@@ -122,10 +121,14 @@ public class BlazeApkBuildStep implements ApkBuildStep {
               .map(NativeSymbolFinder::getAdditionalBuildFlags)
               .collect(joining(" ")));
     }
-    try (BuildEventStreamProvider streamProvider = buildInvoker.invoke(command, context)) {
+    try {
       buildOutputs =
-          BlazeBuildOutputs.fromParsedBepOutput(
-              BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
+          buildInvoker.invoke(
+              command,
+              context,
+              streamProvider ->
+                  BlazeBuildOutputs.fromParsedBepOutput(
+                      BuildResultParser.getBuildOutput(streamProvider, Interners.STRING)));
       logBuildTime(
           launchId, stopwatch.elapsed(), buildOutputs.buildResult().exitCode, ImmutableMap.of());
       BazelExitCodeException.throwIfFailed(command, buildOutputs.buildResult());
