@@ -15,8 +15,5 @@
  */
 package com.android.screenshottest.util
 
-class UpdateReferenceImagesActionUtils {
-    companion object {
-        const val UPDATE_ACTION_TEXT = "Add/Update Reference Images..."
-    }
-}
+const val UPDATE_ACTION_TEXT = "Add/Update Reference Images..."
+const val UPDATE_ACTION_DESCRIPTION = "Updates the reference images for screenshot tests"

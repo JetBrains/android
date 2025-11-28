@@ -18,8 +18,9 @@ package com.android.screenshottest.action
 import com.android.screenshottest.ui.PreviewDetails
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.screenshottest.ui.UpdateReferenceImagesDialog
-import com.android.screenshottest.util.UpdateReferenceImagesActionUtils
 import com.android.screenshottest.util.UpdateReferenceImagesDialogManager
+import com.android.screenshottest.util.UPDATE_ACTION_DESCRIPTION
+import com.android.screenshottest.util.UPDATE_ACTION_TEXT
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -30,8 +31,8 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import javax.swing.JButton
 import javax.swing.JComponent
 
-class UpdateReferenceImagesFromTestPanelAction : AnAction(UpdateReferenceImagesActionUtils.UPDATE_ACTION_TEXT,
-                                                          "Updates the reference images for screenshot tests",
+class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT,
+                                                          UPDATE_ACTION_DESCRIPTION,
                                                           null), CustomComponentAction {
 
   var testResults: AndroidTestResults? = null
