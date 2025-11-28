@@ -270,6 +270,17 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
       }
     }
 
+    layoutInspector.inspectorModel.addConnectionListener { client ->
+      if (client.isConnected) {
+        // Right after connecting the agent has a default scale of 1.0, we should update it to the
+        // scale of the rendering
+        client.updateScreenshotType(
+          type = AndroidWindow.ImageType.BITMAP_AS_REQUESTED,
+          scale = renderSettings.scaleFraction.toFloat(),
+        )
+      }
+    }
+
     return rootPanel
   }
 
