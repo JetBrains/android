@@ -24,6 +24,7 @@ import com.google.idea.blaze.base.projectview.section.sections.SyncFlagsSection;
 import com.google.idea.blaze.base.projectview.section.sections.TestFlagsSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.intellij.execution.configurations.ParametersList;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.PlatformUtils;
 import java.util.List;
@@ -104,13 +105,15 @@ public final class BlazeFlags {
   // We add this to every single BlazeCommand instance. It's for tracking usage.
   public static String getToolTagFlag() {
     String platformPrefix = PlatformUtils.getPlatformPrefix();
-
     // IDEA Community Edition is "Idea", whereas IDEA Ultimate Edition is "idea".
     // That's confusing. Let's make them more useful.
     if (PlatformUtils.isIdeaCommunity()) {
       platformPrefix = "IDEA:community";
     } else if (PlatformUtils.isIdeaUltimate()) {
       platformPrefix = "IDEA:ultimate";
+    }
+    if (ApplicationManager.getApplication() != null && ApplicationManager.getApplication().isUnitTestMode()) {
+      platformPrefix = "AndroidStudio";
     }
     return TOOL_TAG + platformPrefix;
   }

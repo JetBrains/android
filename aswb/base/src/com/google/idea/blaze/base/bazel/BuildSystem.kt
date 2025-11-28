@@ -15,8 +15,8 @@
  */
 package com.google.idea.blaze.base.bazel
 
-import com.google.common.collect.ImmutableSet
 import com.google.errorprone.annotations.MustBeClosed
+import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker.Capability
 import com.google.idea.blaze.base.command.BlazeCommand
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider
 import com.google.idea.blaze.base.command.info.BlazeInfo
@@ -35,6 +35,8 @@ import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.project.Project
 import java.io.InputStream
 import java.util.Optional
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Encapsulates interactions with a Bazel based build system.
@@ -199,7 +201,7 @@ interface BuildSystem {
    */
   fun getBuildInvoker(
     project: Project,
-    requirements: Set<BuildInvoker.Capability>,
+    requirements: Set<Capability>,
   ): Optional<BuildInvoker>
 
   /**
@@ -212,7 +214,7 @@ interface BuildSystem {
     ) {
       return getBuildInvoker(
         project,
-        requirements = setOf(BuildInvoker.Capability.BUILD_PARALLEL_SHARDS)
+        requirements = setOf(Capability.BUILD_PARALLEL_SHARDS)
       ).orElseThrow()
     }
     return getBuildInvoker(
@@ -246,4 +248,54 @@ interface BuildSystem {
   fun getInvocationLink(invocationId: String): Optional<String>
 
   fun createQueryRunner(project: Project): BazelQueryRunner
+}
+
+@VisibleForTesting
+class TestBuildInvoker @TestOnly constructor(
+  override val capabilities: Set<Capability> =
+    setOf(Capability.SUPPORT_CLI, Capability.SUPPORT_QUERY_FILE, Capability.SUPPORT_TARGET_PATTERN_FILE),
+  override val type: BuildBinaryType = BuildBinaryType.BAZEL,
+  override val invokeCommand: List<String> = listOf("bazel"),
+  override val canOverrideBinaryPath: Boolean = false,
+  override val buildSystem: BuildSystem = BazelBuildSystem(BuildGraphData.ProtoRules.forTests()),
+  var bepStreamProvider: (blazeCommandBuilder: BlazeCommand.Builder, blazeContext: BlazeContext) -> BuildEventStreamProvider =
+    { _, _ -> error("not implemented") },
+): BuildSystem.BuildInvoker {
+  data class RecordedInvocation(val method: String, val blazeCommand: List<String>)
+  val invocations: MutableList<RecordedInvocation> = mutableListOf()
+  override fun invoke(
+    blazeCommandBuilder: BlazeCommand.Builder,
+    blazeContext: BlazeContext,
+  ): BuildEventStreamProvider {
+    invocations.add(RecordedInvocation("invoke", blazeCommandBuilder.build().toList()))
+    return bepStreamProvider(blazeCommandBuilder, blazeContext)
+  }
+
+  override fun invokeAsProcessHandler(
+    blazeCommandBuilder: BlazeCommand.Builder,
+    blazeContext: BlazeContext,
+  ): ProcessHandler {
+    invocations.add(RecordedInvocation("invokeAsProcessHandler", blazeCommandBuilder.build().toList()))
+    error("not implemented")
+  }
+
+  override fun invokeQuery(
+    blazeCommandBuilder: BlazeCommand.Builder,
+    blazeContext: BlazeContext,
+  ): InputStream {
+    invocations.add(RecordedInvocation("invokeQuery", blazeCommandBuilder.build().toList()))
+    error("not implemented")
+  }
+
+  override fun invokeInfo(
+    blazeCommandBuilder: BlazeCommand.Builder,
+    blazeContext: BlazeContext,
+  ): InputStream {
+    invocations.add(RecordedInvocation("invokeInfo", blazeCommandBuilder.build().toList()))
+    error("not implemented")
+  }
+
+  override fun getBlazeInfo(blazeContext: BlazeContext): BlazeInfo {
+    error("not implemented")
+  }
 }
