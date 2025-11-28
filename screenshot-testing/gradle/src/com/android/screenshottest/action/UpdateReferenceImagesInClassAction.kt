@@ -15,7 +15,8 @@
  */
 package com.android.screenshottest.action
 
-import com.android.screenshottest.util.UpdateReferenceImagesActionUtils
+import com.android.screenshottest.util.UPDATE_ACTION_DESCRIPTION
+import com.android.screenshottest.util.UPDATE_ACTION_TEXT
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testartifacts.screenshot.isClassDeclarationWithPreviewTestAnnotatedMethods
 import com.android.tools.idea.testartifacts.screenshot.isMethodDeclarationPreviewTestAnnotated
@@ -36,8 +37,9 @@ import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 
 class UpdateReferenceImagesInClassAction : UpdateReferenceImagesBaseAction(
-  UpdateReferenceImagesActionUtils.UPDATE_ACTION_TEXT,
-  "Updates the reference images for screenshot tests", AllIcons.FileTypes.Image
+  UPDATE_ACTION_TEXT,
+  UPDATE_ACTION_DESCRIPTION,
+  AllIcons.FileTypes.Image
 ) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
