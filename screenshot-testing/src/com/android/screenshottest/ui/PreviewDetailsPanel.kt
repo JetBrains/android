@@ -375,9 +375,24 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     }
 
     val previewsByMethod = previewsToShow.groupBy { "${it.className}.${it.methodName}" }
+
+    val methodNameCounts = previewsByMethod.values
+        .map { it.first().methodName }
+        .groupingBy { it }
+        .eachCount()
+
     previewsByMethod.forEach { (_, previews) ->
+      val methodName = previews.first().methodName ?: UNNAMED_FUNCTION_TEXT
+      val className = previews.first().className
+
+      val labelText = if ((methodNameCounts[methodName] ?: 0) > 1) {
+        "${className.substringAfterLast('.')}.$methodName" // SimpleClassName.MethodName
+      } else {
+        methodName
+      }
+
       val functionNameLabel =
-        JBLabel(previews.first().methodName ?: UNNAMED_FUNCTION_TEXT).apply {
+        JBLabel(labelText).apply {
           font = font.deriveFont(Font.BOLD, font.size + 2f)
           border = BorderFactory.createEmptyBorder(15, 5, 5, 5)
           alignmentX = JComponent.LEFT_ALIGNMENT
