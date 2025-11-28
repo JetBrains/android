@@ -113,51 +113,46 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            ApiLevel                      : 2.2
             CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
             CompilerSettings
                 additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            LanguageLevel                 : 2.2
             MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/debugAndroidTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugAndroidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kapt/androidTest/debug [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kapt/debugAndroidTest [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugAndroidTest [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kaptKotlin/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -247,9 +242,9 @@ PROJECT                       : project
             LibraryLevel                  : module
             IsModuleLevel                 : true
             Scope                         : Test
-            IsExported                    : true
             LIBRARY                       : Gradle: kaptGeneratedClasses
-                *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/debugAndroidTest [-]
+                *CLASSES                      : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debug/kaptDebugKotlin [-]
+                *CLASSES                      : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debugAndroidTest/kaptDebugAndroidTestKotlin [-]
         LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
@@ -257,8 +252,6 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -274,10 +267,9 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/debugAndroidTest
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes
+            -                             : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debugAndroidTest/kaptDebugAndroidTestKotlin
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebugAndroidTest
@@ -322,25 +314,24 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            ApiLevel                      : 2.2
             CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
             CompilerSettings
                 additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            LanguageLevel                 : 2.2
             MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
@@ -350,8 +341,6 @@ PROJECT                       : project
             JavaSource                    : file://<PROJECT>/app/src/main/myKotlin
             JavaResource                  : file://<PROJECT>/app/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/kapt/debug [-]
             Generated                     : true
@@ -363,11 +352,9 @@ PROJECT                       : project
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/baselineProfiles [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -408,10 +395,8 @@ PROJECT                       : project
         LIBRARY                       : Gradle: kaptGeneratedClasses [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            IsExported                    : true
             LIBRARY                       : Gradle: kaptGeneratedClasses
-                *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/debug [-]
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+                *CLASSES                      : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debug/kaptDebugKotlin [-]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             LibraryLevel                  : module
@@ -421,10 +406,9 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.contentLib.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debug
-            -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/debug
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
+            -                             : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debug/kaptDebugKotlin
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -473,48 +457,46 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            ApiLevel                      : 2.2
             CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            LanguageLevel                 : 2.2
             MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/debugUnitTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugUnitTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/test/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/test/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
         CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kapt/debugUnitTest [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kapt/test/debug [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugUnitTest [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kaptKotlin/test/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -590,12 +572,10 @@ PROJECT                       : project
             LibraryLevel                  : module
             IsModuleLevel                 : true
             Scope                         : Test
-            IsExported                    : true
             LIBRARY                       : Gradle: kaptGeneratedClasses
-                *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/debugUnitTest [-]
+                *CLASSES                      : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debug/kaptDebugKotlin [-]
+                *CLASSES                      : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debugUnitTest/kaptDebugUnitTestKotlin [-]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -611,9 +591,9 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
-            -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/debugUnitTest
+            -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debugUnitTest/kaptDebugUnitTestKotlin
         BUILD_TASKS
                 CLEAN                         : :app:createMockableJar
                 ASSEMBLE                      : :app:assembleDebugUnitTest
@@ -712,45 +692,40 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            ApiLevel                      : 2.2
             CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : 1.5
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
             CompilerSettings
                 additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.5
+            LanguageLevel                 : 2.2
             MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : 1.5
-            Platform                      : JVM (21)
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/src/androidTest
             JavaSource (test)             : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/java
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -840,8 +815,6 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
-            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
@@ -854,9 +827,8 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/awesomeandroidlibrary/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
-            -                             : file://<PROJECT>/awesomeandroidlibrary/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/awesomeandroidlibrary/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
-            -                             : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/resValues/androidTest/debug
+            -                             : jar://<PROJECT>/awesomeandroidlibrary/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar!/
+            -                             : file://<PROJECT>/awesomeandroidlibrary/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :awesomeandroidlibrary:generateDebugAndroidTestSources
                 ASSEMBLE                      : :awesomeandroidlibrary:assembleDebugAndroidTest
@@ -901,32 +873,29 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            ApiLevel                      : 2.2
             CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : 1.5
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.5
+            LanguageLevel                 : 2.2
             MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : 1.5
-            Platform                      : JVM (21)
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/src/main
             JavaSource                    : file://<PROJECT>/awesomeandroidlibrary/src/main/kotlin
             JavaResource                  : file://<PROJECT>/awesomeandroidlibrary/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/awesomeandroidlibrary/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/awesomeandroidlibrary/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/awesomeandroidlibrary/src/debug/baselineProfiles [-]
@@ -934,12 +903,10 @@ PROJECT                       : project
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/awesomeandroidlibrary/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/awesomeandroidlibrary/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/awesomeandroidlibrary/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/awesomeandroidlibrary/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/awesomeandroidlibrary/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/awesomeandroidlibrary/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/awesomeandroidlibrary/src/main/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/awesomeandroidlibrary/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/awesomeandroidlibrary/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -975,7 +942,6 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             LibraryLevel                  : module
@@ -984,9 +950,8 @@ PROJECT                       : project
                 *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         Classes
             -                             : file://<PROJECT>/awesomeandroidlibrary/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : file://<PROJECT>/awesomeandroidlibrary/build/tmp/kotlin-classes/debug
             -                             : jar://<PROJECT>/awesomeandroidlibrary/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
-            -                             : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/resValues/debug
+            -                             : file://<PROJECT>/awesomeandroidlibrary/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :awesomeandroidlibrary:generateDebugSources
                 ASSEMBLE                      : :awesomeandroidlibrary:assembleDebug
@@ -1033,21 +998,21 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            ApiLevel                      : 2.2
             CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : 1.5
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.5
+            LanguageLevel                 : 2.2
             MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : 1.5
-            Platform                      : JVM (21)
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -1061,14 +1026,12 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1138,8 +1101,6 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
-            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
@@ -1152,7 +1113,7 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/awesomeandroidlibrary/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
-            -                             : file://<PROJECT>/awesomeandroidlibrary/build/tmp/kotlin-classes/debugUnitTest
+            -                             : file://<PROJECT>/awesomeandroidlibrary/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes
             -                             : jar://<PROJECT>/awesomeandroidlibrary/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :awesomeandroidlibrary:createMockableJar
@@ -1204,30 +1165,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            ApiLevel                      : 2.2
             CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
             CompilerSettings
                 additionalArguments           : -verbose
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            LanguageLevel                 : 2.2
             MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -1280,30 +1231,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            ApiLevel                      : 2.2
             CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            LanguageLevel                 : 2.2
             MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -1482,6 +1423,8 @@ PROJECT                       : project
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0

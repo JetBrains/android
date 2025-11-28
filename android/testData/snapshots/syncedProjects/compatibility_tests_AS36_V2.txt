@@ -111,27 +111,22 @@ PROJECT                       : AS36
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -235,8 +230,7 @@ PROJECT                       : AS36
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebugAndroidTest
@@ -279,14 +273,11 @@ PROJECT                       : AS36
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
             JavaResource                  : file://<PROJECT>/app/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/baselineProfiles [-]
@@ -294,12 +285,10 @@ PROJECT                       : AS36
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -340,8 +329,7 @@ PROJECT                       : AS36
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -398,14 +386,12 @@ PROJECT                       : AS36
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -606,12 +592,9 @@ PROJECT                       : AS36
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/androidTest/baselineProfiles [-]
@@ -619,14 +602,12 @@ PROJECT                       : AS36
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -679,12 +660,9 @@ PROJECT                       : AS36
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/src/main
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature/src/debug/baselineProfiles [-]
@@ -692,14 +670,12 @@ PROJECT                       : AS36
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -760,14 +736,12 @@ PROJECT                       : AS36
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -874,12 +848,9 @@ PROJECT                       : AS36
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/androidTest/baselineProfiles [-]
@@ -887,14 +858,12 @@ PROJECT                       : AS36
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -947,12 +916,9 @@ PROJECT                       : AS36
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/src/main
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature2/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature2/src/debug/baselineProfiles [-]
@@ -960,14 +926,12 @@ PROJECT                       : AS36
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature2/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature2/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature2/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature2/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature2/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature2/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1028,14 +992,12 @@ PROJECT                       : AS36
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1164,27 +1126,22 @@ PROJECT                       : AS36
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/src/androidTest
             JavaSource (test)             : file://<PROJECT>/libs/android_library/src/androidTest/java
         CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/androidTest/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1288,8 +1245,7 @@ PROJECT                       : AS36
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/libs/android_library/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
-            -                             : file://<PROJECT>/libs/android_library/build/generated/res/resValues/androidTest/debug
+            -                             : jar://<PROJECT>/libs/android_library/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :libs:android_library:generateDebugAndroidTestSources
                 ASSEMBLE                      : :libs:android_library:assembleDebugAndroidTest
@@ -1332,14 +1288,11 @@ PROJECT                       : AS36
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/src/main
             JavaSource                    : file://<PROJECT>/libs/android_library/src/main/java
             JavaResource                  : file://<PROJECT>/libs/android_library/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/android_library/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/android_library/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/android_library/src/debug/baselineProfiles [-]
@@ -1347,12 +1300,10 @@ PROJECT                       : AS36
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/android_library/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/android_library/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/android_library/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/android_library/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/android_library/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1394,7 +1345,6 @@ PROJECT                       : AS36
         Classes
             -                             : file://<PROJECT>/libs/android_library/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/libs/android_library/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
-            -                             : file://<PROJECT>/libs/android_library/build/generated/res/resValues/debug
         BUILD_TASKS
                 CLEAN                         : :libs:android_library:generateDebugSources
                 ASSEMBLE                      : :libs:android_library:assembleDebug
@@ -1449,14 +1399,12 @@ PROJECT                       : AS36
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

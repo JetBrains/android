@@ -110,28 +110,43 @@ PROJECT                       : project_sm_src
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 2.2
+            CompilerArguments
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 2.2
+            MergedCompilerArguments
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>_sm_src/app/src/androidTest/java
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>_sm_src/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/src/androidTest/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>_sm_src/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>_sm_src/app/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>_sm_src/app/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>_sm_src/app/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>_sm_src/app/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -227,12 +242,16 @@ PROJECT                       : project_sm_src
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project_sm_src.app.main
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
-            -                             : file://<PROJECT>_sm_src/app/build/generated/res/resValues/androidTest/debug
+            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar!/
+            -                             : file://<PROJECT>_sm_src/app/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebugAndroidTest
@@ -274,15 +293,32 @@ PROJECT                       : project_sm_src
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 2.2
+            CompilerArguments
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 2.2
+            MergedCompilerArguments
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/src/main
             JavaSource                    : file://<PROJECT>_sm_src/app/src/main/java
             JavaResource                  : file://<PROJECT>_sm_src/app/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>_sm_src/app/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>_sm_src/app/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>_sm_src/app/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>_sm_src/app/src/debug/baselineProfiles [-]
@@ -290,12 +326,10 @@ PROJECT                       : project_sm_src
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>_sm_src/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>_sm_src/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>_sm_src/app/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>_sm_src/app/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>_sm_src/app/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>_sm_src/app/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>_sm_src/app/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>_sm_src/app/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>_sm_src/app/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -334,10 +368,12 @@ PROJECT                       : project_sm_src
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.google.guava:guava:19.0 [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
-            -                             : file://<PROJECT>_sm_src/app/build/generated/res/resValues/debug
+            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
+            -                             : file://<PROJECT>_sm_src/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -383,6 +419,26 @@ PROJECT                       : project_sm_src
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 2.2
+            CompilerArguments
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 2.2
+            MergedCompilerArguments
+                apiVersion                    : 2.2
+                languageVersion               : 2.2
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/src/test
             JavaSource (test)             : file://<PROJECT>_sm_src/app/src/test/java
@@ -394,14 +450,12 @@ PROJECT                       : project_sm_src
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>_sm_src/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>_sm_src/app/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>_sm_src/app/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>_sm_src/app/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>_sm_src/app/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -477,10 +531,15 @@ PROJECT                       : project_sm_src
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project_sm_src.app.main
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
+            -                             : file://<PROJECT>_sm_src/app/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes
             -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:createMockableJar
@@ -627,6 +686,10 @@ PROJECT                       : project_sm_src
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar!/
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+            *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
             CLEAN                         : <PROJECT>_sm_src::app:createMockableJar, <PROJECT>_sm_src::app:generateDebugAndroidTestSources, <PROJECT>_sm_src::app:generateDebugSources
             ASSEMBLE                      : <PROJECT>_sm_src::app:assembleDebug, <PROJECT>_sm_src::app:assembleDebugAndroidTest, <PROJECT>_sm_src::app:assembleDebugUnitTest
