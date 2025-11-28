@@ -131,27 +131,22 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -242,8 +237,7 @@ PROJECT                       : kotlinMultiPlatform
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebugAndroidTest
@@ -306,13 +300,10 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/baselineProfiles [-]
@@ -320,13 +311,11 @@ PROJECT                       : kotlinMultiPlatform
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -370,8 +359,7 @@ PROJECT                       : kotlinMultiPlatform
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debug
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -448,14 +436,12 @@ PROJECT                       : kotlinMultiPlatform
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -670,7 +656,6 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidInstrumentedTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidInstrumentedTestDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTest
@@ -678,31 +663,25 @@ PROJECT                       : kotlinMultiPlatform
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidInstrumentedTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidInstrumentedTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidInstrumentedTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidInstrumentedTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidInstrumentedTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidInstrumentedTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidInstrumentedTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidInstrumentedTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidInstrumentedTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidInstrumentedTestDebug/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidTest/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTest/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -805,6 +784,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: AdSupport | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AddressBook | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AddressBookUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: AlarmKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AppClip | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AppTrackingTransparency | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AssetsLibrary | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -815,6 +795,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: BackgroundTasks | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: BrowserEngineCore | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: BrowserEngineKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: BrowserKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: BusinessChat | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: CFCGTypes | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: CFNetwork | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -868,6 +849,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: GSS | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: GameController | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: GameKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: GameSave | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: GameplayKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: HealthKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: HealthKitUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -929,6 +911,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SceneKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: ScreenTime | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: Security | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: SecurityUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SensorKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SharedWithYou | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -942,8 +925,10 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: Symbols | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SystemConfiguration | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: ThreadNetwork | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: TouchController | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: Twitter | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: UIKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: UIUtilities | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: UniformTypeIdentifiers | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: UserNotifications | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: UserNotificationsUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -954,6 +939,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: WatchConnectivity | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: WebKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: _CoreData_CloudKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: builtin | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: darwin | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: iAd | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -1047,6 +1033,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: AddressBookUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: AlarmKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: AppClip | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: AppTrackingTransparency | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -1066,6 +1054,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: BrowserEngineCore | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: BrowserEngineKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: BrowserKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: BusinessChat | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -1172,6 +1162,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: GameController | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: GameKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: GameSave | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: GameplayKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -1295,6 +1287,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: Security | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: SecurityUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensorKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -1321,9 +1315,13 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: ThreadNetwork | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: TouchController | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: Twitter | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: UIKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: UIUtilities | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: UniformTypeIdentifiers | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -1344,6 +1342,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: WebKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: _CoreData_CloudKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: builtin | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -1513,7 +1513,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -1551,6 +1551,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: AdSupport | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: AddressBook | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: AddressBookUI | ios_arm64 [=]
+        LIBRARY                       : Kotlin/Native: AlarmKit | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: AppClip | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: AppTrackingTransparency | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: AssetsLibrary | ios_arm64 [=]
@@ -1561,6 +1562,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: BackgroundTasks | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: BrowserEngineCore | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: BrowserEngineKit | ios_arm64 [=]
+        LIBRARY                       : Kotlin/Native: BrowserKit | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: BusinessChat | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: CFCGTypes | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: CFNetwork | ios_arm64 [=]
@@ -1614,6 +1616,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: GSS | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: GameController | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: GameKit | ios_arm64 [=]
+        LIBRARY                       : Kotlin/Native: GameSave | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: GameplayKit | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: HealthKit | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: HealthKitUI | ios_arm64 [=]
@@ -1675,6 +1678,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SceneKit | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: ScreenTime | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: Security | ios_arm64 [=]
+        LIBRARY                       : Kotlin/Native: SecurityUI | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: SensorKit | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: SharedWithYou | ios_arm64 [=]
@@ -1688,8 +1692,10 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: Symbols | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: SystemConfiguration | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: ThreadNetwork | ios_arm64 [=]
+        LIBRARY                       : Kotlin/Native: TouchController | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: Twitter | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: UIKit | ios_arm64 [=]
+        LIBRARY                       : Kotlin/Native: UIUtilities | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: UniformTypeIdentifiers | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: UserNotifications | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: UserNotificationsUI | ios_arm64 [=]
@@ -1700,6 +1706,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: WatchConnectivity | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: WebKit | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: _CoreData_CloudKit | ios_arm64 [=]
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: builtin | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: darwin | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: iAd | ios_arm64 [=]
@@ -1737,7 +1744,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -1788,6 +1795,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: AddressBookUI | ios_arm64 [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: AlarmKit | ios_arm64 [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: AppClip | ios_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: AppTrackingTransparency | ios_arm64 [=]
@@ -1807,6 +1816,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: BrowserEngineCore | ios_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: BrowserEngineKit | ios_arm64 [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: BrowserKit | ios_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: BusinessChat | ios_arm64 [=]
             Scope                         : Test
@@ -1913,6 +1924,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: GameController | ios_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: GameKit | ios_arm64 [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: GameSave | ios_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: GameplayKit | ios_arm64 [=]
             Scope                         : Test
@@ -2036,6 +2049,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: Security | ios_arm64 [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: SecurityUI | ios_arm64 [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | ios_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensorKit | ios_arm64 [=]
@@ -2062,9 +2077,13 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: ThreadNetwork | ios_arm64 [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: TouchController | ios_arm64 [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: Twitter | ios_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: UIKit | ios_arm64 [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: UIUtilities | ios_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: UniformTypeIdentifiers | ios_arm64 [=]
             Scope                         : Test
@@ -2085,6 +2104,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: WebKit | ios_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: _CoreData_CloudKit | ios_arm64 [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | ios_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: builtin | ios_arm64 [=]
             Scope                         : Test
@@ -2188,6 +2209,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: AdSupport | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AddressBook | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AddressBookUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: AlarmKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AppClip | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AppTrackingTransparency | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AssetsLibrary | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -2198,6 +2220,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: BackgroundTasks | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: BrowserEngineCore | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: BrowserEngineKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: BrowserKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: BusinessChat | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: CFCGTypes | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: CFNetwork | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -2251,6 +2274,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: GSS | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: GameController | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: GameKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: GameSave | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: GameplayKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: HealthKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: HealthKitUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -2312,6 +2336,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SceneKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: ScreenTime | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: Security | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: SecurityUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SensorKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SharedWithYou | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -2325,8 +2350,10 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: Symbols | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SystemConfiguration | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: ThreadNetwork | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: TouchController | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: Twitter | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: UIKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: UIUtilities | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: UniformTypeIdentifiers | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: UserNotifications | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: UserNotificationsUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -2337,6 +2364,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: WatchConnectivity | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: WebKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: _CoreData_CloudKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: builtin | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: darwin | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: iAd | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -2371,7 +2399,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -2409,6 +2437,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: AdSupport | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: AddressBook | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: AddressBookUI | ios_simulator_arm64 [=]
+        LIBRARY                       : Kotlin/Native: AlarmKit | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: AppClip | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: AppTrackingTransparency | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: AssetsLibrary | ios_simulator_arm64 [=]
@@ -2419,6 +2448,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: BackgroundTasks | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: BrowserEngineCore | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: BrowserEngineKit | ios_simulator_arm64 [=]
+        LIBRARY                       : Kotlin/Native: BrowserKit | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: BusinessChat | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: CFCGTypes | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: CFNetwork | ios_simulator_arm64 [=]
@@ -2472,6 +2502,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: GSS | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: GameController | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: GameKit | ios_simulator_arm64 [=]
+        LIBRARY                       : Kotlin/Native: GameSave | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: GameplayKit | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: HealthKit | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: HealthKitUI | ios_simulator_arm64 [=]
@@ -2533,6 +2564,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SceneKit | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: ScreenTime | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: Security | ios_simulator_arm64 [=]
+        LIBRARY                       : Kotlin/Native: SecurityUI | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: SensorKit | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: SharedWithYou | ios_simulator_arm64 [=]
@@ -2546,8 +2578,10 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: Symbols | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: SystemConfiguration | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: ThreadNetwork | ios_simulator_arm64 [=]
+        LIBRARY                       : Kotlin/Native: TouchController | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: Twitter | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: UIKit | ios_simulator_arm64 [=]
+        LIBRARY                       : Kotlin/Native: UIUtilities | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: UniformTypeIdentifiers | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: UserNotifications | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: UserNotificationsUI | ios_simulator_arm64 [=]
@@ -2558,6 +2592,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: WatchConnectivity | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: WebKit | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: _CoreData_CloudKit | ios_simulator_arm64 [=]
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: builtin | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: darwin | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: iAd | ios_simulator_arm64 [=]
@@ -2595,7 +2630,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -2646,6 +2681,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: AddressBookUI | ios_simulator_arm64 [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: AlarmKit | ios_simulator_arm64 [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: AppClip | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: AppTrackingTransparency | ios_simulator_arm64 [=]
@@ -2665,6 +2702,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: BrowserEngineCore | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: BrowserEngineKit | ios_simulator_arm64 [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: BrowserKit | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: BusinessChat | ios_simulator_arm64 [=]
             Scope                         : Test
@@ -2771,6 +2810,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: GameController | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: GameKit | ios_simulator_arm64 [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: GameSave | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: GameplayKit | ios_simulator_arm64 [=]
             Scope                         : Test
@@ -2894,6 +2935,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: Security | ios_simulator_arm64 [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: SecurityUI | ios_simulator_arm64 [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensorKit | ios_simulator_arm64 [=]
@@ -2920,9 +2963,13 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: ThreadNetwork | ios_simulator_arm64 [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: TouchController | ios_simulator_arm64 [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: Twitter | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: UIKit | ios_simulator_arm64 [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: UIUtilities | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: UniformTypeIdentifiers | ios_simulator_arm64 [=]
             Scope                         : Test
@@ -2943,6 +2990,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: WebKit | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: _CoreData_CloudKit | ios_simulator_arm64 [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: builtin | ios_simulator_arm64 [=]
             Scope                         : Test
@@ -3061,6 +3110,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: AddressBookUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: AlarmKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: AppClip | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: AppTrackingTransparency | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -3080,6 +3131,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: BrowserEngineCore | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: BrowserEngineKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: BrowserKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: BusinessChat | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -3186,6 +3239,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: GameController | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: GameKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: GameSave | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: GameplayKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -3309,6 +3364,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: Security | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: SecurityUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensorKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -3335,9 +3392,13 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: ThreadNetwork | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: TouchController | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: Twitter | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: UIKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: UIUtilities | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: UniformTypeIdentifiers | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -3358,6 +3419,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: WebKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: _CoreData_CloudKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: builtin | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -3412,7 +3475,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -3450,6 +3513,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: AdSupport | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: AddressBook | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: AddressBookUI | ios_x64 [=]
+        LIBRARY                       : Kotlin/Native: AlarmKit | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: AppClip | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: AppTrackingTransparency | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: AssetsLibrary | ios_x64 [=]
@@ -3460,6 +3524,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: BackgroundTasks | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: BrowserEngineCore | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: BrowserEngineKit | ios_x64 [=]
+        LIBRARY                       : Kotlin/Native: BrowserKit | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: BusinessChat | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: CFCGTypes | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: CFNetwork | ios_x64 [=]
@@ -3513,6 +3578,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: GSS | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: GameController | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: GameKit | ios_x64 [=]
+        LIBRARY                       : Kotlin/Native: GameSave | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: GameplayKit | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: HealthKit | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: HealthKitUI | ios_x64 [=]
@@ -3574,6 +3640,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SceneKit | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: ScreenTime | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: Security | ios_x64 [=]
+        LIBRARY                       : Kotlin/Native: SecurityUI | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: SensorKit | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: SharedWithYou | ios_x64 [=]
@@ -3587,8 +3654,10 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: Symbols | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: SystemConfiguration | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: ThreadNetwork | ios_x64 [=]
+        LIBRARY                       : Kotlin/Native: TouchController | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: Twitter | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: UIKit | ios_x64 [=]
+        LIBRARY                       : Kotlin/Native: UIUtilities | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: UniformTypeIdentifiers | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: UserNotifications | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: UserNotificationsUI | ios_x64 [=]
@@ -3599,6 +3668,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: WatchConnectivity | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: WebKit | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: _CoreData_CloudKit | ios_x64 [=]
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: builtin | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: darwin | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: iAd | ios_x64 [=]
@@ -3636,7 +3706,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -3687,6 +3757,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: AddressBookUI | ios_x64 [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: AlarmKit | ios_x64 [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: AppClip | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: AppTrackingTransparency | ios_x64 [=]
@@ -3706,6 +3778,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: BrowserEngineCore | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: BrowserEngineKit | ios_x64 [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: BrowserKit | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: BusinessChat | ios_x64 [=]
             Scope                         : Test
@@ -3812,6 +3886,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: GameController | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: GameKit | ios_x64 [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: GameSave | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: GameplayKit | ios_x64 [=]
             Scope                         : Test
@@ -3935,6 +4011,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: Security | ios_x64 [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: SecurityUI | ios_x64 [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensorKit | ios_x64 [=]
@@ -3961,9 +4039,13 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: ThreadNetwork | ios_x64 [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: TouchController | ios_x64 [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: Twitter | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: UIKit | ios_x64 [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: UIUtilities | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: UniformTypeIdentifiers | ios_x64 [=]
             Scope                         : Test
@@ -3984,6 +4066,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: WebKit | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: _CoreData_CloudKit | ios_x64 [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: builtin | ios_x64 [=]
             Scope                         : Test
@@ -4089,7 +4173,6 @@ PROJECT                       : kotlinMultiPlatform
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/assets/debugAssetsCopyForAGP [-]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidMain
             JavaSource                    : file://<PROJECT>/module2/src/androidMain/kotlin
@@ -4099,31 +4182,25 @@ PROJECT                       : kotlinMultiPlatform
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/assets/debugAssetsCopyForAGP [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/build/generated/res/resValues/debug [-]
-            Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidDebug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidDebug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidDebug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidDebug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidDebug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidMain/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidMain/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidMain/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidMain/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/debug/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -4209,6 +4286,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: AdSupport | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AddressBook | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AddressBookUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: AlarmKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AppClip | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AppTrackingTransparency | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AssetsLibrary | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -4219,6 +4297,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: BackgroundTasks | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: BrowserEngineCore | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: BrowserEngineKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: BrowserKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: BusinessChat | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: CFCGTypes | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: CFNetwork | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -4272,6 +4351,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: GSS | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: GameController | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: GameKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: GameSave | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: GameplayKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: HealthKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: HealthKitUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -4333,6 +4413,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: SceneKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: ScreenTime | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: Security | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: SecurityUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SensorKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SharedWithYou | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -4346,8 +4427,10 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: Symbols | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: SystemConfiguration | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: ThreadNetwork | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: TouchController | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: Twitter | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: UIKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: UIUtilities | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: UniformTypeIdentifiers | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: UserNotifications | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: UserNotificationsUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -4358,6 +4441,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: WatchConnectivity | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: WebKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: _CoreData_CloudKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: builtin | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: darwin | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: iAd | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -4450,6 +4534,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: AddressBookUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: AlarmKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: AppClip | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: AppTrackingTransparency | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -4469,6 +4555,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: BrowserEngineCore | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: BrowserEngineKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: BrowserKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: BusinessChat | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -4575,6 +4663,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: GameController | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: GameKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: GameSave | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: GameplayKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -4698,6 +4788,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: Security | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: SecurityUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: SensorKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -4724,9 +4816,13 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: ThreadNetwork | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
+        LIBRARY                       : Kotlin/Native: TouchController | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
         LIBRARY                       : Kotlin/Native: Twitter | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: UIKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: UIUtilities | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: UniformTypeIdentifiers | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -4747,6 +4843,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Kotlin/Native: WebKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: _CoreData_CloudKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Kotlin/Native: builtin | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -4855,26 +4953,22 @@ PROJECT                       : kotlinMultiPlatform
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidUnitTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidUnitTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidUnitTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidUnitTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidUnitTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidUnitTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidUnitTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidUnitTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidUnitTestDebug/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/test/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/test/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -5129,6 +5223,14 @@ PROJECT                       : kotlinMultiPlatform
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.AddressBookUI
         LIBRARY                       : Kotlin/Native: AddressBookUI | ios_x64
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.AddressBookUI
+        LIBRARY                       : Kotlin/Native: AlarmKit | [(ios_arm64, ios_simulator_arm64, ios_x64)]
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.AlarmKit
+        LIBRARY                       : Kotlin/Native: AlarmKit | ios_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_arm64/org.jetbrains.kotlin.native.platform.AlarmKit
+        LIBRARY                       : Kotlin/Native: AlarmKit | ios_simulator_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.AlarmKit
+        LIBRARY                       : Kotlin/Native: AlarmKit | ios_x64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.AlarmKit
         LIBRARY                       : Kotlin/Native: AppClip | [(ios_arm64, ios_simulator_arm64, ios_x64)]
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.AppClip
         LIBRARY                       : Kotlin/Native: AppClip | ios_arm64
@@ -5209,6 +5311,14 @@ PROJECT                       : kotlinMultiPlatform
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.BrowserEngineKit
         LIBRARY                       : Kotlin/Native: BrowserEngineKit | ios_x64
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.BrowserEngineKit
+        LIBRARY                       : Kotlin/Native: BrowserKit | [(ios_arm64, ios_simulator_arm64, ios_x64)]
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.BrowserKit
+        LIBRARY                       : Kotlin/Native: BrowserKit | ios_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_arm64/org.jetbrains.kotlin.native.platform.BrowserKit
+        LIBRARY                       : Kotlin/Native: BrowserKit | ios_simulator_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.BrowserKit
+        LIBRARY                       : Kotlin/Native: BrowserKit | ios_x64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.BrowserKit
         LIBRARY                       : Kotlin/Native: BusinessChat | [(ios_arm64, ios_simulator_arm64, ios_x64)]
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.BusinessChat
         LIBRARY                       : Kotlin/Native: BusinessChat | ios_arm64
@@ -5633,6 +5743,14 @@ PROJECT                       : kotlinMultiPlatform
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.GameKit
         LIBRARY                       : Kotlin/Native: GameKit | ios_x64
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.GameKit
+        LIBRARY                       : Kotlin/Native: GameSave | [(ios_arm64, ios_simulator_arm64, ios_x64)]
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.GameSave
+        LIBRARY                       : Kotlin/Native: GameSave | ios_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_arm64/org.jetbrains.kotlin.native.platform.GameSave
+        LIBRARY                       : Kotlin/Native: GameSave | ios_simulator_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.GameSave
+        LIBRARY                       : Kotlin/Native: GameSave | ios_x64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.GameSave
         LIBRARY                       : Kotlin/Native: GameplayKit | [(ios_arm64, ios_simulator_arm64, ios_x64)]
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.GameplayKit
         LIBRARY                       : Kotlin/Native: GameplayKit | ios_arm64
@@ -6121,6 +6239,14 @@ PROJECT                       : kotlinMultiPlatform
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.Security
         LIBRARY                       : Kotlin/Native: Security | ios_x64
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.Security
+        LIBRARY                       : Kotlin/Native: SecurityUI | [(ios_arm64, ios_simulator_arm64, ios_x64)]
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.SecurityUI
+        LIBRARY                       : Kotlin/Native: SecurityUI | ios_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_arm64/org.jetbrains.kotlin.native.platform.SecurityUI
+        LIBRARY                       : Kotlin/Native: SecurityUI | ios_simulator_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.SecurityUI
+        LIBRARY                       : Kotlin/Native: SecurityUI | ios_x64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.SecurityUI
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | [(ios_arm64, ios_simulator_arm64, ios_x64)]
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.SensitiveContentAnalysis
         LIBRARY                       : Kotlin/Native: SensitiveContentAnalysis | ios_arm64
@@ -6225,6 +6351,14 @@ PROJECT                       : kotlinMultiPlatform
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.ThreadNetwork
         LIBRARY                       : Kotlin/Native: ThreadNetwork | ios_x64
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.ThreadNetwork
+        LIBRARY                       : Kotlin/Native: TouchController | [(ios_arm64, ios_simulator_arm64, ios_x64)]
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.TouchController
+        LIBRARY                       : Kotlin/Native: TouchController | ios_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_arm64/org.jetbrains.kotlin.native.platform.TouchController
+        LIBRARY                       : Kotlin/Native: TouchController | ios_simulator_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.TouchController
+        LIBRARY                       : Kotlin/Native: TouchController | ios_x64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.TouchController
         LIBRARY                       : Kotlin/Native: Twitter | [(ios_arm64, ios_simulator_arm64, ios_x64)]
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.Twitter
         LIBRARY                       : Kotlin/Native: Twitter | ios_arm64
@@ -6241,6 +6375,14 @@ PROJECT                       : kotlinMultiPlatform
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.UIKit
         LIBRARY                       : Kotlin/Native: UIKit | ios_x64
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.UIKit
+        LIBRARY                       : Kotlin/Native: UIUtilities | [(ios_arm64, ios_simulator_arm64, ios_x64)]
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.UIUtilities
+        LIBRARY                       : Kotlin/Native: UIUtilities | ios_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_arm64/org.jetbrains.kotlin.native.platform.UIUtilities
+        LIBRARY                       : Kotlin/Native: UIUtilities | ios_simulator_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.UIUtilities
+        LIBRARY                       : Kotlin/Native: UIUtilities | ios_x64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.UIUtilities
         LIBRARY                       : Kotlin/Native: UniformTypeIdentifiers | [(ios_arm64, ios_simulator_arm64, ios_x64)]
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.UniformTypeIdentifiers
         LIBRARY                       : Kotlin/Native: UniformTypeIdentifiers | ios_arm64
@@ -6321,6 +6463,14 @@ PROJECT                       : kotlinMultiPlatform
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform._CoreData_CloudKit
         LIBRARY                       : Kotlin/Native: _CoreData_CloudKit | ios_x64
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform._CoreData_CloudKit
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | [(ios_arm64, ios_simulator_arm64, ios_x64)]
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform._LocationEssentials
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | ios_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_arm64/org.jetbrains.kotlin.native.platform._LocationEssentials
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | ios_simulator_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform._LocationEssentials
+        LIBRARY                       : Kotlin/Native: _LocationEssentials | ios_x64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform._LocationEssentials
         LIBRARY                       : Kotlin/Native: builtin | [(ios_arm64, ios_simulator_arm64, ios_x64)]
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.builtin
         LIBRARY                       : Kotlin/Native: builtin | ios_arm64

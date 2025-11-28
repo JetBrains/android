@@ -111,12 +111,9 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/baselineProfiles [-]
@@ -124,14 +121,12 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -181,12 +176,9 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/baselineProfiles [-]
@@ -194,14 +186,12 @@ PROJECT                       : project
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -263,14 +253,12 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -372,13 +360,10 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/benchmark/build/generated/ap_generated_sources/benchmark/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/benchmark/build/generated/res/resValues/benchmark [-]
         CONENT_ENTRY                  : file://<PROJECT>/benchmark/src/benchmark [-]
         CONENT_ENTRY                  : file://<PROJECT>/benchmark/src/main
             JavaSource                    : file://<PROJECT>/benchmark/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/build/generated/ap_generated_sources/benchmark/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/build/generated/res/resValues/benchmark [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/benchmark/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/benchmark/baselineProfiles [-]
@@ -386,13 +371,11 @@ PROJECT                       : project
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/benchmark/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/benchmark/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/benchmark/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/benchmark/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -443,8 +426,7 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.app.main
         Classes
             -                             : file://<PROJECT>/benchmark/build/intermediates/javac/benchmark/compileBenchmarkJavaWithJavac/classes
-            -                             : jar://<PROJECT>/benchmark/build/intermediates/compile_and_runtime_r_class_jar/benchmark/processBenchmarkResources/R.jar!/
-            -                             : file://<PROJECT>/benchmark/build/generated/res/resValues/benchmark
+            -                             : jar://<PROJECT>/benchmark/build/intermediates/compile_r_class_jar/benchmark/generateBenchmarkRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :benchmark:generateBenchmarkSources
                 ASSEMBLE                      : :benchmark:assembleBenchmark
@@ -535,13 +517,10 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/test/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/test/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/test/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/test/src/main
             JavaSource                    : file://<PROJECT>/test/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/debug/baselineProfiles [-]
@@ -549,13 +528,11 @@ PROJECT                       : project
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -606,8 +583,7 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.app.main
         Classes
             -                             : file://<PROJECT>/test/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : jar://<PROJECT>/test/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
-            -                             : file://<PROJECT>/test/build/generated/res/resValues/debug
+            -                             : jar://<PROJECT>/test/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :test:generateDebugSources
                 ASSEMBLE                      : :test:assembleDebug
@@ -698,13 +674,10 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/test2/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/test2/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/test2/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/test2/src/main
             JavaSource                    : file://<PROJECT>/test2/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test2/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/debug/baselineProfiles [-]
@@ -712,13 +685,11 @@ PROJECT                       : project
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test2/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test2/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test2/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test2/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -769,8 +740,7 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.app.main
         Classes
             -                             : file://<PROJECT>/test2/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : jar://<PROJECT>/test2/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
-            -                             : file://<PROJECT>/test2/build/generated/res/resValues/debug
+            -                             : jar://<PROJECT>/test2/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :test2:generateDebugSources
                 ASSEMBLE                      : :test2:assembleDebug
