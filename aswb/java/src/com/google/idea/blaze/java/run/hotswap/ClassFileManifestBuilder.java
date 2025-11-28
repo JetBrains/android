@@ -22,10 +22,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.buildresult.BuildResult;
-import com.google.idea.blaze.base.command.buildresult.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.BlazeVersionData;
@@ -107,7 +105,7 @@ public class ClassFileManifestBuilder {
 
     SaveUtil.saveAllFiles();
 
-    ListenableFuture<BuildEventStreamProvider> streamProviderFuture =
+    ListenableFuture<ParsedBepOutput> parsedBepOutputFuture =
         BlazeBeforeRunCommandHelper.runBlazeCommand(
             BlazeCommandName.BUILD,
             configuration,
@@ -115,13 +113,14 @@ public class ClassFileManifestBuilder {
             ImmutableList.of(),
             BlazeInvocationContext.runConfigContext(
                 ExecutorType.fromExecutor(env.getExecutor()), configuration.getType(), true),
-            "Building debug binary");
+            "Building debug binary",
+            streamProvider -> BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
 
     if (progress != null) {
-      progress.setCancelWorker(() -> streamProviderFuture.cancel(true));
+      progress.setCancelWorker(() -> parsedBepOutputFuture.cancel(true));
     }
-    try (BuildEventStreamProvider streamProvider = streamProviderFuture.get()) {
-      ParsedBepOutput parsedBepOutput = BuildResultParser.getBuildOutput(streamProvider, Interners.STRING);
+    try {
+      ParsedBepOutput parsedBepOutput = parsedBepOutputFuture.get();
       BuildResult result = BuildResult.fromExitCode(parsedBepOutput.buildResult());
       if (result.status != BuildResult.Status.SUCCESS) {
         throw new ExecutionException("Blaze failure building debug binary");
@@ -147,11 +146,9 @@ public class ClassFileManifestBuilder {
           ? ClassFileManifest.modifiedClasses(oldManifest, newManifest)
           : null;
     } catch (InterruptedException | CancellationException e) {
-      streamProviderFuture.cancel(true);
+      parsedBepOutputFuture.cancel(true);
       throw new RunCanceledByUserException();
     } catch (java.util.concurrent.ExecutionException e) {
-      throw new ExecutionException(e);
-    } catch (GetArtifactsException e) {
       throw new ExecutionException("Unable to parse build output from build event stream", e);
     }
   }

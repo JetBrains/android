@@ -42,7 +42,6 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStats;
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
@@ -208,22 +207,24 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
       buildDepsStatsBuilder.ifPresent(
           stats -> stats.setBuildFlags(builder.build().toArgumentList()));
       Instant buildTime = Instant.now();
-      try (BuildEventStreamProvider streamProvider = invoker.invoke(builder, context)) {
-        BlazeBuildOutputs outputs =
-            BlazeBuildOutputs.fromParsedBepOutput(
-                BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
-        BazelExitCodeException.throwIfFailed(
-            builder,
-            outputs.buildResult(),
-            ThrowOption.ALLOW_PARTIAL_SUCCESS,
-            ThrowOption.ALLOW_BUILD_FAILURE);
-
-        return createOutputInfo(
-            outputs,
-            buildDependenciesBazelInvocationInfo.requestedOutputGroups(),
-            buildTime,
-            context);
-      }
+      return invoker.invoke(
+          builder,
+          context,
+          streamProvider -> {
+            BlazeBuildOutputs outputs =
+                BlazeBuildOutputs.fromParsedBepOutput(
+                    BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
+            BazelExitCodeException.throwIfFailed(
+                builder,
+                outputs.buildResult(),
+                ThrowOption.ALLOW_PARTIAL_SUCCESS,
+                ThrowOption.ALLOW_BUILD_FAILURE);
+            return createOutputInfo(
+                outputs,
+                buildDependenciesBazelInvocationInfo.requestedOutputGroups(),
+                buildTime,
+                context);
+          });
     }
   }
 

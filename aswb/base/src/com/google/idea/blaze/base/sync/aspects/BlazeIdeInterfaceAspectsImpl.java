@@ -44,7 +44,6 @@ import com.google.idea.blaze.base.command.buildresult.BuildResult.Status;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
 import com.google.idea.blaze.base.command.buildresult.RemoteOutputArtifact;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.info.BlazeConfigurationHandler;
 import com.google.idea.blaze.base.filecache.ArtifactsDiff;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
@@ -761,9 +760,11 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
     }
 
     aspectStrategy.addAspectAndOutputGroups(builder, outputGroups, activeLanguages, onlyDirectDeps);
-    try (BuildEventStreamProvider streamProvider = invoker.invoke(builder, context)) {
-      return BlazeBuildOutputs.fromParsedBepOutputForLegacy(
-          BuildResultParser.getBuildOutputForLegacySync(streamProvider, Interners.STRING));
-    }
+    return invoker.invoke(
+        builder,
+        context,
+        streamProvider ->
+          BlazeBuildOutputs.fromParsedBepOutputForLegacy(
+            BuildResultParser.getBuildOutputForLegacySync(streamProvider, Interners.STRING)));
   }
 }

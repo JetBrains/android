@@ -19,11 +19,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator;
 import com.google.idea.blaze.base.bazel.BuildSystem;
+import com.google.idea.blaze.base.bazel.BuildSystem.BuildEventStreamConsumer;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.base.io.TempDirectoryProvider;
 import com.google.idea.blaze.base.issueparser.BlazeIssueParser;
@@ -63,13 +63,14 @@ public final class BlazeBeforeRunCommandHelper {
    *
    * <p>Runs the blaze command on the targets specified in the given {@code configuration}.
    */
-  public static ListenableFuture<BuildEventStreamProvider> runBlazeCommand(
+  public static <T> ListenableFuture<T> runBlazeCommand(
       BlazeCommandName commandName,
       BlazeCommandRunConfiguration configuration,
       List<String> requiredExtraBlazeFlags,
       List<String> overridableExtraBlazeFlags,
       BlazeInvocationContext invocationContext,
-      String progressMessage) {
+      String progressMessage,
+      BuildEventStreamConsumer<T> consumer) {
     return runBlazeCommand(
         commandName,
         configuration,
@@ -77,21 +78,23 @@ public final class BlazeBeforeRunCommandHelper {
         overridableExtraBlazeFlags,
         invocationContext,
         progressMessage,
-        configuration.getTargets());
+        configuration.getTargets(),
+        consumer);
   }
 
   /**
    * Runs the given blaze command on the given list of {@code targets} instead of retrieving the
    * targets from the run {@code configuration}.
    */
-  public static ListenableFuture<BuildEventStreamProvider> runBlazeCommand(
+  public static <T> ListenableFuture<T> runBlazeCommand(
       BlazeCommandName commandName,
       BlazeCommandRunConfiguration configuration,
       List<String> requiredExtraBlazeFlags,
       List<String> overridableExtraBlazeFlags,
       BlazeInvocationContext invocationContext,
       String progressMessage,
-      ImmutableList<TargetExpression> targets) {
+      ImmutableList<TargetExpression> targets,
+      BuildEventStreamConsumer<T> consumer) {
 
     Project project = configuration.getProject();
     BlazeCommandRunConfigurationCommonState handlerState =
@@ -101,9 +104,9 @@ public final class BlazeBeforeRunCommandHelper {
 
     return ProgressiveTaskWithProgressIndicator.builder(project, TASK_TITLE)
         .submitTaskWithResult(
-            new ScopedTask<BuildEventStreamProvider>() {
+            new ScopedTask<T>() {
               @Override
-              protected BuildEventStreamProvider execute(BlazeContext context) {
+              protected T execute(BlazeContext context) {
                 context
                     .push(
                         new ToolWindowScope.Builder(
@@ -140,7 +143,7 @@ public final class BlazeBeforeRunCommandHelper {
                             handlerState.getBlazeFlagsState().getFlagsForExternalProcesses())
                         .addBlazeFlags(requiredExtraBlazeFlags);
                 try {
-                  return invoker.invoke(command, context);
+                  return invoker.invoke(command, context, consumer);
                 } catch (BuildException e) {
                   throw new RuntimeException(e);
                 }
