@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
+import kotlin.Unit;
 
 /** A local Blaze/Bazel invoker that issues commands via CLI. */
 public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
@@ -105,20 +106,36 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
     return getBepStream(outputFile);
   }
 
-
   @Override
-  public final ProcessHandler invokeAsProcessHandler(BlazeCommand.Builder blazeCommandBuilder,
-                                               BlazeContext blazeContext) throws BuildException {
+  public final ProcessHandler invokeAsProcessHandler(
+    BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext, BuildSystem.BuildEventStreamConsumer<Unit> consumer)
+    throws BuildException {
     try {
       performGuardCheck(project, blazeContext);
     } catch (ExecutionDeniedException e) {
       throw new BuildException(e.getMessage(), e);
     }
+    File outputFile = BuildEventProtocolUtils.createTempOutputFile();
+    blazeCommandBuilder.addBlazeFlags(BuildEventProtocolUtils.getBuildFlags(outputFile));
     try {
       final var environment = new HashMap<String, String>();
       maybeAddAndroidHome(environment::put);
       return LocalInvokerHelper.getScopedProcessHandler(project, blazeCommandBuilder.build().toList(), WorkspaceRoot.fromProject(project),
-                                                        environment);
+                                                        environment, () -> {
+          try {
+            final BuildEventStreamProvider buildEventStreamProvider;
+            buildEventStreamProvider = getBepStream(outputFile);
+            try {
+              consumer.consume(buildEventStreamProvider);
+            }
+            finally {
+              buildEventStreamProvider.close();
+            }
+          }
+          catch (BuildException e) {
+            throw new RuntimeException(e);
+          }
+        });
     }
     catch (ExecutionException e) {
       throw new BuildException(e);

@@ -126,6 +126,7 @@ interface BuildSystem {
     fun invokeAsProcessHandler(
       blazeCommandBuilder: BlazeCommand.Builder,
       blazeContext: BlazeContext,
+      consumer: BuildEventStreamConsumer<Unit>,
     ): ProcessHandler
 
     /**
@@ -282,8 +283,11 @@ class TestBuildInvoker @TestOnly constructor(
   override fun invokeAsProcessHandler(
     blazeCommandBuilder: BlazeCommand.Builder,
     blazeContext: BlazeContext,
+    consumer: BuildSystem.BuildEventStreamConsumer<Unit>,
   ): ProcessHandler {
     invocations.add(RecordedInvocation("invokeAsProcessHandler", blazeCommandBuilder.build().toList()))
+    // Output to the process handler and its closure should go first here.
+    consumer.consume(bepStreamProvider(blazeCommandBuilder, blazeContext))
     error("not implemented")
   }
 
