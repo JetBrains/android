@@ -26,7 +26,4 @@ public interface BlazeTestResultsProvider {
    * results
    */
   BlazeTestResults findTestResults() throws GetArtifactsException;
-
-  /** Remove any temporary files used by this result finder. */
-  void deleteTemporaryOutputFiles();
 }
