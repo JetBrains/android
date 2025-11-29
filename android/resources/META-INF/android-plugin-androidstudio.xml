@@ -249,10 +249,6 @@
               topic="com.intellij.openapi.project.ProjectCloseListener"/>
     <listener class="com.android.tools.idea.stats.AndroidStudioUsageTracker$UsageTrackerAppLifecycleListener"
               topic="com.intellij.ide.AppLifecycleListener"/>
-    <listener class="com.android.tools.idea.navigator.ProjectViewListener"
-              activeInHeadlessMode="false"
-              activeInTestMode="false"
-              topic="com.intellij.openapi.wm.ex.ToolWindowManagerListener"/>
   </applicationListeners>
   <projectListeners>
     <listener class="com.android.tools.idea.navigator.ProjectViewListener"
