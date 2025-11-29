@@ -30,9 +30,11 @@ import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.execution.process.ProcessHandler;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
+import kotlin.Unit;
 
 /** Simple implementation of {@link BuildInvoker} for injecting dependencies in test code. */
 @AutoValue
@@ -70,8 +72,9 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
 
   @Override
   public ProcessHandler invokeAsProcessHandler(BlazeCommand.Builder blazeCommandBuilder,
-                                               BlazeContext blazeContext) {
-    throw new UnsupportedOperationException();
+                                               BlazeContext blazeContext,
+                                               BuildSystem.BuildEventStreamConsumer<Unit> consumer) {
+    return new FakeProcessHandler();
   }
 
   @Override
@@ -154,5 +157,24 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     public abstract Builder capabilities(com.google.common.collect.ImmutableSet<Capability> value);
 
     public abstract Builder buildSystem(BuildSystem buildSystem);
+  }
+
+  private static class FakeProcessHandler extends ProcessHandler {
+    @Override
+    protected void destroyProcessImpl() {}
+
+    @Override
+    protected void detachProcessImpl() {}
+
+    @Override
+    public boolean detachIsDefault() {
+      return false;
+    }
+
+    @Nullable
+    @Override
+    public OutputStream getProcessInput() {
+      return null;
+    }
   }
 }

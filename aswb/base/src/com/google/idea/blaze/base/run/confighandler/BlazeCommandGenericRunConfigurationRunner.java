@@ -70,6 +70,7 @@ import com.intellij.openapi.project.Project;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -181,7 +182,7 @@ public final class BlazeCommandGenericRunConfigurationRunner
         throws ExecutionException {
       if (invoker.getCapabilities().contains(BuildInvoker.Capability.RETURN_PROCESS_HANDLER)) {
         try {
-          return invoker.invokeAsProcessHandler(blazeCommandBuilder, context);
+          return invoker.invokeAsProcessHandler(blazeCommandBuilder, context, bepStreamProvider -> Unit.INSTANCE);
         }
         catch (BuildException e) {
           throw new ExecutionException(e);
