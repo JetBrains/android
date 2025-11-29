@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -221,8 +222,9 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
 
     @Override
     public ProcessHandler invokeAsProcessHandler(BlazeCommand.Builder blazeCommandBuilder,
-                                                 BlazeContext blazeContext) throws BuildException {
-      return inner.invokeAsProcessHandler(blazeCommandBuilder, blazeContext);
+                                                 BlazeContext blazeContext, BuildSystem.BuildEventStreamConsumer<Unit> consumer)
+      throws BuildException {
+      return inner.invokeAsProcessHandler(blazeCommandBuilder, blazeContext, consumer);
     }
 
     @Override

@@ -69,6 +69,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
+import kotlin.Unit;
 
 /**
  * A Blaze run configuration set up with an executor, program runner, and other settings, ready to
@@ -148,7 +149,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
         && BlazeCommandRunnerExperiments.USE_SINGLEJAR_FOR_DEBUGGING.getValue()) {
       commandBuilder.add("--singlejar");
     }
-    return getScopedProcessHandler(project, commandBuilder.build(), workspaceRoot, ImmutableMap.of());
+    return getScopedProcessHandler(project, commandBuilder.build(), workspaceRoot, ImmutableMap.of(), () -> {});
   }
 
   private ProcessHandler startProcessBazelCliCase(
@@ -160,7 +161,11 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
         BlazeInvocationContext.ContextType.RunConfiguration));
 
     try {
-      return invoker.invokeAsProcessHandler(prepareBazelCommand(project, invoker).blazeCommand(), context);
+      PrepareBazelCommandResult prepareBazelCommandResult = prepareBazelCommand(project, invoker);
+      return invoker.invokeAsProcessHandler(prepareBazelCommandResult.blazeCommand(), context, bepStreamProvider -> {
+        prepareBazelCommandResult.testResultFinderStrategy().setTestResults(bepStreamProvider);
+        return Unit.INSTANCE;
+      });
     }
     catch (BuildException e) {
       throw new ExecutionException(e);
