@@ -44,8 +44,7 @@ import com.google.idea.blaze.base.run.smrunner.BlazeTestEventsHandler;
 import com.google.idea.blaze.base.run.smrunner.BlazeTestUiSession;
 import com.google.idea.blaze.base.run.smrunner.SmRunnerUtils;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
-import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFinderStrategy;
-import com.google.idea.blaze.base.run.testlogs.BlazeTestResultHolder;
+import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFetcher;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.OutputSink;
 import com.google.idea.blaze.base.settings.Blaze;
@@ -171,7 +170,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
   private PrepareBazelCommandResult prepareBazelCommand(Project project, BuildInvoker invoker) {
     BlazeCommand.Builder blazeCommand;
     BlazeTestUiSession testUiSession = null;
-    BlazeTestResultFinderStrategy testResultFinderStrategy = new BlazeTestResultHolder();
+    final var testResultFinderStrategy = new BlazeTestResultFetcher();
     if (useTestUi()
         && BlazeTestEventsHandler.targetsSupported(project, getConfiguration().getTargets())) {
       testUiSession =
@@ -215,7 +214,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
     return result;
   }
 
-  private record PrepareBazelCommandResult(BlazeCommand.Builder blazeCommand, BlazeTestResultFinderStrategy testResultFinderStrategy) {
+  private record PrepareBazelCommandResult(BlazeCommand.Builder blazeCommand, BlazeTestResultFetcher testResultFinderStrategy) {
   }
 
   @Override

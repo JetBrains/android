@@ -17,7 +17,7 @@ package com.google.idea.blaze.base.run.smrunner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
-import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFinderStrategy;
+import com.google.idea.blaze.base.run.testlogs.BlazeTestResultsProvider;
 import com.intellij.execution.Executor;
 import com.intellij.execution.testframework.TestConsoleProperties;
 import com.intellij.execution.testframework.actions.AbstractRerunFailedTestsAction;
@@ -36,12 +36,12 @@ public class BlazeTestConsoleProperties extends SMTRunnerConsoleProperties
     implements SMCustomMessagesParsing {
 
   private final BlazeCommandRunConfiguration runConfiguration;
-  public BlazeTestResultFinderStrategy testResultFinderStrategy;
+  public BlazeTestResultsProvider testResultFinderStrategy;
 
   public BlazeTestConsoleProperties(
     BlazeCommandRunConfiguration runConfiguration,
     Executor executor,
-    BlazeTestResultFinderStrategy testResultFinderStrategy) {
+    BlazeTestResultsProvider testResultFinderStrategy) {
     super(runConfiguration, SmRunnerUtils.BLAZE_FRAMEWORK, executor);
     this.runConfiguration = runConfiguration;
     this.testResultFinderStrategy = testResultFinderStrategy;
