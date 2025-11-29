@@ -36,5 +36,4 @@ class BlazeTestResultFetcher : BlazeTestResultsProvider {
 
   override fun findTestResults(): BlazeTestResults = testResults
 
-  override fun deleteTemporaryOutputFiles() {}
 }

@@ -95,8 +95,6 @@ public class BlazeXmlToTestEventsConverter extends OutputToGeneralTestEventsConv
       }
     } catch (GetArtifactsException e) {
       Logger.getInstance(this.getClass()).error(e.getMessage());
-    } finally {
-      testResultFinderStrategy.deleteTemporaryOutputFiles();
     }
   }
 
