@@ -17,7 +17,7 @@ package com.google.idea.blaze.base.run.smrunner;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
-import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFinderStrategy;
+import com.google.idea.blaze.base.run.testlogs.BlazeTestResultsProvider;
 
 /**
  * Created during a single blaze test invocation, to manage test result finding and UI.
@@ -30,7 +30,7 @@ import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFinderStrategy;
 public abstract class BlazeTestUiSession {
 
   public static BlazeTestUiSession create(
-      ImmutableList<String> blazeFlags, BlazeTestResultFinderStrategy testResultFinderStrategy) {
+      ImmutableList<String> blazeFlags, BlazeTestResultsProvider testResultFinderStrategy) {
     return new AutoValue_BlazeTestUiSession(blazeFlags, testResultFinderStrategy);
   }
 
@@ -40,6 +40,6 @@ public abstract class BlazeTestUiSession {
    */
   public abstract ImmutableList<String> getBlazeFlags();
 
-  /** Returns a {@link BlazeTestResultFinderStrategy} for this blaze test invocation. */
-  public abstract BlazeTestResultFinderStrategy getTestResultFinderStrategy();
+  /** Returns a {@link BlazeTestResultsProvider} for this blaze test invocation. */
+  public abstract BlazeTestResultsProvider getTestResultFinderStrategy();
 }

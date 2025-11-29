@@ -30,7 +30,7 @@ import java.io.FileNotFoundException;
  * <p>Parses the output BEP proto written by blaze to locate the test XML files.
  */
 public final class LocalBuildEventProtocolTestFinderStrategy
-    implements BlazeTestResultFinderStrategy {
+    implements BlazeTestResultsProvider {
   private static final Logger LOG = Logger.getInstance(LocalBuildEventProtocolTestFinderStrategy.class);
   private final File outputFile;
 
