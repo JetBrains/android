@@ -16,6 +16,7 @@
 package com.android.tools.idea.startup
 
 import com.android.tools.adtui.webp.WebpMetadata
+import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.analytics.SystemInfoStatsMonitor
 import com.android.tools.idea.analytics.currentIdeBrand
@@ -69,6 +70,10 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
 
   /** Sets up collection of Android Studio specific analytics.  */
   private fun setupAnalytics() {
+    // todo remove with the next sync once the fix is available in the upstream
+    AnalyticsSettings.disable()
+    UsageTracker.disable()
+
     UsageTracker.version = ApplicationInfo.getInstance().strictVersion
     UsageTracker.ideBrand = currentIdeBrand()
     if (ApplicationManager.getApplication().isInternal) {
