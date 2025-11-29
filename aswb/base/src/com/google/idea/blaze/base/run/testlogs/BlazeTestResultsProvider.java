@@ -18,7 +18,7 @@ package com.google.idea.blaze.base.run.testlogs;
 import com.google.idea.blaze.base.command.buildresult.GetArtifactsException;
 
 /** A strategy for locating results from 'blaze test' invocation (e.g. output XML files). */
-public interface BlazeTestResultFinderStrategy {
+public interface BlazeTestResultsProvider {
 
   /**
    * Attempt to find test results corresponding to the most recent blaze invocation. Called after

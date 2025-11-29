@@ -17,7 +17,7 @@ package com.google.idea.blaze.base.run.smrunner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
-import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFinderStrategy;
+import com.google.idea.blaze.base.run.testlogs.BlazeTestResultsProvider;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.Executor;
 import com.intellij.execution.Location;
@@ -55,7 +55,7 @@ public class SmRunnerUtils {
     Project project,
     BlazeCommandRunConfiguration configuration,
     Executor executor,
-    BlazeTestResultFinderStrategy testResultFinderStrategy) {
+    BlazeTestResultsProvider testResultFinderStrategy) {
     SMTRunnerConsoleProperties properties =
         new BlazeTestConsoleProperties(configuration, executor, testResultFinderStrategy);
     SMTRunnerConsoleView console =

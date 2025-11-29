@@ -47,7 +47,7 @@ import com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProvi
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.smrunner.BlazeTestUiSession;
-import com.google.idea.blaze.base.run.testlogs.BlazeTestResultHolder;
+import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFetcher;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.process.NopProcessHandler;
@@ -81,7 +81,7 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
   protected final ApkBuildStep buildStep;
   protected final ApplicationIdProvider applicationIdProvider;
   protected final ApkProvider apkProvider;
-  private final BlazeTestResultHolder testResultsHolder = new BlazeTestResultHolder();
+  private final BlazeTestResultFetcher testResultsHolder = new BlazeTestResultFetcher();
 
   public BlazeAndroidTestRunContext(
       Project project,

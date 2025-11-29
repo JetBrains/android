@@ -24,7 +24,6 @@ import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
-import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.ideinfo.AndroidInstrumentationInfo;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.ideinfo.TargetKey;
@@ -32,7 +31,7 @@ import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.run.testlogs.BlazeTestResultHolder;
+import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFetcher;
 import com.google.idea.blaze.base.scope.Scope;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.settings.Blaze;
@@ -71,7 +70,7 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
   private final Label target;
   private final List<String> buildFlags;
   private final BlazeAndroidTestFilter testFilter;
-  private final BlazeTestResultHolder testResultsHolder;
+  private final BlazeTestResultFetcher testResultsHolder;
 
   private ListenableFuture<Boolean> blazeResult;
 
@@ -86,7 +85,7 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
       BlazeAndroidTestFilter testFilter,
       BlazeAndroidTestRunContext runContext,
       boolean debug,
-      BlazeTestResultHolder testResultsHolder) {
+      BlazeTestResultFetcher testResultsHolder) {
     this.project = project;
     this.target = target;
     this.buildFlags = buildFlags;
@@ -185,8 +184,7 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
                             context,
                             streamProvider -> {
                               ExecutionUtils.println(console, commandBuilder.build() + "\n");
-                              testResultsHolder.setTestResults(
-                                  BuildResultParser.getTestResults(streamProvider));
+                              testResultsHolder.setTestResults(streamProvider);
                               return null;
                             });
                       } catch (BuildException e) {
