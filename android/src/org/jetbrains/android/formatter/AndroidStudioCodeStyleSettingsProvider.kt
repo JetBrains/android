@@ -22,7 +22,8 @@ import com.intellij.psi.codeStyle.PredefinedCodeStyle
 
 class AndroidStudioCodeStyleSettingsProvider : CodeStyleSettingsProvider() {
   override fun createCustomSettings(settings: CodeStyleSettings): CustomCodeStyleSettings? {
-    // Apply our predefined Android code styles unconditionally.
+    // Apply our predefined Android code styles unconditionally, directly mutating the defaults.
+    // This is hack! Ideally there would be an EP allowing IDEs to customize defaults more safely.
     for (style in PredefinedCodeStyle.EP_NAME.extensionList) {
       if ("Android" == style.name) {
         style.apply(settings)

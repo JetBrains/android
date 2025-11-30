@@ -49,8 +49,10 @@
 
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
 
-    <!-- todo temporarily disabled due to IDEA-382730 -->
-    <!--    <codeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidStudioCodeStyleSettingsProvider" order="last"/>-->
+    <codeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidStudioCodeStyleSettingsProvider" order="last"/>
+    <applicationService serviceInterface="com.intellij.psi.codeStyle.CodeStyleSettingsService"
+                        serviceImplementation="org.jetbrains.android.formatter.AndroidStudioCodeStyleSettingsService"
+                        overrides="true"/>
 
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.AndroidStudioErrorReportSubmitter"/>
     <applicationInitializedListener id="Startup.StartLowMemoryReporter"
