@@ -37,7 +37,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:kotlin-tooling-core-provided",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
-    "@lib//:kotlinx-coroutines-core",
+    "//libraries/kotlinx/coroutines/core",
     "//libraries/kotlin/reflect",
     "@lib//:protobuf",
     "@lib//:kotlinc-analysis-api-provided",

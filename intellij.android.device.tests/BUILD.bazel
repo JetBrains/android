@@ -28,7 +28,7 @@ jvm_library(
     "//libraries/mockito",
     "//libraries/guava",
     "@lib//:truth",
-    "@lib//:kotlinx-coroutines-core",
+    "//libraries/kotlinx/coroutines/core",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     "//android/adt-ui-compose",
     "//android/adt-ui-compose:adt-ui-compose_test_lib",

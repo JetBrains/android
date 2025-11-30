@@ -62,7 +62,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:truth",
-    "@lib//:kotlinx-coroutines-test",
+    "//libraries/kotlinx/coroutines/test",
     "//android/android-common:common",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//platform/core-api:core",

@@ -38,7 +38,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "//libraries/kotlin/reflect",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinx-coroutines-core",
+    "//libraries/kotlinx/coroutines/core",
     "@lib//:protobuf",
     "@lib//:kotlinc-analysis-api-provided",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
@@ -274,7 +274,7 @@ jvm_library(
     "//libraries/asm-tools",
     "//libraries/commons/lang3",
     "@lib//:jetbrains-annotations",
-    "@lib//:kotlinx-coroutines-core",
+    "//libraries/kotlinx/coroutines/core",
     "@lib//:layoutlib",
     "//platform/editor-ui-ex:editor-ex",
     "@lib//:protobuf",
@@ -337,7 +337,7 @@ jvm_library(
     "//android/visual-lint",
     "//android/backup:backup-api",
     "//android/execution/common",
-    "@lib//:kotlinx-coroutines-test",
+    "//libraries/kotlinx/coroutines/test",
   ],
   plugins = ["@lib//:compose-plugin"]
 )

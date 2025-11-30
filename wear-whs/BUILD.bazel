@@ -46,7 +46,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:truth",
     "@lib//:protobuf",
-    "@lib//:kotlinx-coroutines-test",
+    "//libraries/kotlinx/coroutines/test",
     "//android/android-common:common",
     "//android/streaming",
     "//android/adt-testutils:adt-testutils_test_lib",

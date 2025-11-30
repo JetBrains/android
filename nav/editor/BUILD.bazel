@@ -123,7 +123,7 @@ jvm_library(
     "//java/openapi:java",
     "//xml/dom-impl",
     "//xml/xml-psi-api:psi",
-    "@lib//:kotlinx-coroutines-test",
+    "//libraries/kotlinx/coroutines/test",
   ]
 )
 ### auto-generated section `build intellij.android.nav.editor.tests` end

@@ -32,7 +32,7 @@ jvm_library(
     "//platform/core-api:core",
     "//platform/ide-core",
     "//platform/execution",
-    "@lib//:kotlinx-coroutines-guava",
+    "//libraries/kotlinx/coroutines/guava",
     "//libraries/guava",
     "//platform/editor-ui-api:editor-ui",
     "//platform/platform-api:ide",

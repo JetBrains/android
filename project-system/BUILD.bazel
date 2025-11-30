@@ -18,7 +18,7 @@ jvm_library(
     "//libraries/guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinx-coroutines-core",
+    "//libraries/kotlinx/coroutines/core",
     "@lib//:protobuf",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     "//android/android-common:common",

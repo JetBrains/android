@@ -18,7 +18,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//libraries/guava",
     "@lib//:junit4",
-    "@lib//:kotlinx-coroutines-core",
+    "//libraries/kotlinx/coroutines/core",
     "@lib//:truth",
     "@lib//:kotlinc-kotlin-compiler-common",
     "//android/android:core-tests_test_lib",

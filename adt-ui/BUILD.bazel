@@ -82,7 +82,7 @@ jvm_library(
     "//libraries/fastutil",
     "//libraries/gson",
     "@lib//:kotlin-test",
-    "@lib//:kotlinx-coroutines-test",
+    "//libraries/kotlinx/coroutines/test",
     "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:truth",

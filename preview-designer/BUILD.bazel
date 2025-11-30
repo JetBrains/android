@@ -19,7 +19,7 @@ jvm_library(
     "//libraries/commons/lang3",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinx-coroutines-core",
+    "//libraries/kotlinx/coroutines/core",
     "@lib//:protobuf",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:kotlinc-kotlin-compiler-ir-provided",
@@ -96,7 +96,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:kotlin-test",
-    "@lib//:kotlinx-coroutines-core",
+    "//libraries/kotlinx/coroutines/core",
     "//libraries/mockito",
     "//platform/analysis-api:analysis",
     "@lib//:truth",
@@ -145,7 +145,7 @@ jvm_library(
     "//android/designer:designer-tests_test_lib",
     "@lib//:mockito-kotlin",
     "//libraries/asm",
-    "@lib//:kotlinx-coroutines-test",
+    "//libraries/kotlinx/coroutines/test",
   ]
 )
 ### auto-generated section `build intellij.android.preview-designer.tests` end

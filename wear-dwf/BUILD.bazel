@@ -85,7 +85,7 @@ jvm_library(
     "//xml/xml-psi-api:psi",
     "//libraries/guava",
     "//xml/dom-openapi:dom",
-    "@lib//:kotlinx-coroutines-test",
+    "//libraries/kotlinx/coroutines/test",
     "//platform/core-ui",
     "//platform/projectModel-api:projectModel",
     "//android/project-system",

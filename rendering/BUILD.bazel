@@ -61,7 +61,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-test",
     "//libraries/kotlin/reflect",
-    "@lib//:kotlinx-coroutines-core",
+    "//libraries/kotlinx/coroutines/core",
     "@lib//:kxml2",
     "@lib//:truth",
     "//android/render-resources",

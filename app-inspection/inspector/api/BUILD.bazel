@@ -9,7 +9,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:protobuf",
-    "@lib//:kotlinx-coroutines-core",
+    "//libraries/kotlinx/coroutines/core",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:google-protobuf-java-util",
@@ -27,7 +27,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:protobuf",
-    "@lib//:kotlinx-coroutines-core",
+    "//libraries/kotlinx/coroutines/core",
     "@lib//:junit4",
     "@lib//:truth",
     "@lib//:jetbrains-annotations",

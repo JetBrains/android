@@ -20,7 +20,7 @@ jvm_library(
     "//libraries/gson",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinx-coroutines-core",
+    "//libraries/kotlinx/coroutines/core",
     "@lib//:protobuf",
     "//libraries/guava",
     "//android/adt-ui",
@@ -81,7 +81,7 @@ jvm_library(
     "//libraries/gson",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinx-coroutines-core",
+    "//libraries/kotlinx/coroutines/core",
     "@lib//:protobuf",
     "@lib//:junit4",
     "@lib//:kotlin-test",
@@ -152,7 +152,7 @@ jvm_library(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/lang-impl",
-    "@lib//:kotlinx-coroutines-test",
+    "//libraries/kotlinx/coroutines/test",
     "@lib//:mockito-kotlin",
   ]
 )

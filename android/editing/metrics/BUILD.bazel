@@ -44,7 +44,7 @@ jvm_library(
     "//platform/core-api:core",
     "//platform/editor-ui-api:editor-ui",
     "//platform/extensions",
-    "@lib//:kotlinx-coroutines-test",
+    "//libraries/kotlinx/coroutines/test",
     "//android/android-test-framework:testFramework_test_lib",
     "//libraries/mockito",
     "@lib//:mockito-kotlin",
