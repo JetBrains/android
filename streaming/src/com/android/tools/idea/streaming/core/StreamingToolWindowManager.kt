@@ -299,6 +299,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
         when (changeType) {
           ActivateToolWindow, ShowToolWindow, HideToolWindow, MovedOrResized -> {
+            if (StudioFlags.EMBEDDED_EMULATOR_B458422581_LOGGING.get() && changeType == ActivateToolWindow) {
+              logger.info("ToolWindowManagerListener.stateChanged: Running Devices tool window activated\n$currentStack")
+            }
             toolWindowManager.invokeLater {
               if (!toolWindow.isDisposed) {
                 if (toolWindow.isVisible) {

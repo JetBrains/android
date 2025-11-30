@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.core
 
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.StandardColors
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
@@ -26,6 +27,7 @@ import com.android.tools.idea.streaming.device.settings.DeviceMirroringSettingsP
 import com.android.tools.idea.streaming.emulator.settings.EmulatorSettingsPage
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -72,6 +74,9 @@ internal class EmptyStatePanel(
 
     addMouseListener(object : MouseAdapter() {
       override fun mousePressed(event: MouseEvent) {
+        if (StudioFlags.EMBEDDED_EMULATOR_B458422581_LOGGING.get()) {
+          this@EmptyStatePanel.thisLogger().info("EmptyStatePanel.mousePressed: requesting focus")
+        }
         requestFocusInWindow()
       }
     })
