@@ -68,6 +68,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionSt
 import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
 import com.android.tools.idea.streaming.xr.XrEnvironment
 import com.android.tools.idea.streaming.xr.XrInputMode
+import com.android.utils.TraceUtils.currentStack
 import com.google.protobuf.TextFormat.shortDebugString
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.ui.LafManagerListener
@@ -116,6 +117,7 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -451,6 +453,9 @@ class EmulatorView(
 
       addFocusListener(object : FocusListener {
         override fun focusGained(event: FocusEvent) {
+          if (StudioFlags.EMBEDDED_EMULATOR_B458422581_LOGGING.get()) {
+            this@EmulatorView.thisLogger().info("EmulatorView.focusGained\n$currentStack")
+          }
           updateCameraPromptAndMultiTouchFeedback()
         }
 
@@ -1114,6 +1119,9 @@ class EmulatorView(
     private var accumulatedScrollY = 0.0
 
     override fun mousePressed(event: MouseEvent) {
+      if (StudioFlags.EMBEDDED_EMULATOR_B458422581_LOGGING.get()) {
+        this@EmulatorView.thisLogger().info("EmulatorView.mousePressed: requesting focus")
+      }
       requestFocusInWindow()
       mouseCoordinates = event.point
       if (xrInputController?.mousePressed(event, deviceDisplaySize, deviceScaleFactor) == true) {
