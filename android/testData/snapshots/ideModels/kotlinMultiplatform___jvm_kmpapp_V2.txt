@@ -2266,7 +2266,6 @@ MODULE                        : kotlinMultiPlatform.app
             disambiguationClassifier      : jvm
             jar                           : KotlinTargetJarImpl
                 archiveFile                   : <ROOT>/app/build/libs/app-jvm.jar [-]
-                - compilations                : main (KotlinCompilationImpl) (*seen*)
             platform                      : JVM
             - testRunTasks                : KotlinTestRunTaskImpl
                 compilationName               : test
@@ -3097,7 +3096,6 @@ MODULE                        : kotlinMultiPlatform.module2
             disambiguationClassifier      : jvm
             jar                           : KotlinTargetJarImpl
                 archiveFile                   : <ROOT>/module2/build/libs/module2-jvm.jar [-]
-                - compilations                : main (KotlinCompilationImpl) (*seen*)
             platform                      : JVM
             - testRunTasks                : KotlinTestRunTaskImpl
                 compilationName               : test

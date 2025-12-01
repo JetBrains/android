@@ -1,66 +1,6 @@
 PROJECT                       : project
     PROJECT_JDK                   : <JDK_NAME>
         Version                       : <JDK_VERSION>
-    MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.app:build.gradle.kts
-        LinkedProjectId               : kotlin.scripts.KotlinProjectScriptTemplate.app:build.gradle.kts
-        RootProjectPath               : kotlin-scripts:<PROJECT> [-]
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlin.scripts.KotlinProjectScriptTemplate.app:build.gradle.kts [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlin.scripts.KotlinProjectScriptTemplate.app:build.gradle.kts [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput               : true
-        ModuleFile                    :  [-]
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : false
-            SdkType                       : JavaSDK
-            HomePath                      : <JDK_PATH>
-            VersionString                 : <JDK_VERSION>
-        BUILD_TASKS
-    MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.build.gradle.kts
-        LinkedProjectId               : kotlin.scripts.KotlinProjectScriptTemplate.build.gradle.kts
-        RootProjectPath               : kotlin-scripts:<PROJECT> [-]
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlin.scripts.KotlinProjectScriptTemplate.build.gradle.kts [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlin.scripts.KotlinProjectScriptTemplate.build.gradle.kts [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput               : true
-        ModuleFile                    :  [-]
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : false
-            SdkType                       : JavaSDK
-            HomePath                      : <JDK_PATH>
-            VersionString                 : <JDK_VERSION>
-        BUILD_TASKS
-    MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.lib:build.gradle.kts
-        LinkedProjectId               : kotlin.scripts.KotlinProjectScriptTemplate.lib:build.gradle.kts
-        RootProjectPath               : kotlin-scripts:<PROJECT> [-]
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlin.scripts.KotlinProjectScriptTemplate.lib:build.gradle.kts [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlin.scripts.KotlinProjectScriptTemplate.lib:build.gradle.kts [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput               : true
-        ModuleFile                    :  [-]
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : false
-            SdkType                       : JavaSDK
-            HomePath                      : <JDK_PATH>
-            VersionString                 : <JDK_VERSION>
-        BUILD_TASKS
-    MODULE                        : kotlin.scripts.KotlinSettingsScriptTemplate.settings.gradle.kts
-        LinkedProjectId               : kotlin.scripts.KotlinSettingsScriptTemplate.settings.gradle.kts
-        RootProjectPath               : kotlin-scripts:<PROJECT> [-]
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlin.scripts.KotlinSettingsScriptTemplate.settings.gradle.kts [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlin.scripts.KotlinSettingsScriptTemplate.settings.gradle.kts [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput               : true
-        ModuleFile                    :  [-]
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : false
-            SdkType                       : JavaSDK
-            HomePath                      : <JDK_PATH>
-            VersionString                 : <JDK_VERSION>
-        BUILD_TASKS
     MODULE                        : project
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
