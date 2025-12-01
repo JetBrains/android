@@ -84,8 +84,10 @@ sealed class PreviewMode {
    *
    * Example: entering UiCheck mode from Default mode
    *
+   * ```
    *   Default mode with            Ui Check **resizes** DesignSurface
    *   problem panel close          to show problem panel
+   *
    *    _______________             _______________
    *  |        |      |            |        |      |
    *  |        |      |            |________|______|
@@ -123,7 +125,7 @@ sealed class PreviewMode {
    *   |        | o  O |          |               |
    *   |        | o  O |          | problem panel |
    *   |________|______|          |_______________|
-   *
+   * ```
    */
   open fun expectResizeOnEnter(previousMode: PreviewMode?, project: Project): Boolean = false
 
@@ -230,8 +232,13 @@ sealed class PreviewMode {
       // this updated element.
       val newSelected =
         (newElements subtract previousElements).singleOrNull()
-        // We couldn't find any best match. Default to the first key.
-        ?: newElements.firstOrNull()
+          // Find the element that has the same annotation definition point (i.e. the name @Preview
+          // in source).
+          ?: newElements.singleOrNull {
+            selected != null && it.previewElementDefinition == selected.previewElementDefinition
+          }
+          // We couldn't find any best match. Default to the first key.
+          ?: newElements.firstOrNull()
 
       // TODO(b/292482974): Find the correct key when there are Multipreview changes
 
