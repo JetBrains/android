@@ -19,9 +19,12 @@ package com.android.tools.adtui.model
  * This class adds a name and an additional range to RangedSeries. This additional range represents
  * the Y axis to the default range which represents the x axis.
  */
-class RangedContinuousSeries @JvmOverloads constructor(val name: String,
-                                                       xRange: Range,
-                                                       val yRange: Range,
-                                                       series: DataSeries<Long>,
-                                                       intersectRange: Range = Range(-Double.MAX_VALUE, Double.MAX_VALUE))
-  : RangedSeries<Long>(xRange, series, intersectRange)
+class RangedContinuousSeries
+@JvmOverloads
+constructor(
+  val name: String,
+  xRange: Range,
+  val yRange: Range,
+  series: DataSeries<Long>,
+  intersectRange: Range = Range(-Double.MAX_VALUE, Double.MAX_VALUE),
+) : RangedSeries<Long>(xRange, series, intersectRange)

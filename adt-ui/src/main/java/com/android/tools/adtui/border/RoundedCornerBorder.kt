@@ -26,10 +26,8 @@ import java.awt.RenderingHints
 import java.awt.geom.RoundRectangle2D
 import javax.swing.border.LineBorder
 
-class RoundedCornerBorder(
-  private val cornerRadius: Float,
-  private val backgroundColor: Color,
-) : LineBorder(null, 0, true) {
+class RoundedCornerBorder(private val cornerRadius: Float, private val backgroundColor: Color) :
+  LineBorder(null, 0, true) {
 
   override fun paintBorder(c: Component, g: Graphics, x: Int, y: Int, width: Int, height: Int) {
     with(g as Graphics2D) {

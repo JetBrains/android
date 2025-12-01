@@ -41,19 +41,19 @@ import javax.swing.JSpinner
 import javax.swing.SpinnerNumberModel
 
 /**
- * The OptionsPanel control is dynamically populated based on the currently set {@link OptionsProvider}. This control will enumerate all
- * methods with the property attribute set on a given OptionsProvider object. It will then use the return type of each method to determine
- * which OptionsBinder to use in generating the UI.
+ * The OptionsPanel control is dynamically populated based on the currently set {@link
+ * OptionsProvider}. This control will enumerate all methods with the property attribute set on a
+ * given OptionsProvider object. It will then use the return type of each method to determine which
+ * OptionsBinder to use in generating the UI.
  */
 class OptionsPanel : JComponent() {
-  /**
-   * Map of return types to OptionsBinders. Values can be added or replaced in this map.
-   */
+  /** Map of return types to OptionsBinders. Values can be added or replaced in this map. */
   val binders = mutableMapOf<Class<*>, OptionsBinder>()
   private val groups = mutableMapOf<String, JPanel>()
   private var isReadOnly = true
   private var isTaskBasedUx = false
   private var option: OptionsProvider? = null
+
   init {
     layout = VerticalFlowLayout()
     // Default binders.
@@ -70,13 +70,13 @@ class OptionsPanel : JComponent() {
   }
 
   /**
-   * To map accessor / mutator / attribute functions as the same the method name should be stripped of known prefix's and suffix's.
-   * setEnabled = enabled (mutator)
-   * isEnabled = enabled (accessor)
+   * To map accessor / mutator / attribute functions as the same the method name should be stripped
+   * of known prefix's and suffix's. setEnabled = enabled (mutator) isEnabled = enabled (accessor)
    * isEnabled$annotations = enabled (static attribute)
    */
   private fun cleanMethodName(rawMethodName: String): String {
-    return rawMethodName.removePrefix("get")
+    return rawMethodName
+      .removePrefix("get")
       .removePrefix("set")
       .removePrefix("is")
       .removeSuffix("\$annotations")
@@ -91,15 +91,15 @@ class OptionsPanel : JComponent() {
     }
     val methods = option!!.javaClass.methods
     val properties = mutableMapOf<String, PropertyInfo>()
-    // In kotlin attributes can be assigned to the get/set methods directly or to the property itself. If set to the property they resolve
-    // as a static and not on the accessor/mutator for the intended property. To work around this first find all all attributes and
+    // In kotlin attributes can be assigned to the get/set methods directly or to the property
+    // itself. If set to the property they resolve
+    // as a static and not on the accessor/mutator for the intended property. To work around this
+    // first find all all attributes and
     // associated method names
     for (method in methods) {
       val methodName = cleanMethodName(method.name)
       if (method.getAnnotation(OptionsProperty::class.java) != null) {
-        val info = properties.computeIfAbsent(methodName) {
-          PropertyInfo(option!!, methodName)
-        }
+        val info = properties.computeIfAbsent(methodName) { PropertyInfo(option!!, methodName) }
         val propertyMetadata = method.getAnnotation(OptionsProperty::class.java)
         if (!propertyMetadata.name.isBlank()) {
           info.name = propertyMetadata.name
@@ -127,8 +127,7 @@ class OptionsPanel : JComponent() {
       val info = properties[methodName]!!
       if (method.parameterCount == 1) {
         info.mutator = method
-      }
-      else if (method.parameterCount == 0 && method.returnType != Void.TYPE) {
+      } else if (method.parameterCount == 0 && method.returnType != Void.TYPE) {
         info.accessor = method
         info.binder = info.binder ?: binders[info.accessor?.returnType]
       }
@@ -144,7 +143,8 @@ class OptionsPanel : JComponent() {
   }
 
   private fun buildHeader(propertyInfo: PropertyInfo?) {
-    // For task-based ux, in edit config dialog the name of the task is not displayed as a field but rather as a header. So, if there
+    // For task-based ux, in edit config dialog the name of the task is not displayed as a field but
+    // rather as a header. So, if there
     // isn't a name property, then there won't be a header.
     if (!isTaskBasedUx || propertyInfo == null) {
       return
@@ -167,14 +167,17 @@ class OptionsPanel : JComponent() {
       }
       var groupPanel = buildOrGetGroup(property.group)
       // Name property is not displayed for TaskBasedUx
-      if(!(isTaskBasedUx && property.methodName == "name")) {
+      if (!(isTaskBasedUx && property.methodName == "name")) {
         groupPanel.add(buildComponent(property))
       }
       if (!property.description.isBlank()) {
-        buildOrGetGroup(property.group).add(JLabel(property.description).apply {
-          border = JBUI.Borders.emptyLeft(20)
-          foreground = JBColor(0x4E4E4E, 0xB5B5B5)
-        })
+        buildOrGetGroup(property.group)
+          .add(
+            JLabel(property.description).apply {
+              border = JBUI.Borders.emptyLeft(20)
+              foreground = JBColor(0x4E4E4E, 0xB5B5B5)
+            }
+          )
       }
     }
     for (panel in groups.values) {
@@ -189,26 +192,35 @@ class OptionsPanel : JComponent() {
     }
     return groups.computeIfAbsent(group) {
       JPanel(VerticalFlowLayout()).apply {
-        add(JPanel(TabularLayout("Fit,10px,*", "*,*")).apply {
-          border = JBUI.Borders.emptyTop(12)
-          add(JLabel(group), TabularLayout.Constraint(0, 0))
-          add(JPanel(TabularLayout("*", "*,*"))
-                .apply {
-                  add(JSeparator(), TabularLayout.Constraint(1, 0))
-                }, TabularLayout.Constraint(0, 2))
-        })
+        add(
+          JPanel(TabularLayout("Fit,10px,*", "*,*")).apply {
+            border = JBUI.Borders.emptyTop(12)
+            add(JLabel(group), TabularLayout.Constraint(0, 0))
+            add(
+              JPanel(TabularLayout("*", "*,*")).apply {
+                add(JSeparator(), TabularLayout.Constraint(1, 0))
+              },
+              TabularLayout.Constraint(0, 2),
+            )
+          }
+        )
       }
     }
   }
 
   private fun buildComponent(data: PropertyInfo): JComponent {
-    // Use the OptionsBinder to build a UI component. If this fails or returns null, then we fallback a label with "Unknown return type".
-    val readOnly = data.mutator == null ||
-                  data.mutator?.parameterCount != 1 ||
-                  data.mutator?.parameterTypes!![0] != data.accessor?.returnType ||
-                  isReadOnly
-    val component = data.binder?.bind(data, readOnly) ?: JLabel(
-      "Unknown return type (${data.accessor?.returnType?.name}) for property \"${data.name}\"")
+    // Use the OptionsBinder to build a UI component. If this fails or returns null, then we
+    // fallback a label with "Unknown return type".
+    val readOnly =
+      data.mutator == null ||
+        data.mutator?.parameterCount != 1 ||
+        data.mutator?.parameterTypes!![0] != data.accessor?.returnType ||
+        isReadOnly
+    val component =
+      data.binder?.bind(data, readOnly)
+        ?: JLabel(
+          "Unknown return type (${data.accessor?.returnType?.name}) for property \"${data.name}\""
+        )
     component.isEnabled = !readOnly
     return component
   }
@@ -223,24 +235,29 @@ private class BooleanBinder : OptionsBinder {
   }
 }
 
-private class SliderBinder(private val min: Int, private val max: Int, private val step: Int) : OptionsBinder {
+private class SliderBinder(private val min: Int, private val max: Int, private val step: Int) :
+  OptionsBinder {
   override fun bind(data: PropertyInfo, readonly: Boolean): JComponent {
-    val valueLabel = JLabel("${data.value} ${data.unit}").apply {
-      border = JBUI.Borders.emptyLeft(5)
-      isEnabled = false
-    }
+    val valueLabel =
+      JLabel("${data.value} ${data.unit}").apply {
+        border = JBUI.Borders.emptyLeft(5)
+        isEnabled = false
+      }
     return JPanel(TabularLayout("120px,*,Fit", "*")).apply {
       border = JBUI.Borders.emptyTop(12)
       add(JLabel(data.name), TabularLayout.Constraint(0, 0))
-      add(JSlider(min, max, data.accessor?.invoke((data.provider)) as Int).apply {
-        majorTickSpacing = step
-        paintTicks = true
-        isEnabled = !readonly
-        addChangeListener {
-          data.value = this.value
-          valueLabel.text = "${data.value} ${data.unit}"
-        }
-      }, TabularLayout.Constraint(0, 1))
+      add(
+        JSlider(min, max, data.accessor?.invoke((data.provider)) as Int).apply {
+          majorTickSpacing = step
+          paintTicks = true
+          isEnabled = !readonly
+          addChangeListener {
+            data.value = this.value
+            valueLabel.text = "${data.value} ${data.unit}"
+          }
+        },
+        TabularLayout.Constraint(0, 1),
+      )
       add(valueLabel, TabularLayout.Constraint(0, 2))
     }
   }
@@ -251,12 +268,13 @@ private class IntBinder : OptionsBinder {
     return JPanel(TabularLayout("120px,Fit,Fit,Fit", "Fit")).apply {
       border = JBUI.Borders.emptyTop(12)
       add(JLabel(data.name), TabularLayout.Constraint(0, 0))
-      add(JSpinner(SpinnerNumberModel(data.value as Int, 0, 100000, 100)).apply {
-        addChangeListener {
-          data.value = this.value
-        }
-        isEnabled = !readonly
-      }, TabularLayout.Constraint(0, 1))
+      add(
+        JSpinner(SpinnerNumberModel(data.value as Int, 0, 100000, 100)).apply {
+          addChangeListener { data.value = this.value }
+          isEnabled = !readonly
+        },
+        TabularLayout.Constraint(0, 1),
+      )
       add(JLabel(data.unit), TabularLayout.Constraint(0, 2))
     }
   }
@@ -267,14 +285,19 @@ private class StringBinder : OptionsBinder {
     return JPanel(TabularLayout("120px,300px,*", "Fit")).apply {
       border = JBUI.Borders.emptyTop(12)
       add(JLabel(data.name), TabularLayout.Constraint(0, 0))
-      add(JBTextField(data.value?.toString()).apply {
-        addKeyListener(object : KeyAdapter() {
-          override fun keyReleased(e: KeyEvent) {
-            data.value = text
-          }
-        })
-        isEnabled = !readonly
-      }, TabularLayout.Constraint(0, 1))
+      add(
+        JBTextField(data.value?.toString()).apply {
+          addKeyListener(
+            object : KeyAdapter() {
+              override fun keyReleased(e: KeyEvent) {
+                data.value = text
+              }
+            }
+          )
+          isEnabled = !readonly
+        },
+        TabularLayout.Constraint(0, 1),
+      )
     }
   }
 }

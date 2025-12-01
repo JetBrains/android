@@ -17,9 +17,7 @@ package com.android.tools.adtui.stdui
 
 import com.intellij.util.ui.JBUI
 
-/**
- * Standard UI Component Dimensions.
- */
+/** Standard UI Component Dimensions. */
 object StandardDimensions {
   const val OUTER_BORDER_UNSCALED = 2
 

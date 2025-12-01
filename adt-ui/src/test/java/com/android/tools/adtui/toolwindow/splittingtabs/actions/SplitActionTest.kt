@@ -22,14 +22,17 @@ import org.junit.Test
 /**
  * Tests for [SplitAction]
  *
- * Tests of [SplitAction.actionPerformed] are in [com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanelTest] for convenience
+ * Tests of [SplitAction.actionPerformed] are in
+ * [com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanelTest] for convenience
  */
 class SplitActionTest {
   @Test
   fun presentation() {
     assertThat(SplitAction.Vertical().templatePresentation.text).isEqualTo("Split Right")
-    assertThat(SplitAction.Vertical().templatePresentation.icon).isEqualTo(AllIcons.Actions.SplitVertically)
+    assertThat(SplitAction.Vertical().templatePresentation.icon)
+      .isEqualTo(AllIcons.Actions.SplitVertically)
     assertThat(SplitAction.Horizontal().templatePresentation.text).isEqualTo("Split Down")
-    assertThat(SplitAction.Horizontal().templatePresentation.icon).isEqualTo(AllIcons.Actions.SplitHorizontally)
+    assertThat(SplitAction.Horizontal().templatePresentation.icon)
+      .isEqualTo(AllIcons.Actions.SplitHorizontally)
   }
 }

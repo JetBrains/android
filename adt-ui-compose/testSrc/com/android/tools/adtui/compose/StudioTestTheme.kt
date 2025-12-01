@@ -66,7 +66,9 @@ fun StudioTestTheme(darkMode: Boolean = false, content: @Composable () -> Unit) 
   IntUiTheme(themeDefinition, componentStyling, true) {
     val provider = remember(darkMode) { TestMarkdownFactory(darkMode) }
     val markdownStyling =
-      remember(darkMode, provider) { provider.createDefaultStyling(defaultTextStyle, editorTextStyle) }
+      remember(darkMode, provider) {
+        provider.createDefaultStyling(defaultTextStyle, editorTextStyle)
+      }
     val markdownProcessor = remember { MarkdownProcessor() }
     val blockRenderer = remember(markdownStyling) { MarkdownBlockRenderer.create(markdownStyling) }
 

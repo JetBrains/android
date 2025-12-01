@@ -34,19 +34,17 @@ import javax.swing.text.Document
 private const val EDIT_TEXT = "Edit"
 private const val DONE_TEXT = "Done"
 
-/**
- * A label with an "edit" button that turns it into a text field
- */
+/** A label with an "edit" button that turns it into a text field */
 class LabelWithEditButton(defaultValue: String = "") : JPanel(), DocumentAccessor {
-  val button = JToggleButton(EDIT_TEXT).apply {
-    addActionListener {
-      text = if (isSelected) DONE_TEXT else EDIT_TEXT
+  val button =
+    JToggleButton(EDIT_TEXT).apply {
+      addActionListener { text = if (isSelected) DONE_TEXT else EDIT_TEXT }
     }
-  }
-  val textField: JTextField = SometimesEditableTextField(defaultValue).apply {
-    isEnabled = false
-    font = StartupUiUtil.labelFont
-  }
+  val textField: JTextField =
+    SometimesEditableTextField(defaultValue).apply {
+      isEnabled = false
+      font = StartupUiUtil.labelFont
+    }
 
   val panel = panel {
     row {
@@ -73,7 +71,8 @@ class LabelWithEditButton(defaultValue: String = "") : JPanel(), DocumentAccesso
   override fun setFont(font: Font) {
     super.setFont(font)
 
-    // Swing seems to abuse reflection. It tries to set the default look and feel before proper class initialization
+    // Swing seems to abuse reflection. It tries to set the default look and feel before proper
+    // class initialization
     @Suppress("UNNECESSARY_SAFE_CALL")
     textField?.font = font
   }
@@ -81,9 +80,12 @@ class LabelWithEditButton(defaultValue: String = "") : JPanel(), DocumentAccesso
   override fun getDocument(): Document = textField.document
 }
 
-private class SometimesEditableTextField(text: String): JTextField(text) {
-  override fun getBorder(): Border? = if (isEnabled) super.getBorder() else BorderFactory.createEmptyBorder()
-  override fun getBackground(): Color? = if (isEnabled || parent == null) super.getBackground() else parent.background
+private class SometimesEditableTextField(text: String) : JTextField(text) {
+  override fun getBorder(): Border? =
+    if (isEnabled) super.getBorder() else BorderFactory.createEmptyBorder()
+
+  override fun getBackground(): Color? =
+    if (isEnabled || parent == null) super.getBackground() else parent.background
 }
 
 private fun Cell<*>.focusInWindowIf(predicate: ComponentPredicate): Cell<*> {
@@ -93,4 +95,3 @@ private fun Cell<*>.focusInWindowIf(predicate: ComponentPredicate): Cell<*> {
   predicate.addListener { component.requestFocusInWindow() }
   return this
 }
-

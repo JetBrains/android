@@ -27,8 +27,8 @@ import com.android.tools.adtui.model.legend.Legend
 import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
-import org.junit.Test
 import java.awt.Color
+import org.junit.Test
 
 class LegendComponentTest {
   @Test
@@ -38,9 +38,12 @@ class LegendComponentTest {
     val legend1 = FakeLegend("Name1")
     val legend2 = FakeLegend("Name2")
     val legend3 = FakeLegend("Name3", "Value3")
-    val legendComponent = LegendComponent.Builder(model).setVerticalPadding(0).setHorizontalPadding(0).build()
-    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always early-return during an update if
-    // isShowing() == false, as an optimization to reduce the number of queries made to the dataseries/datastore.
+    val legendComponent =
+      LegendComponent.Builder(model).setVerticalPadding(0).setHorizontalPadding(0).build()
+    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
+    // early-return during an update if
+    // isShowing() == false, as an optimization to reduce the number of queries made to the
+    // dataseries/datastore.
     legendComponent.addNotify()
 
     assertThat(legendComponent.instructions.size).isEqualTo(0)
@@ -99,9 +102,12 @@ class LegendComponentTest {
     val croppedIcon = LegendComponent.cropAndCacheIcon(icon)
     val config4 = LegendConfig({ s -> if ("Value4" == s) icon else null }, Color.RED)
 
-    val legendComponent = LegendComponent.Builder(model).setVerticalPadding(0).setHorizontalPadding(0).build()
-    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always early-return during an update if
-    // isShowing() == false, as an optimization to reduce the number of queries made to the dataseries/datastore.
+    val legendComponent =
+      LegendComponent.Builder(model).setVerticalPadding(0).setHorizontalPadding(0).build()
+    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
+    // early-return during an update if
+    // isShowing() == false, as an optimization to reduce the number of queries made to the
+    // dataseries/datastore.
     legendComponent.addNotify()
     legendComponent.configure(legend2, config2)
     legendComponent.configure(legend3, config3)
@@ -124,7 +130,8 @@ class LegendComponentTest {
 
     model.add(legend4)
     modifyRange(range)
-    assertThat(legendComponent.instructions.filterIsInstance<IconInstruction>().map { it.icon }).containsExactly(croppedIcon)
+    assertThat(legendComponent.instructions.filterIsInstance<IconInstruction>().map { it.icon })
+      .containsExactly(croppedIcon)
   }
 
   @Test
@@ -135,9 +142,12 @@ class LegendComponentTest {
     val legend2 = FakeLegend("Test2", "Value2")
     val legend3 = FakeLegend("Test3", "Value3")
 
-    val legendComponent = LegendComponent.Builder(model).setOrientation(LegendComponent.Orientation.VERTICAL).build()
-    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always early-return during an update if
-    // isShowing() == false, as an optimization to reduce the number of queries made to the dataseries/datastore.
+    val legendComponent =
+      LegendComponent.Builder(model).setOrientation(LegendComponent.Orientation.VERTICAL).build()
+    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
+    // early-return during an update if
+    // isShowing() == false, as an optimization to reduce the number of queries made to the
+    // dataseries/datastore.
     legendComponent.addNotify()
 
     assertThat(legendComponent.instructions.size).isEqualTo(0)
@@ -162,10 +172,11 @@ class LegendComponentTest {
 
     val CRAZY_LARGE_X_PADDING = 123
     val CRAZY_LARGE_Y_PADDING = 321
-    val legendComponent = LegendComponent.Builder(model).
-        setHorizontalPadding(CRAZY_LARGE_X_PADDING).
-        setVerticalPadding(CRAZY_LARGE_Y_PADDING).
-        build()
+    val legendComponent =
+      LegendComponent.Builder(model)
+        .setHorizontalPadding(CRAZY_LARGE_X_PADDING)
+        .setVerticalPadding(CRAZY_LARGE_Y_PADDING)
+        .build()
 
     assertThat(legendComponent.preferredSize.width).isEqualTo(CRAZY_LARGE_X_PADDING * 2)
     assertThat(legendComponent.preferredSize.height).isEqualTo(CRAZY_LARGE_Y_PADDING * 2)
@@ -181,8 +192,10 @@ class LegendComponentTest {
     model.add(legend2)
 
     val legendComponent = LegendComponent(model)
-    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always early-return during an update if
-    // isShowing() == false, as an optimization to reduce the number of queries made to the dataseries/datastore.
+    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
+    // early-return during an update if
+    // isShowing() == false, as an optimization to reduce the number of queries made to the
+    // dataseries/datastore.
     legendComponent.addNotify()
 
     // Horizontal legend adds gaps between entries. We don't want to count those later in the test.
@@ -197,27 +210,32 @@ class LegendComponentTest {
     // Gap needed to maintain max size
     legend1.setValue("0 b/s")
     modifyRange(range)
-    assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
+    assertThat(legendComponent.instructions.count { it is GapInstruction })
+      .isEqualTo(gapBaseline + 1)
 
     // Gap still needed to maintain max size
     legend1.setValue("123 b/s")
     modifyRange(range)
-    assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
+    assertThat(legendComponent.instructions.count { it is GapInstruction })
+      .isEqualTo(gapBaseline + 1)
 
     // Long text makes for a new max size (in legend 2)
     legend2.setValue("9001 b/s")
     modifyRange(range)
-    assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
+    assertThat(legendComponent.instructions.count { it is GapInstruction })
+      .isEqualTo(gapBaseline + 1)
 
     // Now both legends have gaps
     legend2.setValue("0 b/s")
     modifyRange(range)
-    assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 2)
+    assertThat(legendComponent.instructions.count { it is GapInstruction })
+      .isEqualTo(gapBaseline + 2)
 
     // Gap no longer needed in legend 1
     legend1.setValue("123456789 b/s")
     modifyRange(range)
-    assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
+    assertThat(legendComponent.instructions.count { it is GapInstruction })
+      .isEqualTo(gapBaseline + 1)
   }
 
   @Test
@@ -227,9 +245,12 @@ class LegendComponentTest {
     val legend = FakeLegend("Test1", "0 b/s")
     model.add(legend)
 
-    val legendComponent = LegendComponent.Builder(model).setOrientation(Orientation.VERTICAL).build()
-    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always early-return during an update if
-    // isShowing() == false, as an optimization to reduce the number of queries made to the dataseries/datastore.
+    val legendComponent =
+      LegendComponent.Builder(model).setOrientation(Orientation.VERTICAL).build()
+    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
+    // early-return during an update if
+    // isShowing() == false, as an optimization to reduce the number of queries made to the
+    // dataseries/datastore.
     legendComponent.addNotify()
 
     // Horizontal legend adds gaps between entries. We don't want to count those later in the test.
@@ -254,8 +275,10 @@ class LegendComponentTest {
     model.add(legend)
 
     val legendComponent = LegendComponent(model)
-    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always early-return during an update if
-    // isShowing() == false, as an optimization to reduce the number of queries made to the dataseries/datastore.
+    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
+    // early-return during an update if
+    // isShowing() == false, as an optimization to reduce the number of queries made to the
+    // dataseries/datastore.
     legendComponent.addNotify()
 
     val initialWidth = legendComponent.preferredSize.width
@@ -281,9 +304,12 @@ class LegendComponentTest {
   fun gapAndIconTotalWidthForVerticalLegendsKeepTheSame() {
     val range = Range(0.0, 0.0)
     val model = LegendComponentModel(range)
-    val legendComponent = LegendComponent.Builder(model).setOrientation(Orientation.VERTICAL).build()
-    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always early-return during an update if
-    // isShowing() == false, as an optimization to reduce the number of queries made to the dataseries/datastore.
+    val legendComponent =
+      LegendComponent.Builder(model).setOrientation(Orientation.VERTICAL).build()
+    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
+    // early-return during an update if
+    // isShowing() == false, as an optimization to reduce the number of queries made to the
+    // dataseries/datastore.
     legendComponent.addNotify()
 
     for (type in LegendConfig.IconType.values()) {
@@ -292,8 +318,7 @@ class LegendComponentTest {
         val legendConfig =
           if (type == LegendConfig.IconType.CUSTOM)
             LegendConfig({ _ -> AllIcons.General.Add }, Color.RED)
-          else
-            LegendConfig(type, Color.BLUE)
+          else LegendConfig(type, Color.BLUE)
         legendComponent.configure(legend, legendConfig)
         model.add(legend)
       }
@@ -304,7 +329,8 @@ class LegendComponentTest {
     val first = instructions.first { it is LegendIconInstruction }
     val getNext = { item: RenderInstruction -> instructions.get(instructions.indexOf(item) + 1) }
     instructions.filterIsInstance<LegendIconInstruction>().forEach {
-      assertThat(it.size.width + getNext(it).size.width).isEqualTo(first.size.width + getNext(first).size.width)
+      assertThat(it.size.width + getNext(it).size.width)
+        .isEqualTo(first.size.width + getNext(first).size.width)
     }
   }
 
@@ -317,16 +343,20 @@ class LegendComponentTest {
     val model = LegendComponentModel(range)
     model.add(FakeLegend("test", "1 b/s"))
     var legendComponent = LegendComponent(model)
-    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always early-return during an update if
-    // isShowing() == false, as an optimization to reduce the number of queries made to the dataseries/datastore.
+    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
+    // early-return during an update if
+    // isShowing() == false, as an optimization to reduce the number of queries made to the
+    // dataseries/datastore.
     legendComponent.addNotify()
 
     modifyRange(range)
     assertText(legendComponent, listOf("$name: ", value))
 
     legendComponent = LegendComponent(model)
-    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always early-return during an update if
-    // isShowing() == false, as an optimization to reduce the number of queries made to the dataseries/datastore.
+    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
+    // early-return during an update if
+    // isShowing() == false, as an optimization to reduce the number of queries made to the
+    // dataseries/datastore.
     legendComponent.addNotify()
 
     modifyRange(range)
@@ -338,7 +368,8 @@ class LegendComponentTest {
     val range = Range(0.0, 0.0)
     val model = LegendComponentModel(range)
     val legend = FakeLegend("Name", "Value")
-    val legendComponent = LegendComponent.Builder(model).setVerticalPadding(0).setHorizontalPadding(0).build()
+    val legendComponent =
+      LegendComponent.Builder(model).setVerticalPadding(0).setHorizontalPadding(0).build()
 
     model.add(legend)
     modifyRange(range) // Some valid range that is different from what it was before (0.0, 0.0).
@@ -353,8 +384,10 @@ class LegendComponentTest {
     val range = Range(0.0, 0.0)
     val model = LegendComponentModel(range)
     val legendComponent = LegendComponent.Builder(model).build()
-    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always early-return during an update if
-    // isShowing() == false, as an optimization to reduce the number of queries made to the dataseries/datastore.
+    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
+    // early-return during an update if
+    // isShowing() == false, as an optimization to reduce the number of queries made to the
+    // dataseries/datastore.
     legendComponent.addNotify()
 
     // If name is empty (e.g. icon legend), we should not create an TextInstruction for it.
@@ -371,11 +404,12 @@ class LegendComponentTest {
     val model = LegendComponentModel(Range(0.0, 0.0))
     val legends = makeSimpleLegends(3)
 
-    fun make(showValues: Boolean) = LegendComponent.Builder(model)
-      .setShowValues(showValues)
-      .build().apply {
-        // Hack to force legendComponent's isShowing() to return true. The LegendComponent always early-return during an update if
-        // isShowing() == false, as an optimization to reduce the number of queries made to the dataseries/datastore.
+    fun make(showValues: Boolean) =
+      LegendComponent.Builder(model).setShowValues(showValues).build().apply {
+        // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
+        // early-return during an update if
+        // isShowing() == false, as an optimization to reduce the number of queries made to the
+        // dataseries/datastore.
         addNotify()
       }
 
@@ -392,11 +426,12 @@ class LegendComponentTest {
     val model = LegendComponentModel(Range(0.0, 0.0))
     val legends = makeSimpleLegends(3)
 
-    fun make(vararg excluded: String) = LegendComponent.Builder(model)
-      .setExcludedLegends(*excluded)
-      .build().apply {
-        // Hack to force legendComponent's isShowing() to return true. The LegendComponent always early-return during an update if
-        // isShowing() == false, as an optimization to reduce the number of queries made to the dataseries/datastore.
+    fun make(vararg excluded: String) =
+      LegendComponent.Builder(model).setExcludedLegends(*excluded).build().apply {
+        // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
+        // early-return during an update if
+        // isShowing() == false, as an optimization to reduce the number of queries made to the
+        // dataseries/datastore.
         addNotify()
       }
 
@@ -408,16 +443,18 @@ class LegendComponentTest {
     assertThat(partLegend.preferredSize.width).isLessThan(fullLegend.preferredSize.width)
   }
 
-  private fun makeSimpleLegends(n: Int) = (1 .. n).map { FakeLegend("Test$it", "Value$it") }
+  private fun makeSimpleLegends(n: Int) = (1..n).map { FakeLegend("Test$it", "Value$it") }
 
   private fun assertText(legend: LegendComponent, text: List<String>) {
     assertThat(legend.instructions.filterIsInstance<TextInstruction>().map { it.text })
-      .containsExactlyElementsIn(text).inOrder()
+      .containsExactlyElementsIn(text)
+      .inOrder()
   }
 
   private fun assertIcons(legend: LegendComponent, icons: List<LegendConfig.IconType>) {
     assertThat(legend.instructions.filterIsInstance<LegendIconInstruction>().map { it.myType })
-      .containsExactlyElementsIn(icons).inOrder()
+      .containsExactlyElementsIn(icons)
+      .inOrder()
   }
 
   // Modifies the Range such that it will change the Range.
@@ -430,8 +467,11 @@ class LegendComponentTest {
     // getter functions "getName" and "getValue"
     private val _name = name
     private var _value = value
+
     override fun getName(): String = _name
+
     override fun getValue(): String? = _value
+
     fun setValue(value: String) {
       _value = value
     }

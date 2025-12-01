@@ -62,7 +62,7 @@ internal sealed class RowComponent<T> : JBPanel<RowComponent<T>>(), TableCompone
   /** Updates the display of the row based on the current selection status. */
   override fun updateTablePresentation(
     manager: TablePresentationManager,
-    presentation: TablePresentation
+    presentation: TablePresentation,
   ) {
     rowSelected = presentation.rowSelected
     manager.defaultApplyPresentation(this, presentation)
@@ -128,7 +128,7 @@ internal class ValueRowComponent<T>(
   header: JTableHeader,
   columns: ColumnList<T>,
   initialValue: T,
-  primaryKey: Any
+  primaryKey: Any,
 ) : RowComponent<T>(), UiDataProvider {
   private val mouseDelegate = DelegateMouseEventHandler.delegateTo(this)
 
@@ -201,6 +201,7 @@ internal class ValueRowComponent<T>(
   ) {
     val component =
       column.createUi(initialValue).also { column.installMouseDelegate(it, mouseDelegate) }
+
     fun updateValue(rowValue: T) {
       column.updateValue(rowValue, component, column.attribute.value(rowValue))
     }
@@ -214,10 +215,11 @@ internal class ValueRowComponent<T>(
 typealias ValueRowDataProvider<T> = (DataSink, T) -> Unit
 
 object NullValueRowDataProvider : ValueRowDataProvider<Any?> {
-  override fun invoke(p1: DataSink, p2: Any?) { }
+  override fun invoke(p1: DataSink, p2: Any?) {}
 }
 
-class DefaultValueRowDataProvider<T: Any>(private val dataKey: DataKey<T>) : ValueRowDataProvider<T> {
+class DefaultValueRowDataProvider<T : Any>(private val dataKey: DataKey<T>) :
+  ValueRowDataProvider<T> {
   override fun invoke(sink: DataSink, value: T) {
     sink[dataKey] = value
   }
@@ -288,7 +290,7 @@ private class ValueRowLayout(val header: JTableHeader) : LayoutManager {
             component == row.hoveredComponent -> max(width[i], component.preferredWidth)
             else -> width[i]
           },
-          parent.height
+          parent.height,
         )
         component.isVisible = true
       } else {

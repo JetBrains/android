@@ -25,24 +25,23 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.Content
-import org.junit.Rule
-import org.junit.Test
 import javax.swing.JComponent
 import javax.swing.JPanel
+import org.junit.Rule
+import org.junit.Test
 
-/**
- * Tests for [MoveTabAction]
- */
+/** Tests for [MoveTabAction] */
 class MoveTabActionTest {
-  //@get:Rule
+  // @get:Rule
   private val projectRule = ProjectRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, EdtRule())
 
   private val moveLeftAction = MoveTabAction.Left()
   private val moveRightAction = MoveTabAction.Right()
-  private val toolWindow  by lazy { ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)}
+  private val toolWindow by lazy {
+    ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)
+  }
   private val content1 by lazy { createContent(toolWindow) }
   private val content2 by lazy { createContent(toolWindow) }
   private val content3 by lazy { createContent(toolWindow) }
@@ -74,7 +73,10 @@ class MoveTabActionTest {
 
     moveLeftAction.actionPerformed(content1)
 
-    assertThat(toolWindow.contentManager.contents).asList().containsExactly(content1, content2, content3).inOrder()
+    assertThat(toolWindow.contentManager.contents)
+      .asList()
+      .containsExactly(content1, content2, content3)
+      .inOrder()
   }
 
   @Test
@@ -85,7 +87,10 @@ class MoveTabActionTest {
 
     moveRightAction.actionPerformed(content3)
 
-    assertThat(toolWindow.contentManager.contents).asList().containsExactly(content1, content2, content3).inOrder()
+    assertThat(toolWindow.contentManager.contents)
+      .asList()
+      .containsExactly(content1, content2, content3)
+      .inOrder()
   }
 
   @Test
@@ -96,7 +101,10 @@ class MoveTabActionTest {
 
     moveLeftAction.actionPerformed(content2)
 
-    assertThat(toolWindow.contentManager.contents).asList().containsExactly(content2, content1, content3).inOrder()
+    assertThat(toolWindow.contentManager.contents)
+      .asList()
+      .containsExactly(content2, content1, content3)
+      .inOrder()
   }
 
   @Test
@@ -107,10 +115,17 @@ class MoveTabActionTest {
 
     moveRightAction.actionPerformed(content2)
 
-    assertThat(toolWindow.contentManager.contents).asList().containsExactly(content1, content3, content2).inOrder()
+    assertThat(toolWindow.contentManager.contents)
+      .asList()
+      .containsExactly(content1, content3, content2)
+      .inOrder()
   }
 
-  private fun assertActionsEnabledState(content: Content, leftEnabled: Boolean, rightEnabled: Boolean) {
+  private fun assertActionsEnabledState(
+    content: Content,
+    leftEnabled: Boolean,
+    rightEnabled: Boolean,
+  ) {
     val presentation = Presentation()
     assertThat(presentation.isVisible).isTrue()
     assertThat(moveLeftAction.isEnabled(content)).isEqualTo(leftEnabled)
@@ -121,8 +136,16 @@ class MoveTabActionTest {
 
   private fun createContent(toolWindow: ToolWindowHeadlessManagerImpl.MockToolWindow) =
     toolWindow.contentManager.factory.createContent(null, "Content", false).also {
-      it.component = SplittingPanel(it, null, object : ChildComponentFactory {
-        override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = JPanel()
-      })
+      it.component =
+        SplittingPanel(
+          it,
+          null,
+          object : ChildComponentFactory {
+            override fun createChildComponent(
+              state: String?,
+              popupActionGroup: DefaultActionGroup,
+            ): JComponent = JPanel()
+          },
+        )
     }
 }

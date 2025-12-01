@@ -18,9 +18,7 @@ package com.android.tools.adtui.toolwindow.splittingtabs
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import javax.swing.JComponent
 
-/**
- * A factory that creates the child component of a [SplittingPanel]
- */
+/** A factory that creates the child component of a [SplittingPanel] */
 internal interface ChildComponentFactory {
   /**
    * Creates a child component.

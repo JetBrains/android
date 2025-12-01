@@ -39,8 +39,8 @@ import javax.swing.ListCellRenderer
  * Note to contributors: As methods are implemented, please move them towards the top of the file.
  */
 internal class FakePopupChooserBuilder<T>(
-    private val factory: FakeJBPopupFactory,
-    private val list: List<T>
+  private val factory: FakeJBPopupFactory,
+  private val list: List<T>,
 ) : IPopupChooserBuilder<T> {
 
   private var isMovable: Boolean? = null
@@ -80,7 +80,7 @@ internal class FakePopupChooserBuilder<T>(
   // PLEASE KEEP UNIMPLEMENTED METHODS ONLY BELOW THIS COMMENT
 
   override fun setItemsChosenCallback(
-      callback: Consumer<in MutableSet<out T>>
+    callback: Consumer<in MutableSet<out T>>
   ): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
@@ -126,7 +126,7 @@ internal class FakePopupChooserBuilder<T>(
   }
 
   override fun setAutoPackHeightOnFiltering(
-      autoPackHeightOnFiltering: Boolean
+    autoPackHeightOnFiltering: Boolean
   ): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
@@ -140,8 +140,8 @@ internal class FakePopupChooserBuilder<T>(
   }
 
   override fun registerKeyboardAction(
-      keyStroke: KeyStroke?,
-      actionListener: ActionListener?
+    keyStroke: KeyStroke?,
+    actionListener: ActionListener?,
   ): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
@@ -183,7 +183,7 @@ internal class FakePopupChooserBuilder<T>(
   }
 
   override fun setCancelOnWindowDeactivation(
-      cancelOnWindowDeactivation: Boolean
+    cancelOnWindowDeactivation: Boolean
   ): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }

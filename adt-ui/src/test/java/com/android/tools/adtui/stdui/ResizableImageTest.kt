@@ -16,10 +16,10 @@
 package com.android.tools.adtui.stdui
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
+import org.junit.Test
 
 class ResizableImageTest {
 

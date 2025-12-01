@@ -17,7 +17,8 @@ package com.android.tools.adtui.model.stdui
 
 import javax.swing.DefaultComboBoxModel
 
-open class DefaultCommonComboBoxModel<Item>(initialValue: String) : DefaultComboBoxModel<Item>(), CommonComboBoxModel<Item> {
+open class DefaultCommonComboBoxModel<Item>(initialValue: String) :
+  DefaultComboBoxModel<Item>(), CommonComboBoxModel<Item> {
   private val listeners = mutableListOf<ValueChangedListener>()
 
   constructor(initialValue: String, elements: List<Item>) : this(initialValue) {

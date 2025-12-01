@@ -29,23 +29,29 @@ class EnergyAxisFormatterTest {
   fun testGlobalRangeIsLow() {
     assertThat(EnergyAxisFormatter.DEFAULT.getMajorInterval(200.0)).isEqualTo(200L)
     assertThat(EnergyAxisFormatter.DEFAULT.getMajorInterval(100.0)).isEqualTo(100L)
-    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(200.0, 100.0, false)).isEqualTo("Light")
+    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(200.0, 100.0, false))
+      .isEqualTo("Light")
   }
 
   @Test
   fun testGlobalRangeIsMedium() {
     assertThat(EnergyAxisFormatter.DEFAULT.getMajorInterval(400.0)).isEqualTo(200L)
     assertThat(EnergyAxisFormatter.DEFAULT.getMajorInterval(300.0)).isEqualTo(200L)
-    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(300.0, 300.0, false)).isEqualTo("Medium")
-    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(300.0, 200.0, false)).isEqualTo("Light")
+    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(300.0, 300.0, false))
+      .isEqualTo("Medium")
+    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(300.0, 200.0, false))
+      .isEqualTo("Light")
   }
 
   @Test
   fun testGlobalRangeIsHeavy() {
     assertThat(EnergyAxisFormatter.DEFAULT.getMajorInterval(600.0)).isEqualTo(200L)
-    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(600.0, 500.0, false)).isEqualTo("Heavy")
-    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(600.0, 300.0, false)).isEqualTo("Medium")
-    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(600.0, 100.0, false)).isEqualTo("Light")
+    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(600.0, 500.0, false))
+      .isEqualTo("Heavy")
+    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(600.0, 300.0, false))
+      .isEqualTo("Medium")
+    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(600.0, 100.0, false))
+      .isEqualTo("Light")
   }
 
   @Test
@@ -53,25 +59,33 @@ class EnergyAxisFormatterTest {
     assertThat(EnergyAxisFormatter.DEFAULT.getMajorInterval(700.0)).isEqualTo(200L)
     // The largest marker is at 600 and 700 do not repeat the "HEAVY" marker.
     assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(700.0, 700.0, false)).isEqualTo("")
-    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(700.0, 600.0, false)).isEqualTo("Heavy")
-    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(700.0, 300.0, false)).isEqualTo("Medium")
-    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(700.0, 200.0, false)).isEqualTo("Light")
-    assertThat(EnergyAxisFormatter.LEGEND_FORMATTER.getFormattedString(700.0, 700.0, false)).isEqualTo("Heavy")
+    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(700.0, 600.0, false))
+      .isEqualTo("Heavy")
+    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(700.0, 300.0, false))
+      .isEqualTo("Medium")
+    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(700.0, 200.0, false))
+      .isEqualTo("Light")
+    assertThat(EnergyAxisFormatter.LEGEND_FORMATTER.getFormattedString(700.0, 700.0, false))
+      .isEqualTo("Heavy")
   }
 
   @Test
   fun testGlobalRangeTooLargeToDisplayLow() {
     assertThat(EnergyAxisFormatter.DEFAULT.getMajorInterval(800.0)).isEqualTo(300L)
     assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(800.0, 800.0, false)).isEqualTo("")
-    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(800.0, 600.0, false)).isEqualTo("Heavy")
-    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(800.0, 300.0, false)).isEqualTo("Medium")
-    assertThat(EnergyAxisFormatter.LEGEND_FORMATTER.getFormattedString(800.0, 800.0, false)).isEqualTo("Heavy")
+    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(800.0, 600.0, false))
+      .isEqualTo("Heavy")
+    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(800.0, 300.0, false))
+      .isEqualTo("Medium")
+    assertThat(EnergyAxisFormatter.LEGEND_FORMATTER.getFormattedString(800.0, 800.0, false))
+      .isEqualTo("Heavy")
   }
 
   @Test
   fun testGlobalRangeTooLargeToDisplayMedium() {
     assertThat(EnergyAxisFormatter.DEFAULT.getMajorInterval(1300.0)).isEqualTo(600L)
-    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(1300.0, 600.0, false)).isEqualTo("Heavy")
+    assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(1300.0, 600.0, false))
+      .isEqualTo("Heavy")
     assertThat(EnergyAxisFormatter.DEFAULT.getFormattedString(1300.0, 1200.0, false)).isEqualTo("")
   }
 }

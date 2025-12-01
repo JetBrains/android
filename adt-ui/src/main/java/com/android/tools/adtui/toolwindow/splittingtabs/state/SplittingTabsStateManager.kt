@@ -33,9 +33,10 @@ internal class SplittingTabsStateManager : PersistentStateComponent<SplittingTab
     val toolWindowStates = mutableListOf<ToolWindowState>()
     for (toolWindow in toolWindows) {
       val contentManager = toolWindow.contentManager
-      val states = contentManager.contents.map {
-        TabState(it.tabName, SplittingPanel.buildStateFromComponent(it.component))
-      }
+      val states =
+        contentManager.contents.map {
+          TabState(it.tabName, SplittingPanel.buildStateFromComponent(it.component))
+        }
 
       val selectedContent = contentManager.selectedContent
       val index = selectedContent?.let { contentManager.getIndexOfContent(selectedContent) } ?: -1
@@ -52,9 +53,11 @@ internal class SplittingTabsStateManager : PersistentStateComponent<SplittingTab
     toolWindows.add(toolWindow)
   }
 
-  fun getToolWindowState(toolWindowId: String): ToolWindowState = toolWindowStates?.get(toolWindowId) ?: ToolWindowState()
+  fun getToolWindowState(toolWindowId: String): ToolWindowState =
+    toolWindowStates?.get(toolWindowId) ?: ToolWindowState()
 
   companion object {
-    fun getInstance(project: Project): SplittingTabsStateManager = project.getService(SplittingTabsStateManager::class.java)
+    fun getInstance(project: Project): SplittingTabsStateManager =
+      project.getService(SplittingTabsStateManager::class.java)
   }
 }

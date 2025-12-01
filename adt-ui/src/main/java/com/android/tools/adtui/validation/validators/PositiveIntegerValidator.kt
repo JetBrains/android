@@ -18,13 +18,16 @@ package com.android.tools.adtui.validation.validators
 import com.android.tools.adtui.validation.Validator
 
 /**
- * A validator that returns valid when the integer value it is testing against is positive.
- * Note that 0 is not a positive integer.
+ * A validator that returns valid when the integer value it is testing against is positive. Note
+ * that 0 is not a positive integer.
  */
-class PositiveIntegerValidator @JvmOverloads constructor(severity: Validator.Severity = Validator.Severity.ERROR, message: String)
-  : Validator<Int> {
+class PositiveIntegerValidator
+@JvmOverloads
+constructor(severity: Validator.Severity = Validator.Severity.ERROR, message: String) :
+  Validator<Int> {
 
   private val invalidResult = Validator.Result(severity, message)
 
-  override fun validate(value: Int): Validator.Result = if (value > 0) Validator.Result.OK else invalidResult
+  override fun validate(value: Int): Validator.Result =
+    if (value > 0) Validator.Result.OK else invalidResult
 }

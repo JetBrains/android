@@ -28,8 +28,8 @@ import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 
 /**
- * This sample composable showcasing the different button components was adapted from the public Jewel repository standalone sample.
- * See: https://github.com/JetBrains/jewel
+ * This sample composable showcasing the different button components was adapted from the public
+ * Jewel repository standalone sample. See: https://github.com/JetBrains/jewel
  */
 @Composable
 fun Buttons() {
@@ -39,20 +39,12 @@ fun Buttons() {
     horizontalArrangement = Arrangement.spacedBy(16.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    OutlinedButton(onClick = { }) {
-      Text("Outlined")
-    }
+    OutlinedButton(onClick = {}) { Text("Outlined") }
 
-    OutlinedButton(onClick = {}, enabled = false) {
-      Text("Outlined Disabled")
-    }
+    OutlinedButton(onClick = {}, enabled = false) { Text("Outlined Disabled") }
 
-    DefaultButton(onClick = {}) {
-      Text("Default")
-    }
+    DefaultButton(onClick = {}) { Text("Default") }
 
-    DefaultButton(onClick = {}, enabled = false) {
-      Text("Default disabled")
-    }
+    DefaultButton(onClick = {}, enabled = false) { Text("Default disabled") }
   }
 }

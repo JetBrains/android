@@ -22,8 +22,8 @@ import com.android.tools.adtui.toolwindow.splittingtabs.findFirstSplitter
 import com.intellij.ui.content.Content
 
 @Suppress("ComponentNotRegistered")
-internal sealed class SplitAction(private val orientation: SplitOrientation)
-  : SplittingTabsContextMenuAction(orientation.text) {
+internal sealed class SplitAction(private val orientation: SplitOrientation) :
+  SplittingTabsContextMenuAction(orientation.text) {
 
   init {
     templatePresentation.icon = orientation.icon

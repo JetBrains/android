@@ -18,9 +18,7 @@ package com.android.tools.adtui.stdui
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 
-/**
- * Label with a small font.
- */
+/** Label with a small font. */
 class SmallTextLabel(text: String) : JBLabel(text) {
   override fun updateUI() {
     super.updateUI()

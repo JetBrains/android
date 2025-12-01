@@ -15,7 +15,5 @@
  */
 package com.android.tools.adtui.model
 
-/**
- * This class stores key-value ([.x] as a key) data.
- */
+/** This class stores key-value ([.x] as a key) data. */
 data class SeriesData<T>(@JvmField val x: Long, @JvmField var value: T)

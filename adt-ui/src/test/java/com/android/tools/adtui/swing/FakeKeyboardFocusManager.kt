@@ -47,12 +47,20 @@ class FakeKeyboardFocusManager(parentDisposable: Disposable) : DefaultKeyboardFo
     setFocusOwner(newFocusOwner, false)
   }
 
-  fun setFocusOwner(newFocusOwner: Component?, temporary: Boolean, cause: FocusEvent.Cause = FocusEvent.Cause.UNKNOWN) {
+  fun setFocusOwner(
+    newFocusOwner: Component?,
+    temporary: Boolean,
+    cause: FocusEvent.Cause = FocusEvent.Cause.UNKNOWN,
+  ) {
     if (newFocusOwner != focusOwner) {
       val oldFocusOwner = focusOwner
       focusOwner = newFocusOwner
-      oldFocusOwner?.focusListeners?.forEach { it.focusLost(FocusEvent(oldFocusOwner, FOCUS_LOST, temporary, newFocusOwner, cause)) }
-      newFocusOwner?.focusListeners?.forEach { it.focusGained(FocusEvent(newFocusOwner, FOCUS_GAINED, temporary, oldFocusOwner, cause)) }
+      oldFocusOwner?.focusListeners?.forEach {
+        it.focusLost(FocusEvent(oldFocusOwner, FOCUS_LOST, temporary, newFocusOwner, cause))
+      }
+      newFocusOwner?.focusListeners?.forEach {
+        it.focusGained(FocusEvent(newFocusOwner, FOCUS_GAINED, temporary, oldFocusOwner, cause))
+      }
       firePropertyChange("focusOwner", oldFocusOwner, newFocusOwner)
       if (!temporary) {
         firePropertyChange("permanentFocusOwner", oldFocusOwner, newFocusOwner)
@@ -71,6 +79,8 @@ class FakeKeyboardFocusManager(parentDisposable: Disposable) : DefaultKeyboardFo
  */
 fun replaceKeyboardFocusManager(focusManager: KeyboardFocusManager, parentDisposable: Disposable) {
   val originalFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
-  Disposer.register(parentDisposable) { KeyboardFocusManager.setCurrentKeyboardFocusManager(originalFocusManager) }
+  Disposer.register(parentDisposable) {
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(originalFocusManager)
+  }
   KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
 }

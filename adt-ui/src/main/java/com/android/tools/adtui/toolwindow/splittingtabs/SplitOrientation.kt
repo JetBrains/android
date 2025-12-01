@@ -23,20 +23,35 @@ import javax.swing.Icon
 /**
  * Encapsulates the presentation and behavior of a split action.
  *
- * Note that the splitter related icons and texts in AllIcons & ActionsBundle use an orientation that is reversed from that used by
- * [Splitter].
+ * Note that the splitter related icons and texts in AllIcons & ActionsBundle use an orientation
+ * that is reversed from that used by [Splitter].
  *
- * The text and icon ascribe the orientation to the separator while the [Splitter] definition ascribe it to the panels.
+ * The text and icon ascribe the orientation to the separator while the [Splitter] definition
+ * ascribe it to the panels.
  *
- * For example, the text (Split Right) and icon ([AllIcons.Actions.SplitVertically]) for a vertical split describe a vertical splitter
- * divider with 2 panels side by side while the [Splitter] definition describes a vertical split as 2 panels one above the other separated
- * by a horizontal line.
+ * For example, the text (Split Right) and icon ([AllIcons.Actions.SplitVertically]) for a vertical
+ * split describe a vertical splitter divider with 2 panels side by side while the [Splitter]
+ * definition describes a vertical split as 2 panels one above the other separated by a horizontal
+ * line.
  *
- * Thus, when converting SplitOrientation to and from [Splitter#isVertical], they need to be reversed.
+ * Thus, when converting SplitOrientation to and from [Splitter#isVertical], they need to be
+ * reversed.
  */
-internal enum class SplitOrientation(val text: String, val icon: Icon, private val isVertical: Boolean) {
-  VERTICAL(ActionsBundle.message("action.SplitVertically.text"), AllIcons.Actions.SplitVertically, isVertical = true),
-  HORIZONTAL(ActionsBundle.message("action.SplitHorizontally.text"), AllIcons.Actions.SplitHorizontally, isVertical = false);
+internal enum class SplitOrientation(
+  val text: String,
+  val icon: Icon,
+  private val isVertical: Boolean,
+) {
+  VERTICAL(
+    ActionsBundle.message("action.SplitVertically.text"),
+    AllIcons.Actions.SplitVertically,
+    isVertical = true,
+  ),
+  HORIZONTAL(
+    ActionsBundle.message("action.SplitHorizontally.text"),
+    AllIcons.Actions.SplitHorizontally,
+    isVertical = false,
+  );
 
   fun toSplitter(): Boolean = !isVertical
 

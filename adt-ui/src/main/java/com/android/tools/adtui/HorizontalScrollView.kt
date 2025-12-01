@@ -28,24 +28,31 @@ import javax.swing.JPanel
 import kotlin.math.max
 import kotlin.math.min
 
-class HorizontalScrollView @JvmOverloads constructor(private val content: JComponent,
-                                                     scrollSensitivity: Int = 30,
-                                                     @VisibleForTesting val leftButton: AbstractButton = CommonButton("←"),
-                                                     @VisibleForTesting val rightButton: AbstractButton = CommonButton("→"))
-          : JPanel(BorderLayout()) {
+class HorizontalScrollView
+@JvmOverloads
+constructor(
+  private val content: JComponent,
+  scrollSensitivity: Int = 30,
+  @VisibleForTesting val leftButton: AbstractButton = CommonButton("←"),
+  @VisibleForTesting val rightButton: AbstractButton = CommonButton("→"),
+) : JPanel(BorderLayout()) {
   private val main = JBViewport().apply { view = content }
-  private val xMax get() = max(0, content.width - main.width)
+  private val xMax
+    get() = max(0, content.width - main.width)
 
   init {
     leftButton.addActionListener { scrollBy(-scrollSensitivity) }
     rightButton.addActionListener { scrollBy(scrollSensitivity) }
 
-    val listener = object : ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent) = refreshButtons()
-    }
+    val listener =
+      object : ComponentAdapter() {
+        override fun componentResized(e: ComponentEvent) = refreshButtons()
+      }
     content.addComponentListener(listener)
     main.addComponentListener(listener)
-    main.addMouseWheelListener { scrollBy(it.scrollAmount * it.wheelRotation * scrollSensitivity / 2) }
+    main.addMouseWheelListener {
+      scrollBy(it.scrollAmount * it.wheelRotation * scrollSensitivity / 2)
+    }
 
     add(main, BorderLayout.CENTER)
     add(leftButton, BorderLayout.WEST)
@@ -54,7 +61,9 @@ class HorizontalScrollView @JvmOverloads constructor(private val content: JCompo
   }
 
   private fun clampX(x: Int) = min(xMax, max(0, x))
+
   private fun scrollBy(dx: Int) = scrollTo(main.viewPosition.x + dx)
+
   fun scrollTo(newX: Int) {
     main.viewPosition = with(main.viewPosition) { Point(clampX(newX), y) }
     refreshButtons()

@@ -507,7 +507,10 @@ class CategoryTable<T : Any>(
   private fun Column.SizeConstraint.toSizeRequirements() = SizeRequirements(min, preferred, max, 0f)
 
   override fun getPreferredSize(): Dimension =
-    Dimension(header.preferredSize.width, rowComponents.sumOf { if (it.isVisible) it.preferredSize.height else 0 })
+    Dimension(
+      header.preferredSize.width,
+      rowComponents.sumOf { if (it.isVisible) it.preferredSize.height else 0 },
+    )
 
   /**
    * Rather than implementing the whole LayoutManager interface, we perform the layout in doLayout.
@@ -596,8 +599,7 @@ class CategoryTable<T : Any>(
       SELECT_PREVIOUS_ROW,
       TOGGLE_EXPAND_COLLAPSE,
       EXPAND,
-      COLLAPSE,
-      ;
+      COLLAPSE;
 
       fun makeAction(action: (ActionEvent) -> Unit) =
         object : AbstractAction(this.name) {

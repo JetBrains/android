@@ -18,6 +18,8 @@ package com.android.tools.adtui.common
 import com.android.tools.adtui.common.ProposedFileTreeModel.Node
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.containers.CollectionFactory
+import java.io.File
+import javax.swing.Icon
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -25,39 +27,26 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.mock
-import java.io.File
-import javax.swing.Icon
 
 /**
- * [NodeDSL] provides a simple declarative syntax for specifying the expected structure
- * of a [ProposedFileTreeModel]'s backing tree. A tree is recursively built from nested
- * [node] blocks, which assign values for the file, icon, isConflicted, and isConflictedTree
- * attributes of the corresponding [NodeBuilder]s (isConflicted and isConflictedTree are optional
- * and default to false).
+ * [NodeDSL] provides a simple declarative syntax for specifying the expected structure of a
+ * [ProposedFileTreeModel]'s backing tree. A tree is recursively built from nested [node] blocks,
+ * which assign values for the file, icon, isConflicted, and isConflictedTree attributes of the
+ * corresponding [NodeBuilder]s (isConflicted and isConflictedTree are optional and default to
+ * false).
  *
- * A [node] block may also contain a [NodeBuilder.children] block, which can contain
- * any number of [Children.node] blocks. For example,
+ * A [node] block may also contain a [NodeBuilder.children] block, which can contain any number of
+ * [Children.node] blocks. For example,
  *
- * node {
- *   file = File("rootDir")
- *   icon = [DIR_ICON]
- *   isConflictedTree = true
+ * node { file = File("rootDir") icon = [DIR_ICON] isConflictedTree = true
  *
- *   children {
- *     node {
- *        file = File(root, "child.txt")
- *        icon = [DEFAULT_ICON]
- *        isConflicted = true
- *        isConflictedTree = true
- *     }
- *   }
- * }
+ * children { node { file = File(root, "child.txt") icon = [DEFAULT_ICON] isConflicted = true
+ * isConflictedTree = true } } }
  *
- * builds a tree with root directory "rootDir", and a proposed file "rootDir/child.txt",
- * which is in conflict with an already-existing "rootDir/child.txt" file.
+ * builds a tree with root directory "rootDir", and a proposed file "rootDir/child.txt", which is in
+ * conflict with an already-existing "rootDir/child.txt" file.
  */
-@DslMarker
-private annotation class NodeDSL
+@DslMarker private annotation class NodeDSL
 
 @NodeDSL
 private class NodeBuilder {
@@ -67,7 +56,14 @@ private class NodeBuilder {
   var isConflictedTree = false
   private val children = mutableListOf<Node>()
 
-  fun build() = Node(file, CollectionFactory.createFilePathSet(conflictedFiles.map { it.path }), icon, children, isConflictedTree)
+  fun build() =
+    Node(
+      file,
+      CollectionFactory.createFilePathSet(conflictedFiles.map { it.path }),
+      icon,
+      children,
+      isConflictedTree,
+    )
 
   fun children(block: Children.() -> Unit) {
     children.addAll(Children().apply(block))
@@ -81,9 +77,7 @@ private class Children : ArrayList<Node>() {
   }
 }
 
-/**
- * Entry point function for declaring expected [ProposedFileTreeModel] structure. See [NodeDSL].
- */
+/** Entry point function for declaring expected [ProposedFileTreeModel] structure. See [NodeDSL]. */
 private fun node(block: NodeBuilder.() -> Unit) = NodeBuilder().apply(block).build()
 
 private fun File.createChildFile(name: String) = resolve(name).apply { createNewFile() }
@@ -92,9 +86,7 @@ private fun File.createChildDir(name: String) = resolve(name).apply { mkdir() }
 
 @RunWith(JUnit4::class)
 class ProposedFileTreeModelTest {
-  @JvmField
-  @Rule
-  val tempFolderRule = TemporaryFolder()
+  @JvmField @Rule val tempFolderRule = TemporaryFolder()
 
   private lateinit var rootDir: File
 
@@ -106,7 +98,8 @@ class ProposedFileTreeModelTest {
   @Test
   fun hasConflicts_trueIfFileAlreadyExists() {
     val foo = rootDir.createChildDir("foo")
-    val treeModel = ProposedFileTreeModel(rootDir, setOf(foo.createChildFile("bar"), foo.resolve("bazz")))
+    val treeModel =
+      ProposedFileTreeModel(rootDir, setOf(foo.createChildFile("bar"), foo.resolve("bazz")))
 
     assertThat(treeModel.hasConflicts()).isTrue()
   }
@@ -136,12 +129,11 @@ class ProposedFileTreeModelTest {
     val drawableV30File = drawableV30Dir.resolve(pngFile)
     val drawableHdpiFile = drawableHdpiDir.resolve(xmlFile)
 
-    val treeModel = ProposedFileTreeModel(rootDir, setOf(
-      rootFile,
-      drawableFile,
-      drawableV30File,
-      drawableHdpiFile
-    ))
+    val treeModel =
+      ProposedFileTreeModel(
+        rootDir,
+        setOf(rootFile, drawableFile, drawableV30File, drawableHdpiFile),
+      )
 
     val expectedTree = node {
       file = rootDir
@@ -149,9 +141,7 @@ class ProposedFileTreeModelTest {
       isConflictedTree = true
 
       children {
-        node {
-          file = rootFile
-        }
+        node { file = rootFile }
         node {
           file = resDir
           icon = DIR_ICON
@@ -216,13 +206,17 @@ class ProposedFileTreeModelTest {
     val root_sub2 = rootDir.resolve("root_sub2")
     val root_sub2_newFile = root_sub2.resolve("root_sub2_newFile")
 
-    val treeModel = ProposedFileTreeModel(rootDir, setOf(
-      root_existingFile,
-      root_newFile,
-      root_sub1_existingFile,
-      root_sub1_newFile,
-      root_sub2_newFile
-    ))
+    val treeModel =
+      ProposedFileTreeModel(
+        rootDir,
+        setOf(
+          root_existingFile,
+          root_newFile,
+          root_sub1_existingFile,
+          root_sub1_newFile,
+          root_sub2_newFile,
+        ),
+      )
 
     val expectedTree = node {
       file = rootDir
@@ -235,9 +229,7 @@ class ProposedFileTreeModelTest {
           conflictedFiles = listOf(file)
           isConflictedTree = true
         }
-        node {
-          file = root_newFile
-        }
+        node { file = root_newFile }
         node {
           file = root_sub1
           icon = DIR_ICON
@@ -249,20 +241,14 @@ class ProposedFileTreeModelTest {
               conflictedFiles = listOf(file)
               isConflictedTree = true
             }
-            node {
-              file = root_sub1_newFile
-            }
+            node { file = root_sub1_newFile }
           }
         }
         node {
           file = root_sub2
           icon = DIR_ICON
 
-          children {
-            node {
-              file = root_sub2_newFile
-            }
-          }
+          children { node { file = root_sub2_newFile } }
         }
       }
     }
@@ -283,13 +269,15 @@ class ProposedFileTreeModelTest {
     val root_sub2 = rootDir.resolve("root_sub2")
     val root_sub2_newFile = root_sub2.resolve("root_sub2_newFile")
 
-    val proposedFileToIcon = listOf(
-      root_existingFile,
-      root_newFile,
-      root_sub1_existingFile,
-      root_sub1_newFile,
-      root_sub2_newFile
-    ).associateWith { mock(Icon::class.java) }
+    val proposedFileToIcon =
+      listOf(
+          root_existingFile,
+          root_newFile,
+          root_sub1_existingFile,
+          root_sub1_newFile,
+          root_sub2_newFile,
+        )
+        .associateWith { mock(Icon::class.java) }
 
     val treeModel = ProposedFileTreeModel(rootDir, proposedFileToIcon)
 
@@ -353,12 +341,10 @@ class ProposedFileTreeModelTest {
     val root_sub2 = rootDir.createChildDir("root_sub2")
     val root_sub2_newFile = root_sub2.resolve("root_sub2_newFile")
 
-    val proposedFileToIcon = listOf(
-      root_sub1_newFile,
-      root_sub1,
-      root_sub2,
-      root_sub2_newFile
-    ).associateWith { mock(Icon::class.java) }
+    val proposedFileToIcon =
+      listOf(root_sub1_newFile, root_sub1, root_sub2, root_sub2_newFile).associateWith {
+        mock(Icon::class.java)
+      }
 
     val treeModel = ProposedFileTreeModel(rootDir, proposedFileToIcon)
 
@@ -404,12 +390,11 @@ class ProposedFileTreeModelTest {
     val root_sub2 = rootDir.createChildDir("root_sub2")
     val root_sub2_newFile = root_sub2.resolve("root_sub2_newFile")
 
-    val treeModel = ProposedFileTreeModel(rootDir, setOf(
-      root_sub1_newFile,
-      root_sub1,
-      root_sub2,
-      root_sub2_newFile
-    ))
+    val treeModel =
+      ProposedFileTreeModel(
+        rootDir,
+        setOf(root_sub1_newFile, root_sub1, root_sub2, root_sub2_newFile),
+      )
 
     val expectedTree = node {
       file = rootDir
@@ -420,21 +405,13 @@ class ProposedFileTreeModelTest {
           file = root_sub1
           icon = DIR_ICON
 
-          children {
-            node {
-              file = root_sub1_newFile
-            }
-          }
+          children { node { file = root_sub1_newFile } }
         }
         node {
           file = root_sub2
           icon = DIR_ICON
 
-          children {
-            node {
-              file = root_sub2_newFile
-            }
-          }
+          children { node { file = root_sub2_newFile } }
         }
       }
     }

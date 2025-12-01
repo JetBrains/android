@@ -23,10 +23,9 @@ import java.awt.Image
 import java.net.URL
 import javax.swing.Icon
 
-/**
- * A [ScaledImageProvider] for SVG resources. Aspect ratio is preserved when scaling.
- */
-class SVGScaledImageProvider(private val url: URL, private val image: Image?) : ScaledImageProvider {
+/** A [ScaledImageProvider] for SVG resources. Aspect ratio is preserved when scaling. */
+class SVGScaledImageProvider(private val url: URL, private val image: Image?) :
+  ScaledImageProvider {
   override val initialImage: Image?
     get() = image
 
@@ -46,7 +45,9 @@ class SVGScaledImageProvider(private val url: URL, private val image: Image?) : 
       if (icon is CachedImageIcon) {
         return create(icon)
       }
-      throw IllegalArgumentException("Icon should be an instance of CachedImageIcon. Got "+icon.javaClass.simpleName)
+      throw IllegalArgumentException(
+        "Icon should be an instance of CachedImageIcon. Got " + icon.javaClass.simpleName
+      )
     }
 
     @JvmStatic

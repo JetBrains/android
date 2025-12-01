@@ -32,21 +32,23 @@ import kotlin.properties.Delegates
 /**
  * A component to show an icon with a focus border.
  *
- * Set [onClick] to trigger an action when the Icon is clicked or the Space/Enter keys are pressed while focusing the icon.
+ * Set [onClick] to trigger an action when the Icon is clicked or the Space/Enter keys are pressed
+ * while focusing the icon.
  */
 class FocusableIcon : JBLabel() {
 
   var onClick: (() -> Unit)? = null
 
-  private val focusListener: FocusListener = object: FocusListener {
-    override fun focusLost(e: FocusEvent?) {
-      repaint()
-    }
+  private val focusListener: FocusListener =
+    object : FocusListener {
+      override fun focusLost(e: FocusEvent?) {
+        repaint()
+      }
 
-    override fun focusGained(e: FocusEvent?) {
-      repaint()
+      override fun focusGained(e: FocusEvent?) {
+        repaint()
+      }
     }
-  }
 
   init {
     background = secondaryPanelBackground
@@ -54,11 +56,13 @@ class FocusableIcon : JBLabel() {
     registerActionKey({ iconClicked() }, KeyStrokes.SPACE, "space")
     registerActionKey({ iconClicked() }, KeyStrokes.ENTER, "enter")
     super.addFocusListener(focusListener)
-    super.addMouseListener(object : MouseAdapter() {
-      override fun mousePressed(event: MouseEvent) {
-        iconClicked()
+    super.addMouseListener(
+      object : MouseAdapter() {
+        override fun mousePressed(event: MouseEvent) {
+          iconClicked()
+        }
       }
-    })
+    )
   }
 
   var readOnly by Delegates.observable(false) { _, _, _ -> updateFocusability() }

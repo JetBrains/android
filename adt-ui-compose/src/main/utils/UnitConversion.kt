@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.dp
 
 object UnitConversion {
   /**
-   * Converts an integer value representing pixels to density-independent pixels (Dp),
-   * taking into account the current display density.
+   * Converts an integer value representing pixels to density-independent pixels (Dp), taking into
+   * account the current display density.
    *
    * @return The equivalent value in density-independent pixels (Dp).
    */

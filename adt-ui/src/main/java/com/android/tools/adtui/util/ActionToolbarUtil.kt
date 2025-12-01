@@ -30,7 +30,8 @@ import javax.swing.JPanel
 object ActionToolbarUtil {
   /** See [ActionToolbar.findActionButton]. */
   @JvmStatic
-  fun findActionButton(toolbar: ActionToolbar, action: AnAction): ActionButton? = toolbar.findActionButton(action)
+  fun findActionButton(toolbar: ActionToolbar, action: AnAction): ActionButton? =
+    toolbar.findActionButton(action)
 
   /** See [ActionToolbar.makeNavigable]. */
   @JvmStatic
@@ -39,17 +40,15 @@ object ActionToolbarUtil {
   }
 }
 
-/**
- * Finds the toolbar button corresponding to [action].
- */
+/** Finds the toolbar button corresponding to [action]. */
 fun ActionToolbar.findActionButton(action: AnAction): ActionButton? =
   component.components.find { (it as? ActionButton)?.action == action } as ActionButton?
 
 /**
  * Makes it possible to navigate the actions buttons from the keyboard.
  *
- * The action buttons are not focusable when `ScreenReader.isActive()` is false,
- * This method makes the buttons of the toolbar focusable unconditionally.
+ * The action buttons are not focusable when `ScreenReader.isActive()` is false, This method makes
+ * the buttons of the toolbar focusable unconditionally.
  */
 fun ActionToolbar.makeNavigable() {
   if (!ScreenReader.isActive()) {
@@ -57,21 +56,21 @@ fun ActionToolbar.makeNavigable() {
       child.makeActionNavigable()
     }
 
-    component.addContainerListener(object : ContainerAdapter() {
-      override fun componentAdded(event: ContainerEvent) {
-        event.child.makeActionNavigable()
+    component.addContainerListener(
+      object : ContainerAdapter() {
+        override fun componentAdded(event: ContainerEvent) {
+          event.child.makeActionNavigable()
+        }
       }
-    })
+    )
   }
 }
 
 private fun Component.makeActionNavigable() {
   if (this is ActionButton || this is JCheckBox) {
     isFocusable = true
-  }
-  else if (this is JPanel && components.firstOrNull() is JButton) {
+  } else if (this is JPanel && components.firstOrNull() is JButton) {
     // A ComboBoxAction creates a ComboBoxButton wrapped in a JPanel:
     components.firstOrNull()?.isFocusable = true
   }
 }
-

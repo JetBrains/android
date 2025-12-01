@@ -15,24 +15,25 @@
  */
 package com.android.tools.adtui.stdui
 
-import org.mockito.kotlin.whenever
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
-import org.mockito.Mockito
 import java.awt.Component
 import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
 import javax.swing.JComboBox
 import javax.swing.JList
 import javax.swing.plaf.basic.BasicComboBoxUI
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class CommonComboBoxTest {
-  private val model = TestCommonComboBoxModel("t", listOf("one", "two", "three", "four", "five", "six", "t"))
+  private val model =
+    TestCommonComboBoxModel("t", listOf("one", "two", "three", "four", "five", "six", "t"))
   private val comboBox = CommonComboBox(model)
 
   @Test
@@ -80,8 +81,7 @@ class CommonComboBoxTest {
 
       // Verify that the model value has not changed:
       assertThat(model.value).isEqualTo("FixedValue")
-    }
-    finally {
+    } finally {
       KeyboardFocusManager.setCurrentKeyboardFocusManager(oldManager)
     }
   }

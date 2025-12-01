@@ -21,24 +21,25 @@ import java.awt.Rectangle
 import kotlin.math.roundToInt
 
 /** Returns this integer multiplied by [scale] and rounded to the closest integer. */
-fun Int.scaled(scale: Double): Int =
-    (this * scale).roundToInt()
+fun Int.scaled(scale: Double): Int = (this * scale).roundToInt()
 
 /** Returns this [Dimension] scaled by the given factor. */
 fun Dimension.scaled(scale: Double): Dimension =
-    if (scale == 1.0) this else Dimension(width.scaled(scale), height.scaled(scale))
+  if (scale == 1.0) this else Dimension(width.scaled(scale), height.scaled(scale))
 
 /** Returns this [Dimension] scaled independently along X and Y axes. */
 fun Dimension.scaled(scaleX: Double, scaleY: Double): Dimension =
-    if (scaleX == 1.0 && scaleY == 1.0) this else Dimension(width.scaled(scaleX), height.scaled(scaleY))
+  if (scaleX == 1.0 && scaleY == 1.0) this
+  else Dimension(width.scaled(scaleX), height.scaled(scaleY))
 
 /** Returns this [Rectangle] scaled independently along X and Y axes. */
 fun Rectangle.scaled(scaleX: Double, scaleY: Double): Rectangle =
-    if (scaleX == 1.0 && scaleY == 1.0) this else Rectangle(x.scaled(scaleX), y.scaled(scaleY), width.scaled(scaleX), height.scaled(scaleY))
+  if (scaleX == 1.0 && scaleY == 1.0) this
+  else Rectangle(x.scaled(scaleX), y.scaled(scaleY), width.scaled(scaleX), height.scaled(scaleY))
 
 /** Returns this [Point] scaled by the given factor. */
 fun Point.scaled(scale: Double): Point =
-   if (scale == 1.0) this else Point(x.scaled(scale), y.scaled(scale))
+  if (scale == 1.0) this else Point(x.scaled(scale), y.scaled(scale))
 
 /** Returns this [Dimension] rotated by [numQuadrants] quadrants. */
 fun Dimension.rotatedByQuadrants(numQuadrants: Int): Dimension =
@@ -55,5 +56,4 @@ fun Point.rotatedByQuadrants(numQuadrants: Int): Point {
 }
 
 /** Returns the equivalent rotation with the number of quadrants in the [0, 3] interval. */
-fun normalizedRotation(rotation: Int) =
-    rotation and 0x3
+fun normalizedRotation(rotation: Int) = rotation and 0x3

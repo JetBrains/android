@@ -21,8 +21,6 @@ import java.awt.Shape
  * A common interface for all inline classes that represent shapes in the Swing coordinate system.
  */
 interface SwingShape {
-  /**
-   * A raw Shape object that will be wrapped by more expressive inline Shape subclasses.
-   */
+  /** A raw Shape object that will be wrapped by more expressive inline Shape subclasses. */
   val value: Shape
 }

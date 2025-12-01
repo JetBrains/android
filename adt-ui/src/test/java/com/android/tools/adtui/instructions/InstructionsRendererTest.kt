@@ -16,9 +16,9 @@
 package com.android.tools.adtui.instructions
 
 import com.google.common.truth.Truth
-import org.junit.Test
 import java.awt.Dimension
 import java.awt.Point
+import org.junit.Test
 import java.util.Arrays
 
 class InstructionsRendererTest {
@@ -27,12 +27,13 @@ class InstructionsRendererTest {
   fun testRowHeightAndTotalSize() {
     // Fake a list of instructions.
     // Row height should be 100, and total size should be {150, 210}
-    val instructions = Arrays.asList(
+    val instructions =
+      Arrays.asList(
         FakeRenderInstructions(100, 100),
         FakeRenderInstructions(50, 90),
         NewRowInstruction(10),
-        FakeRenderInstructions(50, 70)
-    )
+        FakeRenderInstructions(50, 70),
+      )
 
     val context = InstructionsRenderer(instructions, InstructionsRenderer.HorizontalAlignment.LEFT)
 
@@ -43,12 +44,13 @@ class InstructionsRendererTest {
   @Test
   fun testLeftAlignStartX() {
     // Fake a list of instructions.
-    val instructions = Arrays.asList(
+    val instructions =
+      Arrays.asList(
         FakeRenderInstructions(100, 100),
         FakeRenderInstructions(50, 90),
         NewRowInstruction(10),
-        FakeRenderInstructions(50, 70)
-    )
+        FakeRenderInstructions(50, 70),
+      )
 
     val context = InstructionsRenderer(instructions, InstructionsRenderer.HorizontalAlignment.LEFT)
 
@@ -63,14 +65,16 @@ class InstructionsRendererTest {
   @Test
   fun testCenterAlignStartX() {
     // Fake a list of instructions.
-    val instructions = Arrays.asList(
+    val instructions =
+      Arrays.asList(
         FakeRenderInstructions(100, 100),
         FakeRenderInstructions(50, 90),
         NewRowInstruction(10),
-        FakeRenderInstructions(50, 70)
-    )
+        FakeRenderInstructions(50, 70),
+      )
 
-    val context = InstructionsRenderer(instructions, InstructionsRenderer.HorizontalAlignment.CENTER)
+    val context =
+      InstructionsRenderer(instructions, InstructionsRenderer.HorizontalAlignment.CENTER)
 
     // Start X for an invalid row should be zero.
     Truth.assertThat(context.getStartX(50)).isEqualTo(0)
@@ -83,12 +87,13 @@ class InstructionsRendererTest {
   @Test
   fun testRightAlignStartX() {
     // Fake a list of instructions.
-    val instructions = Arrays.asList(
+    val instructions =
+      Arrays.asList(
         FakeRenderInstructions(100, 100),
         FakeRenderInstructions(50, 90),
         NewRowInstruction(10),
-        FakeRenderInstructions(50, 70)
-    )
+        FakeRenderInstructions(50, 70),
+      )
 
     val context = InstructionsRenderer(instructions, InstructionsRenderer.HorizontalAlignment.RIGHT)
 
@@ -100,7 +105,8 @@ class InstructionsRendererTest {
     Truth.assertThat(context.getStartX(110)).isEqualTo(100)
   }
 
-  private class FakeRenderInstructions(private val myWidth: Int, private val myHeight: Int) : RenderInstruction() {
+  private class FakeRenderInstructions(private val myWidth: Int, private val myHeight: Int) :
+    RenderInstruction() {
 
     override fun getSize(): Dimension {
       return Dimension(myWidth, myHeight)

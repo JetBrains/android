@@ -23,12 +23,16 @@ import kotlin.math.max
 /**
  * A table model the supports pagination.
  *
- * The model extends [AbstractTableModel] to expose only [pageSize] rows from the data set are displayed in a table.
+ * The model extends [AbstractTableModel] to expose only [pageSize] rows from the data set are
+ * displayed in a table.
  *
  * @param initialPageSize initial page size of the model. Must be a positive number.
- * @property pageSize maximum number of rows to be displayed. Can be changed by calling [updatePageSize], which causes table data to change.
- * @property pageIndex current page index (0 based) from the entire data set. Can be changed by calling methods like [goToNextPage].
- * @property pageCount number of total pages based on the given [pageSize]. At least 1 even if the data set is empty.
+ * @property pageSize maximum number of rows to be displayed. Can be changed by calling
+ *   [updatePageSize], which causes table data to change.
+ * @property pageIndex current page index (0 based) from the entire data set. Can be changed by
+ *   calling methods like [goToNextPage].
+ * @property pageCount number of total pages based on the given [pageSize]. At least 1 even if the
+ *   data set is empty.
  */
 abstract class AbstractPaginatedTableModel(initialPageSize: Int) : AbstractTableModel() {
   init {
@@ -41,9 +45,14 @@ abstract class AbstractPaginatedTableModel(initialPageSize: Int) : AbstractTable
   var pageSize = initialPageSize
     private set
 
-  val pageCount get() = max(1, ceil(getDataSize().toDouble() / pageSize).toInt())
-  val isOnFirstPage get() = pageIndex == 0
-  val isOnLastPage get() = pageIndex == pageCount - 1
+  val pageCount
+    get() = max(1, ceil(getDataSize().toDouble() / pageSize).toInt())
+
+  val isOnFirstPage
+    get() = pageIndex == 0
+
+  val isOnLastPage
+    get() = pageIndex == pageCount - 1
 
   /**
    * Returns the size of the entire data set.
@@ -64,8 +73,9 @@ abstract class AbstractPaginatedTableModel(initialPageSize: Int) : AbstractTable
   /**
    * Sorts the entire data set.
    *
-   * Traditional JTables only sort the rows in view. When data are paginated we want to sort the entire data set instead of just the current
-   * page. This is called on sort order change to pre-sort data before pagination logic kicks in.
+   * Traditional JTables only sort the rows in view. When data are paginated we want to sort the
+   * entire data set instead of just the current page. This is called on sort order change to
+   * pre-sort data before pagination logic kicks in.
    *
    * @param sortKeys current sort keys of the table's [RowSorter]
    */

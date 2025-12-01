@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("ActionTestUtils")
+
 package com.android.tools.adtui.actions
 
 import com.google.common.truth.Truth.assertThat
@@ -48,15 +49,27 @@ import java.awt.event.KeyEvent.VK_E
 import javax.swing.JPanel
 
 /** Executes an action. */
-fun executeAction(actionId: String, source: Component? = null, project: Project? = null, place: String = ActionPlaces.TOOLBAR,
-                  modifiers: Int = CTRL_DOWN_MASK, extra: DataSnapshotProvider? = null) {
+fun executeAction(
+  actionId: String,
+  source: Component? = null,
+  project: Project? = null,
+  place: String = ActionPlaces.TOOLBAR,
+  modifiers: Int = CTRL_DOWN_MASK,
+  extra: DataSnapshotProvider? = null,
+) {
   val action = ActionManager.getInstance().getAction(actionId)
   executeAction(action, source, project, place = place, modifiers = modifiers, extra = extra)
 }
 
 /** Executes an action. */
-fun executeAction(action: AnAction, source: Component? = null, project: Project? = null, place: String = ActionPlaces.TOOLBAR,
-                  modifiers: Int = CTRL_DOWN_MASK, extra: DataSnapshotProvider? = null) {
+fun executeAction(
+  action: AnAction,
+  source: Component? = null,
+  project: Project? = null,
+  place: String = ActionPlaces.TOOLBAR,
+  modifiers: Int = CTRL_DOWN_MASK,
+  extra: DataSnapshotProvider? = null,
+) {
   val event = createTestEvent(source, project, place = place, modifiers = modifiers, extra = extra)
   executeAction(action, event)
 }
@@ -69,16 +82,33 @@ fun executeAction(action: AnAction, event: AnActionEvent) {
 }
 
 /** Calls update on the action and returns [Presentation]. */
-fun updateAndGetActionPresentation(actionId: String, source: Component? = null, project: Project? = null,
-                                   place: String = ActionPlaces.KEYBOARD_SHORTCUT, extra: DataSnapshotProvider? = null): Presentation {
+fun updateAndGetActionPresentation(
+  actionId: String,
+  source: Component? = null,
+  project: Project? = null,
+  place: String = ActionPlaces.KEYBOARD_SHORTCUT,
+  extra: DataSnapshotProvider? = null,
+): Presentation {
   val action = ActionManager.getInstance().getAction(actionId)
   return updateAndGetActionPresentation(action, source, project, place = place, extra = extra)
 }
 
 /** Calls update on the action and returns [Presentation]. */
-fun updateAndGetActionPresentation(action: AnAction, source: Component? = null, project: Project? = null,
-                                   place: String = ActionPlaces.KEYBOARD_SHORTCUT, extra: DataSnapshotProvider? = null): Presentation {
-  val event = createTestEvent(source, project, place, presentation = action.templatePresentation.clone(), extra = extra)
+fun updateAndGetActionPresentation(
+  action: AnAction,
+  source: Component? = null,
+  project: Project? = null,
+  place: String = ActionPlaces.KEYBOARD_SHORTCUT,
+  extra: DataSnapshotProvider? = null,
+): Presentation {
+  val event =
+    createTestEvent(
+      source,
+      project,
+      place,
+      presentation = action.templatePresentation.clone(),
+      extra = extra,
+    )
   return updateAndGetActionPresentation(action, event)
 }
 
@@ -89,10 +119,23 @@ fun updateAndGetActionPresentation(action: AnAction, event: AnActionEvent): Pres
 }
 
 /** Creates a [AnActionEvent] for testing an action. */
-fun createTestEvent(source: Component? = null, project: Project? = null, place: String = ActionPlaces.KEYBOARD_SHORTCUT,
-                    modifiers: Int = CTRL_DOWN_MASK, presentation: Presentation = Presentation(),
-                    extra: DataSnapshotProvider? = null): AnActionEvent {
-  val inputEvent = KeyEvent(source ?: JPanel(), KEY_RELEASED, System.currentTimeMillis(), modifiers, VK_E, CHAR_UNDEFINED)
+fun createTestEvent(
+  source: Component? = null,
+  project: Project? = null,
+  place: String = ActionPlaces.KEYBOARD_SHORTCUT,
+  modifiers: Int = CTRL_DOWN_MASK,
+  presentation: Presentation = Presentation(),
+  extra: DataSnapshotProvider? = null,
+): AnActionEvent {
+  val inputEvent =
+    KeyEvent(
+      source ?: JPanel(),
+      KEY_RELEASED,
+      System.currentTimeMillis(),
+      modifiers,
+      VK_E,
+      CHAR_UNDEFINED,
+    )
   val rootContext = extra.toDataContext(project?.let { getProjectContext(it) } ?: EMPTY_CONTEXT)
   val dataContext = createDataContext(source, rootContext)
   return AnActionEvent.createEvent(dataContext, presentation, place, ActionUiKind.NONE, inputEvent)
@@ -105,19 +148,24 @@ private fun createDataContext(component: Component?, rootContext: DataContext): 
 }
 
 private fun DataSnapshotProvider?.toDataContext(parent: DataContext): DataContext =
-    this?.let { CustomizedDataContext.withSnapshot(parent, this) } ?: parent
+  this?.let { CustomizedDataContext.withSnapshot(parent, this) } ?: parent
 
 private fun UiDataProvider.toDataSnapshotProvider(): DataSnapshotProvider =
-    DataSnapshotProvider { sink -> sink.uiDataSnapshot(this@toDataSnapshotProvider) }
+  DataSnapshotProvider { sink ->
+    sink.uiDataSnapshot(this@toDataSnapshotProvider)
+  }
 
 const val SEPARATOR_TEXT = "------------------------------------------------------"
 
 /**
- * Helper function to convert action to string for testing purpose. Use [filter] to ignore the actions if needed.
+ * Helper function to convert action to string for testing purpose. Use [filter] to ignore the
+ * actions if needed.
  */
 @JvmOverloads
 fun prettyPrintActions(
-  action: AnAction, filter: (action: AnAction) -> Boolean = { true }, dataContext: DataContext = EMPTY_CONTEXT
+  action: AnAction,
+  filter: (action: AnAction) -> Boolean = { true },
+  dataContext: DataContext = EMPTY_CONTEXT,
 ): String {
   val stringBuilder = StringBuilder()
   prettyPrintActions(action, stringBuilder, 0, filter, dataContext)
@@ -126,7 +174,11 @@ fun prettyPrintActions(
 
 /** Runs [prettyPrintActions] recursively. */
 private fun prettyPrintActions(
-  action: AnAction, sb: StringBuilder, depth: Int, filter: (action: AnAction) -> Boolean, dataContext: DataContext
+  action: AnAction,
+  sb: StringBuilder,
+  depth: Int,
+  filter: (action: AnAction) -> Boolean,
+  dataContext: DataContext,
 ) {
   appendActionText(sb, action, depth, dataContext)
   (action as? DefaultActionGroup)?.let { group ->
@@ -135,8 +187,7 @@ private fun prettyPrintActions(
       for (child in group.getChildren(ActionManager.getInstance())) {
         appendActionText(sb, child, depth, dataContext)
       }
-    }
-    else {
+    } else {
       for (child in group.childActionsOrStubs) {
         if (!filter(child)) {
           continue
@@ -147,7 +198,12 @@ private fun prettyPrintActions(
   }
 }
 
-private fun appendActionText(sb: StringBuilder, action: AnAction, depth: Int, dataContext: DataContext) {
+private fun appendActionText(
+  sb: StringBuilder,
+  action: AnAction,
+  depth: Int,
+  dataContext: DataContext,
+) {
   val text = action.toText(dataContext)
   for (i in 0 until depth) {
     sb.append("    ")
@@ -167,27 +223,27 @@ private fun AnAction.toText(dataContext: DataContext): String {
 
 /** Creates an [AnActionEvent] for testing purpose. */
 @JvmOverloads
-fun createTestActionEvent(action: AnAction, inputEvent: InputEvent? = null, dataContext: DataContext = EMPTY_CONTEXT): AnActionEvent {
+fun createTestActionEvent(
+  action: AnAction,
+  inputEvent: InputEvent? = null,
+  dataContext: DataContext = EMPTY_CONTEXT,
+): AnActionEvent {
   val presentation = action.templatePresentation.clone()
   return AnActionEvent.createEvent(dataContext, presentation, "", ActionUiKind.NONE, inputEvent)
 }
 
 /** Finds an action within the [DefaultActionGroup] that uses [text] as display text. */
 suspend fun DefaultActionGroup.findActionByText(text: String): AnAction? {
-  return allChildActionsOrStubs()
-    .find {
-      val testEvent = TestActionEvent.createTestEvent()
-      readAction { it.update(testEvent) }
-      (testEvent.presentation.text ?: it.templateText) == text
-    }
+  return allChildActionsOrStubs().find {
+    val testEvent = TestActionEvent.createTestEvent()
+    readAction { it.update(testEvent) }
+    (testEvent.presentation.text ?: it.templateText) == text
+  }
 }
 
 /** Returns all the [AnAction] contains in the [DefaultActionGroup] and any sub-groups. */
 private fun DefaultActionGroup.allChildActionsOrStubs(): Collection<AnAction> {
-  return childActionsOrStubs
-    .flatMap {
-      if (it is DefaultActionGroup)
-        it.allChildActionsOrStubs().asSequence()
-      else sequenceOf(it)
-    }
+  return childActionsOrStubs.flatMap {
+    if (it is DefaultActionGroup) it.allChildActionsOrStubs().asSequence() else sequenceOf(it)
+  }
 }

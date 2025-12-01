@@ -32,49 +32,61 @@ object ComboCheckBox {
 
   /**
    * Creates a panel for selecting multiple items
+   *
    * @param options The pool of items
    * @param initialSelection The initially selected items
    * @param onOk Action to run with selected items when confirmed
    * @param abbreviate Compact text for item to display within the list
    * @param elaborate Full text for item to display as tooltip
    */
-  @JvmStatic @JvmOverloads
-  fun <T> of(options: List<T>, initialSelection: Set<T>, onOk: (List<T>) -> Unit,
-             okButtonText: String = "Apply",
-             abbreviate: (T) -> String = { it.toString() }, elaborate: (T) -> String = { it.toString() }): JPanel {
+  @JvmStatic
+  @JvmOverloads
+  fun <T> of(
+    options: List<T>,
+    initialSelection: Set<T>,
+    onOk: (List<T>) -> Unit,
+    okButtonText: String = "Apply",
+    abbreviate: (T) -> String = { it.toString() },
+    elaborate: (T) -> String = { it.toString() },
+  ): JPanel {
     val selectionState = initialSelection.toMutableSet()
-    val okButton = JButton(okButtonText).apply {
-      isEnabled = false
-      addActionListener {
+    val okButton =
+      JButton(okButtonText).apply {
         isEnabled = false
-        onOk(selectionState.toList())
-      }
-    }
-    val checkBoxes = options.map {
-      val title = abbreviate(it)
-      JBCheckBox(title).apply {
-        isSelected = it in initialSelection
-        toolTipText = elaborate(it)
-        addItemListener { _ ->
-          if (isSelected) selectionState.add(it) else selectionState.remove(it)
-          okButton.isEnabled = selectionState != initialSelection
+        addActionListener {
+          isEnabled = false
+          onOk(selectionState.toList())
         }
       }
-    }
-    val checkBoxList = JPanel().apply {
-      layout = BoxLayout(this, BoxLayout.Y_AXIS)
-      alignmentX = Component.LEFT_ALIGNMENT
-      border = JBEmptyBorder(2)
-      checkBoxes.forEach { add(it) }
-    }
-    val scrollPane = JBScrollPane().apply {
-      preferredSize = Dimension(checkBoxList.preferredSize.width, 200)
-      setViewportView(checkBoxList)
-    }
-    val header = JBPanel<Nothing>(FlowLayout()).apply {
-      add(ActionLink("Select all") { checkBoxes.forEach { it.isSelected = true } })
-      add(ActionLink("Deselect all") { checkBoxes.forEach { it.isSelected = false } })
-    }
+    val checkBoxes =
+      options.map {
+        val title = abbreviate(it)
+        JBCheckBox(title).apply {
+          isSelected = it in initialSelection
+          toolTipText = elaborate(it)
+          addItemListener { _ ->
+            if (isSelected) selectionState.add(it) else selectionState.remove(it)
+            okButton.isEnabled = selectionState != initialSelection
+          }
+        }
+      }
+    val checkBoxList =
+      JPanel().apply {
+        layout = BoxLayout(this, BoxLayout.Y_AXIS)
+        alignmentX = Component.LEFT_ALIGNMENT
+        border = JBEmptyBorder(2)
+        checkBoxes.forEach { add(it) }
+      }
+    val scrollPane =
+      JBScrollPane().apply {
+        preferredSize = Dimension(checkBoxList.preferredSize.width, 200)
+        setViewportView(checkBoxList)
+      }
+    val header =
+      JBPanel<Nothing>(FlowLayout()).apply {
+        add(ActionLink("Select all") { checkBoxes.forEach { it.isSelected = true } })
+        add(ActionLink("Deselect all") { checkBoxes.forEach { it.isSelected = false } })
+      }
     return JBPanel<Nothing>(BorderLayout()).apply {
       add(header, BorderLayout.NORTH)
       add(scrollPane, BorderLayout.CENTER)

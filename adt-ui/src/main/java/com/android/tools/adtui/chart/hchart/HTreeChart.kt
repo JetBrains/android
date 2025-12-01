@@ -47,8 +47,8 @@ import kotlin.math.min
  * A chart which renders nodes using a horizontal flow. That is, while normal trees are vertical,
  * rendering nested rows top-to-bottom, this chart renders nested columns left-to-right.
  *
- * @param <N> The type of the node used by this tree chart
-</N> */
+ * @param <N> The type of the node used by this tree chart </N>
+ */
 class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : AnimatedComponent() {
   val orientation: Orientation = builder.orientation
   private val renderer = builder.renderer
@@ -56,7 +56,8 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
   private val xRange = builder.xRange
 
   /**
-   * The X range that myXRange could possibly be. Any changes to X range should be limited within it.
+   * The X range that myXRange could possibly be. Any changes to X range should be limited within
+   * it.
    */
   private val globalXRange = builder.globalXRange
   val yRange: Range = Range(INITIAL_Y_POSITION.toDouble(), INITIAL_Y_POSITION.toDouble())
@@ -68,19 +69,18 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
    * Normally, the focused node is set by mouse hover. However, for tests, it can be a huge
    * convenience to set this directly.
    *
-   *
    * It is up to the caller to make sure that the node specified here actually belongs to this
    * chart. Otherwise, the call will have no effect.
    */
-  @set:VisibleForTesting
-  var focusedNode: N? = null
+  @set:VisibleForTesting var focusedNode: N? = null
   private val nodeSelectionEnabled = builder.nodeSelectionEnabled
 
   /**
-   * Updates the selected node. This is called by mouse click event handler and also from other instances of HTreeChart selects a node and
-   * wants to update the (un)selected state of this instance.
+   * Updates the selected node. This is called by mouse click event handler and also from other
+   * instances of HTreeChart selects a node and wants to update the (un)selected state of this
+   * instance.
    */
-  @get: VisibleForTesting
+  @get:VisibleForTesting
   var selectedNode: N? = null
     set(node) {
       if (field !== node) {
@@ -103,14 +103,10 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
   var maximumHeight = 0
     private set
 
-  /**
-   * Height of a tree node in pixels. If not set, we use the default font height.
-   */
+  /** Height of a tree node in pixels. If not set, we use the default font height. */
   private val customNodeHeightPx = builder.customNodeHeightPx
 
-  /**
-   * Vertical and horizontal padding in pixels between tree nodes.
-   */
+  /** Vertical and horizontal padding in pixels between tree nodes. */
   private val nodeXPaddingPx = builder.nodeXPaddingPx
   private val nodeYPaddingPx = builder.nodeYPaddingPx
 
@@ -134,7 +130,8 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
 
   private fun rootChanged() {
     maximumHeight = calculateMaximumHeight()
-    // Update preferred size using calculated height to make sure containers of this chart account for the height change during layout.
+    // Update preferred size using calculated height to make sure containers of this chart account
+    // for the height change during layout.
     preferredSize = Dimension(preferredSize.width, maximumHeight)
     rangeChanged()
   }
@@ -142,8 +139,10 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
   override fun draw(g: Graphics2D, dim: Dimension) {
     val startTime = System.nanoTime()
 
-    // If the selection changed, a call to updateNodesAndClearCanvas is unnecessary as it reconstructs all nodes and rectangles.
-    // All we need to do is null out the canvas to trigger another render pass with the preserved node and rectangle data.
+    // If the selection changed, a call to updateNodesAndClearCanvas is unnecessary as it
+    // reconstructs all nodes and rectangles.
+    // All we need to do is null out the canvas to trigger another render pass with the preserved
+    // node and rectangle data.
     if (selectionUpdated) {
       canvas = null
       selectionUpdated = false
@@ -156,16 +155,26 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
     }
     g.font = font
     if (root == null || root!!.childCount == 0) {
-      g.drawString(NO_HTREE, dim.width / 2 - mDefaultFontMetrics.stringWidth(NO_HTREE), dim.height / 2)
+      g.drawString(
+        NO_HTREE,
+        dim.width / 2 - mDefaultFontMetrics.stringWidth(NO_HTREE),
+        dim.height / 2,
+      )
       return
     }
     if (xRange.length == 0.0) {
-      g.drawString(NO_RANGE, dim.width / 2 - mDefaultFontMetrics.stringWidth(NO_RANGE), dim.height / 2)
+      g.drawString(
+        NO_RANGE,
+        dim.width / 2 - mDefaultFontMetrics.stringWidth(NO_RANGE),
+        dim.height / 2,
+      )
       return
     }
-    if (canvas == null
-        || ImageUtil.getUserHeight(canvas!!) != dim.height
-        || ImageUtil.getUserWidth(canvas!!) != dim.width) {
+    if (
+      canvas == null ||
+        ImageUtil.getUserHeight(canvas!!) != dim.height ||
+        ImageUtil.getUserWidth(canvas!!) != dim.width
+    ) {
       redrawToCanvas(dim)
     }
     UIUtil.drawImage(g, canvas!!, 0, 0, null)
@@ -175,9 +184,11 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
   }
 
   private fun redrawToCanvas(dim: Dimension) {
-    if (canvas == null
-        || ImageUtil.getUserWidth(canvas!!) < dim.width
-        || ImageUtil.getUserHeight(canvas!!) < dim.height) {
+    if (
+      canvas == null ||
+        ImageUtil.getUserWidth(canvas!!) < dim.width ||
+        ImageUtil.getUserHeight(canvas!!) < dim.height
+    ) {
       // Note: We intentionally create an RGB image, not an ARGB image, because this allows nodes
       // to render their text clearly (ARGB prevents LCD rendering from working).
       canvas = ImageUtil.createImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB)
@@ -209,18 +220,31 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
     for (i in drawnNodes.indices) {
       val node = drawnNodes[i]
       val drawingArea = drawnRectangles[i]
-      val clampedDrawingArea = Rectangle2D.Float(
-        max(0f, drawingArea.x),
-        drawingArea.y,
-        min(drawingArea.x + drawingArea.width, (dim.width - nodeXPaddingPx).toFloat()) - max(0f, drawingArea.x),
-        drawingArea.height
-      )
-      // In an effort to optimize performance of this chart's usage (b/281850040), hovering over a node no longer triggers a redraw.
-      // However, after this change, if something else (like a timeline range change) does trigger a redraw, we do not want to show a
-      // different fill color on the last hovered node. Thus, the isFocused parameter of render is now statically set as false to prevent
-      // all hover coloring. This achieves a consistent UI (if a mouse position change does not update the node's fill color, no other
+      val clampedDrawingArea =
+        Rectangle2D.Float(
+          max(0f, drawingArea.x),
+          drawingArea.y,
+          min(drawingArea.x + drawingArea.width, (dim.width - nodeXPaddingPx).toFloat()) -
+            max(0f, drawingArea.x),
+          drawingArea.height,
+        )
+      // In an effort to optimize performance of this chart's usage (b/281850040), hovering over a
+      // node no longer triggers a redraw.
+      // However, after this change, if something else (like a timeline range change) does trigger a
+      // redraw, we do not want to show a
+      // different fill color on the last hovered node. Thus, the isFocused parameter of render is
+      // now statically set as false to prevent
+      // all hover coloring. This achieves a consistent UI (if a mouse position change does not
+      // update the node's fill color, no other
       // chart update should either).
-      renderer.render(g, node, drawingArea, clampedDrawingArea, false, selectedNode != null && node !== selectedNode)
+      renderer.render(
+        g,
+        node,
+        drawingArea,
+        clampedDrawingArea,
+        false,
+        selectedNode != null && node !== selectedNode,
+      )
     }
     g.dispose()
   }
@@ -273,7 +297,8 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
     rootChanged()
   }
 
-  fun getNodeAt(point: Point): N? = (drawnNodes zip drawnRectangles).find { (_, rect) -> point in rect }?.first
+  fun getNodeAt(point: Point): N? =
+    (drawnNodes zip drawnRectangles).find { (_, rect) -> point in rect }?.first
 
   private fun initializeInputMap() {
     fun bindKey(key: Int, action: String) = inputMap.put(KeyStroke.getKeyStroke(key, 0), action)
@@ -286,14 +311,22 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
     bindKey(KeyEvent.VK_RIGHT, ACTION_MOVE_RIGHT)
     bindKey(KeyEvent.VK_D, ACTION_MOVE_RIGHT)
 
-    fun bindMovementAction(action: String, perform: (Double) -> Unit) = actionMap.put(action, object: AbstractAction() {
-      override fun actionPerformed(e: ActionEvent) = perform(xRange.length / ACTION_MOVEMENT_FACTOR)
-    })
+    fun bindMovementAction(action: String, perform: (Double) -> Unit) =
+      actionMap.put(
+        action,
+        object : AbstractAction() {
+          override fun actionPerformed(e: ActionEvent) =
+            perform(xRange.length / ACTION_MOVEMENT_FACTOR)
+        },
+      )
     bindMovementAction(ACTION_ZOOM_IN) { delta ->
       xRange.set(xRange.min + delta, xRange.max - delta)
     }
     bindMovementAction(ACTION_ZOOM_OUT) { delta ->
-      xRange.set(max(globalXRange.min, xRange.min - delta), min(globalXRange.max, xRange.max + delta))
+      xRange.set(
+        max(globalXRange.min, xRange.min - delta),
+        min(globalXRange.max, xRange.max + delta),
+      )
     }
     bindMovementAction(ACTION_MOVE_LEFT) { delta ->
       xRange.shift(-min(xRange.min - globalXRange.min, delta))
@@ -304,72 +337,81 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
   }
 
   private fun initializeMouseEvents() {
-    val adapter: MouseAdapter = object : MouseAdapter() {
-      private var lastPoint: Point? = null
-      override fun mouseMoved(e: MouseEvent) {
-        val node = getNodeAt(e.point)
-        if (node !== focusedNode) {
-          focusedNode = node
-          eventSourceRepaint(e)
+    val adapter: MouseAdapter =
+      object : MouseAdapter() {
+        private var lastPoint: Point? = null
+
+        override fun mouseMoved(e: MouseEvent) {
+          val node = getNodeAt(e.point)
+          if (node !== focusedNode) {
+            focusedNode = node
+            eventSourceRepaint(e)
+          }
+        }
+
+        override fun mouseClicked(e: MouseEvent) {
+          if (!hasFocus()) {
+            requestFocusInWindow()
+          }
+        }
+
+        override fun mousePressed(e: MouseEvent) {
+          lastPoint = e.point
+        }
+
+        override fun mouseDragged(e: MouseEvent) {
+          // First, handle Y range.
+          val deltaY = (e.point.y - lastPoint!!.y).toDouble()
+          shiftYRange(if (orientation == Orientation.BOTTOM_UP) deltaY else -deltaY)
+
+          // Second, handle X Range.
+          val deltaX = (e.point.x - lastPoint!!.x).toDouble()
+          var deltaXToShift = xRange.length / width * -deltaX
+          when {
+            // User attempts to move the chart towards left to view the area to the right.
+            deltaXToShift > 0 -> deltaXToShift = min(globalXRange.max - xRange.max, deltaXToShift)
+            // User attempts to move the chart towards right to view the area to the left.
+            deltaXToShift < 0 -> deltaXToShift = max(globalXRange.min - xRange.min, deltaXToShift)
+          }
+          xRange.shift(deltaXToShift)
+          lastPoint = e.point
+        }
+
+        private fun shiftYRange(deltaY: Double) {
+          // The height of the contents we can show, including those not currently shown because of
+          // vertical scrollbar's position.
+          var deltaY = deltaY
+          val contentHeight = maximumHeight
+          // The height of the GUI component to draw the contents.
+          val viewHeight = height
+          when {
+            // User attempts to drag the chart's head (the outermost frame on call stacks) away from
+            // the boundary. No.
+            yRange.min + deltaY < INITIAL_Y_POSITION -> deltaY = INITIAL_Y_POSITION - yRange.min
+            // User attempts to drag the chart's toe (the innermost frame on call stacks) away from
+            // the boundary. No.
+            // Note that the chart may be taller than the stacks, so we need to limit the delta.
+            yRange.min + viewHeight + deltaY > contentHeight ->
+              deltaY = max(0.0, contentHeight - viewHeight - yRange.min)
+          }
+          yRange.shift(deltaY)
+        }
+
+        override fun mouseWheelMoved(e: MouseWheelEvent) {
+          if (isActionKeyDown(e)) {
+            val cursorRange = positionToRange(e.x.toDouble())
+            val leftDelta = (cursorRange - xRange.min) / ZOOM_FACTOR * e.wheelRotation
+            val rightDelta = (xRange.max - cursorRange) / ZOOM_FACTOR * e.wheelRotation
+            xRange.set(
+              max(globalXRange.min, xRange.min - leftDelta),
+              min(globalXRange.max, xRange.max + rightDelta),
+            )
+          } else {
+            val deltaY = e.preciseWheelRotation * MOUSE_WHEEL_SCROLL_FACTOR
+            shiftYRange(if (orientation == Orientation.TOP_DOWN) deltaY else -deltaY)
+          }
         }
       }
-
-      override fun mouseClicked(e: MouseEvent) {
-        if (!hasFocus()) {
-          requestFocusInWindow()
-        }
-      }
-
-      override fun mousePressed(e: MouseEvent) {
-        lastPoint = e.point
-      }
-
-      override fun mouseDragged(e: MouseEvent) {
-        // First, handle Y range.
-        val deltaY = (e.point.y - lastPoint!!.y).toDouble()
-        shiftYRange(if (orientation == Orientation.BOTTOM_UP) deltaY else -deltaY)
-
-        // Second, handle X Range.
-        val deltaX = (e.point.x - lastPoint!!.x).toDouble()
-        var deltaXToShift = xRange.length / width * -deltaX
-        when {
-          // User attempts to move the chart towards left to view the area to the right.
-          deltaXToShift > 0 -> deltaXToShift = min(globalXRange.max - xRange.max, deltaXToShift)
-          // User attempts to move the chart towards right to view the area to the left.
-          deltaXToShift < 0 -> deltaXToShift = max(globalXRange.min - xRange.min, deltaXToShift)
-        }
-        xRange.shift(deltaXToShift)
-        lastPoint = e.point
-      }
-
-      private fun shiftYRange(deltaY: Double) {
-        // The height of the contents we can show, including those not currently shown because of vertical scrollbar's position.
-        var deltaY = deltaY
-        val contentHeight = maximumHeight
-        // The height of the GUI component to draw the contents.
-        val viewHeight = height
-        when {
-          // User attempts to drag the chart's head (the outermost frame on call stacks) away from the boundary. No.
-          yRange.min + deltaY < INITIAL_Y_POSITION -> deltaY = INITIAL_Y_POSITION - yRange.min
-          // User attempts to drag the chart's toe (the innermost frame on call stacks) away from the boundary. No.
-          // Note that the chart may be taller than the stacks, so we need to limit the delta.
-          yRange.min + viewHeight + deltaY > contentHeight -> deltaY = max(0.0, contentHeight - viewHeight - yRange.min)
-        }
-        yRange.shift(deltaY)
-      }
-
-      override fun mouseWheelMoved(e: MouseWheelEvent) {
-        if (isActionKeyDown(e)) {
-          val cursorRange = positionToRange(e.x.toDouble())
-          val leftDelta = (cursorRange - xRange.min) / ZOOM_FACTOR * e.wheelRotation
-          val rightDelta = (xRange.max - cursorRange) / ZOOM_FACTOR * e.wheelRotation
-          xRange.set(max(globalXRange.min, xRange.min - leftDelta), min(globalXRange.max, xRange.max + rightDelta))
-        } else {
-          val deltaY = e.preciseWheelRotation * MOUSE_WHEEL_SCROLL_FACTOR
-          shiftYRange(if (orientation == Orientation.TOP_DOWN) deltaY else -deltaY)
-        }
-      }
-    }
     addMouseWheelListener(adapter)
     addMouseListener(adapter)
     addMouseMotionListener(adapter)
@@ -398,11 +440,13 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
     return (nodeHeight + nodeYPaddingPx) * maxDepth + HEIGHT_PADDING
   }
 
-  class Builder<N : HNode<N>>(internal val root: N?,
-                              // the range of the chart's visible area
-                              internal val xRange: Range,
-                              // a [<] which is responsible for rendering a single node.
-                              internal val renderer: HRenderer<N>) {
+  class Builder<N : HNode<N>>(
+    internal val root: N?,
+    // the range of the chart's visible area
+    internal val xRange: Range,
+    // a [<] which is responsible for rendering a single node.
+    internal val renderer: HRenderer<N>,
+  ) {
     internal var orientation = Orientation.TOP_DOWN
     internal var globalXRange = Range(-Double.MAX_VALUE, Double.MAX_VALUE)
     internal var rootVisible = true
@@ -411,47 +455,37 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
     internal var customNodeHeightPx = 0
     internal var nodeXPaddingPx = PADDING
     internal var nodeYPaddingPx = PADDING
-    fun setOrientation(orientation: Orientation) = this.also {
-      this.orientation = orientation
-    }
 
-    fun setRootVisible(visible: Boolean) = this.also {
-      this.rootVisible = visible
-    }
+    fun setOrientation(orientation: Orientation) = this.also { this.orientation = orientation }
 
-    fun setNodeSelectionEnabled(nodeSelectionEnabled: Boolean) = this.also {
-      this.nodeSelectionEnabled = nodeSelectionEnabled
-    }
+    fun setRootVisible(visible: Boolean) = this.also { this.rootVisible = visible }
+
+    fun setNodeSelectionEnabled(nodeSelectionEnabled: Boolean) =
+      this.also { this.nodeSelectionEnabled = nodeSelectionEnabled }
 
     /**
-     * @param globalXRange the bounding range of chart's visible area,
-     * if it's not set, it assumes that there is no bounding range of chart.
+     * @param globalXRange the bounding range of chart's visible area, if it's not set, it assumes
+     *   that there is no bounding range of chart.
      */
-    fun setGlobalXRange(globalXRange: Range) = this.also {
-      this.globalXRange = globalXRange
-    }
+    fun setGlobalXRange(globalXRange: Range) = this.also { this.globalXRange = globalXRange }
 
     @VisibleForTesting
-    fun setReducer(reducer: HTreeChartReducer<N>) = this.also {
-      this.reducer = reducer
-    }
+    fun setReducer(reducer: HTreeChartReducer<N>) = this.also { this.reducer = reducer }
 
-    fun setCustomNodeHeightPx(customNodeHeightPx: Int) = this.also {
-      this.customNodeHeightPx = customNodeHeightPx
-    }
+    fun setCustomNodeHeightPx(customNodeHeightPx: Int) =
+      this.also { this.customNodeHeightPx = customNodeHeightPx }
 
-    fun setNodeXPaddingPx(nodeXPaddingPx: Int) = this.also {
-      this.nodeXPaddingPx = nodeXPaddingPx
-    }
+    fun setNodeXPaddingPx(nodeXPaddingPx: Int) = this.also { this.nodeXPaddingPx = nodeXPaddingPx }
 
-    fun setNodeYPaddingPx(nodeYPaddingPx: Int) = this.also {
-      this.nodeYPaddingPx = nodeYPaddingPx
-    }
+    fun setNodeYPaddingPx(nodeYPaddingPx: Int) = this.also { this.nodeYPaddingPx = nodeYPaddingPx }
 
     fun build(): HTreeChart<N> = HTreeChart(this)
   }
 
-  enum class Orientation { TOP_DOWN, BOTTOM_UP }
+  enum class Orientation {
+    TOP_DOWN,
+    BOTTOM_UP,
+  }
 
   companion object {
     private const val NO_HTREE = "No data available."
@@ -463,13 +497,12 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
     private const val ACTION_MOVE_RIGHT = "move right"
     private const val ACTION_MOVEMENT_FACTOR = 5
 
-    @VisibleForTesting
-    const val PADDING = 1
+    @VisibleForTesting const val PADDING = 1
     private const val INITIAL_Y_POSITION = 0
 
-    @VisibleForTesting
-    const val HEIGHT_PADDING = 15
+    @VisibleForTesting const val HEIGHT_PADDING = 15
     private const val MOUSE_WHEEL_SCROLL_FACTOR = 8
-    //private operator fun Rectangle2D.contains(p: Point) = p.getX() in minX..maxX && p.getY() in minY .. maxY
+    // private operator fun Rectangle2D.contains(p: Point) = p.getX() in minX..maxX && p.getY() in
+    // minY .. maxY
   }
 }

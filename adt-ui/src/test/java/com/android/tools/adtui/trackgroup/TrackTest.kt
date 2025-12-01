@@ -20,9 +20,9 @@ import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
-import org.junit.Test
 import javax.swing.JLabel
 import javax.swing.UIManager
+import org.junit.Test
 
 class TrackTest {
 
@@ -37,7 +37,8 @@ class TrackTest {
 
   @Test
   fun hideTrackHeader() {
-    val trackModel = TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo").setHideHeader(true).build()
+    val trackModel =
+      TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo").setHideHeader(true).build()
     val trackComponent = Track.create(trackModel, BooleanTrackRenderer()).component
     assertThat(trackComponent.componentCount).isEqualTo(1)
     assertThat(trackComponent.getComponent(0)).isInstanceOf(JLabel::class.java)
@@ -45,7 +46,10 @@ class TrackTest {
 
   @Test
   fun updateSelected() {
-    val trackModel = TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo").setCollapsible(false).build()
+    val trackModel =
+      TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo")
+        .setCollapsible(false)
+        .build()
     val track = Track.create(trackModel, BooleanTrackRenderer())
     assertThat(track.component.background).isEqualTo(UIManager.getColor("Panel.background"))
     track.updateUiStates(true)
@@ -55,10 +59,11 @@ class TrackTest {
 
   @Test
   fun collapseTrack() {
-    val trackModel = TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo")
-      .setCollapsible(true)
-      .setCollapsed(false)
-      .build()
+    val trackModel =
+      TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo")
+        .setCollapsible(true)
+        .setCollapsed(false)
+        .build()
     val collapsedTrack = Track.create(trackModel, BooleanTrackRenderer())
     assertThat(collapsedTrack.titleLabel.icon).isEqualTo(AllIcons.General.ArrowDown)
     trackModel.isCollapsed = true

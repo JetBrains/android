@@ -15,20 +15,21 @@
  */
 package com.android.tools.adtui.chart.statechart
 
-import org.mockito.kotlin.whenever
 import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.adtui.model.StateChartModel
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
-import org.mockito.Mockito
 import java.awt.Color
 import java.awt.FontMetrics
 import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.geom.Rectangle2D
+import org.junit.Test
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class StateChartTest {
   @Test
@@ -54,23 +55,36 @@ class StateChartTest {
     whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
     Mockito.verify(fakeGraphics, Mockito.times(1))
-      .drawString(Mockito.eq("123"), Mockito.anyFloat(), Mockito.anyFloat())
+      .drawString(
+        ArgumentMatchers.eq("123"),
+        ArgumentMatchers.anyFloat(),
+        ArgumentMatchers.anyFloat(),
+      )
   }
 
   @Test
   fun testStateChartWithDefaultTextConverterUsesToString() {
     val model = StateChartModel<ToStringTestClass>()
-    val dataSeries = DataSeries.using {
-      listOf(SeriesData(0, ToStringTestClass("Test")), SeriesData(1000, ToStringTestClass("Test2")))
-    }
+    val dataSeries =
+      DataSeries.using {
+        listOf(
+          SeriesData(0, ToStringTestClass("Test")),
+          SeriesData(1000, ToStringTestClass("Test2")),
+        )
+      }
     model.addSeries(RangedSeries(Range(0.0, 100.0), dataSeries))
-    val stateChart = StateChart(model, constColorProvider(Color.BLACK), StateChart.defaultTextConverter())
+    val stateChart =
+      StateChart(model, constColorProvider(Color.BLACK), StateChart.defaultTextConverter())
     stateChart.setSize(100, 100)
     val fakeGraphics = Mockito.mock(Graphics2D::class.java)
     whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
     Mockito.verify(fakeGraphics, Mockito.times(1))
-      .drawString(Mockito.eq("Test"), Mockito.anyFloat(), Mockito.anyFloat())
+      .drawString(
+        ArgumentMatchers.eq("Test"),
+        ArgumentMatchers.anyFloat(),
+        ArgumentMatchers.anyFloat(),
+      )
   }
 
   private class ToStringTestClass(private val myString: String) {
@@ -80,12 +94,9 @@ class StateChartTest {
   @Test
   fun testLargeValuesGetOverlappedAsOne() {
     val model = StateChartModel<Long>()
-    val dataSeries = DataSeries.using {
-      listOf(SeriesData(100, 0L), SeriesData(101, 1L), SeriesData(105, 2L))
-    }
-    val colorMap = mapOf(0L to Color.RED,
-                         1L to Color.GREEN,
-                         2L to Color.BLUE)
+    val dataSeries =
+      DataSeries.using { listOf(SeriesData(100, 0L), SeriesData(101, 1L), SeriesData(105, 2L)) }
+    val colorMap = mapOf(0L to Color.RED, 1L to Color.GREEN, 2L to Color.BLUE)
     model.addSeries(RangedSeries(Range(0.0, Long.MAX_VALUE.toDouble()), dataSeries))
     val stateChart = StateChart(model, colorMap)
     stateChart.setSize(100, 100)
@@ -93,7 +104,8 @@ class StateChartTest {
     whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
 
-    // Because between 0 -> Max Long, values 100 and 101 are so close we end up with a floating point
+    // Because between 0 -> Max Long, values 100 and 101 are so close we end up with a floating
+    // point
     // rounding error when creating the rectangle. As such we end up creating two rectangles
     // on top of each ohter and storing them in our map of rectangles to values.
     // This means we do not draw the first value instead we throw it out and draw only
@@ -108,12 +120,20 @@ class StateChartTest {
   @Test
   fun `click-listener called on the right state item`() {
     val model = StateChartModel<Long>()
-    model.addSeries(RangedSeries(Range(0.0, 10.0), DataSeries.using { longArrayOf(0, 2, 4, 6, 8, 10).map { SeriesData(it, it) } }))
-    model.addSeries(RangedSeries(Range(0.0, 10.0), DataSeries.using { longArrayOf(1, 3, 5, 7, 9).map { SeriesData(it, it) } }))
+    model.addSeries(
+      RangedSeries(
+        Range(0.0, 10.0),
+        DataSeries.using { longArrayOf(0, 2, 4, 6, 8, 10).map { SeriesData(it, it) } },
+      )
+    )
+    model.addSeries(
+      RangedSeries(
+        Range(0.0, 10.0),
+        DataSeries.using { longArrayOf(1, 3, 5, 7, 9).map { SeriesData(it, it) } },
+      )
+    )
 
-    val stateChart = StateChart(model, constColorProvider(Color.PINK)).apply {
-      setSize(100, 100)
-    }
+    val stateChart = StateChart(model, constColorProvider(Color.PINK)).apply { setSize(100, 100) }
 
     // --1---3---5---7---9--
     // 0---2---4---6---8---10
@@ -133,12 +153,20 @@ class StateChartTest {
   @Test
   fun `series at mouse gives right-most index to mouse's left`() {
     val model = StateChartModel<Long>()
-    model.addSeries(RangedSeries(Range(0.0, 10.0), DataSeries.using { longArrayOf(0, 2, 4, 6, 8, 10).map { SeriesData(it, it) } }))
-    model.addSeries(RangedSeries(Range(0.0, 10.0), DataSeries.using { longArrayOf(1, 3, 5, 7, 9).map { SeriesData(it, it) } }))
+    model.addSeries(
+      RangedSeries(
+        Range(0.0, 10.0),
+        DataSeries.using { longArrayOf(0, 2, 4, 6, 8, 10).map { SeriesData(it, it) } },
+      )
+    )
+    model.addSeries(
+      RangedSeries(
+        Range(0.0, 10.0),
+        DataSeries.using { longArrayOf(1, 3, 5, 7, 9).map { SeriesData(it, it) } },
+      )
+    )
 
-    val stateChart = StateChart(model, constColorProvider(Color.PINK)).apply {
-      setSize(100, 100)
-    }
+    val stateChart = StateChart(model, constColorProvider(Color.PINK)).apply { setSize(100, 100) }
 
     // --1---3---5---7---9--
     // 0---2---4---6---8---10
@@ -158,10 +186,26 @@ class StateChartTest {
   @Test
   fun `chart uses custom renderer`() {
     val model = StateChartModel<Long>()
-    model.addSeries(RangedSeries(Range(0.0, 10.0), DataSeries.using { longArrayOf(0, 2, 4, 6, 8, 10).map { SeriesData(it, it) } }))
-    model.addSeries(RangedSeries(Range(0.0, 10.0), DataSeries.using { longArrayOf(1, 3, 5, 7, 9).map { SeriesData(it, it) } }))
+    model.addSeries(
+      RangedSeries(
+        Range(0.0, 10.0),
+        DataSeries.using { longArrayOf(0, 2, 4, 6, 8, 10).map { SeriesData(it, it) } },
+      )
+    )
+    model.addSeries(
+      RangedSeries(
+        Range(0.0, 10.0),
+        DataSeries.using { longArrayOf(1, 3, 5, 7, 9).map { SeriesData(it, it) } },
+      )
+    )
 
-    fun render(g: Graphics2D, rect: Rectangle2D.Float, defaultFontMetrics: FontMetrics, hovered: Boolean, value: Long) {
+    fun render(
+      g: Graphics2D,
+      rect: Rectangle2D.Float,
+      defaultFontMetrics: FontMetrics,
+      hovered: Boolean,
+      value: Long,
+    ) {
       if (value % 2 == 0L) g.fill(rect) else g.drawString("hi", 25, 25)
     }
 
@@ -177,6 +221,7 @@ class StateChartTest {
   }
 }
 
-private fun <T : Any> constColorProvider(color: Color) = object : StateChartColorProvider<T>() {
-  override fun getColor(isMouseOver: Boolean, value: T) = color
-}
+private fun <T : Any> constColorProvider(color: Color) =
+  object : StateChartColorProvider<T>() {
+    override fun getColor(isMouseOver: Boolean, value: T) = color
+  }

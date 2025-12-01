@@ -33,8 +33,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class LingeringTooltipTest {
-  @get:Rule
-  val composeTestRule = StudioComposeTestRule.createStudioComposeTestRule()
+  @get:Rule val composeTestRule = StudioComposeTestRule.createStudioComposeTestRule()
 
   @OptIn(ExperimentalFoundationApi::class, ExperimentalTestApi::class)
   @Test

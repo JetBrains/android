@@ -20,19 +20,18 @@ import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Rule
-import org.junit.Test
 import java.util.regex.Pattern
 import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JSeparator
+import org.junit.Rule
+import org.junit.Test
 
 @RunsInEdt
 class HideablePanelTest {
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Test
   fun testExpandChangesChildVisibility() {
@@ -48,7 +47,10 @@ class HideablePanelTest {
   @Test
   fun settingClickableComponentWorksOnTitleOnly() {
     val childPanel = JButton()
-    val panel = HideablePanel.Builder("Title", childPanel).setClickableComponent(HideablePanel.ClickableComponent.TITLE).build()
+    val panel =
+      HideablePanel.Builder("Title", childPanel)
+        .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
+        .build()
     assertThat(childPanel.isVisible).isTrue()
     // The 0th element is the HideablePanel itself. Not sure why this is returned as a descendant.
     val titleBarPanel = TreeWalker(panel).descendants().filterIsInstance<JPanel>()[1]
@@ -69,13 +71,15 @@ class HideablePanelTest {
     titleBar.mouse.press(10, 5)
     titleBar.mouse.release()
     assertThat(childPanel.isVisible).isTrue()
-
   }
 
   @Test
   fun settingClickableComponentWorksOnTitleBar() {
     val childPanel = JButton()
-    val panel = HideablePanel.Builder("Title", childPanel).setClickableComponent(HideablePanel.ClickableComponent.TITLE_BAR).build()
+    val panel =
+      HideablePanel.Builder("Title", childPanel)
+        .setClickableComponent(HideablePanel.ClickableComponent.TITLE_BAR)
+        .build()
     assertThat(childPanel.isVisible).isTrue()
     // The 0th element is the HideablePanel itself. Not sure why this is returned as a descendant.
     val titleBarPanel = TreeWalker(panel).descendants().filterIsInstance<JPanel>()[1]
@@ -108,8 +112,7 @@ class HideablePanelTest {
   @Test
   fun testShowSeparatorFalse() {
     val childPanel = JPanel()
-    val panel = HideablePanel.Builder("Title", childPanel)
-      .setShowSeparator(false).build()
+    val panel = HideablePanel.Builder("Title", childPanel).setShowSeparator(false).build()
     val treeWalker = TreeWalker(panel)
     val countOfSeparators = treeWalker.descendants().filterIsInstance<JSeparator>().size
     assertThat(countOfSeparators).isEqualTo(0)
@@ -118,8 +121,7 @@ class HideablePanelTest {
   @Test
   fun testInitiallyExpanded() {
     val childPanel = JPanel()
-    val panel = HideablePanel.Builder("Title", childPanel)
-      .setInitiallyExpanded(false).build()
+    val panel = HideablePanel.Builder("Title", childPanel).setInitiallyExpanded(false).build()
     assertThat(childPanel.isVisible).isFalse()
   }
 
@@ -127,10 +129,11 @@ class HideablePanelTest {
   fun testNorthEastComponent() {
     val childPanel = JPanel()
     val northEastPanel = JPanel()
-    val panel = HideablePanel.Builder("Title", childPanel)
-      .setNorthEastComponent(northEastPanel).build()
+    val panel =
+      HideablePanel.Builder("Title", childPanel).setNorthEastComponent(northEastPanel).build()
     val treeWalker = TreeWalker(panel)
-    val foundNorthEastComponent = treeWalker.descendantStream().filter { component -> component == northEastPanel }.count()
+    val foundNorthEastComponent =
+      treeWalker.descendantStream().filter { component -> component == northEastPanel }.count()
     assertThat(foundNorthEastComponent).isEqualTo(1)
   }
 
@@ -139,12 +142,13 @@ class HideablePanelTest {
     val childPanel = JPanel()
     val northEastPanel = JPanel()
     val brPattern = Pattern.compile("<html><nobr>(.*)</nobr></html>")
-    val panel = HideablePanel.Builder("My Long Title", childPanel)
-      .setNorthEastComponent(northEastPanel).build()
+    val panel =
+      HideablePanel.Builder("My Long Title", childPanel)
+        .setNorthEastComponent(northEastPanel)
+        .build()
     val treeWalker = TreeWalker(panel)
     val label = treeWalker.descendants().filterIsInstance<JLabel>().first()
     val matcher = brPattern.matcher(label.text)
     assertThat(matcher.matches()).isTrue()
   }
-
 }

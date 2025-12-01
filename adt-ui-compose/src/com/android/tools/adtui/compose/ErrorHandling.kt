@@ -18,8 +18,8 @@ package com.android.tools.adtui.compose
 import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.ui.Messages
-import kotlinx.coroutines.CancellationException
 import java.awt.Component
+import kotlinx.coroutines.CancellationException
 
 /**
  * Runs the given block, catching any error that occurs, except for CancellationException and
@@ -57,9 +57,7 @@ inline fun <reified LoggerT : Any> catchAndShowErrors(
  * executed. This provides a failsafe in case an exception slips through, resulting in similar
  * behavior to an uncaught exception in Swing.
  */
-inline fun <reified LoggerT : Any> catchAndLogErrors(
-  block: () -> Unit,
-) {
+inline fun <reified LoggerT : Any> catchAndLogErrors(block: () -> Unit) {
   try {
     block()
   } catch (e: Exception) {

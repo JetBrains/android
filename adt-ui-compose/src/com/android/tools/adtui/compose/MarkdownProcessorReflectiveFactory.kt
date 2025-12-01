@@ -16,36 +16,39 @@
 package com.android.tools.adtui.compose
 
 import com.intellij.openapi.diagnostic.thisLogger
-import org.jetbrains.jewel.markdown.processing.MarkdownParserFactory
-import org.jetbrains.jewel.markdown.processing.MarkdownProcessor
+import kotlin.jvm.functions.Function1
 import org.commonmark.parser.Parser
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.code.MimeType
 import org.jetbrains.jewel.markdown.MarkdownMode
 import org.jetbrains.jewel.markdown.extensions.MarkdownProcessorExtension
-import kotlin.jvm.functions.Function1
+import org.jetbrains.jewel.markdown.processing.MarkdownParserFactory
+import org.jetbrains.jewel.markdown.processing.MarkdownProcessor
 
 /**
  * A factory for creating [MarkdownProcessor] instances using reflection.
  *
- * This is a workaround for binary compatibility issues (`NoSuchMethodError`)
- * that can occur if your code is compiled against an older version (2025.1.1) of the
- * `jewel-markdown`  library but runs against a newer version (2025.1.4) where the
- * [MarkdownProcessor] constructor has changed.
+ * This is a workaround for binary compatibility issues (`NoSuchMethodError`) that can occur if your
+ * code is compiled against an older version (2025.1.1) of the `jewel-markdown` library but runs
+ * against a newer version (2025.1.4) where the [MarkdownProcessor] constructor has changed.
  */
 @ExperimentalJewelApi
 public object MarkdownProcessorReflectiveFactory {
 
   /**
-   * Creates a [MarkdownProcessor] instance by reflectively calling its
-   * constructor. This is intended to bypass `NoSuchMethodError` when the
-   * constructor signature has changed in 2025.1.4+ IDEs.
+   * Creates a [MarkdownProcessor] instance by reflectively calling its constructor. This is
+   * intended to bypass `NoSuchMethodError` when the constructor signature has changed in 2025.1.4+
+   * IDEs.
    */
   @JvmOverloads
   public fun create(
     extensions: List<MarkdownProcessorExtension> = emptyList(),
     markdownMode: MarkdownMode = MarkdownMode.Standalone,
-    commonMarkParser: Parser = MarkdownParserFactory.create(optimizeEdits = markdownMode is MarkdownMode.EditorPreview, extensions),
+    commonMarkParser: Parser =
+      MarkdownParserFactory.create(
+        optimizeEdits = markdownMode is MarkdownMode.EditorPreview,
+        extensions,
+      ),
   ): MarkdownProcessor {
     return try {
       MarkdownProcessor(extensions = extensions, markdownMode = markdownMode, commonMarkParser = commonMarkParser)
@@ -53,27 +56,25 @@ public object MarkdownProcessorReflectiveFactory {
       thisLogger().warn("Cannot use default MarkdownProcessor constructor, trying reflection.", e)
       try {
         val processorClass = MarkdownProcessor::class.java
-        val constructor = processorClass.getConstructor(
-          List::class.java,
-          MarkdownMode::class.java,
-          Parser::class.java,
-          Function1::class.java
-        )
+        val constructor =
+          processorClass.getConstructor(
+            List::class.java,
+            MarkdownMode::class.java,
+            Parser::class.java,
+            Function1::class.java,
+          )
 
         // Recreate the default lambda for languageRecognizer
-        val languageRecognizer =
-          { langName: String -> MimeType.Known.fromMarkdownLanguageName(langName) }
+        val languageRecognizer = { langName: String ->
+          MimeType.Known.fromMarkdownLanguageName(langName)
+        }
 
-        constructor.newInstance(
-          extensions,
-          markdownMode,
-          commonMarkParser,
-          languageRecognizer
-        ) as MarkdownProcessor
+        constructor.newInstance(extensions, markdownMode, commonMarkParser, languageRecognizer)
+          as MarkdownProcessor
       } catch (e: Exception) {
         throw RuntimeException(
           "Failed to create MarkdownProcessor via reflection. This is likely due to an incompatible library version.",
-          e
+          e,
         )
       }
     }

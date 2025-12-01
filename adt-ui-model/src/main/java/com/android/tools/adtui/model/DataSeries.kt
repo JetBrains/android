@@ -15,23 +15,23 @@
  */
 package com.android.tools.adtui.model
 
-/**
- * An interface that provides data to all RangedSeries used by the UI.
- */
+/** An interface that provides data to all RangedSeries used by the UI. */
 interface DataSeries<E> {
   fun getDataForRange(range: Range): List<SeriesData<E>>
 
   companion object {
-    fun <T> using(factory: (Range)->List<SeriesData<T>>) = object : DataSeries<T> {
-      override fun getDataForRange(range: Range): List<SeriesData<T>> {
-        return factory(range)
+    fun <T> using(factory: (Range) -> List<SeriesData<T>>) =
+      object : DataSeries<T> {
+        override fun getDataForRange(range: Range): List<SeriesData<T>> {
+          return factory(range)
+        }
       }
-    }
 
-    fun <T> empty(): DataSeries<T> = object : DataSeries<T> {
-      override fun getDataForRange(range: Range): List<SeriesData<T>> {
-        return emptyList()
+    fun <T> empty(): DataSeries<T> =
+      object : DataSeries<T> {
+        override fun getDataForRange(range: Range): List<SeriesData<T>> {
+          return emptyList()
+        }
       }
-    }
   }
 }

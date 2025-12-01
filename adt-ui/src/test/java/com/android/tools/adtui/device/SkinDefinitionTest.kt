@@ -40,9 +40,7 @@ import kotlin.test.fail
 import org.junit.Before
 import org.junit.Test
 
-/**
- * Tests for [SkinDefinition] and related classes.
- */
+/** Tests for [SkinDefinition] and related classes. */
 class SkinDefinitionTest {
 
   @Before
@@ -232,63 +230,66 @@ class SkinDefinitionTest {
   @Test
   fun testSkinConsistency() {
     // Old-style skins are not checked by this test. Please don't add any new skins to this list.
-    val oldStyleSkins = listOf(
-      "automotive_1024",
-      "nexus_one",
-      "nexus_s",
-      "nexus_4",
-      "nexus_5",
-      "nexus_5x",
-      "nexus_6",
-      "nexus_6p",
-      "nexus_7",
-      "nexus_7_2013",
-      "nexus_9",
-      "nexus_10",
-      "galaxy_nexus",
-      "pixel",
-      "pixel_xl",
-      "pixel_c",
-      "pixel_silver",
-      "pixel_xl_silver",
-      "pixel_2",
-      "pixel_2_xl",
-      "pixel_3",
-      "pixel_3_xl",
-      "pixel_3a",
-      "pixel_3a_xl",
-      "pixel_4",
-      "pixel_4_xl",
-      "tv_720p",
-      "tv_1080p",
-      "tv_4k",
-      "wearos_large_round", // TODO: Remove exclusion when the skin is fixed.
-      "wearos_small_round", // TODO: Remove exclusion when the skin is fixed.
-      "wearos_square",
-    )
+    val oldStyleSkins =
+      listOf(
+        "automotive_1024",
+        "nexus_one",
+        "nexus_s",
+        "nexus_4",
+        "nexus_5",
+        "nexus_5x",
+        "nexus_6",
+        "nexus_6p",
+        "nexus_7",
+        "nexus_7_2013",
+        "nexus_9",
+        "nexus_10",
+        "galaxy_nexus",
+        "pixel",
+        "pixel_xl",
+        "pixel_c",
+        "pixel_silver",
+        "pixel_xl_silver",
+        "pixel_2",
+        "pixel_2_xl",
+        "pixel_3",
+        "pixel_3_xl",
+        "pixel_3a",
+        "pixel_3a_xl",
+        "pixel_4",
+        "pixel_4_xl",
+        "tv_720p",
+        "tv_1080p",
+        "tv_4k",
+        "wearos_large_round", // TODO: Remove exclusion when the skin is fixed.
+        "wearos_small_round", // TODO: Remove exclusion when the skin is fixed.
+        "wearos_square",
+      )
     val skinProblems = mutableListOf<String>()
     val dir = getRootSkinFolder()
     Files.walk(dir, 3).use { stream ->
       stream.forEach { skinFolder ->
-        if (Files.isDirectory(skinFolder) && !oldStyleSkins.contains(skinFolder.fileName.toString()) &&
-            Files.exists(skinFolder.resolve("layout"))) {
+        if (
+          Files.isDirectory(skinFolder) &&
+            !oldStyleSkins.contains(skinFolder.fileName.toString()) &&
+            Files.exists(skinFolder.resolve("layout"))
+        ) {
           val skinName = skinFolder.subpath(dir.nameCount, skinFolder.nameCount)
           try {
             val skin = SkinDefinition.create(skinFolder)
             val layout = skin.layout
             val problems = validateLayout(layout, skinFolder)
             if (problems.isNotEmpty()) {
-              skinProblems.add("Skin \"$skinName\" is inconsistent:\n${problems.joinToString("\n")}")
+              skinProblems.add(
+                "Skin \"$skinName\" is inconsistent:\n${problems.joinToString("\n")}"
+              )
             }
-          }
-          catch (e: NoSuchFileException) {
+          } catch (e: NoSuchFileException) {
             skinProblems.add("Unable to create skin \"$skinName\". File not found: ${e.file}")
-          }
-          catch (e: IOException) {
+          } catch (e: IOException) {
             val message = e.message?.let { "I/O error $it" } ?: "I/O error"
             skinProblems.add("Unable to create skin \"$skinName\". $message")
-          }
-          catch (e: InvalidSkinException) {
+          } catch (e: InvalidSkinException) {
             skinProblems.add("Unable to create skin \"$skinName\". ${e.message}")
           }
         }
@@ -300,16 +301,21 @@ class SkinDefinitionTest {
   }
 
   private fun validateLayout(skinLayout: SkinLayout, skinFolder: Path): List<String> {
-    val backgroundImageFile = SkinDefinition.getBackgroundImageFile(skinFolder) ?: return listOf("The skin doesn't define a background image")
-    val backgroundImage = try {
-      backgroundImageFile.readImage()
-    }
-    catch (e: NoSuchFileException) {
-      return listOf("The background image \"${e.file}\" does not exist")
-    }
+    val backgroundImageFile =
+      SkinDefinition.getBackgroundImageFile(skinFolder)
+        ?: return listOf("The skin doesn't define a background image")
+    val backgroundImage =
+      try {
+        backgroundImageFile.readImage()
+      } catch (e: NoSuchFileException) {
+        return listOf("The background image \"${e.file}\" does not exist")
+      }
     val displaySize = skinLayout.displaySize
-    val center = Point(displaySize.width / 2 - skinLayout.frameRectangle.x,
-                       displaySize.height / 2 - skinLayout.frameRectangle.y)
+    val center =
+      Point(
+        displaySize.width / 2 - skinLayout.frameRectangle.x,
+        displaySize.height / 2 - skinLayout.frameRectangle.y,
+      )
     if (!backgroundImage.isTransparentPixel(center)) {
       return listOf("The background image is not transparent near the center of the display")
     }
@@ -317,34 +323,51 @@ class SkinDefinitionTest {
     val problems = mutableListOf<String>()
     val image = skinLayout.draw()
     if (backgroundImage.width != image.width || backgroundImage.height != image.height) {
-      problems.add("The ${backgroundImageFile.fileName} image can be cropped without loosing any information")
+      problems.add(
+        "The ${backgroundImageFile.fileName} image can be cropped without loosing any information"
+      )
     }
 
     val transparentAreaBounds = findBoundsOfContiguousArea(image, center, image::isTransparentPixel)
     if (transparentAreaBounds.width != displaySize.width) {
-      problems.add("The width of the display area in the skin image (${transparentAreaBounds.width})" +
-                     " doesn't match the layout file (${displaySize.width})")
+      problems.add(
+        "The width of the display area in the skin image (${transparentAreaBounds.width})" +
+          " doesn't match the layout file (${displaySize.width})"
+      )
     }
     if (transparentAreaBounds.height != displaySize.height) {
-      problems.add("The height of the display area in the skin image (${transparentAreaBounds.height})" +
-                     " doesn't match the layout file (${displaySize.height})")
+      problems.add(
+        "The height of the display area in the skin image (${transparentAreaBounds.height})" +
+          " doesn't match the layout file (${displaySize.height})"
+      )
     }
     val nonOpaqueAreaBounds = findBoundsOfContiguousArea(image, center, image::isNonOpaquePixel)
     if (nonOpaqueAreaBounds.x != transparentAreaBounds.x) {
       problems.add("Partially transparent pixels near the left edge of the display area")
     }
-    if (nonOpaqueAreaBounds.x + nonOpaqueAreaBounds.width != transparentAreaBounds.x + transparentAreaBounds.width) {
+    if (
+      nonOpaqueAreaBounds.x + nonOpaqueAreaBounds.width !=
+        transparentAreaBounds.x + transparentAreaBounds.width
+    ) {
       problems.add("Partially transparent pixels near the right edge of the display area")
     }
     if (nonOpaqueAreaBounds.y != transparentAreaBounds.y) {
       problems.add("Partially transparent pixels near the top edge of the display area")
     }
-    if (nonOpaqueAreaBounds.y + nonOpaqueAreaBounds.height != transparentAreaBounds.y + transparentAreaBounds.height) {
+    if (
+      nonOpaqueAreaBounds.y + nonOpaqueAreaBounds.height !=
+        transparentAreaBounds.y + transparentAreaBounds.height
+    ) {
       problems.add("Partially transparent pixels near the bottom edge of the display area")
     }
-    if (transparentAreaBounds.x != -skinLayout.frameRectangle.x || transparentAreaBounds.y != -skinLayout.frameRectangle.y) {
-      problems.add("Display offset in the layout file (${-skinLayout.frameRectangle.x}, ${-skinLayout.frameRectangle.y})" +
-                   " doesn't match the skin image (${transparentAreaBounds.x}, ${transparentAreaBounds.y})")
+    if (
+      transparentAreaBounds.x != -skinLayout.frameRectangle.x ||
+        transparentAreaBounds.y != -skinLayout.frameRectangle.y
+    ) {
+      problems.add(
+        "Display offset in the layout file (${-skinLayout.frameRectangle.x}, ${-skinLayout.frameRectangle.y})" +
+          " doesn't match the skin image (${transparentAreaBounds.x}, ${transparentAreaBounds.y})"
+      )
     }
 
     // Check consistency between corners of the display and round corners of the frame.
@@ -352,20 +375,27 @@ class SkinDefinitionTest {
     val halfSize = min(displaySize.width, displaySize.height) / 2
     var minInterior = halfSize + 1
     for (iy in 0..1) {
-      val yOffset = iy * (displaySize.height - 1) - skinLayout.frameRectangle.y // Y coordinate of a display corner.
+      val yOffset =
+        iy * (displaySize.height - 1) -
+          skinLayout.frameRectangle.y // Y coordinate of a display corner.
       val yStep = 1 - 2 * iy // Direction of Y iteration.
       for (ix in 0..1) {
-        val xOffset = ix * (displaySize.width - 1) - skinLayout.frameRectangle.x // X coordinate of a display corner.
+        val xOffset =
+          ix * (displaySize.width - 1) -
+            skinLayout.frameRectangle.x // X coordinate of a display corner.
         val xStep = 1 - 2 * ix // Direction of X iteration.
-        var exterior = -1 // Distance between the display corner and outer boundary of the frame near the corner.
-        var interior = halfSize + 1 // Distance between the display corner and inner boundary of the frame near the corner.
+        var exterior =
+          -1 // Distance between the display corner and outer boundary of the frame near the corner.
+        var interior =
+          halfSize +
+            1 // Distance between the display corner and inner boundary of the frame near the
+        // corner.
         for (d in 0..halfSize) {
           if (exterior < 0) {
             if (image.isOpaquePixel(Point(xOffset + d * xStep, yOffset + d * yStep))) {
               exterior = d
             }
-          }
-          else {
+          } else {
             if (image.isNonOpaquePixel(Point(xOffset + d * xStep, yOffset + d * yStep))) {
               interior = d
               break
@@ -383,21 +413,29 @@ class SkinDefinitionTest {
       val r = skinLayout.displayCornerSize.width
       val recommendedR = ((minR + maxR) / 2).roundToInt()
       if (r < minR) {
-        problems.add("Corners of the display are protruding beyond the frame. Can be fixed by setting corner_radius $recommendedR")
+        problems.add(
+          "Corners of the display are protruding beyond the frame. Can be fixed by setting corner_radius $recommendedR"
+        )
+      } else if (r > maxR) {
+        problems.add(
+          "There are gaps between the rounded corners of the display and the frame." +
+            " Can be fixed by setting corner_radius $recommendedR"
+        )
       }
-      else if (r > maxR) {
-        problems.add("There are gaps between the rounded corners of the display and the frame." +
-                     " Can be fixed by setting corner_radius $recommendedR")
-      }
-    }
-    else {
-      problems.add("The skin inevitably leads to corners of the display protruding beyond the frame" +
-                   " or to gaps between the rounded corners of the display and the frame.")
+    } else {
+      problems.add(
+        "The skin inevitably leads to corners of the display protruding beyond the frame" +
+          " or to gaps between the rounded corners of the display and the frame."
+      )
     }
     return problems
   }
 
-  private fun findBoundsOfContiguousArea(image: BufferedImage, start: Point, predicate: Predicate<Point>): Rectangle {
+  private fun findBoundsOfContiguousArea(
+    image: BufferedImage,
+    start: Point,
+    predicate: Predicate<Point>,
+  ): Rectangle {
     var minX = start.x
     var maxX = start.x
     var minY = start.y
@@ -413,10 +451,15 @@ class SkinDefinitionTest {
   }
 
   /**
-   * Calls [visitor] for every point of the contiguous area of the [image] where every pixel satisfies
-   * the [predicate] and containing the [start] point.
+   * Calls [visitor] for every point of the contiguous area of the [image] where every pixel
+   * satisfies the [predicate] and containing the [start] point.
    */
-  private fun visitContiguousArea(image: BufferedImage, start: Point, predicate: Predicate<Point>, visitor: Consumer<Point>) {
+  private fun visitContiguousArea(
+    image: BufferedImage,
+    start: Point,
+    predicate: Predicate<Point>,
+    visitor: Consumer<Point>,
+  ) {
     if (!predicate.test(start)) {
       return
     }
@@ -431,8 +474,14 @@ class SkinDefinitionTest {
       for (p1 in front) {
         for (neighbor in NEIGHBORS) {
           val p2 = Point(p1.x + neighbor.x, p1.y + neighbor.y)
-          if (p2.x in 0 until width && p2.y in 0 until height &&
-              !newFront.contains(p2) && !front.contains(p2) && !previousFront.contains(p2) && predicate.test(p2)) {
+          if (
+            p2.x in 0 until width &&
+              p2.y in 0 until height &&
+              !newFront.contains(p2) &&
+              !front.contains(p2) &&
+              !previousFront.contains(p2) &&
+              predicate.test(p2)
+          ) {
             visitor.accept(p2)
             newFront.add(p2)
           }
@@ -454,7 +503,10 @@ class SkinDefinitionTest {
   private fun SkinLayout.draw(): BufferedImage {
     val image = BufferedImage(frameRectangle.width, frameRectangle.height, TYPE_INT_ARGB)
     val g = image.createGraphics()
-    drawFrameAndMask(g, Rectangle(-frameRectangle.x, -frameRectangle.y, displaySize.width, displaySize.height))
+    drawFrameAndMask(
+      g,
+      Rectangle(-frameRectangle.x, -frameRectangle.y, displaySize.width, displaySize.height),
+    )
     g.dispose()
     return image
   }
@@ -486,11 +538,21 @@ private class Point(x: Int, y: Int) : java.awt.Point(x, y) {
 
 private fun getSkinFolder(skinName: String): Path = getRootSkinFolder().resolve(skinName)
 
-private fun getRootSkinFolder(): Path = TestUtils.resolveWorkspacePathUnchecked(DEVICE_ART_RESOURCES_DIR)
+private fun getRootSkinFolder(): Path =
+  TestUtils.resolveWorkspacePathUnchecked(DEVICE_ART_RESOURCES_DIR)
 
 private const val DEVICE_ART_RESOURCES_DIR = "tools/adt/idea/artwork/resources/device-art-resources"
 
-private val NEIGHBORS = listOf(Point(-1, -1), Point(-1, 0), Point(-1, 1), Point(0, 1),
-                               Point(1, 1), Point(1, 0), Point(1, -1), Point(0, -1))
+private val NEIGHBORS =
+  listOf(
+    Point(-1, -1),
+    Point(-1, 0),
+    Point(-1, 1),
+    Point(0, 1),
+    Point(1, 1),
+    Point(1, 0),
+    Point(1, -1),
+    Point(0, -1),
+  )
 
 private const val TEST_DATA_PATH = "tools/adt/idea/adt-ui/testData/SkinDefinitionTest"

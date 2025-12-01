@@ -16,15 +16,14 @@
 package com.android.tools.adtui.model
 
 import com.google.common.truth.Truth.assertThat
+import javax.swing.RowSorter
+import javax.swing.SortOrder
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
-import javax.swing.RowSorter
-import javax.swing.SortOrder
 
 class AbstractPaginatedTableModelTest {
-  @get:Rule
-  val thrown: ExpectedException = ExpectedException.none()
+  @get:Rule val thrown: ExpectedException = ExpectedException.none()
 
   @Test
   fun pageCount() {
@@ -103,7 +102,8 @@ class AbstractPaginatedTableModelTest {
   }
 }
 
-class PaginatedListModel(pageSize: Int, val data: MutableList<Int>) : AbstractPaginatedTableModel(pageSize) {
+class PaginatedListModel(pageSize: Int, val data: MutableList<Int>) :
+  AbstractPaginatedTableModel(pageSize) {
   override fun getDataSize(): Int {
     return data.size
   }
@@ -115,8 +115,7 @@ class PaginatedListModel(pageSize: Int, val data: MutableList<Int>) : AbstractPa
   override fun sortData(sortKeys: List<RowSorter.SortKey>) {
     if (sortKeys[0].sortOrder == SortOrder.ASCENDING) {
       data.sort()
-    }
-    else {
+    } else {
       data.sortDescending()
     }
   }

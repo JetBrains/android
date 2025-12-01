@@ -32,7 +32,7 @@ import javax.swing.table.TableColumn
 class CategoryTableHeader(
   private val model: ColumnList<*>,
   private val primarySortSupplier: () -> ColumnSortOrder<*>?,
-  private val mouseClickHandler: (MouseEvent) -> Unit
+  private val mouseClickHandler: (MouseEvent) -> Unit,
 ) : JTableHeader() {
   init {
     defaultRenderer = CategoryTableCellHeaderRenderer()
@@ -98,7 +98,7 @@ class CategoryTableHeader(
       isSelected: Boolean,
       hasFocus: Boolean,
       row: Int,
-      columnIndex: Int
+      columnIndex: Int,
     ): Component {
       text = value?.toString() ?: ""
 
@@ -116,7 +116,7 @@ class CategoryTableHeader(
       mapOf(
         SortOrder.ASCENDING to UIManager.get("Table.ascendingSortIcon", null) as Icon,
         SortOrder.DESCENDING to UIManager.get("Table.descendingSortIcon", null) as Icon,
-        SortOrder.UNSORTED to UIManager.get("Table.naturalSortIcon", null) as? Icon
+        SortOrder.UNSORTED to UIManager.get("Table.naturalSortIcon", null) as? Icon,
       )
   }
 }

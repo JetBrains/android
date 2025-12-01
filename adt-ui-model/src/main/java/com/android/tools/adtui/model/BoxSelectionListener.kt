@@ -16,8 +16,6 @@
 package com.android.tools.adtui.model
 
 interface BoxSelectionListener {
-  /**
-   * Event fired when the user creates a box selection using BoxSelectionComponent.
-   */
+  /** Event fired when the user creates a box selection using BoxSelectionComponent. */
   fun boxSelectionCreated(durationUs: Long, trackCount: Int)
 }

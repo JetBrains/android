@@ -16,8 +16,8 @@
 package com.android.tools.adtui.model.formatter
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.util.Locale
+import org.junit.Test
 
 class NumberFormatterTest {
 

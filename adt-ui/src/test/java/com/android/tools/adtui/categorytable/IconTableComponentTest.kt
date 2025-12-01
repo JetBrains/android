@@ -25,9 +25,6 @@ import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.ImageUtil
-import org.junit.Assert.assertThrows
-import org.junit.Rule
-import org.junit.Test
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -35,6 +32,9 @@ import java.awt.image.BufferedImage
 import javax.swing.Icon
 import javax.swing.JPanel
 import javax.swing.UIManager
+import org.junit.Assert.assertThrows
+import org.junit.Rule
+import org.junit.Test
 
 class IconTableComponentTest {
   @get:Rule
@@ -130,7 +130,7 @@ class IconTableComponentTest {
 
     label.updateTablePresentation(
       TablePresentationManager(),
-      TablePresentation(foreground = JBColor.BLUE, background = JBColor.RED, rowSelected = true)
+      TablePresentation(foreground = JBColor.BLUE, background = JBColor.RED, rowSelected = true),
     )
 
     assertThat(label.border).isEqualTo(tableCellBorder(selected = true, focused = true))

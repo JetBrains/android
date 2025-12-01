@@ -37,7 +37,7 @@ import javax.swing.JComponent
 class LightCalloutPopup(
   val closedCallback: (() -> Unit)? = null,
   val cancelCallBack: (() -> Unit)? = null,
-  val beforeShownCallback: (() -> Unit)? = null
+  val beforeShownCallback: (() -> Unit)? = null,
 ) {
 
   private var balloon: Balloon? = null
@@ -45,10 +45,12 @@ class LightCalloutPopup(
   /**
    * @param content The content in Popup Window
    * @param parentComponent The anchor component. Can be null.
-   * @param location The position relates to [parentComponent]. If [parentComponent] is null, position will relate to
-   *                 the top-left point of screen.
-   * @param position The popup position, see [Balloon.Position]. The default value is [Balloon.Position.below].
-   * @param hideOnOutsideClick By default, the popup will close on any click performed outside its bounds.
+   * @param location The position relates to [parentComponent]. If [parentComponent] is null,
+   *   position will relate to the top-left point of screen.
+   * @param position The popup position, see [Balloon.Position]. The default value is
+   *   [Balloon.Position.below].
+   * @param hideOnOutsideClick By default, the popup will close on any click performed outside its
+   *   bounds.
    */
   @JvmOverloads
   fun show(
@@ -56,7 +58,7 @@ class LightCalloutPopup(
     parentComponent: JComponent?,
     location: Point,
     position: Balloon.Position = Balloon.Position.below,
-    hideOnOutsideClick: Boolean = true
+    hideOnOutsideClick: Boolean = true,
   ) {
 
     // Let's cancel any previous balloon shown by this instance of ScenePopup
@@ -64,30 +66,32 @@ class LightCalloutPopup(
       cancel()
     }
 
-    balloon = createPopup(content, hideOnOutsideClick).apply {
-      addListener(object : JBPopupListener {
-        override fun beforeShown(event: LightweightWindowEvent) {
-          beforeShownCallback?.invoke()
-        }
+    balloon =
+      createPopup(content, hideOnOutsideClick).apply {
+        addListener(
+          object : JBPopupListener {
+            override fun beforeShown(event: LightweightWindowEvent) {
+              beforeShownCallback?.invoke()
+            }
 
-        override fun onClosed(event: LightweightWindowEvent) {
-          if (event.isOk) {
-            closedCallback?.invoke()
+            override fun onClosed(event: LightweightWindowEvent) {
+              if (event.isOk) {
+                closedCallback?.invoke()
+              } else {
+                cancelCallBack?.invoke()
+              }
+            }
           }
-          else {
-            cancelCallBack?.invoke()
-          }
-        }
-      })
+        )
 
-      val relativePoint = if (parentComponent != null) {
-        RelativePoint(parentComponent, location)
+        val relativePoint =
+          if (parentComponent != null) {
+            RelativePoint(parentComponent, location)
+          } else {
+            RelativePoint(location)
+          }
+        show(relativePoint, position)
       }
-      else {
-        RelativePoint(location)
-      }
-      show(relativePoint, position)
-    }
   }
 
   fun close() {
@@ -99,7 +103,8 @@ class LightCalloutPopup(
   }
 
   private fun createPopup(component: JComponent, hideOnOutsideClick: Boolean) =
-    JBPopupFactory.getInstance().createBalloonBuilder(component)
+    JBPopupFactory.getInstance()
+      .createBalloonBuilder(component)
       .setFillColor(secondaryPanelBackground)
       .setBorderColor(JBColor.border())
       .setBorderInsets(JBUI.insets(1))
@@ -118,13 +123,12 @@ class LightCalloutPopup(
 private val emptyRectangle = Rectangle(0, 0, 0, 0)
 
 /**
- * Return true if there is enough space in the application window below [location]
- * in the [parentComponent] coordinates to show [content].
+ * Return true if there is enough space in the application window below [location] in the
+ * [parentComponent] coordinates to show [content].
  */
-fun canShowBelow(parentComponent: JComponent,
-                 location: Point,
-                 content: JComponent): Boolean {
+fun canShowBelow(parentComponent: JComponent, location: Point, content: JComponent): Boolean {
   val relativePoint = RelativePoint(parentComponent, location)
   val windowBounds = ComponentUtil.getWindow(parentComponent)?.bounds ?: emptyRectangle
-  return relativePoint.screenPoint.y + content.preferredSize.height < windowBounds.y + windowBounds.height
+  return relativePoint.screenPoint.y + content.preferredSize.height <
+    windowBounds.y + windowBounds.height
 }
