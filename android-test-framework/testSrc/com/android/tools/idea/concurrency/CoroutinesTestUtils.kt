@@ -23,8 +23,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.yield
 
 /**
- * The methods block execution while coroutines in the corresponding job are not done.
- * Usually it is required to get the proper result if your refactoring starts a coroutine outside the general execution e.g. adding imports
+ * The methods block execution while coroutines in the corresponding job are not done. Usually it is
+ * required to get the proper result if your refactoring starts a coroutine outside the general
+ * execution e.g. adding imports
  */
 @RequiresEdt
 fun waitCoroutinesBlocking(job: Job) {
@@ -32,7 +33,9 @@ fun waitCoroutinesBlocking(job: Job) {
     while (true) {
       UIUtil.dispatchAllInvocationEvents()
       yield()
-      delay(1) //prevent too frequent polling, otherwise may load cpu with billions of context switches
+      delay(
+        1
+      ) // prevent too frequent polling, otherwise may load cpu with billions of context switches
 
       if (job.isCompleted || job.isCancelled) break
     }

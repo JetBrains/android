@@ -33,7 +33,9 @@ fun executeCapturingLoggedWarnings(runnable: ThrowableRunnable<RuntimeException>
 }
 
 /** Executes the given runnable and returns the logged error and warning messages. */
-fun executeCapturingLoggedErrorsAndWarnings(runnable: ThrowableRunnable<RuntimeException>): LoggedMessages {
+fun executeCapturingLoggedErrorsAndWarnings(
+  runnable: ThrowableRunnable<RuntimeException>
+): LoggedMessages {
   val errorProcessor = LoggedErrorCapturer()
   LoggedErrorProcessor.executeWith(errorProcessor, runnable)
   return LoggedMessages(errorProcessor.errorMessages, errorProcessor.warningMessages)
@@ -45,7 +47,12 @@ private class LoggedErrorCapturer : LoggedErrorProcessor() {
   val errorMessages = mutableListOf<String>()
   val warningMessages = mutableListOf<String>()
 
-  override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): Set<Action> {
+  override fun processError(
+    category: String,
+    message: String,
+    details: Array<out String>,
+    t: Throwable?,
+  ): Set<Action> {
     errorMessages.add(message)
     return Action.NONE
   }

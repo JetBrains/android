@@ -55,13 +55,17 @@ import org.jetbrains.android.facet.AndroidFacet
  * This implementation of AndroidProjectSystem is used during integration tests and includes methods
  * to stub project system functionalities.
  */
-@Deprecated("Recommended replacement: use AndroidProjectRule.withAndroidModels which gives a more realistic project structure and project system behaviors while still not requiring a 'real' synced project")
-class TestProjectSystem @JvmOverloads constructor(
+@Deprecated(
+  "Recommended replacement: use AndroidProjectRule.withAndroidModels which gives a more realistic project structure and project system behaviors while still not requiring a 'real' synced project"
+)
+class TestProjectSystem
+@JvmOverloads
+constructor(
   override val project: Project,
   availableDependencies: List<Artifact> = listOf(),
   private var sourceProvidersFactoryStub: SourceProvidersFactory = SourceProvidersFactoryStub(),
   @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS,
-  private val androidLibraryDependencies: Collection<ExternalAndroidLibrary> = emptySet()
+  private val androidLibraryDependencies: Collection<ExternalAndroidLibrary> = emptySet(),
 ) : AndroidProjectSystem {
 
   data class Artifact(val id: WellKnownMavenArtifactId, val version: NumericTestVersion)
@@ -69,39 +73,57 @@ class TestProjectSystem @JvmOverloads constructor(
   data class DependencySpec(val id: WellKnownMavenArtifactId, val version: TestVersion)
 
   data class Dependency(val type: DependencyType, val spec: DependencySpec) {
-    val id get() = spec.id
-    val version get() = spec.version
-    constructor(type: DependencyType, id: WellKnownMavenArtifactId, version: TestVersion):
-      this(type, DependencySpec(id, version))
+    val id
+      get() = spec.id
+
+    val version
+      get() = spec.version
+
+    constructor(
+      type: DependencyType,
+      id: WellKnownMavenArtifactId,
+      version: TestVersion,
+    ) : this(type, DependencySpec(id, version))
   }
 
-  interface TestModuleSystem: AndroidModuleSystem, RegisteringModuleSystem<TestRegisteredDependencyQueryId, TestRegisteredDependencyId>
+  interface TestModuleSystem :
+    AndroidModuleSystem,
+    RegisteringModuleSystem<TestRegisteredDependencyQueryId, TestRegisteredDependencyId>
 
   override fun isAndroidProject(): Boolean {
     return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
   }
 
-  /**
-   * Injects this project system into the [project] it was created for.
-   */
-  @Deprecated("Recommended replacement: use AndroidProjectRule.withAndroidModels which gives a more realistic project structure and project system behaviors while still not requiring a 'real' synced project")
+  /** Injects this project system into the [project] it was created for. */
+  @Deprecated(
+    "Recommended replacement: use AndroidProjectRule.withAndroidModels which gives a more realistic project structure and project system behaviors while still not requiring a 'real' synced project"
+  )
   fun useInTests() {
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(this)
-    val provider = object : ApplicationProjectContextProvider<AndroidProjectSystem>, TestToken {
-      override val expectedInstance: TestProjectSystem = this@TestProjectSystem
+    val provider =
+      object : ApplicationProjectContextProvider<AndroidProjectSystem>, TestToken {
+        override val expectedInstance: TestProjectSystem = this@TestProjectSystem
 
-      override fun computeApplicationProjectContext(projectSystem: AndroidProjectSystem, info: ApplicationProjectContextProvider.RunningApplicationIdentity): ApplicationProjectContext {
-        return TestApplicationProjectContext(info.applicationId ?: error("applicationId must not be empty"))
+        override fun computeApplicationProjectContext(
+          projectSystem: AndroidProjectSystem,
+          info: ApplicationProjectContextProvider.RunningApplicationIdentity,
+        ): ApplicationProjectContext {
+          return TestApplicationProjectContext(
+            info.applicationId ?: error("applicationId must not be empty")
+          )
+        }
       }
-    }
-    ApplicationManager.getApplication().extensionArea.getExtensionPoint(ApplicationProjectContextProvider.Companion.EP_NAME)
+    ApplicationManager.getApplication()
+      .extensionArea
+      .getExtensionPoint(ApplicationProjectContextProvider.Companion.EP_NAME)
       .registerExtension(provider, project)
   }
 
   private val dependenciesByModule: HashMultimap<Module, Dependency> = HashMultimap.create()
   private val availablePreviewDependencies: List<Artifact>
   private val availableStableDependencies: List<Artifact>
-  private val incompatibleArtifactIdPairs: HashMap<WellKnownMavenArtifactId, WellKnownMavenArtifactId>
+  private val incompatibleArtifactIdPairs:
+    HashMap<WellKnownMavenArtifactId, WellKnownMavenArtifactId>
   private val artifactIdToFakeRegisterDependencyError: HashMap<WellKnownMavenArtifactId, String>
   var namespace: String? = null
   var manifestOverrides = ManifestOverrides()
@@ -118,38 +140,49 @@ class TestProjectSystem @JvmOverloads constructor(
     artifactIdToFakeRegisterDependencyError = HashMap()
   }
 
-  /**
-   * Adds the given artifact to the given module's list of dependencies.
-   */
-  fun addDependency(artifactId: WellKnownMavenArtifactId, module: Module, testVersion: TestVersion) {
-    dependenciesByModule.put(module, Dependency(DependencyType.IMPLEMENTATION, artifactId, testVersion))
+  /** Adds the given artifact to the given module's list of dependencies. */
+  fun addDependency(
+    artifactId: WellKnownMavenArtifactId,
+    module: Module,
+    testVersion: TestVersion,
+  ) {
+    dependenciesByModule.put(
+      module,
+      Dependency(DependencyType.IMPLEMENTATION, artifactId, testVersion),
+    )
   }
 
-  /**
-   * @return the set of dependencies added to the given module.
-   */
+  /** @return the set of dependencies added to the given module. */
   fun getAddedDependencies(module: Module): Set<Dependency> = dependenciesByModule.get(module)
 
   /**
-   * Mark a pair of ids as incompatible so that [RegisteringModuleSystem.analyzeDependencyCompatibility]
-   * will return them as incompatible dependencies.
+   * Mark a pair of ids as incompatible so that
+   * [RegisteringModuleSystem.analyzeDependencyCompatibility] will return them as incompatible
+   * dependencies.
    */
   fun addIncompatibleArtifactIdPair(id1: WellKnownMavenArtifactId, id2: WellKnownMavenArtifactId) {
     incompatibleArtifactIdPairs[id1] = id2
   }
 
   /**
-   * Add a fake error condition for [id] such that calling [RegisteringModuleSystem.registerDependency] on the
-   * coordinate will throw a [DependencyManagementException] with error message set to [errorMessage].
+   * Add a fake error condition for [id] such that calling
+   * [RegisteringModuleSystem.registerDependency] on the coordinate will throw a
+   * [DependencyManagementException] with error message set to [errorMessage].
    */
   fun addFakeErrorForRegisteringDependency(id: WellKnownMavenArtifactId, errorMessage: String) {
     artifactIdToFakeRegisterDependencyError[id] = errorMessage
   }
 
-  data class TestRegisteredDependencyQueryId(val id: WellKnownMavenArtifactId): RegisteredDependencyQueryId
+  data class TestRegisteredDependencyQueryId(val id: WellKnownMavenArtifactId) :
+    RegisteredDependencyQueryId
 
-  data class TestRegisteredDependencyId(val id: WellKnownMavenArtifactId, val version: TestVersion): RegisteredDependencyId {
-    val dependencySpec get() = DependencySpec(id, version)
+  data class TestRegisteredDependencyId(
+    val id: WellKnownMavenArtifactId,
+    val version: TestVersion,
+  ) : RegisteredDependencyId {
+    val dependencySpec
+      get() = DependencySpec(id, version)
+
     override fun toString() = "($id,$version)"
   }
 
@@ -157,36 +190,45 @@ class TestProjectSystem @JvmOverloads constructor(
     class TestAndroidModuleSystemImpl : TestModuleSystem {
       override val module = module
 
-      override val moduleClassFileFinder: ClassFileFinder = object : ClassFileFinder {
-        override fun findClassFile(fqcn: String): ClassContent? = null
-      }
+      override val moduleClassFileFinder: ClassFileFinder =
+        object : ClassFileFinder {
+          override fun findClassFile(fqcn: String): ClassContent? = null
+        }
 
-      override fun analyzeDependencyCompatibility(dependencies: List<TestRegisteredDependencyId>): ListenableFuture<RegisteredDependencyCompatibilityResult<TestRegisteredDependencyId>> {
-        val found = mutableMapOf<TestRegisteredDependencyId,TestRegisteredDependencyId>()
+      override fun analyzeDependencyCompatibility(
+        dependencies: List<TestRegisteredDependencyId>
+      ): ListenableFuture<RegisteredDependencyCompatibilityResult<TestRegisteredDependencyId>> {
+        val found = mutableMapOf<TestRegisteredDependencyId, TestRegisteredDependencyId>()
         val missing = mutableListOf<TestRegisteredDependencyId>()
         var compatibilityWarningMessage = ""
         for (dependency in dependencies) {
-          val lookup = availableStableDependencies.firstOrNull { it.id == dependency.id  }
-                       ?: availablePreviewDependencies.firstOrNull { it.id == dependency.id }
+          val lookup =
+            availableStableDependencies.firstOrNull { it.id == dependency.id }
+              ?: availablePreviewDependencies.firstOrNull { it.id == dependency.id }
           if (lookup != null) {
             found[dependency] = TestRegisteredDependencyId(lookup.id, lookup.version)
             incompatibleArtifactIdPairs[lookup.id]?.let { value ->
-              dependencies.firstOrNull { it.id == value }?.let { other ->
-                compatibilityWarningMessage += "$dependency is not compatible with $other\n"
-              }
+              dependencies
+                .firstOrNull { it.id == value }
+                ?.let { other ->
+                  compatibilityWarningMessage += "$dependency is not compatible with $other\n"
+                }
             }
-          }
-          else {
+          } else {
             missing.add(dependency)
             compatibilityWarningMessage += "Can't find $dependency\n"
           }
         }
-        return Futures.immediateFuture<RegisteredDependencyCompatibilityResult<TestRegisteredDependencyId>>(
+        return Futures.immediateFuture<
+          RegisteredDependencyCompatibilityResult<TestRegisteredDependencyId>
+        >(
           RegisteredDependencyCompatibilityResult(found, missing, compatibilityWarningMessage)
         )
       }
 
-      override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
+      override fun getAndroidLibraryDependencies(
+        scope: DependencyScopeType
+      ): Collection<ExternalAndroidLibrary> {
         return androidLibraryDependencies
       }
 
@@ -194,24 +236,38 @@ class TestProjectSystem @JvmOverloads constructor(
 
       override fun getDirectResourceModuleDependents() = emptyList<Module>()
 
-      override fun registerDependency(dependency: TestRegisteredDependencyId, type: DependencyType) {
+      override fun registerDependency(
+        dependency: TestRegisteredDependencyId,
+        type: DependencyType,
+      ) {
         artifactIdToFakeRegisterDependencyError[dependency.id]?.let {
-          throw DependencyManagementException(it, DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
+          throw DependencyManagementException(
+            it,
+            DependencyManagementException.ErrorCodes.INVALID_ARTIFACT,
+          )
         }
         dependenciesByModule.put(module, Dependency(type, dependency.dependencySpec))
       }
 
-      override fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): TestRegisteredDependencyQueryId =
-        TestRegisteredDependencyQueryId(id)
+      override fun getRegisteredDependencyQueryId(
+        id: WellKnownMavenArtifactId
+      ): TestRegisteredDependencyQueryId = TestRegisteredDependencyQueryId(id)
 
-      override fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): TestRegisteredDependencyId =
-        TestRegisteredDependencyId(id, TestVersion.WILD)
+      override fun getRegisteredDependencyId(
+        id: WellKnownMavenArtifactId
+      ): TestRegisteredDependencyId = TestRegisteredDependencyId(id, TestVersion.WILD)
 
-      override fun getRegisteredDependency(id: TestRegisteredDependencyQueryId): TestRegisteredDependencyId? =
-        dependenciesByModule[module].firstOrNull { it.id == id.id }?.let { TestRegisteredDependencyId(it.id, it.version) }
+      override fun getRegisteredDependency(
+        id: TestRegisteredDependencyQueryId
+      ): TestRegisteredDependencyId? =
+        dependenciesByModule[module]
+          .firstOrNull { it.id == id.id }
+          ?.let { TestRegisteredDependencyId(it.id, it.version) }
 
-      override fun hasResolvedDependency(id: WellKnownMavenArtifactId, scope: DependencyScopeType): Boolean =
-        dependenciesByModule[module].firstOrNull { it.id == id } != null
+      override fun hasResolvedDependency(
+        id: WellKnownMavenArtifactId,
+        scope: DependencyScopeType,
+      ): Boolean = dependenciesByModule[module].firstOrNull { it.id == id } != null
 
       override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
         listOfNotNull(
@@ -225,8 +281,8 @@ class TestProjectSystem @JvmOverloads constructor(
               null,
               null,
               emptyList(),
-              emptyList()
-            )
+              emptyList(),
+            ),
           ),
           // Fake an androidTest sourceSet
           module.getAndroidTestModule()?.let { testModule ->
@@ -240,10 +296,10 @@ class TestProjectSystem @JvmOverloads constructor(
                 ModuleRootManager.getInstance(testModule).sourceRoots.first().parent.toIoFile(),
                 null,
                 emptyList(),
-                emptyList()
-              )
+                emptyList(),
+              ),
             )
-          }
+          },
         )
 
       override fun getOrCreateSampleDataDirectory(): PathString? = null
@@ -256,7 +312,9 @@ class TestProjectSystem @JvmOverloads constructor(
         }
         val facet = module.androidFacet ?: return null
         val primaryManifest = facet.sourceProviders.mainManifestFile ?: return null
-        return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(PathString(primaryManifest.path))
+        return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(
+          PathString(primaryManifest.path)
+        )
       }
 
       override fun getManifestOverrides() = manifestOverrides
@@ -283,9 +341,11 @@ class TestProjectSystem @JvmOverloads constructor(
 
   override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider {
     return object : ApplicationIdProvider {
-      override fun getPackageName(): String = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module?.let { module ->
-        getModuleSystem(module).getPackageName()
-      } ?: throw ApkProvisionException("Not supported run configuration")
+      override fun getPackageName(): String =
+        (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module?.let {
+          module ->
+          getModuleSystem(module).getPackageName()
+        } ?: throw ApkProvisionException("Not supported run configuration")
 
       override fun getTestPackageName(): String? = null
     }
@@ -303,23 +363,23 @@ class TestProjectSystem @JvmOverloads constructor(
     latch.await()
   }
 
-  override fun getSyncManager(): ProjectSystemSyncManager = object : ProjectSystemSyncManager {
-    override fun requestSyncProject(reason: SyncReason): ListenableFuture<SyncResult> {
-      emulateSync(SyncResult.SUCCESS)
-      return Futures.immediateFuture(SyncResult.SUCCESS)
+  override fun getSyncManager(): ProjectSystemSyncManager =
+    object : ProjectSystemSyncManager {
+      override fun requestSyncProject(reason: SyncReason): ListenableFuture<SyncResult> {
+        emulateSync(SyncResult.SUCCESS)
+        return Futures.immediateFuture(SyncResult.SUCCESS)
+      }
+
+      override fun isSyncInProgress() = false
+
+      override fun isSyncNeeded() = !lastSyncResult.isSuccessful
+
+      override fun getLastSyncResult() = lastSyncResult
     }
-
-    override fun isSyncInProgress() = false
-
-    override fun isSyncNeeded() = !lastSyncResult.isSuccessful
-
-    override fun getLastSyncResult() = lastSyncResult
-  }
 
   override fun getBuildManager(): ProjectSystemBuildManager = buildManager
 
   private val buildManager = TestProjectSystemBuildManager(ensureClockAdvancesWhileBuilding = false)
-
 
   override fun allowsFileCreation(): Boolean {
     error("not supported for the test implementation")
@@ -333,11 +393,17 @@ class TestProjectSystem @JvmOverloads constructor(
 
   override fun getLightResourceClassService(): LightResourceClassService {
     return object : LightResourceClassService {
-      override fun getLightRClasses(qualifiedName: String, scope: GlobalSearchScope) = emptyList<PsiClass>()
+      override fun getLightRClasses(qualifiedName: String, scope: GlobalSearchScope) =
+        emptyList<PsiClass>()
+
       override fun getLightRClassesAccessibleFromModule(module: Module) = emptyList<PsiClass>()
+
       override fun getLightRClassesContainingModuleResources(module: Module) = emptyList<PsiClass>()
+
       override fun findRClassPackage(qualifiedName: String): PsiPackage? = null
+
       override fun getAllLightRClasses() = emptyList<PsiClass>()
+
       override fun getLightRClassesDefinedByModule(module: Module) = emptyList<PsiClass>()
     }
   }
@@ -363,17 +429,17 @@ class TestProjectSystem @JvmOverloads constructor(
 
 sealed interface TestVersion {
   companion object {
-    @JvmStatic
-    fun create(parts: List<Int>): NumericTestVersion = NumericTestVersion(parts)
-    @JvmStatic
-    fun create(vararg parts: Int): NumericTestVersion = create(parts.toList())
-    @JvmField
-    val WILD: TestVersion = SpecialTestVersion.WILD
+    @JvmStatic fun create(parts: List<Int>): NumericTestVersion = NumericTestVersion(parts)
+
+    @JvmStatic fun create(vararg parts: Int): NumericTestVersion = create(parts.toList())
+
+    @JvmField val WILD: TestVersion = SpecialTestVersion.WILD
   }
 }
 
-data class NumericTestVersion(val parts: List<Int>): TestVersion, Comparable<NumericTestVersion> {
+data class NumericTestVersion(val parts: List<Int>) : TestVersion, Comparable<NumericTestVersion> {
   override fun toString() = parts.joinToString(".")
+
   override fun compareTo(other: NumericTestVersion): Int {
     for (i in 0..Int.MAX_VALUE) {
       when {
@@ -386,39 +452,42 @@ data class NumericTestVersion(val parts: List<Int>): TestVersion, Comparable<Num
     }
     return 0
   }
+
   fun isPreview() = !parts.all { it > 0 }
 }
 
-enum class SpecialTestVersion(val string: String): TestVersion {
-  WILD("*")
-  ;
+enum class SpecialTestVersion(val string: String) : TestVersion {
+  WILD("*");
 
   override fun toString() = string
 }
 
-class TestProjectSystemBuildManager(
-  val ensureClockAdvancesWhileBuilding: Boolean
-): ProjectSystemBuildManager {
+class TestProjectSystemBuildManager(val ensureClockAdvancesWhileBuilding: Boolean) :
+  ProjectSystemBuildManager {
   companion object {
     @JvmStatic
-    fun get(project: Project): TestProjectSystemBuildManager = project.getProjectSystem().getBuildManager() as TestProjectSystemBuildManager
+    fun get(project: Project): TestProjectSystemBuildManager =
+      project.getProjectSystem().getBuildManager() as TestProjectSystemBuildManager
   }
 
   private val listeners = mutableListOf<ProjectSystemBuildManager.BuildListener>()
-  private var lastBuildResult: ProjectSystemBuildManager.BuildResult = ProjectSystemBuildManager.BuildResult.createUnknownBuildResult()
+  private var lastBuildResult: ProjectSystemBuildManager.BuildResult =
+    ProjectSystemBuildManager.BuildResult.createUnknownBuildResult()
   private var lastBuildMode = ProjectSystemBuildManager.BuildMode.UNKNOWN
   private var _isBuilding = false
+
   override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult = lastBuildResult
 
   override fun compileProject() {
     simulateBuild(BuildMode.COMPILE_OR_ASSEMBLE)
   }
 
-  override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) {
+  override fun addBuildListener(
+    parentDisposable: Disposable,
+    buildListener: ProjectSystemBuildManager.BuildListener,
+  ) {
     listeners.add(buildListener)
-    Disposer.register(parentDisposable) {
-      listeners.remove(buildListener)
-    }
+    Disposer.register(parentDisposable) { listeners.remove(buildListener) }
   }
 
   override val isBuilding: Boolean
@@ -430,9 +499,7 @@ class TestProjectSystemBuildManager(
     lastBuildMode = mode
     // use a copy to avoid concurrent modification
     val listeners = listeners.toList()
-    listeners.forEach {
-      it.buildStarted(mode)
-    }
+    listeners.forEach { it.buildStarted(mode) }
     maybeEnsureClockAdvanced()
   }
 
@@ -441,13 +508,9 @@ class TestProjectSystemBuildManager(
     maybeEnsureClockAdvanced()
     // use a copy to avoid concurrent modification
     val listeners = listeners.toList()
-    listeners.forEach {
-      it.beforeBuildCompleted(lastBuildResult)
-    }
+    listeners.forEach { it.beforeBuildCompleted(lastBuildResult) }
     _isBuilding = false
-    listeners.forEach {
-      it.buildCompleted(lastBuildResult)
-    }
+    listeners.forEach { it.buildCompleted(lastBuildResult) }
     maybeEnsureClockAdvanced()
   }
 
@@ -467,13 +530,13 @@ private class SourceProvidersFactoryStub : SourceProvidersFactory {
   override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? = null
 }
 
-/**
- * An [ApplicationProjectContext] used with the [TestProjectSystem]
- */
-data class TestApplicationProjectContext(override val applicationId: String) : ApplicationProjectContext
+/** An [ApplicationProjectContext] used with the [TestProjectSystem] */
+data class TestApplicationProjectContext(override val applicationId: String) :
+  ApplicationProjectContext
 
-interface TestToken: ProjectSystemToken {
-  override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean = projectSystem == expectedInstance
+interface TestToken : ProjectSystemToken {
+  override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean =
+    projectSystem == expectedInstance
 
   val expectedInstance: TestProjectSystem
 }

@@ -38,36 +38,41 @@ open class TelemetryParser(private val spanFilter: SpanFilter) {
   }
 
   private fun getSpans(file: Path): List<SpanData> {
-    val root = Files.newBufferedReader(file).use {
-      OpenTelemetryJsonTypeAdapter().read(JsonReader(it))
-    }
+    val root =
+      Files.newBufferedReader(file).use { OpenTelemetryJsonTypeAdapter().read(JsonReader(it)) }
     val spanData = root.data
-    check(spanData.isNotEmpty()) {
-      "No 'data' node in json at path $file"
-    }
-    requireNotNull(spanData.firstOrNull()) {
-      "First data element is absent in json file $file"
-    }
+    check(spanData.isNotEmpty()) { "No 'data' node in json at path $file" }
+    requireNotNull(spanData.firstOrNull()) { "First data element is absent in json file $file" }
 
     val allSpans = spanData.firstOrNull()?.spans
-    check(!allSpans.isNullOrEmpty()) {
-      "No spans was found"
-    }
+    check(!allSpans.isNullOrEmpty()) { "No spans was found" }
     return allSpans
   }
 
-  fun getSpanElements(file: Path, spanElementFilter: Predicate<SpanElement> = Predicate { true }): Set<SpanElement> {
+  fun getSpanElements(
+    file: Path,
+    spanElementFilter: Predicate<SpanElement> = Predicate { true },
+  ): Set<SpanElement> {
     val rawSpans = getSpans(file)
     val index = getParentToSpanMap(rawSpans)
     val result = Sets.newHashSet<SpanElement>()
-    for (span in rawSpans.asSequence().filter(spanFilter.rawFilter::test).map { toSpanElement(it) }.filter { spanElementFilter.test(it) }) {
+    for (span in
+      rawSpans
+        .asSequence()
+        .filter(spanFilter.rawFilter::test)
+        .map { toSpanElement(it) }
+        .filter { spanElementFilter.test(it) }) {
       result.add(span)
       processChild(result, span, index)
     }
     return result
   }
 
-  protected open fun processChild(result: MutableSet<SpanElement>, parent: SpanElement, index: Map<String, Collection<SpanElement>>) {
+  protected open fun processChild(
+    result: MutableSet<SpanElement>,
+    parent: SpanElement,
+    index: Map<String, Collection<SpanElement>>,
+  ) {
     index[parent.spanId]?.forEach {
       if (parent.isWarmup) {
         it.isWarmup = true
@@ -78,9 +83,7 @@ open class TelemetryParser(private val spanFilter: SpanFilter) {
   }
 }
 
-private data class OpenTelemetryJson(
-  @JvmField val data: List<OpenTelemetryJsonData> = emptyList(),
-)
+private data class OpenTelemetryJson(@JvmField val data: List<OpenTelemetryJsonData> = emptyList())
 
 private data class OpenTelemetryJsonData(
   @JvmField val traceID: String? = null,
@@ -105,7 +108,6 @@ private class OpenTelemetryJsonTypeAdapter : TypeAdapter<OpenTelemetryJson>() {
           }
           reader.endArray()
         }
-
         else -> reader.skipValue()
       }
     }
@@ -134,7 +136,6 @@ private class OpenTelemetryJsonDataTypeAdapter : TypeAdapter<OpenTelemetryJsonDa
           }
           reader.endArray()
         }
-
         else -> reader.skipValue()
       }
     }

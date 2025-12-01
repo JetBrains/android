@@ -27,38 +27,41 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.PathUtil.toSystemDependentName
 import com.intellij.util.PathUtil.toSystemIndependentName
-import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 import kotlin.io.path.invariantSeparatorsPathString
+import org.jetbrains.annotations.SystemIndependent
 
 typealias ProjectDumpAction = (project: Project, projectDumper: ProjectDumper) -> Unit
 
 /**
- * Returns a human-readable environment independent stable representation of the current structure of the project that can be used in tests
- * to ensure that no unintended changes are accidentally introduced to projects set up by sync/import/etc.
+ * Returns a human-readable environment independent stable representation of the current structure
+ * of the project that can be used in tests to ensure that no unintended changes are accidentally
+ * introduced to projects set up by sync/import/etc.
  */
 fun Project.saveAndDump(
   additionalRoots: Map<String, File> = emptyMap(),
-  ignoreModuleFileAndType : Boolean = false,
-  dumpToAction: ProjectDumpAction = { project, projectDumper -> projectDumper.dumpProject(project) }
+  ignoreModuleFileAndType: Boolean = false,
+  dumpToAction: ProjectDumpAction = { project, projectDumper -> projectDumper.dumpProject(project) },
 ): String {
   runInEdtAndWait { ApplicationManager.getApplication().saveAll() }
-  val dumper = ProjectDumper(
-    androidSdk = getSdk().toFile(),
-    offlineRepos = getOfflineM2Repositories(),
-    additionalRoots = additionalRoots,
+  val dumper =
+    ProjectDumper(
+      androidSdk = getSdk().toFile(),
+      offlineRepos = getOfflineM2Repositories(),
+      additionalRoots = additionalRoots,
     devBuildHome = TestUtils.resolveWorkspacePath("tools/adt/idea").toFile(),
     // This does not work in IDEA: devBuildHome = TestUtils.getWorkspaceRoot().toFile(),
-    projectJdk = ProjectRootManager.getInstance(this).projectSdk,
-    ignoreModuleFileAndType = ignoreModuleFileAndType
-  )
+      projectJdk = ProjectRootManager.getInstance(this).projectSdk,
+      ignoreModuleFileAndType = ignoreModuleFileAndType,
+    )
 
   dumpToAction(this, dumper)
   return dumper.toString()
 }
 
 private fun getOfflineM2Repositories(): List<File> =
-  (GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths() + AndroidGradleTests.getLocalRepositoryDirectories())
+  (GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths() +
+      AndroidGradleTests.getLocalRepositoryDirectories())
     .map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
 
 fun normalizeHtmlForTests(project: Project, doc: String): String {
@@ -78,8 +81,7 @@ fun normalizeHtmlForTests(project: Project, doc: String): String {
 }
 
 private fun String.replacePath(path: @SystemIndependent String, replacement: String): String {
-  return this
-    .replace("/$path", replacement)
+  return this.replace("/$path", replacement)
     .replace(path, replacement)
     .replace(toSystemDependentName(path), replacement)
 }

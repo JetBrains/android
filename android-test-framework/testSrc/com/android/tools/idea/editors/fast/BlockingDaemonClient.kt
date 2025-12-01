@@ -20,12 +20,12 @@ import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.psi.PsiFile
+import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
-import java.nio.file.Path
-import java.util.concurrent.atomic.AtomicLong
 
 /** A CompilerDaemonClient that blocks until [completeOneRequest] is called. */
 class BlockingDaemonClient : CompilerDaemonClient {
@@ -42,7 +42,7 @@ class BlockingDaemonClient : CompilerDaemonClient {
     files: Collection<PsiFile>,
     contextBuildTargetReference: BuildTargetReference,
     outputDirectory: Path,
-    indicator: ProgressIndicator
+    indicator: ProgressIndicator,
   ): CompilationResult {
     _requestReceived.incrementAndGet()
     firstRequestReceived.complete(Unit)
@@ -58,11 +58,10 @@ class BlockingDaemonClient : CompilerDaemonClient {
   }
 
   /**
-   * Completes one pending request. If there are no requests pending, the method will block until one arrives.
+   * Completes one pending request. If there are no requests pending, the method will block until
+   * one arrives.
    */
-  fun completeOneRequest() = runBlocking {
-    pendingRequests.receive().complete(Unit)
-  }
+  fun completeOneRequest() = runBlocking { pendingRequests.receive().complete(Unit) }
 
   override fun dispose() {}
 }

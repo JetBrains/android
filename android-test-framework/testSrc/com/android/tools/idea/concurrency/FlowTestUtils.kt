@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.concurrency
 
+import kotlin.time.Duration
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,23 +25,22 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert
-import kotlin.time.Duration
 
 /**
- * Utility method that waits for the [StateFlow] to turn the [condition] to true or fails with the given message after the [timeout] has
- * expired.
+ * Utility method that waits for the [StateFlow] to turn the [condition] to true or fails with the
+ * given message after the [timeout] has expired.
  */
-suspend fun <T> StateFlow<T>.awaitStatus(message: String? = null, timeout: Duration, condition: (T) -> Boolean) {
+suspend fun <T> StateFlow<T>.awaitStatus(
+  message: String? = null,
+  timeout: Duration,
+  condition: (T) -> Boolean,
+) {
   try {
-    withTimeout(timeout) {
-      filter { condition(it) }
-        .first()
-    }
+    withTimeout(timeout) { filter { condition(it) }.first() }
   } catch (e: TimeoutCancellationException) {
     Assert.fail("$message\nStatus: $value")
   }
 }
-/**
- * Waits for an element in the [Flow].
- */
+
+/** Waits for an element in the [Flow]. */
 suspend fun <T> Flow<T>.next(): T = take(1).single()

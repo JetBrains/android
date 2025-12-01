@@ -21,19 +21,20 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.StudioIoManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import java.util.concurrent.Executor
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.mockito.Mockito.spy
 import org.mockito.kotlin.whenever
-import java.util.concurrent.Executor
 
 /**
  * A rule that allows testing code that depends on [AndroidExecutors].
  *
  * Registers AndroidExecutors with its dependency [AndroidIoManager].
  *
- * This rule also allows tests to inject custom executors by passing optional replacements in the constructor.
+ * This rule also allows tests to inject custom executors by passing optional replacements in the
+ * constructor.
  */
 class AndroidExecutorsRule(
   private val workerThreadExecutor: Executor? = null,

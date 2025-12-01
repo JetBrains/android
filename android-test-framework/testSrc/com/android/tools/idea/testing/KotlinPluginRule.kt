@@ -21,6 +21,7 @@ import org.junit.rules.ExternalResource
 
 class KotlinPluginRule(private val pluginKind: KotlinPluginMode) : ExternalResource() {
   private var oldPropertyValue: String? = null
+
   override fun before() {
     oldPropertyValue = System.getProperty(PROPERTY_NAME)
     System.setProperty(PROPERTY_NAME, (pluginKind == KotlinPluginMode.K1).toString())

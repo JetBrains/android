@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.asdriver.tests;
+package com.android.tools.asdriver.tests
 
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 
 /**
- * Watcher that provides generates a Perfgate memory usage dashboard name.
- * To use it please include the following lines to your test:
- * <code>
+ * Watcher that provides generates a Perfgate memory usage dashboard name. To use it please include
+ * the following lines to your test: <code>
  *
  * @JvmField
- * @Rule
- * var watcher = MemoryDashboardNameProviderWatcher()
+ * @Rule var watcher = MemoryDashboardNameProviderWatcher()
  *
  * </code>
  */
@@ -34,6 +32,7 @@ class MemoryDashboardNameProviderWatcher : TestWatcher() {
 
   override fun starting(description: Description) {
     // remove package from the class name and concatenate with the test name
-    dashboardName = "${description.className.substringAfterLast('.')}_${description.methodName}".replace(' ', '_')
+    dashboardName =
+      "${description.className.substringAfterLast('.')}_${description.methodName}".replace(' ', '_')
   }
 }

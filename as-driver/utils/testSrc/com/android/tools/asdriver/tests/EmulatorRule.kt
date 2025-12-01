@@ -25,21 +25,29 @@ import org.junit.runners.model.Statement
 class EmulatorRule : TestRule {
   lateinit var adb: Adb
     private set
+
   lateinit var emulator: Emulator
     private set
 
   override fun apply(base: Statement, description: Description): Statement {
     val androidSystem = AndroidSystem.basic()
-    return androidSystem.apply(object : Statement() {
-      override fun evaluate() {
-        withResources(androidSystem.runAdb(), { androidSystem.runEmulator() }, { adb, emulator ->
-          this@EmulatorRule.adb = adb
-          this@EmulatorRule.emulator = emulator
-          emulator.waitForBoot()
-          adb.waitForDevice(emulator)
-          base.evaluate()
-        })
-      }
-    }, description)
+    return androidSystem.apply(
+      object : Statement() {
+        override fun evaluate() {
+          withResources(
+            androidSystem.runAdb(),
+            { androidSystem.runEmulator() },
+            { adb, emulator ->
+              this@EmulatorRule.adb = adb
+              this@EmulatorRule.emulator = emulator
+              emulator.waitForBoot()
+              adb.waitForDevice(emulator)
+              base.evaluate()
+            },
+          )
+        }
+      },
+      description,
+    )
   }
 }

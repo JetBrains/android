@@ -35,11 +35,12 @@ any previously suppressed exceptions.
  */
 inline fun <T> aggregateAndThrowIfAny(body: AggregateAndThrowIfAnyContext.() -> T): T {
   val exceptions: MutableList<Throwable> = ContainerUtil.createConcurrentList()
-  val context = object : AggregateAndThrowIfAnyContext {
-    override fun recordResult(result: Result<*>) {
-      result.exceptionOrNull()?.let(exceptions::add)
+  val context =
+    object : AggregateAndThrowIfAnyContext {
+      override fun recordResult(result: Result<*>) {
+        result.exceptionOrNull()?.let(exceptions::add)
+      }
     }
-  }
   val result = context.runCatchingAndRecord { body(context) }
 
   when {
@@ -48,10 +49,14 @@ inline fun <T> aggregateAndThrowIfAny(body: AggregateAndThrowIfAnyContext.() -> 
     else -> throw MultipleFailureException(exceptions)
   }
 
-  return result.getOrThrow() // No exceptions are expected here since they must have already been thrown above.
+  return result
+    .getOrThrow() // No exceptions are expected here since they must have already been thrown above.
 }
 
-inline fun <T> AggregateAndThrowIfAnyContext.usingIdeaTestFixture(fixture: IdeaTestFixture, body: () -> T): T {
+inline fun <T> AggregateAndThrowIfAnyContext.usingIdeaTestFixture(
+  fixture: IdeaTestFixture,
+  body: () -> T,
+): T {
   runInEdtAndWait { fixture.setUp() }
   try {
     return body()

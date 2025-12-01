@@ -28,32 +28,25 @@ import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestBase
 
 object AgpIntegrationTestUtil {
-  /**
-   * Imports `project`, syncs the project and checks the result.
-   */
+  /** Imports `project`, syncs the project and checks the result. */
   @JvmStatic
   fun importProject(project: Project, jdkVersion: JavaSdkVersion) {
     GradleProjectImporter.withAfterCreate(
-      afterCreate = { overrideProjectGradleJdkPathWithVersion(Projects.getBaseDirPath(project), jdkVersion) }
+      afterCreate = {
+        overrideProjectGradleJdkPathWithVersion(Projects.getBaseDirPath(project), jdkVersion)
+      }
     ) {
       runInEdtAndWait {
         val request = GradleProjectImporter.Request(project)
         configureNewProject(project)
         GradleProjectImporter.getInstance().importProjectNoSync(request)
-        AndroidGradleTests.syncProject(
-          project,
-          GradleSyncInvoker.Request.testRequest()
-        ) { it: TestGradleSyncListener ->
-          AndroidGradleTests.checkSyncStatus(
-            project,
-            it
-          )
+        AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
+          it: TestGradleSyncListener ->
+          AndroidGradleTests.checkSyncStatus(project, it)
         }
       }
-      IndexingTestUtil.waitUntilIndexesAreReady(project);
-      runInEdtAndWait {
-        AndroidGradleTests.waitForCreateRunConfigurations(project)
-      }
+      IndexingTestUtil.waitUntilIndexesAreReady(project)
+      runInEdtAndWait { AndroidGradleTests.waitForCreateRunConfigurations(project) }
       AndroidTestBase.refreshProjectFiles()
     }
   }

@@ -24,18 +24,31 @@ import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil.Method
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 
-fun createAndroidGradleTestConfigurationFromMethod(project: Project, qualifiedName: String, methodName: String): GradleRunConfiguration? {
+fun createAndroidGradleTestConfigurationFromMethod(
+  project: Project,
+  qualifiedName: String,
+  methodName: String,
+): GradleRunConfiguration? {
   return project.getPsiElement(Method(qualifiedName, methodName)).createGradleRunConfiguration()
 }
 
-fun createAndroidGradleTestConfigurationFromClass(project: Project, qualifiedName: String) : GradleRunConfiguration? {
+fun createAndroidGradleTestConfigurationFromClass(
+  project: Project,
+  qualifiedName: String,
+): GradleRunConfiguration? {
   return project.getPsiElement(Class(qualifiedName)).createGradleRunConfiguration()
 }
 
-fun createAndroidGradleTestConfigurationFromDirectory(project: Project, directory: String) : GradleRunConfiguration? {
+fun createAndroidGradleTestConfigurationFromDirectory(
+  project: Project,
+  directory: String,
+): GradleRunConfiguration? {
   return project.getPsiElement(Directory(directory)).createGradleRunConfiguration()
 }
 
-fun createAndroidGradleTestConfigurationFromFile(project: Project, file: String) : GradleRunConfiguration? {
+fun createAndroidGradleTestConfigurationFromFile(
+  project: Project,
+  file: String,
+): GradleRunConfiguration? {
   return project.getPsiElement(File(file)).createGradleRunConfiguration()
 }

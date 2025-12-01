@@ -25,23 +25,39 @@ import javax.swing.JComponent
 
 class EmptyTestConsoleView : ConsoleView {
   val printedMessages = mutableListOf<Pair<String, ConsoleViewContentType>>()
+
   override fun print(s: String, contentType: ConsoleViewContentType) {
     printedMessages.add(Pair(s, contentType))
   }
+
   override fun clear() {}
+
   override fun scrollTo(offset: Int) {}
+
   override fun attachToProcess(processHandler: ProcessHandler) {}
+
   override fun setOutputPaused(value: Boolean) {}
+
   override fun isOutputPaused() = false
+
   override fun hasDeferredOutput() = false
+
   override fun performWhenNoDeferredOutput(runnable: Runnable) {}
+
   override fun setHelpId(helpId: String) {}
+
   override fun addMessageFilter(filter: Filter) {}
+
   override fun printHyperlink(hyperlinkText: String, info: HyperlinkInfo?) {}
+
   override fun getContentSize() = 0
+
   override fun canPause() = false
+
   override fun createConsoleActions() = AnAction.EMPTY_ARRAY
+
   override fun allowHeavyFilters() {}
+
   override fun getComponent(): JComponent {
     return object : JComponent() {}
   }

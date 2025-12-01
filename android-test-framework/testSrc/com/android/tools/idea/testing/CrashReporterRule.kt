@@ -21,13 +21,11 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.util.containers.ContainerUtil
-import org.junit.rules.ExternalResource
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
+import org.junit.rules.ExternalResource
 
-/**
- * A rule for testing of code that creates crash reports.
- */
+/** A rule for testing of code that creates crash reports. */
 class CrashReporterRule : ExternalResource() {
 
   private val reporter = FakeCrushReporter()
@@ -37,7 +35,8 @@ class CrashReporterRule : ExternalResource() {
     get() = reporter.reports
 
   override fun before() {
-    ApplicationManager.getApplication().registerOrReplaceServiceInstance(StudioCrashReporter::class.java, reporter, disposable)
+    ApplicationManager.getApplication()
+      .registerOrReplaceServiceInstance(StudioCrashReporter::class.java, reporter, disposable)
   }
 
   override fun after() {

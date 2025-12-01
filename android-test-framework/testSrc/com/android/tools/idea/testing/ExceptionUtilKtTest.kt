@@ -16,31 +16,31 @@
 package com.android.tools.idea.testing
 
 import com.google.common.truth.Truth.assertThat
+import java.util.regex.Pattern
 import com.intellij.util.ExceptionUtil
 import org.junit.Test
-import java.util.regex.Pattern
 
 class ExceptionUtilKtTest {
 
   @Test
   fun aggregateAndThrowIfAny_passes() {
-    val aggregateException = kotlin.runCatching {
-      aggregateAndThrowIfAny {
-        println("ok")
-      }
-    }.exceptionOrNull()
+    val aggregateException =
+      kotlin.runCatching { aggregateAndThrowIfAny { println("ok") } }.exceptionOrNull()
 
     assertThat(aggregateException).isNull()
   }
 
   @Test
   fun aggregateAndThrowIfAny() {
-    val aggregateException = kotlin.runCatching {
-      aggregateAndThrowIfAny {
-        runCatchingAndRecord { error("ABC") }
-        runCatchingAndRecord { error("XYZ") }
-      }
-    }.exceptionOrNull()
+    val aggregateException =
+      kotlin
+        .runCatching {
+          aggregateAndThrowIfAny {
+            runCatchingAndRecord { error("ABC") }
+            runCatchingAndRecord { error("XYZ") }
+          }
+        }
+        .exceptionOrNull()
 
     assertThat(aggregateException?.let { ExceptionUtil.getThrowableText(it) }.orEmpty())
       .containsMatch(Pattern.compile("ABC.*XYZ", Pattern.DOTALL))
@@ -48,12 +48,15 @@ class ExceptionUtilKtTest {
 
   @Test
   fun aggregateAndThrowIfAny_throwsItself() {
-    val aggregateException = kotlin.runCatching {
-      aggregateAndThrowIfAny {
-        runCatchingAndRecord { error("ABC") }
-        error("123")
-      }
-    }.exceptionOrNull()
+    val aggregateException =
+      kotlin
+        .runCatching {
+          aggregateAndThrowIfAny {
+            runCatchingAndRecord { error("ABC") }
+            error("123")
+          }
+        }
+        .exceptionOrNull()
 
     assertThat(aggregateException?.let { ExceptionUtil.getThrowableText(it) }.orEmpty())
       .containsMatch(Pattern.compile("ABC.*123", Pattern.DOTALL))
@@ -61,11 +64,8 @@ class ExceptionUtilKtTest {
 
   @Test
   fun aggregateAndThrowIfAny_throwsItselfOnly() {
-    val aggregateException = kotlin.runCatching {
-      aggregateAndThrowIfAny {
-        error("123")
-      }
-    }.exceptionOrNull()
+    val aggregateException =
+      kotlin.runCatching { aggregateAndThrowIfAny { error("123") } }.exceptionOrNull()
 
     assertThat(aggregateException?.let { ExceptionUtil.getThrowableText(it) }.orEmpty()).containsMatch("123")
   }

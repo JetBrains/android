@@ -18,10 +18,12 @@ package com.android.tools.idea.model
 import com.android.sdklib.AndroidVersion
 import com.android.tools.lint.detector.api.Desugaring
 import com.google.common.collect.ImmutableList
-import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
+import org.jetbrains.android.facet.AndroidFacet
 
-open class TestAndroidModel @JvmOverloads constructor(
+open class TestAndroidModel
+@JvmOverloads
+constructor(
   override val applicationId: String = "com.example.test",
   minSdkVersion: AndroidVersion? = null,
   override val targetSdkVersion: AndroidVersion? = null,
@@ -31,19 +33,20 @@ open class TestAndroidModel @JvmOverloads constructor(
   override val isDebuggable: Boolean = false,
   override val namespacing: Namespacing = Namespacing.DISABLED,
   override val desugaring: Set<Desugaring> = Desugaring.DEFAULT,
-  override val lintRuleJarsOverride: ImmutableList<File>? = null
+  override val lintRuleJarsOverride: ImmutableList<File>? = null,
 ) : AndroidModel {
 
   companion object {
-    @JvmStatic fun namespaced(facet: AndroidFacet) = TestAndroidModel(
-      namespacing = Namespacing.REQUIRED
-    )
-    @JvmStatic fun lintRuleJars(lintRuleJars: ImmutableList<File>) = TestAndroidModel(
-      lintRuleJarsOverride = lintRuleJars
-    )
+    @JvmStatic
+    fun namespaced(facet: AndroidFacet) = TestAndroidModel(namespacing = Namespacing.REQUIRED)
+
+    @JvmStatic
+    fun lintRuleJars(lintRuleJars: ImmutableList<File>) =
+      TestAndroidModel(lintRuleJarsOverride = lintRuleJars)
   }
 
   override val minSdkVersion = minSdkVersion ?: AndroidVersion(1)
   override val runtimeMinSdkVersion = runtimeMinSdkVersion ?: AndroidVersion(1)
+
   override fun overridesManifestPackage() = overridesManifestPackage
 }

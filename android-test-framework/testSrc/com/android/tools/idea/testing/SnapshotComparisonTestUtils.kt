@@ -22,63 +22,70 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
 import com.intellij.testFramework.UsefulTestCase
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.io.path.writeText
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 
 /**
  * See implementing classes for usage examples.
  *
- * NOTE: It you made changes to sync or the test projects which make Snapshot tests fail in an expected way, you can re-run the tests:
- *       (1) from the IDE with -DUPDATE_TEST_SNAPSHOTS to update the files; or
- *       (2) from the command-line using Bazel with:
-
-```
-bazel test [target]  \
-   --jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" \
-   --sandbox_writable_path=$(bazel info workspace) \
-   --test_strategy=standalone \
-   --nocache_test_results \
-   --test_timeout=6000
-```
-
- *
+ * NOTE: It you made changes to sync or the test projects which make Snapshot tests fail in an
+ * expected way, you can re-run the tests: (1) from the IDE with -DUPDATE_TEST_SNAPSHOTS to update
+ * the files; or (2) from the command-line using Bazel with:
+ * ```
+ * bazel test [target]  \
+ * --jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" \
+ * --sandbox_writable_path=$(bazel info workspace) \
+ * --test_strategy=standalone \
+ * --nocache_test_results \
+ * --test_timeout=6000
+ * ```
  */
 interface SnapshotComparisonTest {
   /**
-   * The name of the property which should be set to activate "update snapshots" test execution mode.
+   * The name of the property which should be set to activate "update snapshots" test execution
+   * mode.
    */
-  val updateSnapshotsJvmProperty: String get() = "UPDATE_TEST_SNAPSHOTS"
+  val updateSnapshotsJvmProperty: String
+    get() = "UPDATE_TEST_SNAPSHOTS"
 
-  /**
-   * A testData subdirectory name where to look for snapshots.
-   */
+  /** A testData subdirectory name where to look for snapshots. */
   val snapshotDirectoryWorkspaceRelativePath: String
 
-  /**
-   * The list of file name suffixes applicable to the currently running test.
-   */
-  val snapshotSuffixes: List<String> get() = listOfNotNull(
-    "_K2_phased".takeIf { KotlinPluginModeProvider.isK2Mode() && StudioFlags.PHASED_SYNC_ENABLED.get() },
-    "_K2".takeIf { KotlinPluginModeProvider.isK2Mode() },
-    "_phased".takeIf { StudioFlags.PHASED_SYNC_ENABLED.get() },
-    "",
-  )
+  /** The list of file name suffixes applicable to the currently running test. */
+  val snapshotSuffixes: List<String>
+    get() =
+      listOfNotNull(
+        "_K2_phased"
+          .takeIf { KotlinPluginModeProvider.isK2Mode() && StudioFlags.PHASED_SYNC_ENABLED.get() },
+        "_K2".takeIf { KotlinPluginModeProvider.isK2Mode() },
+        "_phased".takeIf { StudioFlags.PHASED_SYNC_ENABLED.get() },
+        "",
+      )
 
-  /**
-   * Assumed to be matched by [UsefulTestCase.getName].
-   */
+  /** Assumed to be matched by [UsefulTestCase.getName]. */
   fun getName(): String
 }
 
 private val testLogsPath: String?
-  get() = System.getenv("TEST_TARGET")?.takeIf { it.isNotEmpty() }?.removePrefix("//")?.replace(":", "/")?.let { targetPath ->
-    targetPath + (System.getenv("TEST_SHARD_INDEX")?.takeIf { it.isNotEmpty() }?.let { shard -> "/shard_${shard}_of_${System.getenv("TEST_TOTAL_SHARDS")}" } ?: "")
-  }
+  get() =
+    System.getenv("TEST_TARGET")
+      ?.takeIf { it.isNotEmpty() }
+      ?.removePrefix("//")
+      ?.replace(":", "/")
+      ?.let { targetPath ->
+        targetPath +
+          (System.getenv("TEST_SHARD_INDEX")
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { shard -> "/shard_${shard}_of_${System.getenv("TEST_TOTAL_SHARDS")}" } ?: "")
+      }
 
-private fun SnapshotComparisonTest.assertInSnapshotTextContext() = Truth.assert_().withMessage("""
+private fun SnapshotComparisonTest.assertInSnapshotTextContext() =
+  Truth.assert_()
+    .withMessage(
+      """
   There has been a change to the contents of snapshot test ${getName()}.
 
   If that change is intentional, update the expectation files.
@@ -101,8 +108,9 @@ private fun SnapshotComparisonTest.assertInSnapshotTextContext() = Truth.assert_
       --test_output=streamed
 
   NB: All the commands above assume 'tools/base/bazel' is on your path.
-  """.trimIndent()
-)
+  """
+        .trimIndent()
+    )
 
 fun SnapshotComparisonTest.assertIsEqualToSnapshot(text: String, snapshotTestSuffix: String = "") {
   val (fullSnapshotName, expectedText) = getAndMaybeUpdateSnapshot(snapshotTestSuffix, text)
@@ -121,9 +129,7 @@ fun SnapshotComparisonTest.assertAreEqualToSnapshots(vararg checks: Pair<String,
         header + actual to header + expected
       }
       .unzip()
-      .let {
-        it.first.joinToString(separator = "\n") to it.second.joinToString(separator = "\n")
-      }
+      .let { it.first.joinToString(separator = "\n") to it.second.joinToString(separator = "\n") }
 
   assertInSnapshotTextContext()
     .that(actual)
@@ -134,10 +140,11 @@ fun SnapshotComparisonTest.assertAreEqualToSnapshots(vararg checks: Pair<String,
 fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
   snapshotTestSuffix: String,
   text: String,
-  doNotUpdate: Boolean = false
+  doNotUpdate: Boolean = false,
 ): Pair<String, String> {
   val sanitizedTestName = sanitizeFileName(UsefulTestCase.getTestName(getName(), true))
-  val (expectedText, snapshotFile) = getExpectedTextAndFileFor(sanitizedTestName, snapshotTestSuffix)
+  val (expectedText, snapshotFile) =
+    getExpectedTextAndFileFor(sanitizedTestName, snapshotTestSuffix)
 
   if (doNotUpdate) {
     return snapshotFile.name to expectedText
@@ -152,8 +159,10 @@ fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
     // Populate additional test output if the file needs updating
     if (!snapshotFile.isFile || expectedText != text) {
       val workspaceRelativePath = TestUtils.getWorkspaceRoot().relativize(snapshotFile.toPath())
-      println("Writing updated snapshot file to bazel additional test output.\n" +
-              "    $workspaceRelativePath")
+      println(
+        "Writing updated snapshot file to bazel additional test output.\n" +
+          "    $workspaceRelativePath"
+      )
       TestUtils.getTestOutputDir().resolve(workspaceRelativePath).run {
         Files.createDirectories(parent)
         writeText(text)
@@ -163,47 +172,67 @@ fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
   return snapshotFile.name to expectedText
 }
 
-private fun SnapshotComparisonTest.getCandidateSnapshotFiles(project: String, suffix: String): List<File> {
+private fun SnapshotComparisonTest.getCandidateSnapshotFiles(
+  project: String,
+  suffix: String,
+): List<File> {
   val configuredWorkspace =
-    System.getProperty(updateSnapshotsJvmProperty)?.takeUnless { it.isEmpty() }
+    System.getProperty(updateSnapshotsJvmProperty)
+      ?.takeUnless { it.isEmpty() }
       ?.let { Paths.get(it).resolve(snapshotDirectoryWorkspaceRelativePath) }
-    ?: resolveWorkspacePath(snapshotDirectoryWorkspaceRelativePath)
-  return snapshotSuffixes
-    .map { configuredWorkspace.resolve("${project.substringAfter("projects/")}$it$suffix.txt").toFile() }
+      ?: resolveWorkspacePath(snapshotDirectoryWorkspaceRelativePath)
+  return snapshotSuffixes.map {
+    configuredWorkspace.resolve("${project.substringAfter("projects/")}$it$suffix.txt").toFile()
+  }
 }
 
-private fun SnapshotComparisonTest.getExpectedTextAndFileFor(project: String, suffix: String): Pair<String,File> =
-  getCandidateSnapshotFiles(project, suffix)
-    .let { candidateFiles ->
-      candidateFiles
-        .firstOrNull { it.exists() }
-        ?.let {
-          println("Comparing with: ${it.relativeTo(resolveWorkspacePath("").toFile())}")
-          it.readText().trimIndent() to it
-        }
-      ?: (candidateFiles
-        .joinToString(separator = "\n", prefix = "No snapshot files found. Candidates considered:\n\n") {
-          it.relativeTo(resolveWorkspacePath("").toFile()).toString()
-        } to candidateFiles.last())
-    }
+private fun SnapshotComparisonTest.getExpectedTextAndFileFor(
+  project: String,
+  suffix: String,
+): Pair<String, File> =
+  getCandidateSnapshotFiles(project, suffix).let { candidateFiles ->
+    candidateFiles
+      .firstOrNull { it.exists() }
+      ?.let {
+        println("Comparing with: ${it.relativeTo(resolveWorkspacePath("").toFile())}")
+        it.readText().trimIndent() to it
+      }
+      ?: (candidateFiles.joinToString(
+        separator = "\n",
+        prefix = "No snapshot files found. Candidates considered:\n\n",
+      ) {
+        it.relativeTo(resolveWorkspacePath("").toFile()).toString()
+      } to candidateFiles.last())
+  }
 
 data class ProjectViewSettings(
   val hideEmptyPackages: Boolean = true,
-  val flattenPackages: Boolean = false
+  val flattenPackages: Boolean = false,
 )
 
-fun Project.dumpAndroidProjectView(): String = dumpAndroidProjectView(initialState = Unit) { _, _ -> Unit }
+fun Project.dumpAndroidProjectView(): String =
+  dumpAndroidProjectView(initialState = Unit) { _, _ -> Unit }
 
-fun nameProperties(snapshotLines: Sequence<String>, attachValue: Boolean = false, skipTopLevel: Boolean = false): Sequence<Pair<String, String>> = sequence {
+fun nameProperties(
+  snapshotLines: Sequence<String>,
+  attachValue: Boolean = false,
+  skipTopLevel: Boolean = false,
+): Sequence<Pair<String, String>> = sequence {
   val context = mutableListOf<Pair<Int, String>>()
   var previousIndentation = -1
   for (existingLine in snapshotLines) {
-    val propertyValue = existingLine.trimStart().removePrefix("- ").substringAfter(':', existingLine).trim()
-    val propertyName = existingLine.trimStart().removePrefix("- ").substringBefore(' ', existingLine).trim()
-    val line = if (attachValue && propertyValue != propertyName) {
-      if (propertyName.isEmpty()) propertyValue else "$propertyName ($propertyValue)"
-    } else propertyName
-    val indentation = existingLine.indexOfFirst { !it.isWhitespace() }.let { if (it == -1) existingLine.length else it }
+    val propertyValue =
+      existingLine.trimStart().removePrefix("- ").substringAfter(':', existingLine).trim()
+    val propertyName =
+      existingLine.trimStart().removePrefix("- ").substringBefore(' ', existingLine).trim()
+    val line =
+      if (attachValue && propertyValue != propertyName) {
+        if (propertyName.isEmpty()) propertyValue else "$propertyName ($propertyValue)"
+      } else propertyName
+    val indentation =
+      existingLine
+        .indexOfFirst { !it.isWhitespace() }
+        .let { if (it == -1) existingLine.length else it }
     when {
       indentation > previousIndentation -> context.add(indentation to line)
       indentation == previousIndentation -> context[context.size - 1] = indentation to line
@@ -215,9 +244,8 @@ fun nameProperties(snapshotLines: Sequence<String>, attachValue: Boolean = false
       }
     }
     previousIndentation = indentation
-    if (!(skipTopLevel && indentation == 0) ) {
+    if (!(skipTopLevel && indentation == 0)) {
       yield(context.joinToString(separator = "/") { (_, line) -> line } to existingLine)
     }
   }
 }
-

@@ -28,36 +28,39 @@ import org.junit.runner.Description
 
 class UndisposedAndroidObjectsCheckerRule : NamedExternalResource() {
 
-  override fun before(description: Description) {
-  }
+  override fun before(description: Description) {}
 
   override fun after(description: Description) {
     checkUndisposedAndroidRelatedObjects()
   }
 
   companion object {
-    // Keeps track of each leaked disposable so that we can fail just the *first* test that leaks it.
-    @JvmStatic
-    private val allLeakedDisposables = ContainerUtil.createWeakSet<Disposable>()
+    // Keeps track of each leaked disposable so that we can fail just the *first* test that leaks
+    // it.
+    @JvmStatic private val allLeakedDisposables = ContainerUtil.createWeakSet<Disposable>()
 
-    /**
-     * Checks that there are no undisposed Android-related objects.
-     */
+    /** Checks that there are no undisposed Android-related objects. */
     @JvmStatic
     fun checkUndisposedAndroidRelatedObjects() {
       val firstLeak = Ref<Disposable>()
       DisposerExplorer.visitTree { disposable: Disposable ->
-        if (allLeakedDisposables.contains(disposable) ||
+        if (
+          allLeakedDisposables.contains(disposable) ||
             disposable.javaClass.name.startsWith("com.android.tools.analytics.HighlightingStats") ||
             disposable is ProjectEx && (disposable.isDefault || disposable.isLight) ||
             disposable.toString().startsWith("services of ") ||
-            (disposable is ModuleComponentManager && disposable.getModuleName() == LightProjectDescriptor.TEST_MODULE_NAME) ||
-            disposable is PsiReferenceContributor) {
-          // Ignore application services and light projects and modules that are not disposed by tearDown.
+            (disposable is ModuleComponentManager &&
+              disposable.getModuleName() == LightProjectDescriptor.TEST_MODULE_NAME) ||
+            disposable is PsiReferenceContributor
+        ) {
+          // Ignore application services and light projects and modules that are not disposed by
+          // tearDown.
           return@visitTree DisposerExplorer.VisitResult.SKIP_CHILDREN
         }
-        if (disposable.javaClass.name.startsWith("com.android.") ||
-            disposable.javaClass.name.startsWith("org.jetbrains.android.")) {
+        if (
+          disposable.javaClass.name.startsWith("com.android.") ||
+            disposable.javaClass.name.startsWith("org.jetbrains.android.")
+        ) {
           firstLeak.setIfNull(disposable)
           allLeakedDisposables.add(disposable)
         }
@@ -66,13 +69,17 @@ class UndisposedAndroidObjectsCheckerRule : NamedExternalResource() {
       if (!firstLeak.isNull) {
         val disposable = firstLeak.get()
         val parent = DisposerExplorer.getParent(disposable)
-        val baseMsg = "Undisposed object '" + disposable + "' of type '" + disposable.javaClass.name + "'"
+        val baseMsg =
+          "Undisposed object '" + disposable + "' of type '" + disposable.javaClass.name + "'"
         if (parent == null) {
-          throw RuntimeException("$baseMsg, registered as a root disposable (see cause for creation trace)",
-                                 DisposerExplorer.getTrace(disposable))
-        }
-        else {
-          throw RuntimeException(baseMsg + ", with parent '" + parent + "' of type '" + parent.javaClass.name + "'")
+          throw RuntimeException(
+            "$baseMsg, registered as a root disposable (see cause for creation trace)",
+            DisposerExplorer.getTrace(disposable),
+          )
+        } else {
+          throw RuntimeException(
+            baseMsg + ", with parent '" + parent + "' of type '" + parent.javaClass.name + "'"
+          )
         }
       }
     }

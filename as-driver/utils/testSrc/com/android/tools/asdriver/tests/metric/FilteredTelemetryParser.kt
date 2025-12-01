@@ -19,7 +19,11 @@ internal class FilteredTelemetryParser(
   spanFilter: SpanFilter,
   private val childFilter: SpanFilter,
 ) : TelemetryParser(spanFilter) {
-  override fun processChild(result: MutableSet<SpanElement>, parent: SpanElement, index: Map<String, Collection<SpanElement>>) {
+  override fun processChild(
+    result: MutableSet<SpanElement>,
+    parent: SpanElement,
+    index: Map<String, Collection<SpanElement>>,
+  ) {
     index[parent.spanId]?.forEach {
       if (parent.isWarmup) {
         it.isWarmup = true

@@ -32,7 +32,10 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 
 fun createApp(
-  device: IDevice, appId: String, servicesName: List<String> = emptyList(), activitiesName: List<String> = emptyList()
+  device: IDevice,
+  appId: String,
+  servicesName: List<String> = emptyList(),
+  activitiesName: List<String> = emptyList(),
 ): App {
   val services = servicesName.map { createManifestServiceInfo(it, appId) }
   val activities = activitiesName.map { createManifestActivityInfo(it, appId) }
@@ -41,7 +44,9 @@ fun createApp(
 }
 
 private fun createManifestServiceInfo(
-  serviceName: String, appId: String, attrs: Map<String, String> = emptyMap()
+  serviceName: String,
+  appId: String,
+  attrs: Map<String, String> = emptyMap(),
 ): ManifestServiceInfo {
   val node = XmlNode()
   node.attributes()["name"] = serviceName
@@ -52,7 +57,9 @@ private fun createManifestServiceInfo(
 }
 
 private fun createManifestActivityInfo(
-  activityName: String, appId: String, attrs: Map<String, String> = emptyMap()
+  activityName: String,
+  appId: String,
+  attrs: Map<String, String> = emptyMap(),
 ): ManifestActivityInfo {
   val node = XmlNode()
   node.attributes()["name"] = activityName
@@ -61,7 +68,6 @@ private fun createManifestActivityInfo(
   }
   return ManifestActivityInfo(node, appId)
 }
-
 
 class TestApplicationInstaller : ApplicationDeployer {
 
@@ -74,49 +80,70 @@ class TestApplicationInstaller : ApplicationDeployer {
   }
 
   override fun fullDeploy(
-    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator
+    device: IDevice,
+    app: ApkInfo,
+    deployOptions: DeployOptions,
+    hasMakeBeforeRun: Boolean,
+    indicator: ProgressIndicator,
   ): Deployer.Result {
     val appId = app.applicationId
     return Deployer.Result(false, false, false, appIdToApp[appId]!!)
   }
 
   override fun applyChangesDeploy(
-    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator
+    device: IDevice,
+    app: ApkInfo,
+    deployOptions: DeployOptions,
+    hasMakeBeforeRun: Boolean,
+    indicator: ProgressIndicator,
   ): Deployer.Result {
     TODO("Not yet implemented")
   }
 
   override fun applyCodeChangesDeploy(
-    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator
+    device: IDevice,
+    app: ApkInfo,
+    deployOptions: DeployOptions,
+    hasMakeBeforeRun: Boolean,
+    indicator: ProgressIndicator,
   ): Deployer.Result {
     TODO("Not yet implemented")
   }
 }
 
-fun CodeInsightTestFixture.addWearDependenciesToProject() { // Simulates that 'com.google.android.support:wearable:xxx' was added to `build.gradle`
+fun CodeInsightTestFixture
+  .addWearDependenciesToProject() { // Simulates that 'com.google.android.support:wearable:xxx' was
+  // added to `build.gradle`
   addFileToProject(
-    "src/android/support/wearable/watchface/WatchFaceService.kt", """
+    "src/android/support/wearable/watchface/WatchFaceService.kt",
+    """
       package android.support.wearable.watchface
 
       open class WatchFaceService
-      """.trimIndent()
+      """
+      .trimIndent(),
   )
 
   addFileToProject(
-    "src/androidx/wear/tiles/TileService.kt", """
+    "src/androidx/wear/tiles/TileService.kt",
+    """
       package androidx.wear.tiles
 
       open class TileService
-      """.trimIndent()
+      """
+      .trimIndent(),
   )
 
   addFileToProject(
-    "src/androidx/wear/watchface/complications/datasource/ComplicationDataSourceService.kt", """
+    "src/androidx/wear/watchface/complications/datasource/ComplicationDataSourceService.kt",
+    """
       package androidx.wear.watchface.complications.datasource
 
       open class ComplicationDataSourceService
-      """.trimIndent()
+      """
+      .trimIndent(),
   )
 }
 
-fun PsiFile.findElementByText(text: String): PsiElement = findDescendantOfType { it.node.text == text }!!
+fun PsiFile.findElementByText(text: String): PsiElement =
+  findDescendantOfType { it.node.text == text }!!

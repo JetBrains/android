@@ -15,8 +15,8 @@
  */
 package com.android.tools.tests
 
-import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout
 import java.io.File
+import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout
 
 /**
  * This class is a highly simplified version of the IJ `TestKotlinArtifacts` object, that can only
@@ -25,8 +25,7 @@ import java.io.File
  * Maven artifacts in presubmit tests, so we're limited to only the JARs that ship with the plugin.
  */
 object AdtTestKotlinArtifacts {
-  private fun getJar(artifactId: String): File =
-    findKotlincArtifact(artifactId)
+  private fun getJar(artifactId: String): File = findKotlincArtifact(artifactId)
 
   private fun getSourcesJar(artifactId: String): File =
     findKotlincArtifact(artifactId, suffix = "-sources.jar")
@@ -42,4 +41,3 @@ object AdtTestKotlinArtifacts {
   val kotlinStdlibSources: File by lazy { getSourcesJar("kotlin-stdlib") }
   val kotlinStdlibCommonSources: File by lazy { getSourcesJar("kotlin-stdlib-common") }
 }
-

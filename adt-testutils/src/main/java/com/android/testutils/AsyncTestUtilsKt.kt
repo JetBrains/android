@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 @file:JvmName("AsyncTestUtils")
+
 package com.android.testutils
 
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ui.EDT
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
@@ -31,10 +27,13 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toDuration
 import kotlin.time.toDurationUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
-/**
- * Waits until the given condition is satisfied while processing events.
- */
+/** Waits until the given condition is satisfied while processing events. */
 @JvmSynthetic
 @Throws(TimeoutException::class)
 fun waitForCondition(timeout: Duration, condition: () -> Boolean) {
@@ -61,9 +60,9 @@ fun waitForCondition(timeout: Long, timeUnit: TimeUnit, condition: () -> Boolean
 }
 
 /**
- * Keeps dispatching invocation events for the given duration. The duration must not exceed
- * 500 milliseconds to avoid a substantial test slowdown. Use this function only as the last
- * resort when there is no suitable condition to use with [waitForCondition].
+ * Keeps dispatching invocation events for the given duration. The duration must not exceed 500
+ * milliseconds to avoid a substantial test slowdown. Use this function only as the last resort when
+ * there is no suitable condition to use with [waitForCondition].
  */
 @JvmSynthetic
 fun dispatchInvocationEventsFor(duration: Duration) {
@@ -87,7 +86,7 @@ fun dispatchInvocationEventsFor(duration: Duration) {
 suspend inline fun delayUntilCondition(
   delayPerIterationMs: Long,
   timeout: Duration = 30.seconds,
-  crossinline condition: suspend () -> Boolean
+  crossinline condition: suspend () -> Boolean,
 ) {
   // Use withContext and the Default dispatcher to avoid any possible test
   // dispatcher skipping over this timeout.
@@ -101,9 +100,9 @@ suspend inline fun delayUntilCondition(
 }
 
 /**
- * Retries the given block until it no longer throws an AssertionError, or the timeout occurs. If timeout
- * occurs, throws an AssertionError, using the last AssertionError as the cause. If this is run from the EDT,
- * pumps the EDT in between checks.
+ * Retries the given block until it no longer throws an AssertionError, or the timeout occurs. If
+ * timeout occurs, throws an AssertionError, using the last AssertionError as the cause. If this is
+ * run from the EDT, pumps the EDT in between checks.
  */
 fun <R> retryUntilPassing(timeout: Duration, block: () -> R): R {
   var lastError: AssertionError?
@@ -122,7 +121,6 @@ fun <R> retryUntilPassing(timeout: Duration, block: () -> R): R {
     }
     Thread.sleep(20)
   } while (System.nanoTime() - startNanos < timeoutNanos)
-  lastError?.let {
-    throw AssertionError("Expected state not reached before timeout", lastError)
-  } ?: throw TimeoutException()
+  lastError?.let { throw AssertionError("Expected state not reached before timeout", lastError) }
+    ?: throw TimeoutException()
 }

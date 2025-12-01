@@ -24,22 +24,23 @@ import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 
-/**
- * Returns a set with all the filenames contained in the path.
- */
+/** Returns a set with all the filenames contained in the path. */
 fun Path.toFileNameSet(): Set<String> {
   val generatedFilesSet = mutableSetOf<String>()
   @Suppress("BlockingMethodInNonBlockingContext")
-  Files.walkFileTree(this, object : SimpleFileVisitor<Path>() {
-    override fun visitFile(file: Path?, attrs: BasicFileAttributes?): FileVisitResult {
-      file?.let { generatedFilesSet.add(it.fileName.toString()) }
-      @Suppress("BlockingMethodInNonBlockingContext")
-      return super.visitFile(file, attrs)
-    }
-  })
+  Files.walkFileTree(
+    this,
+    object : SimpleFileVisitor<Path>() {
+      override fun visitFile(file: Path?, attrs: BasicFileAttributes?): FileVisitResult {
+        file?.let { generatedFilesSet.add(it.fileName.toString()) }
+        @Suppress("BlockingMethodInNonBlockingContext") return super.visitFile(file, attrs)
+      }
+    },
+  )
   return generatedFilesSet
 }
 
 fun RenderingBuildStatusManagerForTests.simulateResourcesChange() {
-  getResourcesListenerForTest().resourcesChanged(ImmutableSet.of(ResourceNotificationManager.Reason.RESOURCE_EDIT))
+  getResourcesListenerForTest()
+    .resourcesChanged(ImmutableSet.of(ResourceNotificationManager.Reason.RESOURCE_EDIT))
 }

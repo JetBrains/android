@@ -21,19 +21,20 @@ import org.junit.Test
 /** This test is added to all IDE test suites. */
 class LastInIdeaTestSuite {
   /**
-   * Checks for IDEA project leaks and disposer tree leaks.
-   * To disable this check in a specific test target, set the system property idea.leak.check.enabled to false.
+   * Checks for IDEA project leaks and disposer tree leaks. To disable this check in a specific test
+   * target, set the system property idea.leak.check.enabled to false.
    *
-   * NOTE: By default, this test only runs in Bazel. To enable running it in the IDE, adjust the test run configuration.
+   * NOTE: By default, this test only runs in Bazel. To enable running it in the IDE, adjust the
+   * test run configuration.
    */
   @Test
   fun checkForLeaks() {
     Assume.assumeTrue(System.getProperty("idea.leak.check.enabled", "true").toBoolean())
     try {
       LeakCheckerRule.checkForLeaks()
-    }
-    catch (e: AssertionError) {
-      val header = """
+    } catch (e: AssertionError) {
+      val header =
+        """
         The IntelliJ test framework appears to have detected a memory leak
         in this test target (see below). Read the error message carefully to discern
         what caused the leak. If an IDE project instance leaked, then the project name will
@@ -42,7 +43,8 @@ class LastInIdeaTestSuite {
         check is added to all IDE test target automatically. If you need to temporarily
         disable leak checks in a specific test target, set the system property
         idea.leak.check.enabled to false.
-      """.trimIndent()
+      """
+          .trimIndent()
       throw RuntimeException(header, e)
     }
   }
