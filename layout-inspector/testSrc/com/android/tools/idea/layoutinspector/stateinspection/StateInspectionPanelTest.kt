@@ -17,9 +17,11 @@ package com.android.tools.idea.layoutinspector.stateinspection
 
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.common.AdtUiUtils.getActionMask
+import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.layoutinspector.FakeSessionStats
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -114,6 +116,23 @@ class StateInspectionPanelTest {
     model.recompositionText.value = "Testing"
     testDispatcher.scheduler.advanceUntilIdle()
     assertThat(label.text).isEqualTo("Testing")
+  }
+
+  @Test
+  fun testEmptyStateText() {
+    val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
+    model.show.value = true
+    testDispatcher.scheduler.advanceUntilIdle()
+    assertThat(panel.findDescendant<EmptyStatePanel>()).isNull()
+
+    model.emptyStateText.value = "Hello\nWorld"
+    testDispatcher.scheduler.advanceUntilIdle()
+    val emptyState = panel.getDescendant<EmptyStatePanel>()
+    assertThat(emptyState.reasonText).isEqualTo("Hello World")
+
+    model.emptyStateText.value = ""
+    testDispatcher.scheduler.advanceUntilIdle()
+    assertThat(panel.findDescendant<EmptyStatePanel>()).isNull()
   }
 
   @Test
@@ -329,6 +348,7 @@ class StateInspectionPanelTest {
     override val show = MutableStateFlow(false)
     override val prevAction = TestAction()
     override val recompositionText = MutableStateFlow("")
+    override val emptyStateText = MutableStateFlow("")
     override val nextAction = TestAction()
     override val minimizeAction = TestAction()
     override val stateReadsText = MutableStateFlow("")

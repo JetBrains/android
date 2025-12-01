@@ -153,6 +153,11 @@ class StateInspectionModelTest {
     assertThat(model.show.value).isTrue()
     assertThat(model.updates.value).isEqualTo(3)
     assertThat(model.recompositionText.value).isEqualTo("Waiting for interactions")
+    assertThat(model.emptyStateText.value)
+      .isEqualTo(
+        "The selected composable has not recomposed yet.\n" +
+          "Try interacting with the app to cause recompositions."
+      )
     assertThat(model.stateReadsText.value).isEqualTo("")
     assertThat(model.stackTraceText.value).isEqualTo("")
     assertThat(model.composableInspected.value).isEqualTo(null)
@@ -167,6 +172,7 @@ class StateInspectionModelTest {
     assertThat(model.show.value).isTrue()
     assertThat(model.updates.value).isEqualTo(4)
     assertThat(model.recompositionText.value).isEqualTo("Recomposition 2")
+    assertThat(model.emptyStateText.value).isEmpty()
     assertThat(model.stateReadsText.value).isEqualTo("State Reads: 1")
     assertThat(model.stackTraceText.value)
       .isEqualTo(
@@ -200,6 +206,11 @@ class StateInspectionModelTest {
     assertThat(model.show.value).isTrue()
     assertThat(model.updates.value).isEqualTo(5)
     assertThat(model.recompositionText.value).isEqualTo("Not a compose node")
+    assertThat(model.emptyStateText.value)
+      .isEqualTo(
+        "The selected node is a View. State reads are not supported for views.\n" +
+          "Select a compose node to see recomposition state reads."
+      )
     assertThat(model.stateReadsText.value).isEqualTo("")
     assertThat(model.stackTraceText.value).isEqualTo("")
     assertThat(model.composableInspected.value).isEqualTo(null)
@@ -242,6 +253,11 @@ class StateInspectionModelTest {
     assertThat(model.show.value).isTrue()
     assertThat(model.updates.value).isEqualTo(7)
     assertThat(model.recompositionText.value).isEqualTo("Node is not observed")
+    assertThat(model.emptyStateText.value)
+      .isEqualTo(
+        "The selected composable is not being observed.\n" +
+          "Select a different node to see recomposition state reads."
+      )
     assertThat(model.stateReadsText.value).isEqualTo("")
     assertThat(model.stackTraceText.value).isEqualTo("")
     assertThat(model.composableInspected.value).isEqualTo(null)

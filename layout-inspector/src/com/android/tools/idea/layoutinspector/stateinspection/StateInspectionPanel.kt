@@ -17,12 +17,19 @@ package com.android.tools.idea.layoutinspector.stateinspection
 
 import com.android.adblib.utils.createChildScope
 import com.android.tools.adtui.common.AdtSecondaryPanel
+import com.android.tools.adtui.stdui.Chunk
+import com.android.tools.adtui.stdui.EmptyStatePanel
+import com.android.tools.adtui.stdui.IconChunk
+import com.android.tools.adtui.stdui.LabelData
+import com.android.tools.adtui.stdui.NewLineChunk
+import com.android.tools.adtui.stdui.TextChunk
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.impl.EditorHyperlinkListener
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces.UNKNOWN
 import com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
@@ -45,6 +52,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.awt.CardLayout
 import java.awt.Component
 import javax.swing.Box
 import javax.swing.BoxLayout
@@ -61,6 +69,8 @@ const val RECOMPOSITION_TEXT_LABEL_NAME = "RecompositionTextLabel"
 const val STATE_READ_TEXT_LABEL_NAME = "StateReadTextLabel"
 private val INVALIDATED_COLOR = JBColor(0x388E3C, 0x66BB6A)
 private const val INVALIDATED_LAYER = 10
+private const val KEY_EMPTY = "EMPTY_STATE"
+private const val KEY_EDITOR = "EDITOR"
 
 /** Convenience function for creating a StateInspectionPanel */
 internal fun createStateInspectionPanel(
@@ -143,6 +153,9 @@ private class InnerStateInspectionPanel(
     }
   private val recompositionText = JBLabel().apply { name = RECOMPOSITION_TEXT_LABEL_NAME }
   private val stateReadCountText = JBLabel().apply { name = STATE_READ_TEXT_LABEL_NAME }
+  private val contentLayout = CardLayout()
+  private val contentPanel = JPanel(contentLayout)
+  private val emptyPanel = JPanel(BorderLayout())
   private val editor = createStateReadEditor(project, this)
   private val listener = EditorHyperlinkListener { logUsageEvent(it) }
   private val hyperlinkDetector = hyperLinkDetectorFactory.create(editor, scope, listener)
@@ -180,8 +193,12 @@ private class InnerStateInspectionPanel(
     header.add(minimize)
     header.border = JBUI.Borders.customLineBottom(JBColor.border())
 
+    // Use a card layout to switch between empty state and actual content
+    contentPanel.add(emptyPanel, KEY_EMPTY)
+    contentPanel.add(editor.component, KEY_EDITOR)
+
     add(header, BorderLayout.NORTH)
-    add(editor.component, BorderLayout.CENTER)
+    add(contentPanel, BorderLayout.CENTER)
     border = JBUI.Borders.empty()
 
     scope.launch { model.recompositionText.collect { recompositionText.text = it } }
@@ -189,11 +206,30 @@ private class InnerStateInspectionPanel(
     scope.launch { model.stackTraceText.collect { setTextInEditor(it) } }
     scope.launch { model.composableInspected.collect { setComposableInspectedInEditor(it) } }
     scope.launch { model.updates.collect { updateButtons(prev, next, minimize) } }
+    scope.launch { model.emptyStateText.collect { showEmptyStateText(it) } }
   }
 
   override fun dispose() {
     scope.cancel()
     parent.putUserData(STATE_READ_EDITOR_KEY, null)
+  }
+
+  private fun showEmptyStateText(message: String) {
+    if (message.isEmpty()) {
+      contentLayout.show(contentPanel, KEY_EDITOR)
+      emptyPanel.removeAll()
+    } else {
+      val chunks = mutableListOf<Chunk>()
+      chunks.add(IconChunk(AllIcons.General.WarningDialog))
+      message.split("\n").forEach {
+        chunks.add(TextChunk(it))
+        chunks.add(NewLineChunk)
+      }
+      val emptyStatePanel = EmptyStatePanel(LabelData(*chunks.dropLast(1).toTypedArray()))
+      emptyPanel.removeAll()
+      emptyPanel.add(emptyStatePanel, BorderLayout.CENTER)
+      contentLayout.show(contentPanel, KEY_EMPTY)
+    }
   }
 
   private fun setComposableInspectedInEditor(data: ComposableDefinition?) {
