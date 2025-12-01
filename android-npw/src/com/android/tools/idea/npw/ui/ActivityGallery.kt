@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-/**
- * Utility methods to load Template Images and find labels
- */
+/** Utility methods to load Template Images and find labels */
 @file:JvmName("ActivityGallery")
 
 package com.android.tools.idea.npw.ui
 
 import com.android.tools.idea.npw.toWizardFormFactor
+import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.IconLoader
@@ -39,12 +38,15 @@ fun getTemplateIcon(template: Template): TemplateIcon? {
     TemplateIcon(icon)
   } catch (e: Exception) {
     logger.warn(e)
-    // Return the icon for No Activity to prevent other templates from not being rendered even if an exception is thrown.
-    // For example if a template has a wrong path name for its thumbnail, template.thumb() throws IllegalArgumentException
+    // Return the icon for No Activity to prevent other templates from not being rendered if an
+    // exception is thrown. For example, if a template has an incorrect path name for its thumbnail,
+    // template.thumb() throws IllegalArgumentException.
     TemplateIcon(StudioIllustrations.Wizards.NO_ACTIVITY)
   }
 }
 
-
 fun getTemplateTitle(template: Template): String =
-  template.name.replace("${template.formFactor.toWizardFormFactor().displayName} ", "")
+  when (template.formFactor) {
+    FormFactor.AiGlasses -> template.name
+    else -> template.name.replace("${template.formFactor.toWizardFormFactor().displayName} ", "")
+  }

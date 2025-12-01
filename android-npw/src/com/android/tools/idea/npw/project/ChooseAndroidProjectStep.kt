@@ -380,10 +380,19 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
       }
     }
 
+    /**
+     * Indicates which form factor in the Project Chooser this form factor should be grouped under.
+     */
+    private fun FormFactor.projectChooserCategory() =
+      when (this) {
+        FormFactor.AiGlasses -> FormFactor.XR
+        else -> this
+      }
+
     private fun FormFactor.getProjectTemplates() =
       TemplateResolver.getAllTemplates().filter {
         WizardUiContext.NewProject in it.uiContexts &&
-          it.formFactor == this &&
+          it.formFactor.projectChooserCategory() == this &&
           (it.name !in setOf("Architecture Sample", "AI Starter") ||
             StudioFlags.NPW_ENABLE_ARCHITECTURE_SAMPLE_TEMPLATE.get())
       }
