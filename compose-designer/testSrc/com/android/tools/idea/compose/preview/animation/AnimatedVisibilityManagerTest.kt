@@ -23,21 +23,22 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
+import com.intellij.openapi.application.EDT
 import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JComponent
 import javax.swing.JSlider
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
 
 class AnimatedVisibilityManagerTest : InspectorTests() {
@@ -82,7 +83,6 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
     }
   }
 
-  @Ignore("b/463308626")
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun changeTime() = runTest {
@@ -97,19 +97,24 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
 
     setupAndCheckToolbar(animationPreview, clock) { _, ui ->
       runCurrent()
-      waitForCondition(25.seconds) { numberOfCalls == 1 }
+      advanceUntilIdle()
+      waitForCondition(60.seconds) { numberOfCalls == 1 }
       val sliders =
         TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
       assertEquals(1, sliders.size)
       val timelineSlider = sliders[0] as JSlider
       // Change time again.
       timelineSlider.value = 100
+      ui.updateToolbarsIfNecessary()
+      ui.layoutAndDispatchEvents()
       runCurrent()
+      advanceUntilIdle()
       waitForCondition(10.seconds) { numberOfCalls == 2 }
       assertEquals(2, numberOfCalls)
     }
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   private suspend fun setupAndCheckToolbar(
     animationPreview: ComposeAnimationPreview,
     clock: TestClock,
@@ -127,7 +132,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
     surface.sceneManagers.forEach { it.requestRenderAndWait() }
     animationPreview.addAnimation(animation).join()
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       val ui = FakeUi(animationPreview.component.apply { size = Dimension(500, 400) })
       ui.layoutAndDispatchEvents()
       ui.updateToolbarsIfNecessary()
