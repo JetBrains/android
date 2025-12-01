@@ -19,12 +19,14 @@ import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.sdklib.AndroidVersion.VersionCodes.KITKAT_WATCH
 import com.android.sdklib.AndroidVersion.VersionCodes.LOLLIPOP
 import com.android.sdklib.AndroidVersion.VersionCodes.R
+import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_AI_GLASSES
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_AUTO
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_TV
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_WEAR
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_XR
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
+import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_AI_GLASSES
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_TV
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_WEAR
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_XR
@@ -96,6 +98,15 @@ enum class FormFactor(
     LOWEST_ACTIVE_API_XR,
     LOWEST_ACTIVE_API_XR,
     HIGHEST_KNOWN_API_XR,
+    FormFactors.MOBILE,
+    FormFactors.MOBILE_LARGE,
+  ),
+  AI_GLASSES(
+    "AI Glasses",
+    "AI Glasses",
+    LOWEST_ACTIVE_API_AI_GLASSES,
+    LOWEST_ACTIVE_API_AI_GLASSES,
+    HIGHEST_KNOWN_API_AI_GLASSES,
     FormFactors.MOBILE,
     FormFactors.MOBILE_LARGE,
   );

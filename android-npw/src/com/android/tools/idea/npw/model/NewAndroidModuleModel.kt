@@ -305,7 +305,8 @@ internal fun Project.findNewModuleRecommendedBuildSdk(): AndroidVersion? =
 private fun FormFactor.toModuleRenderingLoggingEvent() =
   when (this) {
     FormFactor.Mobile,
-    FormFactor.XR -> RenderLoggingEvent.ANDROID_MODULE
+    FormFactor.XR,
+    FormFactor.AiGlasses -> RenderLoggingEvent.ANDROID_MODULE
     FormFactor.Tv -> RenderLoggingEvent.ANDROID_TV_MODULE
     FormFactor.Car -> RenderLoggingEvent.AUTOMOTIVE_MODULE
     FormFactor.Wear -> RenderLoggingEvent.ANDROID_WEAR_MODULE
