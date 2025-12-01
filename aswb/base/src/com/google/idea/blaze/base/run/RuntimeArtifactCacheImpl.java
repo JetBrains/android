@@ -21,7 +21,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
@@ -50,22 +49,15 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
   private final Path runfilesDirectory;
   private static final String SEPARATOR_DIR_NAME = "_";
   private final BuildArtifactCache buildArtifactCache;
-  private final Path workspaceRoot;
 
-  public RuntimeArtifactCacheImpl(
-    Path runfilesDirectory, BuildArtifactCache buildArtifactCache, Path workspaceRoot)
-      throws IOException {
+  public RuntimeArtifactCacheImpl(Path runfilesDirectory, BuildArtifactCache buildArtifactCache) throws IOException {
     this.runfilesDirectory = runfilesDirectory;
     this.buildArtifactCache = buildArtifactCache;
-    this.workspaceRoot = workspaceRoot;
   }
 
   private RuntimeArtifactCacheImpl(Project project) throws IOException {
-    this(
-        Paths.get(checkNotNull(project.getBasePath()))
-            .resolve(ArtifactDirectories.RUNFILES.relativePath()),
-        project.getService(BuildArtifactCache.class),
-        WorkspaceRoot.fromProject(project).path());
+    this(Paths.get(checkNotNull(project.getBasePath())).resolve(ArtifactDirectories.RUNFILES.relativePath()),
+         project.getService(BuildArtifactCache.class));
   }
 
   @Override
