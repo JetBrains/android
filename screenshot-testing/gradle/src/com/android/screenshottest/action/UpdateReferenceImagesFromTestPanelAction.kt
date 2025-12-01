@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
+import com.intellij.openapi.diagnostic.Logger
 import javax.swing.JButton
 import javax.swing.JComponent
 
@@ -35,6 +36,7 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT,
                                                           UPDATE_ACTION_DESCRIPTION,
                                                           null), CustomComponentAction {
 
+  private val LOG = Logger.getInstance(this.javaClass)
   var testResults: AndroidTestResults? = null
 
   override fun update(e: AnActionEvent) {
@@ -44,6 +46,7 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT,
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun actionPerformed(e: AnActionEvent) {
+    LOG.debug("UpdateReferenceImagesFromTestPanelAction triggered for event: $e")
     val project = e.project ?: return
     val results = testResults ?: return
 
@@ -51,6 +54,7 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT,
     val dialog = UpdateReferenceImagesDialogManager.getInstance(project).showOrGetDialog() ?: return
 
     val allTestCases = results.getAllTestCases()
+    LOG.debug("Processing ${allTestCases.size} test cases")
 
     for (testCase in allTestCases) {
         val artifacts = testCase.additionalTestArtifacts
@@ -69,6 +73,7 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT,
             diffImagePath = artifacts["PreviewScreenshot.diffImagePath"],
             diffPercent = artifacts["PreviewScreenshot.diffPercent"]
           )
+          LOG.debug("PreviewDetails: $previewDetails")
           dialog.updateDialogWithTestResult(previewDetails, testCase.result == com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult.FAILED)
       }
     }
