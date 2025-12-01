@@ -4903,7 +4903,6 @@ MODULE                        : kotlinMultiPlatform.module2
                 platform                      : NATIVE
             disambiguationClassifier      : iosArm64
             jar                           : KotlinTargetJarImpl
-                - compilations                : main (KotlinCompilationImpl) (*seen*)
             - konanArtifacts              : KonanArtifactModelImpl
                 buildTaskPath                 : :module2:linkDebugTestIosArm64 [-]
                 executableName                : test
@@ -5055,7 +5054,6 @@ MODULE                        : kotlinMultiPlatform.module2
                 platform                      : NATIVE
             disambiguationClassifier      : iosSimulatorArm64
             jar                           : KotlinTargetJarImpl
-                - compilations                : main (KotlinCompilationImpl) (*seen*)
             - konanArtifacts              : KonanArtifactModelImpl
                 buildTaskPath                 : :module2:linkDebugTestIosSimulatorArm64 [-]
                 executableName                : test
@@ -5207,7 +5205,6 @@ MODULE                        : kotlinMultiPlatform.module2
                 platform                      : NATIVE
             disambiguationClassifier      : iosX64
             jar                           : KotlinTargetJarImpl
-                - compilations                : main (KotlinCompilationImpl) (*seen*)
             - konanArtifacts              : KonanArtifactModelImpl
                 buildTaskPath                 : :module2:linkDebugTestIosX64 [-]
                 executableName                : test
