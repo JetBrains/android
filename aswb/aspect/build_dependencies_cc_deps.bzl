@@ -83,7 +83,7 @@ def _get_cc_compilation_context(target, rule):
     return None
 
 IDE_CC = struct(
-    follow_attributes = ["_cc_toolchain"],
+    follow_attributes = ["_cc_toolchain", "library", "cc_library"],
     toolchains_aspects = [],
     toolchain_target = _get_cc_toolchain_target,
     compilation_context = _get_cc_compilation_context,
