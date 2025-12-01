@@ -74,7 +74,7 @@ class ScreenshotTestMethodGradleConfigurationProducer: TestMethodGradleConfigura
   override fun doSetupConfigurationFromContext(configuration: GradleRunConfiguration,
                                                context: ConfigurationContext,
                                                sourceElement: Ref<PsiElement>): Boolean {
-    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()) {
+    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get() || !isScreenshotPluginVersionValid(context)) {
       return false
     }
     configuration.putUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey, true)

@@ -20,6 +20,7 @@ import com.android.screenshottest.util.UPDATE_ACTION_TEXT
 import com.android.tools.idea.flags.StudioFlags
 import com.android.screenshottest.producers.isClassDeclarationWithPreviewTestAnnotatedMethods
 import com.android.screenshottest.producers.isMethodDeclarationPreviewTestAnnotated
+import com.android.screenshottest.producers.isScreenshotPluginVersionValid
 import com.android.screenshottest.producers.isScreenshotTestSourceSet
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.icons.AllIcons
@@ -45,7 +46,7 @@ class UpdateReferenceImagesInClassAction : UpdateReferenceImagesBaseAction(
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = false
-    if(!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()){
+    if(!StudioFlags.ENABLE_SCREENSHOT_TESTING.get() || !isScreenshotPluginVersionValid(ConfigurationContext.getFromEvent(e))){
       return
     }
 

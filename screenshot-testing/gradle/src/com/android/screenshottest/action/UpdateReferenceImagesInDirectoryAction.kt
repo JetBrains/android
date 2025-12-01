@@ -15,6 +15,7 @@
  */
 package com.android.screenshottest.action
 
+import com.android.screenshottest.producers.isScreenshotPluginVersionValid
 import com.android.screenshottest.util.UPDATE_ACTION_DESCRIPTION
 import com.android.screenshottest.util.UPDATE_ACTION_TEXT
 import com.android.tools.idea.flags.StudioFlags
@@ -36,7 +37,7 @@ class UpdateReferenceImagesInDirectoryAction : UpdateReferenceImagesBaseAction(
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = false
-    if(!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()){
+    if(!StudioFlags.ENABLE_SCREENSHOT_TESTING.get() || !isScreenshotPluginVersionValid(ConfigurationContext.getFromEvent(e))){
       return
     }
 
