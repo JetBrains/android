@@ -54,8 +54,9 @@ class PreviewItemPanel(
   private val imagePanel: ImagePanel
   var isLoadedSuccessfully: Boolean = false
     private set
-  val loadedImagePaths = mutableMapOf<String, String>() // imagePath to simpleClassName
-  val sourceImageToCopy = mutableMapOf<String, String>()
+
+  private val _sourceImageToCopy = mutableMapOf<String, String>()
+  val sourceImageToCopy: Map<String, String> get() = _sourceImageToCopy
 
   init {
     // Use GridBagLayout to stack components vertically without forcing them to the same width.
@@ -154,10 +155,9 @@ class PreviewItemPanel(
 
   fun loadImage(newPath: String, testId: String) {
     val simpleClassName = testId.split('.', limit = 2).first()
-    loadedImagePaths[newPath] = simpleClassName
 
-    if (sourceImageToCopy.isEmpty()) {
-      previewData.srcImagePath?.let { sourceImageToCopy[it] = simpleClassName }
+    if (_sourceImageToCopy.isEmpty()) {
+      previewData.srcImagePath?.let { _sourceImageToCopy[it] = simpleClassName }
     }
 
     AppExecutorUtil.getAppExecutorService().submit {
