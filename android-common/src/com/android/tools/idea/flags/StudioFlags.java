@@ -2542,6 +2542,11 @@ public final class StudioFlags {
                     "Enable Simple New Project Agent",
                     "Enables the 'New Project Agent' for simple projects.");
 
+  public static final Flag<Boolean> GEMINI_NEW_PROJECT_AGENT_WITH_PLANNER_UI =
+    new BooleanFlag(STUDIOBOT, "new.project.agent.with.planner.ui",
+                    "Enable New Project Agent's Planner UI",
+                    "Enables the 'New Project Agent' Planner UI.");
+
   public static final Flag<Boolean> GEMINI_AGENT_CHANGES_DRAWER_ENABLED =
     new BooleanFlag(STUDIOBOT, "agent.changes.drawer",
                     "Enable the Agent Changes Drawer",
