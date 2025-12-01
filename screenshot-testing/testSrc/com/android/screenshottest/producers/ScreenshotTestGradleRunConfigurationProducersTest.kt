@@ -17,17 +17,20 @@ package com.android.screenshottest.producers
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil
 import com.android.tools.idea.testartifacts.createAndroidGradleTestConfigurationFromClass
 import com.android.tools.idea.testartifacts.createAndroidGradleTestConfigurationFromDirectory
 import com.android.tools.idea.testartifacts.createAndroidGradleTestConfigurationFromMethod
 import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.actions.ConfigurationFromContextImpl
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.testFramework.PsiTestUtil
@@ -39,6 +42,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
+import com.intellij.openapi.vfs.VfsUtil
 
 @RunsInEdt
 class ScreenshotTestGradleRunConfigurationProducersTest {
@@ -65,6 +69,35 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     stubPreviewAnnotation()
     stubPreviewTestAnnotation()
     createProjectStructureForTest()
+
+    val projectDir = File(projectRule.project.basePath!!)
+    createFakeScreenshotLibrary(projectDir, "0.0.1-alpha12")
+
+    val fakeRepoUrl = File(projectDir, "fakeRepo").toURI().toString()
+
+    val buildFile = projectRule.project.basePath + "/app/build.gradle"
+    val virtualBuildFile = findFileByIoFile(File(buildFile), true)!!
+
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      val content = String(virtualBuildFile.contentsToByteArray())
+      val contentWithRepo = if (content.contains("repositories {")) {
+        content.replace("repositories {", "repositories {\n        maven { url '$fakeRepoUrl' }")
+      } else {
+        "repositories { maven { url '$fakeRepoUrl' } }\n" + content
+      }
+      val finalContent = contentWithRepo.replace(
+        "dependencies {",
+        "dependencies {\n    implementation 'com.android.tools.screenshot:screenshot-validation-api:0.0.1-alpha12'"
+      )
+
+      virtualBuildFile.setBinaryContent(finalContent.toByteArray())
+    }
+
+    AndroidGradleTests.syncProject(
+      projectRule.project,
+      GradleSyncInvoker.Request.testRequest()
+    ) {}
+
     val screenshotTestDir = findFileByIoFile(File(projectRule.project.basePath + "/app/src/screenshotTest"), true)
     PsiTestUtil.addSourceRoot(projectRule.fixture.module, screenshotTestDir!!, true)
   }
@@ -333,6 +366,37 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     // This should not cause NPE.
     TestConfigurationTestingUtil.createContext(project, psiFile).configuration
   }
+
+  @Test
+  fun testConfiguration_failsWhenVersionIsTooLow() {
+    //Create a lower version of the library in the fake repo
+    val projectDir = File(projectRule.project.basePath!!)
+    createFakeScreenshotLibrary(projectDir, "0.0.1-alpha01")
+    val buildFile = projectRule.project.basePath + "/app/build.gradle"
+    val virtualBuildFile = findFileByIoFile(File(buildFile), true)!!
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      val content = String(virtualBuildFile.contentsToByteArray())
+      // Replace the valid version (alpha12) with the invalid one (alpha01)
+      val newContent = content.replace("0.0.1-alpha12", "0.0.1-alpha01")
+      virtualBuildFile.setBinaryContent(newContent.toByteArray())
+    }
+    // Trigger a Sync to update the Gradle Model
+    AndroidGradleTests.syncProject(
+      projectRule.project,
+      GradleSyncInvoker.Request.testRequest()
+    ) {}
+
+    val runConfiguration = createAndroidGradleTestConfigurationFromClass(
+      projectRule.project,
+      "com.example.application.MyScreenshotTest"
+    )
+
+    Assert.assertNull(
+      "Run configuration should be null when library version is too low",
+      runConfiguration
+    )
+  }
+
 
   private fun createProjectStructureForTest() {
     //simple screenshotTest
@@ -618,5 +682,28 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     FileUtil.createIfDoesntExist(newFile)
     newFile.writeText(content)
     return newFile
+  }
+
+  private fun createFakeScreenshotLibrary(projectRoot: File, version: String) {
+    val repoDir = File(projectRoot, "fakeRepo")
+    val artifactDir = File(repoDir, "com/android/tools/screenshot/screenshot-validation-api/$version")
+    if (!artifactDir.mkdirs()) {
+      println("WARNING: Failed to create directories: $artifactDir")
+    }
+
+    // Create the POM
+    File(artifactDir, "screenshot-validation-api-$version.pom").writeText("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.android.tools.screenshot</groupId>
+          <artifactId>screenshot-validation-api</artifactId>
+          <version>$version</version>
+        </project>
+    """.trimIndent())
+
+    // Create a dummy JAR
+    File(artifactDir, "screenshot-validation-api-$version.jar").writeText("dummy content")
   }
 }
