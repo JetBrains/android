@@ -535,6 +535,20 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
               else -> emit(PairingState.Pairing("Pairing in progress..."))
             }
           }
+          .catch { cause ->
+            if (cause is java.io.IOException) {
+              emit(
+                PairingState.Error(
+                  heading = "Connection lost",
+                  detailText =
+                    "The connection to one or both of the devices was lost. Pairing may have still succeeded; please check the phone.",
+                  logDetail = cause.message,
+                )
+              )
+            } else {
+              throw cause
+            }
+          }
           .first { it in AiGlassesPairing.TERMINAL_STATES }
       }
     }
