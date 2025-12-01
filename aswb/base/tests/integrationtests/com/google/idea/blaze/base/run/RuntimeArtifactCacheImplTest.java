@@ -18,9 +18,7 @@ package com.google.idea.blaze.base.run;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.util.concurrent.Futures.immediateFailedFuture;
 import static com.google.common.util.concurrent.Futures.immediateFuture;
-import static java.nio.file.Files.createDirectory;
 import static org.junit.Assert.assertThrows;
-
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -28,12 +26,12 @@ import com.google.common.io.MoreFiles;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.base.artifact.TestOutputArtifact;
+import com.google.idea.blaze.base.qsync.BuildArtifactCacheDirectory;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.artifact.ArtifactFetcher;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
-import com.google.idea.blaze.base.qsync.BuildArtifactCacheDirectory;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.exception.BuildException;
 import java.io.IOException;
@@ -54,13 +52,10 @@ import org.junit.runners.JUnit4;
 public class RuntimeArtifactCacheImplTest {
 
   @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
-  private Path workspaceRoot;
   private Path runfilesDirectory;
 
   @Before
-  public void initDirs() throws Exception {
-    workspaceRoot = tmpDir.getRoot().toPath().resolve("workspace");
-    createDirectory(workspaceRoot);
+  public void initDirs() {
     runfilesDirectory = tmpDir.getRoot().toPath().resolve("runfiles");
   }
 
@@ -69,8 +64,7 @@ public class RuntimeArtifactCacheImplTest {
     final var testArtifactFetcher = new RuntimeArtifactCacheImplTest.TestArtifactFetcher(
       RuntimeArtifactCacheImplTest.TestArtifactFetcher.ShouldFail.NO);
     final var buildArtifactCache = createBuildArtifactCache(testArtifactFetcher);
-    RuntimeArtifactCache runtimeArtifactCache =
-        new RuntimeArtifactCacheImpl(runfilesDirectory, buildArtifactCache, workspaceRoot);
+    RuntimeArtifactCache runtimeArtifactCache = new RuntimeArtifactCacheImpl(runfilesDirectory, buildArtifactCache);
     TestOutputArtifact artifact1 = TestOutputArtifact.builder()
       .setArtifactPath(Path.of("out/test1.jar"))
       .setDigest("abc")
@@ -100,8 +94,7 @@ public class RuntimeArtifactCacheImplTest {
   public void fetchArtifacts_failed() throws Exception {
     final var buildArtifactCache = createBuildArtifactCache(new RuntimeArtifactCacheImplTest.TestArtifactFetcher(
       RuntimeArtifactCacheImplTest.TestArtifactFetcher.ShouldFail.YES));
-    RuntimeArtifactCache runtimeArtifactCache =
-      new RuntimeArtifactCacheImpl(runfilesDirectory, buildArtifactCache, workspaceRoot);
+    RuntimeArtifactCache runtimeArtifactCache = new RuntimeArtifactCacheImpl(runfilesDirectory, buildArtifactCache);
     TestOutputArtifact artifact1 = TestOutputArtifact.builder()
       .setArtifactPath(Path.of("out/test1.jar"))
       .setDigest("abc")
