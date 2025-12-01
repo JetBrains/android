@@ -39,6 +39,7 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
+import com.google.idea.common.experiments.FeatureRolloutExperiment;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.search.GlobalSearchScope;
 import java.io.IOException;
@@ -52,6 +53,7 @@ import org.jetbrains.annotations.NotNull;
 
 // TODO: b/418844903 - Update the artifact manager
 final class BazelBuildServices implements BuildServices<BazelBuildTargetReference> {
+  private static final FeatureRolloutExperiment aswbComposablePreviews = new FeatureRolloutExperiment("aswb.composable.previews");
   private final Collection<BuildListener> listeners = new CopyOnWriteArrayList<>();
 
   /**
