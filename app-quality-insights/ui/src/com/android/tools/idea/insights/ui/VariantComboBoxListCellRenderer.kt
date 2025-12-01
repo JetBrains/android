@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.idea.insights.IssueVariant
+import com.android.tools.idea.insights.model.issue.IssueVariant
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBFont

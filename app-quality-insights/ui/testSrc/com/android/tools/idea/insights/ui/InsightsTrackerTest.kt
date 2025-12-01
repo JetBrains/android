@@ -17,9 +17,9 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.swing.EditorUtils.cleanUpListenersFromEditorMouseHoverPopupManager
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
-import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.ui.vcs.VCS_INFO_OF_SELECTED_CRASH
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -113,9 +113,7 @@ class InsightsTrackerTest {
     )
 
     // Click on the hyperlink
-    editor.caretModel.moveToOffset(
-      editor.document.textLength - "Activity.kt:4)".length
-    )
+    editor.caretModel.moveToOffset(editor.document.textLength - "Activity.kt:4)".length)
     val position = editor.caretModel.logicalPosition
     val point = editor.logicalPositionToXY(position)
 

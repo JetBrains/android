@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights
+package com.android.tools.idea.insights.model.common
 
-import com.android.tools.idea.insights.events.EnterOfflineMode
-import com.android.tools.idea.insights.events.EnterOnlineMode
-
-enum class ConnectionMode {
-  ONLINE,
-  OFFLINE;
-
-  fun isOfflineMode() = this == OFFLINE
-
-  fun toEvent() = if (this == ONLINE) EnterOnlineMode else EnterOfflineMode
-}
+/** A named group of [DataPoint]s. */
+data class StatsGroup<T : Number>(
+  val groupName: String,
+  val percentage: T,
+  val breakdown: List<DataPoint<T>>,
+)

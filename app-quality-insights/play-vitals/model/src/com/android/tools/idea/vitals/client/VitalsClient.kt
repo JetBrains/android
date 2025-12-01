@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.vitals.client
 
-import com.android.tools.idea.insights.ConnectionMode
-import com.android.tools.idea.insights.DetailedIssueStats
-import com.android.tools.idea.insights.FetchSource
-import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MINIMUM_PERCENTAGE_TO_SHOW
 import com.android.tools.idea.insights.MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW
@@ -28,24 +24,29 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsClient
+import com.android.tools.idea.insights.client.FetchSource
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.client.createGeminiInsightRequest
 import com.android.tools.idea.insights.client.runGrpcCatchingWithSupervisorScope
+import com.android.tools.idea.insights.isOfflineMode
 import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.connection.AppConnection
 import com.android.tools.idea.insights.model.connection.Connection
+import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version
 import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.DetailedIssueStats
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.issue.IssueState
+import com.android.tools.idea.insights.model.issue.IssueVariant
 import com.android.tools.idea.insights.model.stacktrace.StackTraceGroupParser
 import com.android.tools.idea.insights.summarizeDevicesFromRawDataPoints
 import com.android.tools.idea.insights.summarizeOsesFromRawDataPoints

@@ -17,11 +17,11 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.InsightsProvider
-import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
+import com.android.tools.idea.insights.model.issue.IssueVariant
 
 data class SelectedIssueVariantChanged(private val variant: IssueVariant?) : ChangeEvent {
   override fun transition(

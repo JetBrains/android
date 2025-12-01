@@ -26,7 +26,6 @@ import com.android.tools.idea.insights.DEFAULT_FETCHED_VERSIONS
 import com.android.tools.idea.insights.DynamicEventGallery
 import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
 import com.android.tools.idea.insights.FakeInsightsProvider
-import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.Filters
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
@@ -39,6 +38,7 @@ import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
+import com.android.tools.idea.insights.client.FetchSource
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.model.common.WithCount

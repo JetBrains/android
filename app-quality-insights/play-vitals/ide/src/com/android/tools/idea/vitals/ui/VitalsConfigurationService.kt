@@ -21,7 +21,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerImpl
-import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
 import com.android.tools.idea.insights.ai.AiInsightToolkitImpl
@@ -38,6 +37,7 @@ import com.android.tools.idea.insights.events.ExplicitRefresh
 import com.android.tools.idea.insights.getHolderModules
 import com.android.tools.idea.insights.isAndroidApp
 import com.android.tools.idea.insights.model.connection.AppConnection
+import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.vitals.IntellijStackTraceGroupParser

@@ -22,6 +22,7 @@ import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.model.common.WithCount
+import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventPage
