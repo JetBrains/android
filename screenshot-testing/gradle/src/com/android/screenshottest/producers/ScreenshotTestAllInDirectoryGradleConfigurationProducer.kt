@@ -66,7 +66,7 @@ class ScreenshotTestAllInDirectoryGradleConfigurationProducer: AllInDirectoryGra
   override fun doSetupConfigurationFromContext(configuration: GradleRunConfiguration,
                                                context: ConfigurationContext,
                                                sourceElement: Ref<PsiElement>): Boolean {
-    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()) {
+    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get() || !isScreenshotPluginVersionValid(context)) {
       return false
     }
     val configured = configure(configuration, sourceElement, context)
