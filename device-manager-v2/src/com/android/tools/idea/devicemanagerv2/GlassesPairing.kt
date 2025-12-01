@@ -20,6 +20,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.idea.deviceprovisioner.deviceHandle
 import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -29,7 +30,10 @@ class PairGlassesAction() : DumbAwareAction("Pair Glasses") {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    if (e.deviceHandle()?.state?.properties?.deviceType == DeviceType.AI_GLASSES) {
+    if (
+      StudioFlags.AI_GLASSES_PHONE_EMULATOR_PAIRING_WIZARD_ENABLED.get() &&
+        e.deviceHandle()?.state?.properties?.deviceType == DeviceType.AI_GLASSES
+    ) {
       e.updateFromDeviceAction(DeviceHandle::pairGlassesAction)
     } else {
       e.presentation.isEnabledAndVisible = false
