@@ -32,7 +32,6 @@ import com.intellij.openapi.util.getOrCreateUserData
 import com.sun.jdi.ClassLoaderReference
 import com.sun.jdi.ClassType
 import com.sun.jdi.ObjectReference
-import kotlin.text.replace
 
 /*
  * Serves as a debug process wise cache of helper classes that were
@@ -179,6 +178,6 @@ private fun wrapToByteBuffer(bytes: ByteArray, context: EvaluationContextImpl): 
       ?: return null
   val wrapMethod =
     byteBufferClass.concreteMethodByName("wrap", "([B)Ljava/nio/ByteBuffer;") ?: return null
-  return debugProcess.invokeMethod(context, byteBufferClass, wrapMethod, listOf(bytesMirror))
+  return debugProcess.invokeMethod(context, byteBufferClass, wrapMethod, listOf(bytesMirror), true)
     as? ObjectReference
 }
