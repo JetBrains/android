@@ -117,31 +117,33 @@ fun LeakDetailsPanel(selectedLeak: Leak?,
         onCollapseAll = onCollapseAll
       )
       ToolWindowHorizontalDivider()
-      Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(10.dp)) {
-        // If displayedLeakTrace is empty, use empty list for the leak nodes.
-        val traceNodes = if (selectedLeak.displayedLeakTrace.isNotEmpty()) selectedLeak.displayedLeakTrace[0].nodes else listOf()
-        if(traceNodes.isNotEmpty()){
-          GcRootNodeView(selectedLeak.displayedLeakTrace[0])
+      Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(10.dp)) {
+          // If displayedLeakTrace is empty, use empty list for the leak nodes.
+          val traceNodes = if (selectedLeak.displayedLeakTrace.isNotEmpty()) selectedLeak.displayedLeakTrace[0].nodes else listOf()
+          if(traceNodes.isNotEmpty()){
+            GcRootNodeView(selectedLeak.displayedLeakTrace[0])
+          }
+          traceNodes.forEachIndexed { index, currNode ->
+            LeakTraceNodeView(
+              node = currNode,
+              previousNode = if (index > 0) traceNodes[index - 1] else null,
+              gotoDeclaration = gotoDeclaration,
+              nextNode = if (index + 1 < traceNodes.size) traceNodes[index + 1] else null,
+              isOpen = openStates[index],
+              onClickNode = {
+                val newStates = openStates.toMutableList().apply { this[index] = !this[index] }
+                onOpenStatesChange(newStates)
+              },
+              isDeclarationAvailableAsync = isDeclarationAvailableAsync
+            )
+          }
         }
-        traceNodes.forEachIndexed { index, currNode ->
-          LeakTraceNodeView(
-            node = currNode,
-            previousNode = if (index > 0) traceNodes[index - 1] else null,
-            gotoDeclaration = gotoDeclaration,
-            nextNode = if (index + 1 < traceNodes.size) traceNodes[index + 1] else null,
-            isOpen = openStates[index],
-            onClickNode = {
-              val newStates = openStates.toMutableList().apply { this[index] = !this[index] }
-              onOpenStatesChange(newStates)
-            },
-            isDeclarationAvailableAsync = isDeclarationAvailableAsync
-          )
-        }
+        VerticalScrollbar(
+          adapter = rememberScrollbarAdapter(scrollState),
+          modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd)
+        )
       }
-      VerticalScrollbar(
-        adapter = rememberScrollbarAdapter(scrollState),
-        modifier = Modifier.fillMaxHeight().align(Alignment.CenterHorizontally),
-      )
     }
   }
 }
