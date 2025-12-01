@@ -20,7 +20,6 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.util.Screensh
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotViewType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ImageLoader
@@ -162,6 +161,7 @@ class PreviewItemPanel(
 
     AppExecutorUtil.getAppExecutorService().submit {
       val image = createImageIcon(newPath)
+
       ApplicationManager.getApplication().invokeLater {
         if (image != null) {
           imagePanel.setImage(image)
@@ -181,13 +181,20 @@ class PreviewItemPanel(
 
   private fun createImageIcon(path: String): JBImageIcon? {
     val ioFile = File(path)
-    val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(ioFile)
-    if (virtualFile == null || virtualFile.length == 0L) {
-      logger.warn("Image file not found or is empty after build. Image path: $path")
+    if (!ioFile.exists()) {
+      logger.warn("Image file not found. Path: $path")
+      return null
+    }
+    if (ioFile.length() == 0L) {
+      logger.warn("Image file is empty. Path: $path")
       return null
     }
     return try {
-      val image = ImageLoader.loadFromBytes(virtualFile.contentsToByteArray()) ?: return null
+      val image = ImageLoader.loadFromBytes(ioFile.readBytes())
+      if (image == null) {
+        logger.warn("ImageLoader failed to parse image data from path: $path")
+        return null
+      }
 
       val w = image.getWidth(null)
       val h = image.getHeight(null)
