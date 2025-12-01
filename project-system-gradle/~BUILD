@@ -597,7 +597,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "@intellij//:org.intellij.groovy",
-        "//tools/base/build-system:studio.android.sdktools.manifest-merger",
+        "//tools/base/build-system/manifest-merger:studio.android.sdktools.manifest-merger",
         "//tools/base/lint:studio.android.sdktools.lint-checks",
         "//tools/analytics-library/shared:analytics-shared",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution",

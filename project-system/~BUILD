@@ -15,7 +15,7 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
-        "//tools/base/build-system:studio.android.sdktools.manifest-merger",
+        "//tools/base/build-system/manifest-merger:studio.android.sdktools.manifest-merger",
         "//tools/base/lint:studio.android.sdktools.lint-api",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/jps-model:intellij.android.jps.model",
