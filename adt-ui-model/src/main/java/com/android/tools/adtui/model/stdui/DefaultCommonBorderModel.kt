@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.model.stdui
 
-class DefaultCommonBorderModel: CommonBorderModel {
+class DefaultCommonBorderModel : CommonBorderModel {
 
   override val hasError: Boolean
     get() = false

@@ -31,8 +31,8 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.separator
 
 /**
- * This sample composable showcasing the different dropdown components was adapted from the public Jewel repository standalone sample.
- * See: https://github.com/JetBrains/jewel
+ * This sample composable showcasing the different dropdown components was adapted from the public
+ * Jewel repository standalone sample. See: https://github.com/JetBrains/jewel
  */
 @Composable
 fun Dropdowns() {
@@ -42,73 +42,49 @@ fun Dropdowns() {
     verticalAlignment = Alignment.CenterVertically,
   ) {
     val items = remember {
-      listOf(
-        "Light",
-        "Dark",
-        "---",
-        "High Contrast",
-        "Darcula",
-        "IntelliJ Light",
-      )
+      listOf("Light", "Dark", "---", "High Contrast", "Darcula", "IntelliJ Light")
     }
     var selected by remember { mutableStateOf(items.first()) }
 
-    Dropdown(
-      enabled = false,
-      menuContent = {
-      },
-    ) {
-      Text("Disabled")
-    }
+    Dropdown(enabled = false, menuContent = {}) { Text("Disabled") }
     Dropdown(
       menuContent = {
         items.forEach {
           if (it == "---") {
             separator()
           } else {
-            selectableItem(
-              selected == it,
-              onClick = { selected = it }
-            ) {
-              Text(it)
-            }
+            selectableItem(selected == it, onClick = { selected = it }) { Text(it) }
           }
         }
         separator()
-        submenu(submenu = {
-          items.forEach {
-            if (it == "---") {
-              separator()
-            } else {
-              selectableItem(
-                selected == it,
-                onClick = { selected = it }
-              ) {
-                Text(it)
-              }
-            }
-          }
-          separator()
-          submenu(submenu = {
+        submenu(
+          submenu = {
             items.forEach {
               if (it == "---") {
                 separator()
               } else {
-                selectableItem(
-                  selected == it,
-                  onClick = { selected = it }
-                ) {
-                  Text(it)
-                }
+                selectableItem(selected == it, onClick = { selected = it }) { Text(it) }
               }
             }
-          }) {
-            Text("Submenu2")
+            separator()
+            submenu(
+              submenu = {
+                items.forEach {
+                  if (it == "---") {
+                    separator()
+                  } else {
+                    selectableItem(selected == it, onClick = { selected = it }) { Text(it) }
+                  }
+                }
+              }
+            ) {
+              Text("Submenu2")
+            }
           }
-        }) {
+        ) {
           Text("Submenu")
         }
-      },
+      }
     ) {
       Text(selected)
     }
@@ -119,12 +95,7 @@ fun Dropdowns() {
           if (it == "---") {
             separator()
           } else {
-            selectableItem(
-              selected == it,
-              onClick = { selected = it }
-            ) {
-              Text(it)
-            }
+            selectableItem(selected == it, onClick = { selected = it }) { Text(it) }
           }
         }
       },

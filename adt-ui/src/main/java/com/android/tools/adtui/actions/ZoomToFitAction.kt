@@ -19,7 +19,7 @@ import com.android.tools.adtui.ZOOMABLE_KEY
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class ZoomToFitAction private constructor(): SetZoomAction(ZoomType.FIT) {
+class ZoomToFitAction private constructor() : SetZoomAction(ZoomType.FIT) {
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isEnabled = event.getData(ZOOMABLE_KEY)?.canZoomToFit() ?: false

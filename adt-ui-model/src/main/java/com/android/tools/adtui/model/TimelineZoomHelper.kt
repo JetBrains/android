@@ -98,7 +98,7 @@ class TimelineZoomHelper(
     val finalRange =
       Range(
         targetRange.min - targetRange.length * paddingRatio,
-        targetRange.max + targetRange.length * paddingRatio
+        targetRange.max + targetRange.length * paddingRatio,
       )
 
     // Cap requested view to max data.

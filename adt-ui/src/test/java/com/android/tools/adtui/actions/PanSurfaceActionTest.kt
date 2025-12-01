@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.actions
 
-import org.mockito.kotlin.whenever
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -32,6 +31,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class PanSurfaceActionTest {
@@ -40,7 +40,10 @@ class PanSurfaceActionTest {
   private lateinit var panAction: PanSurfaceAction
   private var contextHasPannable: Boolean = true
   private val context: DataContext
-    get() = if (contextHasPannable) SimpleDataContext.getSimpleContext(PANNABLE_KEY, pannable) else DataContext.EMPTY_CONTEXT
+    get() =
+      if (contextHasPannable) SimpleDataContext.getSimpleContext(PANNABLE_KEY, pannable)
+      else DataContext.EMPTY_CONTEXT
+
   private val pannable: Pannable = mock(Pannable::class.java)
 
   private val actionEvent: AnActionEvent

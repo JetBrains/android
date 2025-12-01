@@ -19,42 +19,31 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.SwingCoordinate
 import com.intellij.openapi.actionSystem.DataKey
 
-@JvmField
-val ZOOMABLE_KEY = DataKey.create<Zoomable>(Zoomable::class.java.name)
+@JvmField val ZOOMABLE_KEY = DataKey.create<Zoomable>(Zoomable::class.java.name)
 
-/**
- * Describes a component with zoom controls available.
- * This interface is used by zoom actions.
- * */
+/** Describes a component with zoom controls available. This interface is used by zoom actions. */
 interface Zoomable {
-  /**
-   * The scaling level of a component.
-   */
+  /** The scaling level of a component. */
   val scale: Double
 
   /**
-   * A factor gives a chance to adjust [scale] value in different visual components.
-   * The visual size is [scale] * [screenScalingFactor].
-   * This value must be positive.
+   * A factor gives a chance to adjust [scale] value in different visual components. The visual size
+   * is [scale] * [screenScalingFactor]. This value must be positive.
    */
   val screenScalingFactor: Double
 
   /**
-   * Executes a zoom on the content of the component.
-   * See [ZoomType] for the different types of zoom available.
+   * Executes a zoom on the content of the component. See [ZoomType] for the different types of zoom
+   * available.
    *
    * @return True if the scaling was changed, false if this was a noop.
    */
   fun zoom(type: ZoomType): Boolean
 
-  /**
-   * @return true if it is possible to zoom in on the component, false otherwise.
-   */
+  /** @return true if it is possible to zoom in on the component, false otherwise. */
   fun canZoomIn(): Boolean
 
-  /**
-   * @return true if it is possible to zoom out on the component, false otherwise.
-   */
+  /** @return true if it is possible to zoom out on the component, false otherwise. */
   fun canZoomOut(): Boolean
 
   /**
@@ -63,16 +52,17 @@ interface Zoomable {
   fun canZoomToFit(): Boolean
 
   /**
-   * @return true if it is possible to apply zoom-to-actual action on the component, false otherwise.
+   * @return true if it is possible to apply zoom-to-actual action on the component, false
+   *   otherwise.
    */
   fun canZoomToActual(): Boolean
 
   /**
-   * Executes a zoom on the content of the component.
-   * See [ZoomType] for the different types of zoom available.
+   * Executes a zoom on the content of the component. See [ZoomType] for the different types of zoom
+   * available.
    *
-   * If type is [ZoomType.IN], zoom toward the given view coordinates.
-   * If [x] or [y] are negative, zoom toward the center of the viewport.
+   * If type is [ZoomType.IN], zoom toward the given view coordinates. If [x] or [y] are negative,
+   * zoom toward the center of the viewport.
    *
    * @return True if the scaling was changed, false if this was a noop.
    */

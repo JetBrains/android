@@ -28,9 +28,16 @@ import java.awt.Color
 class MaterialColorPaletteTest : HeavyPlatformTestCase() {
 
   fun testCreatePickerWithColorPalette() {
-    val picker = ColorPickerBuilder().addCustomComponent(object : ColorPickerComponentProvider {
-      override fun createComponent(colorPickerModel: ColorPickerModel) = MaterialColorPalette(colorPickerModel)
-    }).build().content
+    val picker =
+      ColorPickerBuilder()
+        .addCustomComponent(
+          object : ColorPickerComponentProvider {
+            override fun createComponent(colorPickerModel: ColorPickerModel) =
+              MaterialColorPalette(colorPickerModel)
+          }
+        )
+        .build()
+        .content
     assertEquals(1, picker.components.size)
     assertTrue(picker.getComponent(0) is MaterialColorPalette)
   }
@@ -77,13 +84,17 @@ class MaterialColorPaletteTest : HeavyPlatformTestCase() {
     }
   }
 
-  private operator fun MaterialColors.get(color: MaterialColors.Color, category: MaterialColors.Category): Color? =
-    MaterialColors.getColor(color, category)
+  private operator fun MaterialColors.get(
+    color: MaterialColors.Color,
+    category: MaterialColors.Category,
+  ): Color? = MaterialColors.getColor(color, category)
 
   /**
-   * Get the [CommonComboBox] of [MaterialColorPalette] which helps to select the set of MaterialColor. (Material 50, 100, 200, etc.)
+   * Get the [CommonComboBox] of [MaterialColorPalette] which helps to select the set of
+   * MaterialColor. (Material 50, 100, 200, etc.)
    */
   @Suppress("UNCHECKED_CAST")
-  private fun MaterialColorPalette.getColorSetComboBox() = UIUtil.findComponentOfType(this, CommonComboBox::class.java)
-    as CommonComboBox<MaterialColors.Category, CommonComboBoxModel<MaterialColors.Category>>
+  private fun MaterialColorPalette.getColorSetComboBox() =
+    UIUtil.findComponentOfType(this, CommonComboBox::class.java)
+      as CommonComboBox<MaterialColors.Category, CommonComboBoxModel<MaterialColors.Category>>
 }

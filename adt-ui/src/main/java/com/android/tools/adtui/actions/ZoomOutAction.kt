@@ -20,7 +20,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class ZoomOutAction private constructor(): SetZoomAction(ZoomType.OUT) {
+class ZoomOutAction private constructor() : SetZoomAction(ZoomType.OUT) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {

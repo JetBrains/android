@@ -16,9 +16,9 @@
 package com.android.tools.adtui.model
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
+import org.junit.Test
 
 class ConditionalEnumComboBoxModelTest {
   class Listener : ListDataListener {
@@ -30,18 +30,22 @@ class ConditionalEnumComboBoxModelTest {
     }
 
     override fun intervalRemoved(e: ListDataEvent) {}
+
     override fun intervalAdded(e: ListDataEvent) {}
   }
 
   enum class TestData {
     FIRST,
     SECOND,
-    THIRD
+    THIRD,
   }
 
   @Test
   fun changeEventIsTriggeredOnUpdate() {
-    val model = ConditionalEnumComboBoxModel<TestData>(TestData::class.java) { value -> value != TestData.SECOND }
+    val model =
+      ConditionalEnumComboBoxModel<TestData>(TestData::class.java) { value ->
+        value != TestData.SECOND
+      }
     val listener = Listener()
     model.addListDataListener(listener)
     assertThat(model.size).isEqualTo(2)
@@ -55,14 +59,16 @@ class ConditionalEnumComboBoxModelTest {
   @Test
   fun predicateIsTriggeredOnUpdate() {
     var returnElement = TestData.FIRST
-    val model = ConditionalEnumComboBoxModel<TestData>(TestData::class.java) { value -> value == returnElement }
+    val model =
+      ConditionalEnumComboBoxModel<TestData>(TestData::class.java) { value ->
+        value == returnElement
+      }
     assertThat(model.size).isEqualTo(1)
     assertThat(model.getElementAt(0)).isEqualTo(returnElement)
     returnElement = TestData.SECOND
     model.update()
     assertThat(model.size).isEqualTo(1)
     assertThat(model.getElementAt(0)).isEqualTo(returnElement)
-
   }
 
   @Test

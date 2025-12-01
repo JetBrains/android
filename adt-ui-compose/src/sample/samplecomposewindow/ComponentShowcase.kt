@@ -38,9 +38,7 @@ fun ComponentShowcase() {
 
   Box(Modifier.fillMaxSize()) {
     Column(
-      Modifier.width(IntrinsicSize.Max)
-        .verticalScroll(verticalScrollState)
-        .padding(24.dp),
+      Modifier.width(IntrinsicSize.Max).verticalScroll(verticalScrollState).padding(24.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp),
       horizontalAlignment = Alignment.Start,
     ) {

@@ -18,13 +18,17 @@ package com.android.tools.adtui.common
 import java.awt.geom.Rectangle2D
 
 /**
- * Represents a rectangle in swing space
- * Defined by [SwingX], [SwingY], and length and width of [SwingLength]
+ * Represents a rectangle in swing space Defined by [SwingX], [SwingY], and length and width of
+ * [SwingLength]
  */
 @JvmInline
 value class SwingRectangle(override val value: Rectangle2D.Float) : SwingShape {
-  constructor(x: SwingX, y: SwingY, width: SwingLength, height: SwingLength)
-    : this(Rectangle2D.Float(x.value, y.value, width.value, height.value))
+  constructor(
+    x: SwingX,
+    y: SwingY,
+    width: SwingLength,
+    height: SwingLength,
+  ) : this(Rectangle2D.Float(x.value, y.value, width.value, height.value))
 
   val x: SwingX
     get() = SwingX(value.x)

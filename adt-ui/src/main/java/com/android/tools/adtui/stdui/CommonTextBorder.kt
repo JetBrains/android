@@ -35,14 +35,16 @@ class CommonTextBorder : DarculaTextBorder() {
   override fun getBorderInsets(c: Component): Insets {
     val insets = super.getBorderInsets(c)
     if (ClientProperty.isTrue(c, HIDE_RIGHT_BORDER)) {
-      // Hide the border on the right to allow for proper painting of the item in the table with a popup on the right.
+      // Hide the border on the right to allow for proper painting of the item in the table with a
+      // popup on the right.
       insets.right = 0
     }
     return insets
   }
 
   override fun paintBorder(c: Component, g: Graphics, x: Int, y: Int, width: Int, height: Int) {
-    // Paint the right edge of the border outside of the clipping region (hack to avoid the display of the right border).
+    // Paint the right edge of the border outside of the clipping region (hack to avoid the display
+    // of the right border).
     val extraWidth = if (ClientProperty.isTrue(c, HIDE_RIGHT_BORDER)) JBUIScale.scale(3) else 0
     super.paintBorder(c, g, x, y, width + extraWidth, height)
   }

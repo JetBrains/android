@@ -15,13 +15,15 @@
  */
 package com.android.tools.adtui.model.trackgroup
 
-/**
- * Event listener for track group actions.
- */
+/** Event listener for track group actions. */
 interface TrackGroupActionListener {
   fun onGroupMovedUp(title: String) {}
+
   fun onGroupMovedDown(title: String) {}
+
   fun onGroupCollapsed(title: String) {}
+
   fun onGroupExpanded(title: String) {}
+
   fun onMouseOver(title: String) {}
 }

@@ -39,7 +39,7 @@ object CategoryTableDemo {
       Device("Pixel 6a", "31", "Phone", "Online"),
       Device("Pixel 7", "33", "Phone", "Online"),
       Device("Nexus 7", "25", "Tablet", "Offline"),
-      Device("Nexus 7", "26", "Tablet", "Online")
+      Device("Nexus 7", "26", "Tablet", "Online"),
     )
   val columns = listOf(Name, Api, Status, Type, Actions)
 }
@@ -50,7 +50,7 @@ val Name =
   LabelColumn<Device>(
     "Name",
     SizeConstraint(min = 200, preferred = 400),
-    stringAttribute(isGroupable = false) { it.name }
+    stringAttribute(isGroupable = false) { it.name },
   )
 val Api = LabelColumn<Device>("Api", SizeConstraint(min = 20, max = 80), stringAttribute { it.api })
 val Type =
@@ -60,7 +60,7 @@ val Status =
     LabelColumn<Device>(
       "Status",
       SizeConstraint(min = 20, max = 80),
-      stringAttribute { it.status }
+      stringAttribute { it.status },
     ) {
     override val visibleWhenGrouped = true
   }
@@ -93,7 +93,7 @@ object DemoCategoryRowMouseClickListener : DefaultCategoryRowMouseClickListener<
   override fun categoryRowClicked(
     e: MouseEvent,
     table: CategoryTable<Device>,
-    path: CategoryList<Device>
+    path: CategoryList<Device>,
   ) {
     when {
       SwingUtilities.isLeftMouseButton(e) && e.clickCount == 2 ->
@@ -109,7 +109,7 @@ object DemoCategoryTableHeaderClickListener : DefaultCategoryTableHeaderClickLis
   override fun columnHeaderClicked(
     e: MouseEvent,
     table: CategoryTable<Device>,
-    column: Column<Device, *, *>
+    column: Column<Device, *, *>,
   ) {
     when {
       SwingUtilities.isLeftMouseButton(e) && e.clickCount == 2 ->

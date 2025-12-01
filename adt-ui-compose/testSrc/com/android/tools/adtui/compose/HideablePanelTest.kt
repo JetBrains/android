@@ -18,10 +18,10 @@ package com.android.tools.adtui.compose
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import org.jetbrains.jewel.ui.component.Text
 import org.junit.Rule
 import org.junit.Test
-import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 
 class HideablePanelTest {
   @get:Rule val composeTestRule = createStudioComposeTestRule()

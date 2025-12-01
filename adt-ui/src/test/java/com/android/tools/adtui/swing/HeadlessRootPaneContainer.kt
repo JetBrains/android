@@ -22,16 +22,15 @@ import javax.swing.JLayeredPane
 import javax.swing.JRootPane
 import javax.swing.RootPaneContainer
 
-/**
- * An implementation of the [RootPaneContainer] interface for use in headless tests.
- */
+/** An implementation of the [RootPaneContainer] interface for use in headless tests. */
 class HeadlessRootPaneContainer(content: Container) : RootPaneContainer {
 
-  private val rootPane = JRootPane().apply {
-    contentPane = content
-    size = content.size
-    glassPane = IdeGlassPaneImpl(this).apply { size = content.size }
-  }
+  private val rootPane =
+    JRootPane().apply {
+      contentPane = content
+      size = content.size
+      glassPane = IdeGlassPaneImpl(this).apply { size = content.size }
+    }
 
   override fun getRootPane(): JRootPane {
     return rootPane

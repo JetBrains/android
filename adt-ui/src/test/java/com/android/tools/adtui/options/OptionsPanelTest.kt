@@ -26,16 +26,15 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
-import org.junit.Rule
-import org.junit.Test
 import javax.swing.JLabel
 import javax.swing.JSlider
 import javax.swing.JSpinner
+import org.junit.Rule
+import org.junit.Test
 
 @RunsInEdt
 class OptionsPanelTest {
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Test
   fun defaultBindings() {
@@ -72,7 +71,8 @@ class OptionsPanelTest {
     val provider = BoolBindingProvider()
     val walker = TreeWalker(panel)
     panel.setOption(provider, false, true)
-    val headerLabel = walker.descendants().filterIsInstance(JLabel::class.java).filter { ((it.text)) == "testName" }
+    val headerLabel =
+      walker.descendants().filterIsInstance(JLabel::class.java).filter { ((it.text)) == "testName" }
     // Header is present in taskBasedUx
     assertThat(headerLabel.size).isEqualTo(1)
   }
@@ -83,7 +83,8 @@ class OptionsPanelTest {
     val provider = IntBindingProvider()
     val walker = TreeWalker(panel)
     panel.setOption(provider, false, true)
-    val headerLabel = walker.descendants().filterIsInstance(JLabel::class.java).filter { ((it.text)) == "testName" }
+    val headerLabel =
+      walker.descendants().filterIsInstance(JLabel::class.java).filter { ((it.text)) == "testName" }
     // Header not present in taskBasedUx since it doesn't have name property
     assertThat(headerLabel.size).isEqualTo(0)
   }
@@ -131,7 +132,7 @@ class OptionsPanelTest {
     assertThat(readOnlyFields).hasSize(1)
     assertThat(readOnlyFields[0].isEnabled).isEqualTo(false)
 
-    //Test taskBaseUx has no groupName but has other fields
+    // Test taskBaseUx has no groupName but has other fields
     panel.setOption(provider, false, true)
     val labels1 = walker.descendants().filterIsInstance(JLabel::class.java)
     assertThat(labels1).hasSize(2)
@@ -185,13 +186,15 @@ class OptionsPanelTest {
     panel.setOption(provider, false, false)
     val labels = walker.descendants().filterIsInstance(JLabel::class.java)
     assertThat(labels).hasSize(1) // Group, Name,  Description, Unit
-    assertThat(labels[0].text).isEqualTo("Unknown return type (${BoolBindingProvider::class.java.name}) for property \"other\"")
+    assertThat(labels[0].text)
+      .isEqualTo(
+        "Unknown return type (${BoolBindingProvider::class.java.name}) for property \"other\""
+      )
   }
 }
 
-class UnknownBindingProvider: OptionsProvider {
-  @OptionsProperty()
-  var other = BoolBindingProvider()
+class UnknownBindingProvider : OptionsProvider {
+  @OptionsProperty() var other = BoolBindingProvider()
 }
 
 class BoolBindingProvider : OptionsProvider {
@@ -203,17 +206,17 @@ class BoolBindingProvider : OptionsProvider {
   var name = "testName"
 }
 
-class IntBindingProvider: OptionsProvider {
+class IntBindingProvider : OptionsProvider {
   @OptionsProperty(name = "Name1", group = "Int", description = "Desc", unit = "Unit")
   var intTestOne = 100
 }
 
-class StringBindingProvider: OptionsProvider {
+class StringBindingProvider : OptionsProvider {
   @OptionsProperty(name = "Name1", group = "String", description = "Desc")
   var stringTestOne = "Test"
 }
 
-class SliderBindingProvider: OptionsProvider {
+class SliderBindingProvider : OptionsProvider {
   @OptionsProperty(name = "Name1", group = "Slider", description = "Desc", unit = "Unit")
   @Slider(0, 100, 10)
   var sliderTest = 100

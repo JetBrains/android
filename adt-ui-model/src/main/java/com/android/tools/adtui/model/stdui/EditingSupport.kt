@@ -21,17 +21,15 @@ import java.util.concurrent.Future
 /**
  * Support for editing a value.
  *
- * The support includes value validation, and will at some point
- * include support for completions.
+ * The support includes value validation, and will at some point include support for completions.
  */
 interface EditingSupport {
 
   /**
    * Validation support.
    *
-   * Supply a callback for validating a value currently in the editor.
-   * The return of the validation is an error category (error / warning)
-   * and a message to display to the user.
+   * Supply a callback for validating a value currently in the editor. The return of the validation
+   * is an error category (error / warning) and a message to display to the user.
    */
   val validation: EditingValidation
     get() = { EDITOR_NO_ERROR }
@@ -53,41 +51,31 @@ interface EditingSupport {
   val allowCustomValues: Boolean
     get() = true
 
-  /**
-   * Support for loading completions asynchronously.
-   */
+  /** Support for loading completions asynchronously. */
   val execution: PooledThreadExecution
     get() = EDITOR_IMMEDIATE_EXECUTION
 
-  /**
-   * The swing component must be updated on the UI thread.
-   */
+  /** The swing component must be updated on the UI thread. */
   val uiExecution: (runnable: Runnable) -> Unit
     get() = { it.run() }
 
-  /**
-   * Indicates whether the completion list should be refreshed on
-   * every keystroke.
-   */
-  val alwaysRefreshCompletions : Boolean
+  /** Indicates whether the completion list should be refreshed on every keystroke. */
+  val alwaysRefreshCompletions: Boolean
     get() = false
 
   companion object {
     val INSTANCE: EditingSupport = DefaultEditingSupport()
   }
 
-  /**
-   * Default [EditingSupport] with no validations and no completions.
-   */
+  /** Default [EditingSupport] with no validations and no completions. */
   private class DefaultEditingSupport : EditingSupport
 }
-
 
 /** Possible error categories for [EditingValidation] lambdas */
 enum class EditingErrorCategory(val outline: String?) {
   NONE(null),
   ERROR("error"),
-  WARNING("warning");
+  WARNING("warning"),
 }
 
 /**
@@ -103,11 +91,12 @@ typealias EditorCompletion = (forText: String) -> List<String>
 /** Execute a longer running operation on a non UI thread */
 typealias PooledThreadExecution = (runnable: Runnable) -> Future<*>
 
-@JvmField
-val EDITOR_NO_ERROR = Pair(EditingErrorCategory.NONE, "")
+@JvmField val EDITOR_NO_ERROR = Pair(EditingErrorCategory.NONE, "")
+
+@JvmField val EDITOR_NO_COMPLETIONS: EditorCompletion = { listOf() }
 
 @JvmField
-val EDITOR_NO_COMPLETIONS: EditorCompletion = { listOf() }
-
-@JvmField
-val EDITOR_IMMEDIATE_EXECUTION: PooledThreadExecution = { runnable: Runnable -> runnable.run(); Futures.immediateFuture(null) }
+val EDITOR_IMMEDIATE_EXECUTION: PooledThreadExecution = { runnable: Runnable ->
+  runnable.run()
+  Futures.immediateFuture(null)
+}

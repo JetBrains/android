@@ -23,9 +23,8 @@ package com.android.tools.adtui.model.stdui
 interface CommonElementSelectability {
 
   /**
-   * If false, the element in the ComboBox will not be selectable
-   * from keyboard/mouse. This would typically be used for header
-   * and separator elements that don't represent an actual value.
+   * If false, the element in the ComboBox will not be selectable from keyboard/mouse. This would
+   * typically be used for header and separator elements that don't represent an actual value.
    */
   val isSelectable: Boolean
     get() = false

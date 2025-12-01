@@ -21,12 +21,10 @@ import com.android.tools.adtui.toolwindow.splittingtabs.actions.MoveTabAction.Di
 import com.android.tools.adtui.toolwindow.splittingtabs.getPosition
 import com.intellij.ui.content.Content
 
-/**
- * Base class for [Left] & [Right] actions below.
- */
+/** Base class for [Left] & [Right] actions below. */
 @Suppress("ComponentNotRegistered")
-internal abstract class MoveTabAction private constructor(private val direction: Direction)
-  : SplittingTabsContextMenuAction(direction.text) {
+internal abstract class MoveTabAction private constructor(private val direction: Direction) :
+  SplittingTabsContextMenuAction(direction.text) {
 
   private enum class Direction(val text: String, val offset: Int) {
     LEFT(SplittingTabsBundle.message("SplittingTabsToolWindow.moveTabLeft"), -1) {
@@ -57,13 +55,9 @@ internal abstract class MoveTabAction private constructor(private val direction:
     }
   }
 
-  /**
-   * Move a tab left
-   */
+  /** Move a tab left */
   class Left : MoveTabAction(LEFT)
 
-  /**
-   * Move a tab right
-   */
+  /** Move a tab right */
   class Right : MoveTabAction(RIGHT)
 }

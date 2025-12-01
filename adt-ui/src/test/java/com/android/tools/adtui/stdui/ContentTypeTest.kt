@@ -25,13 +25,11 @@ class ContentTypeTest {
     assertThat(ContentType.fromMimeType("text/html")).isEqualTo(ContentType.HTML)
 
     assertThat(ContentType.fromMimeType("text/vnd.api+json")).isEqualTo(ContentType.JSON)
-    assertThat(ContentType.fromMimeType("application/xhtml+xml")).isEqualTo(
-      ContentType.XML)
+    assertThat(ContentType.fromMimeType("application/xhtml+xml")).isEqualTo(ContentType.XML)
 
     assertThat(ContentType.fromMimeType("")).isEqualTo(ContentType.DEFAULT)
     assertThat(ContentType.fromMimeType("application")).isEqualTo(ContentType.DEFAULT)
-    assertThat(ContentType.fromMimeType("application/unknown")).isEqualTo(
-      ContentType.DEFAULT)
+    assertThat(ContentType.fromMimeType("application/unknown")).isEqualTo(ContentType.DEFAULT)
   }
 
   @Test

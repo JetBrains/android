@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 @file:JvmName("HumanReadableUtil")
+
 package com.android.tools.adtui.util
 
 import java.text.DecimalFormat
 import kotlin.math.abs
 
-/**
- * Converts size in bytes to a compact human-readable string.
- */
+/** Converts size in bytes to a compact human-readable string. */
 fun getHumanizedSize(sizeInBytes: Long): String {
   val formatter = DecimalFormat("#.#")
   val range = abs(sizeInBytes)
@@ -36,5 +35,3 @@ fun getHumanizedSize(sizeInBytes: Long): String {
 private const val KILO = 1024L
 private const val MEGA = KILO * KILO
 private const val GIGA = MEGA * KILO
-
-

@@ -25,61 +25,61 @@ import com.intellij.ui.content.ContentManagerListener
 import com.intellij.ui.content.impl.ContentImpl
 import com.intellij.util.containers.DisposableWrapperList
 
-/**
- * Receives events from all content managers in a hierarchy of a possibly split tool window.
- */
+/** Receives events from all content managers in a hierarchy of a possibly split tool window. */
 @Suppress("LeakingThis")
-abstract class ContentManagerHierarchyAdapter(private val toolWindow: ToolWindow) : ContentManagerListener, Disposable {
+abstract class ContentManagerHierarchyAdapter(private val toolWindow: ToolWindow) :
+  ContentManagerListener, Disposable {
 
-  private val listener = object : ContentManagerListener, Disposable {
+  private val listener =
+    object : ContentManagerListener, Disposable {
 
-    private val contentManagers = DisposableWrapperList<ContentManager>()
+      private val contentManagers = DisposableWrapperList<ContentManager>()
 
-    override fun contentAdded(event: ContentManagerEvent) {
-      event.content.addPropertyChangeListener { evt ->
-        if (evt.propertyName == ContentImpl.PROP_CONTENT_MANAGER) {
-          val contentManager = evt.newValue as? ContentManager
-          contentManager?.let { rememberContentManager(it) }
+      override fun contentAdded(event: ContentManagerEvent) {
+        event.content.addPropertyChangeListener { evt ->
+          if (evt.propertyName == ContentImpl.PROP_CONTENT_MANAGER) {
+            val contentManager = evt.newValue as? ContentManager
+            contentManager?.let { rememberContentManager(it) }
+          }
+        }
+        this@ContentManagerHierarchyAdapter.contentAdded(event)
+      }
+
+      override fun contentRemoved(event: ContentManagerEvent) {
+        if (Content.TEMPORARY_REMOVED_KEY.get(event.content, false)) {
+          return
+        }
+        this@ContentManagerHierarchyAdapter.contentRemoved(event)
+      }
+
+      override fun contentRemoveQuery(event: ContentManagerEvent) {
+        if (Content.TEMPORARY_REMOVED_KEY.get(event.content, false)) {
+          return
+        }
+        this@ContentManagerHierarchyAdapter.contentRemoveQuery(event)
+      }
+
+      override fun selectionChanged(event: ContentManagerEvent) {
+        if (Content.TEMPORARY_REMOVED_KEY.get(event.content, false)) {
+          return
+        }
+        this@ContentManagerHierarchyAdapter.selectionChanged(event)
+      }
+
+      private fun rememberContentManager(contentManager: ContentManager) {
+        if (contentManager != toolWindow.contentManager && contentManager !in contentManagers) {
+          contentManagers.add(contentManager, contentManager)
+          contentManager.addContentManagerListener(this)
         }
       }
-      this@ContentManagerHierarchyAdapter.contentAdded(event)
-    }
 
-    override fun contentRemoved(event: ContentManagerEvent) {
-      if (Content.TEMPORARY_REMOVED_KEY.get(event.content, false)) {
-        return
-      }
-      this@ContentManagerHierarchyAdapter.contentRemoved(event)
-    }
-
-    override fun contentRemoveQuery(event: ContentManagerEvent) {
-      if (Content.TEMPORARY_REMOVED_KEY.get(event.content, false)) {
-        return
-      }
-      this@ContentManagerHierarchyAdapter.contentRemoveQuery(event)
-    }
-
-    override fun selectionChanged(event: ContentManagerEvent) {
-      if (Content.TEMPORARY_REMOVED_KEY.get(event.content, false)) {
-        return
-      }
-      this@ContentManagerHierarchyAdapter.selectionChanged(event)
-    }
-
-    private fun rememberContentManager(contentManager: ContentManager) {
-      if (contentManager != toolWindow.contentManager && contentManager !in contentManagers) {
-        contentManagers.add(contentManager, contentManager)
-        contentManager.addContentManagerListener(this)
+      override fun dispose() {
+        for (contentManager in contentManagers) {
+          contentManager.removeContentManagerListener(this)
+        }
+        contentManagers.clear()
       }
     }
-
-    override fun dispose() {
-      for (contentManager in contentManagers) {
-        contentManager.removeContentManagerListener(this)
-      }
-      contentManagers.clear()
-    }
-  }
 
   init {
     toolWindow.addContentManagerListener(listener)
@@ -87,6 +87,5 @@ abstract class ContentManagerHierarchyAdapter(private val toolWindow: ToolWindow
     Disposer.register(this, listener)
   }
 
-  override fun dispose() {
-  }
+  override fun dispose() {}
 }

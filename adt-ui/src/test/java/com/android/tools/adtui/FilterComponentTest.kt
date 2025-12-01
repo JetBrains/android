@@ -19,9 +19,9 @@ import com.android.tools.adtui.model.filter.Filter
 import com.android.tools.adtui.model.filter.FilterHandler
 import com.android.tools.adtui.model.filter.FilterResult
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.awt.BorderLayout
 import javax.swing.JPanel
+import org.junit.Test
 
 class FilterComponentTest {
 
@@ -60,25 +60,27 @@ class FilterComponentTest {
   fun changeFilterResult() {
     val ui = FilterComponentUi()
 
-    ui.filterComponent.model.setFilterHandler(object : FilterHandler() {
-      override fun applyFilter(filter: Filter): FilterResult {
-        return if (filter.isEmpty) {
-          // The FilterResult should not be enabled with empty filter.
-          // We return an enabled filter intentionally to test if FilterHandler can correct it.
-          FilterResult(0, 0, true)
-        }
-        else {
-          FilterResult(Integer.parseInt(filter.filterString), 0, true)
+    ui.filterComponent.model.setFilterHandler(
+      object : FilterHandler() {
+        override fun applyFilter(filter: Filter): FilterResult {
+          return if (filter.isEmpty) {
+            // The FilterResult should not be enabled with empty filter.
+            // We return an enabled filter intentionally to test if FilterHandler can correct it.
+            FilterResult(0, 0, true)
+          } else {
+            FilterResult(Integer.parseInt(filter.filterString), 0, true)
+          }
         }
       }
-    })
-    val normalBackground = ui.filterComponent.searchField.textEditor.background;
+    )
+    val normalBackground = ui.filterComponent.searchField.textEditor.background
     ui.filterComponent.model.filter = Filter("")
     assertThat(ui.filterComponent.countLabel.text).isEqualTo("")
     assertThat(ui.filterComponent.searchField.textEditor.background).isEqualTo(normalBackground)
     ui.filterComponent.model.filter = Filter("0")
     assertThat(ui.filterComponent.countLabel.text).isEqualTo("No matches")
-    assertThat(ui.filterComponent.searchField.textEditor.background).isEqualTo(FilterComponent.NO_MATCHES_COLOR)
+    assertThat(ui.filterComponent.searchField.textEditor.background)
+      .isEqualTo(FilterComponent.NO_MATCHES_COLOR)
     ui.filterComponent.model.filter = Filter("1")
     assertThat(ui.filterComponent.countLabel.text).isEqualTo("One match")
     assertThat(ui.filterComponent.searchField.textEditor.background).isEqualTo(normalBackground)
@@ -92,11 +94,13 @@ class FilterComponentTest {
     val ui = FilterComponentUi()
 
     ui.filterComponent.setMatchCountVisibility(false)
-    ui.filterComponent.model.setFilterHandler(object: FilterHandler() {
-      override fun applyFilter(filter: Filter): FilterResult {
-        return FilterResult(Integer.parseInt(filter.filterString), 0, true)
+    ui.filterComponent.model.setFilterHandler(
+      object : FilterHandler() {
+        override fun applyFilter(filter: Filter): FilterResult {
+          return FilterResult(Integer.parseInt(filter.filterString), 0, true)
+        }
       }
-    })
+    )
     ui.filterComponent.model.filter = Filter("1234567")
     assertThat(ui.filterComponent.countLabel.text).isNotEmpty()
     assertThat(ui.filterComponent.countLabel.isVisible).isFalse()

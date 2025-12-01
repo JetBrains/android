@@ -22,18 +22,15 @@ package com.android.tools.adtui.model
  * @param <E> This should be the type of data this RangedSeries represents.
  */
 open class RangedSeries<E>
-@JvmOverloads constructor(/**
-                           * The range of the view
-                           */
-                          val xRange: Range,
-                          /**
-                           * Store for the data we will provide scoped access to
-                           */
-                          private var _series: DataSeries<E>,
-                          /**
-                           * The range of the data
-                           */
-                          private val intersectRange: Range = Range(-Double.MAX_VALUE, Double.MAX_VALUE)) {
+@JvmOverloads
+constructor(
+  /** The range of the view */
+  val xRange: Range,
+  /** Store for the data we will provide scoped access to */
+  private var _series: DataSeries<E>,
+  /** The range of the data */
+  private val intersectRange: Range = Range(-Double.MAX_VALUE, Double.MAX_VALUE),
+) {
   private val maxEndPoints = listOf(Long.MAX_VALUE.toDouble(), Double.MAX_VALUE)
 
   private var lastQueriedRange = Range()
@@ -42,15 +39,18 @@ open class RangedSeries<E>
   /**
    * A new range object that represents the intersection between the default and intersect ranges.
    */
-  val intersection: Range get() = xRange.getIntersection(intersectRange)
+  val intersection: Range
+    get() = xRange.getIntersection(intersectRange)
 
   /**
-   * A new, immutable [List<SeriesData>] consisting of items in the DataStore scoped to the range(s) that the RangedSeries was
-   * initialized with.
+   * A new, immutable [List<SeriesData>] consisting of items in the DataStore scoped to the range(s)
+   * that the RangedSeries was initialized with.
    *
-   * Note - this call is frequently made by UI components on the main thread, so the last queried results are cached and returned if the
-   * query range is determined to not have changed to avoid hitting the Datastore redundantly. If the query range's max value is
-   * Long.MAX_VALUE or Double.MAX_VALUE, however, then the cache is bypassed since there might be new data that are still streaming in.
+   * Note - this call is frequently made by UI components on the main thread, so the last queried
+   * results are cached and returned if the query range is determined to not have changed to avoid
+   * hitting the Datastore redundantly. If the query range's max value is Long.MAX_VALUE or
+   * Double.MAX_VALUE, however, then the cache is bypassed since there might be new data that are
+   * still streaming in.
    */
   val series: List<SeriesData<E>>
     get() = getValuesInRange()
@@ -67,7 +67,8 @@ open class RangedSeries<E>
       val queriedSeries = _series.getDataForRange(queryRange)
 
       lastQueriedRange = queryRange
-      lastQueriedSeries = queriedSeries.toList() // Make a copy to allow the underlying series to change freely
+      lastQueriedSeries =
+        queriedSeries.toList() // Make a copy to allow the underlying series to change freely
     }
 
     return lastQueriedSeries
@@ -75,7 +76,8 @@ open class RangedSeries<E>
 
   /**
    * @param range The range to which the data will be scoped.
-   * @return A new, immutable [SeriesData] list that allows the caller to get items in the DataStore scoped to the given range.
+   * @return A new, immutable [SeriesData] list that allows the caller to get items in the DataStore
+   *   scoped to the given range.
    */
   fun getSeriesForRange(range: Range): List<SeriesData<E>> = _series.getDataForRange(range)
 

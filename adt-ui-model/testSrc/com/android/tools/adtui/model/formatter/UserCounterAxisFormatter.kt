@@ -22,26 +22,33 @@ class UserCounterAxisFormatterTest {
 
   @Test
   fun testUserCounterisNone() {
-    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 0.0, false)).isEqualTo("None")
+    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 0.0, false))
+      .isEqualTo("None")
   }
-
 
   @Test
   fun testUserCounterIsLight() {
-    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 1.0, false)).isEqualTo("Light")
-    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 3.0, false)).isEqualTo("Light")
+    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 1.0, false))
+      .isEqualTo("Light")
+    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 3.0, false))
+      .isEqualTo("Light")
   }
 
   @Test
   fun testUserCounterisMedium() {
-    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 4.0, false)).isEqualTo("Medium")
-    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 6.0, false)).isEqualTo("Medium")
+    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 4.0, false))
+      .isEqualTo("Medium")
+    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 6.0, false))
+      .isEqualTo("Medium")
   }
 
   @Test
   fun testUserCounterIsHeavy() {
-    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 7.0, false)).isEqualTo("Heavy")
-    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 12.0, false)).isEqualTo("Heavy")
-    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 50.0, false)).isEqualTo("Heavy")
+    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 7.0, false))
+      .isEqualTo("Heavy")
+    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 12.0, false))
+      .isEqualTo("Heavy")
+    assertThat(UserCounterAxisFormatter.DEFAULT.getFormattedString(0.0, 50.0, false))
+      .isEqualTo("Heavy")
   }
 }

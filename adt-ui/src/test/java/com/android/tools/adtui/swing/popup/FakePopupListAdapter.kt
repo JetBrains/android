@@ -40,7 +40,8 @@ import javax.swing.ListCellRenderer
 import javax.swing.border.Border
 
 // The code here is copied from the package-private class com.intellij.ui.popup.PopupListAdapter
-class FakePopupListAdapter<T>(val builder: PopupChooserBuilder<T>, val list: JList<T>) : PopupComponentAdapter<T> {
+class FakePopupListAdapter<T>(val builder: PopupChooserBuilder<T>, val list: JList<T>) :
+  PopupComponentAdapter<T> {
   private lateinit var listWithFilter: ListWithFilter<T>
 
   override fun getComponent() = list
@@ -50,7 +51,7 @@ class FakePopupListAdapter<T>(val builder: PopupChooserBuilder<T>, val list: JLi
   }
 
   override fun setItemChosenCallback(callback: Consumer<in T>) {
-    builder.setItemChosenCallback(callback)
+    builder.setItemChoosenCallback { list.selectedValue?.let { callback.consume(it) } }
   }
 
   override fun setItemsChosenCallback(callback: Consumer<in MutableSet<out T>>) {
@@ -69,9 +70,8 @@ class FakePopupListAdapter<T>(val builder: PopupChooserBuilder<T>, val list: JLi
 
   override fun buildFinalComponent(): JComponent {
     @Suppress("UNCHECKED_CAST")
-    listWithFilter = ListWithFilter.wrap(
-      list, ListWrapper(builder, list), builder.itemsNamer
-    ) as ListWithFilter<T>
+    listWithFilter =
+      ListWithFilter.wrap(list, ListWrapper(builder, list), builder.itemsNamer) as ListWithFilter<T>
     listWithFilter.setAutoPackHeight(builder.isAutoPackHeightOnFiltering)
     return listWithFilter
   }
@@ -110,10 +110,8 @@ class FakePopupListAdapter<T>(val builder: PopupChooserBuilder<T>, val list: JLi
   }
 }
 
-private class ListWrapper<T>(
-  builder: PopupChooserBuilder<T>,
-  private val list: JList<T>
-) : JBScrollPane(-1), DataProvider {
+private class ListWrapper<T>(builder: PopupChooserBuilder<T>, private val list: JList<T>) :
+  JBScrollPane(-1), DataProvider {
   init {
     list.visibleRowCount = builder.visibleRowCount
     setViewportView(list)
@@ -149,11 +147,8 @@ private class ListWrapper<T>(
     if (PlatformCoreDataKeys.SELECTED_ITEM.`is`(dataId)) {
       val index = list.selectedIndex
       return if (index > -1) list.selectedValue else ObjectUtils.NULL
-    }
-    else if (PlatformCoreDataKeys.SELECTED_ITEMS.`is`(dataId)) {
-      return list.selectedValuesList.map {
-        it ?: ObjectUtils.NULL
-      }.toTypedArray()
+    } else if (PlatformCoreDataKeys.SELECTED_ITEMS.`is`(dataId)) {
+      return list.selectedValuesList.map { it ?: ObjectUtils.NULL }.toTypedArray()
     }
     return null
   }

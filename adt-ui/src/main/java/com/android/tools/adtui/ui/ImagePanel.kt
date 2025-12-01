@@ -51,12 +51,21 @@ class ImagePanel(val highFidelityScaling: Boolean = false) : JBPanel<ImagePanel>
   }
 }
 
-/**
- * Draws an image inside a [JBPanel], preserving aspect ratio.
- */
-fun <T: JBPanel<T>> JBPanel<T>.paintPanelImage(g: Graphics, image: Image?, active: Boolean, highFidelityScaling: Boolean) {
+/** Draws an image inside a [JBPanel], preserving aspect ratio. */
+fun <T : JBPanel<T>> JBPanel<T>.paintPanelImage(
+  g: Graphics,
+  image: Image?,
+  active: Boolean,
+  highFidelityScaling: Boolean,
+) {
   val insets = this.insets
-  val rect = Rectangle(insets.left, insets.top, width - insets.left - insets.right, height - insets.bottom - insets.top)
+  val rect =
+    Rectangle(
+      insets.left,
+      insets.top,
+      width - insets.left - insets.right,
+      height - insets.bottom - insets.top,
+    )
 
   // Paint background.
   g.color = background
@@ -90,8 +99,7 @@ fun <T: JBPanel<T>> JBPanel<T>.paintPanelImage(g: Graphics, image: Image?, activ
         // than the standard AWT scaling.
         val scaledImage = ImageUtils.scale(bufferedImage, scaleX, scaleY)
         g.drawImage(scaledImage, xOffset, yOffset, w, h, null)
-      }
-      else {
+      } else {
         // Draw the image using IJ wrapper so that rendering is optimized for JBHiDPIScaledImage
         StartupUiUtil.drawImage(g, img, Rectangle(xOffset, yOffset, w, h), null, null)
       }
@@ -99,7 +107,5 @@ fun <T: JBPanel<T>> JBPanel<T>.paintPanelImage(g: Graphics, image: Image?, activ
   }
 
   // Restore composite.
-  (g as Graphics2D?)?.apply {
-    prevComposite?.let { composite = it }
-  }
+  (g as Graphics2D?)?.apply { prevComposite?.let { composite = it } }
 }

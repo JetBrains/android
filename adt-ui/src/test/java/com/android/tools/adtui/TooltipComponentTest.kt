@@ -18,12 +18,12 @@ package com.android.tools.adtui
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.EmptyRunnable
-import org.junit.Test
 import java.util.function.Supplier
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JLayeredPane
 import javax.swing.SwingUtilities
+import org.junit.Test
 
 class TooltipComponentTest {
 
@@ -39,12 +39,12 @@ class TooltipComponentTest {
    * Produce fake displayble values, since we can't check [JComponent.isDisplayable] in unit tests.
    * If [explicitRoot] is not set, will return true iff owner has a direct parent.
    */
-  private class DisplayableProducer(val owner: JComponent, val explicitRoot: JComponent? = null) : Supplier<Boolean> {
+  private class DisplayableProducer(val owner: JComponent, val explicitRoot: JComponent? = null) :
+    Supplier<Boolean> {
     override fun get(): Boolean {
       return if (explicitRoot == null) {
         owner.parent != null
-      }
-      else {
+      } else {
         TreeWalker.isAncestor(explicitRoot, owner)
       }
     }
@@ -58,8 +58,11 @@ class TooltipComponentTest {
     root.add(owner)
 
     val displayableProducer = DisplayableProducer(owner)
-    val tooltip = TooltipComponent.Builder(JLabel(), owner, root).setIsOwnerDisplayable(displayableProducer).build()
-      .apply { registerListenersOn(owner) }
+    val tooltip =
+      TooltipComponent.Builder(JLabel(), owner, root)
+        .setIsOwnerDisplayable(displayableProducer)
+        .build()
+        .apply { registerListenersOn(owner) }
 
     val fakeUi = FakeUi(root)
     fakeUi.mouse.moveTo(50, 50)
@@ -82,8 +85,11 @@ class TooltipComponentTest {
     intermediate.add(owner)
 
     val displayableProducer = DisplayableProducer(owner, root)
-    val tooltip = TooltipComponent.Builder(JLabel(), owner, root).setIsOwnerDisplayable(displayableProducer).build()
-      .apply { registerListenersOn(owner) }
+    val tooltip =
+      TooltipComponent.Builder(JLabel(), owner, root)
+        .setIsOwnerDisplayable(displayableProducer)
+        .build()
+        .apply { registerListenersOn(owner) }
     val fakeUi = FakeUi(root)
     fakeUi.mouse.moveTo(50, 50)
 

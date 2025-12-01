@@ -22,9 +22,9 @@ import com.intellij.openapi.diagnostic.thisLogger
 import java.io.File
 
 /**
- * This is a hacky fix for b/460147546 until we can get a better fix upstream in IntelliJ.
- * IntelliJ 2026.1 commit https://github.com/JetBrains/intellij-community/commit/fc5237c8da will
- * help, but it's not perfect, and we still need to support older platforms for aiplugin anyway.
+ * This is a hacky fix for b/460147546 until we can get a better fix upstream in IntelliJ. IntelliJ
+ * 2026.1 commit https://github.com/JetBrains/intellij-community/commit/fc5237c8da will help, but
+ * it's not perfect, and we still need to support older platforms for aiplugin anyway.
  *
  * The intent is to initialize 'skiko.library.path' earlier, before any code uses Skiko.
  */

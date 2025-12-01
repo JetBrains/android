@@ -68,8 +68,8 @@ object MaterialColors {
     override fun toString() = displayName
   }
 
-  private val table
-  = ArrayTable.create<MaterialColors.Color, Category, java.awt.Color>(MaterialColors.Color.entries.asIterable(), Category.entries.asIterable())
+  private val table =
+    ArrayTable.create<MaterialColors.Color, Category, java.awt.Color>(MaterialColors.Color.entries.asIterable(), Category.entries.asIterable())
 
   // Helper extension to allow using assignment to put value to the table
   operator fun <R, C, V> Table<R, C, V>.set(r: R, c: C, v: V): V? = put(r, c, v)
@@ -349,18 +349,12 @@ object MaterialColors {
     table[Color.BLUE_GRAY, Category.MATERIAL_900] = Color(0x263238)
   }
 
-  @JvmStatic
-  fun getColor(name: Color, category: Category): java.awt.Color? = table[name, category]
+  @JvmStatic fun getColor(name: Color, category: Category) = table[name, category]
 
-  /**
-   * Get the series of [java.awt.Color] by the given [Color].
-   */
-  @JvmStatic
-  fun getColorSeries(name: Color) = table.row(name)
+  /** Get the series of [java.awt.Color] by the given [Color]. */
+  @JvmStatic fun getColorSeries(name: Color) = table.row(name)
 
-  /**
-   * Get the set of [java.awt.Color] by the given [Category].
-   */
+  /** Get the set of [java.awt.Color] by the given [Category]. */
   @JvmStatic
   fun getColorSet(category: Category): Map<Color, java.awt.Color?> = table.column(category)
 
@@ -386,7 +380,7 @@ object MaterialColors {
   @JvmField val PINK_700 = table[Color.PINK, Category.MATERIAL_700]!!
   @JvmField val PINK_800 = table[Color.PINK, Category.MATERIAL_800]!!
   @JvmField val PINK_900 = table[Color.PINK, Category.MATERIAL_900]!!
-  @JvmField val PURPLE_50 =  table[Color.PURPLE, Category.MATERIAL_50]!!
+  @JvmField val PURPLE_50 = table[Color.PURPLE, Category.MATERIAL_50]!!
   @JvmField val PURPLE_100 = table[Color.PURPLE, Category.MATERIAL_100]!!
   @JvmField val PURPLE_200 = table[Color.PURPLE, Category.MATERIAL_200]!!
   @JvmField val PURPLE_300 = table[Color.PURPLE, Category.MATERIAL_300]!!
@@ -396,7 +390,7 @@ object MaterialColors {
   @JvmField val PURPLE_700 = table[Color.PURPLE, Category.MATERIAL_700]!!
   @JvmField val PURPLE_800 = table[Color.PURPLE, Category.MATERIAL_800]!!
   @JvmField val PURPLE_900 = table[Color.PURPLE, Category.MATERIAL_900]!!
-  @JvmField val DEEP_PURPLE_50 =  table[Color.DEEP_PURPLE, Category.MATERIAL_50]!!
+  @JvmField val DEEP_PURPLE_50 = table[Color.DEEP_PURPLE, Category.MATERIAL_50]!!
   @JvmField val DEEP_PURPLE_100 = table[Color.DEEP_PURPLE, Category.MATERIAL_100]!!
   @JvmField val DEEP_PURPLE_200 = table[Color.DEEP_PURPLE, Category.MATERIAL_200]!!
   @JvmField val DEEP_PURPLE_300 = table[Color.DEEP_PURPLE, Category.MATERIAL_300]!!
@@ -406,7 +400,7 @@ object MaterialColors {
   @JvmField val DEEP_PURPLE_700 = table[Color.DEEP_PURPLE, Category.MATERIAL_700]!!
   @JvmField val DEEP_PURPLE_800 = table[Color.DEEP_PURPLE, Category.MATERIAL_800]!!
   @JvmField val DEEP_PURPLE_900 = table[Color.DEEP_PURPLE, Category.MATERIAL_900]!!
-  @JvmField val INDIGO_50 =  table[Color.INDIGO, Category.MATERIAL_50]!!
+  @JvmField val INDIGO_50 = table[Color.INDIGO, Category.MATERIAL_50]!!
   @JvmField val INDIGO_100 = table[Color.INDIGO, Category.MATERIAL_100]!!
   @JvmField val INDIGO_200 = table[Color.INDIGO, Category.MATERIAL_200]!!
   @JvmField val INDIGO_300 = table[Color.INDIGO, Category.MATERIAL_300]!!
@@ -416,7 +410,7 @@ object MaterialColors {
   @JvmField val INDIGO_700 = table[Color.INDIGO, Category.MATERIAL_700]!!
   @JvmField val INDIGO_800 = table[Color.INDIGO, Category.MATERIAL_800]!!
   @JvmField val INDIGO_900 = table[Color.INDIGO, Category.MATERIAL_900]!!
-  @JvmField val BLUE_50 =  table[Color.BLUE, Category.MATERIAL_50]!!
+  @JvmField val BLUE_50 = table[Color.BLUE, Category.MATERIAL_50]!!
   @JvmField val BLUE_100 = table[Color.BLUE, Category.MATERIAL_100]!!
   @JvmField val BLUE_200 = table[Color.BLUE, Category.MATERIAL_200]!!
   @JvmField val BLUE_300 = table[Color.BLUE, Category.MATERIAL_300]!!
@@ -426,7 +420,7 @@ object MaterialColors {
   @JvmField val BLUE_700 = table[Color.BLUE, Category.MATERIAL_700]!!
   @JvmField val BLUE_800 = table[Color.BLUE, Category.MATERIAL_800]!!
   @JvmField val BLUE_900 = table[Color.BLUE, Category.MATERIAL_900]!!
-  @JvmField val LIGHT_BLUE_50 =  table[Color.LIGHT_BLUE, Category.MATERIAL_50]!!
+  @JvmField val LIGHT_BLUE_50 = table[Color.LIGHT_BLUE, Category.MATERIAL_50]!!
   @JvmField val LIGHT_BLUE_100 = table[Color.LIGHT_BLUE, Category.MATERIAL_100]!!
   @JvmField val LIGHT_BLUE_200 = table[Color.LIGHT_BLUE, Category.MATERIAL_200]!!
   @JvmField val LIGHT_BLUE_300 = table[Color.LIGHT_BLUE, Category.MATERIAL_300]!!
@@ -436,7 +430,7 @@ object MaterialColors {
   @JvmField val LIGHT_BLUE_700 = table[Color.LIGHT_BLUE, Category.MATERIAL_700]!!
   @JvmField val LIGHT_BLUE_800 = table[Color.LIGHT_BLUE, Category.MATERIAL_800]!!
   @JvmField val LIGHT_BLUE_900 = table[Color.LIGHT_BLUE, Category.MATERIAL_900]!!
-  @JvmField val CYAN_50 =  table[Color.CYAN, Category.MATERIAL_50]!!
+  @JvmField val CYAN_50 = table[Color.CYAN, Category.MATERIAL_50]!!
   @JvmField val CYAN_100 = table[Color.CYAN, Category.MATERIAL_100]!!
   @JvmField val CYAN_200 = table[Color.CYAN, Category.MATERIAL_200]!!
   @JvmField val CYAN_300 = table[Color.CYAN, Category.MATERIAL_300]!!

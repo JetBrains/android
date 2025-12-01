@@ -28,19 +28,26 @@ import com.intellij.ui.content.Content
 /**
  * Renames a tab.
  *
- * This action extends ToolWindowTabRenameActionBase so it cannot be a SplittingTabsContextMenuAction.
+ * This action extends ToolWindowTabRenameActionBase so it cannot be a
+ * SplittingTabsContextMenuAction.
  */
-internal class RenameTabAction
-  : ToolWindowTabRenameActionBase("not-used", SplittingTabsBundle.message("SplittingTabsToolWindow.renameTab")), DumbAware {
+internal class RenameTabAction :
+  ToolWindowTabRenameActionBase(
+    "not-used",
+    SplittingTabsBundle.message("SplittingTabsToolWindow.renameTab"),
+  ),
+  DumbAware {
 
   init {
     templatePresentation.text = labelText
   }
 
   /**
-   * The base class implementation uses the ToolWindow ID but we must support arbitrary tool windows so we need a different mechanism.
+   * The base class implementation uses the ToolWindow ID but we must support arbitrary tool windows
+   * so we need a different mechanism.
    */
   override fun update(e: AnActionEvent, toolWindow: ToolWindow, selectedContent: Content?) {
-    e.presentation.isEnabledAndVisible = e.project != null && selectedContent?.isSplittingTab() == true
+    e.presentation.isEnabledAndVisible =
+      e.project != null && selectedContent?.isSplittingTab() == true
   }
 }

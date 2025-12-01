@@ -25,7 +25,9 @@ class TrackGroupModelTest {
   fun addTrackModel() {
     val trackGroupModel = TrackGroupModel.newBuilder().setTitle("group").build()
     trackGroupModel.addTrackModel(TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo"))
-    trackGroupModel.addTrackModel(TrackModel.newBuilder("string", TestTrackRendererType.STRING, "bar"))
+    trackGroupModel.addTrackModel(
+      TrackModel.newBuilder("string", TestTrackRendererType.STRING, "bar")
+    )
 
     val addedTrackModel1 = trackGroupModel.get(0)
     val addedTrackModel2 = trackGroupModel.get(1)
@@ -33,20 +35,25 @@ class TrackGroupModelTest {
     assertThat(addedTrackModel1.dataModel).isEqualTo(true)
     assertThat(addedTrackModel2.title).isEqualTo("bar")
     assertThat(addedTrackModel2.dataModel).isEqualTo("string")
-    assertWithMessage("Track IDs should be unique within a group").that(addedTrackModel1.id).isNotEqualTo(addedTrackModel2.id)
+    assertWithMessage("Track IDs should be unique within a group")
+      .that(addedTrackModel1.id)
+      .isNotEqualTo(addedTrackModel2.id)
   }
 
   @Test
   fun `listeners run when display tag changed`() {
     var count1 = 0
     var count2 = 0
-    val trackGroupModel = TrackGroupModel.newBuilder()
-      .setTitle("group")
-      .addDisplayToggle("Tag1", false) { ++count1 }
-      .addDisplayToggle("Tag2", true) { ++count2 }
-      .build()
+    val trackGroupModel =
+      TrackGroupModel.newBuilder()
+        .setTitle("group")
+        .addDisplayToggle("Tag1", false) { ++count1 }
+        .addDisplayToggle("Tag2", true) { ++count2 }
+        .build()
     trackGroupModel.addTrackModel(TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo"))
-    trackGroupModel.addTrackModel(TrackModel.newBuilder("string", TestTrackRendererType.STRING, "bar"))
+    trackGroupModel.addTrackModel(
+      TrackModel.newBuilder("string", TestTrackRendererType.STRING, "bar")
+    )
 
     trackGroupModel.setDisplayTag("Tag1", false)
     assertThat(count1).isEqualTo(0)

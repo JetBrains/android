@@ -19,18 +19,19 @@ import java.awt.Component
 import java.awt.Graphics2D
 import java.awt.event.MouseEvent
 
-/**
- * An interface for custom rendering of duration data
- */
-interface AbstractDurationDataRenderer: LineChartCustomRenderer {
-  /**
-   * Render overlay on top of given component
-   */
+/** An interface for custom rendering of duration data */
+interface AbstractDurationDataRenderer : LineChartCustomRenderer {
+  /** Render overlay on top of given component */
   fun renderOverlay(host: Component, g2d: Graphics2D)
 
   /**
    * Handle mouse event
+   *
    * @return whether other handlers should also handle this event
    */
-  fun handleMouseEvent(overlayComponent: Component, selectionComponent: Component, event: MouseEvent): Boolean
+  fun handleMouseEvent(
+    overlayComponent: Component,
+    selectionComponent: Component,
+    event: MouseEvent,
+  ): Boolean
 }

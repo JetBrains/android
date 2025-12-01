@@ -17,10 +17,7 @@ package com.android.tools.adtui.common
 
 import java.awt.geom.Point2D
 
-/**
- * Represents a point position in swing space
- * defined by [SwingX] and [SwingY] coordinates
- */
+/** Represents a point position in swing space defined by [SwingX] and [SwingY] coordinates */
 @JvmInline
 value class SwingPoint(val value: Point2D.Float) {
   constructor(x: SwingX, y: SwingY) : this(Point2D.Float(x.value, y.value))
@@ -32,5 +29,4 @@ value class SwingPoint(val value: Point2D.Float) {
     get() = SwingY(value.y)
 }
 
-fun distance(a: SwingPoint, b: SwingPoint): SwingLength =
-  hypotenuse(a.x - b.x, a.y - b.y)
+fun distance(a: SwingPoint, b: SwingPoint): SwingLength = hypotenuse(a.x - b.x, a.y - b.y)

@@ -33,13 +33,15 @@ class FilterModelTest {
     myFilter = Filter.EMPTY_FILTER
     myModel = FilterModel()
     myFilterHandled = false
-    myModel.setFilterHandler(object: FilterHandler() {
-      override fun applyFilter(filter: Filter): FilterResult {
-        myFilter = filter
-        myFilterHandled = true
-        return FilterResult.EMPTY_RESULT
+    myModel.setFilterHandler(
+      object : FilterHandler() {
+        override fun applyFilter(filter: Filter): FilterResult {
+          myFilter = filter
+          myFilterHandled = true
+          return FilterResult.EMPTY_RESULT
+        }
       }
-    })
+    )
   }
 
   @Test

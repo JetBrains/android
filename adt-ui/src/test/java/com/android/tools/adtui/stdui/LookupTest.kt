@@ -21,12 +21,12 @@ import com.android.tools.adtui.model.stdui.EditorCompletion
 import com.android.tools.adtui.model.stdui.PooledThreadExecution
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
-import org.junit.Test
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 import javax.swing.JComponent
 import javax.swing.ListModel
+import org.junit.Test
 
 class LookupTest {
 
@@ -43,7 +43,8 @@ class LookupTest {
     // The location is relative to the field...
     assertThat(ui.location.x).isEqualTo(0)
     assertThat(ui.location.y).isEqualTo(20) // The height of the field is 20
-    assertThat(ui.elements()).containsExactly("a8", "@string/app_name8", "@string/app_name18", "@string/app_name28")
+    assertThat(ui.elements())
+      .containsExactly("a8", "@string/app_name8", "@string/app_name18", "@string/app_name28")
   }
 
   @Test
@@ -58,7 +59,8 @@ class LookupTest {
     assertThat(ui.visible).isTrue()
     // The location is relative to the field...
     assertThat(ui.location.y).isEqualTo(-40) // Above: Popup height is 40, screen height is 480
-    assertThat(ui.elements()).containsExactly("a7", "@string/app_name7", "@string/app_name17", "@string/app_name27")
+    assertThat(ui.elements())
+      .containsExactly("a7", "@string/app_name7", "@string/app_name17", "@string/app_name27")
   }
 
   @Test
@@ -103,7 +105,7 @@ class LookupTest {
     assertThat(ui.visible).isTrue()
     // The location is relative to the field...
     assertThat(ui.location.x).isEqualTo(-150) // Popup width is 200, the width of the screen is 1000
-    assertThat(ui.location.y).isEqualTo(20)   // The field has the height 20
+    assertThat(ui.location.y).isEqualTo(20) // The field has the height 20
   }
 
   @Test
@@ -115,7 +117,8 @@ class LookupTest {
     field.text = "a8"
     lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
-    assertThat(ui.elements()).containsExactly("a8", "@string/app_name8", "@string/app_name18", "@string/app_name28")
+    assertThat(ui.elements())
+      .containsExactly("a8", "@string/app_name8", "@string/app_name18", "@string/app_name28")
 
     field.text = "a8z"
     lookup.showLookup(field.text)
@@ -132,7 +135,9 @@ class LookupTest {
     field.text = "@string/app_name"
     lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
-    assertThat(ui.elements().subList(0, 3)).containsExactly("@string/app_name", "@string/app_firstName", "@string/app_name1").inOrder()
+    assertThat(ui.elements().subList(0, 3))
+      .containsExactly("@string/app_name", "@string/app_firstName", "@string/app_name1")
+      .inOrder()
   }
 
   @Test
@@ -374,7 +379,8 @@ class LookupTest {
     val lookup = Lookup(field, ui)
     field.text = "a7"
     lookup.showLookup(field.text)
-    assertThat(ui.elements()).containsExactly("@string/app_name7", "@string/app_name17", "@string/app_name27")
+    assertThat(ui.elements())
+      .containsExactly("@string/app_name7", "@string/app_name17", "@string/app_name27")
     field.text = "a17"
     lookup.showLookup(field.text)
     assertThat(ui.elements()).containsExactly("@string/app_name17")
@@ -385,16 +391,19 @@ class LookupTest {
     private var listModel: ListModel<String>? = null
     override var visible = false
       private set
+
     override var visibleRowCount = 0
     override var selectedIndex = -1
     override var semiFocused = false
     override val popupSize
       get() = Dimension(200, visibleRowCount * 10)
+
     override var selectedValue: String?
       get() = computeSelectedValue()
       set(value) {
         selectedIndex = computeSelectedIndex(value)
       }
+
     var location = Point()
     var editorLocation = Point()
 
@@ -460,15 +469,20 @@ class LookupTest {
     var runnable: Runnable? = null
 
     override val completion: EditorCompletion = {
-      listOf("@string/almond",
-             "@string/app_name",
-             "@string/appelsin",
-             "@string/apricot",
-             "@android:string/paste_as_plain_text",
-             "@android:string/hello")
+      listOf(
+        "@string/almond",
+        "@string/app_name",
+        "@string/appelsin",
+        "@string/apricot",
+        "@android:string/paste_as_plain_text",
+        "@android:string/hello",
+      )
     }
 
     override val execution: PooledThreadExecution
-      get() = { runnable: Runnable -> this.runnable = runnable; Futures.immediateFuture(null) }
+      get() = { runnable: Runnable ->
+        this.runnable = runnable
+        Futures.immediateFuture(null)
+      }
   }
 }

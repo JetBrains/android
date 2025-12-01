@@ -26,10 +26,6 @@ fun <E> JComboBox<E>.selectFirstMatch(text: String) {
   }
 }
 
-fun <E> JComboBox<E>.options(): List<E> =
-  (0 until model.size).map {
-    model.getElementAt(it)
-  }
+fun <E> JComboBox<E>.options(): List<E> = (0 until model.size).map { model.getElementAt(it) }
 
-fun <E> JComboBox<E>.optionsAsString(): List<String> =
-  options().map { it.toString() }
+fun <E> JComboBox<E>.optionsAsString(): List<String> = options().map { it.toString() }

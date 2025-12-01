@@ -43,37 +43,51 @@ class HoverColumnTreeVisualTest : VisualTest() {
     val tree = createTree()
     val builder = ColumnTreeBuilder(tree, DefaultTableColumnModel())
     builder.setHoverColor(StandardColors.HOVER_COLOR)
-    builder.addColumn(ColumnTreeBuilder.ColumnBuilder().setName("Class")
-        .setRenderer(object : ColoredTreeCellRenderer() {
-          override fun customizeCellRenderer(tree: JTree,
-                                             value: Any,
-                                             selected: Boolean,
-                                             expanded: Boolean,
-                                             leaf: Boolean,
-                                             row: Int,
-                                             hasFocus: Boolean) {
-            if (value is Node) {
-              val name = value.myName
-              append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name)
+    builder.addColumn(
+      ColumnTreeBuilder.ColumnBuilder()
+        .setName("Class")
+        .setRenderer(
+          object : ColoredTreeCellRenderer() {
+            override fun customizeCellRenderer(
+              tree: JTree,
+              value: Any,
+              selected: Boolean,
+              expanded: Boolean,
+              leaf: Boolean,
+              row: Int,
+              hasFocus: Boolean,
+            ) {
+              if (value is Node) {
+                val name = value.myName
+                append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name)
+              }
             }
           }
-        }))
-    builder.addColumn(ColumnTreeBuilder.ColumnBuilder().setName("Size")
-        .setRenderer(object : ColoredTreeCellRenderer() {
-          override fun customizeCellRenderer(tree: JTree,
-                                             value: Any,
-                                             selected: Boolean,
-                                             expanded: Boolean,
-                                             leaf: Boolean,
-                                             row: Int,
-                                             hasFocus: Boolean) {
-            if (value is Node) {
-              val size = value.mySize
-              append(size, SimpleTextAttributes.REGULAR_ATTRIBUTES, size)
+        )
+    )
+    builder.addColumn(
+      ColumnTreeBuilder.ColumnBuilder()
+        .setName("Size")
+        .setRenderer(
+          object : ColoredTreeCellRenderer() {
+            override fun customizeCellRenderer(
+              tree: JTree,
+              value: Any,
+              selected: Boolean,
+              expanded: Boolean,
+              leaf: Boolean,
+              row: Int,
+              hasFocus: Boolean,
+            ) {
+              if (value is Node) {
+                val size = value.mySize
+                append(size, SimpleTextAttributes.REGULAR_ATTRIBUTES, size)
+              }
+              setTextAlign(SwingConstants.RIGHT)
             }
-            setTextAlign(SwingConstants.RIGHT)
           }
-        }))
+        )
+    )
     panel.add(builder.build(), BorderLayout.CENTER)
   }
 
@@ -91,5 +105,7 @@ class HoverColumnTreeVisualTest : VisualTest() {
     return tree
   }
 
-  private class Node internal constructor(internal var myName: String, internal var mySize: String) : DefaultMutableTreeNode(myName)
+  private class Node
+  internal constructor(internal var myName: String, internal var mySize: String) :
+    DefaultMutableTreeNode(myName)
 }

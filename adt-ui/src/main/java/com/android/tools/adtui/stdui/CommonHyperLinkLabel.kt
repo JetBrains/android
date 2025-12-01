@@ -34,15 +34,18 @@ import java.awt.font.TextAttribute
  * The link is displayed in a small font with an underline with the following options:
  * - [showAsLink] if false, show as normal text (in case the link could not be resolved)
  * - [strikeout] if true, the label is shown with strikeout (typically used for overridden values)
- * - [hyperLinkListeners] add a listener to be notified when the link is activated through mouse or keyboard
+ * - [hyperLinkListeners] add a listener to be notified when the link is activated through mouse or
+ *   keyboard
  */
 class CommonHyperLinkLabel(
   private val showAsLink: Boolean = true,
-  private val strikeout: Boolean = false
+  private val strikeout: Boolean = false,
 ) : JBLabel() {
   val hyperLinkListeners = mutableListOf<() -> Unit>()
   val normalForegroundColor: Color
-    get() = if (showAsLink) JBUI.CurrentTheme.Link.Foreground.ENABLED else UIUtil.getLabelForeground()
+    get() =
+      if (showAsLink) JBUI.CurrentTheme.Link.Foreground.ENABLED else UIUtil.getLabelForeground()
+
   private var initialized = true
 
   init {
@@ -54,14 +57,17 @@ class CommonHyperLinkLabel(
     updateUI()
     registerActionKey({ fireHyperLinkActivated() }, KeyStrokes.ENTER, "enter")
     registerActionKey({ fireHyperLinkActivated() }, KeyStrokes.SPACE, "space")
-    addMouseListener(object : MouseAdapter() {
-      // Use mousePressed instead of mouseClicked, for table cell renderer support.
-      // (the click event may not happen if the mouse pressed is also causing a cell editor to be created).
-      override fun mousePressed(event: MouseEvent) {
-        fireHyperLinkActivated()
-        event.consume()
+    addMouseListener(
+      object : MouseAdapter() {
+        // Use mousePressed instead of mouseClicked, for table cell renderer support.
+        // (the click event may not happen if the mouse pressed is also causing a cell editor to be
+        // created).
+        override fun mousePressed(event: MouseEvent) {
+          fireHyperLinkActivated()
+          event.consume()
+        }
       }
-    })
+    )
   }
 
   override fun updateUI() {
@@ -76,7 +82,8 @@ class CommonHyperLinkLabel(
     super.paintComponent(g)
     if (hasFocus() && g is Graphics2D) {
       val insets = this.insets
-      val textWidth = (getFontMetrics(font).stringWidth(text) + (insets.left + insets.right)).coerceAtMost(width)
+      val textWidth =
+        (getFontMetrics(font).stringWidth(text) + (insets.left + insets.right)).coerceAtMost(width)
       DarculaUIUtil.paintFocusBorder(g, textWidth, height, 0f, true)
     }
   }
@@ -89,8 +96,7 @@ class CommonHyperLinkLabel(
 
   private fun getSmallFont(showAsLink: Boolean, strikethrough: Boolean): Font {
     val font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
-    @Suppress("UNCHECKED_CAST")
-    val attributes = font.attributes as MutableMap<TextAttribute, Any?>
+    @Suppress("UNCHECKED_CAST") val attributes = font.attributes as MutableMap<TextAttribute, Any?>
     if (showAsLink) {
       attributes[TextAttribute.UNDERLINE] = TextAttribute.UNDERLINE_ON
     }

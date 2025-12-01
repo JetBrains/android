@@ -27,28 +27,37 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.Content
-import org.junit.Rule
-import org.junit.Test
 import javax.swing.JComponent
 import javax.swing.JPanel
+import org.junit.Rule
+import org.junit.Test
 
-/**
- * Tests for [SplittingTabsContextMenuAction]
- */
+/** Tests for [SplittingTabsContextMenuAction] */
 class SplittingTabsContextMenuActionTest {
   private val projectRule = ProjectRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, EdtRule())
 
   private val splittingTabsContextMenuAction = TestSplittingTabsContextMenuAction("")
-  private val toolWindow by lazy { ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)}
-  private val event by lazy { TestActionEvent.createTestEvent(splittingTabsContextMenuAction, DataContext.EMPTY_CONTEXT) }
+  private val toolWindow by lazy {
+    ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)
+  }
+  private val event by lazy {
+    TestActionEvent.createTestEvent(splittingTabsContextMenuAction, DataContext.EMPTY_CONTEXT)
+  }
   private val content by lazy {
     toolWindow.contentManager.factory.createContent(null, "Content", false).also {
-      it.component = SplittingPanel(it, null, object : ChildComponentFactory {
-        override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = JPanel()
-      })
+      it.component =
+        SplittingPanel(
+          it,
+          null,
+          object : ChildComponentFactory {
+            override fun createChildComponent(
+              state: String?,
+              popupActionGroup: DefaultActionGroup,
+            ): JComponent = JPanel()
+          },
+        )
       toolWindow.contentManager.addContent(it)
     }
   }
@@ -107,11 +116,20 @@ class SplittingTabsContextMenuActionTest {
   @Test
   fun actionPerformed_nullContentManager_doesNotPerformAction() {
     // A content that hasn't been added has a null manager.
-    val content = toolWindow.contentManager.factory.createContent(null, "Content", false).also {
-      it.component = SplittingPanel(it, null, object : ChildComponentFactory {
-        override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = JPanel()
-      })
-    }
+    val content =
+      toolWindow.contentManager.factory.createContent(null, "Content", false).also {
+        it.component =
+          SplittingPanel(
+            it,
+            null,
+            object : ChildComponentFactory {
+              override fun createChildComponent(
+                state: String?,
+                popupActionGroup: DefaultActionGroup,
+              ): JComponent = JPanel()
+            },
+          )
+      }
     Disposer.register(toolWindow.contentManager, content)
 
     splittingTabsContextMenuAction.actionPerformed(event, toolWindow, content)
@@ -126,7 +144,8 @@ class SplittingTabsContextMenuActionTest {
     assertThat(splittingTabsContextMenuAction.actionPerformedCalled).isEqualTo(1)
   }
 
-  private class TestSplittingTabsContextMenuAction(text: String) : SplittingTabsContextMenuAction(text) {
+  private class TestSplittingTabsContextMenuAction(text: String) :
+    SplittingTabsContextMenuAction(text) {
     var isEnabledCalled = 0
     var actionPerformedCalled = 0
 

@@ -20,8 +20,9 @@ import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.android.tools.adtui.compose.StudioTestTheme
 
-abstract class StudioComposeTestRule(val composeTestRule: ComposeContentTestRule = createComposeRule())
-  : ComposeContentTestRule by composeTestRule {
+abstract class StudioComposeTestRule(
+  val composeTestRule: ComposeContentTestRule = createComposeRule()
+) : ComposeContentTestRule by composeTestRule {
   companion object {
     fun createStudioComposeTestRule(): StudioComposeTestRule = StudioComposeTestRuleImpl()
   }
@@ -30,15 +31,12 @@ abstract class StudioComposeTestRule(val composeTestRule: ComposeContentTestRule
 }
 
 /**
- * Functionally equivalent to the test rule created by `createComposeRule`, but overrides the behavior of setContent to include a theme.
+ * Functionally equivalent to the test rule created by `createComposeRule`, but overrides the
+ * behavior of setContent to include a theme.
  */
 private class StudioComposeTestRuleImpl : StudioComposeTestRule() {
   override fun setContent(darkMode: Boolean, composable: @Composable () -> Unit) {
-    super.setContent {
-      StudioTestTheme(darkMode) {
-        composable()
-      }
-    }
+    super.setContent { StudioTestTheme(darkMode) { composable() } }
   }
 
   override fun setContent(composable: @Composable () -> Unit) {

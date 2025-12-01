@@ -18,28 +18,30 @@ package main.utils.tooltips
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.Composable
 import com.intellij.openapi.util.registry.Registry
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.styling.TooltipMetrics
 import org.jetbrains.jewel.ui.component.styling.TooltipStyle
 import org.jetbrains.jewel.ui.theme.tooltipStyle
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 object TooltipStyleFactory {
   @OptIn(ExperimentalFoundationApi::class)
   @Composable
-  fun createTooltipStyle(duration: Duration) = JewelTheme.tooltipStyle.metrics.let {
-    TooltipStyle(
-      JewelTheme.tooltipStyle.colors,
-      TooltipMetrics(
-        it.contentPadding,
-        duration, it.cornerSize,
-        it.borderWidth,
-        it.shadowSize,
-        it.placement,
-        Registry.intValue("ide.helptooltip.regular.dismissDelay").milliseconds,
-        Registry.intValue("ide.helptooltip.full.dismissDelay").milliseconds,
+  fun createTooltipStyle(duration: Duration) =
+    JewelTheme.tooltipStyle.metrics.let {
+      TooltipStyle(
+        JewelTheme.tooltipStyle.colors,
+        TooltipMetrics(
+          it.contentPadding,
+          duration,
+          it.cornerSize,
+          it.borderWidth,
+          it.shadowSize,
+          it.placement,
+          Registry.intValue("ide.helptooltip.regular.dismissDelay").milliseconds,
+          Registry.intValue("ide.helptooltip.full.dismissDelay").milliseconds,
+        ),
       )
-    )
-  }
+    }
 }

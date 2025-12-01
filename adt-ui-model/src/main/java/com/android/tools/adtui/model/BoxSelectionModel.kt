@@ -15,10 +15,9 @@
  */
 package com.android.tools.adtui.model
 
-/**
- * Box selection model for dispatching box selection listeners.
- */
-class BoxSelectionModel(selectionRange: Range, viewRange: Range) : RangeSelectionModel(selectionRange, viewRange) {
+/** Box selection model for dispatching box selection listeners. */
+class BoxSelectionModel(selectionRange: Range, viewRange: Range) :
+  RangeSelectionModel(selectionRange, viewRange) {
   private val boxSelectionListeners = mutableListOf<BoxSelectionListener>()
 
   fun addBoxSelectionListener(boxSelectionListener: BoxSelectionListener) {

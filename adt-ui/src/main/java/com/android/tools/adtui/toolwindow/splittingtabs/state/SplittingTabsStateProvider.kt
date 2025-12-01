@@ -19,8 +19,9 @@ interface SplittingTabsStateProvider {
   /**
    * Returns a String representing the state of the owning object.
    *
-   * It doesn't seem possible to make the IntelliJ XMl Serialization code work properly with subclasses so we can't make the per-client
-   * state object implement some interface or extend some base class and still be persisted by the PersistentStateComponent code.
+   * It doesn't seem possible to make the IntelliJ XMl Serialization code work properly with
+   * subclasses so we can't make the per-client state object implement some interface or extend some
+   * base class and still be persisted by the PersistentStateComponent code.
    *
    * So, each client needs to encode and decode its own state.
    */

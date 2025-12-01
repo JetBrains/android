@@ -25,7 +25,9 @@ import javax.swing.plaf.basic.BasicListUI
  * By default, row heights are fixed and the ones provided by the custom list renderer are not taken
  * into account.
  */
-class DynamicRendererList<T> private constructor(model: ListModel<T>, private val listUi: DynamicRendererListUi) : JBList<T>(model) {
+class DynamicRendererList<T>
+private constructor(model: ListModel<T>, private val listUi: DynamicRendererListUi) :
+  JBList<T>(model) {
   init {
     setUI(listUi)
   }

@@ -17,17 +17,15 @@ package com.android.tools.adtui.toolwindow.splittingtabs
 
 import com.intellij.ui.content.Content
 
-/**
- * Returns true if this context is in a Splitting Tabs ToolWindow.
- */
+/** Returns true if this context is in a Splitting Tabs ToolWindow. */
 internal fun Content.isSplittingTab() = findFirstSplitter() != null
 
 /**
- * Returns the "first" [SplittingPanel] child of this content or null if this content is not a Splitting Tabs ToolWindow.
+ * Returns the "first" [SplittingPanel] child of this content or null if this content is not a
+ * Splitting Tabs ToolWindow.
  */
-internal fun Content.findFirstSplitter(): SplittingPanel? = SplittingPanel.findFirstSplitter(component)
+internal fun Content.findFirstSplitter(): SplittingPanel? =
+  SplittingPanel.findFirstSplitter(component)
 
-/**
- * Convenience method that handles unlikely `manager == null` condition.
- */
+/** Convenience method that handles unlikely `manager == null` condition. */
 internal fun Content.getPosition(): Int = manager?.getIndexOfContent(this) ?: -1

@@ -35,15 +35,17 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
-/**
- * This class draws a properly formatted number with a description and optional icon
- */
-class StatLabel @JvmOverloads constructor(num: Long,
-                                          desc: String,
-                                          numFont: Font = AdtUiUtils.DEFAULT_FONT,
-                                          descFont: Font = AdtUiUtils.DEFAULT_FONT,
-                                          private val numFormatter: (Long) -> String = NumberFormatter::formatInteger,
-                                          private val action: Runnable? = null) : JPanel() {
+/** This class draws a properly formatted number with a description and optional icon */
+class StatLabel
+@JvmOverloads
+constructor(
+  num: Long,
+  desc: String,
+  numFont: Font = AdtUiUtils.DEFAULT_FONT,
+  descFont: Font = AdtUiUtils.DEFAULT_FONT,
+  private val numFormatter: (Long) -> String = NumberFormatter::formatInteger,
+  private val action: Runnable? = null,
+) : JPanel() {
   private val numLabel = JBLabel().apply { font = numFont }
   private val descLabel = JBLabel(desc).apply { font = descFont }
 
@@ -67,45 +69,67 @@ class StatLabel @JvmOverloads constructor(num: Long,
     add(descLabel)
 
     // If there is an associated action, visually indicate so
-    if(action != null) {
+    if (action != null) {
       isFocusable = true
       numLabel.foreground = linkForeground
       descLabel.foreground = linkForeground
       val (numOff, numOn) = makeUnderlinedFontSwitchers(numLabel)
       val (descOff, descOn) = makeUnderlinedFontSwitchers(descLabel)
-      fun on() { numOn(); descOn() }
-      fun off() { numOff(); descOff() }
-      addMouseListener(object : MouseListener {
-        override fun mouseEntered(e: MouseEvent?) = on()
-        override fun mouseExited(e: MouseEvent?) = off()
-        override fun mouseClicked(e: MouseEvent?) = action.run()
-        override fun mousePressed(e: MouseEvent?) {}
-        override fun mouseReleased(e: MouseEvent?) {}
-      })
-      addFocusListener(object : FocusListener {
-        override fun focusGained(e: FocusEvent?) = on()
-        override fun focusLost(e: FocusEvent?) = off()
-      })
-      addKeyListener(object : KeyAdapter() {
-        override fun keyPressed(e: KeyEvent) {
-          if ((e.keyCode == KeyEvent.VK_ENTER || e.keyCode == KeyEvent.VK_SPACE) && isFocusOwner) {
-            action.run()
+      fun on() {
+        numOn()
+        descOn()
+      }
+      fun off() {
+        numOff()
+        descOff()
+      }
+      addMouseListener(
+        object : MouseListener {
+          override fun mouseEntered(e: MouseEvent?) = on()
+
+          override fun mouseExited(e: MouseEvent?) = off()
+
+          override fun mouseClicked(e: MouseEvent?) = action.run()
+
+          override fun mousePressed(e: MouseEvent?) {}
+
+          override fun mouseReleased(e: MouseEvent?) {}
+        }
+      )
+      addFocusListener(
+        object : FocusListener {
+          override fun focusGained(e: FocusEvent?) = on()
+
+          override fun focusLost(e: FocusEvent?) = off()
+        }
+      )
+      addKeyListener(
+        object : KeyAdapter() {
+          override fun keyPressed(e: KeyEvent) {
+            if (
+              (e.keyCode == KeyEvent.VK_ENTER || e.keyCode == KeyEvent.VK_SPACE) && isFocusOwner
+            ) {
+              action.run()
+            }
           }
         }
-      })
+      )
     }
   }
 
-  @VisibleForTesting val numText: String get() = numLabel.text
-  @VisibleForTesting val descText: String get() = descLabel.text
+  @VisibleForTesting
+  val numText: String
+    get() = numLabel.text
+
+  @VisibleForTesting
+  val descText: String
+    get() = descLabel.text
 }
 
-/**
- * Returns a pair of callbacks for changing and restoring the label's font
- */
+/** Returns a pair of callbacks for changing and restoring the label's font */
 private fun makeUnderlinedFontSwitchers(label: JLabel): Pair<() -> Unit, () -> Unit> {
   val oldFont = label.font
-  val newFont = oldFont.deriveFont(oldFont.attributes + (TextAttribute.UNDERLINE to TextAttribute.UNDERLINE_ON))
-  return Pair({ label.font = oldFont },
-              { label.font = newFont })
+  val newFont =
+    oldFont.deriveFont(oldFont.attributes + (TextAttribute.UNDERLINE to TextAttribute.UNDERLINE_ON))
+  return Pair({ label.font = oldFont }, { label.font = newFont })
 }

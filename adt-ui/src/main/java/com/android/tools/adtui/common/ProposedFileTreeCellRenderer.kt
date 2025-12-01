@@ -22,20 +22,30 @@ import javax.swing.JTree
 /**
  * Custom TreeCellRenderer for trees backed by a [ProposedFileTreeModel]. Given a
  * [ProposedFileTreeModel.Node] from the tree model, the corresponding rendered cell will be marked
- * with the node's Icon and will contain the name of the File associated with the node,
- * formatted differently depending on whether the File is an existing directory (regular text),
- * a new file or directory (italicized), or an already-existing file (red text).
+ * with the node's Icon and will contain the name of the File associated with the node, formatted
+ * differently depending on whether the File is an existing directory (regular text), a new file or
+ * directory (italicized), or an already-existing file (red text).
  */
-class ProposedFileTreeCellRenderer: ColoredTreeCellRenderer() {
-  override fun customizeCellRenderer(tree: JTree, value: Any?, selected: Boolean, expanded: Boolean,
-                                     leaf: Boolean, row: Int, hasFocus: Boolean) {
+class ProposedFileTreeCellRenderer : ColoredTreeCellRenderer() {
+  override fun customizeCellRenderer(
+    tree: JTree,
+    value: Any?,
+    selected: Boolean,
+    expanded: Boolean,
+    leaf: Boolean,
+    row: Int,
+    hasFocus: Boolean,
+  ) {
     val node = value as ProposedFileTreeModel.Node
 
-    append(node.file.name, when {
-      node.conflictedFiles.isNotEmpty() -> SimpleTextAttributes.ERROR_ATTRIBUTES
-      node.file.exists() -> SimpleTextAttributes.REGULAR_ATTRIBUTES
-      else -> SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES
-    })
+    append(
+      node.file.name,
+      when {
+        node.conflictedFiles.isNotEmpty() -> SimpleTextAttributes.ERROR_ATTRIBUTES
+        node.file.exists() -> SimpleTextAttributes.REGULAR_ATTRIBUTES
+        else -> SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES
+      },
+    )
 
     icon = node.getIcon()
   }

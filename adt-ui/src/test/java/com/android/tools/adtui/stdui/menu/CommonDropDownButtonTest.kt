@@ -18,19 +18,17 @@ package com.android.tools.adtui.stdui.menu
 import com.android.tools.adtui.model.stdui.CommonAction
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import java.beans.PropertyChangeListener
 import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.beans.PropertyChangeListener
 import java.util.Arrays
 
 @RunWith(JUnit4::class)
 class CommonDropDownButtonTest {
   companion object {
-    @JvmField
-    @ClassRule
-    val appRule = ApplicationRule()
+    @JvmField @ClassRule val appRule = ApplicationRule()
   }
 
   @Test
@@ -50,7 +48,9 @@ class CommonDropDownButtonTest {
     // Listeners should be hooked up after creating the dropdown.
     val dropdown = CommonDropDownButton(parent)
     for (action in actions) {
-      assertThat<PropertyChangeListener>(action.propertyChangeListeners).asList().containsExactly(dropdown)
+      assertThat<PropertyChangeListener>(action.propertyChangeListeners)
+        .asList()
+        .containsExactly(dropdown)
     }
 
     // Modifying the first child should clear listeners on grandChild1
@@ -62,7 +62,9 @@ class CommonDropDownButtonTest {
     child2.addChildrenActions(grandChild2)
     actions = Arrays.asList(parent, child1, child2, grandChild2)
     for (action in actions) {
-      assertThat<PropertyChangeListener>(action.propertyChangeListeners).asList().containsExactly(dropdown)
+      assertThat<PropertyChangeListener>(action.propertyChangeListeners)
+        .asList()
+        .containsExactly(dropdown)
     }
   }
 

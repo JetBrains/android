@@ -20,21 +20,22 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo.isMac
-import org.junit.Before
-import org.junit.Test
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.FontMetrics
 import java.awt.event.KeyEvent.VK_CONTROL
 import java.awt.event.KeyEvent.VK_META
 import java.awt.geom.Rectangle2D
+import org.junit.Before
+import org.junit.Test
 
 class HTreeChartTest {
   private lateinit var myUi: FakeUi
   private lateinit var myChart: HTreeChart<DefaultHNode<String>>
   private lateinit var myRange: Range
 
-  // Height is calulated in setup. It is based off the font metrics. With JDK 11 the font metrics return slightly different sizes on windows
+  // Height is calulated in setup. It is based off the font metrics. With JDK 11 the font metrics
+  // return slightly different sizes on windows
   // vs linux or mac.
   // The total height is the height of the content plus the height of the padding.
   private var myTotalHeight = 0
@@ -51,13 +52,14 @@ class HTreeChartTest {
   private fun setUp(orientation: HTreeChart.Orientation) {
     myRange = Range(0.0, 100.0)
     val treeHeight = 4
-    myChart = HTreeChart.Builder(HNodeTree(0, treeHeight, 2), myRange, FakeRenderer())
-      .setGlobalXRange(Range(0.0, 100.0))
-      .setOrientation(orientation)
-      .build()
-    val contentHeight = (myChart.defaultFontMetrics.height +
-                         HTreeChart.PADDING) * /* Default padding */
-                        treeHeight /* Height of tree node. */
+    myChart =
+      HTreeChart.Builder(HNodeTree(0, treeHeight, 2), myRange, FakeRenderer())
+        .setGlobalXRange(Range(0.0, 100.0))
+        .setOrientation(orientation)
+        .build()
+    val contentHeight =
+      (myChart.defaultFontMetrics.height + HTreeChart.PADDING) * /* Default padding */
+        treeHeight /* Height of tree node. */
     myTotalHeight = contentHeight + HTreeChart.HEIGHT_PADDING
 
     myChart.size = Dimension(100, myViewHeight)
@@ -82,10 +84,11 @@ class HTreeChartTest {
     return subroot
   }
 
-  private fun getFakeActionKey() = when (isMac) {
-    true -> VK_META
-    false -> VK_CONTROL
-  }
+  private fun getFakeActionKey() =
+    when (isMac) {
+      true -> VK_META
+      false -> VK_CONTROL
+    }
 
   @Test
   fun testMouseDragToEast() {
@@ -352,7 +355,11 @@ class HTreeChartTest {
   class FakeRenderer : DefaultHRenderer<String>() {
     override fun getFillColor(nodeData: String) = Color.white
 
-    override fun generateFittingText(nodeData: String, rect: Rectangle2D, fontMetrics: FontMetrics) = ""
+    override fun generateFittingText(
+      nodeData: String,
+      rect: Rectangle2D,
+      fontMetrics: FontMetrics,
+    ) = ""
   }
 
   companion object {

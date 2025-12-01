@@ -22,7 +22,7 @@ class FakeComponentPopup(
   val contentPanel: JComponent,
   val preferableFocusComponent: JComponent?,
   focusable: Boolean,
-  requestFocus: Boolean
+  requestFocus: Boolean,
 ) : FakeJBPopup<Unit>(emptyList(), isRequestFocus = requestFocus) {
   override fun getContent() = contentPanel
 }

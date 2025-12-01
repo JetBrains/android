@@ -16,18 +16,20 @@
 package com.android.tools.adtui.swing
 
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
-import org.junit.rules.ExternalResource
 import java.awt.RenderingHints.KEY_TEXT_ANTIALIASING
 import java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB
 import java.util.Enumeration
 import javax.swing.UIManager
 import javax.swing.plaf.FontUIResource
+import org.junit.rules.ExternalResource
 
 /**
- * Sets all default fonts to Droid Sans that is included in the bundled JDK. This makes fonts the same across all platforms.
+ * Sets all default fonts to Droid Sans that is included in the bundled JDK. This makes fonts the
+ * same across all platforms.
  *
- * To improve error detection it may be helpful to scale the font used up (to improve matches across platforms and detect text changes)
- * or down (to decrease the importance of text in generated images).
+ * To improve error detection it may be helpful to scale the font used up (to improve matches across
+ * platforms and detect text changes) or down (to decrease the importance of text in generated
+ * images).
  */
 class PortableUiFontRule(val scale: Float = 1.0f) : ExternalResource() {
 

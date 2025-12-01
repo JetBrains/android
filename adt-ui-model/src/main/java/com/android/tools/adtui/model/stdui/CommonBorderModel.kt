@@ -22,13 +22,9 @@ package com.android.tools.adtui.model.stdui
  */
 interface CommonBorderModel {
 
-  /**
-   * When a component is in an error state the border should be red.
-   */
+  /** When a component is in an error state the border should be red. */
   val hasError: Boolean
 
-  /**
-   * When a placeholder is shown, the border should be a little faint.
-   */
+  /** When a placeholder is shown, the border should be a little faint. */
   val hasPlaceHolder: Boolean
 }

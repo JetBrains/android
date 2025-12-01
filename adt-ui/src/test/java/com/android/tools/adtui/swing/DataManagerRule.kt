@@ -24,8 +24,8 @@ import com.intellij.testFramework.TestDataProvider
 import org.junit.rules.ExternalResource
 
 /**
- * By default, [HeadlessDataManager] never traverses across Swing component hierarchy.
- * This rule enables a more realistic production data manager in tests.
+ * By default, [HeadlessDataManager] never traverses across Swing component hierarchy. This rule
+ * enables a more realistic production data manager in tests.
  */
 class DataManagerRule(private val projectRule: ProjectRule) : ExternalResource() {
 
@@ -33,8 +33,13 @@ class DataManagerRule(private val projectRule: ProjectRule) : ExternalResource()
 
   override fun before() {
     disposable = Disposer.newDisposable()
-    HeadlessDataManager.fallbackToProductionDataManager(disposable) // Necessary to properly update toolbar button states.
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(projectRule.project), disposable)
+    HeadlessDataManager.fallbackToProductionDataManager(
+      disposable
+    ) // Necessary to properly update toolbar button states.
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
+      TestDataProvider(projectRule.project),
+      disposable,
+    )
   }
 
   override fun after() {
