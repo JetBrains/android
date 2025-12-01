@@ -36,10 +36,6 @@ internal class ImportLogcatAction :
     val descriptor =
       FileChooserDescriptor(true, false, true, true, false, false)
         .withTitle(LogcatBundle.message("logcat.device.combo.file.chooser.title"))
-        .withFileFilter {
-          println(it.path)
-          it.name.substringAfterLast('.') in LOGCAT_FILE_EXTENSIONS
-        }
     val path =
       FileChooserFactory.getInstance()
         .createFileChooser(descriptor, e.project, null)

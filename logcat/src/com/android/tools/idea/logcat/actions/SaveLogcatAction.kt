@@ -39,11 +39,13 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val SAVE_PATH_KEY = "Logcat.SavePath"
 
@@ -77,7 +79,8 @@ internal class SaveLogcatAction :
     val deviceName = device.name.replace(' ', '-')
     val systemInfo = "Android-${device.release}"
     val filename = "${deviceName}-${systemInfo}_${timestamp}".adjustedForMac()
-    val file = dialog.save(getSavePath(project), filename)?.file ?: return
+    val file = dialog.save(getSavePath(project), filename)?.file?.withLogcatExt() ?: return
+
     PropertiesComponent.getInstance(project).setValue(SAVE_PATH_KEY, file.parent)
 
     val logcatMessages = logcatPresenter.getBacklogMessages()
@@ -148,6 +151,10 @@ internal class SaveLogcatAction :
     }
   }
 }
+
+@VisibleForTesting
+internal fun File.withLogcatExt() =
+  takeIf { it.extension == LOGCAT_EXT } ?: File("$path.$LOGCAT_EXT")
 
 private fun String.adjustedForMac(): String {
   // Add extension to filename on Mac only see: http://b/38447816.
