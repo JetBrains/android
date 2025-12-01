@@ -17,13 +17,17 @@ package com.android.tools.asdriver.tests.metric
 
 import java.util.function.Predicate
 
-class SpanFilter internal constructor(
+class SpanFilter
+internal constructor(
   @JvmField internal val filter: (SpanElement) -> Boolean,
   @JvmField internal val rawFilter: Predicate<SpanData>,
 ) {
   companion object {
     fun nameEquals(name: String): SpanFilter {
-      return SpanFilter(filter = { spanData -> spanData.name == name }, rawFilter = { it.operationName == name })
+      return SpanFilter(
+        filter = { spanData -> spanData.name == name },
+        rawFilter = { it.operationName == name },
+      )
     }
 
     fun none(): SpanFilter {

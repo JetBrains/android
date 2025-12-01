@@ -22,12 +22,10 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.project.Project
 import com.intellij.util.PathUtil
-import org.jetbrains.android.AndroidTestBase
 import java.io.File
+import org.jetbrains.android.AndroidTestBase
 
-/**
- * Defines Android test projects used as [TemplateBasedTestProject]s.
- */
+/** Defines Android test projects used as [TemplateBasedTestProject]s. */
 enum class AndroidCoreTestProject(
   override val template: String,
   override val pathToOpen: String = "",
@@ -38,20 +36,29 @@ enum class AndroidCoreTestProject(
   override val patch: (AgpVersionSoftwareEnvironment.(projectRoot: File) -> Unit)? = null,
   override val expectedSyncIssues: Set<Int> = emptySet(),
   override val verifyOpened: ((Project) -> Unit)? = null,
-  private val additionalRepos: Collection<File> = listOf()
+  private val additionalRepos: Collection<File> = listOf(),
 ) : TemplateBasedTestProject {
   ANDROID_KOTLIN_MULTIPLATFORM(TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM),
   ANDROID_LIBRARY_AS_TEST_DEPENDENCY(TestProjectPaths.ANDROID_LIBRARY_AS_TEST_DEPENDENCY),
   ANDROIDX_SIMPLE(TestProjectPaths.ANDROIDX_SIMPLE),
   APP_WITH_BUILDSRC(TestProjectPaths.APP_WITH_BUILDSRC),
-  APP_WITH_ACTIVITY_IN_LIB(TestProjectPaths.APP_WITH_ACTIVITY_IN_LIB, isCompatibleWith = { it >= AGP_74 }),
+  APP_WITH_ACTIVITY_IN_LIB(
+    TestProjectPaths.APP_WITH_ACTIVITY_IN_LIB,
+    isCompatibleWith = { it >= AGP_74 },
+  ),
   APPLICATION_ID_SUFFIX(TestProjectPaths.APPLICATION_ID_SUFFIX),
   APPLICATION_ID_VARIANT_API(TestProjectPaths.APPLICATION_ID_VARIANT_API),
-  APPLICATION_ID_VARIANT_API_BROKEN(TestProjectPaths.APPLICATION_ID_VARIANT_API, patch = { root ->
-    root.resolve("app/build.gradle").replaceContent { content ->
-      content.replace(Regex("androidComponents \\{.*?^}", setOf(RegexOption.MULTILINE, RegexOption.DOT_MATCHES_ALL)),
-                      Regex.escapeReplacement(
-                        """
+  APPLICATION_ID_VARIANT_API_BROKEN(
+    TestProjectPaths.APPLICATION_ID_VARIANT_API,
+    patch = { root ->
+      root.resolve("app/build.gradle").replaceContent { content ->
+        content.replace(
+          Regex(
+            "androidComponents \\{.*?^}",
+            setOf(RegexOption.MULTILINE, RegexOption.DOT_MATCHES_ALL),
+          ),
+          Regex.escapeReplacement(
+            """
                           androidComponents {
                             onVariants(selector().all()) { variant ->
                               variant.applicationId.set(
@@ -62,9 +69,13 @@ enum class AndroidCoreTestProject(
                               )
                             }
                           }
-                        """.trimIndent()))
-    }
-  }),
+                        """
+              .trimIndent()
+          ),
+        )
+      }
+    },
+  ),
   BASIC(TestProjectPaths.BASIC),
   BUDDY_APKS(TestProjectPaths.BUDDY_APKS),
   BUILD_ANALYZER_CHECK_ANALYZERS(TestProjectPaths.BUILD_ANALYZER_CHECK_ANALYZERS),
@@ -72,8 +83,11 @@ enum class AndroidCoreTestProject(
   DEPENDENT_MODULES(TestProjectPaths.DEPENDENT_MODULES),
   DEPENDENT_NATIVE_MODULES(TestProjectPaths.DEPENDENT_NATIVE_MODULES),
   DYNAMIC_APP(TestProjectPaths.DYNAMIC_APP),
-  DYNAMIC_APP_WITH_VARIANTS(TestProjectPaths.DYNAMIC_APP, patch = { root ->
-    val variants = """
+  DYNAMIC_APP_WITH_VARIANTS(
+    TestProjectPaths.DYNAMIC_APP,
+    patch = { root ->
+      val variants =
+        """
       flavorDimensions "dim1", "dim2"
       productFlavors {
         fl1 { dimension "dim1" }
@@ -81,11 +95,19 @@ enum class AndroidCoreTestProject(
         ab { dimension "dim2" }
         xy { dimension "dim2" }
       }
-    """.trimIndent()
-    root.resolve("app/build.gradle").appendText("\n\nandroid { ${variants.prependIndent("  ")} }\n")
-    root.resolve("feature1/build.gradle").appendText("\n\nandroid { ${variants.prependIndent("  ")} }\n")
-    root.resolve("dependsOnFeature1/build.gradle").appendText("\n\nandroid { ${variants.prependIndent("  ")} }\n")
-  }),
+    """
+          .trimIndent()
+      root
+        .resolve("app/build.gradle")
+        .appendText("\n\nandroid { ${variants.prependIndent("  ")} }\n")
+      root
+        .resolve("feature1/build.gradle")
+        .appendText("\n\nandroid { ${variants.prependIndent("  ")} }\n")
+      root
+        .resolve("dependsOnFeature1/build.gradle")
+        .appendText("\n\nandroid { ${variants.prependIndent("  ")} }\n")
+    },
+  ),
   HELLO_JNI(TestProjectPaths.HELLO_JNI),
   INSTANT_APP_WITH_DYNAMIC_FEATURES(TestProjectPaths.INSTANT_APP_WITH_DYNAMIC_FEATURES),
   KOTLIN_GRADLE_DSL(TestProjectPaths.KOTLIN_GRADLE_DSL),
@@ -99,15 +121,23 @@ enum class AndroidCoreTestProject(
   NESTED_MODULE(TestProjectPaths.NESTED_MODULE),
   PROJECT_WITH_APPAND_LIB(TestProjectPaths.PROJECT_WITH_APPAND_LIB),
   PSD_DEPENDENCY(TestProjectPaths.PSD_DEPENDENCY, additionalRepos = listOf(getPsdSampleRepo())),
-  PSD_DEPENDENCY_CATALOG(TestProjectPaths.PSD_DEPENDENCY_CATALOG, additionalRepos = listOf(getPsdSampleRepo())),
+  PSD_DEPENDENCY_CATALOG(
+    TestProjectPaths.PSD_DEPENDENCY_CATALOG,
+    additionalRepos = listOf(getPsdSampleRepo()),
+  ),
   PSD_BOM(TestProjectPaths.PSD_BOM),
   PSD_PROJECT_DIR(TestProjectPaths.PSD_PROJECT_DIR),
   PSD_SAMPLE_GROOVY(TestProjectPaths.PSD_SAMPLE_GROOVY),
   PSD_SAMPLE_KOTLIN(TestProjectPaths.PSD_SAMPLE_KOTLIN),
   PSD_UPGRADE(TestProjectPaths.PSD_UPGRADE, additionalRepos = listOf(getPsdSampleRepo())),
   PSD_VERSION_CATALOG_SAMPLE_GROOVY(TestProjectPaths.PSD_VERSION_CATALOG_SAMPLE_GROOVY),
-  PSD_MULTI_VERSION_CATALOG_SAMPLE_GROOVY(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG),
-  PSD_VARIANT_COLLISIONS(TestProjectPaths.PSD_VARIANT_COLLISIONS, additionalRepos = listOf(getPsdSampleRepo())),
+  PSD_MULTI_VERSION_CATALOG_SAMPLE_GROOVY(
+    TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG
+  ),
+  PSD_VARIANT_COLLISIONS(
+    TestProjectPaths.PSD_VARIANT_COLLISIONS,
+    additionalRepos = listOf(getPsdSampleRepo()),
+  ),
   RUN_APP_36(TestProjectPaths.RUN_APP_36),
   PROJECT_WITH_APP_AND_LIB_DEPENDENCY(TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY),
   RUN_CONFIG_ACTIVITY(TestProjectPaths.RUN_CONFIG_ACTIVITY),
@@ -127,20 +157,26 @@ enum class AndroidCoreTestProject(
   UNUSED_RESOURCES_GROOVY(TestProjectPaths.UNUSED_RESOURCES_GROOVY),
   UNUSED_RESOURCES_KTS(TestProjectPaths.UNUSED_RESOURCES_KTS),
   UNUSED_RESOURCES_MULTI_MODULE(TestProjectPaths.UNUSED_RESOURCES_MULTI_MODULE),
-  WEAR_WATCHFACE(
-    TestProjectPaths.WEAR_WATCHFACE,
-    isCompatibleWith = { it >= AGP_40 }
+  WEAR_WATCHFACE(TestProjectPaths.WEAR_WATCHFACE, isCompatibleWith = { it >= AGP_40 }),
+  WITH_ERRORS_SIMPLE_APPLICATION_MISSING_EXPORT(
+    TestProjectPaths.WITH_ERRORS_SIMPLE_APPLICATION_MISSING_EXPORT
   ),
-  WITH_ERRORS_SIMPLE_APPLICATION_MISSING_EXPORT(TestProjectPaths.WITH_ERRORS_SIMPLE_APPLICATION_MISSING_EXPORT),
-  WITH_ERRORS_SIMPLE_APPLICATION_MULTIPLE_ERRORS(TestProjectPaths.WITH_ERRORS_SIMPLE_APPLICATION_MULTIPLE_ERRORS),
-  WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE(TestProjectPaths.WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE),
-  WEAR_DECLARATIVE_WATCHFACE(TestProjectPaths.WEAR_DECLARATIVE_WATCHFACE),
-  ;
+  WITH_ERRORS_SIMPLE_APPLICATION_MULTIPLE_ERRORS(
+    TestProjectPaths.WITH_ERRORS_SIMPLE_APPLICATION_MULTIPLE_ERRORS
+  ),
+  WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE(
+    TestProjectPaths.WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE
+  ),
+  WEAR_DECLARATIVE_WATCHFACE(TestProjectPaths.WEAR_DECLARATIVE_WATCHFACE);
 
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData"
+  override fun getTestDataDirectoryWorkspaceRelativePath(): String =
+    "tools/adt/idea/android/testData"
 
   override fun getAdditionalRepos(): Collection<File> = additionalRepos
 }
 
 private fun getPsdSampleRepo(): File =
-  File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO))
+  File(
+    AndroidTestBase.getTestDataPath(),
+    PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO),
+  )

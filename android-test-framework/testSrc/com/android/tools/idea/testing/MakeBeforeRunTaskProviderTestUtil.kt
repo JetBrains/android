@@ -26,9 +26,7 @@ import com.android.tools.idea.gradle.run.MakeBeforeRunTask
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.FakeAndroidDevice
-import com.android.tools.idea.testartifacts.TestConfigurationTesting
 import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil
-import com.google.common.truth.Truth
 import com.intellij.execution.BeforeRunTaskProvider
 import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.RunManager
@@ -48,9 +46,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.runInEdtAndWait
+import javax.swing.Icon
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import javax.swing.Icon
 
 fun RunConfiguration.executeMakeBeforeRunStepInTest(device: IDevice) =
   executeMakeBeforeRunStepInTest(FakeAndroidDevice.forDevices(listOf(device)))
@@ -65,51 +63,74 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
   try {
     val makeBeforeRunTask = beforeRunTasks.filterIsInstance<MakeBeforeRunTask>().single()
     val factory = factory!!
-    val runnerAndConfigurationSettings = RunManager.getInstance(project).createConfiguration(this, factory)
+    val runnerAndConfigurationSettings =
+      RunManager.getInstance(project).createConfiguration(this, factory)
 
     // Set up ExecutionTarget infrastructure.
     ApplicationManager.getApplication().invokeAndWait {
-      val target = object : AndroidExecutionTarget() {
-        override fun getId(): String = "target"
-        override fun getDisplayName(): String = "target"
-        override fun getIcon(): Icon? = null
-        override fun getAvailableDeviceCount(): Int = deviceFutures?.devices?.size ?: 0
-        override fun getRunningDevices(): Collection<IDevice> = deviceFutures?.get()?.map { it.get() } ?: emptyList()
-        override fun canRun(configuration: RunConfiguration): Boolean = configuration === this@executeMakeBeforeRunStepInTest
-      }
+      val target =
+        object : AndroidExecutionTarget() {
+          override fun getId(): String = "target"
+
+          override fun getDisplayName(): String = "target"
+
+          override fun getIcon(): Icon? = null
+
+          override fun getAvailableDeviceCount(): Int = deviceFutures?.devices?.size ?: 0
+
+          override fun getRunningDevices(): Collection<IDevice> =
+            deviceFutures?.get()?.map { it.get() } ?: emptyList()
+
+          override fun canRun(configuration: RunConfiguration): Boolean =
+            configuration === this@executeMakeBeforeRunStepInTest
+        }
       ExecutionTargetManager.getInstance(this.project).activeTarget = target
     }
 
-    val programRunner = object : AndroidConfigurationProgramRunner() {
-      override fun getRunnerId(): String = "runner_id"
-      override fun canRunWithMultipleDevices(executorId: String): Boolean = false
-      override val supportedConfigurationTypeIds = emptyList<String>()
-      override fun run(environment: ExecutionEnvironment, executor: AndroidConfigurationExecutor, indicator: ProgressIndicator): RunContentDescriptor {
-        return mock<RunContentDescriptor>()
-      }
-    }
+    val programRunner =
+      object : AndroidConfigurationProgramRunner() {
+        override fun getRunnerId(): String = "runner_id"
 
-    val executionEnvironment = ExecutionEnvironment(
-      DefaultRunExecutor.getRunExecutorInstance(),
-      programRunner,
-      runnerAndConfigurationSettings,
-      project
-    )
-    deviceFutures?.let { executionEnvironment.putCopyableUserData(DeviceFutures.KEY, deviceFutures) }
+        override fun canRunWithMultipleDevices(executorId: String): Boolean = false
+
+        override val supportedConfigurationTypeIds = emptyList<String>()
+
+        override fun run(
+          environment: ExecutionEnvironment,
+          executor: AndroidConfigurationExecutor,
+          indicator: ProgressIndicator,
+        ): RunContentDescriptor {
+          return mock<RunContentDescriptor>()
+        }
+      }
+
+    val executionEnvironment =
+      ExecutionEnvironment(
+        DefaultRunExecutor.getRunExecutorInstance(),
+        programRunner,
+        runnerAndConfigurationSettings,
+        project,
+      )
+    deviceFutures?.let {
+      executionEnvironment.putCopyableUserData(DeviceFutures.KEY, deviceFutures)
+    }
     try {
-        ProgressManager.getInstance().runProcessWithProgressSynchronously(ThrowableComputable {
-          BeforeRunTaskProvider.getProvider(project, MakeBeforeRunTaskProvider.ID)!!
-            .executeTask(
+      ProgressManager.getInstance()
+        .runProcessWithProgressSynchronously(
+          ThrowableComputable {
+            BeforeRunTaskProvider.getProvider(project, MakeBeforeRunTaskProvider.ID)!!.executeTask(
               DataContext.EMPTY_CONTEXT,
               this,
               executionEnvironment,
-              makeBeforeRunTask
+              makeBeforeRunTask,
             )
-        }, "Test Run MakeBeforeTask", false, project)
+          },
+          "Test Run MakeBeforeTask",
+          false,
+          project,
+        )
     } finally {
-      runInEdtAndWait {
-        AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-      }
+      runInEdtAndWait { AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project) }
     }
   } finally {
     Disposer.dispose(disposable)
@@ -119,13 +140,13 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
 fun <T : RunConfiguration?> createRunConfigurationFromClass(
   project: Project,
   qualifiedName: String,
-  expectedType: Class<T>
+  expectedType: Class<T>,
 ): T? {
   val element =
     JavaPsiFacade.getInstance(project)
       .findClass(qualifiedName, GlobalSearchScope.projectScope(project))
-      ?.children?.firstOrNull { it is PsiIdentifier }
-      ?: error("$qualifiedName class not found")
+      ?.children
+      ?.firstOrNull { it is PsiIdentifier } ?: error("$qualifiedName class not found")
 
   val runConfiguration = createRunConfigurationFromPsiElement(project, element)
   return if (expectedType.isInstance(runConfiguration)) expectedType.cast(runConfiguration)
@@ -134,10 +155,11 @@ fun <T : RunConfiguration?> createRunConfigurationFromClass(
 
 private fun createRunConfigurationFromPsiElement(
   project: Project,
-  psiElement: PsiElement
+  psiElement: PsiElement,
 ): RunConfiguration {
   val context = TestConfigurationTestingUtil.createContext(project, psiElement)
-  val settings = context.configuration ?: return error("Failed to get/create run configuration settings")
+  val settings =
+    context.configuration ?: return error("Failed to get/create run configuration settings")
   // Save the run configuration in the project.
   val runManager = RunManager.getInstance(project)
   runManager.addConfiguration(settings)
@@ -151,11 +173,8 @@ fun mockDeviceFor(androidVersion: AndroidVersion, abis: List<Abi>, density: Int?
   whenever(device.version).thenReturn(androidVersion)
   whenever(device.serialNumber).thenReturn("1234")
   whenever(device.isOnline).thenReturn(true)
-  whenever(device.services()).thenReturn(
-    if (androidVersion.apiLevel >= 33)
-      mapOf("sdk_sandbox" to null)
-    else emptyMap()
-  )
+  whenever(device.services())
+    .thenReturn(if (androidVersion.apiLevel >= 33) mapOf("sdk_sandbox" to null) else emptyMap())
   density?.let { whenever(device.density).thenReturn(density) }
   return device
 }
@@ -164,8 +183,7 @@ fun withSimulatedSyncError(errorMessage: String, block: () -> Unit) {
   SimulatedSyncErrors.registerSyncErrorToSimulate(errorMessage)
   try {
     block()
-  }
-  finally {
+  } finally {
     SimulatedSyncErrors.clear() // May leak to tests running afterwards.
   }
 }

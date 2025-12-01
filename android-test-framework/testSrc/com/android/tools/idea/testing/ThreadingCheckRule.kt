@@ -23,9 +23,9 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /**
- * ThreadingCheck test rule works in conjunction with a threading checker java agent and will fail
- * a test if a method annotated with a threading annotation (see [UiThread] and [WorkerThread])
- * is called on a wrong thread.
+ * ThreadingCheck test rule works in conjunction with a threading checker java agent and will fail a
+ * test if a method annotated with a threading annotation (see [UiThread] and [WorkerThread]) is
+ * called on a wrong thread.
  */
 class ThreadingCheckRule : TestRule {
   override fun apply(base: Statement, description: Description): Statement {
@@ -41,7 +41,9 @@ class ThreadingCheckRule : TestRule {
         if (!hook.hasPerformedThreadingChecks) {
           // Either the test code doesn't run any code annotated with threading annotations or
           // threading java agent is not running.
-          println("No threading checks were performed when running ${description.className}#${description.methodName} test")
+          println(
+            "No threading checks were performed when running ${description.className}#${description.methodName} test"
+          )
         }
         if (hook.hasThreadingViolation) {
           throw RuntimeException(hook.errorMessage)

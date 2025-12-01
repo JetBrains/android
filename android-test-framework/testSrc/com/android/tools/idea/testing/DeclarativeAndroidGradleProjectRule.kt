@@ -16,13 +16,13 @@
 package com.android.tools.idea.testing
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
+import com.android.tools.idea.gradle.util.GradleWrapper
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import org.junit.runner.Description
 import java.io.File
+import org.junit.runner.Description
 
 class DeclarativeAndroidGradleProjectRule(val projectRule: AndroidGradleProjectRule) :
   NamedExternalResource() {
@@ -48,13 +48,12 @@ class DeclarativeAndroidGradleProjectRule(val projectRule: AndroidGradleProjectR
     agpVersion: AgpVersionSoftwareEnvironmentDescriptor =
       AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
     ndkVersion: String? = null,
-    preLoad: ((projectRoot: File) -> Unit)? = null
-  ) = projectRule.loadProject(projectPath, agpVersion, ndkVersion) { projectRoot ->
-    WriteCommandAction.runWriteCommandAction(project) {
-      setupGradleSnapshotToWrapper(project)
+    preLoad: ((projectRoot: File) -> Unit)? = null,
+  ) =
+    projectRule.loadProject(projectPath, agpVersion, ndkVersion) { projectRoot ->
+      WriteCommandAction.runWriteCommandAction(project) { setupGradleSnapshotToWrapper(project) }
+      preLoad?.invoke(projectRoot)
     }
-    preLoad?.invoke(projectRoot)
-  }
 
   private fun setupGradleSnapshotToWrapper(project: Project) {
     val distribution = TestUtils.resolveWorkspacePath("tools/external/gradle")

@@ -19,16 +19,20 @@ import com.android.SdkConstants
 import com.android.sdklib.AndroidVersion
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
-fun addManifest(fixture: CodeInsightTestFixture,
-                minApi: Int = AndroidVersion.MIN_RECOMMENDED_API,
-                targetAPI: Int = AndroidVersion.VersionCodes.O_MR1,
-                packageName: String = "com.example") {
-  val manifest = """
+fun addManifest(
+  fixture: CodeInsightTestFixture,
+  minApi: Int = AndroidVersion.MIN_RECOMMENDED_API,
+  targetAPI: Int = AndroidVersion.VersionCodes.O_MR1,
+  packageName: String = "com.example",
+) {
+  val manifest =
+    """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="$packageName">
               <uses-sdk android:minSdkVersion="$minApi"
                         android:targetSdkVersion="$targetAPI"/>
       </manifest>
-      """.trimIndent()
+      """
+      .trimIndent()
   fixture.addFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, manifest)
 }

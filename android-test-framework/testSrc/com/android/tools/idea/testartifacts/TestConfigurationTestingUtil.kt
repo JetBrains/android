@@ -39,7 +39,9 @@ class TestConfigurationTestingUtil {
   companion object {
     @JvmOverloads
     @JvmStatic
-    inline fun <reified T : RunConfiguration> PsiElement.createRunConfiguration(check: T.() -> Boolean = { true }): T? {
+    inline fun <reified T : RunConfiguration> PsiElement.createRunConfiguration(
+      check: T.() -> Boolean = { true }
+    ): T? {
       val project = this.project
       val context = createContext(project, this)
       val settings = context.configuration ?: return null
@@ -51,16 +53,19 @@ class TestConfigurationTestingUtil {
     }
 
     @JvmStatic
-    fun PsiElement.createGradleRunConfiguration() : GradleRunConfiguration? =
-      // Having no tasks to run means that there shouldn't be a configuration created. This will be handled by Intellij in
+    fun PsiElement.createGradleRunConfiguration(): GradleRunConfiguration? =
+      // Having no tasks to run means that there shouldn't be a configuration created. This will be
+      // handled by Intellij in
       // https://youtrack.jetbrains.com/issue/IDEA-277826.
       createRunConfiguration { settings.taskNames.isNotEmpty() }
+
     @JvmStatic
-    fun PsiElement.createAndroidTestRunConfiguration() : AndroidTestRunConfiguration? =
+    fun PsiElement.createAndroidTestRunConfiguration(): AndroidTestRunConfiguration? =
       createRunConfiguration()
 
     @JvmStatic
-    fun PsiElement.createConfigurations() = createContext(this.project, this).configurationsFromContext
+    fun PsiElement.createConfigurations() =
+      createContext(this.project, this).configurationsFromContext
 
     @JvmStatic
     fun createContext(project: Project, psiElement: PsiElement) =
@@ -75,8 +80,9 @@ class TestConfigurationTestingUtil {
     fun getPsiElement(project: Project, file: String, isDirectory: Boolean): PsiElement {
       val virtualFile = VfsUtilCore.findRelativeFile(file, project.baseDir)
       assertThat(virtualFile).isNotNull()
-      val element: PsiElement? = if (isDirectory) PsiManager.getInstance(project).findDirectory(virtualFile!!)
-      else PsiManager.getInstance(project).findFile(virtualFile!!)
+      val element: PsiElement? =
+        if (isDirectory) PsiManager.getInstance(project).findDirectory(virtualFile!!)
+        else PsiManager.getInstance(project).findFile(virtualFile!!)
       assertThat(element).isNotNull()
       return element!!
     }
@@ -84,18 +90,29 @@ class TestConfigurationTestingUtil {
     @JvmStatic
     fun Project.getPsiElement(source: PsiElementSource): PsiElement =
       when (source) {
-        is Class -> JavaPsiFacade.getInstance(this).findClass(source.qualifiedName, GlobalSearchScope.projectScope(this))!!
-        is Method -> JavaPsiFacade.getInstance(this).findClass(source.qualifiedName, GlobalSearchScope.projectScope(this))!!
-          .findMethodsByName(source.methodName)
-          .first().sourceElement!!
+        is Class ->
+          JavaPsiFacade.getInstance(this)
+            .findClass(source.qualifiedName, GlobalSearchScope.projectScope(this))!!
+        is Method ->
+          JavaPsiFacade.getInstance(this)
+            .findClass(source.qualifiedName, GlobalSearchScope.projectScope(this))!!
+            .findMethodsByName(source.methodName)
+            .first()
+            .sourceElement!!
         is FileSystemPsiElementSource -> getPsiElement(this, source.name, source.isDirectory)
       }
   }
 
   sealed interface PsiElementSource
-  class Class(val qualifiedName: String): PsiElementSource
-  class Method(val qualifiedName: String, val methodName: String): PsiElementSource
-  abstract class FileSystemPsiElementSource(val name: String, val isDirectory: Boolean): PsiElementSource
-  class File(name: String): FileSystemPsiElementSource(name, false)
-  class Directory(name: String): FileSystemPsiElementSource(name, true)
+
+  class Class(val qualifiedName: String) : PsiElementSource
+
+  class Method(val qualifiedName: String, val methodName: String) : PsiElementSource
+
+  abstract class FileSystemPsiElementSource(val name: String, val isDirectory: Boolean) :
+    PsiElementSource
+
+  class File(name: String) : FileSystemPsiElementSource(name, false)
+
+  class Directory(name: String) : FileSystemPsiElementSource(name, true)
 }

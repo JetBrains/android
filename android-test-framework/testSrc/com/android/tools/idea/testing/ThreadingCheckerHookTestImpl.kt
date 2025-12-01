@@ -33,7 +33,8 @@ class ThreadingCheckerHookTestImpl : ThreadingCheckerHook {
     hasPerformedThreadingChecks = true
     if (!SwingUtilities.isEventDispatchThread()) {
       hasThreadingViolation = true
-      errorMessage = "Method ${getInstrumentedMethodName()} is expected to be called on EventDispatchThread."
+      errorMessage =
+        "Method ${getInstrumentedMethodName()} is expected to be called on EventDispatchThread."
     }
   }
 
@@ -41,7 +42,8 @@ class ThreadingCheckerHookTestImpl : ThreadingCheckerHook {
     hasPerformedThreadingChecks = true
     if (SwingUtilities.isEventDispatchThread()) {
       hasThreadingViolation = true
-      errorMessage = "Method ${getInstrumentedMethodName()} is expected to be called on a worker thread."
+      errorMessage =
+        "Method ${getInstrumentedMethodName()} is expected to be called on a worker thread."
     }
   }
 
@@ -49,7 +51,8 @@ class ThreadingCheckerHookTestImpl : ThreadingCheckerHook {
     hasPerformedThreadingChecks = true
     if (!ApplicationManager.getApplication().isReadAccessAllowed) {
       hasThreadingViolation = true
-      errorMessage = "Method ${getInstrumentedMethodName()} is expected to be called with a read lock"
+      errorMessage =
+        "Method ${getInstrumentedMethodName()} is expected to be called with a read lock"
     }
   }
 
@@ -57,7 +60,8 @@ class ThreadingCheckerHookTestImpl : ThreadingCheckerHook {
     hasPerformedThreadingChecks = true
     if (!ApplicationManager.getApplication().isWriteAccessAllowed) {
       hasThreadingViolation = true
-      errorMessage = "Method ${getInstrumentedMethodName()} is expected to be called with a write lock"
+      errorMessage =
+        "Method ${getInstrumentedMethodName()} is expected to be called with a write lock"
     }
   }
 
@@ -65,12 +69,14 @@ class ThreadingCheckerHookTestImpl : ThreadingCheckerHook {
     hasPerformedThreadingChecks = true
     if (!ApplicationManager.getApplication().isReadAccessAllowed) {
       hasThreadingViolation = true
-      errorMessage = "Method ${getInstrumentedMethodName()} is expected to be called without a read lock"
+      errorMessage =
+        "Method ${getInstrumentedMethodName()} is expected to be called without a read lock"
     }
   }
 
   private fun getInstrumentedMethodName(): String {
-    // Instrumented method (method annotated with @WorkerThread/@UiThread) is located 4 frames up the stack trace
+    // Instrumented method (method annotated with @WorkerThread/@UiThread) is located 4 frames up
+    // the stack trace
     return Thread.currentThread().stackTrace[4].toString()
   }
 }

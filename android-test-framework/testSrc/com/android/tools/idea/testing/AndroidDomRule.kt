@@ -29,12 +29,10 @@ import org.junit.rules.RuleChain
  * A rule useful for running semantic highlighting / completion tests against various Android
  * classes.
  *
- * This rule isn't useful without a fixture - to get one, using a JUnit [RuleChain] is
- * recommended:
+ * This rule isn't useful without a fixture - to get one, using a JUnit [RuleChain] is recommended:
  *
  *     private val projectRule: AndroidProjectRule = AndroidProjectRule.withSdk().initAndroid(true)
  *     private val domRule = AndroidDomRule("res/layout", () -> projectRule.fixture)
- *
  *     @get:Rule
  *     public val ruleChain = RuleChain.outerRule(projectRule).around(domRule)
  *
@@ -43,8 +41,8 @@ import org.junit.rules.RuleChain
 class AndroidDomRule(
   /**
    * The root path in the Android project that all files we're testing / highlighting should exist
-   * under, e.g. 'res/layout'. The location of a file gives the system more context about which
-   * sort of completions should be enabled.
+   * under, e.g. 'res/layout'. The location of a file gives the system more context about which sort
+   * of completions should be enabled.
    */
   private val pathRoot: String,
 
@@ -52,7 +50,7 @@ class AndroidDomRule(
    * A callback that returns a completed fixture. This won't get called until [before] happens,
    * allowing another rule time to initialize the fixture.
    */
-  private val fixtureProvider: () -> CodeInsightTestFixture
+  private val fixtureProvider: () -> CodeInsightTestFixture,
 ) : ExternalResource() {
 
   private lateinit var fixture: CodeInsightTestFixture
@@ -60,9 +58,11 @@ class AndroidDomRule(
   override fun before() {
     fixture = fixtureProvider()
 
-    fixture.enableInspections(AndroidDomInspection::class.java,
-                              AndroidUnknownAttributeInspection::class.java,
-                              AndroidElementNotAllowedInspection::class.java)
+    fixture.enableInspections(
+      AndroidDomInspection::class.java,
+      AndroidUnknownAttributeInspection::class.java,
+      AndroidElementNotAllowedInspection::class.java,
+    )
   }
 
   /**
@@ -101,8 +101,8 @@ class AndroidDomRule(
    * prior indicating a caret position and the latter indicating what the file should look like
    * after executing a completion action at that caret position.
    *
-   * Note: This test is useful if you expect exactly one completion possibility. If you want to
-   * test for multiple possible completion matches, use [getCompletionResults] instead.
+   * Note: This test is useful if you expect exactly one completion possibility. If you want to test
+   * for multiple possible completion matches, use [getCompletionResults] instead.
    */
   fun testCompletion(fileBefore: String, fileAfter: String) {
     copyAndConfigure(fileBefore)

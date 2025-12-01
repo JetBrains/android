@@ -21,18 +21,17 @@ import com.intellij.testFramework.LeakHunter
 import com.intellij.util.ui.UIUtil
 import org.junit.runner.Description
 
-/**
- * Checks that there are no leaked projects.
- */
+/** Checks that there are no leaked projects. */
 class LightLeakCheckerRule : NamedExternalResource() {
 
-  override fun before(description: Description) {
-  }
+  override fun before(description: Description) {}
 
   override fun after(description: Description) {
-    UIUtil.invokeAndWaitIfNeeded(Runnable {
-      MockitoThreadLocalsCleaner().cleanupAndTearDown()
-      LeakHunter.checkNonDefaultProjectLeak()
-    })
+    UIUtil.invokeAndWaitIfNeeded(
+      Runnable {
+        MockitoThreadLocalsCleaner().cleanupAndTearDown()
+        LeakHunter.checkNonDefaultProjectLeak()
+      }
+    )
   }
 }

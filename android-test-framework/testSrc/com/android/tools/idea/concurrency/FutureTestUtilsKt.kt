@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("FutureTestUtils")
+
 package com.android.tools.idea.concurrency
 
 import com.google.common.util.concurrent.Futures
@@ -29,8 +30,7 @@ fun <V> pumpEventsAndWaitForFutures(futures: List<ListenableFuture<V>>): List<V>
 fun <V> pumpEventsAndWaitForFuture(future: ListenableFuture<V>): V {
   return try {
     pumpEventsAndWaitForFuture(future, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
-  }
-  catch (e: Exception) {
+  } catch (e: Exception) {
     throw RuntimeException(e)
   }
 }
@@ -39,11 +39,9 @@ fun <V> pumpEventsAndWaitForFutureException(future: ListenableFuture<V>): Throwa
   return try {
     pumpEventsAndWaitForFuture(future, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     throw RuntimeException("Expected ExecutionException from future, got value instead")
-  }
-  catch (e: ExecutionException) {
+  } catch (e: ExecutionException) {
     e
-  }
-  catch (t: Throwable) {
+  } catch (t: Throwable) {
     throw RuntimeException("Expected ExecutionException from future, got Throwable instead", t)
   }
 }
@@ -52,11 +50,9 @@ fun <V> pumpEventsAndWaitForFutureCancellation(future: ListenableFuture<V>): Can
   return try {
     pumpEventsAndWaitForFuture(future, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     throw RuntimeException("Expected CancellationException from future, got value instead")
-  }
-  catch (e: CancellationException) {
+  } catch (e: CancellationException) {
     e
-  }
-  catch (t: Throwable) {
+  } catch (t: Throwable) {
     throw RuntimeException("Expected CancellationException from future, got Throwable instead", t)
   }
 }

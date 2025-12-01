@@ -37,8 +37,8 @@ private val GOOGLE_FOLDER = "$MAVEN_REPO/com/google/android/"
 /**
  * Adds a dependency from prebuilts to an existing test fixture.
  *
- * The resources from the library are added to the resource manager,
- * and the classes from the library are added to the psi.
+ * The resources from the library are added to the resource manager, and the classes from the
+ * library are added to the psi.
  */
 object Dependencies {
 
@@ -46,10 +46,10 @@ object Dependencies {
    * Add the [dependencyNames] to the specified [fixture].
    *
    * Example of [dependencyNames]:
-   *  - "appcompat-v7" for the legacy appcompat library
-   *  - "appcompat" for the androidx appcompat library
+   * - "appcompat-v7" for the legacy appcompat library
+   * - "appcompat" for the androidx appcompat library
    *
-   *  The name specified must be a folder in either [ANDROIDX_FOLDER] or [LEGACY_FOLDER].
+   *   The name specified must be a folder in either [ANDROIDX_FOLDER] or [LEGACY_FOLDER].
    */
   fun add(fixture: CodeInsightTestFixture, vararg dependencyNames: String): Map<String, Version> {
     val loader = DependencyLoader(fixture)
@@ -83,16 +83,19 @@ object Dependencies {
     // ConstraintLayout is added in a unique way in prebuilts/tools
     private fun map(original: File): File =
       when (original.name) {
-        "constraint" -> original.resolve("constraint-layout")      // legacy
+        "constraint" -> original.resolve("constraint-layout") // legacy
         "constraintlayout" -> original.resolve("constraintlayout") // androidx
         else -> original
       }
 
     // TODO(b/135483675): Read the pom file and load all transitive dependencies as well.
-    // TODO: Also update the API above such that Androidx only will have to specify the artifactId. Not: "appcompat/appcompat"
+    // TODO: Also update the API above such that Androidx only will have to specify the artifactId.
+    // Not: "appcompat/appcompat"
     private fun loadLatestVersion(folder: File): Version {
       val name = folder.name
-      val version = folder.list()?.maxOfOrNull { Version.parse(it) } ?: error("No versions found in folder: ${folder.path}")
+      val version =
+        folder.list()?.maxOfOrNull { Version.parse(it) }
+          ?: error("No versions found in folder: ${folder.path}")
       val versionFolder = File(folder, version.toString())
       val aarFile = File(versionFolder, "$name-$version.aar")
       val aarDir = FileUtil.createTempDirectory(name, "_exploded")
@@ -101,9 +104,16 @@ object Dependencies {
       val classesJar = aarDir.resolve(SdkConstants.FN_CLASSES_JAR)
       val jarDir = FileUtil.createTempDirectory(name, "_exploded_jar")
       ZipUtil.extract(classesJar, jarDir, null)
-      val classesRoots = listOfNotNull(resDir.toVirtualFile(refresh = true), jarDir.toVirtualFile(refresh = true))
-      val library = PsiTestUtil.addProjectLibrary(fixture.module, "$name.aar", classesRoots, emptyList())
-      ModuleRootModificationUtil.addDependency(fixture.module, library, DependencyScope.PROVIDED, true)
+      val classesRoots =
+        listOfNotNull(resDir.toVirtualFile(refresh = true), jarDir.toVirtualFile(refresh = true))
+      val library =
+        PsiTestUtil.addProjectLibrary(fixture.module, "$name.aar", classesRoots, emptyList())
+      ModuleRootModificationUtil.addDependency(
+        fixture.module,
+        library,
+        DependencyScope.PROVIDED,
+        true,
+      )
       return version
     }
   }

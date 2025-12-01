@@ -52,7 +52,9 @@ class AndroidGradleProjectRule(
   internal val agpVersionSoftwareEnvironment: AgpVersionSoftwareEnvironment =
     AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
 ) : NamedExternalResource() {
-  constructor(agpVersion : AgpVersionSoftwareEnvironment): this(agpVersionSoftwareEnvironment = agpVersion)
+  constructor(
+    agpVersion: AgpVersionSoftwareEnvironment
+  ) : this(agpVersionSoftwareEnvironment = agpVersion)
 
   /**
    * This rule is a thin wrapper around [AndroidGradleTestCase], which we delegate to to handle any
@@ -62,7 +64,8 @@ class AndroidGradleProjectRule(
   @Ignore(
     "TestCase used here for its internal logic, not to run tests. Tests will be run by the class that uses this rule."
   )
-  private inner class DelegateGradleTestCase : AndroidGradleTestCase(agpVersionSoftwareEnvironment, workspaceRelativeTestDataPath) {
+  private inner class DelegateGradleTestCase :
+    AndroidGradleTestCase(agpVersionSoftwareEnvironment, workspaceRelativeTestDataPath) {
     val fixture: CodeInsightTestFixture
       get() = myFixture
 
@@ -76,9 +79,9 @@ class AndroidGradleProjectRule(
       return AndroidGradleTests.invokeGradleTasks(project, timeoutMillis, *tasks)
     }
 
-    fun <T: GradleBuildResult> invokeGradle(
+    fun <T : GradleBuildResult> invokeGradle(
       project: Project,
-      invocation: Function<GradleBuildInvoker, ListenableFuture<T>?>
+      invocation: Function<GradleBuildInvoker, ListenableFuture<T>?>,
     ): T {
       return AndroidGradleTests.invokeGradle(project, invocation)
     }
@@ -99,7 +102,8 @@ class AndroidGradleProjectRule(
     findGradleModule(gradlePath)?.getMainModule()?.androidFacet ?: gradleModuleNotFound(gradlePath)
 
   fun androidTestAndroidFacet(gradlePath: String): AndroidFacet =
-    findGradleModule(gradlePath)?.getAndroidTestModule()?.androidFacet ?: gradleModuleNotFound(gradlePath)
+    findGradleModule(gradlePath)?.getAndroidTestModule()?.androidFacet
+      ?: gradleModuleNotFound(gradlePath)
 
   fun gradleModule(gradlePath: String): Module =
     findGradleModule(gradlePath) ?: gradleModuleNotFound(gradlePath)
@@ -142,8 +146,8 @@ class AndroidGradleProjectRule(
 
   /**
    * Triggers loading the target Android Gradle project. Be sure to call [fixture]'s
-   * [CodeInsightTestFixture.setTestDataPath] method before calling this method.
-   * Project may be synced for test purposes
+   * [CodeInsightTestFixture.setTestDataPath] method before calling this method. Project may be
+   * synced for test purposes
    *
    * @param agpVersion If specified, which AGP software environment version will be used.
    * @param ndkVersion If specified, which NDK version will be used.
@@ -167,7 +171,12 @@ class AndroidGradleProjectRule(
     GradleProjectImporter.withAfterCreate(afterCreate = ::afterCreate) {
       if (preLoad != null) {
         val rootFile =
-          delegateTestCase.prepareProjectForImport(projectPath, resolvedAgpVersion, ndkVersion, true)
+          delegateTestCase.prepareProjectForImport(
+            projectPath,
+            resolvedAgpVersion,
+            ndkVersion,
+            true,
+          )
 
         preLoad(rootFile)
         delegateTestCase.importProject(resolvedAgpVersion.jdkVersion)
@@ -199,7 +208,9 @@ class AndroidGradleProjectRule(
     return delegateTestCase.invokeGradleTasks(project, timeoutMillis, *tasks)
   }
 
-  fun <T: GradleBuildResult> invokeGradle(invocation: Function<GradleBuildInvoker, ListenableFuture<T>?>): T {
+  fun <T : GradleBuildResult> invokeGradle(
+    invocation: Function<GradleBuildInvoker, ListenableFuture<T>?>
+  ): T {
     return delegateTestCase.invokeGradle(project, invocation)
   }
 
@@ -223,7 +234,7 @@ class EdtAndroidGradleProjectRule(private val projectRule: AndroidGradleProjectR
     projectPath: String,
     agpVersion: AgpVersionSoftwareEnvironment = projectRule.agpVersionSoftwareEnvironment,
     ndkVersion: String? = null,
-    preLoad: ((File) -> Unit)? = null
+    preLoad: ((File) -> Unit)? = null,
   ) = projectRule.loadProject(projectPath, agpVersion, ndkVersion, preLoad)
 }
 

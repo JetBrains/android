@@ -65,6 +65,9 @@ import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl
+import java.io.File
+import java.time.Clock
+import java.util.concurrent.TimeoutException
 import org.jetbrains.android.AndroidTempDirTestFixture
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
@@ -74,11 +77,8 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.junit.runner.Description
-import org.mockito.Mockito
-import java.io.File
-import java.time.Clock
-import java.util.concurrent.TimeoutException
 import org.junit.runners.model.Statement
+import org.mockito.Mockito
 
 /**
  * Rule that provides access to a [Project] containing one module configured with the Android facet.
@@ -288,11 +288,10 @@ interface AndroidProjectRule : TestRule {
 
     /**
      * The rule this produces is a [IntegrationTestEnvironment] which additionally propagates the
-     * presence of an applicable [RunsInEdt] annotation (on the test class or method) to the
-     * call to [openPreparedProject], so that if the annotation is applied, the action on opening
-     * will be run in the EDT.  Note that this is different from the usual [RunsInEdt] behavior
-     * implemented by [EdtRule], and that opening a prepared project is incompatible with running
-     * on the EDT.
+     * presence of an applicable [RunsInEdt] annotation (on the test class or method) to the call to
+     * [openPreparedProject], so that if the annotation is applied, the action on opening will be
+     * run in the EDT. Note that this is different from the usual [RunsInEdt] behavior implemented
+     * by [EdtRule], and that opening a prepared project is incompatible with running on the EDT.
      */
     @JvmStatic
     @JvmOverloads
@@ -301,14 +300,16 @@ interface AndroidProjectRule : TestRule {
     ): IntegrationTestEnvironmentRule {
       val projectRule = withAndroidModels(androidPlatformVersion = androidPlatformVersion)
       var runOpenBodyOnEdt: Boolean = false
-      val integrationTestEdtRule = object : TestRule {
-        override fun apply(base: Statement, description: Description): Statement {
-          runOpenBodyOnEdt =
-            null != (description.getAnnotation(RunsInEdt::class.java)
-                     ?: description.testClass.getAnnotation(RunsInEdt::class.java))
-          return base;
+      val integrationTestEdtRule =
+        object : TestRule {
+          override fun apply(base: Statement, description: Description): Statement {
+            runOpenBodyOnEdt =
+              null !=
+                (description.getAnnotation(RunsInEdt::class.java)
+                  ?: description.testClass.getAnnotation(RunsInEdt::class.java))
+            return base
+          }
         }
-      }
       val wrappedRules: TestRule = RuleChain.outerRule(projectRule).around(integrationTestEdtRule)
       return object : IntegrationTestEnvironmentRule, TestRule by wrappedRules {
         override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
@@ -338,7 +339,7 @@ interface AndroidProjectRule : TestRule {
 
     private fun internalTestProject(
       testProjectDefinition: TestProjectDefinition,
-      syncReady: Boolean
+      syncReady: Boolean,
     ): Typed<JavaCodeInsightTestFixture, TestProjectTestHelpers> {
       val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = true)
       val fixtureRule = TestProjectFixtureRuleImpl(testProjectDefinition, syncReady)
@@ -349,17 +350,17 @@ interface AndroidProjectRule : TestRule {
         projectEnvironmentRule,
         edtRule = EdtRule(),
         tools =
-        object : TestProjectTestHelpers {
-          override val projectRoot: File
-            get() = fixtureRule.projectRoot
+          object : TestProjectTestHelpers {
+            override val projectRoot: File
+              get() = fixtureRule.projectRoot
 
-          override fun selectModule(module: Module) {
-            fixtureRule.selectModule(module)
-          }
-        },
+            override fun selectModule(module: Module) {
+              fixtureRule.selectModule(module)
+            }
+          },
       )
     }
-}
+  }
 
   fun <T : Any> replaceProjectService(serviceType: Class<T>, newServiceInstance: T) {
     project.replaceService(serviceType, newServiceInstance, testRootDisposable)

@@ -18,9 +18,9 @@ package com.android.tools.asdriver.tests
 import java.io.IOException
 
 /**
- * Project wrapper similar to [AndroidProject], except that it does not try to modify the
- * target project to inject Gradle files and properties. Suitable for use with existing
- * APK projects that don't use Gradle.
+ * Project wrapper similar to [AndroidProject], except that it does not try to modify the target
+ * project to inject Gradle files and properties. Suitable for use with existing APK projects that
+ * don't use Gradle.
  */
 class AndroidProjectWithoutGradle(path: String) : AndroidProject(path) {
   @Throws(IOException::class)

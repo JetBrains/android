@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("NoSecurityManagerRenderService")
+
 package com.android.tools.idea.rendering
 
 import com.android.tools.rendering.RenderService

@@ -16,9 +16,7 @@
 package com.android.tools.asdriver.tests
 
 import com.android.testutils.TestUtils
-
 import com.google.devtools.build.runfiles.Runfiles
-
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -26,10 +24,9 @@ class Workspace {
 
   companion object {
 
-    /**
-     * Returns the runfile path to a given external workspace.
-     */
-    @JvmStatic fun getRoot(name: String): Path {
+    /** Returns the runfile path to a given external workspace. */
+    @JvmStatic
+    fun getRoot(name: String): Path {
       if (TestUtils.runningFromBazel()) {
         val runfiles = Runfiles.preload().withSourceRepository("")
         return Paths.get(runfiles.rlocation(name + "/"))
@@ -37,7 +34,5 @@ class Workspace {
 
       return TestUtils.getWorkspaceRoot(name)
     }
-
   }
-
 }

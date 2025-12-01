@@ -45,9 +45,14 @@ open class AdtTestProjectDescriptor(
 ) : DefaultLightProjectDescriptor() {
 
   private val jdk by lazy { IdeaTestUtil.createMockJdk("java 1.7", jdkPath.toString()) }
+
   override fun getSdk(): Sdk = jdk
 
-  final override fun configureModule(module: Module, model: ModifiableRootModel, contentEntry: ContentEntry) {
+  final override fun configureModule(
+    module: Module,
+    model: ModifiableRootModel,
+    contentEntry: ContentEntry,
+  ) {
     super.configureModule(module, model, contentEntry)
     this.configureModule(module, model)
   }
@@ -59,9 +64,10 @@ open class AdtTestProjectDescriptor(
   }
 
   fun configureModule(module: Module) {
-    ModuleRootManager.getInstance(module).modifiableModel.apply {
-      configureModule(module, this)
-    }.commit()
+    ModuleRootManager.getInstance(module)
+      .modifiableModel
+      .apply { configureModule(module, this) }
+      .commit()
   }
 
   open fun configureFixture(fixtureBuilder: JavaModuleFixtureBuilder<*>) {
@@ -82,7 +88,7 @@ open class AdtTestProjectDescriptor(
 class KotlinAdtTestProjectDescriptor(
   javaLanguageVersion: LanguageLevel = LanguageLevel.HIGHEST,
   jdkPath: Path = TestUtils.getMockJdk(),
-  private val libraryFilesProvider: () -> Map<OrderRootType, Collection<File>>
+  private val libraryFilesProvider: () -> Map<OrderRootType, Collection<File>>,
 ) : AdtTestProjectDescriptor(javaLanguageVersion, jdkPath) {
   private val libraryFiles by lazy {
     libraryFilesProvider().also {
@@ -99,15 +105,18 @@ class KotlinAdtTestProjectDescriptor(
     super.configureModule(module, model)
 
     if (libraryFiles.isNotEmpty()) {
-      model.moduleLibraryTable.modifiableModel.apply {
-        createLibrary(LIBRARY_NAME).modifiableModel.apply {
-          for ((rootType, files) in libraryFiles) {
-            files.forEach {
-              addRoot(VfsUtil.getUrlForLibraryRoot(it), rootType)
+      model.moduleLibraryTable.modifiableModel
+        .apply {
+          createLibrary(LIBRARY_NAME)
+            .modifiableModel
+            .apply {
+              for ((rootType, files) in libraryFiles) {
+                files.forEach { addRoot(VfsUtil.getUrlForLibraryRoot(it), rootType) }
+              }
             }
-          }
-        }.commit()
-      }.commit()
+            .commit()
+        }
+        .commit()
     }
   }
 
@@ -117,9 +126,7 @@ class KotlinAdtTestProjectDescriptor(
     if (libraryFiles.isNotEmpty()) {
       fixtureBuilder.addLibrary(
         LIBRARY_NAME,
-        libraryFiles.mapValues { (_, files) ->
-          files.map { it.toString() }.toTypedArray()
-        }
+        libraryFiles.mapValues { (_, files) -> files.map { it.toString() }.toTypedArray() },
       )
     }
   }
@@ -140,8 +147,7 @@ object AdtTestProjectDescriptors {
   // project-reuse logic in LightPlatformTestCase.doSetup.
 
   /** Creates a project descriptor for Java-only projects. */
-  @JvmStatic
-  fun java() = AdtTestProjectDescriptor()
+  @JvmStatic fun java() = AdtTestProjectDescriptor()
 
   /** Creates a project descriptor for Kotlin projects, with a binary stdlib. */
   @JvmStatic
@@ -158,21 +164,18 @@ object AdtTestProjectDescriptors {
   @JvmStatic
   fun kotlinWithStdlibSources() = KotlinAdtTestProjectDescriptor {
     mapOf(
-      OrderRootType.CLASSES to listOf(
-        AdtTestKotlinArtifacts.kotlinStdlib,
-      ),
-      OrderRootType.SOURCES to listOf(
-        AdtTestKotlinArtifacts.kotlinStdlibSources,
-        AdtTestKotlinArtifacts.kotlinStdlibCommonSources,
-      )
+      OrderRootType.CLASSES to listOf(AdtTestKotlinArtifacts.kotlinStdlib),
+      OrderRootType.SOURCES to
+        listOf(
+          AdtTestKotlinArtifacts.kotlinStdlibSources,
+          AdtTestKotlinArtifacts.kotlinStdlibCommonSources,
+        ),
     )
   }
 
-  /**
-   * Creates a sensible default project descriptor.
-   */
+  /** Creates a sensible default project descriptor. */
   @JvmStatic
-  @JvmName("defaultDescriptor")  // default is a reserved word in Java
+  @JvmName("defaultDescriptor") // default is a reserved word in Java
   fun default(): AdtTestProjectDescriptor {
     // The java.awt.GraphicsEnvironment.LocalGE.createGE function depends on `java.awt.headless` being set to `true`.
     // Therefore, we need to load TestApplicationManager here, since initialization of
