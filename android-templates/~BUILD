@@ -26,7 +26,7 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository",
-        "//tools/base/build-system:studio.android.sdktools.manifest-merger",
+        "//tools/base/build-system/manifest-merger:studio.android.sdktools.manifest-merger",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
     ],
 )

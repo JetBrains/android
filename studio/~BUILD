@@ -354,7 +354,7 @@ studio_plugin(
             "//tools/adt/idea/lint:intellij.lint",
         ],
         "manifest-merger.jar": [
-            "//tools/base/build-system:studio.android.sdktools.manifest-merger",
+            "//tools/base/build-system/manifest-merger:studio.android.sdktools.manifest-merger",
         ],
         "pixelprobe.jar": [
             "//tools/base/chunkio:studio.android.sdktools.chunkio",
