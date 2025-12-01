@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.insights.events.actions
 
-import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.NOTE1
 import com.android.tools.idea.insights.NoteId
+import com.android.tools.idea.insights.client.FetchSource
 import com.android.tools.idea.insights.events.actions.Action.AddNote
 import com.android.tools.idea.insights.events.actions.Action.CancelFetches
 import com.android.tools.idea.insights.events.actions.Action.CloseIssue

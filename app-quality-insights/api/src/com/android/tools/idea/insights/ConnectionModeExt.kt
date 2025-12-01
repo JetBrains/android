@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,11 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.insights.model.common.DataPoint
-import com.android.tools.idea.insights.model.common.StatsGroup
-import com.android.tools.idea.insights.model.issue.IssueStats
+import com.android.tools.idea.insights.events.EnterOfflineMode
+import com.android.tools.idea.insights.events.EnterOnlineMode
+import com.android.tools.idea.insights.model.connection.ConnectionMode
 
-fun <T : Number, R : Number> IssueStats<T>.map(mapper: (T) -> R) =
-  IssueStats(
-    topValue,
-    groups.map { group ->
-      StatsGroup(
-        group.groupName,
-        mapper(group.percentage),
-        group.breakdown.map { DataPoint(it.name, mapper(it.percentage)) },
-      )
-    },
-  )
+fun ConnectionMode.isOfflineMode() = this == ConnectionMode.OFFLINE
+
+fun ConnectionMode.toEvent() =
+  if (this == ConnectionMode.ONLINE) EnterOnlineMode else EnterOfflineMode

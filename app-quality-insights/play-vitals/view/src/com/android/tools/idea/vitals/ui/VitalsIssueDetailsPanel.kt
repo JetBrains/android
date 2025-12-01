@@ -22,12 +22,12 @@ import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.gemini.GeminiPluginApi.RequestSource.PLAY_VITALS
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.connection.Connection
+import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version

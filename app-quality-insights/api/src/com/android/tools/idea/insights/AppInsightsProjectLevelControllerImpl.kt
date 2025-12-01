@@ -52,12 +52,14 @@ import com.android.tools.idea.insights.events.actions.ActionContext
 import com.android.tools.idea.insights.events.actions.ActionDispatcher
 import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.model.connection.Connection
+import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version
 import com.android.tools.idea.insights.model.issue.AppInsightsIssue
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueState
+import com.android.tools.idea.insights.model.issue.IssueVariant
 import com.android.tools.idea.insights.model.issue.SignalType
 import com.android.tools.idea.insights.model.issue.VisibilityType
 import com.android.tools.idea.insights.persistence.AppInsightsSettings

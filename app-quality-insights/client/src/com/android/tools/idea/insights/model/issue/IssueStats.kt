@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights
+package com.android.tools.idea.insights.model.issue
 
-import com.android.tools.idea.insights.model.common.DataPoint
 import com.android.tools.idea.insights.model.common.StatsGroup
-import com.android.tools.idea.insights.model.issue.IssueStats
 
-fun <T : Number, R : Number> IssueStats<T>.map(mapper: (T) -> R) =
-  IssueStats(
-    topValue,
-    groups.map { group ->
-      StatsGroup(
-        group.groupName,
-        mapper(group.percentage),
-        group.breakdown.map { DataPoint(it.name, mapper(it.percentage)) },
-      )
-    },
-  )
+/** Stats of an [Issue]. */
+data class IssueStats<T : Number>(val topValue: String?, val groups: List<StatsGroup<T>>) {
+  fun isEmpty() = topValue == null && groups.isEmpty()
+}

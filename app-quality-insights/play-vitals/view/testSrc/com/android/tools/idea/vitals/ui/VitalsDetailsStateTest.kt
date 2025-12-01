@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.vitals.ui
 
-import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.TimeIntervalFilter
+import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version

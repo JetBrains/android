@@ -20,6 +20,8 @@ import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.client.Permission
+import com.android.tools.idea.insights.model.common.DataPoint
+import com.android.tools.idea.insights.model.common.StatsGroup
 import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.event.CustomKey
 import com.android.tools.idea.insights.model.event.Device
@@ -29,9 +31,12 @@ import com.android.tools.idea.insights.model.event.Log
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version
 import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.DetailedIssueStats
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueDetails
 import com.android.tools.idea.insights.model.issue.IssueId
+import com.android.tools.idea.insights.model.issue.IssueStats
+import com.android.tools.idea.insights.model.issue.IssueVariant
 import com.android.tools.idea.insights.model.issue.SignalType
 import com.android.tools.idea.insights.model.stacktrace.Blames
 import com.android.tools.idea.insights.model.stacktrace.Caption

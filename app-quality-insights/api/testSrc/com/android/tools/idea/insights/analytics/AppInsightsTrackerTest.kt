@@ -18,7 +18,6 @@ package com.android.tools.idea.insights.analytics
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
-import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DEFAULT_FETCHED_DEVICES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
@@ -44,6 +43,7 @@ import com.android.tools.idea.insights.events.AiInsightFetched
 import com.android.tools.idea.insights.events.EventsChanged
 import com.android.tools.idea.insights.events.SelectedIssueChanged
 import com.android.tools.idea.insights.model.common.WithCount
+import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventPage
