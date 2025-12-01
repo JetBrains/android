@@ -33,6 +33,13 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.AnActionLink
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.awt.EventQueue.invokeLater
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import javax.swing.JLabel
+import javax.swing.JPanel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -42,78 +49,77 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.awt.EventQueue.invokeLater
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import javax.swing.JLabel
-import javax.swing.JPanel
 
 @RunsInEdt
 class InformationPopupImplTest {
   private val projectRule = ProjectRule()
   private val popupRule = JBPopupRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, popupRule)
+  @get:Rule val rule = RuleChain(projectRule, popupRule)
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Test
   fun testPopup() {
-    val popup = InformationPopupImpl(
-      "Title",
-      "A Description",
-      listOf(),
-      listOf()
+    val popup = InformationPopupImpl("Title", "A Description", listOf(), listOf())
+
+    val fakeUi =
+      FakeUi(
+        JPanel().apply {
+          layout = BorderLayout()
+          size = Dimension(200, 100)
+          add(popup.popupComponent, BorderLayout.CENTER)
+        },
+        1.0,
+        true,
+      )
+
+    assertTrue(
+      fakeUi.findComponent(JLabel::class.java) { it.text == "<html>Title</html>" }!!.isVisible
     )
-
-    val fakeUi = FakeUi(JPanel().apply {
-      layout = BorderLayout()
-      size = Dimension(200, 100)
-      add(popup.popupComponent, BorderLayout.CENTER)
-    }, 1.0, true)
-
-    assertTrue(fakeUi.findComponent(JLabel::class.java) {
-      it.text == "<html>Title</html>"
-    }!!.isVisible)
-    assertTrue(fakeUi.findComponent(JLabel::class.java) {
-      it.text == "<html>A Description</html>"
-    }!!.isVisible)
+    assertTrue(
+      fakeUi
+        .findComponent(JLabel::class.java) { it.text == "<html>A Description</html>" }!!
+        .isVisible
+    )
     assertTrue(fakeUi.findAllComponents(ActionButton::class.java).isEmpty())
   }
 
   @Test
   fun testPopupWithMenu() {
-    val popup = InformationPopupImpl(
-      "Title",
-      "A Description",
-      listOf(
-        object: AnAction("Action") {
-          override fun actionPerformed(e: AnActionEvent) {
+    val popup =
+      InformationPopupImpl(
+        "Title",
+        "A Description",
+        listOf(
+          object : AnAction("Action") {
+            override fun actionPerformed(e: AnActionEvent) {}
           }
-        }
-      ),
-      listOf()
+        ),
+        listOf(),
+      )
+
+    val fakeUi =
+      FakeUi(
+        JPanel().apply {
+          layout = BorderLayout()
+          size = Dimension(200, 100)
+          add(popup.popupComponent, BorderLayout.CENTER)
+        },
+        1.0,
+        true,
+      )
+
+    assertTrue(
+      fakeUi.findComponent(JLabel::class.java) { it.text == "<html>Title</html>" }!!.isVisible
     )
-
-    val fakeUi = FakeUi(JPanel().apply {
-      layout = BorderLayout()
-      size = Dimension(200, 100)
-      add(popup.popupComponent, BorderLayout.CENTER)
-    }, 1.0, true)
-
-    assertTrue(fakeUi.findComponent(JLabel::class.java) {
-      it.text == "<html>Title</html>"
-    }!!.isVisible)
-    assertTrue(fakeUi.findComponent(JLabel::class.java) {
-      it.text == "<html>A Description</html>"
-    }!!.isVisible)
+    assertTrue(
+      fakeUi
+        .findComponent(JLabel::class.java) { it.text == "<html>A Description</html>" }!!
+        .isVisible
+    )
 
     // This must have the overflow icon
     val menuButton = fakeUi.findComponent(ActionButton::class.java)!!
@@ -123,65 +129,87 @@ class InformationPopupImplTest {
 
   @Test
   fun testPopupWithLinks() {
-    val popup = InformationPopupImpl(
-      "Title",
-      "A Description",
-      listOf(),
-      listOf(
-        AnActionLink("Action 1", object : AnAction() {
-          override fun actionPerformed(e: AnActionEvent) {
-          }
-        }),
-        AnActionLink("Action 2", object : AnAction() {
-          override fun actionPerformed(e: AnActionEvent) {
-          }
-        })
+    val popup =
+      InformationPopupImpl(
+        "Title",
+        "A Description",
+        listOf(),
+        listOf(
+          AnActionLink(
+            "Action 1",
+            object : AnAction() {
+              override fun actionPerformed(e: AnActionEvent) {}
+            },
+          ),
+          AnActionLink(
+            "Action 2",
+            object : AnAction() {
+              override fun actionPerformed(e: AnActionEvent) {}
+            },
+          ),
+        ),
       )
-    )
 
-    val fakeUi = FakeUi(JPanel().apply {
-      layout = BorderLayout()
-      size = Dimension(200, 100)
-      add(popup.popupComponent, BorderLayout.CENTER)
-    }, 1.0, true)
+    val fakeUi =
+      FakeUi(
+        JPanel().apply {
+          layout = BorderLayout()
+          size = Dimension(200, 100)
+          add(popup.popupComponent, BorderLayout.CENTER)
+        },
+        1.0,
+        true,
+      )
 
     assertEquals(
       "Action 1, Action 2",
-      fakeUi.findAllComponents<AnActionLink>().joinToString(", ") { it.text }
+      fakeUi.findAllComponents<AnActionLink>().joinToString(", ") { it.text },
     )
   }
 
   @Test
   fun testPopupWithPopupLinks() {
-    val popup = InformationPopupImpl(
-      "Title",
-      "A Description",
-      listOf(),
-      listOf(
-        AnActionLink("Action 1", object : AnAction() {
-          override fun actionPerformed(e: AnActionEvent) {}
-        }),
-        object: AnActionLink("Action 2", object : AnAction() {
-          override fun actionPerformed(e: AnActionEvent) {}
-        }) {}.apply { putUserData(POPUP_ACTION, true) }
+    val popup =
+      InformationPopupImpl(
+        "Title",
+        "A Description",
+        listOf(),
+        listOf(
+          AnActionLink(
+            "Action 1",
+            object : AnAction() {
+              override fun actionPerformed(e: AnActionEvent) {}
+            },
+          ),
+          object :
+              AnActionLink(
+                "Action 2",
+                object : AnAction() {
+                  override fun actionPerformed(e: AnActionEvent) {}
+                },
+              ) {}
+            .apply { putUserData(POPUP_ACTION, true) },
+        ),
       )
-    )
 
-    val parent = JPanel().apply {
-      layout = BorderLayout()
-      size = Dimension(200, 100)
-      add(popup.popupComponent, BorderLayout.CENTER)
-    }
+    val parent =
+      JPanel().apply {
+        layout = BorderLayout()
+        size = Dimension(200, 100)
+        add(popup.popupComponent, BorderLayout.CENTER)
+      }
 
     val fakeUi = FakeUi(parent, 1.0, true)
-    popup.showPopup(disposableRule.disposable , parent)
+    popup.showPopup(disposableRule.disposable, parent)
 
     assertEquals(
       "Action 1, Action 2",
-      fakeUi.findAllComponents<AnActionLink>().joinToString(", ") { it.text }
+      fakeUi.findAllComponents<AnActionLink>().joinToString(", ") { it.text },
     )
 
-    fakeUi.clickOn(fakeUi.findAllComponents<AnActionLink>().find { link -> link.text == "Action 2" }!!)
+    fakeUi.clickOn(
+      fakeUi.findAllComponents<AnActionLink>().find { link -> link.text == "Action 2" }!!
+    )
 
     val latch = CountDownLatch(1)
     val visible = Ref<Boolean>(popup.isVisible())
@@ -199,30 +227,34 @@ class InformationPopupImplTest {
   @Test
   fun testPopupWithAdditionalActionsDisplaysAdditionalActions() {
     val spyActionManager = spy(ActionManager.getInstance())
-    ApplicationManager.getApplication().replaceService(
-      ActionManager::class.java, spyActionManager, disposableRule.disposable
-    )
+    ApplicationManager.getApplication()
+      .replaceService(ActionManager::class.java, spyActionManager, disposableRule.disposable)
 
-    val popup = InformationPopupImpl(
-      "Title",
-      "A Description",
-      listOf(
-        object : AnAction("Action 1") {
-          override fun actionPerformed(e: AnActionEvent) {
-          }
+    val popup =
+      InformationPopupImpl(
+        "Title",
+        "A Description",
+        listOf(
+          object : AnAction("Action 1") {
+            override fun actionPerformed(e: AnActionEvent) {}
+          },
+          object : AnAction("Action 2") {
+            override fun actionPerformed(e: AnActionEvent) {}
+          },
+        ),
+        listOf(),
+      )
+
+    val fakeUi =
+      FakeUi(
+        JPanel().apply {
+          layout = BorderLayout()
+          size = Dimension(200, 100)
+          add(popup.popupComponent, BorderLayout.CENTER)
         },
-        object : AnAction("Action 2") {
-          override fun actionPerformed(e: AnActionEvent) {
-          }
-        }),
-      listOf(),
-    )
-
-    val fakeUi = FakeUi(JPanel().apply {
-      layout = BorderLayout()
-      size = Dimension(200, 100)
-      add(popup.popupComponent, BorderLayout.CENTER)
-    }, 1.0, true)
+        1.0,
+        true,
+      )
 
     fakeUi.updateToolbars()
 
@@ -235,7 +267,7 @@ class InformationPopupImplTest {
     val additionalActionsGroup = captor.value
     assertEquals(
       "Action 1, Action 2",
-      additionalActionsGroup.getChildren(null).joinToString(", ") { it.templateText }
+      additionalActionsGroup.getChildren(null).joinToString(", ") { it.templateText },
     )
     assertTrue(additionalActionsGroup.isPopup)
     assertTrue(additionalActionsGroup.templatePresentation.isVisible)
@@ -243,18 +275,18 @@ class InformationPopupImplTest {
 
   @Test
   fun testMouseFromOutsideThePopupAndHoveringIntoPopup() {
-    val popup = InformationPopupImpl(
-      "Title",
-      "A Description",
-      listOf(),
-      listOf()
-    )
+    val popup = InformationPopupImpl("Title", "A Description", listOf(), listOf())
 
-    val fakeUi = FakeUi(JPanel().apply {
-      layout = BorderLayout()
-      size = Dimension(200, 100)
-      add(popup.popupComponent, BorderLayout.CENTER)
-    }, 1.0, true)
+    val fakeUi =
+      FakeUi(
+        JPanel().apply {
+          layout = BorderLayout()
+          size = Dimension(200, 100)
+          add(popup.popupComponent, BorderLayout.CENTER)
+        },
+        1.0,
+        true,
+      )
 
     assertFalse(popup.hasEnteredPopup)
 
@@ -263,24 +295,27 @@ class InformationPopupImplTest {
     assertFalse(popup.hasEnteredPopup)
 
     // Move mouse into the popup
-    fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width / 2, popup.popupComponent.y + popup.popupComponent.height / 2)
+    fakeUi.mouse.moveTo(
+      popup.popupComponent.x + popup.popupComponent.width / 2,
+      popup.popupComponent.y + popup.popupComponent.height / 2,
+    )
     assertTrue(popup.hasEnteredPopup)
   }
 
   @Test
   fun testHoverIntoAndOutsidePopup() {
-    val popup = InformationPopupImpl(
-      "Title",
-      "A Description",
-      listOf(),
-      listOf()
-    )
+    val popup = InformationPopupImpl("Title", "A Description", listOf(), listOf())
 
-    val fakeUi = FakeUi(JPanel().apply {
-      layout = BorderLayout()
-      size = Dimension(200, 100)
-      add(popup.popupComponent, BorderLayout.CENTER)
-    }, 1.0, true)
+    val fakeUi =
+      FakeUi(
+        JPanel().apply {
+          layout = BorderLayout()
+          size = Dimension(200, 100)
+          add(popup.popupComponent, BorderLayout.CENTER)
+        },
+        1.0,
+        true,
+      )
 
     assertFalse(popup.hasEnteredPopup)
 
@@ -289,7 +324,10 @@ class InformationPopupImplTest {
     assertFalse(popup.hasEnteredPopup)
 
     // Move mouse into the popup
-    fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width / 2, popup.popupComponent.y + popup.popupComponent.height / 2)
+    fakeUi.mouse.moveTo(
+      popup.popupComponent.x + popup.popupComponent.width / 2,
+      popup.popupComponent.y + popup.popupComponent.height / 2,
+    )
     assertTrue(popup.hasEnteredPopup)
 
     // Move back out, popup should be closed
@@ -299,30 +337,31 @@ class InformationPopupImplTest {
 
   @Test
   fun callbackGetsCalledWhenMouseEntersThePopup() {
-    val popup = InformationPopupImpl(
-      "Title",
-      "A Description",
-      listOf(),
-      listOf()
-    )
+    val popup = InformationPopupImpl("Title", "A Description", listOf(), listOf())
 
     var isCallbackCalled = false
-    popup.onMouseEnteredCallback = {
-      isCallbackCalled = true
-    }
+    popup.onMouseEnteredCallback = { isCallbackCalled = true }
 
-    val fakeUi = FakeUi(JPanel().apply {
-      layout = BorderLayout()
-      size = Dimension(200, 100)
-      add(popup.popupComponent, BorderLayout.CENTER)
-    }, 1.0, true)
+    val fakeUi =
+      FakeUi(
+        JPanel().apply {
+          layout = BorderLayout()
+          size = Dimension(200, 100)
+          add(popup.popupComponent, BorderLayout.CENTER)
+        },
+        1.0,
+        true,
+      )
 
     // Move mouse but not inside the popup, callback is not called yet
     fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width * 2, 0)
     assertFalse(isCallbackCalled)
 
     // Move mouse into the popup, callback is fired
-    fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width / 2, popup.popupComponent.y + popup.popupComponent.height / 2)
+    fakeUi.mouse.moveTo(
+      popup.popupComponent.x + popup.popupComponent.width / 2,
+      popup.popupComponent.y + popup.popupComponent.height / 2,
+    )
     assertTrue(isCallbackCalled)
   }
 }

@@ -15,20 +15,19 @@
  */
 package com.android.tools.adtui.toolwindow.splittingtabs.actions
 
-import org.mockito.kotlin.mock
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.DumbAware
 import org.junit.Test
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
 
-/**
- * Tests for [NewTabAction]
- */
+/** Tests for [NewTabAction] */
 class NewTabActionTest {
   @Test
   fun isDumbAware() {
-    assertThat(NewTabAction(textSupplier = { "" }, createNewTab = {})).isInstanceOf(DumbAware::class.java)
+    assertThat(NewTabAction(textSupplier = { "" }, createNewTab = {}))
+      .isInstanceOf(DumbAware::class.java)
   }
 
   @Test

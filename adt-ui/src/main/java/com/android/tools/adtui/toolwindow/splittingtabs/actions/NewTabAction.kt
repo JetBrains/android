@@ -20,8 +20,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import java.util.function.Supplier
 
-internal class NewTabAction(textSupplier: Supplier<String>, private val createNewTab: () -> Unit)
-  : DumbAwareAction(textSupplier, AllIcons.General.Add) {
+internal class NewTabAction(textSupplier: Supplier<String>, private val createNewTab: () -> Unit) :
+  DumbAwareAction(textSupplier, AllIcons.General.Add) {
 
   override fun actionPerformed(e: AnActionEvent) {
     createNewTab()

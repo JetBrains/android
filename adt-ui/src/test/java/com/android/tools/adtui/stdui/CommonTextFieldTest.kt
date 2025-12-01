@@ -25,15 +25,15 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
+import java.awt.KeyboardFocusManager
+import java.awt.event.KeyEvent
+import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.awt.BorderLayout
-import java.awt.KeyboardFocusManager
-import java.awt.event.KeyEvent
-import javax.swing.JPanel
 
 @RunWith(JUnit4::class)
 class CommonTextFieldTest {
@@ -42,8 +42,7 @@ class CommonTextFieldTest {
   private val disposableRule = DisposableRule()
   private val popupRule = JBPopupRule()
 
-  @get:Rule
-  val rule = RuleChain(ApplicationRule(), popupRule, disposableRule)
+  @get:Rule val rule = RuleChain(ApplicationRule(), popupRule, disposableRule)
 
   @Before
   fun setUpFocusManager() {
@@ -159,6 +158,7 @@ class CommonTextFieldTest {
   }
 
   private fun acquireFocus() {
-    (KeyboardFocusManager.getCurrentKeyboardFocusManager() as FakeKeyboardFocusManager).focusOwner = field
+    (KeyboardFocusManager.getCurrentKeyboardFocusManager() as FakeKeyboardFocusManager).focusOwner =
+      field
   }
 }

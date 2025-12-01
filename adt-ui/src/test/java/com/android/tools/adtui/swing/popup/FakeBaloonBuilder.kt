@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.swing.popup
 
-import org.mockito.kotlin.mock
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.intellij.openapi.Disposable
@@ -35,15 +34,14 @@ import java.awt.event.ActionListener
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
+import org.mockito.kotlin.mock
 
-/**
- * A fake [BalloonBuilder] for tests.
- */
+/** A fake [BalloonBuilder] for tests. */
 class FakeBalloonBuilder(
   private val factory: FakeJBPopupFactory,
   private val component: JComponent = JPanel(),
-  private val htmlContent: String = ""
-): BalloonBuilder {
+  private val htmlContent: String = "",
+) : BalloonBuilder {
   private var requestFocus: Boolean = false
 
   override fun setBorderColor(color: Color) = this
@@ -105,23 +103,30 @@ class FakeBalloonBuilder(
 
   override fun setDisposable(anchor: Disposable) = this
 
-  override fun createBalloon() = FakeBalloon(component, htmlContent, requestFocus, factory.disposable).also { factory.addBalloon(it) }
+  override fun createBalloon() =
+    FakeBalloon(component, htmlContent, requestFocus, factory.disposable).also {
+      factory.addBalloon(it)
+    }
 }
 
 class FakeBalloon(
   val component: JComponent,
   val htmlContent: String,
   private val requestFocus: Boolean,
-  parentDisposable: Disposable
-): Balloon {
+  parentDisposable: Disposable,
+) : Balloon {
   var target: Any? = null
     private set
+
   var preferredPosition: Balloon.Position? = null
     private set
+
   var ui: FakeUi? = null
     private set
+
   var isShowing: Boolean = false
     private set
+
   private var originalFocusOwner: Component? = null
   private var isDisposed = false
   private val listeners = mutableListOf<JBPopupListener>()
@@ -166,7 +171,8 @@ class FakeBalloon(
     ui = FakeUi(component, createFakeWindow = true, parentDisposable = this)
     listeners.forEach { it.beforeShown(mock()) }
     if (requestFocus) {
-      val focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager() as? FakeKeyboardFocusManager
+      val focusManager =
+        KeyboardFocusManager.getCurrentKeyboardFocusManager() as? FakeKeyboardFocusManager
       originalFocusOwner = focusManager?.focusOwner
       focusManager?.focusOwner = component
     }
@@ -191,7 +197,8 @@ class FakeBalloon(
 
   override fun hide(ok: Boolean) {
     if (requestFocus) {
-      val focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager() as? FakeKeyboardFocusManager
+      val focusManager =
+        KeyboardFocusManager.getCurrentKeyboardFocusManager() as? FakeKeyboardFocusManager
       focusManager?.focusOwner = originalFocusOwner
     }
 

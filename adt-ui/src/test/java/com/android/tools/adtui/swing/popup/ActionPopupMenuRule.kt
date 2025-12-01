@@ -38,10 +38,8 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 
-/**
- * A rule that overrides [ActionManager] application service to create fake [JPopupMenu]s.
- */
-class ActionPopupMenuRule: ExternalResource() {
+/** A rule that overrides [ActionManager] application service to create fake [JPopupMenu]s. */
+class ActionPopupMenuRule : ExternalResource() {
 
   private val disposable = Disposer.newDisposable()
   private var lastPopup: FakeActionPopupMenu? = null
@@ -56,10 +54,12 @@ class ActionPopupMenuRule: ExternalResource() {
     val actionManager = spy(ActionManager.getInstance())
 
     doAnswer { invocation ->
-      FakeActionPopupMenu(invocation.getArgument(0), invocation.getArgument(1)).also { lastPopup = it }
-    }
-    .whenever(actionManager)
-    .createActionPopupMenu(ArgumentMatchers.anyString(), any())
+        FakeActionPopupMenu(invocation.getArgument(0), invocation.getArgument(1)).also {
+          lastPopup = it
+        }
+      }
+      .whenever(actionManager)
+      .createActionPopupMenu(ArgumentMatchers.anyString(), any())
 
     ApplicationManager.getApplication()
       .replaceService(ActionManager::class.java, actionManager, disposable)
@@ -69,10 +69,8 @@ class ActionPopupMenuRule: ExternalResource() {
     Disposer.dispose(disposable)
   }
 
-  private class FakeActionPopupMenu(
-    private val place: String,
-    private val group: ActionGroup,
-  ) : ActionPopupMenu {
+  private class FakeActionPopupMenu(private val place: String, private val group: ActionGroup) :
+    ActionPopupMenu {
     private var dataProvider: Supplier<out DataContext>? = null
     var popup: FakePopupMenu? = null
 
@@ -100,7 +98,7 @@ class ActionPopupMenuRule: ExternalResource() {
   private class FakePopupMenu(
     private val place: String,
     private val group: ActionGroup,
-    private val dataProvider: Supplier<out DataContext>?
+    private val dataProvider: Supplier<out DataContext>?,
   ) : JPopupMenu(), PlaceProvider {
     private var _visible = false
 
@@ -117,9 +115,7 @@ class ActionPopupMenuRule: ExternalResource() {
       val dataContext = dataProvider?.get() ?: DataManager.getInstance().getDataContext(component)
       val event = createActionEvent(group, dataContext)
       val children = group.getChildren(event).toList()
-      children.forEach {
-        it.update(createActionEvent(it, dataContext))
-      }
+      children.forEach { it.update(createActionEvent(it, dataContext)) }
       lastPopupActions = children
     }
 

@@ -22,9 +22,7 @@ import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.plaf.basic.BasicComboBoxRenderer
 
-/**
- * Default renderer for [CommonComboBox]
- */
+/** Default renderer for [CommonComboBox] */
 open class CommonComboBoxRenderer : BasicComboBoxRenderer() {
 
   override fun getListCellRendererComponent(
@@ -32,14 +30,14 @@ open class CommonComboBoxRenderer : BasicComboBoxRenderer() {
     value: Any?,
     index: Int,
     isSelected: Boolean,
-    cellHasFocus: Boolean
-  ) : Component {
-    val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus) as JComponent
+    cellHasFocus: Boolean,
+  ): Component {
+    val component =
+      super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus) as JComponent
     component.componentOrientation = list.componentOrientation
     if (list.componentOrientation.isLeftToRight) {
       component.border = JBUI.Borders.emptyLeft(padding(index))
-    }
-    else {
+    } else {
       component.border = JBUI.Borders.emptyRight(padding(index))
     }
     return component

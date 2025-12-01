@@ -19,5 +19,5 @@ enum class TestTrackRendererType {
   BOOLEAN,
   BOOLEAN_SELECTABLE,
   STRING,
-  STRING_SELECTABLE
+  STRING_SELECTABLE,
 }

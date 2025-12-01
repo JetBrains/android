@@ -58,14 +58,14 @@ fun rememberColor(
  * `ColorPalette.*` entry), and if that is also missing, it falls back to the hardcoded default.
  */
 private fun retrieveColor(key: String, fallbackKey: String?, default: Color) =
-retrieveColorStrictOrUnspecified(key).takeOrElse {
-  if (fallbackKey != null) {
-    val fallbackColor = retrieveColorStrictOrUnspecified(fallbackKey)
-    if (fallbackColor.isSpecified) return@takeOrElse fallbackColor
-  }
+  retrieveColorStrictOrUnspecified(key).takeOrElse {
+    if (fallbackKey != null) {
+      val fallbackColor = retrieveColorStrictOrUnspecified(fallbackKey)
+      if (fallbackColor.isSpecified) return@takeOrElse fallbackColor
+    }
 
-  default
-}
+    default
+  }
 
 // Differs from Jewel's retrieveColorOrUnspecified in that it uses
 // JBColor.get instead of JBColor.namedColor. The former does not
@@ -86,4 +86,3 @@ private fun retrieveColorStrictOrUnspecified(key: String): Color {
     }
   return color ?: Color.Unspecified
 }
-

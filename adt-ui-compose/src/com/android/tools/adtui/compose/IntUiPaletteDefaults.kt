@@ -16,8 +16,8 @@
 package com.android.tools.adtui.compose
 
 /**
- * The default RGB values of IntelliJ Int UI's color palette. Used as typed fallbacks for
- * theme lookups.
+ * The default RGB values of IntelliJ Int UI's color palette. Used as typed fallbacks for theme
+ * lookups.
  */
 @Suppress("unused") // Just a reference, we don't need to actually use all these
 object IntUiPaletteDefaults {

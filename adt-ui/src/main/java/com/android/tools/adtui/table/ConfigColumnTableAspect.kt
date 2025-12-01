@@ -53,7 +53,11 @@ import javax.swing.table.TableColumn
  * ```
  */
 class ConfigColumnTableAspect
-private constructor(private val project: Project, private val table: JTable, private val config: MutableList<ColumnInfo>) {
+private constructor(
+  private val project: Project,
+  private val table: JTable,
+  private val config: MutableList<ColumnInfo>,
+) {
 
   /** A persistable representation of a table column configuration */
   @Tag("column-info")
@@ -151,7 +155,7 @@ private constructor(private val project: Project, private val table: JTable, pri
   /** Creates a simple ListPopup of [ToggleColumnAction] with a preselected item */
   private fun JBPopupFactory.createActionGroupPopup(
     actionGroup: ActionGroup,
-    isPreSelected: (ToggleColumnAction) -> Boolean
+    isPreSelected: (ToggleColumnAction) -> Boolean,
   ) =
     createActionGroupPopup(
       null,
@@ -162,7 +166,7 @@ private constructor(private val project: Project, private val table: JTable, pri
       null,
       -1,
       { isPreSelected(it as ToggleColumnAction) },
-      TOOLWINDOW_POPUP
+      TOOLWINDOW_POPUP,
     )
 
   private fun TableColumn.getConfigColumn() = configColumns.getValue(headerValue.toString())

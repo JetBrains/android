@@ -19,10 +19,8 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import org.junit.rules.ExternalResource
 
-/**
- * Enables showing of dialogs in a headless test environment.
- */
-class HeadlessDialogRule: ExternalResource() {
+/** Enables showing of dialogs in a headless test environment. */
+class HeadlessDialogRule : ExternalResource() {
 
   private lateinit var disposable: Disposable
 

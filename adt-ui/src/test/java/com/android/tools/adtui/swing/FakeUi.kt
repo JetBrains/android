@@ -62,25 +62,28 @@ import kotlin.time.Duration.Companion.seconds
  * @param screenScale size of a virtual pixel in physical pixels; used for emulating a HiDPI screen
  * @param parentDisposable if provided, FakeUi will use it to clean up
  */
-class FakeUi @JvmOverloads constructor(
+class FakeUi
+@JvmOverloads
+constructor(
   val root: Component,
   screenScale: Double = 1.0,
   createFakeWindow: Boolean = false,
   parentDisposable: Disposable? = null,
 ) {
 
-  @JvmField
-  val keyboard: FakeKeyboard = FakeKeyboard()
+  @JvmField val keyboard: FakeKeyboard = FakeKeyboard()
 
-  @JvmField
-  val mouse: FakeMouse = FakeMouse(this, keyboard)
+  @JvmField val mouse: FakeMouse = FakeMouse(this, keyboard)
 
   var screenScale: Double
     get() = screenScaleInternal
     set(value) {
       if (screenScaleInternal != value) {
         screenScaleInternal = value
-        ComponentAccessor.setGraphicsConfiguration(getTopLevelComponent(root), FakeGraphicsConfiguration(value))
+        ComponentAccessor.setGraphicsConfiguration(
+          getTopLevelComponent(root),
+          FakeGraphicsConfiguration(value),
+        )
       }
     }
 
@@ -89,20 +92,24 @@ class FakeUi @JvmOverloads constructor(
   private var screenScaleInternal: Double = screenScale
   private var lastActivityTrackerCount: Int = ActivityTracker.getInstance().count
 
-
   init {
     if (root.parent == null && createFakeWindow) {
-      val rootPane = root as? JRootPane ?: JRootPane().apply {
-        glassPane = IdeGlassPaneImpl(this, false)
-        isFocusCycleRoot = true
-        bounds = root.bounds
-        add(root)
-      }
+      val rootPane =
+        root as? JRootPane
+          ?: JRootPane().apply {
+            glassPane = IdeGlassPaneImpl(this, false)
+            isFocusCycleRoot = true
+            bounds = root.bounds
+            add(root)
+          }
       val application = ApplicationManager.getApplication()
       // Use an exact class comparison so that the check fails if the TestWindowManager class stops
       // being final in future and a subclass is introduced.
       @Suppress("UnstableApiUsage")
-      if (application != null && WindowManager.getInstance()?.javaClass == TestWindowManager::class.java) {
+      if (
+        application != null &&
+          WindowManager.getInstance()?.javaClass == TestWindowManager::class.java
+      ) {
         // Replace TestWindowManager with a more lenient version.
         application.registerServiceInstance(WindowManager::class.java, FakeUiWindowManager())
       }
@@ -111,7 +118,10 @@ class FakeUi @JvmOverloads constructor(
     glassPane = (getTopLevelComponent(root) as? JRootPane)?.glassPane as? IdeGlassPaneImpl
 
     if (screenScale != 1.0) {
-      ComponentAccessor.setGraphicsConfiguration(getTopLevelComponent(root), FakeGraphicsConfiguration(screenScale))
+      ComponentAccessor.setGraphicsConfiguration(
+        getTopLevelComponent(root),
+        FakeGraphicsConfiguration(screenScale),
+      )
     }
     if (!root.isPreferredSizeSet) {
       root.preferredSize = root.size
@@ -138,8 +148,8 @@ class FakeUi @JvmOverloads constructor(
   }
 
   /**
-   * Forces a re-layout of all components scoped by this FakeUi instance and dispatches all resulting
-   * resizing events.
+   * Forces a re-layout of all components scoped by this FakeUi instance and dispatches all
+   * resulting resizing events.
    */
   @Throws(InterruptedException::class)
   fun layoutAndDispatchEvents() {
@@ -148,17 +158,17 @@ class FakeUi @JvmOverloads constructor(
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
-  /**
-   * Renders the root component and returns the image reflecting its appearance.
-   */
+  /** Renders the root component and returns the image reflecting its appearance. */
   fun render(): BufferedImage = render(root)
 
-  /**
-   * Renders the given component and returns the image reflecting its appearance.
-   */
+  /** Renders the given component and returns the image reflecting its appearance. */
   fun render(component: Component): BufferedImage {
     val image =
-        BufferedImage((component.width * screenScale).toInt(), (component.height * screenScale).toInt(), BufferedImage.TYPE_INT_ARGB)
+      BufferedImage(
+        (component.width * screenScale).toInt(),
+        (component.height * screenScale).toInt(),
+        BufferedImage.TYPE_INT_ARGB,
+      )
     val graphics = image.createGraphics()
     graphics.transform = AffineTransform.getScaleInstance(screenScale, screenScale)
     component.printAll(graphics)
@@ -166,18 +176,18 @@ class FakeUi @JvmOverloads constructor(
     return image
   }
 
-  /**
-   * Dumps the content of the Swing tree to stderr.
-   */
+  /** Dumps the content of the Swing tree to stderr. */
   fun dump() {
     dump(root, "")
   }
 
   private fun dump(component: Component, prefix: String) {
-    System.err.println("$prefix${component.javaClass.simpleName}@(${component.x}, ${component.y}) " +
-                       "[${component.size.getWidth()}x${component.size.getHeight()}]" +
-                       if (isMouseTarget(component)) " {*}" else "" +
-                       if (component is JLabel) " text: " + component.text else "")
+    System.err.println(
+      "$prefix${component.javaClass.simpleName}@(${component.x}, ${component.y}) " +
+        "[${component.size.getWidth()}x${component.size.getHeight()}]" +
+        if (isMouseTarget(component)) " {*}"
+        else "" + if (component is JLabel) " text: " + component.text else ""
+    )
     if (component is Container) {
       for (i in 0 until component.componentCount) {
         dump(component.getComponent(i), "$prefix  ")
@@ -185,9 +195,7 @@ class FakeUi @JvmOverloads constructor(
     }
   }
 
-  /**
-   * Checks if the component and all its ancestors are visible.
-   */
+  /** Checks if the component and all its ancestors are visible. */
   fun isShowing(component: Component): Boolean {
     var c = component
     while (true) {
@@ -205,7 +213,8 @@ class FakeUi @JvmOverloads constructor(
   fun getPosition(component: Component): Point {
     var comp: Component? = component
     if (component.width == 0 && component.height == 0) {
-      layout() // The component has zero size. Force layout to give it a chance to acquire non-zero dimensions.
+      layout() // The component has zero size. Force layout to give it a chance to acquire non-zero
+      // dimensions.
     }
     var rx = 0
     var ry = 0
@@ -222,47 +231,46 @@ class FakeUi @JvmOverloads constructor(
     return Point(x - position.x, y - position.y)
   }
 
-  /**
-   * Simulates pressing and releasing a mouse button over the given component.
-   */
+  /** Simulates pressing and releasing a mouse button over the given component. */
   fun clickOn(component: Component, button: FakeMouse.Button = LEFT) {
     clickRelativeTo(component, component.width / 2, component.height / 2, button)
   }
 
-  /**
-   * Simulates pressing and releasing the right mouse button over the given component.
-   */
+  /** Simulates pressing and releasing the right mouse button over the given component. */
   fun rightClickOn(component: Component) {
     clickRelativeTo(component, component.width / 2, component.height / 2, RIGHT)
   }
 
-  /**
-   * Simulates pressing and releasing a mouse button over the given component.
-   */
+  /** Simulates pressing and releasing a mouse button over the given component. */
   fun clickRelativeTo(component: Component, x: Int, y: Int, button: FakeMouse.Button = LEFT) {
     val location = getPosition(component)
     mouse.click(location.x + x, location.y + y, button)
   }
 
   /**
-   * Returns the first component of the given type satisfying the given predicate by doing breadth-first
-   * search starting from the root component, or null if no components satisfy the predicate.
+   * Returns the first component of the given type satisfying the given predicate by doing
+   * breadth-first search starting from the root component, or null if no components satisfy the
+   * predicate.
    */
-  fun <T: Any> findComponent(type: Class<T>, predicate: (T) -> Boolean = { true }): T? = root.findDescendant(type, predicate)
+  fun <T : Any> findComponent(type: Class<T>, predicate: (T) -> Boolean = { true }): T? =
+    root.findDescendant(type, predicate)
 
-  inline fun <reified T: Any> findComponent(crossinline predicate: (T) -> Boolean = { true }): T? = root.findDescendant(predicate)
+  inline fun <reified T : Any> findComponent(crossinline predicate: (T) -> Boolean = { true }): T? =
+    root.findDescendant(predicate)
 
-  inline fun <reified T: Any> getComponent(crossinline predicate: (T) -> Boolean = { true }): T = root.getDescendant(predicate)
+  inline fun <reified T : Any> getComponent(crossinline predicate: (T) -> Boolean = { true }): T =
+    root.getDescendant(predicate)
 
   /**
    * Returns all components of the given type satisfying the given predicate in the breadth-first
    * order.
    */
-  fun <T: Any> findAllComponents(type: Class<T>, predicate: (T) -> Boolean = { true }): List<T> =
+  fun <T : Any> findAllComponents(type: Class<T>, predicate: (T) -> Boolean = { true }): List<T> =
     root.findAllDescendants(type, predicate).toList()
 
-  inline fun <reified T: Any> findAllComponents(crossinline predicate: (T) -> Boolean = { true }): List<T> =
-    root.findAllDescendants(predicate).toList()
+  inline fun <reified T : Any> findAllComponents(
+    crossinline predicate: (T) -> Boolean = { true }
+  ): List<T> = root.findAllDescendants(predicate).toList()
 
   fun targetMouseEvent(x: Int, y: Int): RelativePoint? = findTarget(root, x, y)
 
@@ -287,8 +295,10 @@ class FakeUi @JvmOverloads constructor(
   }
 
   private fun isMouseTarget(target: Component): Boolean {
-    return target.mouseListeners.isNotEmpty() || target.mouseMotionListeners.isNotEmpty() || target.mouseWheelListeners.isNotEmpty() ||
-           target is ActionButton // ActionButton calls enableEvents and overrides processMouseEvent
+    return target.mouseListeners.isNotEmpty() ||
+      target.mouseMotionListeners.isNotEmpty() ||
+      target.mouseWheelListeners.isNotEmpty() ||
+      target is ActionButton // ActionButton calls enableEvents and overrides processMouseEvent
   }
 
   /** Updates toolbars if the [ActivityTracker.count] changed since the last toolbar update. */
@@ -299,18 +309,21 @@ class FakeUi @JvmOverloads constructor(
   }
 
   /**
-   * This method exists only for historical reasons. Tests should use [updateToolbarsIfNecessary] instead.
-   * If a test fails after replacing [updateToolbars] with [updateToolbarsIfNecessary], most likely there
-   * a missing `ActivityTracker.getInstance().inc()` call in the production code.
+   * This method exists only for historical reasons. Tests should use [updateToolbarsIfNecessary]
+   * instead. If a test fails after replacing [updateToolbars] with [updateToolbarsIfNecessary],
+   * most likely there a missing `ActivityTracker.getInstance().inc()` call in the production code.
    */
-  @Deprecated("Use updateToolbarsIfNecessary", replaceWith = ReplaceWith("updateToolbarsIfNecessary"))
+  @Deprecated(
+    "Use updateToolbarsIfNecessary",
+    replaceWith = ReplaceWith("updateToolbarsIfNecessary"),
+  )
   fun updateToolbars() {
     doUpdateToolbars()
   }
 
   /**
-   * In a test environment the state of toolbar buttons is not always updated automatically.
-   * Calling this method forces an unconditional update.
+   * In a test environment the state of toolbar buttons is not always updated automatically. Calling
+   * this method forces an unconditional update.
    */
   private fun doUpdateToolbars() {
     lastActivityTrackerCount = ActivityTracker.getInstance().count
@@ -319,8 +332,7 @@ class FakeUi @JvmOverloads constructor(
       UIUtil.dispatchAllInvocationEvents()
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
       layoutAndDispatchEvents()
-    }
-    else {
+    } else {
       layout()
     }
   }
@@ -335,8 +347,7 @@ class FakeUi @JvmOverloads constructor(
         is ActionButton -> {
           if (c.action.getActionUpdateThread() == ActionUpdateThread.EDT) {
             c.update()
-          }
-          else {
+          } else {
             // Execute update on a background thread to avoid ActionButton.update logging an error.
             futures.add(getAppExecutorService().executeAsync { c.update() })
           }
@@ -354,7 +365,11 @@ class FakeUi @JvmOverloads constructor(
     }
   }
 
-  class RelativePoint(@JvmField val component: Component, @JvmField val x: Int, @JvmField val y: Int)
+  class RelativePoint(
+    @JvmField val component: Component,
+    @JvmField val x: Int,
+    @JvmField val y: Int,
+  )
 
   private class FakeGraphicsConfiguration(scale: Double) : GraphicsConfiguration() {
 
@@ -363,8 +378,12 @@ class FakeUi @JvmOverloads constructor(
 
     override fun getDevice(): GraphicsDevice = device
 
-    override fun createCompatibleVolatileImage(width: Int, height: Int, caps: ImageCapabilities?, transparency: Int): VolatileImage =
-      FakeVolatileImage(width, height, caps)
+    override fun createCompatibleVolatileImage(
+      width: Int,
+      height: Int,
+      caps: ImageCapabilities?,
+      transparency: Int,
+    ): VolatileImage = FakeVolatileImage(width, height, caps)
 
     override fun getColorModel(): ColorModel = ColorModel.getRGBdefault()
 
@@ -406,7 +425,8 @@ class FakeUi @JvmOverloads constructor(
     override fun contentsLost(): Boolean = false
   }
 
-  private class FakeGraphicsDevice(private val defaultConfiguration: GraphicsConfiguration) : GraphicsDevice() {
+  private class FakeGraphicsDevice(private val defaultConfiguration: GraphicsConfiguration) :
+    GraphicsDevice() {
 
     override fun getType(): Int = TYPE_RASTER_SCREEN
 

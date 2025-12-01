@@ -21,16 +21,15 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import org.junit.rules.ExternalResource
 
-/**
- * A rule that sets up using [FakeJBPopupFactory] in a test.
- */
+/** A rule that sets up using [FakeJBPopupFactory] in a test. */
 class JBPopupRule : ExternalResource() {
 
   val disposable = Disposer.newDisposable()
   val fakePopupFactory = FakeJBPopupFactory(disposable)
 
   override fun before() {
-    ApplicationManager.getApplication().replaceService(JBPopupFactory::class.java, fakePopupFactory, disposable)
+    ApplicationManager.getApplication()
+      .replaceService(JBPopupFactory::class.java, fakePopupFactory, disposable)
   }
 
   override fun after() {

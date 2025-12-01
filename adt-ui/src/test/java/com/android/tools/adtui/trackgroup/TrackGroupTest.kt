@@ -30,12 +30,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Component
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent.VK_ENTER
 import javax.swing.JCheckBox
+import org.junit.Rule
+import org.junit.Test
 
 @RunsInEdt
 class TrackGroupTest {
@@ -43,20 +43,18 @@ class TrackGroupTest {
     val TRACK_RENDERER_FACTORY = TestTrackRendererFactory()
   }
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
-  /**
-   * For initializing [com.intellij.ide.HelpTooltip].
-   */
-  @get:Rule
-  val appRule = ApplicationRule()
+  /** For initializing [com.intellij.ide.HelpTooltip]. */
+  @get:Rule val appRule = ApplicationRule()
 
   @Test
   fun createTrackGroup() {
     val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").build()
     trackGroupModel.addTrackModel(TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "Foo"))
-    trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar"))
+    trackGroupModel.addTrackModel(
+      TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar")
+    )
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
 
     assertThat(trackGroup.titleLabel.text).isEqualTo("Group")
@@ -68,21 +66,23 @@ class TrackGroupTest {
 
   @Test
   fun collapseAndExpandTrackGroup() {
-    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").setCollapsedInitially(true).build()
-    val actionListener = object : TrackGroupActionListener {
-      var collapsed = true
-      var titleVar = ""
+    val trackGroupModel =
+      TrackGroupModel.newBuilder().setTitle("Group").setCollapsedInitially(true).build()
+    val actionListener =
+      object : TrackGroupActionListener {
+        var collapsed = true
+        var titleVar = ""
 
-      override fun onGroupCollapsed(title: String) {
-        collapsed = true
-        titleVar = title
-      }
+        override fun onGroupCollapsed(title: String) {
+          collapsed = true
+          titleVar = title
+        }
 
-      override fun onGroupExpanded(title: String) {
-        collapsed = false
-        titleVar = title
+        override fun onGroupExpanded(title: String) {
+          collapsed = false
+          titleVar = title
+        }
       }
-    }
     trackGroupModel.addActionListener(actionListener)
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
 
@@ -122,34 +122,44 @@ class TrackGroupTest {
   @Test
   fun moveTrackGroupUpDown() {
     val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").build()
-    val actionListener = object : TrackGroupActionListener {
-      var movedUp = false
-      var movedDown = false
+    val actionListener =
+      object : TrackGroupActionListener {
+        var movedUp = false
+        var movedDown = false
 
-      override fun onGroupMovedUp(title: String) {
-        movedUp = true
-      }
+        override fun onGroupMovedUp(title: String) {
+          movedUp = true
+        }
 
-      override fun onGroupMovedDown(title: String) {
-        movedDown = true
+        override fun onGroupMovedDown(title: String) {
+          movedDown = true
+        }
       }
-    }
     trackGroupModel.addActionListener(actionListener)
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
-    trackGroup.setMover(object : TrackGroupMover {
-      override fun moveTrackGroupUp(trackGroup: TrackGroup) {}
-      override fun moveTrackGroupDown(trackGroup: TrackGroup) {}
-    })
-    trackGroup.actionsDropdown.action.childrenActions[0].actionPerformed(ActionEvent(trackGroup, 0, ""))
+    trackGroup.setMover(
+      object : TrackGroupMover {
+        override fun moveTrackGroupUp(trackGroup: TrackGroup) {}
+
+        override fun moveTrackGroupDown(trackGroup: TrackGroup) {}
+      }
+    )
+    trackGroup.actionsDropdown.action.childrenActions[0].actionPerformed(
+      ActionEvent(trackGroup, 0, "")
+    )
     assertThat(actionListener.movedUp).isTrue()
-    trackGroup.actionsDropdown.action.childrenActions[1].actionPerformed(ActionEvent(trackGroup, 0, ""))
+    trackGroup.actionsDropdown.action.childrenActions[1].actionPerformed(
+      ActionEvent(trackGroup, 0, "")
+    )
     assertThat(actionListener.movedDown).isTrue()
   }
 
   @Test
   fun hideTrackGroupHeader() {
     val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").setHideHeader(true).build()
-    trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar"))
+    trackGroupModel.addTrackModel(
+      TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar")
+    )
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
 
     assertThat(trackGroup.titleLabel.parent).isNull()
@@ -162,17 +172,26 @@ class TrackGroupTest {
     assertThat(noInfoTrackGroup.titleInfoIcon.isVisible).isFalse()
     assertThat(noInfoTrackGroup.titleInfoIcon.toolTipText).isNull()
 
-    val infoTrackGroupModel = TrackGroupModel.newBuilder().setTitle("Bar").setTitleHelpText("Information").build()
+    val infoTrackGroupModel =
+      TrackGroupModel.newBuilder().setTitle("Bar").setTitleHelpText("Information").build()
     val infoTrackGroup = TrackGroup(infoTrackGroupModel, TestTrackRendererFactory())
     assertThat(infoTrackGroup.titleInfoIcon.isVisible).isTrue()
   }
 
   @Test
   fun mouseClickExpandsCollapsesTrack() {
-    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group1")
-      .setSelector(TrackGroupModel.makeBatchSelector("tag")).build()
-    val trackModel = TrackModel.newBuilder(StringSelectable("Bar1"), TestTrackRendererType.STRING_SELECTABLE, "Group1 - Bar1")
-      .setCollapsible(true)
+    val trackGroupModel =
+      TrackGroupModel.newBuilder()
+        .setTitle("Group1")
+        .setSelector(TrackGroupModel.makeBatchSelector("tag"))
+        .build()
+    val trackModel =
+      TrackModel.newBuilder(
+          StringSelectable("Bar1"),
+          TestTrackRendererType.STRING_SELECTABLE,
+          "Group1 - Bar1",
+        )
+        .setCollapsible(true)
     trackGroupModel.addTrackModel(trackModel)
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
     trackGroup.trackList.setBounds(0, 0, 500, 100)
@@ -192,16 +211,29 @@ class TrackGroupTest {
 
   @Test
   fun keyboardExpandsCollapsesTrack() {
-    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group1")
-      .setSelector(TrackGroupModel.makeBatchSelector("tag")).build()
+    val trackGroupModel =
+      TrackGroupModel.newBuilder()
+        .setTitle("Group1")
+        .setSelector(TrackGroupModel.makeBatchSelector("tag"))
+        .build()
 
     // build two track models both of which are collapsible and initially in a collapsed state
-    val trackModel1 = TrackModel.newBuilder(StringSelectable("Bar1"), TestTrackRendererType.STRING_SELECTABLE, "Group1 - Bar1")
-      .setCollapsible(true)
-      .setCollapsed(true)
-    val trackModel2 = TrackModel.newBuilder(StringSelectable("Bar2"), TestTrackRendererType.STRING_SELECTABLE, "Group1 - Bar2")
-      .setCollapsible(true)
-      .setCollapsed(true)
+    val trackModel1 =
+      TrackModel.newBuilder(
+          StringSelectable("Bar1"),
+          TestTrackRendererType.STRING_SELECTABLE,
+          "Group1 - Bar1",
+        )
+        .setCollapsible(true)
+        .setCollapsed(true)
+    val trackModel2 =
+      TrackModel.newBuilder(
+          StringSelectable("Bar2"),
+          TestTrackRendererType.STRING_SELECTABLE,
+          "Group1 - Bar2",
+        )
+        .setCollapsible(true)
+        .setCollapsed(true)
     trackGroupModel.addTrackModel(trackModel1)
     trackGroupModel.addTrackModel(trackModel2)
 
@@ -246,15 +278,19 @@ class TrackGroupTest {
   @Test
   fun supportsBoxSelection() {
     val selectionModel = BoxSelectionModel(Range(), Range(0.0, 10.0))
-    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").setBoxSelectionModel(selectionModel).build()
-    trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar"))
+    val trackGroupModel =
+      TrackGroupModel.newBuilder().setTitle("Group").setBoxSelectionModel(selectionModel).build()
+    trackGroupModel.addTrackModel(
+      TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar")
+    )
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
     trackGroup.component.setBounds(0, 0, 500, 100)
     // Make sure test doesn't trip in a headless environment.
     trackGroup.trackList.setUI(HeadlessListUI())
     val treeWalker = TreeWalker(trackGroup.component)
     treeWalker.descendantStream().forEach(Component::doLayout)
-    val boxComponent = treeWalker.descendants().filterIsInstance(BoxSelectionComponent::class.java).first()
+    val boxComponent =
+      treeWalker.descendants().filterIsInstance(BoxSelectionComponent::class.java).first()
     val boxUi = FakeUi(boxComponent)
 
     assertThat(selectionModel.selectionRange.isEmpty).isTrue()
@@ -282,27 +318,42 @@ class TrackGroupTest {
   fun `toggling display tags changes track group content`() {
     val tag1 = "tag1"
     val tag2 = "tag2"
-    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group")
-      .setSelector(TrackGroupModel.makeBatchSelector("tag"))
-      .addDisplayToggle(tag1, false)
-      .addDisplayToggle(tag2, true)
-      .build()
+    val trackGroupModel =
+      TrackGroupModel.newBuilder()
+        .setTitle("Group")
+        .setSelector(TrackGroupModel.makeBatchSelector("tag"))
+        .addDisplayToggle(tag1, false)
+        .addDisplayToggle(tag2, true)
+        .build()
 
     // build two track models both of which are collapsible and initially in a collapsed state
-    val trackModel1 = TrackModel.newBuilder(StringSelectable("Bar1"), TestTrackRendererType.STRING_SELECTABLE, "Group1 - Bar1")
-      .setCollapsible(true)
-      .setCollapsed(true)
-    val trackModel2 = TrackModel.newBuilder(StringSelectable("Bar2"), TestTrackRendererType.STRING_SELECTABLE, "Group1 - Bar2")
-      .setCollapsible(true)
-      .setCollapsed(true)
+    val trackModel1 =
+      TrackModel.newBuilder(
+          StringSelectable("Bar1"),
+          TestTrackRendererType.STRING_SELECTABLE,
+          "Group1 - Bar1",
+        )
+        .setCollapsible(true)
+        .setCollapsed(true)
+    val trackModel2 =
+      TrackModel.newBuilder(
+          StringSelectable("Bar2"),
+          TestTrackRendererType.STRING_SELECTABLE,
+          "Group1 - Bar2",
+        )
+        .setCollapsible(true)
+        .setCollapsed(true)
     trackGroupModel.addTrackModel(trackModel1) { tag1 in it }
     trackGroupModel.addTrackModel(trackModel2) { tag2 in it }
 
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
     val view = trackGroup.component
-    fun checkBox(title: String) = TreeWalker(view).descendantStream()
-      .filter { it is JCheckBox && it.text == title }
-      .findAny().orElseThrow() as JCheckBox
+    fun checkBox(title: String) =
+      TreeWalker(view)
+        .descendantStream()
+        .filter { it is JCheckBox && it.text == title }
+        .findAny()
+        .orElseThrow() as JCheckBox
 
     val tag1CheckBox = checkBox(tag1)
     val tag2CheckBox = checkBox(tag2)

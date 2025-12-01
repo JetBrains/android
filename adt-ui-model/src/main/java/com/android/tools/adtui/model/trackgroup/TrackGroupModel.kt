@@ -20,10 +20,9 @@ import com.android.tools.adtui.model.BoxSelectionModel
 import com.android.tools.adtui.model.DragAndDropListModel
 import java.util.concurrent.atomic.AtomicInteger
 
-/**
- * Data model for TrackGroup, a collapsible UI component that contains a list of Tracks.
- */
-class TrackGroupModel private constructor(builder: Builder) : DragAndDropListModel<TrackModel<*, *>>() {
+/** Data model for TrackGroup, a collapsible UI component that contains a list of Tracks. */
+class TrackGroupModel private constructor(builder: Builder) :
+  DragAndDropListModel<TrackModel<*, *>>() {
   val title: String = builder.title
   val titleHelpText: String? = builder.titleHelpText
   val titleHelpLinkText: String? = builder.titleHelpLinkText
@@ -33,30 +32,37 @@ class TrackGroupModel private constructor(builder: Builder) : DragAndDropListMod
   private val selector: Selector? = builder.selector
   val boxSelectionModel: BoxSelectionModel? = builder.boxSelectionModel
   val allDisplayToggles: List<String> = builder.toggles.keys.toList()
-  val displayToggleChangeListeners: Map<String, Runnable> = builder.toggles.mapValues { (_, rec) -> rec.second }
+  val displayToggleChangeListeners: Map<String, Runnable> =
+    builder.toggles.mapValues { (_, rec) -> rec.second }
   var activeDisplayToggles: Set<String> = builder.toggles.filterValues { it.first }.keys.toSet()
 
   private val observer = AspectObserver()
   val isTrackSelectable: Boolean // whether the tracks inside this track group are selectable.
     get() = selector != null
-  private val actionListenerList = mutableListOf<TrackGroupActionListener>()
-  val actionListeners: List<TrackGroupActionListener> get() = actionListenerList
 
-  // track models paired with functions that dynamically decide if they should display based on active toggles
+  private val actionListenerList = mutableListOf<TrackGroupActionListener>()
+  val actionListeners: List<TrackGroupActionListener>
+    get() = actionListenerList
+
+  // track models paired with functions that dynamically decide if they should display based on
+  // active toggles
   private val trackModelConfigs = mutableListOf<Pair<TrackModel<*, *>, (Set<String>) -> Boolean>>()
 
   /**
    * Add a [TrackModel] to the group.
    *
-   * @param builder    to build the [TrackModel] to add
+   * @param builder to build the [TrackModel] to add
    * @param shouldPresent whether the track should be presented given the active tags
-   * @param <M>        data model type
-   * @param <R>        renderer enum type
+   * @param <M> data model type
+   * @param <R> renderer enum type
    */
   @JvmOverloads
-  fun <M, R : Enum<*>> addTrackModel(builder: TrackModel.Builder<M, R>,
-                                     shouldPresent: (Set<String>) -> Boolean = { true }) {
-    // add() is disabled in DragAndDropListModel to support dynamically reordering elements. Use insertOrderedElement() instead.
+  fun <M, R : Enum<*>> addTrackModel(
+    builder: TrackModel.Builder<M, R>,
+    shouldPresent: (Set<String>) -> Boolean = { true },
+  ) {
+    // add() is disabled in DragAndDropListModel to support dynamically reordering elements. Use
+    // insertOrderedElement() instead.
     val trackModel = builder.setId(TRACK_ID_GENERATOR.getAndIncrement()).build()
     trackModelConfigs += trackModel to shouldPresent
 
@@ -73,28 +79,35 @@ class TrackGroupModel private constructor(builder: Builder) : DragAndDropListMod
     }
   }
 
-  fun setDisplayTag(tag: String, active: Boolean) = when {
-    tag !in allDisplayToggles -> throw IllegalArgumentException("Unrecognized tag $tag")
-    active != tag in activeDisplayToggles -> {
-      activeDisplayToggles = if (active) (activeDisplayToggles + tag) else (activeDisplayToggles - tag)
-      clearOrderedElements()
-      trackModelConfigs.forEach { (track, shouldPresent) ->
-        if (shouldPresent(activeDisplayToggles)) {
-          insertOrderedElement(track)
+  fun setDisplayTag(tag: String, active: Boolean) =
+    when {
+      tag !in allDisplayToggles -> throw IllegalArgumentException("Unrecognized tag $tag")
+      active != tag in activeDisplayToggles -> {
+        activeDisplayToggles =
+          if (active) (activeDisplayToggles + tag) else (activeDisplayToggles - tag)
+        clearOrderedElements()
+        trackModelConfigs.forEach { (track, shouldPresent) ->
+          if (shouldPresent(activeDisplayToggles)) {
+            insertOrderedElement(track)
+          }
         }
+        fireContentsChanged(this, 0, size)
+        displayToggleChangeListeners[tag]!!.run()
       }
-      fireContentsChanged(this, 0, size)
-      displayToggleChangeListeners[tag]!!.run()
+      else -> {
+        /* no state change */
+      }
     }
-    else -> { /* no state change */ }
-  }
 
   /**
-   * Add [TrackGroupActionListener] to be fired when a track group action, e.g. moving up, is performed.
+   * Add [TrackGroupActionListener] to be fired when a track group action, e.g. moving up, is
+   * performed.
    */
-  fun addActionListener(actionListener: TrackGroupActionListener) = actionListenerList.add(actionListener)
+  fun addActionListener(actionListener: TrackGroupActionListener) =
+    actionListenerList.add(actionListener)
 
-  fun <M: Any> select(models: Set<TrackModel<M, *>>): Iterable<Map.Entry<Any, Set<M>>> = selector!!.apply(models)
+  fun <M : Any> select(models: Set<TrackModel<M, *>>): Iterable<Map.Entry<Any, Set<M>>> =
+    selector!!.apply(models)
 
   class Builder {
     internal var title = ""
@@ -107,13 +120,12 @@ class TrackGroupModel private constructor(builder: Builder) : DragAndDropListMod
     internal var boxSelectionModel: BoxSelectionModel? = null
     internal val toggles = mutableMapOf<String, Pair<Boolean, Runnable>>()
 
-    /**
-     * @param title string to be displayed in the header
-     */
+    /** @param title string to be displayed in the header */
     fun setTitle(title: String) = this.also { this.title = title }
 
     /**
-     * @param titleHelpText string to be displayed as tooltip next to the header. Supports HTML tags.
+     * @param titleHelpText string to be displayed as tooltip next to the header. Supports HTML
+     *   tags.
      */
     fun setTitleHelpText(titleHelpText: String) = this.also { this.titleHelpText = titleHelpText }
 
@@ -121,29 +133,36 @@ class TrackGroupModel private constructor(builder: Builder) : DragAndDropListMod
      * A link to be displayed as tooltip next after the help text.
      *
      * @param titleHelpLinkText link text
-     * @param titleHelpLinkUrl  link URL
+     * @param titleHelpLinkUrl link URL
      */
-    fun setTitleHelpLink(titleHelpLinkText: String, titleHelpLinkUrl: String) = this.also {
-      this.titleHelpLinkText = titleHelpLinkText
-      this.titleHelpLinkUrl = titleHelpLinkUrl
-    }
+    fun setTitleHelpLink(titleHelpLinkText: String, titleHelpLinkUrl: String) =
+      this.also {
+        this.titleHelpLinkText = titleHelpLinkText
+        this.titleHelpLinkUrl = titleHelpLinkUrl
+      }
 
-    fun setCollapsedInitially(collapsedInitially: Boolean) = this.also { this.collapsedInitially = collapsedInitially }
+    fun setCollapsedInitially(collapsedInitially: Boolean) =
+      this.also { this.collapsedInitially = collapsedInitially }
+
     fun setHideHeader(hideHeader: Boolean) = this.also { this.hideHeader = hideHeader }
 
     /**
-     * @param selector how this model handles selection, or null if it is not supposed to be selectable.
+     * @param selector how this model handles selection, or null if it is not supposed to be
+     *   selectable.
      */
     fun setSelector(selector: Selector?) = this.also { this.selector = selector }
 
-    fun setBoxSelectionModel(rangeSelectionModel: BoxSelectionModel?) = this.also { boxSelectionModel = rangeSelectionModel }
+    fun setBoxSelectionModel(rangeSelectionModel: BoxSelectionModel?) =
+      this.also { boxSelectionModel = rangeSelectionModel }
 
     /**
-     * Add a display toggle that can be dynamically turned on or off, affecting which tracks are displayed
+     * Add a display toggle that can be dynamically turned on or off, affecting which tracks are
+     * displayed
      */
     @JvmOverloads
     fun addDisplayToggle(title: String, isOnByDefault: Boolean, onChanged: Runnable = Runnable {}) =
       this.also { toggles += title to (isOnByDefault to onChanged) }
+
     fun build() = TrackGroupModel(this)
   }
 
@@ -151,29 +170,33 @@ class TrackGroupModel private constructor(builder: Builder) : DragAndDropListMod
     // Use this to generate unique (within this group) IDs for [TrackModel]s in this group.
     private val TRACK_ID_GENERATOR = AtomicInteger()
 
-    @JvmStatic
-    fun newBuilder() = Builder()
+    @JvmStatic fun newBuilder() = Builder()
 
     @JvmStatic
-    fun makeBatchSelector(id: Any) = object : Selector {
-      override fun <M: Any> apply(selections: Set<TrackModel<M, *>>) =
-        listOf(entry(id, selections.mapTo(mutableSetOf()) { it.dataModel }))
-    }
+    fun makeBatchSelector(id: Any) =
+      object : Selector {
+        override fun <M : Any> apply(selections: Set<TrackModel<M, *>>) =
+          listOf(entry(id, selections.mapTo(mutableSetOf()) { it.dataModel }))
+      }
 
-    fun makeItemSelector() = object : Selector {
-      override fun <M: Any> apply(selections: Set<TrackModel<M, *>>) = selections.map { entry(it.id, setOf(it.dataModel)) }
-    }
+    fun makeItemSelector() =
+      object : Selector {
+        override fun <M : Any> apply(selections: Set<TrackModel<M, *>>) =
+          selections.map { entry(it.id, setOf(it.dataModel)) }
+      }
 
-    private fun <K, V> entry(k: K, v: V) = object : Map.Entry<K, V> {
-      override val key get() = k
-      override val value get() = v
-    }
+    private fun <K, V> entry(k: K, v: V) =
+      object : Map.Entry<K, V> {
+        override val key
+          get() = k
+
+        override val value
+          get() = v
+      }
   }
 
-  /**
-   * Function that takes selected tracks and returns pairs of keys and selections.
-   */
+  /** Function that takes selected tracks and returns pairs of keys and selections. */
   interface Selector {
-    fun <M: Any> apply(selections: Set<TrackModel<M, *>>): Iterable<Map.Entry<Any, Set<M>>>
+    fun <M : Any> apply(selections: Set<TrackModel<M, *>>): Iterable<Map.Entry<Any, Set<M>>>
   }
 }

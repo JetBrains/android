@@ -56,16 +56,18 @@ fun main() {
 
         LaunchedEffect(Unit) {
           snapshotFlow {
-            widthTextState.text.toString().toIntOrNull() to heightTextState.text.toString().toIntOrNull()
-          }.collect { (w, h) ->
-            println("$w $h")
-            if (w != null) {
-              width = w
+              widthTextState.text.toString().toIntOrNull() to
+                heightTextState.text.toString().toIntOrNull()
             }
-            if (h != null) {
-              height = h
+            .collect { (w, h) ->
+              println("$w $h")
+              if (w != null) {
+                width = w
+              }
+              if (h != null) {
+                height = h
+              }
             }
-          }
         }
 
         Box(Modifier.background(windowBackground)) {

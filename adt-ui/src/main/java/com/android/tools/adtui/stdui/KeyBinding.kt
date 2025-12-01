@@ -28,47 +28,74 @@ import javax.swing.AbstractAction
 import javax.swing.JComponent
 import javax.swing.KeyStroke
 
-fun JComponent.registerActionKey(action: () -> Unit,
-                                 keyStroke: KeyStroke,
-                                 name: String,
-                                 enabled: () -> Boolean = { true },
-                                 condition: Int = JComponent.WHEN_FOCUSED) {
-  val actionObject = object : AbstractAction() {
-    override fun actionPerformed(event: ActionEvent?) {
-      action()
-    }
+fun JComponent.registerActionKey(
+  action: () -> Unit,
+  keyStroke: KeyStroke,
+  name: String,
+  enabled: () -> Boolean = { true },
+  condition: Int = JComponent.WHEN_FOCUSED,
+) {
+  val actionObject =
+    object : AbstractAction() {
+      override fun actionPerformed(event: ActionEvent?) {
+        action()
+      }
 
-    override fun isEnabled(): Boolean {
-      return enabled()
+      override fun isEnabled(): Boolean {
+        return enabled()
+      }
     }
-  }
   this.getInputMap(condition).put(keyStroke, name)
   this.actionMap.put(name, actionObject)
 }
 
-fun JComponent.registerAnActionKey(getAction: () -> AnAction?, keyStroke: KeyStroke, name: String,
-                                   condition: Int = JComponent.WHEN_FOCUSED) {
+fun JComponent.registerAnActionKey(
+  getAction: () -> AnAction?,
+  keyStroke: KeyStroke,
+  name: String,
+  condition: Int = JComponent.WHEN_FOCUSED,
+) {
   this.getInputMap(condition).put(keyStroke, name)
-  this.actionMap.put(name, object : AbstractAction() {
-    override fun actionPerformed(event: ActionEvent) {
-      val dataContext = DataManager.getInstance().getDataContext(this@registerAnActionKey)
-      val inputEvent = KeyEvent(this@registerAnActionKey, KeyEvent.KEY_PRESSED, event.`when`, keyStroke.modifiers, keyStroke.keyCode,
-                                keyStroke.keyChar)
-      val action = getAction()
-      action?.actionPerformed(createEvent(action, dataContext, null, ActionPlaces.TOOLWINDOW_POPUP, ActionUiKind.NONE, inputEvent))
-    }
+  this.actionMap.put(
+    name,
+    object : AbstractAction() {
+      override fun actionPerformed(event: ActionEvent) {
+        val dataContext = DataManager.getInstance().getDataContext(this@registerAnActionKey)
+        val inputEvent =
+          KeyEvent(
+            this@registerAnActionKey,
+            KeyEvent.KEY_PRESSED,
+            event.`when`,
+            keyStroke.modifiers,
+            keyStroke.keyCode,
+            keyStroke.keyChar,
+          )
+        val action = getAction()
+        action?.actionPerformed(
+          createEvent(
+            action,
+            dataContext,
+            null,
+            ActionPlaces.TOOLWINDOW_POPUP,
+            ActionUiKind.NONE,
+            inputEvent,
+          )
+        )
+      }
 
-    override fun isEnabled(): Boolean {
-      return getAction()?.templatePresentation?.isEnabledAndVisible ?: false
-    }
-  })
+      override fun isEnabled(): Boolean {
+        return getAction()?.templatePresentation?.isEnabledAndVisible ?: false
+      }
+    },
+  )
 }
 
 fun JComponent.registerActionShortCutSet(action: () -> Unit, shortCut: ShortcutSet) {
-  val actionObject = object : AnAction() {
-    override fun actionPerformed(event: AnActionEvent) {
-      action()
+  val actionObject =
+    object : AnAction() {
+      override fun actionPerformed(event: AnActionEvent) {
+        action()
+      }
     }
-  }
   actionObject.registerCustomShortcutSet(shortCut, this)
 }

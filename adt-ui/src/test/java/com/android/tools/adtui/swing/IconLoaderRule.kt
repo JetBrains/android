@@ -22,16 +22,18 @@ import org.junit.rules.ExternalResource
 /**
  * Enables icon loading in a headless test environment. Use as a class rule.
  *
- * Please notice that since icons are cached and not reloaded for each test, loading of icons
- * has to be enabled before the first test in the suite that may trigger icon loading. It is
- * therefore recommended to add
+ * Please notice that since icons are cached and not reloaded for each test, loading of icons has to
+ * be enabled before the first test in the suite that may trigger icon loading. It is therefore
+ * recommended to add
+ *
  * ```
  *   static {
  *     IconLoaderRule.enableIconLoading();
  *   }
  * ```
- * to the test suite class in addition to using the [IconLoaderRule] in each test that depends
- * on realistic icon appearance.
+ *
+ * to the test suite class in addition to using the [IconLoaderRule] in each test that depends on
+ * realistic icon appearance.
  */
 class IconLoaderRule : ExternalResource() {
   private var wasEnabled = false

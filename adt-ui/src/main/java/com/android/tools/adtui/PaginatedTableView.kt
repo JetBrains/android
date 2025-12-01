@@ -24,7 +24,6 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
-import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import javax.swing.DefaultRowSorter
@@ -39,58 +38,64 @@ import javax.swing.table.TableRowSorter
 /**
  * A view that consists of a paginated [JBTable] and pagination controls.
  *
- * @param pageSizeValues page size values to pre-populate in the dropdown. When empty, the dropdown will be hidden.
- * @property tableModel model to create the paginated table. When its initial page size is set to one of the pre-populated values, it will
- *                      be pre-selected in the dropdown.
+ * @param pageSizeValues page size values to pre-populate in the dropdown. When empty, the dropdown
+ *   will be hidden.
+ * @property tableModel model to create the paginated table. When its initial page size is set to
+ *   one of the pre-populated values, it will be pre-selected in the dropdown.
  * @property table the underlying [JBTable]
  * @property component view component that wraps a table and the pagination controls.
  */
-class PaginatedTableView(val tableModel: AbstractPaginatedTableModel, pageSizeValues: Array<Int> = emptyArray()) {
+class PaginatedTableView(
+  val tableModel: AbstractPaginatedTableModel,
+  pageSizeValues: Array<Int> = emptyArray(),
+) {
   val table: JBTable
   val component: JComponent
 
-  @VisibleForTesting
-  val firstPageButton = CommonButton(FIRST_PAGE_ICON)
+  @VisibleForTesting val firstPageButton = CommonButton(FIRST_PAGE_ICON)
 
-  @VisibleForTesting
-  val lastPageButton = CommonButton(LAST_PAGE_ICON)
+  @VisibleForTesting val lastPageButton = CommonButton(LAST_PAGE_ICON)
 
-  @VisibleForTesting
-  val prevPageButton = CommonButton(PREV_PAGE_ICON)
+  @VisibleForTesting val prevPageButton = CommonButton(PREV_PAGE_ICON)
 
-  @VisibleForTesting
-  val nextPageButton = CommonButton(NEXT_PAGE_ICON)
+  @VisibleForTesting val nextPageButton = CommonButton(NEXT_PAGE_ICON)
 
-  @VisibleForTesting
-  val pageInfoLabel = JLabel()
+  @VisibleForTesting val pageInfoLabel = JLabel()
 
-  @VisibleForTesting
-  val pageSizeComboBox = ComboBox(pageSizeValues)
+  @VisibleForTesting val pageSizeComboBox = ComboBox(pageSizeValues)
 
   init {
-    table = JBTable(tableModel).apply {
-      rowSorter = TableRowSorter(tableModel).apply {
-        // By default, JTable only sorts the rows in view, which represents the current page of all our data.
-        // So we need to listen to sort events and sort the entire data set instead.
-        addRowSorterListener { event ->
-          if (event.type == RowSorterEvent.Type.SORT_ORDER_CHANGED) {
-            clearSelection()
-            // Set/update each column's comparator so that it does not default to string comparisons.
-            updateColumnComparators(event.source.sortKeys, this)
-            // Sort the model data, which will be read and adapted to in the table view.
-            tableModel.sortData(event.source.sortKeys)
+    table =
+      JBTable(tableModel).apply {
+        rowSorter =
+          TableRowSorter(tableModel).apply {
+            // By default, JTable only sorts the rows in view, which represents the current page of
+            // all our data.
+            // So we need to listen to sort events and sort the entire data set instead.
+            addRowSorterListener { event ->
+              if (event.type == RowSorterEvent.Type.SORT_ORDER_CHANGED) {
+                clearSelection()
+                // Set/update each column's comparator so that it does not default to string
+                // comparisons.
+                updateColumnComparators(event.source.sortKeys, this)
+                // Sort the model data, which will be read and adapted to in the table view.
+                tableModel.sortData(event.source.sortKeys)
+              }
+            }
           }
-        }
       }
-    }
     tableModel.addTableModelListener { updateToolbar() }
-    component = JPanel(BorderLayout()).apply {
-      add(buildToolbar(), BorderLayout.NORTH)
-      add(JBScrollPane(table), BorderLayout.CENTER)
-    }
+    component =
+      JPanel(BorderLayout()).apply {
+        add(buildToolbar(), BorderLayout.NORTH)
+        add(JBScrollPane(table), BorderLayout.CENTER)
+      }
   }
 
-  private fun updateColumnComparators(sortKeys: List<RowSorter.SortKey>, rowSorter: DefaultRowSorter<*, *>) =
+  private fun updateColumnComparators(
+    sortKeys: List<RowSorter.SortKey>,
+    rowSorter: DefaultRowSorter<*, *>,
+  ) =
     sortKeys.forEach {
       rowSorter.setComparator(it.column) { o1, o2 ->
         when (tableModel.getColumnClass(it.column)) {
@@ -123,49 +128,43 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel, pageSizeVa
     firstPageButton.apply {
       disabledIcon = IconLoader.getDisabledIcon(FIRST_PAGE_ICON)
       toolTipText = "Go to first page"
-      addActionListener {
-        tableModel.goToFirstPage()
-      }
+      addActionListener { tableModel.goToFirstPage() }
     }
     lastPageButton.apply {
       disabledIcon = IconLoader.getDisabledIcon(LAST_PAGE_ICON)
       toolTipText = "Go to last page"
-      addActionListener {
-        tableModel.goToLastPage()
-      }
+      addActionListener { tableModel.goToLastPage() }
     }
     prevPageButton.apply {
       disabledIcon = IconLoader.getDisabledIcon(PREV_PAGE_ICON)
       toolTipText = "Go to previous page"
-      addActionListener {
-        tableModel.goToPrevPage()
-      }
+      addActionListener { tableModel.goToPrevPage() }
     }
     nextPageButton.apply {
       disabledIcon = IconLoader.getDisabledIcon(NEXT_PAGE_ICON)
       toolTipText = "Go to next page"
-      addActionListener {
-        tableModel.goToNextPage()
-      }
+      addActionListener { tableModel.goToNextPage() }
     }
     pageSizeComboBox.apply {
       isVisible = itemCount > 0
       selectedItem = tableModel.pageSize
-      addActionListener {
-        tableModel.updatePageSize(item)
+      addActionListener { tableModel.updatePageSize(item) }
+    }
+    val toolbar =
+      JPanel(BorderLayout()).apply {
+        border = JBUI.Borders.emptyLeft(8)
+        add(pageInfoLabel, BorderLayout.LINE_START)
+        add(
+          JPanel(FlowLayout(FlowLayout.LEFT)).apply {
+            add(firstPageButton)
+            add(prevPageButton)
+            add(pageSizeComboBox)
+            add(nextPageButton)
+            add(lastPageButton)
+          },
+          BorderLayout.LINE_END,
+        )
       }
-    }
-    val toolbar = JPanel(BorderLayout()).apply {
-      border = JBUI.Borders.emptyLeft(8)
-      add(pageInfoLabel, BorderLayout.LINE_START)
-      add(JPanel(FlowLayout(FlowLayout.LEFT)).apply {
-        add(firstPageButton)
-        add(prevPageButton)
-        add(pageSizeComboBox)
-        add(nextPageButton)
-        add(lastPageButton)
-      }, BorderLayout.LINE_END)
-    }
     updateToolbar()
 
     return toolbar

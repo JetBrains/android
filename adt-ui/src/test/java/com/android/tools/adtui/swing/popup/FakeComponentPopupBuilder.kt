@@ -36,20 +36,19 @@ import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.KeyStroke
 
-/**
- * A fake [ComponentPopupBuilder] for tests.
- */
+/** A fake [ComponentPopupBuilder] for tests. */
 open class FakeComponentPopupBuilder(
   private val factory: FakeJBPopupFactory,
   private val content: JComponent,
-  private val preferableFocusComponent: JComponent?
+  private val preferableFocusComponent: JComponent?,
 ) : ComponentPopupBuilder {
   private var isFocusable = false
   private var isRequestFocus = false
 
   // Section for implemented overrides
-  override fun createPopup(): JBPopup = FakeComponentPopup(content, preferableFocusComponent, isFocusable, isRequestFocus).also(
-    factory::addPopup)
+  override fun createPopup(): JBPopup =
+    FakeComponentPopup(content, preferableFocusComponent, isFocusable, isRequestFocus)
+      .also(factory::addPopup)
 
   override fun setFocusable(focusable: Boolean) = this.also { isFocusable = focusable }
 
@@ -130,7 +129,8 @@ open class FakeComponentPopupBuilder(
 
   override fun setKeyEventHandler(handler: BooleanFunction<in KeyEvent>) = this
 
-  override fun setDimensionServiceKey(project: Project?, key: String?, useForXYLocation: Boolean) = this
+  override fun setDimensionServiceKey(project: Project?, key: String?, useForXYLocation: Boolean) =
+    this
 
   override fun setCancelOnMouseOutCallback(shouldCancel: MouseChecker) = this
 

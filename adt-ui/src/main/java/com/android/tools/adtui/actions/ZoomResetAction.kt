@@ -25,9 +25,7 @@ import com.intellij.util.ui.JBUI
 import java.awt.Color
 import javax.swing.JComponent
 
-/**
- * Similar to ZoomFitAction, but it's just a button with a text that reads 'Reset' (no icon).
- */
+/** Similar to ZoomFitAction, but it's just a button with a text that reads 'Reset' (no icon). */
 object ZoomResetAction : SetZoomAction(ZoomType.FIT), CustomComponentAction {
   private const val BLUE_COLOR_RGB = 0x1a7dc4
   private val myTextColor = Color(BLUE_COLOR_RGB) // For both light and dark mode.
@@ -39,8 +37,7 @@ object ZoomResetAction : SetZoomAction(ZoomType.FIT), CustomComponentAction {
     event.presentation.isEnabled = event.getData(ZOOMABLE_KEY)?.canZoomToFit() ?: false
     if (event.place.contains("Surface")) {
       event.presentation.text = "Reset"
-    }
-    else {
+    } else {
       event.presentation.text = "Reset Zoom"
     }
   }

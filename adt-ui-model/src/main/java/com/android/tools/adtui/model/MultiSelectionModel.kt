@@ -16,25 +16,30 @@
 package com.android.tools.adtui.model
 
 /**
- * Multiselection model of selections type [S] indexed by some keys.
- * The selection order is maintained.
+ * Multiselection model of selections type [S] indexed by some keys. The selection order is
+ * maintained.
  */
 class MultiSelectionModel<S> : AspectModel<MultiSelectionModel.Aspect>() {
   private val currentSelections = LinkedHashMap<Any, Entry<S>>()
   var activeSelectionKey: Any? = null
     private set
-  val activeSelectionIndex get() = currentSelections.keys.indexOf(activeSelectionKey)
-  val selections: List<Entry<S>> get() = currentSelections.values.toList()
 
-  fun setSelection(key: Any, selections: Set<S>) = when {
-    selections.isEmpty() -> removeSelection(key)
-    selections != currentSelections[key]?.value -> {
-      activeSelectionKey = key
-      currentSelections[key] = Entry(key, selections)
-      changed(Aspect.SELECTIONS_CHANGED)
+  val activeSelectionIndex
+    get() = currentSelections.keys.indexOf(activeSelectionKey)
+
+  val selections: List<Entry<S>>
+    get() = currentSelections.values.toList()
+
+  fun setSelection(key: Any, selections: Set<S>) =
+    when {
+      selections.isEmpty() -> removeSelection(key)
+      selections != currentSelections[key]?.value -> {
+        activeSelectionKey = key
+        currentSelections[key] = Entry(key, selections)
+        changed(Aspect.SELECTIONS_CHANGED)
+      }
+      else -> setActiveSelection(key)
     }
-    else -> setActiveSelection(key)
-  }
 
   fun removeSelection(key: Any) {
     if (key in currentSelections) {
@@ -54,9 +59,7 @@ class MultiSelectionModel<S> : AspectModel<MultiSelectionModel.Aspect>() {
     }
   }
 
-  /**
-   * Make sure no selection is active, but retain all of them.
-   */
+  /** Make sure no selection is active, but retain all of them. */
   fun deselect() {
     if (activeSelectionKey != null) {
       activeSelectionKey = null

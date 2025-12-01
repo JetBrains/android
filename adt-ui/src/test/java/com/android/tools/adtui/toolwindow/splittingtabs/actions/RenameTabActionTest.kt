@@ -27,24 +27,27 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
-import org.junit.Rule
-import org.junit.Test
 import javax.swing.JComponent
 import javax.swing.JPanel
+import org.junit.Rule
+import org.junit.Test
 
-/**
- * Tests for [RenameTabAction]
- */
+/** Tests for [RenameTabAction] */
 class RenameTabActionTest {
   private val projectRule = ProjectRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, EdtRule())
 
-  private val toolWindow by lazy { ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)}
+  private val toolWindow by lazy {
+    ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)
+  }
   private val contentFactory by lazy { toolWindow.contentManager.factory }
-  private val event by lazy { TestActionEvent.createTestEvent(
-    action, SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build()) }
+  private val event by lazy {
+    TestActionEvent.createTestEvent(
+      action,
+      SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build(),
+    )
+  }
 
   private val action = RenameTabAction()
 
@@ -60,7 +63,6 @@ class RenameTabActionTest {
     assertThat(event.presentation.isVisible).isFalse()
   }
 
-
   @Test
   fun update_notSplittingTabContent_invisible() {
     val content = contentFactory.createContent(JPanel(), "Content", false)
@@ -72,11 +74,20 @@ class RenameTabActionTest {
 
   @Test
   fun update_splittingTabContent_visible() {
-    val content = contentFactory.createContent(null, "Content", false).also {
-      it.component = SplittingPanel(it, null, object : ChildComponentFactory {
-        override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = JPanel()
-      })
-    }
+    val content =
+      contentFactory.createContent(null, "Content", false).also {
+        it.component =
+          SplittingPanel(
+            it,
+            null,
+            object : ChildComponentFactory {
+              override fun createChildComponent(
+                state: String?,
+                popupActionGroup: DefaultActionGroup,
+              ): JComponent = JPanel()
+            },
+          )
+      }
     Disposer.register(toolWindow.contentManager, content)
 
     action.update(event, toolWindow, content)

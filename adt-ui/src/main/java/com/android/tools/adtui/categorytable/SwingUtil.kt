@@ -38,6 +38,7 @@ internal val TableColumnModel.columnList: List<TableColumn>
   get() =
     object : AbstractList<TableColumn>() {
       override val size = columnCount
+
       override fun get(index: Int): TableColumn = getColumn(index)
     }
 
@@ -46,6 +47,7 @@ internal val Container.componentList: List<Component>
   get() =
     object : AbstractList<Component>() {
       override val size = componentCount
+
       override fun get(index: Int): Component = getComponent(index)
     }
 
@@ -85,6 +87,7 @@ internal fun JComponent.addFocusListener(listener: (FocusEvent) -> Unit) {
       override fun focusGained(e: FocusEvent) {
         listener(e)
       }
+
       override fun focusLost(e: FocusEvent) {
         listener(e)
       }

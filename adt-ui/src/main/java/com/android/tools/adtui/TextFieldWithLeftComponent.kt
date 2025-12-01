@@ -29,23 +29,26 @@ import javax.swing.UIManager
 private const val ICON_SIDES_MARGIN = 4
 
 /**
- * Wraps the given [JComponent] and [JTextField] in a panel that has the appearance of a regular TextField, with the [leftComponent]
- * placed left to the [textField].
+ * Wraps the given [JComponent] and [JTextField] in a panel that has the appearance of a regular
+ * TextField, with the [leftComponent] placed left to the [textField].
  *
  * The panel paints as focused whenever [textField] would be focused.
  *
- * Since the panel will have the TextField appearance, [textField] and [leftComponent] are stripped from their border and background.
+ * Since the panel will have the TextField appearance, [textField] and [leftComponent] are stripped
+ * from their border and background.
  */
-class TextFieldWithLeftComponent(val leftComponent: JComponent, val textField: JTextField) : JPanel(BorderLayout()) {
-  private val focusListener: FocusListener = object : FocusListener {
-    override fun focusLost(e: FocusEvent?) {
-      repaint()
-    }
+class TextFieldWithLeftComponent(val leftComponent: JComponent, val textField: JTextField) :
+  JPanel(BorderLayout()) {
+  private val focusListener: FocusListener =
+    object : FocusListener {
+      override fun focusLost(e: FocusEvent?) {
+        repaint()
+      }
 
-    override fun focusGained(e: FocusEvent?) {
-      repaint()
+      override fun focusGained(e: FocusEvent?) {
+        repaint()
+      }
     }
-  }
 
   init {
     border = DarculaTextBorder()

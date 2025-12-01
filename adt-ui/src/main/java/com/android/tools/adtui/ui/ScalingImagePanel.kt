@@ -36,53 +36,48 @@ import java.util.concurrent.TimeUnit
 
 /**
  * A [JBPanel] that shows an [Image] as background, scaled to fit preserving the aspect ratio.
- * Allows the [Image] to be regenerated through a [ScaledImageProvider] when the panel size
- * changes. Supports HiDPI if [image] is a [JBHiDPIScaledImage].
+ * Allows the [Image] to be regenerated through a [ScaledImageProvider] when the panel size changes.
+ * Supports HiDPI if [image] is a [JBHiDPIScaledImage].
  */
 @UiThread
 open class ScalingImagePanel : JBPanel<ImagePanel>(true), Disposable {
   private val LOG = logger<ScalingImagePanel>()
   private val stopwatch = Stopwatch()
   private val edtExecutor = FutureCallbackExecutor(EdtExecutorService.getInstance())
-  private val boundedExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("ScalingImagePanel", 1)
+  private val boundedExecutor =
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("ScalingImagePanel", 1)
   private val taskExecutor = FutureCallbackExecutor(boundedExecutor)
-  private val resizedListener = object : ComponentAdapter() {
-    override fun componentResized(e: ComponentEvent?) {
-      super.componentResized(e)
-      repaintAsync()
+  private val resizedListener =
+    object : ComponentAdapter() {
+      override fun componentResized(e: ComponentEvent?) {
+        super.componentResized(e)
+        repaintAsync()
+      }
     }
-  }
   private var previousFuture: Future<Unit>? = null
 
-  /**
-   * The [Image] to draw
-   */
+  /** The [Image] to draw */
   var image: Image? = null
     set(value) {
       field = value
       repaint()
     }
 
-  /**
-   * Where the image should be "grayed out" (as inactive) or not
-   */
+  /** Where the image should be "grayed out" (as inactive) or not */
   var active: Boolean = true
     set(value) {
       field = value
       repaint()
     }
 
-  /**
-   * The [ScaledImageProvider] to recompute the [image] when the component size changes
-   */
+  /** The [ScaledImageProvider] to recompute the [image] when the component size changes */
   var scaledImageProvider: ScaledImageProvider? = null
     set(value) {
       field = value
       if (value == null) {
         removeComponentListener(resizedListener)
         repaint()
-      }
-      else {
+      } else {
         addComponentListener(resizedListener)
         image = value.initialImage
         repaintAsync()
@@ -105,27 +100,36 @@ open class ScalingImagePanel : JBPanel<ImagePanel>(true), Disposable {
       val width = this.width.toDouble()
       val height = this.height.toDouble()
       val ctx = ScaleContext.create(this)
-      val newFuture = taskExecutor.executeAsync {
-        // Empty body so that potential future cancellation affect the actual
-        // heavy processing call (in the transform below)
-      }.transform(taskExecutor) {
-        // Note: This block will never execute if there are multiple repaintAsync
-        // request (see future cancellation below)
-        stopwatch.start()
-        val result = provider.createScaledImage(ctx, width, height)
-        stopwatch.stop()
-        LOG.debug("createScaleImage(scaleContext=${ctx}, w=${width}, h=${height}) is done " +
-                  "in ${TimeUnit.NANOSECONDS.toMillis(stopwatch.totalRunningTimeNs)} msec")
-        result
-      }.transform(edtExecutor) { newImage ->
-        // Update image on EDT thread (this will repaint)
-        LOG.debug("Updating panel image (scaleContext=${ctx}, userWidth=${userWidth(newImage)}, pixelWidth=${pixelWidth(newImage)})")
-        if (provider == scaledImageProvider) {
-          image = newImage
-        }
-      }.catching(edtExecutor, Exception::class.java) { e ->
-        LOG.warn("Error loading scaled image", e)
-      }
+      val newFuture =
+        taskExecutor
+          .executeAsync {
+            // Empty body so that potential future cancellation affect the actual
+            // heavy processing call (in the transform below)
+          }
+          .transform(taskExecutor) {
+            // Note: This block will never execute if there are multiple repaintAsync
+            // request (see future cancellation below)
+            stopwatch.start()
+            val result = provider.createScaledImage(ctx, width, height)
+            stopwatch.stop()
+            LOG.debug(
+              "createScaleImage(scaleContext=${ctx}, w=${width}, h=${height}) is done " +
+                "in ${TimeUnit.NANOSECONDS.toMillis(stopwatch.totalRunningTimeNs)} msec"
+            )
+            result
+          }
+          .transform(edtExecutor) { newImage ->
+            // Update image on EDT thread (this will repaint)
+            LOG.debug(
+              "Updating panel image (scaleContext=${ctx}, userWidth=${userWidth(newImage)}, pixelWidth=${pixelWidth(newImage)})"
+            )
+            if (provider == scaledImageProvider) {
+              image = newImage
+            }
+          }
+          .catching(edtExecutor, Exception::class.java) { e ->
+            LOG.warn("Error loading scaled image", e)
+          }
 
       // Cancel previous block of work so that we don't waste CPU cycles scaling
       // an image that will never be displayed (we only care about the last one)
@@ -137,8 +141,7 @@ open class ScalingImagePanel : JBPanel<ImagePanel>(true), Disposable {
   private fun userWidth(img: Image): Int {
     if (img is JBHiDPIScaledImage) {
       return img.getUserWidth()
-    }
-    else {
+    } else {
       return img.getWidth(null)
     }
   }
@@ -146,8 +149,7 @@ open class ScalingImagePanel : JBPanel<ImagePanel>(true), Disposable {
   private fun pixelWidth(img: Image): Int {
     if (img is JBHiDPIScaledImage) {
       return img.getRealWidth()
-    }
-    else {
+    } else {
       return img.getWidth(null)
     }
   }

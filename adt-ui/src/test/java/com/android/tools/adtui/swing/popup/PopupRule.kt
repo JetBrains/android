@@ -15,12 +15,10 @@
  */
 package com.android.tools.adtui.swing.popup
 
-import org.junit.rules.ExternalResource
 import javax.swing.PopupFactory
+import org.junit.rules.ExternalResource
 
-/**
- * A rule that sets up using [FakePopupFactory] in a test.
- */
+/** A rule that sets up using [FakePopupFactory] in a test. */
 class PopupRule : ExternalResource() {
 
   private val fakePopupFactory = FakePopupFactory()

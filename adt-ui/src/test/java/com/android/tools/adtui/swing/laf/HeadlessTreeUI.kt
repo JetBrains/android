@@ -25,9 +25,9 @@ import javax.swing.SwingUtilities
 import javax.swing.plaf.basic.BasicTreeUI
 
 /**
- * A stubbed [BasicTreeUI] for use in headless unit tests, where some functionality is
- * removed to avoid making calls that would otherwise throw a [HeadlessException]. This will
- * allow you to interact with [JTree] components using [FakeMouse] and [FakeKeyboard].
+ * A stubbed [BasicTreeUI] for use in headless unit tests, where some functionality is removed to
+ * avoid making calls that would otherwise throw a [HeadlessException]. This will allow you to
+ * interact with [JTree] components using [FakeMouse] and [FakeKeyboard].
  *
  * NOTE: Changing the UI of a component can subtly change its behavior! This class may need to be
  * updated in the future to add more functionality, so it more closely matches its parent class.
@@ -37,7 +37,8 @@ class HeadlessTreeUI : BasicTreeUI() {
     SwingUtilities.isLeftMouseButton(event) && isMenuShortcutKeyDown(event)
 
   private fun isMenuShortcutKeyDown(event: MouseEvent) =
-    // Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx yields HeadlessException on Linux and Windows test machines.
+    // Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx yields HeadlessException on Linux and
+    // Windows test machines.
     // Use InputEvent.CTRL_DOWN_MASK instead.
     (event.modifiersEx and InputEvent.CTRL_DOWN_MASK) != 0
 }

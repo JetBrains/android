@@ -20,7 +20,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.jetbrains.annotations.TestOnly
 
-class ZoomActualAction private constructor(): SetZoomAction(ZoomType.ACTUAL) {
+class ZoomActualAction private constructor() : SetZoomAction(ZoomType.ACTUAL) {
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isEnabled = event.getData(ZOOMABLE_KEY)?.canZoomToActual() ?: false
@@ -33,10 +33,9 @@ class ZoomActualAction private constructor(): SetZoomAction(ZoomType.ACTUAL) {
     }
 
     /**
-     * Create [ZoomActualAction] instance if the test environment doesn't load adt-ui.xml. Do not use this function in production code.
+     * Create [ZoomActualAction] instance if the test environment doesn't load adt-ui.xml. Do not
+     * use this function in production code.
      */
-    @TestOnly
-    @JvmStatic
-    fun createInstance(): ZoomActualAction = ZoomActualAction()
+    @TestOnly @JvmStatic fun createInstance(): ZoomActualAction = ZoomActualAction()
   }
 }

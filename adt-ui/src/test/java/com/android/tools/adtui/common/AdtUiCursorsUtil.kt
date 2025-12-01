@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 @file:JvmName("AdtUiCursorsTestUtil")
+
 package com.android.tools.adtui.common
 
 import java.awt.Cursor
 
-/**
- * Helper function to assign predefined [Cursor] to the given [AdtUiCursorType] type.
- */
+/** Helper function to assign predefined [Cursor] to the given [AdtUiCursorType] type. */
 fun replaceAdtUiCursorWithPredefinedCursor(type: AdtUiCursorType, predefinedCursor: Cursor) {
-  (AdtUiCursorsProvider.getInstance() as TestAdtUiCursorsProvider).replaceCursorForTest(type, predefinedCursor)
+  (AdtUiCursorsProvider.getInstance() as TestAdtUiCursorsProvider).replaceCursorForTest(
+    type,
+    predefinedCursor,
+  )
 }

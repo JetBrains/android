@@ -94,14 +94,22 @@ fun DeviceScreenDiagram(
     var horizontalInset = 0f
     var verticalDiagramInset = 0f
     var horizontalDiagramInset = 0f
-    val innerWidth = (size.width - heightTextMeasurement.size.height.toFloat() - 4.dp.toPx()).coerceAtLeast(0f)
-    val innerHeight = (size.height - widthTextMeasurement.size.height.toFloat() - 4.dp.toPx()).coerceAtLeast(0f)
+    val innerWidth =
+      (size.width - heightTextMeasurement.size.height.toFloat() - 4.dp.toPx()).coerceAtLeast(0f)
+    val innerHeight =
+      (size.height - widthTextMeasurement.size.height.toFloat() - 4.dp.toPx()).coerceAtLeast(0f)
     if (innerHeight * aspectRatio > innerWidth) {
       verticalDiagramInset = ((innerHeight - (innerWidth / aspectRatio)) / 2) - 4.dp.toPx()
-      verticalInset = verticalDiagramInset.coerceAtMost((size.height - heightTextMeasurement.size.width.toFloat()) / 2)
+      verticalInset =
+        verticalDiagramInset.coerceAtMost(
+          (size.height - heightTextMeasurement.size.width.toFloat()) / 2
+        )
     } else {
       horizontalDiagramInset = ((innerWidth - (innerHeight * aspectRatio)) / 2) - 4.dp.toPx()
-      horizontalInset = horizontalDiagramInset.coerceAtMost((size.width - widthTextMeasurement.size.width.toFloat()) / 2)
+      horizontalInset =
+        horizontalDiagramInset.coerceAtMost(
+          (size.width - widthTextMeasurement.size.width.toFloat()) / 2
+        )
     }
     inset(horizontal = horizontalInset, vertical = verticalInset) {
       inset(left = heightTextMeasurement.size.height.toFloat(), top = 0f, bottom = 0f, right = 0f) {

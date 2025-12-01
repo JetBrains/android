@@ -42,32 +42,32 @@ import sample.samplecomposewindow.ComponentShowcase
 /**
  * This sample demonstrates this module's ability to support Jewel + Compose Desktop development.
  *
- * On running this sample, users should expect an external window to open. Within this sample you will
- * find example components showcasing the Jewel component library. At the top of this window, one will
- * find two checkboxes allowing the user to switch the top-level theme and toggle the Swing interoperability.
- * One toggle of these settings, the sample components will adapt accordingly, showcasing the functionality
- * Jewel brings on top of the foundation compose desktop components.
+ * On running this sample, users should expect an external window to open. Within this sample you
+ * will find example components showcasing the Jewel component library. At the top of this window,
+ * one will find two checkboxes allowing the user to switch the top-level theme and toggle the Swing
+ * interoperability. One toggle of these settings, the sample components will adapt accordingly,
+ * showcasing the functionality Jewel brings on top of the foundation compose desktop components.
  *
- * To run this sample in an independent window, run the main function by selecting "Current File" under
- * Intellij's Run Configuration menu and clicking play or debug. Alternatively, you can use the run button
- * adjacent to the main function. Essentially, this sample can be run like any other Java/Kotlin process.
+ * To run this sample in an independent window, run the main function by selecting "Current File"
+ * under Intellij's Run Configuration menu and clicking play or debug. Alternatively, you can use
+ * the run button adjacent to the main function. Essentially, this sample can be run like any other
+ * Java/Kotlin process.
  *
- * This sample window showcasing different compose components was adapted from the public Jewel repository
- * standalone sample. Additionally, an example of an Intellij IDE plugin using Jewel is available in the
- * repository is. See: https://github.com/JetBrains/jewel.
+ * This sample window showcasing different compose components was adapted from the public Jewel
+ * repository standalone sample. Additionally, an example of an Intellij IDE plugin using Jewel is
+ * available in the repository is. See: https://github.com/JetBrains/jewel.
  */
 
 /**
- * Entry point to run the sample. Defines the window of the sample, the top-level theming resources, and a
- * component unifying all sample components into one "Component Showcase".
+ * Entry point to run the sample. Defines the window of the sample, the top-level theming resources,
+ * and a component unifying all sample components into one "Component Showcase".
  *
  * This sample application utilizes the Jewel standalone theme which is for scoped for testing only.
- * NOTE: The Jewel standalone theme should only ever be used for testing and never used in production code.
+ * NOTE: The Jewel standalone theme should only ever be used for testing and never used in
+ * production code.
  */
 fun main() {
-  standaloneSingleWindowApplication(
-    title = "Jewel component catalog",
-  ) {
+  standaloneSingleWindowApplication(title = "Jewel component catalog") {
     var swingCompat by remember { mutableStateOf(false) }
     var isDark by remember { mutableStateOf(false) }
 
@@ -79,11 +79,12 @@ fun main() {
       }
 
     IntUiTheme(themeDefinition, ComponentStyling.provide { arrayOf() }, swingCompat) {
-      val windowBackground = if (isDark) {
-        JewelTheme.colorPalette.gray(1)
-      } else {
-        JewelTheme.colorPalette.gray(14)
-      }
+      val windowBackground =
+        if (isDark) {
+          JewelTheme.colorPalette.gray(1)
+        } else {
+          JewelTheme.colorPalette.gray(14)
+        }
 
       Column(Modifier.fillMaxSize().background(windowBackground)) {
         Row(

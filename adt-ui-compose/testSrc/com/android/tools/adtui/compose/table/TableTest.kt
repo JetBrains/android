@@ -51,9 +51,7 @@ class TableTest {
     val weights = listOf(12, 4, 8, 20)
     val cats = weights.map { Cat(name = "Cat $it", weight = it) }
 
-    composeTestRule.setContent {
-      Table(columns = columns, cats, { it })
-    }
+    composeTestRule.setContent { Table(columns = columns, cats, { it }) }
 
     // Click the column header to sort by weight, arrow down to the table
     composeTestRule.onNodeWithText("Weight").performClick()

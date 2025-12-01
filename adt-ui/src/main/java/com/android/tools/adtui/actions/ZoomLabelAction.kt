@@ -28,9 +28,7 @@ import java.beans.PropertyChangeListener
 import java.util.Locale
 import javax.swing.JComponent
 
-/**
- * Action which shows a zoom percentage
- */
+/** Action which shows a zoom percentage */
 object ZoomLabelAction : AnAction(), CustomComponentAction {
 
   init {
@@ -57,28 +55,29 @@ object ZoomLabelAction : AnAction(), CustomComponentAction {
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
-    val label = object : JBLabel() {
-      private val presentationSyncer: PropertyChangeListener = PropertyChangeListener { evt ->
-        val propertyName = evt.propertyName
-        if (Presentation.PROP_TEXT == propertyName) {
-          text = evt.newValue as String
+    val label =
+      object : JBLabel() {
+        private val presentationSyncer: PropertyChangeListener = PropertyChangeListener { evt ->
+          val propertyName = evt.propertyName
+          if (Presentation.PROP_TEXT == propertyName) {
+            text = evt.newValue as String
+            parent.parent.validate()
+            repaint()
+          }
+        }
+
+        override fun addNotify() {
+          super.addNotify()
+          presentation.addPropertyChangeListener(presentationSyncer)
+          text = presentation.text
           parent.parent.validate()
-          repaint()
+        }
+
+        override fun removeNotify() {
+          presentation.removePropertyChangeListener(presentationSyncer)
+          super.removeNotify()
         }
       }
-
-      override fun addNotify() {
-        super.addNotify()
-        presentation.addPropertyChangeListener(presentationSyncer)
-        text = presentation.text
-        parent.parent.validate()
-      }
-
-      override fun removeNotify() {
-        presentation.removePropertyChangeListener(presentationSyncer)
-        super.removeNotify()
-      }
-    }
     label.font = UIUtil.getToolTipFont()
     label.name = "Current Zoom Level"
     return label

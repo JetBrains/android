@@ -21,51 +21,60 @@ import org.junit.Test
 
 class MultiSelectionModelTest {
   @Test
-  fun `selections indexed by multiple keys have stable order`() = testWithObserver<Int> { model, selections ->
-    model.setSelection("Key1", setOf(1, 2, 3))
-    model.setSelection("Key2", setOf(2, 3, 4, 5))
-    model.setSelection("Key3", setOf(0))
-    assertThat(selections()).containsExactly(Entry("Key1", setOf(1, 2, 3)),
-                                             Entry("Key2", setOf(2, 3, 4, 5)),
-                                             Entry("Key3", setOf(0)))
+  fun `selections indexed by multiple keys have stable order`() =
+    testWithObserver<Int> { model, selections ->
+      model.setSelection("Key1", setOf(1, 2, 3))
+      model.setSelection("Key2", setOf(2, 3, 4, 5))
+      model.setSelection("Key3", setOf(0))
+      assertThat(selections())
+        .containsExactly(
+          Entry("Key1", setOf(1, 2, 3)),
+          Entry("Key2", setOf(2, 3, 4, 5)),
+          Entry("Key3", setOf(0)),
+        )
 
-    model.setSelection("Key2", setOf(42))
-    assertThat(selections()).containsExactly(Entry("Key1", setOf(1, 2, 3)),
-                                             Entry("Key2", setOf(42)),
-                                             Entry("Key3", setOf(0)))
+      model.setSelection("Key2", setOf(42))
+      assertThat(selections())
+        .containsExactly(
+          Entry("Key1", setOf(1, 2, 3)),
+          Entry("Key2", setOf(42)),
+          Entry("Key3", setOf(0)),
+        )
 
-    model.removeSelection("Key2")
-    assertThat(selections()).containsExactly(Entry("Key1", setOf(1, 2, 3)),
-                                             Entry("Key3", setOf(0)))
+      model.removeSelection("Key2")
+      assertThat(selections())
+        .containsExactly(Entry("Key1", setOf(1, 2, 3)), Entry("Key3", setOf(0)))
 
-    model.clearSelection()
-    assertThat(selections()).isEmpty()
-  }
-
-  @Test
-  fun `most recently modified selection is active`() = testWithObserver<Int> { model, selections ->
-    assertThat(model.activeSelectionKey).isNull()
-
-    model.setSelection("Key1", setOf(1, 2, 3))
-    assertThat(model.activeSelectionKey).isEqualTo("Key1")
-
-    model.setSelection("Key2", setOf(2, 3, 4, 5))
-    assertThat(model.activeSelectionKey).isEqualTo("Key2")
-
-    model.setSelection("Key3", setOf(0))
-    assertThat(model.activeSelectionKey).isEqualTo("Key3")
-
-    model.setSelection("Key2", setOf(42))
-    assertThat(model.activeSelectionKey).isEqualTo("Key2")
-  }
+      model.clearSelection()
+      assertThat(selections()).isEmpty()
+    }
 
   @Test
-  fun `no item for selection is the same as deselection`() = testWithObserver<Int> { model, selections ->
-    model.setSelection("Key1", setOf(1, 2, 3))
-    model.setSelection("Key2", setOf(2, 3, 4, 5))
-    model.setSelection("Key1", setOf())
-    assertThat(selections()).containsExactly(Entry("Key2", setOf(2, 3, 4, 5)))
-  }
+  fun `most recently modified selection is active`() =
+    testWithObserver<Int> { model, selections ->
+      assertThat(model.activeSelectionKey).isNull()
+
+      model.setSelection("Key1", setOf(1, 2, 3))
+      assertThat(model.activeSelectionKey).isEqualTo("Key1")
+
+      model.setSelection("Key2", setOf(2, 3, 4, 5))
+      assertThat(model.activeSelectionKey).isEqualTo("Key2")
+
+      model.setSelection("Key3", setOf(0))
+      assertThat(model.activeSelectionKey).isEqualTo("Key3")
+
+      model.setSelection("Key2", setOf(42))
+      assertThat(model.activeSelectionKey).isEqualTo("Key2")
+    }
+
+  @Test
+  fun `no item for selection is the same as deselection`() =
+    testWithObserver<Int> { model, selections ->
+      model.setSelection("Key1", setOf(1, 2, 3))
+      model.setSelection("Key2", setOf(2, 3, 4, 5))
+      model.setSelection("Key1", setOf())
+      assertThat(selections()).containsExactly(Entry("Key2", setOf(2, 3, 4, 5)))
+    }
 
   @Test
   fun `removing active selection leaves no active key`() =
@@ -82,15 +91,16 @@ class MultiSelectionModelTest {
     }
 
   @Test
-  fun `deselection leaves all selections as-is`() = testWithObserver<Int> { model, selections ->
-    model.setSelection("Key1", setOf(1, 2, 3))
-    model.setSelection("Key2", setOf(2, 3, 4, 5))
-    assertThat(selections()).hasSize(2)
-    model.deselect()
-    assertThat(selections()).hasSize(2)
-    model.deselect()
-    assertThat(selections()).hasSize(2)
-  }
+  fun `deselection leaves all selections as-is`() =
+    testWithObserver<Int> { model, selections ->
+      model.setSelection("Key1", setOf(1, 2, 3))
+      model.setSelection("Key2", setOf(2, 3, 4, 5))
+      assertThat(selections()).hasSize(2)
+      model.deselect()
+      assertThat(selections()).hasSize(2)
+      model.deselect()
+      assertThat(selections()).hasSize(2)
+    }
 
   @Test
   fun `clearing selections leaves no active key`() =
@@ -149,16 +159,22 @@ class MultiSelectionModelTest {
       assertThat(activeSelection()).isEqualTo("Key0")
     }
 
-  private fun<T> testWithObserver(run: (MultiSelectionModel<T>, () -> List<Entry<T>>) -> Unit) =
+  private fun <T> testWithObserver(run: (MultiSelectionModel<T>, () -> List<Entry<T>>) -> Unit) =
     testWithObserver(MultiSelectionModel<T>::selections, run)
 
-  private fun<T, O> testWithObserver(observe: (MultiSelectionModel<T>) -> O, run: (MultiSelectionModel<T>, () -> O) -> Unit) {
+  private fun <T, O> testWithObserver(
+    observe: (MultiSelectionModel<T>) -> O,
+    run: (MultiSelectionModel<T>, () -> O) -> Unit,
+  ) {
     val model = MultiSelectionModel<T>()
     val observer = AspectObserver()
     var observation = observe(model)
-    model.addDependency(observer)
+    model
+      .addDependency(observer)
       .onChange(MultiSelectionModel.Aspect.SELECTIONS_CHANGED) { observation = observe(model) }
-      .onChange(MultiSelectionModel.Aspect.ACTIVE_SELECTION_CHANGED) { observation = observe(model) }
+      .onChange(MultiSelectionModel.Aspect.ACTIVE_SELECTION_CHANGED) {
+        observation = observe(model)
+      }
     run(model) { observation.also { observer.hashCode() /* keep it live */ } }
   }
 }

@@ -21,7 +21,7 @@ import org.junit.Test
 class PercentAxisFormatterTest {
   @Test
   fun numbersAreFormattedProperly() {
-    val formatter = PercentAxisFormatter(1,10)
+    val formatter = PercentAxisFormatter(1, 10)
     var percent = formatter.getFormattedString(100.0, 25.0, true)
     assertThat(percent).matches("25%")
     percent = formatter.getFormattedString(10000.0, 7500.0, false)
@@ -33,5 +33,4 @@ class PercentAxisFormatterTest {
     percent = formatter.getFormattedString(100000.0, 0.0, false)
     assertThat(percent).matches("0")
   }
-
 }

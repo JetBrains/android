@@ -24,9 +24,7 @@ import com.intellij.ui.components.JBList
 import org.junit.Test
 
 class BoxSelectionComponentTest {
-  /**
-   * Helper class for setting up the box selection UI.
-   */
+  /** Helper class for setting up the box selection UI. */
   private class BoxSelectionUi {
     val jList = JBList("foo", "bar")
     val boxSelectionModel = BoxSelectionModel(Range(), Range(0.0, 100.0))

@@ -16,8 +16,8 @@
 package com.android.tools.adtui
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import javax.swing.AbstractButton
+import org.junit.Test
 
 class ComboCheckBoxTest {
 
@@ -28,9 +28,11 @@ class ComboCheckBoxTest {
     var selected: Set<String> = initialSelection.toMutableSet()
     val p = ComboCheckBox.of(pool, initialSelection, { selected = it.toSet() })
 
-    fun click(btnText: String) = TreeWalker(p).descendantStream()
-      .filter { it is AbstractButton && it.text == btnText}
-      .forEach { (it as AbstractButton).doClick() }
+    fun click(btnText: String) =
+      TreeWalker(p)
+        .descendantStream()
+        .filter { it is AbstractButton && it.text == btnText }
+        .forEach { (it as AbstractButton).doClick() }
 
     click("Apply")
     assertThat(selected).isEqualTo(initialSelection)
@@ -51,11 +53,11 @@ class ComboCheckBoxTest {
   @Test
   fun `button only enabled when there is change`() {
     var actionCount = 0
-    val p = ComboCheckBox.of(listOf("a", "b", "c", "d", "e"),
-                             setOf("a", "d"),
-                             { ++actionCount })
+    val p = ComboCheckBox.of(listOf("a", "b", "c", "d", "e"), setOf("a", "d"), { ++actionCount })
 
-    fun btn(text: String) = TreeWalker(p).descendants().filter { it is AbstractButton && it.text == text }.first() as AbstractButton
+    fun btn(text: String) =
+      TreeWalker(p).descendants().filter { it is AbstractButton && it.text == text }.first()
+        as AbstractButton
 
     assertThat(btn("Apply").isEnabled).isFalse()
     btn("Apply").doClick()

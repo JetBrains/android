@@ -24,24 +24,23 @@ import com.intellij.ui.IconManager
 import com.intellij.ui.JBColor
 import com.intellij.ui.NewUiValue
 import icons.StudioIcons
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.awt.AlphaComposite
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import javax.swing.Icon
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 private const val LIGHT_COLOR = 0xF1F2F3
 private const val DARK_COLOR = 0x010203
 
 @RunsInEdt
 class ColoredIconGeneratorTest {
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private var wasDarkMode = false // Restore dark mode after test runs
 
@@ -65,8 +64,14 @@ class ColoredIconGeneratorTest {
 
   @Test
   fun testColoredIcon() {
-    for (origIcon in listOf(StudioIcons.Common.ERROR, StudioIcons.Common.PROPERTY_UNBOUND_FOCUS_LARGE, StudioIcons.Cursors.GRAB)) {
-      val coloredIcon = ColoredIconGenerator.generateColoredIcon(origIcon, JBColor(LIGHT_COLOR, DARK_COLOR))
+    for (origIcon in
+      listOf(
+        StudioIcons.Common.ERROR,
+        StudioIcons.Common.PROPERTY_UNBOUND_FOCUS_LARGE,
+        StudioIcons.Cursors.GRAB,
+      )) {
+      val coloredIcon =
+        ColoredIconGenerator.generateColoredIcon(origIcon, JBColor(LIGHT_COLOR, DARK_COLOR))
 
       JBColor.setDark(false)
       IconLoader.setUseDarkIcons(false)
@@ -87,7 +92,12 @@ class ColoredIconGeneratorTest {
 
   @Test
   fun testDeEmphasizedIcon() {
-    for (origIcon in listOf(StudioIcons.Common.ERROR, StudioIcons.Common.PROPERTY_UNBOUND_FOCUS_LARGE, StudioIcons.Cursors.GRAB)) {
+    for (origIcon in
+      listOf(
+        StudioIcons.Common.ERROR,
+        StudioIcons.Common.PROPERTY_UNBOUND_FOCUS_LARGE,
+        StudioIcons.Cursors.GRAB,
+      )) {
       val deEmphasizedIcon = ColoredIconGenerator.generateDeEmphasizedIcon(origIcon)
 
       JBColor.setDark(false)
@@ -129,8 +139,10 @@ class ColoredIconGeneratorTest {
     assertThat(origImg.width).isEqualTo(coloredImg.width)
     assertThat(origImg.height).isEqualTo(coloredImg.height)
 
-    for ((origValue, coloredValue) in origImg.getRGB(0, 0, origImg.width, origImg.height, null, 0, origImg.width).zip(
-      coloredImg.getRGB(0, 0, origImg.width, origImg.height, null, 0, origImg.width))) {
+    for ((origValue, coloredValue) in
+      origImg
+        .getRGB(0, 0, origImg.width, origImg.height, null, 0, origImg.width)
+        .zip(coloredImg.getRGB(0, 0, origImg.width, origImg.height, null, 0, origImg.width))) {
       if (coloredValue != 0 || origValue != 0) {
         assertThat(coloredValue and 0xffffff).isEqualTo(color and 0xffffff)
         assertThat(coloredValue shr 24).isEqualTo(origValue shr 24)
@@ -142,11 +154,16 @@ class ColoredIconGeneratorTest {
     assertThat(origImg.width).isEqualTo(deEmphasizedImage.width)
     assertThat(origImg.height).isEqualTo(deEmphasizedImage.height)
 
-    for ((origValue, deEmphasizedValue) in origImg.getRGB(0, 0, origImg.width, origImg.height, null, 0, origImg.width).zip(
-      deEmphasizedImage.getRGB(0, 0, origImg.width, origImg.height, null, 0, origImg.width))) {
+    for ((origValue, deEmphasizedValue) in
+      origImg
+        .getRGB(0, 0, origImg.width, origImg.height, null, 0, origImg.width)
+        .zip(
+          deEmphasizedImage.getRGB(0, 0, origImg.width, origImg.height, null, 0, origImg.width)
+        )) {
       if (deEmphasizedValue != 0 || origValue != 0) {
         assertThat(deEmphasizedValue and 0xffffff).isEqualTo(origValue and 0xffffff)
-        assertThat((deEmphasizedValue shr 24) and 0xff).isEqualTo((((origValue shr 24) and 0xff) + 1) / 2)
+        assertThat((deEmphasizedValue shr 24) and 0xff)
+          .isEqualTo((((origValue shr 24) and 0xff) + 1) / 2)
       }
     }
   }

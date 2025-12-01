@@ -20,9 +20,7 @@ import com.intellij.ui.AnimatedIcon
 import java.util.function.Function
 import javax.swing.Icon
 
-/**
- * A class which is used to validate some input.
- */
+/** A class which is used to validate some input. */
 interface Validator<T> {
   /**
    * Returns [Result.OK] if the input is valid, or a result with some other [Severity] otherwise.
@@ -30,7 +28,8 @@ interface Validator<T> {
   fun validate(value: T): Result
 
   /**
-   * Indicates the severity of a validation violation. [Severity.OK] should be used if no violation has occurred.
+   * Indicates the severity of a validation violation. [Severity.OK] should be used if no violation
+   * has occurred.
    */
   enum class Severity(val icon: Icon?) {
     OK(null),
@@ -41,16 +40,19 @@ interface Validator<T> {
   }
 
   /**
-   * The result of a call to [Validator.validate]. Test against [Result.OK] to see if the input is fine,
-   * or otherwise call [Result.message] to get a readable error / warning string which can be displayed to the user.
+   * The result of a call to [Validator.validate]. Test against [Result.OK] to see if the input is
+   * fine, or otherwise call [Result.message] to get a readable error / warning string which can be
+   * displayed to the user.
    */
-  data class Result @JvmOverloads constructor(val severity: Severity, val message: String, val detailedMessage: String? = null) {
+  data class Result
+  @JvmOverloads
+  constructor(val severity: Severity, val message: String, val detailedMessage: String? = null) {
     companion object {
-      @JvmField
-      val OK = Result(Severity.OK, "")
+      @JvmField val OK = Result(Severity.OK, "")
 
       /**
-       * Returns an error result, if given an error message, or an OK result if given a null or an empty message.
+       * Returns an error result, if given an error message, or an OK result if given a null or an
+       * empty message.
        *
        * @param errorMessage an error message, or null or an empty string to produce an OK result
        */
@@ -70,9 +72,8 @@ interface Validator<T> {
   }
 }
 
-/**
- * Kotlin friendly helper function
- */
-fun <T> createValidator(function: Function<T, Validator.Result>): Validator<T> = object : Validator<T> {
-  override fun validate(value: T): Validator.Result = function.apply(value)
-}
+/** Kotlin friendly helper function */
+fun <T> createValidator(function: Function<T, Validator.Result>): Validator<T> =
+  object : Validator<T> {
+    override fun validate(value: T): Validator.Result = function.apply(value)
+  }

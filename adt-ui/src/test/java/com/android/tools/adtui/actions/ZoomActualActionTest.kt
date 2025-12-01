@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.actions
 
-import org.mockito.kotlin.whenever
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
 import com.google.common.truth.Truth.assertThat
@@ -30,6 +29,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class ZoomActualActionTest {

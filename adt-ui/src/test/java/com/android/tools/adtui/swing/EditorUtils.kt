@@ -24,9 +24,9 @@ object EditorUtils {
 
   /**
    * Here we explicitly remove listeners added in `EditorMouseHoverPopupManager` to sidestep false
-   * leakages as the lifecycles of those listeners are tied to the application which are not excluded
-   * when checking leaks. (I filed https://youtrack.jetbrains.com/issue/IDEA-323699 -- hopefully it
-   * could be resolved.)
+   * leakages as the lifecycles of those listeners are tied to the application which are not
+   * excluded when checking leaks. (I filed https://youtrack.jetbrains.com/issue/IDEA-323699 --
+   * hopefully it could be resolved.)
    */
   fun cleanUpListenersFromEditorMouseHoverPopupManager() {
     val editorEventMulticaster =

@@ -57,8 +57,8 @@ import javax.swing.Timer
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Creates a popup that displays a title, a description, a list of actions as an overflow menu and a list of links at the bottom.
- * The list of actions or links can be empty.
+ * Creates a popup that displays a title, a description, a list of actions as an overflow menu and a
+ * list of links at the bottom. The list of actions or links can be empty.
  */
 interface InformationPopup : Disposable {
 
@@ -66,9 +66,7 @@ interface InformationPopup : Disposable {
 
   var onMouseEnteredCallback: () -> Unit
 
-  /**
-   * Hides the popup if open.
-   */
+  /** Hides the popup if open. */
   fun hidePopup()
 
   /**
@@ -80,58 +78,58 @@ interface InformationPopup : Disposable {
   fun showPopup(disposableParent: Disposable, owner: JComponent)
 
   fun isVisible(): Boolean
-
 }
 
 /**
- * If the underlying action creates a popup, its DataProvider should return true for
- * this data key to prevent closing the parent popup prematurely.
+ * If the underlying action creates a popup, its DataProvider should return true for this data key
+ * to prevent closing the parent popup prematurely.
  */
 val POPUP_ACTION = Key<Boolean>("information_popup.popup_action")
 
 /**
- * The popup contains an optional `title` and `description` that can contain HTML contents.
- * The list of additional actions will be displayed in the overflow menu and the list of links at the bottom of the popup.
+ * The popup contains an optional `title` and `description` that can contain HTML contents. The list
+ * of additional actions will be displayed in the overflow menu and the list of links at the bottom
+ * of the popup.
  *
- * @param title              The title of the pop-up, it can contain HTML contents
- * @param description        The description text of the pop-up, it can contain HTML contents
- * @param additionalActions  A list of [AnAction] to be performed from the top right menu of the popup
- * @param links              The links of the pop-up eg: "build and re-run"
+ * @param title The title of the pop-up, it can contain HTML contents
+ * @param description The description text of the pop-up, it can contain HTML contents
+ * @param additionalActions A list of [AnAction] to be performed from the top right menu of the
+ *   popup
+ * @param links The links of the pop-up eg: "build and re-run"
  */
 class InformationPopupImpl(
   title: String?,
   description: String,
   additionalActions: List<AnAction>,
-  links: Collection<AnActionLink>
+  links: Collection<AnActionLink>,
 ) : InformationPopup {
 
-  /**
-   * Keeps the popup open until the mouse reaches the popup area.
-   */
-  @VisibleForTesting
-  internal var hasEnteredPopup = false
+  /** Keeps the popup open until the mouse reaches the popup area. */
+  @VisibleForTesting internal var hasEnteredPopup = false
 
   private var popup: JBPopup? = null
 
   override var onMouseEnteredCallback = {}
 
-  private val hidePopupTimer = Timer(POPUP_DISMISS_TIMEOUT_MS) {
-    hidePopup()
-  }
+  private val hidePopupTimer = Timer(POPUP_DISMISS_TIMEOUT_MS) { hidePopup() }
 
   override val popupComponent: JComponent by lazy {
-    createContentPanel(title, description, additionalActions, links, hidePopup = ::hidePopup).apply {
-      addMouseListener(object : MouseAdapter() {
+    createContentPanel(title, description, additionalActions, links, hidePopup = ::hidePopup)
+      .apply {
+        addMouseListener(
+          object : MouseAdapter() {
 
-        override fun mouseEntered(e: MouseEvent?) {
-          onMouseEnteredCallback()
-          // The popup should stay open when the mouse is moving on the popup area.
-          hasEnteredPopup = true
-          // Stops the timer count to prevent the popup to be closed when the mouse is on the popup area.
-          hidePopupTimer.stop()
-        }
-      })
-    }
+            override fun mouseEntered(e: MouseEvent?) {
+              onMouseEnteredCallback()
+              // The popup should stay open when the mouse is moving on the popup area.
+              hasEnteredPopup = true
+              // Stops the timer count to prevent the popup to be closed when the mouse is on the
+              // popup area.
+              hidePopupTimer.stop()
+            }
+          }
+        )
+      }
   }
 
   override fun hidePopup() {
@@ -152,37 +150,43 @@ class InformationPopupImpl(
     // when the Editor is not directly related to the popup.
     UIUtil.setFosterParent(popupComponent, owner)
 
-    val newPopup = JBPopupFactory.getInstance().createComponentPopupBuilder(popupComponent, null)
-      .setCancelOnClickOutside(true)
-      .setCancelOnWindowDeactivation(true)
-      .setCancelOnMouseOutCallback { e ->
-        if (!hasEnteredPopup) {
-          val point = SwingUtilities.convertPoint(e.component, e.point, owner)
-          if (!point.isIntoArea(component = owner)) {
-            // Starts the timer count to close the popup when the mouse is not on the popup area.
-            hidePopupTimer.start()
-          }
-          hasEnteredPopup = false
-
-          return@setCancelOnMouseOutCallback false
-        }
-
-        popup?.let { openPopup ->
-          val popupWindow = SwingUtilities.getWindowAncestor(openPopup.content)
-          val currentWindow = SwingUtilities.getWindowAncestor(e.component)
-          if (popupWindow != null && currentWindow != null) {
-            if (currentWindow != popupWindow && !popupWindow.ownedWindows.contains(currentWindow)) {
-              // Starts the timer count to close the popup if the mouse is currently not over the popup window
-              // or any of the owned windows (sub-popups).
+    val newPopup =
+      JBPopupFactory.getInstance()
+        .createComponentPopupBuilder(popupComponent, null)
+        .setCancelOnClickOutside(true)
+        .setCancelOnWindowDeactivation(true)
+        .setCancelOnMouseOutCallback { e ->
+          if (!hasEnteredPopup) {
+            val point = SwingUtilities.convertPoint(e.component, e.point, owner)
+            if (!point.isIntoArea(component = owner)) {
+              // Starts the timer count to close the popup when the mouse is not on the popup area.
               hidePopupTimer.start()
             }
-          }
-        } ?: hidePopupTimer.start()
+            hasEnteredPopup = false
 
-        // This callback always returns false as the popup timer is taking care to close the popup already.
-        return@setCancelOnMouseOutCallback false
-      }
-      .createPopup()
+            return@setCancelOnMouseOutCallback false
+          }
+
+          popup?.let { openPopup ->
+            val popupWindow = SwingUtilities.getWindowAncestor(openPopup.content)
+            val currentWindow = SwingUtilities.getWindowAncestor(e.component)
+            if (popupWindow != null && currentWindow != null) {
+              if (
+                currentWindow != popupWindow && !popupWindow.ownedWindows.contains(currentWindow)
+              ) {
+                // Starts the timer count to close the popup if the mouse is currently not over the
+                // popup window
+                // or any of the owned windows (sub-popups).
+                hidePopupTimer.start()
+              }
+            }
+          } ?: hidePopupTimer.start()
+
+          // This callback always returns false as the popup timer is taking care to close the popup
+          // already.
+          return@setCancelOnMouseOutCallback false
+        }
+        .createPopup()
 
     popup = newPopup
     Disposer.register(disposableParent, newPopup)
@@ -203,28 +207,32 @@ class InformationPopupImpl(
   }
 
   /**
-   * Calculates the [RelativePoint] in the screen where the popup is showing up in the window.
-   * The point refers of the top center of the popup that is going to show.
+   * Calculates the [RelativePoint] in the screen where the popup is showing up in the window. The
+   * point refers of the top center of the popup that is going to show.
    */
-  private fun getPointToShowPopupInWindow(owner: JComponent, size: Dimension) = RelativePoint(
-    owner,
-    Point(
-      owner.width - owner.insets.right + JBUIScale.scale(POPUP_PADDING) - size.width,
-      owner.height + JBUIScale.scale(POPUP_PADDING)
+  private fun getPointToShowPopupInWindow(owner: JComponent, size: Dimension) =
+    RelativePoint(
+      owner,
+      Point(
+        owner.width - owner.insets.right + JBUIScale.scale(POPUP_PADDING) - size.width,
+        owner.height + JBUIScale.scale(POPUP_PADDING),
+      ),
     )
-  )
 
   private fun Point.isIntoArea(component: Component): Boolean {
-    // We can't rely on AbstractPopup$Canceller because it doesn't take into account of the padding between the button and the popup.
+    // We can't rely on AbstractPopup$Canceller because it doesn't take into account of the padding
+    // between the button and the popup.
     val padding = (JBUIScale.sysScale() * POPUP_PADDING).toInt()
-    // We add padding around the parent, because we added a gap (POPUP_PADDING) between the parent and the popup.
+    // We add padding around the parent, because we added a gap (POPUP_PADDING) between the parent
+    // and the popup.
     // We add it on all four sides because it's just a nicer experience.
     return Rectangle(
-      -padding,
-      -padding,
-      component.width + 2 * padding,
-      component.height + 2 * padding
-    ).contains(this)
+        -padding,
+        -padding,
+        component.width + 2 * padding,
+        component.height + 2 * padding,
+      )
+      .contains(this)
   }
 
   private fun getPopupPreferredSize(): Dimension {
@@ -234,18 +242,14 @@ class InformationPopupImpl(
   }
 
   private fun createLinksBar(links: Collection<AnActionLink>, hidePopup: () -> Unit): JPanel {
-    val panel = JPanel().apply {
-      layout = BoxLayout(this, BoxLayout.LINE_AXIS)
-    }
+    val panel = JPanel().apply { layout = BoxLayout(this, BoxLayout.LINE_AXIS) }
 
     links.forEachIndexed { index, linkLabel ->
       if (index != 0) panel.add(Box.createHorizontalStrut(JBUI.scale(POPUP_LINK_SEPARATOR_WIDTH)))
       linkLabel.addActionListener {
         if (linkLabel.getUserData(POPUP_ACTION) != true) {
           // Invoke later to avoid closing the tab before the action has executed.
-          invokeLater {
-            hidePopup()
-          }
+          invokeLater { hidePopup() }
         }
       }
       panel.add(linkLabel)
@@ -255,7 +259,8 @@ class InformationPopupImpl(
 
     panel.isOpaque = true
     panel.background = UIUtil.getToolTipActionBackground()
-    panel.border = JBUI.Borders.empty(POPUP_LINK_PADDING_TOP_AND_BOTTOM, POPUP_LINK_PADDING_LEFT_AND_RIGHT)
+    panel.border =
+      JBUI.Borders.empty(POPUP_LINK_PADDING_TOP_AND_BOTTOM, POPUP_LINK_PADDING_LEFT_AND_RIGHT)
 
     return panel
   }
@@ -265,18 +270,23 @@ class InformationPopupImpl(
     details: String,
     additionalActions: List<AnAction>,
     links: Collection<AnActionLink>,
-    hidePopup: () -> Unit
+    hidePopup: () -> Unit,
   ): JComponent {
-    val content = JPanel(GridBagLayout()).also {
-      it.isOpaque = true
-      // See b/267198091#comment4 for the motivation of this change.
-      // TODO: Checking for ExperimentalUI.isNewUI() should be removed when the new UI becomes stable.
-      it.background = if (ExperimentalUI.isNewUI()) JBUI.CurrentTheme.Editor.Tooltip.BACKGROUND else UIUtil.getToolTipBackground()
-    }
+    val content =
+      JPanel(GridBagLayout()).also {
+        it.isOpaque = true
+        // See b/267198091#comment4 for the motivation of this change.
+        // TODO: Checking for ExperimentalUI.isNewUI() should be removed when the new UI becomes stable.
+        it.background =
+          if (ExperimentalUI.isNewUI()) JBUI.CurrentTheme.Editor.Tooltip.BACKGROUND
+          else UIUtil.getToolTipBackground()
+      }
     val gc = GridBag()
 
     if (title != null) {
-      gc.nextLine().next()
+      gc
+        .nextLine()
+        .next()
         .anchor(GridBagConstraints.LINE_START)
         .weightx(1.0)
         .fillCellHorizontally()
@@ -284,38 +294,53 @@ class InformationPopupImpl(
       content.add(JLabel(XmlStringUtil.wrapInHtml(title)), gc)
     }
 
-    gc.nextLine().next()
+    gc
+      .nextLine()
+      .next()
       .anchor(GridBagConstraints.LINE_START)
       .fillCellHorizontally()
       .weightx(1.0)
-      .insets(POPUP_DESCRIPTION_TOP_AND_BOTTOM_INDENT, POPUP_DESCRIPTION_LEFT_INDENT, POPUP_DESCRIPTION_TOP_AND_BOTTOM_INDENT,
-              POPUP_DESCRIPTION_RIGHT_INDENT)
+      .insets(
+        POPUP_DESCRIPTION_TOP_AND_BOTTOM_INDENT,
+        POPUP_DESCRIPTION_LEFT_INDENT,
+        POPUP_DESCRIPTION_TOP_AND_BOTTOM_INDENT,
+        POPUP_DESCRIPTION_RIGHT_INDENT,
+      )
     content.add(JLabel(XmlStringUtil.wrapInHtml(details)), gc)
 
     if (additionalActions.isNotEmpty()) {
       val presentation = Presentation()
       presentation.icon = AllIcons.Actions.More
       presentation.putClientProperty(ActionUtil.HIDE_DROPDOWN_ICON, java.lang.Boolean.TRUE)
-      val dropDownAction = DropDownAction(null, null , AllIcons.Actions.More).also {
-        it.addAll(additionalActions)
-      }
-      val menuButton = ActionButton(
-        dropDownAction,
-        presentation,
-        ActionPlaces.EDITOR_POPUP,
-        ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+      val dropDownAction =
+        DropDownAction(null, null, AllIcons.Actions.More).also { it.addAll(additionalActions) }
+      val menuButton =
+        ActionButton(
+          dropDownAction,
+          presentation,
+          ActionPlaces.EDITOR_POPUP,
+          ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
+        )
 
       menuButton.presentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, menuButton)
 
-      content.add(menuButton, gc.next().anchor(GridBagConstraints.LINE_END).weightx(0.0).insets(10, 6, 10, 6))
+      content.add(
+        menuButton,
+        gc.next().anchor(GridBagConstraints.LINE_END).weightx(0.0).insets(10, 6, 10, 6),
+      )
     }
 
     if (links.isNotEmpty()) {
-      content.add(createLinksBar(links, hidePopup),
-                  gc.nextLine().next().anchor(GridBagConstraints.LINE_START)
-                    .fillCellHorizontally()
-                    .coverLine()
-                    .weightx(1.0))
+      content.add(
+        createLinksBar(links, hidePopup),
+        gc
+          .nextLine()
+          .next()
+          .anchor(GridBagConstraints.LINE_START)
+          .fillCellHorizontally()
+          .coverLine()
+          .weightx(1.0),
+      )
     }
 
     return content

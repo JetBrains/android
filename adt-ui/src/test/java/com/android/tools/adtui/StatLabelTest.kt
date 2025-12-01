@@ -33,7 +33,8 @@ class StatLabelTest {
 
   @Test
   fun customNumberFormatter() {
-    val label = StatLabel(1000L, "Duration", numFormatter = TimeFormatter::getSingleUnitDurationString)
+    val label =
+      StatLabel(1000L, "Duration", numFormatter = TimeFormatter::getSingleUnitDurationString)
     assertThat(label.numText).isEqualTo("1 ms")
   }
 }

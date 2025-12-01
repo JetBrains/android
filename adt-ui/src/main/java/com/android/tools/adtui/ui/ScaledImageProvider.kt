@@ -21,16 +21,11 @@ import com.intellij.ui.scale.ScaleContext
 import java.awt.Image
 
 interface ScaledImageProvider {
-  /**
-   * Returns (optionally) the initial image to be displayed
-   */
+  /** Returns (optionally) the initial image to be displayed */
   val initialImage: Image?
-    @AnyThread
-    get() = null
+    @AnyThread get() = null
 
-  /**
-   * Returns a scaled [Image] with all bits available. See [ScalingImagePanel].
-   */
+  /** Returns a scaled [Image] with all bits available. See [ScalingImagePanel]. */
   @Throws(java.io.IOException::class)
   @WorkerThread
   fun createScaledImage(ctx: ScaleContext, width: Double, height: Double): Image

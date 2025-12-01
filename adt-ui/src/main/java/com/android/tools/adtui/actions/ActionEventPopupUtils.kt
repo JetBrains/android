@@ -24,8 +24,8 @@ import javax.swing.JTable
 import javax.swing.SwingUtilities
 
 /**
- * Returns a Point where a popup could be placed from the [AnActionEvent], either the component from where the event was triggered or the
- * position of the mouse pointer.
+ * Returns a Point where a popup could be placed from the [AnActionEvent], either the component from
+ * where the event was triggered or the position of the mouse pointer.
  */
 fun AnActionEvent.locationFromEvent(): Point {
   val source = this.componentFromEvent()
@@ -41,7 +41,8 @@ fun AnActionEvent.locationFromEvent(): Point {
 }
 
 /**
- * Returns the [Component] where is best to return focus when a popup is closed. Usually the [Component] from which the event was triggered.
+ * Returns the [Component] where is best to return focus when a popup is closed. Usually the
+ * [Component] from which the event was triggered.
  */
 fun AnActionEvent.componentToRestoreFocusTo(): Component? {
   val component = this.componentFromEvent() ?: return null
@@ -50,5 +51,6 @@ fun AnActionEvent.componentToRestoreFocusTo(): Component? {
 }
 
 private fun AnActionEvent.componentFromEvent(): Component? {
-  return PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(this.dataContext) ?: this.inputEvent?.component
+  return PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(this.dataContext)
+    ?: this.inputEvent?.component
 }

@@ -16,10 +16,10 @@
 package com.android.tools.adtui
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.awt.Dimension
 import java.awt.FlowLayout
 import javax.swing.JPanel
+import org.junit.Test
 
 class HorizontalScrollViewTest {
 

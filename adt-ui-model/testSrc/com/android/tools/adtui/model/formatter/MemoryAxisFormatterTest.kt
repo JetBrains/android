@@ -38,30 +38,37 @@ class MemoryAxisFormatterTest {
     val formatter = MemoryAxisFormatter(1, 5, 5)
     Truth.assertThat(formatter.getFormattedString(5.0, 5.0, true)).isEqualTo("5 B")
     Truth.assertThat(formatter.getFormattedString(5.0 * 1024, 5.0 * 1024, true)).isEqualTo("5 KB")
-    Truth.assertThat(formatter.getFormattedString(5.0 * 1024 * 1024, 5.0 * 1024 * 1024, true)).isEqualTo("5 MB")
-    Truth.assertThat(formatter.getFormattedString(5.0 * 1024 * 1024 * 1024, 5.0 * 1024 * 1024 * 1024, true)).isEqualTo("5 GB")
+    Truth.assertThat(formatter.getFormattedString(5.0 * 1024 * 1024, 5.0 * 1024 * 1024, true))
+      .isEqualTo("5 MB")
+    Truth.assertThat(
+        formatter.getFormattedString(5.0 * 1024 * 1024 * 1024, 5.0 * 1024 * 1024 * 1024, true)
+      )
+      .isEqualTo("5 GB")
   }
 
   @Test
   fun `memory formatting displays correct unit within range of value`() {
-    val formatter = MemoryAxisFormatter(1, 5, 5);
+    val formatter = MemoryAxisFormatter(1, 5, 5)
 
     // 1023.9 is less than the threshold of 1024 to move B -> KB
-    Truth.assertThat(formatter.getFormattedString(1023.9, 1023.9, true)).isEqualTo("1023.9 B");
+    Truth.assertThat(formatter.getFormattedString(1023.9, 1023.9, true)).isEqualTo("1023.9 B")
 
     // 1024^1 B is the lower bound for KB
-    Truth.assertThat(formatter.getFormattedString(1024.0, 1024.0,true)).isEqualTo("1 KB");
+    Truth.assertThat(formatter.getFormattedString(1024.0, 1024.0, true)).isEqualTo("1 KB")
 
     // Stays at KB, not MB unit, despite 1024 multiplier threshold met due to rounding of 1023.99...
-    Truth.assertThat(formatter.getFormattedString(1048575.9, 1048575.9, true)).isEqualTo("1024 KB");
+    Truth.assertThat(formatter.getFormattedString(1048575.9, 1048575.9, true)).isEqualTo("1024 KB")
 
     // 1024^2 B is the lower bound for MB
-    Truth.assertThat(formatter.getFormattedString(1048576.0, 1048576.0, true)).isEqualTo("1 MB");
+    Truth.assertThat(formatter.getFormattedString(1048576.0, 1048576.0, true)).isEqualTo("1 MB")
 
-    // Stays at MB, not GB unit, despite 1024 multiplier threshold met due to rounding of 1048575.99...
-    Truth.assertThat(formatter.getFormattedString(1073741823.9, 1073741823.9, true)).isEqualTo("1024 MB");
+    // Stays at MB, not GB unit, despite 1024 multiplier threshold met due to rounding of
+    // 1048575.99...
+    Truth.assertThat(formatter.getFormattedString(1073741823.9, 1073741823.9, true))
+      .isEqualTo("1024 MB")
 
     // 1024^3 B is now the lower bound for GB
-    Truth.assertThat(formatter.getFormattedString(1073741824.0, 1073741824.0, true)).isEqualTo("1 GB");
+    Truth.assertThat(formatter.getFormattedString(1073741824.0, 1073741824.0, true))
+      .isEqualTo("1 GB")
   }
 }

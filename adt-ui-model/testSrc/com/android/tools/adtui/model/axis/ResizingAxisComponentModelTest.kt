@@ -31,7 +31,10 @@ class ResizingAxisComponentModelTest {
   fun setUp() {
     range = Range(6.0, 10.0)
     globalRange = Range(5.0, 20.0)
-    axisModel = ResizingAxisComponentModel.Builder(range, TimeAxisFormatter.DEFAULT).setGlobalRange(globalRange).build()
+    axisModel =
+      ResizingAxisComponentModel.Builder(range, TimeAxisFormatter.DEFAULT)
+        .setGlobalRange(globalRange)
+        .build()
   }
 
   @Test

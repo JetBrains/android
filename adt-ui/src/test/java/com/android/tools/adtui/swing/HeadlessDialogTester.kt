@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("HeadlessDialogTester")
+
 package com.android.tools.adtui.swing
 
 import com.android.annotations.concurrency.GuardedBy
@@ -52,7 +53,6 @@ import com.intellij.util.ExceptionUtil
 import com.intellij.util.ReflectionUtil
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.annotations.NonNls
 import java.awt.AWTEvent
 import java.awt.Component
 import java.awt.Container
@@ -88,23 +88,26 @@ import kotlin.math.roundToInt
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
+import org.jetbrains.annotations.NonNls
 
 /**
- * Enables showing of dialogs in a headless test environment.
- * Don't call this function directly, prefer [HeadlessDialogRule].
+ * Enables showing of dialogs in a headless test environment. Don't call this function directly,
+ * prefer [HeadlessDialogRule].
  */
 fun enableHeadlessDialogs(disposable: Disposable) {
-  Disposer.register(disposable) {
-    modelessDialogs.forEach { Disposer.dispose(it.disposable) }
-  }
-  getApplication().replaceService(DialogWrapperPeerFactory::class.java, HeadlessDialogWrapperPeerFactory(), disposable)
+  Disposer.register(disposable) { modelessDialogs.forEach { Disposer.dispose(it.disposable) } }
+  getApplication()
+    .replaceService(
+      DialogWrapperPeerFactory::class.java,
+      HeadlessDialogWrapperPeerFactory(),
+      disposable,
+    )
 }
 
-/**
- * Looks for a currently shown modeless dialog.
- */
-inline fun <reified T: DialogWrapper> findModelessDialog(predicate: Predicate<T> = Predicate { true }): T? =
-    modelessDialogs.find { it is T && predicate.test(it) } as T?
+/** Looks for a currently shown modeless dialog. */
+inline fun <reified T : DialogWrapper> findModelessDialog(
+  predicate: Predicate<T> = Predicate { true }
+): T? = modelessDialogs.find { it is T && predicate.test(it) } as T?
 
 /**
  * Calls the [dialogTrigger] function that shows a modal dialog and then the [dialogInteractor]
@@ -115,42 +118,54 @@ inline fun <reified T: DialogWrapper> findModelessDialog(predicate: Predicate<T>
  * @param dialogInteractor user code for interacting with the dialog
  * @throws TimeoutException if the dialog was not closed within the specified [timeout]
  */
-fun createModalDialogAndInteractWithIt(dialogTrigger: Runnable, timeout: Duration = 10.seconds, dialogInteractor: (DialogWrapper) -> Unit) {
-  createModalDialogAndInteractWithIt(modalDialogStack.size + 1, dialogTrigger, timeout, dialogInteractor)
+fun createModalDialogAndInteractWithIt(
+  dialogTrigger: Runnable,
+  timeout: Duration = 10.seconds,
+  dialogInteractor: (DialogWrapper) -> Unit,
+) {
+  createModalDialogAndInteractWithIt(
+    modalDialogStack.size + 1,
+    dialogTrigger,
+    timeout,
+    dialogInteractor,
+  )
 }
 
-private fun createModalDialogAndInteractWithIt(modalDepth: Int, dialogTrigger: Runnable, timeout: Duration,
-                                               dialogInteractor: (DialogWrapper) -> Unit) {
+private fun createModalDialogAndInteractWithIt(
+  modalDepth: Int,
+  dialogTrigger: Runnable,
+  timeout: Duration,
+  dialogInteractor: (DialogWrapper) -> Unit,
+) {
   val dialogClosed = CountDownLatch(1)
   var dialogShown = false
 
-  val futureTask = ListenableFutureTask.create {
-    modalityChangeLock.lock()
-    try {
-      while (true) {
-        if (modalDialogStack.size == modalDepth) {
-          dialogShown = true
-          val dialog = modalDialogStack.last()
-          EventQueue.invokeLater {
-            try {
-              dialogInteractor(dialog)
-            }
-            finally {
-              if (dialog.isShowing) {
-                dialog.close(CANCEL_EXIT_CODE)
+  val futureTask =
+    ListenableFutureTask.create {
+      modalityChangeLock.lock()
+      try {
+        while (true) {
+          if (modalDialogStack.size == modalDepth) {
+            dialogShown = true
+            val dialog = modalDialogStack.last()
+            EventQueue.invokeLater {
+              try {
+                dialogInteractor(dialog)
+              } finally {
+                if (dialog.isShowing) {
+                  dialog.close(CANCEL_EXIT_CODE)
+                }
+                dialogClosed.countDown()
               }
-              dialogClosed.countDown()
             }
+            break
           }
-          break
+          modalityChangeCondition.await()
         }
-        modalityChangeCondition.await()
+      } finally {
+        modalityChangeLock.unlock()
       }
     }
-    finally {
-      modalityChangeLock.unlock()
-    }
-  }
   getApplication().executeOnPooledThread(futureTask)
 
   try {
@@ -166,8 +181,7 @@ private fun createModalDialogAndInteractWithIt(modalDepth: Int, dialogTrigger: R
         dialogClosed.await(10, TimeUnit.MILLISECONDS)
       }
     }
-  }
-  finally {
+  } finally {
     futureTask.cancel(true)
   }
 
@@ -186,11 +200,9 @@ private fun dispatchNextInvocationEventIfAny(): AWTEvent? {
           dispatchEventMethod.invoke(eventQueue, event)
           return event
         }
-      }
-      catch (e: InvocationTargetException) {
+      } catch (e: InvocationTargetException) {
         ExceptionUtil.rethrowAllAsUnchecked(e.cause)
-      }
-      catch (e: Exception) {
+      } catch (e: Exception) {
         ExceptionUtil.rethrow(e)
       }
     }
@@ -201,25 +213,30 @@ private fun dispatchNextInvocationEventIfAny(): AWTEvent? {
 private val modalityChangeLock = ReentrantLock()
 @GuardedBy("modalityChangeLock")
 private val modalityChangeCondition = modalityChangeLock.newCondition()
-@GuardedBy("modalityChangeLock")
-private val modalDialogStack = mutableListOf<DialogWrapper>()
+@GuardedBy("modalityChangeLock") private val modalDialogStack = mutableListOf<DialogWrapper>()
 
 val modelessDialogs = ContainerUtil.createConcurrentList<DialogWrapper>()
 
-private val dispatchEventMethod = ReflectionUtil.getDeclaredMethod(EventQueue::class.java, "dispatchEvent", AWTEvent::class.java)!!
+private val dispatchEventMethod =
+  ReflectionUtil.getDeclaredMethod(EventQueue::class.java, "dispatchEvent", AWTEvent::class.java)!!
 
-/**
- * Implementation of [DialogWrapperPeerFactory] for headless tests involving dialogs.
- */
-private class HeadlessDialogWrapperPeerFactory: DialogWrapperPeerFactory() {
-  override fun createPeer(wrapper: DialogWrapper, project: Project?, canBeParent: Boolean): DialogWrapperPeer {
+/** Implementation of [DialogWrapperPeerFactory] for headless tests involving dialogs. */
+class HeadlessDialogWrapperPeerFactory : DialogWrapperPeerFactory() {
+
+  override fun createPeer(
+    wrapper: DialogWrapper,
+    project: Project?,
+    canBeParent: Boolean,
+  ): DialogWrapperPeer {
     return HeadlessDialogWrapperPeer(wrapper, project)
   }
 
-  override fun createPeer(wrapper: DialogWrapper,
-                          project: Project?,
-                          canBeParent: Boolean,
-                          ideModalityType: IdeModalityType): DialogWrapperPeer {
+  override fun createPeer(
+    wrapper: DialogWrapper,
+    project: Project?,
+    canBeParent: Boolean,
+    ideModalityType: IdeModalityType,
+  ): DialogWrapperPeer {
     return HeadlessDialogWrapperPeer(wrapper, project, ideModalityType)
   }
 
@@ -227,18 +244,28 @@ private class HeadlessDialogWrapperPeerFactory: DialogWrapperPeerFactory() {
     return HeadlessDialogWrapperPeer(wrapper, null)
   }
 
-  override fun createPeer(wrapper: DialogWrapper, parent: Component, canBeParent: Boolean): DialogWrapperPeer {
+  override fun createPeer(
+    wrapper: DialogWrapper,
+    parent: Component,
+    canBeParent: Boolean,
+  ): DialogWrapperPeer {
     return HeadlessDialogWrapperPeer(wrapper, null)
   }
 
-  override fun createPeer(wrapper: DialogWrapper, canBeParent: Boolean, ideModalityType: IdeModalityType): DialogWrapperPeer {
+  override fun createPeer(
+    wrapper: DialogWrapper,
+    canBeParent: Boolean,
+    ideModalityType: IdeModalityType,
+  ): DialogWrapperPeer {
     return HeadlessDialogWrapperPeer(wrapper, null, ideModalityType)
   }
 
-  override fun createPeer(wrapper: DialogWrapper,
-                          owner: Window,
-                          canBeParent: Boolean,
-                          ideModalityType: IdeModalityType): DialogWrapperPeer {
+  override fun createPeer(
+    wrapper: DialogWrapper,
+    owner: Window,
+    canBeParent: Boolean,
+    ideModalityType: IdeModalityType,
+  ): DialogWrapperPeer {
     return HeadlessDialogWrapperPeer(wrapper, null, ideModalityType)
   }
 }
@@ -254,7 +281,7 @@ private class HeadlessDialogWrapperPeerFactory: DialogWrapperPeerFactory() {
 private class HeadlessDialogWrapperPeer(
   private val wrapper: DialogWrapper,
   private var project: Project?,
-  ideModalityType: IdeModalityType = IdeModalityType.IDE
+  ideModalityType: IdeModalityType = IdeModalityType.IDE,
 ) : DialogWrapperPeer() {
   private val disposeActions = arrayListOf<Runnable>()
   private val rootPane = createRootPane()
@@ -419,10 +446,14 @@ private class HeadlessDialogWrapperPeer(
 
     anCancelAction.registerCustomShortcutSet(CommonShortcuts.ESCAPE, rootPane)
     disposeActions.add(Runnable { anCancelAction.unregisterCustomShortcutSet(rootPane) })
-    val commandProcessor = if (getApplication() != null) CommandProcessor.getInstance() as CommandProcessorEx else null
+    val commandProcessor =
+      if (getApplication() != null) CommandProcessor.getInstance() as CommandProcessorEx else null
     val appStarted = commandProcessor != null
 
-    val changeModalityState = appStarted && isModal && !wrapper.isModalProgress // ProgressWindow starts a modality state itself.
+    val changeModalityState =
+      appStarted &&
+        isModal &&
+        !wrapper.isModalProgress // ProgressWindow starts a modality state itself.
 
     if (changeModalityState) {
       commandProcessor.enterModal()
@@ -441,8 +472,7 @@ private class HeadlessDialogWrapperPeer(
       if (changeModalityState) {
         nestedEventLoop()
       }
-    }
-    finally {
+    } finally {
       if (changeModalityState) {
         commandProcessor.leaveModal()
         LaterInvocator.leaveModal(wrapper)
@@ -500,7 +530,9 @@ private class HeadlessDialogWrapperPeer(
   private fun hidePopupsIfNeeded() {
     if (SystemInfo.isMac) {
       StackingPopupDispatcher.getInstance().hidePersistentPopups()
-      disposeActions.add(Runnable { StackingPopupDispatcher.getInstance().restorePersistentPopups() })
+      disposeActions.add(
+        Runnable { StackingPopupDispatcher.getInstance().restorePersistentPopups() }
+      )
     }
   }
 
@@ -520,7 +552,8 @@ private class HeadlessDialogWrapperPeer(
         return
       }
       val tree = ComponentUtil.getParentOfType(JTree::class.java as Class<out JTree?>, focusOwner)
-      val table = ComponentUtil.getParentOfType(JTable::class.java as Class<out JTable?>, focusOwner)
+      val table =
+        ComponentUtil.getParentOfType(JTable::class.java as Class<out JTable?>, focusOwner)
       if (tree != null || table != null) {
         if (hasNoEditingTreesOrTablesUpward(focusOwner)) {
           event.presentation.isEnabled = true
@@ -540,8 +573,7 @@ private class HeadlessDialogWrapperPeer(
     private fun isEditingTreeOrTable(comp: Component): Boolean {
       if (comp is JTree) {
         return comp.isEditing
-      }
-      else if (comp is JTable) {
+      } else if (comp is JTable) {
         return comp.isEditing
       }
       return false

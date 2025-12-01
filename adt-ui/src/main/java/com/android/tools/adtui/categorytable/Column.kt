@@ -62,13 +62,14 @@ interface Column<T, C, U : JComponent> {
   data class SizeConstraint(
     val min: Int = 0,
     val max: Int = Int.MAX_VALUE,
-    val preferred: Int = max
+    val preferred: Int = max,
   ) {
     init {
       check(preferred != Int.MAX_VALUE) {
         "Either max or preferred must be set to a non-default value"
       }
     }
+
     companion object {
       fun exactly(size: Int): SizeConstraint = SizeConstraint(size, size, size)
     }

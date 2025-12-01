@@ -24,44 +24,55 @@ import com.intellij.util.xmlb.annotations.XCollection.Style.v2
 
 @Tag("tool-windows")
 internal data class SplittingTabsState(
-  @XCollection(propertyElementName = "tool-windows", style = v2) var toolWindows: List<ToolWindowState> = mutableListOf()
+  @XCollection(propertyElementName = "tool-windows", style = v2)
+  var toolWindows: List<ToolWindowState> = mutableListOf()
 )
 
 @Tag("tool-window")
 internal data class ToolWindowState(
   @Attribute("id") var toolWindowId: String = "",
-  @XCollection(propertyElementName = "tabs", style = v2) var tabStates: List<TabState> = mutableListOf(),
-  @Attribute("selected-tab") var selectedTabIndex: Int = -1
+  @XCollection(propertyElementName = "tabs", style = v2)
+  var tabStates: List<TabState> = mutableListOf(),
+  @Attribute("selected-tab") var selectedTabIndex: Int = -1,
 )
 
 @Tag("tab")
 internal data class TabState(
   @Attribute("name") var tabName: String = "",
-  @Tag("content") var panelState: PanelState = PanelState(clientState = null)
+  @Tag("content") var panelState: PanelState = PanelState(clientState = null),
 )
 
 /**
  * Recursively encapsulates the contents of a splittable panel.
  *
- * The platform XML serialization does not support polymorphism so we can't have different types for a parent and leaf state node. Instead,
- * we have nullable properties.
+ * The platform XML serialization does not support polymorphism so we can't have different types for
+ * a parent and leaf state node. Instead, we have nullable properties.
  *
  * The constructors enforce the validity of the data by accepting non-nullable where required.
  */
-@Suppress("DataClassPrivateConstructor") // Private ctor is exposed by the generated `copy` method but we don't care.
-@ConsistentCopyVisibility
+@Suppress(
+  "DataClassPrivateConstructor"
+) // Private ctor is exposed by the generated `copy` method but we don't care.
 @Tag("panel")
-internal data class PanelState private constructor(
+@ConsistentCopyVisibility
+internal data class PanelState
+private constructor(
   @Text var clientState: String? = null,
   @Attribute var orientation: SplitOrientation? = null,
   @Attribute var proportion: Float? = null,
   @Tag var first: PanelState? = null,
-  @Tag var second: PanelState? = null
+  @Tag var second: PanelState? = null,
 ) {
-  constructor(clientState: String?) : this(clientState, orientation = null, proportion = null, first = null, second = null)
+  constructor(
+    clientState: String?
+  ) : this(clientState, orientation = null, proportion = null, first = null, second = null)
 
-  constructor(orientation: SplitOrientation, proportion: Float, first: PanelState, second: PanelState)
-    : this(clientState = null, orientation, proportion, first, second)
+  constructor(
+    orientation: SplitOrientation,
+    proportion: Float,
+    first: PanelState,
+    second: PanelState,
+  ) : this(clientState = null, orientation, proportion, first, second)
 
   fun isLeaf() = orientation == null
 }

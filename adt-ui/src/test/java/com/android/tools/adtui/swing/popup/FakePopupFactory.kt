@@ -15,10 +15,10 @@
  */
 package com.android.tools.adtui.swing.popup
 
-import org.mockito.kotlin.mock
 import java.awt.Component
 import javax.swing.Popup
 import javax.swing.PopupFactory
+import org.mockito.kotlin.mock
 
 /**
  * A fake [PopupFactory] that creates a mock Popup and records information of how it was requested.
@@ -27,7 +27,13 @@ class FakePopupFactory : PopupFactory() {
   var contents: Component? = null
   val mockPopup = mock<Popup>()
 
-  override fun getPopup(owner: Component?, contents: Component?, x: Int, y: Int, isHeavyWeightPopup: Boolean): Popup {
+  override fun getPopup(
+    owner: Component?,
+    contents: Component?,
+    x: Int,
+    y: Int,
+    isHeavyWeightPopup: Boolean,
+  ): Popup {
     this.contents = contents
     return mockPopup
   }

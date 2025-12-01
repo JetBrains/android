@@ -28,11 +28,11 @@ import com.intellij.ui.colorpicker.HORIZONTAL_MARGIN_TO_PICKER_BORDER
 import com.intellij.ui.colorpicker.PICKER_BACKGROUND_COLOR
 import com.intellij.ui.colorpicker.PICKER_PREFERRED_WIDTH
 import com.intellij.util.ui.JBUI
-import org.jetbrains.annotations.TestOnly
 import java.awt.GridLayout
 import javax.swing.BoxLayout
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JPanel
+import org.jetbrains.annotations.TestOnly
 
 private const val COLOR_BUTTON_ROW = 2
 private const val COLOR_BUTTON_COLUMN = 8
@@ -42,24 +42,32 @@ private const val PANEL_HEIGHT = 120
 class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel() {
 
   @get:TestOnly
-  val colorButtons = Array(COLOR_BUTTON_ROW * COLOR_BUTTON_COLUMN) {
-    ColorButton().apply {
-      background = PICKER_BACKGROUND_COLOR
-      addActionListener { pickerModel.setColor(color, this@MaterialColorPalette) }
+  val colorButtons =
+    Array(COLOR_BUTTON_ROW * COLOR_BUTTON_COLUMN) {
+      ColorButton().apply {
+        background = PICKER_BACKGROUND_COLOR
+        addActionListener { pickerModel.setColor(color, this@MaterialColorPalette) }
+      }
     }
-  }
 
   init {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    border = JBUI.Borders.empty(5, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 10, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
+    border =
+      JBUI.Borders.empty(
+        5,
+        HORIZONTAL_MARGIN_TO_PICKER_BORDER,
+        10,
+        HORIZONTAL_MARGIN_TO_PICKER_BORDER,
+      )
     preferredSize = JBUI.size(PICKER_PREFERRED_WIDTH, PANEL_HEIGHT)
     background = PICKER_BACKGROUND_COLOR
 
-    val comboBoxPanel = JPanel(GridLayout(1, 1)).apply {
-      preferredSize = JBUI.size(PICKER_PREFERRED_WIDTH, 35)
-      border = JBUI.Borders.empty(0, 2, 8, 2)
-      background = PICKER_BACKGROUND_COLOR
-    }
+    val comboBoxPanel =
+      JPanel(GridLayout(1, 1)).apply {
+        preferredSize = JBUI.size(PICKER_PREFERRED_WIDTH, 35)
+        border = JBUI.Borders.empty(0, 2, 8, 2)
+        background = PICKER_BACKGROUND_COLOR
+      }
     val boxModel = MyComboBoxModel(MaterialColors.Category.values())
     val box = CommonComboBox(boxModel)
     box.addActionListener { setColorSet(boxModel.selectedItem as MaterialColors.Category) }
@@ -67,11 +75,12 @@ class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel()
     add(comboBoxPanel)
 
     // Add buttons for built-in colors
-    val colorButtonPanel = JPanel(GridLayout(COLOR_BUTTON_ROW, COLOR_BUTTON_COLUMN)).apply {
-      border = JBUI.Borders.empty()
-      background = PICKER_BACKGROUND_COLOR
-      colorButtons.forEach { add(it) }
-    }
+    val colorButtonPanel =
+      JPanel(GridLayout(COLOR_BUTTON_ROW, COLOR_BUTTON_COLUMN)).apply {
+        border = JBUI.Borders.empty()
+        background = PICKER_BACKGROUND_COLOR
+        colorButtons.forEach { add(it) }
+      }
     add(colorButtonPanel)
 
     val category = loadLastUsedColorCategory()
@@ -89,8 +98,8 @@ class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel()
   }
 }
 
-private class MyComboBoxModel(colorCategories: Array<MaterialColors.Category>)
-  : DefaultComboBoxModel<MaterialColors.Category>(), CommonComboBoxModel<MaterialColors.Category> {
+private class MyComboBoxModel(colorCategories: Array<MaterialColors.Category>) :
+  DefaultComboBoxModel<MaterialColors.Category>(), CommonComboBoxModel<MaterialColors.Category> {
 
   init {
     colorCategories.forEach { addElement(it) }
@@ -112,24 +121,26 @@ private const val COLOR_PICKER_CATEGORY_PROPERTY = "colorPickerCategoryProperty"
 private val DEFAULT_COLOR_CATEGORY = MaterialColors.Category.MATERIAL_500
 
 private fun loadLastUsedColorCategory(): MaterialColors.Category {
-  val modeName = PropertiesComponent.getInstance().getValue(
-    COLOR_PICKER_CATEGORY_PROPERTY, DEFAULT_COLOR_CATEGORY.name)
+  val modeName =
+    PropertiesComponent.getInstance()
+      .getValue(COLOR_PICKER_CATEGORY_PROPERTY, DEFAULT_COLOR_CATEGORY.name)
   return try {
     MaterialColors.Category.valueOf(modeName)
-  }
-  catch (e: IllegalArgumentException) {
+  } catch (e: IllegalArgumentException) {
     // If the code reach here, that means some of unexpected category is saved as user's preference.
     // In this case, return the default category instead.
     Logger.getInstance(MaterialColorPalette::class.java)
-      .warn("The color category $modeName is not recognized, use default category $DEFAULT_COLOR_CATEGORY instead")
+      .warn(
+        "The color category $modeName is not recognized, use default category $DEFAULT_COLOR_CATEGORY instead"
+      )
     DEFAULT_COLOR_CATEGORY
   }
 }
 
-private fun saveLastUsedColorCategory(category: MaterialColors.Category)
-  = PropertiesComponent.getInstance().setValue(
-  COLOR_PICKER_CATEGORY_PROPERTY, category.name)
+private fun saveLastUsedColorCategory(category: MaterialColors.Category) =
+  PropertiesComponent.getInstance().setValue(COLOR_PICKER_CATEGORY_PROPERTY, category.name)
 
 object MaterialColorPaletteProvider : ColorPickerComponentProvider {
-  override fun createComponent(colorPickerModel: ColorPickerModel) = MaterialColorPalette(colorPickerModel)
+  override fun createComponent(colorPickerModel: ColorPickerModel) =
+    MaterialColorPalette(colorPickerModel)
 }

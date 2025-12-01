@@ -16,15 +16,18 @@
 package com.android.tools.adtui.model.formatter
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.util.concurrent.TimeUnit
+import org.junit.Test
 
 class TimeFormatterTest {
 
   @Test
   fun testFullClockString() {
-    val timestamp1 = TimeUnit.HOURS.toMicros(1) + TimeUnit.MINUTES.toMicros(2) +
-                     TimeUnit.SECONDS.toMicros(11) + TimeUnit.MILLISECONDS.toMicros(25);
+    val timestamp1 =
+      TimeUnit.HOURS.toMicros(1) +
+        TimeUnit.MINUTES.toMicros(2) +
+        TimeUnit.SECONDS.toMicros(11) +
+        TimeUnit.MILLISECONDS.toMicros(25)
     assertThat(TimeFormatter.getFullClockString(timestamp1)).isEqualTo("01:02:11.025")
     val timestamp2 = timestamp1 - TimeUnit.HOURS.toMicros(1)
     assertThat(TimeFormatter.getFullClockString(timestamp2)).isEqualTo("00:02:11.025")
@@ -40,8 +43,11 @@ class TimeFormatterTest {
 
   @Test
   fun testSemiSimplifiedClockString() {
-    val timestamp1 = TimeUnit.HOURS.toMicros(1) + TimeUnit.MINUTES.toMicros(2) +
-                     TimeUnit.SECONDS.toMicros(11) + TimeUnit.MILLISECONDS.toMicros(25);
+    val timestamp1 =
+      TimeUnit.HOURS.toMicros(1) +
+        TimeUnit.MINUTES.toMicros(2) +
+        TimeUnit.SECONDS.toMicros(11) +
+        TimeUnit.MILLISECONDS.toMicros(25)
     assertThat(TimeFormatter.getSemiSimplifiedClockString(timestamp1)).isEqualTo("01:02:11.025")
     val timestamp2 = timestamp1 - TimeUnit.HOURS.toMicros(1)
     assertThat(TimeFormatter.getSemiSimplifiedClockString(timestamp2)).isEqualTo("00:02:11.025")
@@ -53,8 +59,11 @@ class TimeFormatterTest {
 
   @Test
   fun testSimplifiedClockString() {
-    val timestamp1 = TimeUnit.HOURS.toMicros(1) + TimeUnit.MINUTES.toMicros(2) +
-                     TimeUnit.SECONDS.toMicros(11) + TimeUnit.MILLISECONDS.toMicros(25);
+    val timestamp1 =
+      TimeUnit.HOURS.toMicros(1) +
+        TimeUnit.MINUTES.toMicros(2) +
+        TimeUnit.SECONDS.toMicros(11) +
+        TimeUnit.MILLISECONDS.toMicros(25)
     assertThat(TimeFormatter.getSimplifiedClockString(timestamp1)).isEqualTo("01:02:11.025")
     val timestamp2 = timestamp1 - TimeUnit.HOURS.toMicros(1)
     assertThat(TimeFormatter.getSimplifiedClockString(timestamp2)).isEqualTo("02:11.025")
@@ -67,13 +76,16 @@ class TimeFormatterTest {
   @Test
   fun testSingleUnitDurationString() {
     assertThat(
-      TimeFormatter.getSingleUnitDurationString(((TimeUnit.HOURS.toMicros(1) * 1.354).toLong())))
+        TimeFormatter.getSingleUnitDurationString(((TimeUnit.HOURS.toMicros(1) * 1.354).toLong()))
+      )
       .isEqualTo("1.35 h")
     assertThat(
-      TimeFormatter.getSingleUnitDurationString(((TimeUnit.MINUTES.toMicros(1) * 1.254).toLong())))
+        TimeFormatter.getSingleUnitDurationString(((TimeUnit.MINUTES.toMicros(1) * 1.254).toLong()))
+      )
       .isEqualTo("1.25 m")
     assertThat(
-      TimeFormatter.getSingleUnitDurationString(((TimeUnit.SECONDS.toMicros(1) * 1.1).toLong())))
+        TimeFormatter.getSingleUnitDurationString(((TimeUnit.SECONDS.toMicros(1) * 1.1).toLong()))
+      )
       .isEqualTo("1.1 s")
     assertThat(TimeFormatter.getSingleUnitDurationString((TimeUnit.MILLISECONDS.toMicros(1) * 200)))
       .isEqualTo("200 ms")
@@ -89,10 +101,12 @@ class TimeFormatterTest {
       .isEqualTo("15 min")
     assertThat(TimeFormatter.getMultiUnitDurationString(TimeUnit.SECONDS.toMicros(20)))
       .isEqualTo("20 sec")
-    assertThat(TimeFormatter.getMultiUnitDurationString(
-      TimeUnit.HOURS.toMicros(1) + TimeUnit.MINUTES.toMicros(20) + TimeUnit.SECONDS.toMicros(24)))
+    assertThat(
+        TimeFormatter.getMultiUnitDurationString(
+          TimeUnit.HOURS.toMicros(1) + TimeUnit.MINUTES.toMicros(20) + TimeUnit.SECONDS.toMicros(24)
+        )
+      )
       .isEqualTo("1 hr 20 min 24 sec")
-    assertThat(TimeFormatter.getMultiUnitDurationString(0))
-      .isEqualTo("0 sec")
+    assertThat(TimeFormatter.getMultiUnitDurationString(0)).isEqualTo("0 sec")
   }
 }

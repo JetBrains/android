@@ -17,9 +17,9 @@ package com.android.tools.adtui.model
 
 object AsyncUpdater {
   /**
-   * Creates an updater for results `R` that can be too expensive to compute and refresh
-   * per frame. The result is computed asynchronously and refreshed in the UI when it's
-   * ready, and repeated until it's up-to-date.
+   * Creates an updater for results `R` that can be too expensive to compute and refresh per frame.
+   * The result is computed asynchronously and refreshed in the UI when it's ready, and repeated
+   * until it's up-to-date.
    *
    * @param runOnUi run the provided action on the UI thread
    * @param runOnBackground run the provided action on the background thread
@@ -28,11 +28,13 @@ object AsyncUpdater {
    * @param updateResult given a result, update it on the UI
    */
   @JvmStatic
-  fun<R> by(runOnUi: (Runnable) -> Unit,
-            runOnBackground: (Runnable) -> Unit,
-            initResult: () -> R,
-            nextResult: (R) -> R,
-            updateResult: (R) -> Unit): () -> Unit {
+  fun <R> by(
+    runOnUi: (Runnable) -> Unit,
+    runOnBackground: (Runnable) -> Unit,
+    initResult: () -> R,
+    nextResult: (R) -> R,
+    updateResult: (R) -> Unit,
+  ): () -> Unit {
     var lastTimestamp = 0
     var isUpdating = false
 
@@ -51,8 +53,7 @@ object AsyncUpdater {
                 break
               }
             }
-          }
-          finally {
+          } finally {
             runOnUi { isUpdating = false }
           }
         }

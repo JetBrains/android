@@ -15,9 +15,7 @@
  */
 package com.android.tools.adtui.model.stdui
 
-/**
- * The Model for a CommonTextField component.
- */
+/** The Model for a CommonTextField component. */
 interface CommonTextFieldModel {
 
   /**
@@ -27,15 +25,11 @@ interface CommonTextFieldModel {
    */
   val value: String
 
-  /**
-   * Controls enabled/disabled state of the TextField.
-   */
+  /** Controls enabled/disabled state of the TextField. */
   val enabled: Boolean
     get() = true
 
-  /**
-   * Controls the editable state of the TextField.
-   */
+  /** Controls the editable state of the TextField. */
   val editable: Boolean
     get() = true
 
@@ -50,8 +44,8 @@ interface CommonTextFieldModel {
   /**
    * The current value seen in the TextField.
    *
-   * Note: this is updated for every key stroke. It is up to the
-   * implementation of this model when [value] should be updated.
+   * Note: this is updated for every key stroke. It is up to the implementation of this model when
+   * [value] should be updated.
    */
   var text: String
 
@@ -63,13 +57,9 @@ interface CommonTextFieldModel {
   val editingSupport: EditingSupport
     get() = EditingSupport.INSTANCE
 
-  /**
-   * Add a listener for updates to the model.
-   */
+  /** Add a listener for updates to the model. */
   fun addListener(listener: ValueChangedListener)
 
-  /**
-   * Remove a listener for updates to the model.
-   */
+  /** Remove a listener for updates to the model. */
   fun removeListener(listener: ValueChangedListener)
 }

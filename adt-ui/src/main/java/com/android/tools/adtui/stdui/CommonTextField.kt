@@ -38,10 +38,8 @@ const val OUTLINE_PROPERTY = "JComponent.outline"
 const val ERROR_VALUE = "error"
 const val WARNING_VALUE = "warning"
 
-/**
- * TextField controlled by an [editorModel].
- */
-open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JBTextField() {
+/** TextField controlled by an [editorModel]. */
+open class CommonTextField<out M : CommonTextFieldModel>(val editorModel: M) : JBTextField() {
 
   private var _lookup: Lookup<M>? = null
   private var updatingFromModel = false
@@ -49,8 +47,8 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
   private var lastModelValue = ""
 
   /**
-   * If false ignore all calls to scrollRectToVisible.
-   * Do this to disable scrolling in table renderer that use this component.
+   * If false ignore all calls to scrollRectToVisible. Do this to disable scrolling in table
+   * renderer that use this component.
    */
   var enableScrollInView = true
 
@@ -59,46 +57,82 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
 
   init {
     if (editorModel.editingSupport.completion != EDITOR_NO_COMPLETIONS) {
-      @Suppress("LeakingThis")
-      val myLookup = Lookup(this)
+      @Suppress("LeakingThis") val myLookup = Lookup(this)
       registerActionKey({ enterInLookup() }, KeyStrokes.ENTER, "enter")
       registerActionKey({ escapeInLookup() }, KeyStrokes.ESCAPE, "escape")
       registerActionKey({ tab() }, KeyStrokes.TAB, "tab")
       registerActionKey({ backTab() }, KeyStrokes.BACKTAB, "backTab")
       registerActionKey({ showLookupCompletions(text) }, KeyStrokes.CTRL_SPACE, "showCompletions")
-      registerActionKey({ myLookup.selectNext() }, KeyStrokes.DOWN, "selectNext", { myLookup.enabled })
-      registerActionKey({ myLookup.selectPrevious() }, KeyStrokes.UP, "selectPrevious", { myLookup.enabled })
-      registerActionKey({ myLookup.selectNextPage() }, KeyStrokes.PAGE_DOWN, "selectNextPage", { myLookup.enabled })
-      registerActionKey({ myLookup.selectPreviousPage() }, KeyStrokes.PAGE_UP, "selectPreviousPage", { myLookup.enabled })
-      registerActionKey({ myLookup.selectFirst() }, KeyStrokes.CMD_HOME, "selectFirst", { myLookup.enabled })
-      registerActionKey({ myLookup.selectLast() }, KeyStrokes.CMD_END, "selectLast", { myLookup.enabled })
+      registerActionKey(
+        { myLookup.selectNext() },
+        KeyStrokes.DOWN,
+        "selectNext",
+        { myLookup.enabled },
+      )
+      registerActionKey(
+        { myLookup.selectPrevious() },
+        KeyStrokes.UP,
+        "selectPrevious",
+        { myLookup.enabled },
+      )
+      registerActionKey(
+        { myLookup.selectNextPage() },
+        KeyStrokes.PAGE_DOWN,
+        "selectNextPage",
+        { myLookup.enabled },
+      )
+      registerActionKey(
+        { myLookup.selectPreviousPage() },
+        KeyStrokes.PAGE_UP,
+        "selectPreviousPage",
+        { myLookup.enabled },
+      )
+      registerActionKey(
+        { myLookup.selectFirst() },
+        KeyStrokes.CMD_HOME,
+        "selectFirst",
+        { myLookup.enabled },
+      )
+      registerActionKey(
+        { myLookup.selectLast() },
+        KeyStrokes.CMD_END,
+        "selectLast",
+        { myLookup.enabled },
+      )
       focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
-      super.addFocusListener(object: FocusAdapter() {
-        override fun focusLost(event: FocusEvent) {
-          myLookup.close()
+      super.addFocusListener(
+        object : FocusAdapter() {
+          override fun focusLost(event: FocusEvent) {
+            myLookup.close()
+          }
         }
-      })
+      )
       _lookup = myLookup
     }
-    putClientProperty(TextComponentEmptyText.STATUS_VISIBLE_FUNCTION, Predicate<JTextComponent> { text.isEmpty() })
+    putClientProperty(
+      TextComponentEmptyText.STATUS_VISIBLE_FUNCTION,
+      Predicate<JTextComponent> { text.isEmpty() },
+    )
     isFocusable = true
     setFromModel()
 
     editorModel.addListener { updateFromModel() }
-    document.addDocumentListener(object: DocumentAdapter() {
-      override fun textChanged(event: DocumentEvent) {
-        if (!updatingFromModel) {
-          val newText = text
-          editorModel.text = newText
+    document.addDocumentListener(
+      object : DocumentAdapter() {
+        override fun textChanged(event: DocumentEvent) {
+          if (!updatingFromModel) {
+            val newText = text
+            editorModel.text = newText
 
-          // setText is usually initial setup. Don't show completions here:
-          if (!documentChangeFromSetText && (newText.isNotEmpty() || lookup?.isVisible == true)) {
-            showLookupCompletions(newText)
+            // setText is usually initial setup. Don't show completions here:
+            if (!documentChangeFromSetText && (newText.isNotEmpty() || lookup?.isVisible == true)) {
+              showLookupCompletions(newText)
+            }
+            updateOutline()
           }
-          updateOutline()
         }
       }
-    })
+    )
   }
 
   protected open fun showLookupCompletions(forText: String) {
@@ -138,8 +172,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
       isEditable = editorModel.editable
       emptyText.text = editorModel.placeHolderValue
       updateOutline()
-    }
-    finally {
+    } finally {
       updatingFromModel = false
     }
   }
@@ -152,9 +185,12 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
   }
 
   override fun paintComponent(g: Graphics) {
-    // Workaround for: JDK-4194023 : JTextField presents selection problems when anti-aliasing is turned on
-    // If some code has turned antialiasing (or fractionalMetrics) on for this graphics instance, turn these off before painting the text.
-    // The JDK is currently unable to paint text with selection when these are turned on. The user will see black on black.
+    // Workaround for: JDK-4194023 : JTextField presents selection problems when anti-aliasing is
+    // turned on
+    // If some code has turned antialiasing (or fractionalMetrics) on for this graphics instance,
+    // turn these off before painting the text.
+    // The JDK is currently unable to paint text with selection when these are turned on. The user
+    // will see black on black.
 
     // Also allow display of text selections in CommonTextField.
     // This allows text selections in the layout inspector where these fields do not gain focus.
@@ -162,8 +198,14 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
     val selectionVisible = caret.isSelectionVisible
     caret.isSelectionVisible = true
 
-    g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF)
-    g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF)
+    g2.setRenderingHint(
+      RenderingHints.KEY_TEXT_ANTIALIASING,
+      RenderingHints.VALUE_TEXT_ANTIALIAS_OFF,
+    )
+    g2.setRenderingHint(
+      RenderingHints.KEY_FRACTIONALMETRICS,
+      RenderingHints.VALUE_FRACTIONALMETRICS_OFF,
+    )
 
     super.paintComponent(g2)
 
@@ -179,8 +221,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
         super.setText(text)
       }
       SwingUndoUtil.resetUndoRedoActions(this)
-    }
-    finally {
+    } finally {
       documentChangeFromSetText = false
     }
   }
@@ -205,7 +246,8 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
   // be able to indicate an error by painting a red border.
   private fun updateOutline() {
     // If this text field is an editor in a ComboBox or another complex edit control,
-    // set the property on the nearest parent that has an error border (which may be this TextField).
+    // set the property on the nearest parent that has an error border (which may be this
+    // TextField).
     val component = getComponentWithErrorBorder() ?: return
     val current = component.getClientProperty(OUTLINE_PROPERTY)
     val (code, _) = editorModel.editingSupport.validation(text)

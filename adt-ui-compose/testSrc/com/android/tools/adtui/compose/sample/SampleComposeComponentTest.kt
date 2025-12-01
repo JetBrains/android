@@ -34,8 +34,7 @@ import sample.SampleComposeComponent
  */
 class SampleComposeComponentTest {
 
-  @get:Rule
-  val composeTestRule = createStudioComposeTestRule()
+  @get:Rule val composeTestRule = createStudioComposeTestRule()
 
   @Test
   fun sampleComposeComponentTest() {

@@ -20,31 +20,37 @@ import com.android.tools.adtui.common.ColorPaletteManager.ColorPalette
 import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
 import com.intellij.ui.JBColor
+import java.io.FileInputStream
+import java.io.InputStreamReader
 import org.junit.After
 import org.junit.Assume.assumeFalse
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.io.FileInputStream
-import java.io.InputStreamReader
 
 @RunWith(Parameterized::class)
 class ColorPaletteManagerTest(private val isDarkMode: Boolean) {
   companion object {
     /**
-     * JBColor equality only checks dark variant if the current theme is Darcular, so we need to programmatically set dark mode.
+     * JBColor equality only checks dark variant if the current theme is Darcular, so we need to
+     * programmatically set dark mode.
      */
-    @JvmStatic
-    @Parameterized.Parameters
-    fun data() = listOf(false, true)
+    @JvmStatic @Parameterized.Parameters fun data() = listOf(false, true)
   }
 
   private var wasDarkMode = false // Restore dark mode after test runs
 
-  private val colorPaletteManager = ColorPaletteManager(Gson().fromJson(
-    InputStreamReader(FileInputStream(TestResources.getFile(javaClass, "/palette/data-colors.json"))),
-    Array<ColorPalette>::class.java))
+  private val colorPaletteManager =
+    ColorPaletteManager(
+      Gson()
+        .fromJson(
+          InputStreamReader(
+            FileInputStream(TestResources.getFile(javaClass, "/palette/data-colors.json"))
+          ),
+          Array<ColorPalette>::class.java,
+        )
+    )
 
   @Before
   fun setUp() {
@@ -59,8 +65,9 @@ class ColorPaletteManagerTest(private val isDarkMode: Boolean) {
   }
 
   /**
-   * This test loads the production palette and if passes validates that the current data-colors.json is in a valid format.
-   * It is meant to catch errors during presubmit when updating the palette json.
+   * This test loads the production palette and if passes validates that the current
+   * data-colors.json is in a valid format. It is meant to catch errors during presubmit when
+   * updating the palette json.
    */
   @Test
   fun validateFileFormat() {
@@ -101,10 +108,10 @@ class ColorPaletteManagerTest(private val isDarkMode: Boolean) {
     val palette = colorPaletteManager.backgroundPalette
     val numberOfColors = palette.size
     val numberOfTones = colorPaletteManager.numberOfTonesPerColor
-    assertThat(colorPaletteManager.getBackgroundColor(-1)).isEqualTo(
-      colorPaletteManager.getBackgroundColor(1))
-    assertThat(colorPaletteManager.getBackgroundColor(numberOfColors * numberOfTones)).isEqualTo(
-      colorPaletteManager.getBackgroundColor(0))
+    assertThat(colorPaletteManager.getBackgroundColor(-1))
+      .isEqualTo(colorPaletteManager.getBackgroundColor(1))
+    assertThat(colorPaletteManager.getBackgroundColor(numberOfColors * numberOfTones))
+      .isEqualTo(colorPaletteManager.getBackgroundColor(0))
   }
 
   @Test
@@ -112,16 +119,16 @@ class ColorPaletteManagerTest(private val isDarkMode: Boolean) {
     val palette = colorPaletteManager.foregroundPalette
     val numberOfColors = palette.size
     val numberOfTones = colorPaletteManager.numberOfTonesPerColor
-    assertThat(colorPaletteManager.getForegroundColor(-1)).isEqualTo(
-      colorPaletteManager.getForegroundColor(1))
-    assertThat(colorPaletteManager.getForegroundColor(numberOfColors * numberOfTones)).isEqualTo(
-      colorPaletteManager.getForegroundColor(0))
+    assertThat(colorPaletteManager.getForegroundColor(-1))
+      .isEqualTo(colorPaletteManager.getForegroundColor(1))
+    assertThat(colorPaletteManager.getForegroundColor(numberOfColors * numberOfTones))
+      .isEqualTo(colorPaletteManager.getForegroundColor(0))
   }
 
   @Test
   fun getBackgroundColorByName() {
-    assertThat(colorPaletteManager.getBackgroundColor("Gray", 0)).isEqualTo(
-      colorPaletteManager.getBackgroundColor(0, 0, false))
+    assertThat(colorPaletteManager.getBackgroundColor("Gray", 0))
+      .isEqualTo(colorPaletteManager.getBackgroundColor(0, 0, false))
   }
 
   @Test

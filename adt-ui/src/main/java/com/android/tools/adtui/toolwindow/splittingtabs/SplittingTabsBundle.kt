@@ -22,7 +22,10 @@ private const val BUNDLE_NAME = "splittingtabs.messages.SplittingTabsBundle"
 
 object SplittingTabsBundle {
   private val bundleRef = MessageBundleReference(BUNDLE_NAME)
-  fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: String) = bundleRef.message(key, *params)
 
-  fun lazyMessage(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: String) = bundleRef.lazyMessage(key, *params)
+  fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: String) =
+    bundleRef.message(key, *params)
+
+  fun lazyMessage(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: String) =
+    bundleRef.lazyMessage(key, *params)
 }

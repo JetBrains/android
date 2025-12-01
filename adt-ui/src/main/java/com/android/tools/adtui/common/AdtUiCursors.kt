@@ -29,13 +29,18 @@ import javax.swing.Icon
 import javax.swing.JPanel
 
 /**
- * The types of custom cursor in Studio. This is used by [AdtUiCursorsProvider.getCursor] to get the proper cursors.
+ * The types of custom cursor in Studio. This is used by [AdtUiCursorsProvider.getCursor] to get the
+ * proper cursors.
  */
-enum class AdtUiCursorType(val icon: Icon, internal val hotSpotMapFun: (BufferedImage) -> Point = { Point(it.width / 2, it.height / 2) }) {
+enum class AdtUiCursorType(
+  val icon: Icon,
+  internal val hotSpotMapFun: (BufferedImage) -> Point = { Point(it.width / 2, it.height / 2) },
+) {
   GRAB(StudioIcons.Cursors.GRAB),
   MOVE(StudioIcons.Cursors.MOVE),
   GRABBING(StudioIcons.Cursors.GRABBING),
-  // Some of resizing cursors may use same icons. Do not merge them since they are for different purposes.
+  // Some of resizing cursors may use same icons. Do not merge them since they are for different
+  // purposes.
   SW_RESIZE(StudioIcons.Cursors.NESW_RESIZE),
   SE_RESIZE(StudioIcons.Cursors.NWSE_RESIZE),
   NW_RESIZE(StudioIcons.Cursors.NWSE_RESIZE),
@@ -46,13 +51,9 @@ enum class AdtUiCursorType(val icon: Icon, internal val hotSpotMapFun: (Buffered
   E_RESIZE(StudioIcons.Cursors.EW_RESIZE),
 }
 
-/**
- * The service provides the custom cursors of Studio.
- */
+/** The service provides the custom cursors of Studio. */
 interface AdtUiCursorsProvider {
-  /**
-   * Return the custom [Cursor] of Android Studio for the given [AdtUiCursorType].
-   */
+  /** Return the custom [Cursor] of Android Studio for the given [AdtUiCursorType]. */
   fun getCursor(type: AdtUiCursorType): Cursor
 
   companion object {
@@ -63,7 +64,7 @@ interface AdtUiCursorsProvider {
   }
 }
 
-private class AdtUiCursorProviderImpl: AdtUiCursorsProvider {
+private class AdtUiCursorProviderImpl : AdtUiCursorsProvider {
   private val cursorMap = mutableMapOf<AdtUiCursorType, Cursor>()
 
   override fun getCursor(type: AdtUiCursorType) = cursorMap.getOrPut(type) { makeCursor(type) }
@@ -78,12 +79,15 @@ private class AdtUiCursorProviderImpl: AdtUiCursorsProvider {
     val icon = type.icon
     val hotSpotMapFunc = type.hotSpotMapFun
 
-    // Icons are loaded at 2x for retina displays. For cursors we don't want to use this double sized icon so we scale it down.
+    // Icons are loaded at 2x for retina displays. For cursors we don't want to use this double
+    // sized icon so we scale it down.
     val scaleFactor = if (UIUtil.isRetina()) 0.5f else 1.0f
     val scaledIcon = (icon as CachedImageIcon).scale(scaleFactor)
-    val image = UIUtil.createImage(scaledIcon.iconWidth, scaledIcon.iconHeight, BufferedImage.TYPE_INT_ARGB)
+    val image =
+      UIUtil.createImage(scaledIcon.iconWidth, scaledIcon.iconHeight, BufferedImage.TYPE_INT_ARGB)
     scaledIcon.paintIcon(JPanel(), image.graphics, 0, 0)
-    // We offset the icon center from the upper left to the center for a more natural placement with existing cursors.
+    // We offset the icon center from the upper left to the center for a more natural placement with
+    // existing cursors.
     return Toolkit.getDefaultToolkit().createCustomCursor(image, hotSpotMapFunc(image), name)
   }
 }

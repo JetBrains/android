@@ -30,13 +30,13 @@ import com.intellij.testFramework.TestApplicationManager
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.util.preferredWidth
-import org.junit.Rule
-import org.junit.Test
+import java.awt.Dimension
 import javax.swing.BorderFactory
 import javax.swing.JLabel
 import javax.swing.SortOrder
 import javax.swing.SwingUtilities.convertPoint
-import java.awt.Dimension
+import org.junit.Rule
+import org.junit.Test
 
 @RunsInEdt
 class CategoryTableTest {
@@ -102,7 +102,7 @@ class CategoryTableTest {
         device,
         device.copy(name = "Pixel 5"),
         device.copy(name = "Pixel 6"),
-        device.copy(name = "Pixel 7")
+        device.copy(name = "Pixel 7"),
       )
       .forEach { table.addOrUpdateRow(it) }
 
@@ -163,7 +163,7 @@ class CategoryTableTest {
         "32",
         "Pixel 5",
         "33",
-        "Pixel 7"
+        "Pixel 7",
       )
     assertThat(table.header.columnModel.columnList.map { it.headerValue })
       .containsExactly("Name", "Status", "Type", "Actions")
@@ -187,7 +187,7 @@ class CategoryTableTest {
         "Pixel 5",
         "33",
         "33, Phone",
-        "Pixel 7"
+        "Pixel 7",
       )
     assertThat(table.header.columnModel.columnList.map { it.headerValue })
       .containsExactly("Name", "Status", "Actions")
@@ -203,7 +203,7 @@ class CategoryTableTest {
         "Pixel 5",
         "Pixel 6",
         "Pixel 6a",
-        "Pixel 7"
+        "Pixel 7",
       )
     assertThat(table.header.columnModel.columnList.map { it.headerValue })
       .containsExactly("Name", "Api", "Status", "Actions")
@@ -272,8 +272,8 @@ class CategoryTableTest {
         "Copy 3 of Google Pixel 7 Pro API 34 arm64 Google Play",
         "34",
         "Phone",
-        "Offline"
-      ),
+        "Offline",
+      )
     )
     fakeUi.layout()
 
@@ -322,14 +322,14 @@ class CategoryTableTest {
     assertThat(table.columnSorters)
       .containsExactly(
         ColumnSortOrder(table.columns[1].attribute, SortOrder.ASCENDING),
-        ColumnSortOrder(table.columns[0].attribute, SortOrder.ASCENDING)
+        ColumnSortOrder(table.columns[0].attribute, SortOrder.ASCENDING),
       )
 
     fakeUi.clickRelativeTo(scrollPane, table.header.tableColumns[0].width + 2, 2)
     assertThat(table.columnSorters)
       .containsExactly(
         ColumnSortOrder(table.columns[1].attribute, SortOrder.DESCENDING),
-        ColumnSortOrder(table.columns[0].attribute, SortOrder.ASCENDING)
+        ColumnSortOrder(table.columns[0].attribute, SortOrder.ASCENDING),
       )
   }
 
@@ -440,7 +440,7 @@ class CategoryTableTest {
     val table =
       CategoryTable(
         CategoryTableDemo.columns,
-        rowDataProvider = DefaultValueRowDataProvider(DEVICE_DATA_KEY)
+        rowDataProvider = DefaultValueRowDataProvider(DEVICE_DATA_KEY),
       )
 
     CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
@@ -528,13 +528,15 @@ class CategoryTableTest {
     assertThat(table.width).isEqualTo(widthWithoutScrollbar - scrollPane.verticalScrollBar.width)
 
     assertThat(table.preferredSize).isNotNull()
-    assertThat(table.maximumSize).isEqualTo(Dimension(Short.MAX_VALUE.toInt(), Short.MAX_VALUE.toInt()))
+    assertThat(table.maximumSize)
+      .isEqualTo(Dimension(Short.MAX_VALUE.toInt(), Short.MAX_VALUE.toInt()))
   }
 
   @Test
   fun emptyStatePanel() {
     val emptyStatePanel = EmptyStatePanel("No devices")
-    val table = CategoryTable(CategoryTableDemo.columns, { it.name }, emptyStatePanel = emptyStatePanel)
+    val table =
+      CategoryTable(CategoryTableDemo.columns, { it.name }, emptyStatePanel = emptyStatePanel)
     val scrollPane = createScrollPane(table)
     val fakeUi = FakeUi(scrollPane)
 

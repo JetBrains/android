@@ -28,7 +28,10 @@ class TrackModelTest {
     // Track is not collapsible
     assertThat(trackModel.isCollapsed).isFalse()
 
-    trackModel = TrackModel.newBuilder("BarValue", TestTrackRendererType.STRING, "Bar").setCollapsible(true).build()
+    trackModel =
+      TrackModel.newBuilder("BarValue", TestTrackRendererType.STRING, "Bar")
+        .setCollapsible(true)
+        .build()
     assertThat(trackModel.isCollapsible).isTrue()
     assertThat(trackModel.isCollapsed).isFalse()
     trackModel.isCollapsed = true

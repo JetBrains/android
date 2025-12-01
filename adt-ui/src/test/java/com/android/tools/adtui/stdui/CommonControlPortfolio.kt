@@ -51,9 +51,7 @@ import javax.swing.SwingUtilities
 import javax.swing.UIManager
 import javax.swing.WindowConstants
 
-/**
- * Tester for misc common controls.
- */
+/** Tester for misc common controls. */
 object CommonControlPortfolio {
   private val ourFont = UIUtil.getFontWithFallback("Ariel", 0, 12)
 
@@ -66,15 +64,15 @@ object CommonControlPortfolio {
   private fun createAndShowGUI() {
     setLAF(DarculaLaf())
 
-    //Create and set up the window.
+    // Create and set up the window.
     val frame = JFrame("Common Controls")
     frame.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 
-    //Set up the content pane.
+    // Set up the content pane.
     addComponentsToPane(frame.contentPane)
     updateFonts(frame)
 
-    //Display the window.
+    // Display the window.
     frame.pack()
     frame.setSize(500, frame.height)
     frame.isVisible = true
@@ -98,7 +96,9 @@ object CommonControlPortfolio {
     val menuPanel = JPanel(VerticalFlowLayout())
     val label = JLabel()
     val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT))
-    toolBarPanel.add(makeDropDownMenu("MenuWithIconArrow", AllIcons.General.Add, true, 100, 2, label))
+    toolBarPanel.add(
+      makeDropDownMenu("MenuWithIconArrow", AllIcons.General.Add, true, 100, 2, label)
+    )
     toolBarPanel.add(makeDropDownMenu("MenuNoIcon", null, false, 100, 2, label))
     toolBarPanel.add(makeDropDownMenu("", AllIcons.ToolbarDecorator.Export, true, 2, 2, label))
     toolBarPanel.add(makeDropDownMenu("", AllIcons.General.Filter, false, 2, 2, label))
@@ -110,13 +110,14 @@ object CommonControlPortfolio {
     grid.layout = GridLayout(2, 2, 5, 5)
     grid.border = JBUI.Borders.empty(20, 20, 20, 20)
 
-    listOf(SwingConstants.TOP, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.BOTTOM).forEach {
-      val tab = CommonTabbedPane()
-      tab.border = BorderFactory.createLineBorder(StandardColors.TAB_BORDER_COLOR, 1)
-      tab.tabPlacement = it
-      listOf("One", "Two", "Three").forEach { tab.add(JLabel("Label $it"), it) }
-      grid.add(tab)
-    }
+    listOf(SwingConstants.TOP, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.BOTTOM)
+      .forEach {
+        val tab = CommonTabbedPane()
+        tab.border = BorderFactory.createLineBorder(StandardColors.TAB_BORDER_COLOR, 1)
+        tab.tabPlacement = it
+        listOf("One", "Two", "Three").forEach { tab.add(JLabel("Label $it"), it) }
+        grid.add(tab)
+      }
     topPanel.add(grid, "Tabs")
 
     contentPane.layout = BorderLayout()
@@ -142,8 +143,7 @@ object CommonControlPortfolio {
     try {
       UIManager.setLookAndFeel(laf)
       JBColor.setDark(StartupUiUtil.isDarkTheme)
-    }
-    catch (ex: Exception) {
+    } catch (ex: Exception) {
       ex.printStackTrace()
     }
   }
@@ -169,7 +169,8 @@ object CommonControlPortfolio {
   }
 
   private fun makeComboBox(initialValue: String, enabled: Boolean, editable: Boolean): JComponent {
-    val model = TestCommonComboBoxModel(initialValue, listOf("one", "two", "three", "four", "five", "six"))
+    val model =
+      TestCommonComboBoxModel(initialValue, listOf("one", "two", "three", "four", "five", "six"))
     model.enabled = enabled
     model.editable = editable
     model.placeHolderValue = "@+id/name"
@@ -180,7 +181,14 @@ object CommonControlPortfolio {
     return combo
   }
 
-  private fun makeDropDownMenu(text: String, icon: Icon?, showArrow: Boolean, width: Int, depth: Int, label: JLabel): JComponent {
+  private fun makeDropDownMenu(
+    text: String,
+    icon: Icon?,
+    showArrow: Boolean,
+    width: Int,
+    depth: Int,
+    label: JLabel,
+  ): JComponent {
     val model = CommonAction(text, icon, null)
     model.showExpandArrow = showArrow
 
@@ -193,8 +201,7 @@ object CommonControlPortfolio {
           label.text = String.format("Clicked: %s", action)
         }
         model.addChildrenActions(action, CommonAction.SeparatorAction())
-      }
-      else {
+      } else {
         val action = CommonAction(text, icon)
         populateCommonActionRecursive(action, text, icon, width, depth - 1, label)
         model.addChildrenActions(action)
@@ -204,7 +211,14 @@ object CommonControlPortfolio {
     return CommonDropDownButton(model)
   }
 
-  private fun populateCommonActionRecursive(parent: CommonAction, text: String, icon: Icon?, width: Int, depth: Int, label: JLabel) {
+  private fun populateCommonActionRecursive(
+    parent: CommonAction,
+    text: String,
+    icon: Icon?,
+    width: Int,
+    depth: Int,
+    label: JLabel,
+  ) {
     for (i in 0 until width) {
       if (i % 2 == 0 || depth - 1 == 0) {
         val action = CommonAction(text, icon)
@@ -213,8 +227,7 @@ object CommonControlPortfolio {
           label.text = String.format("Clicked: %s", action)
         }
         parent.addChildrenActions(action, CommonAction.SeparatorAction())
-      }
-      else {
+      } else {
         val action = CommonAction(text, icon)
         populateCommonActionRecursive(action, text, icon, width, depth - 1, label)
         parent.addChildrenActions(action)
@@ -223,15 +236,16 @@ object CommonControlPortfolio {
   }
 }
 
-class TestEditingSupport(val model: CommonTextFieldModel): EditingSupport {
+class TestEditingSupport(val model: CommonTextFieldModel) : EditingSupport {
 
-  override val validation = fun(editedValue: String?): Pair<EditingErrorCategory, String> {
-    return when (editedValue ?: model.value) {
-      "Error" -> Pair(EditingErrorCategory.ERROR, "Error is not a valid value")
-      "Warning" -> Pair(EditingErrorCategory.WARNING, "Be careful about warnings")
-      else -> EDITOR_NO_ERROR
+  override val validation =
+    fun(editedValue: String?): Pair<EditingErrorCategory, String> {
+      return when (editedValue ?: model.value) {
+        "Error" -> Pair(EditingErrorCategory.ERROR, "Error is not a valid value")
+        "Warning" -> Pair(EditingErrorCategory.WARNING, "Be careful about warnings")
+        else -> EDITOR_NO_ERROR
+      }
     }
-  }
 
   override var allowCustomValues: Boolean = true
 
@@ -273,7 +287,8 @@ class TestEditingSupport(val model: CommonTextFieldModel): EditingSupport {
       "@string/appelsin",
       "@string/apricot",
       "@android:string/paste_as_plain_text",
-      "@android:string/hello")
+      "@android:string/hello",
+    )
   }
 }
 
@@ -281,7 +296,7 @@ class TestCommonTextFieldModel(initialValue: String) : DefaultCommonTextFieldMod
   override val editingSupport = TestEditingSupport(this)
 }
 
-class TestCommonComboBoxModel(initialValue: String, elements: List<String>)
-  : DefaultCommonComboBoxModel<String>(initialValue, elements) {
+class TestCommonComboBoxModel(initialValue: String, elements: List<String>) :
+  DefaultCommonComboBoxModel<String>(initialValue, elements) {
   override val editingSupport = TestEditingSupport(this)
 }
