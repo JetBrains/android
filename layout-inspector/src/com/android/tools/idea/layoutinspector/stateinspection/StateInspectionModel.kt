@@ -63,6 +63,9 @@ internal interface StateInspectionModel {
   /** Text with the current recomposition number to be shown in a central place in the panel */
   val recompositionText: StateFlow<String>
 
+  /** Empty State text. */
+  val emptyStateText: StateFlow<String>
+
   /** An action to navigate to the state reads for the next recomposition */
   val nextAction: AnAction
 
@@ -107,6 +110,9 @@ internal class StateInspectionModelImpl(
   private val _recompositionText = MutableStateFlow("")
   override val recompositionText = _recompositionText.asStateFlow()
 
+  private val _emptyStateText = MutableStateFlow("")
+  override val emptyStateText = _emptyStateText.asStateFlow()
+
   override val nextAction =
     createAction(
       AllIcons.Actions.Play_forward,
@@ -134,12 +140,20 @@ internal class StateInspectionModelImpl(
   private val _updates = MutableStateFlow(0)
   override val updates = _updates.asStateFlow()
 
-  private enum class InactiveState(private val messageId: String) {
-    WAITING("layout.inspector.recomposition.waiting"),
-    VIEW("layout.inspector.recomposition.view"),
-    NOT_OBSERVED("layout.inspector.recomposition.not.observed");
+  private enum class InactiveState(private val messageId: String, private val detailsId: String) {
+    WAITING(
+      "layout.inspector.recomposition.waiting",
+      "layout.inspector.recomposition.waiting.details",
+    ),
+    VIEW("layout.inspector.recomposition.view", "layout.inspector.recomposition.view.details"),
+    NOT_OBSERVED(
+      "layout.inspector.recomposition.not.observed",
+      "layout.inspector.recomposition.not.observed.details",
+    );
 
     fun message() = LayoutInspectorBundle.message(messageId)
+
+    fun messageDetails() = LayoutInspectorBundle.message(detailsId)
   }
 
   private val listener = SelectionListener { _, view, _ -> updateStateOfSelection(view) }
@@ -195,6 +209,7 @@ internal class StateInspectionModelImpl(
       currentKey = result.key
       hasStateReadsForPreviousRecomposition = result.hasStateReadsForPreviousRecomposition
       _recompositionText.value = generateRecompositionText(result.key)
+      _emptyStateText.value = ""
       _stateReadsText.value = generateStateReadsText(result.reads.size)
       _stackTraceText.value = generateStackTraces(result.reads)
       val node = result.key.composable
@@ -227,11 +242,12 @@ internal class StateInspectionModelImpl(
   private fun showInactiveState(state: InactiveState, waitingFor: StateReadKey? = null) {
     synchronized(lock) {
       if (waitingFor != null && currentKey == waitingFor) {
-        // Do no show the waiting state if we are already displaying what we are waiting for.
+        // Do not show the waiting state if we are already displaying what we are waiting for.
         return
       }
       currentKey = null
       _recompositionText.value = state.message()
+      _emptyStateText.value = state.messageDetails()
       _stateReadsText.value = ""
       _stackTraceText.value = ""
       _composableInspected.value = null
@@ -247,6 +263,7 @@ internal class StateInspectionModelImpl(
     synchronized(lock) {
       currentKey = null
       _recompositionText.value = ""
+      _emptyStateText.value = ""
       _stateReadsText.value = ""
       _stackTraceText.value = ""
       _updates.value += 1
