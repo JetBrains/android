@@ -362,6 +362,24 @@ class LeakDetailsPanelTest : WithFakeTimer {
     composeTestRule.onNodeWithText("${TaskBasedUxStrings.LEAKCANARY_GC_ROOT} ($gcRootDescription)").assertIsDisplayed()
   }
 
+  @Test
+  fun `test leak details shows missing message when leakcanary is not present`() {
+    composeTestRule.setContent {
+      LeakDetailsPanel(
+        selectedLeak = null,
+        gotoDeclaration = leakCanaryModel::goToDeclaration,
+        isRecording = true,
+        isLeakCanaryPresent = false,
+        isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
+        openStates = emptyList(),
+        onOpenStatesChange = {}
+      )
+    }
+
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_MISSING_MESSAGE).assertIsDisplayed()
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE).assertDoesNotExist()
+  }
+
   private fun getLeakWithNavigatableAndNonNavigatableNode(): List<Leak> {
     val applicationLeakText = """
             2200 bytes retained by leaking objects

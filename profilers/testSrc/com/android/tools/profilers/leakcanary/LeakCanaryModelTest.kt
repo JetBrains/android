@@ -204,6 +204,32 @@ class LeakCanaryModelTest : WithFakeTimer {
     assertFalse(stage.isRecording.value)
   }
 
+  @Test
+  fun `checkLeakCanaryPresence updates state when present`() {
+    transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0, isLeakCanaryPresent = true))
+    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
+    stage.startListening()
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertTrue(stage.isLeakCanaryPresent.value)
+  }
+
+  @Test
+  fun `checkLeakCanaryPresence updates state when absent`() {
+    transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
+    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0, isLeakCanaryPresent = false))
+    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0))
+    stage.startListening()
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertFalse(stage.isLeakCanaryPresent.value)
+  }
+
   // A leaking node is found in the leak trace.
   @Test
   fun `test getLeakClassName when leaking node is found`() {
@@ -351,7 +377,8 @@ class LeakCanaryModelTest : WithFakeTimer {
 class FakeLeakCanaryCommandHandler(timer: FakeTimer,
                                    val profilers: StudioProfilers,
                                    val leaksToSendFiles: List<String>,
-                                   val startTimestamp: Long) : CommandHandler(timer) {
+                                   val startTimestamp: Long,
+                                   val isLeakCanaryPresent: Boolean = true) : CommandHandler(timer) {
   override fun handleCommand(command: Commands.Command,
                              events: MutableList<Common.Event>) {
 
@@ -399,9 +426,10 @@ class FakeLeakCanaryCommandHandler(timer: FakeTimer,
       Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT -> {
         events.add(Common.Event.newBuilder()
                      .setPid(profilers.session.pid)
+                     .setCommandId(command.commandId)
                      .setTimestamp(System.currentTimeMillis())
                      .setKind(Common.Event.Kind.LEAKCANARY_PRESENCE_CHECK)
-                     .setLeakcanaryPresenceCheck(LeakCanaryPresenceCheck.newBuilder().setIsPresent(true).build())
+                     .setLeakcanaryPresenceCheck(LeakCanaryPresenceCheck.newBuilder().setIsPresent(isLeakCanaryPresent).build())
                      .build())
       }
       else -> {}
