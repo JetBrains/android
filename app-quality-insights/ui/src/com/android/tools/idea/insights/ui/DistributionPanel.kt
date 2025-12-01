@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.idea.insights.IssueStats
+import com.android.tools.idea.insights.model.issue.IssueStats
 import com.intellij.ide.HelpTooltip
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons

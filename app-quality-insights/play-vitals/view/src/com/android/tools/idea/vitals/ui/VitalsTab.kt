@@ -20,9 +20,9 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.mapState
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.VisibilityType
 import com.android.tools.idea.insights.persistence.AppInsightsSettings

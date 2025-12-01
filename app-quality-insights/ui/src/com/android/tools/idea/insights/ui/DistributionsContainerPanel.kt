@@ -18,8 +18,8 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.DetailedIssueStats
 import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.model.issue.DetailedIssueStats
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
 import com.intellij.ui.TitledSeparator

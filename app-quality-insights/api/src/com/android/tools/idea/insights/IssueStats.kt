@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.model.common.DataPoint
+import com.android.tools.idea.insights.model.common.StatsGroup
 import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.issue.IssueStats
 
 /**
  * Ensures the minimum number of [StatsGroup]s and [DataPoint]s within a group if applicable.
@@ -34,23 +37,6 @@ const val MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW = 3
 const val MINIMUM_PERCENTAGE_TO_SHOW = 10.0
 
 private const val OTHER_GROUP = "Other"
-
-/** Stats of an [Issue]. */
-data class IssueStats<T : Number>(val topValue: String?, val groups: List<StatsGroup<T>>) {
-  fun isEmpty() = topValue == null && groups.isEmpty()
-}
-
-/** A named group of [DataPoint]s. */
-data class StatsGroup<T : Number>(
-  val groupName: String,
-  val percentage: T,
-  val breakdown: List<DataPoint<T>>,
-)
-
-/** Represents a leaf named data point. */
-data class DataPoint<T : Number>(val name: String, val percentage: T)
-
-data class DetailedIssueStats(val deviceStats: IssueStats<Double>, val osStats: IssueStats<Double>)
 
 fun <T : Number> T.percentOf(total: T): Double = ((this.toDouble() / total.toDouble()) * 100)
 

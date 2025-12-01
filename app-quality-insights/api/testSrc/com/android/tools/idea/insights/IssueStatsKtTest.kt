@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.model.common.DataPoint
+import com.android.tools.idea.insights.model.common.StatsGroup
 import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
+import com.android.tools.idea.insights.model.issue.IssueStats
 import com.google.common.truth.Truth.assertThat
 import kotlin.math.roundToInt
 import org.junit.Test
