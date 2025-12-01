@@ -99,28 +99,32 @@ open class ProfilersTestBase {
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo(repoManifestPath))
 
-    system.runAdb { adb ->
-      system.runEmulator(systemImage) { emulator ->
-        system.runStudio(project, watcher.dashboardName) { studio ->
-          // Waiting for sync and build.
-          studio.waitForSync()
-          studio.waitForIndex()
-          // Assume project build will be triggered by `testFunction` if needed.
-          // Waiting for emulator to boot up.
-          emulator.waitForBoot()
-          adb.waitForDevice(emulator)
+    var setupComplete = false
+    retry(shouldRetry = { !setupComplete }) {
+      system.runAdb { adb ->
+        system.runEmulator(systemImage) { emulator ->
+          system.runStudio(project, watcher.dashboardName) { studio ->
+            // Waiting for sync and build.
+            studio.waitForSync()
+            studio.waitForIndex()
+            // Assume project build will be triggered by `testFunction` if needed.
+            // Waiting for emulator to boot up.
+            emulator.waitForBoot()
+            adb.waitForDevice(emulator)
 
-          if (deployApp) {
-            deployApp(studio, adb)
-            invokeProfilerToolWindow(studio)
-            waitForProfilerDeviceConnection()
-            getLogger().info("App Deployment is completed. Profiler tool window opened. Transport Pipeline is successful")
+            if (deployApp) {
+              deployApp(studio, adb)
+              invokeProfilerToolWindow(studio)
+              waitForProfilerDeviceConnection()
+              getLogger().info("App Deployment is completed. Profiler tool window opened. Transport Pipeline is successful")
+            }
+
+            getLogger().info("Test set-up completed, starting the test case / invoking test function.")
+            Thread.sleep(2000)
+            setupComplete = true
+            // Test Function or test steps to be executed.
+            testFunction.invoke(studio, adb)
           }
-
-          getLogger().info("Test set-up completed, starting the test case / invoking test function.")
-          Thread.sleep(2000)
-          // Test Function or test steps to be executed.
-          testFunction.invoke(studio, adb)
         }
       }
     }
@@ -344,5 +348,19 @@ open class ProfilersTestBase {
 
   protected fun profileAction(studio: AndroidStudio) {
     studio.executeAction("Android.Profile")
+  }
+
+  protected fun retry(maxAttempts: Int = 3, shouldRetry: (Throwable) -> Boolean, block: () -> Unit) {
+    for (attempt in 1..maxAttempts) {
+      try {
+        block()
+        return
+      } catch(t: Throwable) {
+        if (attempt == maxAttempts || !shouldRetry(t)) {
+          throw t
+        }
+        getLogger().info("Attempt $attempt failed: ${t.message}. Retrying...")
+      }
+    }
   }
 }
