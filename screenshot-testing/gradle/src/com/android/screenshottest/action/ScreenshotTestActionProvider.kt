@@ -15,19 +15,24 @@
  */
 package com.android.screenshottest.action
 
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.AndroidTestSuiteDetailsActionProvider
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.diagnostic.Logger
 
 class ScreenshotTestActionProvider : AndroidTestSuiteDetailsActionProvider {
+  private val LOG = Logger.getInstance(this.javaClass)
+
   override fun isApplicable(runConfiguration: RunConfiguration): Boolean {
-    return runConfiguration.name.contains("Screenshot Tests", ignoreCase = true)
+    val isApplicable = runConfiguration.name.contains("Screenshot Tests", ignoreCase = true)
+    LOG.debug("Checking applicability for run configuration: ${runConfiguration.name}, result: $isApplicable")
+    return isApplicable
   }
 
   override fun getDetailsViewHeaderActions(testResults: AndroidTestResults?): List<AnAction> {
+    LOG.debug("Getting details view header actions for test results: $testResults")
     val action = ActionManager.getInstance().getAction("com.android.screenshottest.action.UpdateReferenceImagesFromTestPanelAction")
     (action as? UpdateReferenceImagesFromTestPanelAction)?.let {
       it.testResults = testResults

@@ -46,6 +46,7 @@ abstract class UpdateReferenceImagesBaseAction(
   private val LOG = Logger.getInstance(this.javaClass)
 
   override fun actionPerformed(e: AnActionEvent) {
+    LOG.debug("UpdateReferenceImagesBaseAction triggered for event: $e")
     val context = ConfigurationContext.getFromEvent(e)
     val project = context.project ?: return
 
@@ -78,6 +79,8 @@ abstract class UpdateReferenceImagesBaseAction(
         }
       }
     })
+
+    LOG.debug("Executing gradle task for project: $project, configuration: ${updateRunconfigSettings.name}")
     ExecutionManager.getInstance(project).restartRunProfile(
       project,
       executor,
