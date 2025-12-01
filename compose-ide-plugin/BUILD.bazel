@@ -191,6 +191,7 @@ jvm_library(
     "//platform/xdebugger-api:debugger",
     "//platform/xdebugger-impl:debugger-impl",
     "//platform/xdebugger-impl:debugger-impl_test_lib",
+    "//platform/xdebugger-impl/shared",
     "//platform/editor-ui-api:editor-ui",
     "//platform/extensions",
     "//platform/platform-api:ide",

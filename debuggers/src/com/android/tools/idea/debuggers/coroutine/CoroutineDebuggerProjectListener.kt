@@ -23,7 +23,7 @@ import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.XDebuggerManagerListener
 import com.intellij.xdebugger.impl.XDebugSessionImpl
-import com.intellij.xdebugger.impl.frame.XDebugManagerProxy
+import com.intellij.platform.debugger.impl.shared.proxy.XDebugManagerProxy
 import org.jetbrains.android.AndroidStartupManager.ProjectDisposableScope
 import org.jetbrains.kotlin.idea.debugger.coroutine.DebuggerConnection
 
