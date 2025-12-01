@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 @file:JvmName("FlagUtils")
+
 package com.android.tools.idea.testing.flags
 
 import com.android.flags.Flag
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 
-/**
- * Overrides the value of this flag. The override is cleared when [disposable] is disposed.
- */
-fun <T: Any> Flag<T>.overrideForTest(overrideValue: T, disposable: Disposable) {
+/** Overrides the value of this flag. The override is cleared when [disposable] is disposed. */
+fun <T : Any> Flag<T>.overrideForTest(overrideValue: T, disposable: Disposable) {
   override(overrideValue)
   Disposer.register(disposable) { clearOverride() }
 }

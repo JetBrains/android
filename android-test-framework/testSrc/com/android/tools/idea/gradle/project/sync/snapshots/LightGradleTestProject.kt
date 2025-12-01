@@ -26,12 +26,10 @@ import com.android.tools.idea.testing.ModuleModelBuilder
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.openProjectAndRunTestWithTestFixturesAvailable
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.projectRoots.Sdk
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.createTestOpenProjectOptions
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
@@ -42,8 +40,11 @@ import java.nio.file.Path
 interface LightGradleTestProject : TestProjectDefinition {
   val templateProject: TemplateBasedTestProject
   val modelBuilders: List<ModuleModelBuilder>
-  override val name get() = templateProject.name
-  override val projectName get() = templateProject.name
+  override val name
+    get() = templateProject.name
+
+  override val projectName
+    get() = templateProject.name
 
   override val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean
     get() = { true }
@@ -54,18 +55,26 @@ interface LightGradleTestProject : TestProjectDefinition {
     agpVersion: AgpVersionSoftwareEnvironment,
     ndkVersion: String?,
     sdk: Sdk?,
-    syncReady: Boolean
+    syncReady: Boolean,
   ): PreparedTestProject {
-    val preparedProject = templateProject.prepareTestProject(integrationTestEnvironment, name, agpVersion, ndkVersion, sdk, syncReady)
+    val preparedProject =
+      templateProject.prepareTestProject(
+        integrationTestEnvironment,
+        name,
+        agpVersion,
+        ndkVersion,
+        sdk,
+        syncReady,
+      )
     preparedProject.root.resolve(".gradle").mkdir()
-    return object: PreparedTestProject {
+    return object : PreparedTestProject {
       override fun <T> open(
         updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions,
-        body: PreparedTestProject.Context.(Project) -> T
+        body: PreparedTestProject.Context.(Project) -> T,
       ): T {
         return openProjectAndRunTestWithTestFixturesAvailable(
           openProjectImplementation = ::openProject,
-          testBody = body
+          testBody = body,
         )
       }
 
@@ -76,21 +85,24 @@ interface LightGradleTestProject : TestProjectDefinition {
           ProjectManagerEx.getInstanceEx()
             .openProject(
               Path.of(integrationTestEnvironment.getBaseTestPath(), name).parent.resolve(name),
-              options.copy(beforeInit = { it.putUserData(GradleSyncExecutor.ALWAYS_SKIP_SYNC, true) })
-            )
-            ?: error("Failed to open a test project")
+              options.copy(
+                beforeInit = { it.putUserData(GradleSyncExecutor.ALWAYS_SKIP_SYNC, true) }
+              ),
+            ) ?: error("Failed to open a test project")
         return try {
           invokeAndWaitIfNeeded {
-            setupTestProjectFromAndroidModel(project, preparedProject.root, *modelBuilders.toTypedArray())
+            setupTestProjectFromAndroidModel(
+              project,
+              preparedProject.root,
+              *modelBuilders.toTypedArray(),
+            )
           }
           when (integrationTestEnvironment.runOpenBodyOnEdt) {
             true -> runInEdtAndGet { body(project, preparedProject.root) }
             false -> body(project, preparedProject.root)
           }
         } finally {
-          runInEdtAndWait {
-            ProjectManagerEx.getInstanceEx().forceCloseProject(project)
-          }
+          runInEdtAndWait { ProjectManagerEx.getInstanceEx().forceCloseProject(project) }
         }
       }
 
@@ -102,7 +114,7 @@ interface LightGradleTestProject : TestProjectDefinition {
 
 enum class LightGradleTestProjects(
   override val templateProject: TemplateBasedTestProject,
-  override val modelBuilders: List<ModuleModelBuilder>
+  override val modelBuilders: List<ModuleModelBuilder>,
 ) : LightGradleTestProject {
   SIMPLE_APPLICATION(
     AndroidCoreTestProject.SIMPLE_APPLICATION,
@@ -111,11 +123,9 @@ enum class LightGradleTestProjects(
       AndroidModuleModelBuilder(
         gradlePath = ":app",
         selectedBuildVariant = "debug",
-        projectBuilder = AndroidProjectBuilder(
-          namespace = { "google.simpleapplication" }
-        ).build(),
-      )
-    )
+        projectBuilder = AndroidProjectBuilder(namespace = { "google.simpleapplication" }).build(),
+      ),
+    ),
   );
 
   override val projectName: String = name

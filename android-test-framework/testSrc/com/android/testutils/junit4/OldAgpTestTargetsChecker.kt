@@ -16,30 +16,30 @@
 package com.android.testutils.junit4
 
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import org.junit.Assert
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 import java.io.FileInputStream
 import java.net.URLClassLoader
 import java.nio.file.Path
 import java.util.jar.JarInputStream
 import kotlin.io.path.Path
+import org.junit.Assert
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
 /**
- * Test that evaluates that all [OldAgpTest] annotations with specified version pairs in the provided test jar have a matching
- * bazel test target that will be able to run it.
+ * Test that evaluates that all [OldAgpTest] annotations with specified version pairs in the
+ * provided test jar have a matching bazel test target that will be able to run it.
  *
  * Jar with tests to analyze and list of declared bazel targets are passed in via system properties.
  *
- * Usage of [OldAgpTest] annotation with version pairs generate test parameters tuple: (versions pair, locations). Parametrized
- * check then just checks if such version pair is covered by targets. If it is not covered, failure lists the locations where
- * this pair was requested.
+ * Usage of [OldAgpTest] annotation with version pairs generate test parameters tuple: (versions
+ * pair, locations). Parametrized check then just checks if such version pair is covered by targets.
+ * If it is not covered, failure lists the locations where this pair was requested.
  */
 @RunWith(Parameterized::class)
 class OldAgpTestTargetsChecker(
   private val versionsPair: OldAgpTestVersionsPair,
-  private val appliedLocations: List<String>
+  private val appliedLocations: List<String>,
 ) {
 
   companion object {
@@ -47,16 +47,22 @@ class OldAgpTestTargetsChecker(
     @Parameterized.Parameters(name = "{0}")
     fun requestedTests(): List<Array<Any>> {
       val testJarPath = System.getProperty("old.agp.tests.check.jar") ?: return emptyList()
-      return parseAllAnnotatedLocations(loadClasses(Path(testJarPath))).map { arrayOf(it.key, it.value.sorted()) }
+      return parseAllAnnotatedLocations(loadClasses(Path(testJarPath))).map {
+        arrayOf(it.key, it.value.sorted())
+      }
     }
 
-    fun parseAllAnnotatedLocations(classes: Set<Class<*>>): Map<OldAgpTestVersionsPair, List<String>> {
+    fun parseAllAnnotatedLocations(
+      classes: Set<Class<*>>
+    ): Map<OldAgpTestVersionsPair, List<String>> {
       val annotationTargets = mutableListOf<Pair<OldAgpTestVersionsPair, String>>()
       classes.forEach { testClass ->
         testClass.getAnnotation(OldAgpTest::class.java)?.let { classAnnotation ->
           classAnnotation.agpVersions.forEach { agpVersion ->
             classAnnotation.gradleVersions.forEach { gradleVersion ->
-              annotationTargets.add(OldAgpTestVersionsPair(agpVersion, gradleVersion) to testClass.name)
+              annotationTargets.add(
+                OldAgpTestVersionsPair(agpVersion, gradleVersion) to testClass.name
+              )
             }
           }
         }
@@ -64,13 +70,16 @@ class OldAgpTestTargetsChecker(
           method.getAnnotation(OldAgpTest::class.java)?.let { methodAnnotation ->
             methodAnnotation.agpVersions.forEach { agpVersion ->
               methodAnnotation.gradleVersions.forEach { gradleVersion ->
-                annotationTargets.add(OldAgpTestVersionsPair(agpVersion, gradleVersion) to "${testClass.name}#${method.name}")
+                annotationTargets.add(
+                  OldAgpTestVersionsPair(agpVersion, gradleVersion) to
+                    "${testClass.name}#${method.name}"
+                )
               }
             }
           }
         }
       }
-      return annotationTargets.groupBy(keySelector = { it.first }, valueTransform = { it.second} )
+      return annotationTargets.groupBy(keySelector = { it.first }, valueTransform = { it.second })
     }
 
     private fun loadClasses(jar: Path): Set<Class<*>> {
@@ -92,40 +101,52 @@ class OldAgpTestTargetsChecker(
 
   @Test
   fun check() {
-    val definedVersionPairTargets = System.getProperty("agp.gradle.version.pair.targets")?.split(":") ?: emptyList()
-    val ignoreLocations = System.getProperty("old.agp.tests.check.ignore.list")?.split(":") ?: emptyList()
+    val definedVersionPairTargets =
+      System.getProperty("agp.gradle.version.pair.targets")?.split(":") ?: emptyList()
+    val ignoreLocations =
+      System.getProperty("old.agp.tests.check.ignore.list")?.split(":") ?: emptyList()
 
-    if (definedVersionPairTargets.none { it == "${versionsPair.agpVersion}@${versionsPair.gradleVersion}"}
-        && appliedLocations.any { !ignoreLocations.contains(it) }) {
+    if (
+      definedVersionPairTargets.none {
+        it == "${versionsPair.agpVersion}@${versionsPair.gradleVersion}"
+      } && appliedLocations.any { !ignoreLocations.contains(it) }
+    ) {
       val messageBuilder = StringBuilder()
-      messageBuilder.appendLine("$versionsPair is not covered by old_agp_test targets but requested in:\n" + appliedLocations.joinToString(separator = "\n"))
+      messageBuilder.appendLine(
+        "$versionsPair is not covered by old_agp_test targets but requested in:\n" +
+          appliedLocations.joinToString(separator = "\n")
+      )
 
-      val knownAgpVersions = AgpVersionSoftwareEnvironmentDescriptor.entries.mapNotNull { it.agpVersion }.toSet()
-      val knownGradleVersions = AgpVersionSoftwareEnvironmentDescriptor.entries.mapNotNull { it.gradleVersion }.toSet()
+      val knownAgpVersions =
+        AgpVersionSoftwareEnvironmentDescriptor.entries.mapNotNull { it.agpVersion }.toSet()
+      val knownGradleVersions =
+        AgpVersionSoftwareEnvironmentDescriptor.entries.mapNotNull { it.gradleVersion }.toSet()
 
       listOf(
-        Triple("AGP versions", knownAgpVersions, versionsPair.agpVersion),
-        Triple("Gradle versions", knownGradleVersions, versionsPair.gradleVersion),
-      ).onEach { (name, knownVersions, declaredVersion) ->
-        if (!knownVersions.contains(declaredVersion)) {
-          val similar = knownVersions.filter { it.contains(declaredVersion) }
-          messageBuilder.append("Please note that '$declaredVersion' is not amongst $name " +
-                                "found in AgpVersionSoftwareEnvironmentDescriptor.")
-          if (similar.size == 1) {
-            messageBuilder.append(" Did you mean '${similar.first()}'?")
-          } else if (similar.isNotEmpty()) {
-            messageBuilder.append(" Did you mean any of these: ${similar.joinToString { "'$it'" }}?")
+          Triple("AGP versions", knownAgpVersions, versionsPair.agpVersion),
+          Triple("Gradle versions", knownGradleVersions, versionsPair.gradleVersion),
+        )
+        .onEach { (name, knownVersions, declaredVersion) ->
+          if (!knownVersions.contains(declaredVersion)) {
+            val similar = knownVersions.filter { it.contains(declaredVersion) }
+            messageBuilder.append(
+              "Please note that '$declaredVersion' is not amongst $name " +
+                "found in AgpVersionSoftwareEnvironmentDescriptor."
+            )
+            if (similar.size == 1) {
+              messageBuilder.append(" Did you mean '${similar.first()}'?")
+            } else if (similar.isNotEmpty()) {
+              messageBuilder.append(
+                " Did you mean any of these: ${similar.joinToString { "'$it'" }}?"
+              )
+            }
+            messageBuilder.appendLine()
           }
-          messageBuilder.appendLine()
         }
-      }
 
       Assert.fail(messageBuilder.toString())
     }
   }
 
-  data class OldAgpTestVersionsPair(
-    val agpVersion: String,
-    val gradleVersion: String
-  )
+  data class OldAgpTestVersionsPair(val agpVersion: String, val gradleVersion: String)
 }

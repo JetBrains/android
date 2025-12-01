@@ -20,18 +20,23 @@ import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.TestActionEvent.createTestEvent
-import org.mockito.Mockito.mock
 import java.util.function.Supplier
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
+import org.mockito.Mockito.mock
 
-class FakeActionPopupMenu(private val group: ActionGroup, private val popup: JPopupMenu = mock()) : ActionPopupMenu {
+class FakeActionPopupMenu(private val group: ActionGroup, private val popup: JPopupMenu = mock()) :
+  ActionPopupMenu {
   private var dataProvider: Supplier<out DataContext>? = null
 
   override fun getComponent(): JPopupMenu = popup
+
   override fun getActionGroup(): ActionGroup = group
+
   override fun getPlace(): String = error("Not implemented")
+
   override fun setTargetComponent(component: JComponent) = error("Not implemented")
+
   override fun setDataContext(dataProvider: Supplier<out DataContext>) {
     this.dataProvider = dataProvider
   }

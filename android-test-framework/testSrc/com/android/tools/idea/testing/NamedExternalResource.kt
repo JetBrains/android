@@ -22,28 +22,26 @@ import org.junit.runners.model.MultipleFailureException
 import org.junit.runners.model.Statement
 
 /**
- * Base class for [TestRule]s that need to know the name of their own test during setup.
- * This is a replacement for [ExternalResource] that provides access to the [Description]
- * object.
+ * Base class for [TestRule]s that need to know the name of their own test during setup. This is a
+ * replacement for [ExternalResource] that provides access to the [Description] object.
  */
 abstract class NamedExternalResource : TestRule {
   final override fun apply(base: Statement, description: Description): Statement {
     return object : Statement() {
       @Throws(Throwable::class)
       override fun evaluate() {
-        // Unlike ExternalResource, we make sure that exceptions thrown from after() do not hide exceptions thrown from base.evaluate().
+        // Unlike ExternalResource, we make sure that exceptions thrown from after() do not hide
+        // exceptions thrown from base.evaluate().
         val errors = mutableListOf<Throwable>()
         before(description)
         try {
           base.evaluate()
-        }
-        catch (e: Throwable) {
+        } catch (e: Throwable) {
           errors.add(e)
         }
         try {
           after(description)
-        }
-        catch (e: Throwable) {
+        } catch (e: Throwable) {
           errors.add(e)
         }
         MultipleFailureException.assertEmpty(errors)
@@ -51,7 +49,7 @@ abstract class NamedExternalResource : TestRule {
     }
   }
 
-  @Throws(Throwable::class)
-  abstract fun before(description: Description)
+  @Throws(Throwable::class) abstract fun before(description: Description)
+
   abstract fun after(description: Description)
 }

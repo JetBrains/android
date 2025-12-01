@@ -32,210 +32,250 @@ import com.android.utils.FileUtils
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.systemIndependentPath
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.facet.getManifestFiles
 import java.io.File
+import org.jetbrains.android.facet.getManifestFiles
 
 @Suppress("DEPRECATION")
 fun Project.dumpSourceProviders(): String {
   val projectRootPath = File(basePath)
   return buildString {
-    var prefix = ""
+      var prefix = ""
 
-    fun out(s: String) = appendLine("$prefix$s")
+      fun out(s: String) = appendLine("$prefix$s")
 
-    fun <T> nest(title: String? = null, code: () -> T): T {
-      if (title != null) {
-        out(title)
+      fun <T> nest(title: String? = null, code: () -> T): T {
+        if (title != null) {
+          out(title)
+        }
+        prefix = "    $prefix"
+        val result = code()
+        prefix = prefix.substring(4)
+        return result
       }
-      prefix = "    $prefix"
-      val result = code()
-      prefix = prefix.substring(4)
-      return result
-    }
 
-    fun String.toPrintablePath(): String = this.replace(projectRootPath.absolutePath.toSystemIndependent(), ".", false)
+      fun String.toPrintablePath(): String =
+        this.replace(projectRootPath.absolutePath.toSystemIndependent(), ".", false)
 
-    fun <T, F> T.dumpPathsCore(name: String, getter: (T) -> Iterable<F>, mapper: (F) -> String?) {
-      val entries = getter(this).toList()
-      if (entries.isEmpty()) return
-      out("$name:")
-      nest {
-        entries
-          .mapNotNull(mapper)
-          .forEach {
-            out(it.toPrintablePath())
-          }
+      fun <T, F> T.dumpPathsCore(name: String, getter: (T) -> Iterable<F>, mapper: (F) -> String?) {
+        val entries = getter(this).toList()
+        if (entries.isEmpty()) return
+        out("$name:")
+        nest { entries.mapNotNull(mapper).forEach { out(it.toPrintablePath()) } }
       }
-    }
 
-    fun IdeSourceProvider.dumpPaths(name: String, getter: (IdeSourceProvider) -> Collection<File>) =
-      dumpPathsCore(name, getter) { it.path.toSystemIndependent() }
+      fun IdeSourceProvider.dumpPaths(
+        name: String,
+        getter: (IdeSourceProvider) -> Collection<File>,
+      ) = dumpPathsCore(name, getter) { it.path.toSystemIndependent() }
 
-    fun IdeaSourceProvider.dumpUrls(name: String, getter: (IdeaSourceProvider) -> Iterable<String>) =
-      dumpPathsCore(name, getter) { it }
+      fun IdeaSourceProvider.dumpUrls(
+        name: String,
+        getter: (IdeaSourceProvider) -> Iterable<String>,
+      ) = dumpPathsCore(name, getter) { it }
 
-    fun IdeaSourceProvider.dumpPaths(name: String, getter: (IdeaSourceProvider) -> Iterable<VirtualFile?>) =
-      dumpPathsCore(name, getter) { it?.url }
+      fun IdeaSourceProvider.dumpPaths(
+        name: String,
+        getter: (IdeaSourceProvider) -> Iterable<VirtualFile?>,
+      ) = dumpPathsCore(name, getter) { it?.url }
 
-    fun IdeCustomSourceDirectory.dump() {
-      nest("CustomSourceDirectory") {
-        out(sourceTypeName)
-        out(directory.systemIndependentPath.toPrintablePath())
+      fun IdeCustomSourceDirectory.dump() {
+        nest("CustomSourceDirectory") {
+          out(sourceTypeName)
+          out(directory.systemIndependentPath.toPrintablePath())
+        }
       }
-    }
 
-    fun IdeSourceProvider.dump() {
-      out(name)
-      nest {
-        dumpPaths("Manifest") { listOfNotNull(manifestFile) }
-        dumpPaths("AidlDirectories") { it.aidlDirectories }
-        dumpPaths("AssetsDirectories") { it.assetsDirectories }
-        dumpPaths("JavaDirectories") { it.javaDirectories }
-        dumpPaths("KotlinDirectories") { it.kotlinDirectories }
-        dumpPaths("JniLibsDirectories") { it.jniLibsDirectories }
-        dumpPaths("RenderscriptDirectories") { it.renderscriptDirectories }
-        dumpPaths("ResDirectories") { it.resDirectories }
-        dumpPaths("ResourcesDirectories") { it.resourcesDirectories }
-        dumpPaths("ShadersDirectories") { it.shadersDirectories }
-        dumpPaths("MlModelsDirectories") { it.mlModelsDirectories }
-        dumpPaths("BaselineProfileDirectories") { it.baselineProfileDirectories }
-        customSourceDirectories.forEach { it.dump() }
-      }
-    }
-
-    fun IdeaSourceProvider.dump(name: String) {
-      out("${name} (IDEA)")
-      nest {
-        out("ScopeType: $scopeType")
-        dumpUrls("ManifestFileUrls") { it.manifestFileUrls }
-        dumpPaths("ManifestFiles") { it.manifestFiles }
-        dumpUrls("ManifestDirectoryUrls") { it.manifestDirectoryUrls }
-        dumpPaths("ManifestDirectories") { it.manifestDirectories }
-        dumpUrls("AidlDirectoryUrls") { it.aidlDirectoryUrls }
-        dumpPaths("AidlDirectories") { it.aidlDirectories }
-        dumpUrls("AssetsDirectoryUrls") { it.assetsDirectoryUrls }
-        dumpPaths("AssetsDirectories") { it.assetsDirectories }
-        dumpUrls("JavaDirectoryUrls") { it.javaDirectoryUrls }
-        dumpPaths("JavaDirectories") { it.javaDirectories }
-        dumpUrls("KotlinDirectoryUrls") { it.kotlinDirectoryUrls }
-        dumpPaths("KotlinDirectories") { it.kotlinDirectories }
-        dumpUrls("JniLibsDirectoryUrls") { it.jniLibsDirectoryUrls }
-        dumpPaths("JniLibsDirectories") { it.jniLibsDirectories }
-        dumpUrls("RenderscriptDirectoryUrls") { it.renderscriptDirectoryUrls }
-        dumpPaths("RenderscriptDirectories") { it.renderscriptDirectories }
-        dumpUrls("ResDirectoryUrls") { it.resDirectoryUrls }
-        dumpPaths("ResDirectories") { it.resDirectories }
-        dumpUrls("ResourcesDirectoryUrls") { it.resourcesDirectoryUrls }
-        dumpPaths("ResourcesDirectories") { it.resourcesDirectories }
-        dumpUrls("ShadersDirectoryUrls") { it.shadersDirectoryUrls }
-        dumpPaths("ShadersDirectories") { it.shadersDirectories }
-        dumpUrls("MlModelsDirectoryUrls") { it.mlModelsDirectoryUrls }
-        dumpPaths("MlModelsDirectories") { it.mlModelsDirectories }
-      }
-    }
-
-    fun NamedIdeaSourceProvider.dump() {
-      dump(name)
-    }
-
-    fun String.toPrintableName(): String {
-      return when (this) {
-        ARTIFACT_NAME_MAIN -> "Main"
-        ARTIFACT_NAME_UNIT_TEST -> "UnitTest"
-        ARTIFACT_NAME_ANDROID_TEST -> "AndroidTest"
-        ARTIFACT_NAME_TEST_FIXTURES -> "TestFixtures"
-        ARTIFACT_NAME_SCREENSHOT_TEST -> "ScreenshotTest"
-        else -> this
-      }
-  }
-
-    this@dumpSourceProviders.getAndroidFacets()
-      .sortedBy { it.module.name }
-      .forEach { facet ->
-        out("MODULE: ${facet.module.name}")
+      fun IdeSourceProvider.dump() {
+        out(name)
         nest {
-          nest("by Facet:") {
-            val sourceProviderManager = SourceProviderManager.getInstance(facet)
-            sourceProviderManager.mainIdeaSourceProvider?.dump()
-          }
-          val model = GradleAndroidModel.get(facet)
+          dumpPaths("Manifest") { listOfNotNull(manifestFile) }
+          dumpPaths("AidlDirectories") { it.aidlDirectories }
+          dumpPaths("AssetsDirectories") { it.assetsDirectories }
+          dumpPaths("JavaDirectories") { it.javaDirectories }
+          dumpPaths("KotlinDirectories") { it.kotlinDirectories }
+          dumpPaths("JniLibsDirectories") { it.jniLibsDirectories }
+          dumpPaths("RenderscriptDirectories") { it.renderscriptDirectories }
+          dumpPaths("ResDirectories") { it.resDirectories }
+          dumpPaths("ResourcesDirectories") { it.resourcesDirectories }
+          dumpPaths("ShadersDirectories") { it.shadersDirectories }
+          dumpPaths("MlModelsDirectories") { it.mlModelsDirectories }
+          dumpPaths("BaselineProfileDirectories") { it.baselineProfileDirectories }
+          customSourceDirectories.forEach { it.dump() }
+        }
+      }
 
-          fun IdeSourceProvider.adjustedName() =
-            if (name == "main") "_" else name
+      fun IdeaSourceProvider.dump(name: String) {
+        out("${name} (IDEA)")
+        nest {
+          out("ScopeType: $scopeType")
+          dumpUrls("ManifestFileUrls") { it.manifestFileUrls }
+          dumpPaths("ManifestFiles") { it.manifestFiles }
+          dumpUrls("ManifestDirectoryUrls") { it.manifestDirectoryUrls }
+          dumpPaths("ManifestDirectories") { it.manifestDirectories }
+          dumpUrls("AidlDirectoryUrls") { it.aidlDirectoryUrls }
+          dumpPaths("AidlDirectories") { it.aidlDirectories }
+          dumpUrls("AssetsDirectoryUrls") { it.assetsDirectoryUrls }
+          dumpPaths("AssetsDirectories") { it.assetsDirectories }
+          dumpUrls("JavaDirectoryUrls") { it.javaDirectoryUrls }
+          dumpPaths("JavaDirectories") { it.javaDirectories }
+          dumpUrls("KotlinDirectoryUrls") { it.kotlinDirectoryUrls }
+          dumpPaths("KotlinDirectories") { it.kotlinDirectories }
+          dumpUrls("JniLibsDirectoryUrls") { it.jniLibsDirectoryUrls }
+          dumpPaths("JniLibsDirectories") { it.jniLibsDirectories }
+          dumpUrls("RenderscriptDirectoryUrls") { it.renderscriptDirectoryUrls }
+          dumpPaths("RenderscriptDirectories") { it.renderscriptDirectories }
+          dumpUrls("ResDirectoryUrls") { it.resDirectoryUrls }
+          dumpPaths("ResDirectories") { it.resDirectories }
+          dumpUrls("ResourcesDirectoryUrls") { it.resourcesDirectoryUrls }
+          dumpPaths("ResourcesDirectories") { it.resourcesDirectories }
+          dumpUrls("ShadersDirectoryUrls") { it.shadersDirectoryUrls }
+          dumpPaths("ShadersDirectories") { it.shadersDirectories }
+          dumpUrls("MlModelsDirectoryUrls") { it.mlModelsDirectoryUrls }
+          dumpPaths("MlModelsDirectories") { it.mlModelsDirectories }
+        }
+      }
 
-          fun NamedIdeaSourceProvider.adjustedName() =
-            if (name == "main") "_" else name
+      fun NamedIdeaSourceProvider.dump() {
+        dump(name)
+      }
 
-          if (model != null) {
-            nest("by AndroidModel:") {
-              model.defaultSourceProvider?.dump()
-              nest("Active:") { model.activeSourceProviders.forEach { it.dump() } }
-              nest("All:") { model.allSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() } }
-              nest("HostTest:") {
-                 model.hostTestSourceProviders.forEach { (k,v) ->
-                   nest(k.type.toPrintableName()) {
-                     v.forEach { it.dump() }
-                   }
-                 }
+      fun String.toPrintableName(): String {
+        return when (this) {
+          ARTIFACT_NAME_MAIN -> "Main"
+          ARTIFACT_NAME_UNIT_TEST -> "UnitTest"
+          ARTIFACT_NAME_ANDROID_TEST -> "AndroidTest"
+          ARTIFACT_NAME_TEST_FIXTURES -> "TestFixtures"
+          ARTIFACT_NAME_SCREENSHOT_TEST -> "ScreenshotTest"
+          else -> this
+        }
+      }
+
+      this@dumpSourceProviders.getAndroidFacets()
+        .sortedBy { it.module.name }
+        .forEach { facet ->
+          out("MODULE: ${facet.module.name}")
+          nest {
+            nest("by Facet:") {
+              val sourceProviderManager = SourceProviderManager.getInstance(facet)
+              sourceProviderManager.mainIdeaSourceProvider?.dump()
+            }
+            val model = GradleAndroidModel.get(facet)
+
+            fun IdeSourceProvider.adjustedName() = if (name == "main") "_" else name
+
+            fun NamedIdeaSourceProvider.adjustedName() = if (name == "main") "_" else name
+
+            if (model != null) {
+              nest("by AndroidModel:") {
+                model.defaultSourceProvider?.dump()
+                nest("Active:") { model.activeSourceProviders.forEach { it.dump() } }
+                nest("All:") {
+                  model.allSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() }
+                }
+                nest("HostTest:") {
+                  model.hostTestSourceProviders.forEach { (k, v) ->
+                    nest(k.type.toPrintableName()) { v.forEach { it.dump() } }
+                  }
+                }
+                nest("DeviceTest:") {
+                  model.deviceTestSourceProviders.forEach { (k, v) ->
+                    nest(k.type.toPrintableName()) { v.forEach { it.dump() } }
+                  }
+                }
+                nest("TestFixtures:") { model.testFixturesSourceProviders.forEach { it.dump() } }
               }
-              nest("DeviceTest:") {
-                model.deviceTestSourceProviders.forEach { (k,v) ->
-                  nest(k.type.toPrintableName()) {
-                    v.forEach { it.dump() }
+            }
+            nest("by IdeaSourceProviders:") {
+              val sourceProviderManager = SourceProviderManager.getInstance(facet)
+              dumpPathsCore("Manifests", { getManifestFiles(facet) }, { it.url })
+              nest("Sources:") { sourceProviderManager.sources.dump("Sources") }
+              nest("HostTestSources:") {
+                sourceProviderManager.hostTestSources.forEach {
+                  it.value.dump("${it.key.type.toPrintableName()}Sources")
+                }
+              }
+              nest("DeviceTestSources:") {
+                sourceProviderManager.deviceTestSources.forEach {
+                  it.value.dump("${it.key.type.toPrintableName()}TestSources")
+                }
+              }
+              nest("TestSuiteSources:") {
+                sourceProviderManager.testSuiteSources.forEach {
+                  it.value.forEach { sourceProvider ->
+                    sourceProvider.dump("${it.key}TestSuiteSources")
                   }
                 }
               }
-              nest("TestFixtures:") { model.testFixturesSourceProviders.forEach { it.dump() } }
+              nest("TestFixturesSources:") {
+                sourceProviderManager.testFixturesSources.dump("TestFixturesSources")
+              }
+              nest("GeneratedSources:") {
+                sourceProviderManager.generatedSources.dump("GeneratedSources")
+              }
+              nest("GeneratedHostTestSources:") {
+                sourceProviderManager.generatedHostTestSources.forEach {
+                  it.value.dump("Generated${it.key.type.toPrintableName()}TestSources")
+                }
+              }
+              nest("GeneratedDeviceTestSources:") {
+                sourceProviderManager.generatedDeviceTestSources.forEach {
+                  it.value.dump("Generated${it.key.type.toPrintableName()}TestSources")
+                }
+              }
+              nest("GeneratedTestFixturesSources:") {
+                sourceProviderManager.generatedTestFixturesSources.dump(
+                  "GeneratedTestFixturesSources"
+                )
+              }
+              nest("AllVariantAllArtifactsSources:") {
+                sourceProviderManager.allVariantAllArtifactsSourceProviders
+                  .sortedBy { it.adjustedName() }
+                  .forEach { it.dump() }
+              }
+              nest("CurrentAndSomeFrequentlyUsedInactiveSourceProviders:") {
+                sourceProviderManager.currentAndSomeFrequentlyUsedInactiveSourceProviders
+                  .sortedBy { it.adjustedName() }
+                  .forEach { it.dump() }
+              }
+              nest("CurrentSourceProviders:") {
+                sourceProviderManager.currentSourceProviders.forEach { it.dump() }
+              }
+              nest("CurrentHostTestSourceProviders:") {
+                sourceProviderManager.currentHostTestSourceProviders.values.flatten().forEach {
+                  it.dump()
+                }
+              }
+              nest("CurrentDeviceTestSourceProviders:") {
+                sourceProviderManager.currentDeviceTestSourceProviders.values.flatten().forEach {
+                  it.dump()
+                }
+              }
+              nest("CurrentTestSuiteSourceProviders:") {
+                sourceProviderManager.currentTestSuiteSourceProviders.values.flatten().forEach {
+                  it.dump()
+                }
+              }
+              nest("CurrentTestFixturesSourceProviders:") {
+                sourceProviderManager.currentTestFixturesSourceProviders.forEach { it.dump() }
+              }
             }
-          }
-          nest("by IdeaSourceProviders:") {
-            val sourceProviderManager = SourceProviderManager.getInstance(facet)
-            dumpPathsCore("Manifests", { getManifestFiles(facet) }, { it.url })
-            nest("Sources:") { sourceProviderManager.sources.dump("Sources") }
-            nest("HostTestSources:") { sourceProviderManager.hostTestSources.forEach { it.value.dump("${it.key.type.toPrintableName()}Sources") } }
-            nest("DeviceTestSources:") { sourceProviderManager.deviceTestSources.forEach { it.value.dump("${it.key.type.toPrintableName()}TestSources") } }
-            nest("TestSuiteSources:") { sourceProviderManager.testSuiteSources.forEach { it.value.forEach {  sourceProvider -> sourceProvider.dump("${it.key}TestSuiteSources") } } }
-            nest("TestFixturesSources:") { sourceProviderManager.testFixturesSources.dump("TestFixturesSources") }
-            nest("GeneratedSources:") { sourceProviderManager.generatedSources.dump("GeneratedSources") }
-            nest("GeneratedHostTestSources:") {
-              sourceProviderManager.generatedHostTestSources.forEach { it.value.dump("Generated${it.key.type.toPrintableName()}TestSources") }
-            }
-            nest("GeneratedDeviceTestSources:") {
-              sourceProviderManager.generatedDeviceTestSources.forEach { it.value.dump("Generated${it.key.type.toPrintableName()}TestSources") }
-            }
-            nest("GeneratedTestFixturesSources:") { sourceProviderManager.generatedTestFixturesSources.dump("GeneratedTestFixturesSources") }
-            nest("AllVariantAllArtifactsSources:") {
-              sourceProviderManager.allVariantAllArtifactsSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() }
-            }
-            nest(
-              "CurrentAndSomeFrequentlyUsedInactiveSourceProviders:"
-            ) {
-              sourceProviderManager.currentAndSomeFrequentlyUsedInactiveSourceProviders.sortedBy { it.adjustedName() }
-                .forEach { it.dump() }
-            }
-            nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }
-            nest("CurrentHostTestSourceProviders:") {
-              sourceProviderManager.currentHostTestSourceProviders.values.flatten().forEach { it.dump() }
-            }
-            nest("CurrentDeviceTestSourceProviders:") {
-              sourceProviderManager.currentDeviceTestSourceProviders.values.flatten().forEach { it.dump() }
-            }
-            nest("CurrentTestSuiteSourceProviders:") {
-              sourceProviderManager.currentTestSuiteSourceProviders.values.flatten().forEach { it.dump() }
-            }
-            nest("CurrentTestFixturesSourceProviders:") { sourceProviderManager.currentTestFixturesSourceProviders.forEach { it.dump() } }
           }
         }
-      }
-    val buildConfigurationFiles = getProjectSystem().getBuildConfigurationSourceProvider()?.getBuildConfigurationFiles().orEmpty()
-    if (buildConfigurationFiles.isNotEmpty()) {
-      nest("Build configuration files:") {
-        buildConfigurationFiles.sortedBy { it.groupOrder }.forEach {
-          out("${it.file.url.toPrintablePath()} : ${it.displayName} [${it.groupOrder}]")
+      val buildConfigurationFiles =
+        getProjectSystem()
+          .getBuildConfigurationSourceProvider()
+          ?.getBuildConfigurationFiles()
+          .orEmpty()
+      if (buildConfigurationFiles.isNotEmpty()) {
+        nest("Build configuration files:") {
+          buildConfigurationFiles
+            .sortedBy { it.groupOrder }
+            .forEach {
+              out("${it.file.url.toPrintablePath()} : ${it.displayName} [${it.groupOrder}]")
+            }
         }
       }
     }
-  }
     .trimIndent()
 }
 

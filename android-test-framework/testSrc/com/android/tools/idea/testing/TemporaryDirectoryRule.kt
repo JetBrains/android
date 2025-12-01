@@ -1,4 +1,5 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0
+// license that can be found in the LICENSE file.
 package com.android.tools.idea.testing
 
 import com.intellij.openapi.application.WriteAction
@@ -13,10 +14,6 @@ import com.intellij.util.SmartList
 import com.intellij.util.io.Ksuid
 import com.intellij.util.io.delete
 import com.intellij.util.io.sanitizeFileName
-import org.jetbrains.annotations.ApiStatus
-import org.junit.rules.ExternalResource
-import org.junit.runner.Description
-import org.junit.runners.model.Statement
 import java.io.IOException
 import java.nio.file.FileSystemException
 import java.nio.file.Files
@@ -25,14 +22,18 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.exists
 import kotlin.properties.Delegates
+import org.jetbrains.annotations.ApiStatus
+import org.junit.rules.ExternalResource
+import org.junit.runner.Description
+import org.junit.runners.model.Statement
 
 /**
- * This is a slightly modified version of [com.intellij.testFramework.TemporaryDirectory] with
- * a workaround for https://youtrack.jetbrains.com/issue/IDEA-260055.
+ * This is a slightly modified version of [com.intellij.testFramework.TemporaryDirectory] with a
+ * workaround for https://youtrack.jetbrains.com/issue/IDEA-260055.
  *
- * The fileName argument is not used as is for generated file or dir name - sortable UID is added as suffix.
- * `hello.kt` will be created as `hello_1eSBtxBR5522COEjhRLR6AEz.kt`.
- * `.kt` will be created as `1eSBtxBR5522COEjhRLR6AEz.kt`.
+ * The fileName argument is not used as is for generated file or dir name - sortable UID is added as
+ * suffix. `hello.kt` will be created as `hello_1eSBtxBR5522COEjhRLR6AEz.kt`. `.kt` will be created
+ * as `1eSBtxBR5522COEjhRLR6AEz.kt`.
  */
 class TemporaryDirectoryRule : ExternalResource() {
   private val paths = SmartList<Path>()
@@ -44,7 +45,10 @@ class TemporaryDirectoryRule : ExternalResource() {
   companion object {
     @JvmStatic
     @JvmOverloads
-    fun generateTemporaryPath(fileName: String, root: Path = Paths.get(FileUtilRt.getTempDirectory())): Path {
+    fun generateTemporaryPath(
+      fileName: String,
+      root: Path = Paths.get(FileUtilRt.getTempDirectory()),
+    ): Path {
       val path = root.resolve(generateName(fileName))
       if (path.exists()) {
         throw IllegalStateException("Path $path must be unique but already exists")
@@ -56,7 +60,10 @@ class TemporaryDirectoryRule : ExternalResource() {
     fun testNameToFileName(name: String): String {
       // remove prefix `test` or `test `
       // ` symbols causes git tests failures, even if it is a valid symbol for file name
-      return sanitizeFileName(name.removePrefix("test").trimStart(), extraIllegalChars = { it == ' ' || it == '\'' })
+      return sanitizeFileName(
+        name.removePrefix("test").trimStart(),
+        extraIllegalChars = { it == ' ' || it == '\'' },
+      )
     }
 
     @JvmStatic
@@ -93,8 +100,9 @@ class TemporaryDirectoryRule : ExternalResource() {
     if (result == null) {
       val nioRoot = root!!
       Files.createDirectories(nioRoot)
-      result = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(nioRoot)
-               ?: throw IllegalStateException("Cannot find virtual file by $nioRoot")
+      result =
+        LocalFileSystem.getInstance().refreshAndFindFileByNioFile(nioRoot)
+          ?: throw IllegalStateException("Cannot find virtual file by $nioRoot")
       virtualFileRoot = result
     }
     return result
@@ -107,9 +115,7 @@ class TemporaryDirectoryRule : ExternalResource() {
       return
     }
 
-    val error = runAllCatching(paths.asReversed()) {
-      deleteRecursively(it)
-    }
+    val error = runAllCatching(paths.asReversed()) { deleteRecursively(it) }
 
     paths.clear()
     error?.let { throw it }
@@ -122,16 +128,17 @@ class TemporaryDirectoryRule : ExternalResource() {
       try {
         path.delete()
         return
-      }
-      catch (e: FileSystemException) {
+      } catch (e: FileSystemException) {
         if (!SystemInfoRt.isWindows) {
           throw e
         }
-        // Deletion of files and directories on Windows is affected by open file handles and may trigger
+        // Deletion of files and directories on Windows is affected by open file handles and may
+        // trigger
         // various exceptions, but in most cases would succeed after one or more retries.
         // Examples of exceptions that are being retried here:
         //   AccessDeniedException, DirectoryNotEmptyException, NoSuchFileException,
-        //   FileSystemException("The process cannot access the file because it is being used by another process.")
+        //   FileSystemException("The process cannot access the file because it is being used by
+        // another process.")
         if (++attemptCount == maxAttemptCount) {
           throw e
         }
@@ -139,8 +146,7 @@ class TemporaryDirectoryRule : ExternalResource() {
         if (e !is NoSuchFileException) {
           try {
             Thread.sleep(10)
-          }
-          catch (ignored: InterruptedException) {
+          } catch (ignored: InterruptedException) {
             throw e
           }
         }
@@ -157,9 +163,7 @@ class TemporaryDirectoryRule : ExternalResource() {
     return path
   }
 
-  /**
-   * Use only if you really need a virtual file and not possible to use [Path] (see [newPath]).
-   */
+  /** Use only if you really need a virtual file and not possible to use [Path] (see [newPath]). */
   @JvmOverloads
   fun createVirtualFile(fileName: String? = null, data: String? = null): VirtualFile {
     val result = createVirtualFile(getVirtualRoot(), generateName(fileName ?: ""), data)
@@ -167,9 +171,7 @@ class TemporaryDirectoryRule : ExternalResource() {
     return result
   }
 
-  /**
-   * Use only and only if you really need virtual file and no way to use [Path] (see [newPath]).
-   */
+  /** Use only and only if you really need virtual file and no way to use [Path] (see [newPath]). */
   @JvmOverloads
   fun createVirtualDir(dirName: String? = null): VirtualFile {
     val virtualFileRoot = getVirtualRoot()
@@ -192,32 +194,37 @@ class TemporaryDirectoryRule : ExternalResource() {
       fileName = if (fileName.isEmpty()) suffix else "${fileName}_$suffix"
     }
 
-    val path = generateTemporaryPath(fileName, root ?: throw IllegalStateException("not initialized yet"))
+    val path =
+      generateTemporaryPath(fileName, root ?: throw IllegalStateException("not initialized yet"))
     paths.add(path)
     return path
   }
 }
 
-fun VirtualFile.writeChild(relativePath: String, data: String) = VfsTestUtil.createFile(this, relativePath, data)
+fun VirtualFile.writeChild(relativePath: String, data: String) =
+  VfsTestUtil.createFile(this, relativePath, data)
 
-fun VirtualFile.writeChild(relativePath: String, data: ByteArray) = VfsTestUtil.createFile(this, relativePath, data)
+fun VirtualFile.writeChild(relativePath: String, data: ByteArray) =
+  VfsTestUtil.createFile(this, relativePath, data)
 
 fun Path.refreshVfs() {
-  // If a temp directory is reused from some previous test run, there might be cached children in its VFS. Ensure they're removed.
-  val virtualFile = (LocalFileSystem.getInstance() ?: return).refreshAndFindFileByNioFile(this) ?: return
+  // If a temp directory is reused from some previous test run, there might be cached children in
+  // its VFS. Ensure they're removed.
+  val virtualFile =
+    (LocalFileSystem.getInstance() ?: return).refreshAndFindFileByNioFile(this) ?: return
   VfsUtil.markDirtyAndRefresh(false, true, true, virtualFile)
 }
 
 private fun generateName(fileName: String): String {
   // use unique postfix sortable by timestamp to avoid stale data in VFS and file exists check
   // (file is not created at the moment of path generation)
-  val nameBuilder = StringBuilder(fileName.length + /* _ separator length */ 1 + Ksuid.MAX_ENCODED_LENGTH)
+  val nameBuilder =
+    StringBuilder(fileName.length + /* _ separator length */ 1 + Ksuid.MAX_ENCODED_LENGTH)
   val extIndex = fileName.lastIndexOf('.')
   if (fileName.isNotEmpty() && extIndex != 0) {
     if (extIndex == -1) {
       nameBuilder.append(fileName)
-    }
-    else {
+    } else {
       nameBuilder.append(fileName, 0, extIndex)
     }
     nameBuilder.append('_')

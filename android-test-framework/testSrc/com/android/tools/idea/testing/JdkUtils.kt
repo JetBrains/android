@@ -25,30 +25,30 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.Disposer
+import java.io.File
 import org.jetbrains.plugins.gradle.GradleManager
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import java.io.File
 
 object JdkUtils {
 
   @JvmStatic
   fun getEmbeddedJdkPathWithVersion(version: JavaSdkVersion): File {
-    val embeddedJdkPath = when (version) {
-      JavaSdkVersion.JDK_21 -> JdkConstants.JDK_21_PATH
-      JavaSdkVersion.JDK_17 -> JdkConstants.JDK_17_PATH
-      JavaSdkVersion.JDK_11 -> JdkConstants.JDK_11_PATH
-      JavaSdkVersion.JDK_1_8 -> JdkConstants.JDK_1_8_PATH
-      else -> error("Unsupported JavaSdkVersion: $version")
-    }
+    val embeddedJdkPath =
+      when (version) {
+        JavaSdkVersion.JDK_21 -> JdkConstants.JDK_21_PATH
+        JavaSdkVersion.JDK_17 -> JdkConstants.JDK_17_PATH
+        JavaSdkVersion.JDK_11 -> JdkConstants.JDK_11_PATH
+        JavaSdkVersion.JDK_1_8 -> JdkConstants.JDK_1_8_PATH
+        else -> error("Unsupported JavaSdkVersion: $version")
+      }
     return File(embeddedJdkPath)
   }
 
   @JvmStatic
   fun overrideProjectGradleJdkPathWithVersion(gradleRootProject: File, jdkVersion: JavaSdkVersion) {
     val configProperties = GradleConfigProperties(gradleRootProject)
-    val currentJdkVersion = configProperties.javaHome?.toPath()?.let {
-      Jdks.getInstance().findVersion(it)
-    }
+    val currentJdkVersion =
+      configProperties.javaHome?.toPath()?.let { Jdks.getInstance().findVersion(it) }
     if (currentJdkVersion != jdkVersion) {
       getEmbeddedJdkPathWithVersion(jdkVersion).also {
         configProperties.javaHome = it
@@ -59,14 +59,13 @@ object JdkUtils {
 
   fun createNewGradleJvmProjectJdk(project: Project, parent: Disposable): Sdk {
     val gradleExecutionSettings =
-      (ExternalSystemApiUtil.getManager(GradleConstants.SYSTEM_ID) as GradleManager).executionSettingsProvider.`fun`(
-        com.intellij.openapi.util.Pair(
-          project,
-          project.guessProjectDir()?.path
-        )
-      )
+      (ExternalSystemApiUtil.getManager(GradleConstants.SYSTEM_ID) as GradleManager)
+        .executionSettingsProvider
+        .`fun`(com.intellij.openapi.util.Pair(project, project.guessProjectDir()?.path))
     @Suppress("UnstableApiUsage")
-    val sdk = ExternalSystemJdkProvider.getInstance().createJdk(null, gradleExecutionSettings.javaHome.orEmpty())
+    val sdk =
+      ExternalSystemJdkProvider.getInstance()
+        .createJdk(null, gradleExecutionSettings.javaHome.orEmpty())
     if (sdk is Disposable) {
       Disposer.register(parent, sdk)
     }

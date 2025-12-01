@@ -30,62 +30,81 @@ import java.io.File
 import java.nio.file.Path
 
 /**
- * Opens a project using [openProjectImplementation], supplements it with `JavaCodeInsightTestFixture` and runs the `testBody`.
+ * Opens a project using [openProjectImplementation], supplements it with
+ * `JavaCodeInsightTestFixture` and runs the `testBody`.
  */
 internal fun <T> openProjectAndRunTestWithTestFixturesAvailable(
   openProjectImplementation: ((project: Project, projectRoot: File) -> T) -> T,
-  testBody: PreparedTestProject.Context.(project: Project) -> T
+  testBody: PreparedTestProject.Context.(project: Project) -> T,
 ): T {
   aggregateAndThrowIfAny {
     var currentProject: Project? = null
     var currentModule: Module? = null
     val rootDisposable = Disposer.newDisposable()
 
-    // This test fixture is used just to provide context to `JavaCodeInsightTestFixtureImpl`. The actual life-cycle is provided by our
+    // This test fixture is used just to provide context to `JavaCodeInsightTestFixtureImpl`. The
+    // actual life-cycle is provided by our
     // caller's `IdeaProjectTestFixture`.
-    // Note: `projectTestFixture`'s `setUp` and `tearDown` are invoked from `JavaCodeInsightTestFixtureImpl`.
-    val projectTestFixture = object : IdeaProjectTestFixture {
-      override fun setUp() = Unit  // Invoked by JavaCodeInsightTestFixtureImpl.setUp()
-      override fun tearDown() = Unit  // Invoked by JavaCodeInsightTestFixtureImpl.tearDown()
-      override fun getProject(): Project? = currentProject.let { currentProject ->
-        when {
-          currentProject == null -> error("Unexpected: project must have been initialized by now")
-          currentProject.isDisposed -> null
-          else -> currentProject
-        }
+    // Note: `projectTestFixture`'s `setUp` and `tearDown` are invoked from
+    // `JavaCodeInsightTestFixtureImpl`.
+    val projectTestFixture =
+      object : IdeaProjectTestFixture {
+        override fun setUp() = Unit // Invoked by JavaCodeInsightTestFixtureImpl.setUp()
+
+        override fun tearDown() = Unit // Invoked by JavaCodeInsightTestFixtureImpl.tearDown()
+
+        override fun getProject(): Project? =
+          currentProject.let { currentProject ->
+            when {
+              currentProject == null ->
+                error("Unexpected: project must have been initialized by now")
+              currentProject.isDisposed -> null
+              else -> currentProject
+            }
+          }
+
+        override fun getModule(): Module? =
+          currentModule ?: project?.gradleModule(":app")?.getMainModule()
+
+        override fun getTestRootDisposable(): Disposable = rootDisposable
       }
-      override fun getModule(): Module? = currentModule ?: project?.gradleModule(":app")?.getMainModule()
-      override fun getTestRootDisposable(): Disposable = rootDisposable
-    }
 
     return try {
       openProjectImplementation { project: Project, projectRoot: File ->
         currentProject = project
 
-        // This test fixture is used just to provide context to `JavaCodeInsightTestFixtureImpl`. The actual life-cycle is provided by our
+        // This test fixture is used just to provide context to `JavaCodeInsightTestFixtureImpl`.
+        // The actual life-cycle is provided by our
         // caller's `TempDirTestFixture`.
-        // Note: `tempDirFixture`'s `setUp` and `tearDown` are invoked from JavaCodeInsightTestFixtureImpl.
-        val tempDirFixture = object : TempDirTestFixtureImpl() {
-          override fun deleteOnTearDown(): Boolean = false
-          override fun doCreateTempDirectory(): Path = projectRoot.toPath()
-        }
+        // Note: `tempDirFixture`'s `setUp` and `tearDown` are invoked from
+        // JavaCodeInsightTestFixtureImpl.
+        val tempDirFixture =
+          object : TempDirTestFixtureImpl() {
+            override fun deleteOnTearDown(): Boolean = false
 
-        val codeInsightTestFixture = JavaCodeInsightTestFixtureImpl(projectTestFixture, tempDirFixture)
-        usingIdeaTestFixture(codeInsightTestFixture) {
-          val preparedProjectContext = object : PreparedTestProject.Context {
-            override val fixture: JavaCodeInsightTestFixture = codeInsightTestFixture
-            override val project: Project = project
-            override val projectRoot: File = projectRoot
-            override fun selectModule(module: Module) {
-              currentModule = module
-            }
+            override fun doCreateTempDirectory(): Path = projectRoot.toPath()
           }
+
+        val codeInsightTestFixture =
+          JavaCodeInsightTestFixtureImpl(projectTestFixture, tempDirFixture)
+        usingIdeaTestFixture(codeInsightTestFixture) {
+          val preparedProjectContext =
+            object : PreparedTestProject.Context {
+              override val fixture: JavaCodeInsightTestFixture = codeInsightTestFixture
+              override val project: Project = project
+              override val projectRoot: File = projectRoot
+
+              override fun selectModule(module: Module) {
+                currentModule = module
+              }
+            }
           testBody(preparedProjectContext, project)
         }
       }
     } finally {
-      runInEdtAndWait { runCatchingAndRecord { Disposer.dispose(projectTestFixture.testRootDisposable) } }
+      runInEdtAndWait {
+        runCatchingAndRecord { Disposer.dispose(projectTestFixture.testRootDisposable) }
+      }
     }
   }
 }
-

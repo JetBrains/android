@@ -21,11 +21,15 @@ import com.intellij.testFramework.registerOrReplaceServiceInstance
 import org.junit.rules.ExternalResource
 
 /** A rule that installs a temporary application service in a test. */
-class ApplicationServiceRule<T : Any>(private val serviceInterface: Class<T>, private val instance: T) : ExternalResource() {
+class ApplicationServiceRule<T : Any>(
+  private val serviceInterface: Class<T>,
+  private val instance: T,
+) : ExternalResource() {
   private val disposable = Disposer.newDisposable("ApplicationServiceRule")
 
   override fun before() {
-    ApplicationManager.getApplication().registerOrReplaceServiceInstance(serviceInterface, instance, disposable)
+    ApplicationManager.getApplication()
+      .registerOrReplaceServiceInstance(serviceInterface, instance, disposable)
   }
 
   override fun after() {

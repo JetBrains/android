@@ -22,10 +22,7 @@ import javax.swing.Action
 import javax.swing.JButton
 import javax.swing.JLabel
 
-/**
- * Wrapper class for Compose button to allow trampolining from a Jbutton
- * to an AccessibleContext
- */
+/** Wrapper class for Compose button to allow trampolining from a Jbutton to an AccessibleContext */
 class ComposeJButtonWrapper(con: AccessibleContext) : JButton() {
   private val context: AccessibleContext = con
   private val accessibleAction: AccessibleAction = con.accessibleAction
@@ -56,10 +53,7 @@ class ComposeJButtonWrapper(con: AccessibleContext) : JButton() {
   }
 }
 
-/**
- * Wrapper class for Compose label to allow trampolining from a JLabel
- * to an AccessibleContext
- */
+/** Wrapper class for Compose label to allow trampolining from a JLabel to an AccessibleContext */
 class ComposeJLabelWrapper(con: AccessibleContext) : JLabel() {
   private val context: AccessibleContext = con
   private val accessibleName: String? = con.getAccessibleName()

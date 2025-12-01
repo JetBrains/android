@@ -32,7 +32,8 @@ import kotlin.math.roundToLong
  * @property startTimestamp The timestamp when the span element started, in milliseconds.
  * @property spanId The unique identifier for the span element.
  * @property parentSpanId The unique identifier of the parent span element, if any.
- * @property tags The list of key-value pairs representing the tags associated with the span element.
+ * @property tags The list of key-value pairs representing the tags associated with the span
+ *   element.
  */
 data class SpanElement(
   @JvmField var isWarmup: Boolean,
@@ -78,7 +79,7 @@ class SpanDataTypeAdapter : TypeAdapter<SpanData>() {
     val references = mutableListOf<SpanRef>()
     val tags = mutableListOf<SpanTag>()
 
-    while(reader.hasNext()) {
+    while (reader.hasNext()) {
       when (reader.nextName()) {
         "spanID" -> spanID = reader.nextString()
         "operationName" -> operationName = reader.nextString()
@@ -86,14 +87,14 @@ class SpanDataTypeAdapter : TypeAdapter<SpanData>() {
         "startTime" -> startTime = reader.nextLong()
         "references" -> {
           reader.beginArray()
-          while(reader.hasNext()) {
+          while (reader.hasNext()) {
             references.add(SpanRefTypeAdapter().read(reader))
           }
           reader.endArray()
         }
         "tags" -> {
           reader.beginArray()
-          while(reader.hasNext()) {
+          while (reader.hasNext()) {
             tags.add(SpanTagTypeAdapter().read(reader))
           }
           reader.endArray()
@@ -104,7 +105,6 @@ class SpanDataTypeAdapter : TypeAdapter<SpanData>() {
     reader.endObject()
     return SpanData(spanID, operationName, duration, startTime, references, tags)
   }
-
 }
 
 data class SpanRef(
@@ -118,11 +118,11 @@ private class SpanRefTypeAdapter : TypeAdapter<SpanRef>() {
 
   override fun read(reader: JsonReader?): SpanRef {
     reader!!.beginObject()
-    var refType : String? = null
-    var traceID : String? = null
-    var spanID : String? = null
+    var refType: String? = null
+    var traceID: String? = null
+    var spanID: String? = null
 
-    while(reader.hasNext()) {
+    while (reader.hasNext()) {
       when (reader.nextName()) {
         "refType" -> refType = reader.nextString()
         "traceID" -> traceID = reader.nextString()
@@ -133,7 +133,6 @@ private class SpanRefTypeAdapter : TypeAdapter<SpanRef>() {
     reader.endObject()
     return SpanRef(refType, traceID, spanID)
   }
-
 }
 
 data class SpanTag(
@@ -147,11 +146,11 @@ private class SpanTagTypeAdapter : TypeAdapter<SpanTag>() {
 
   override fun read(reader: JsonReader?): SpanTag {
     reader!!.beginObject()
-    var key : String? = null
-    var type : String? = null
-    var value : String? = null
+    var key: String? = null
+    var type: String? = null
+    var value: String? = null
 
-    while(reader.hasNext()) {
+    while (reader.hasNext()) {
       when (reader.nextName()) {
         "key" -> key = reader.nextString()
         "type" -> type = reader.nextString()
@@ -162,7 +161,6 @@ private class SpanTagTypeAdapter : TypeAdapter<SpanTag>() {
     reader.endObject()
     return SpanTag(key, type, value)
   }
-
 }
 
 internal fun SpanData.getParentSpanId(): String? {

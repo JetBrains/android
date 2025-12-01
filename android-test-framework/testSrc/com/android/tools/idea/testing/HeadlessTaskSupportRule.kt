@@ -34,16 +34,17 @@ import org.junit.rules.ExternalResource
 
 /**
  * Allows the `com.intellij.platform.ide.progress.withModalProgress` and
- * `com.intellij.platform.ide.progress.runWithModalProgressBlocking` functions
- * to be safely used in headless tests. Without this rule these functions may
- * cause deadlocks when used in headless tests.
+ * `com.intellij.platform.ide.progress.runWithModalProgressBlocking` functions to be safely used in
+ * headless tests. Without this rule these functions may cause deadlocks when used in headless
+ * tests.
  */
 class HeadlessTaskSupportRule : ExternalResource() {
 
   private val disposable = Disposer.newDisposable("HeadlessTaskSupportRule")
 
   override fun before() {
-    ApplicationManager.getApplication().registerOrReplaceServiceInstance(TaskSupport::class.java, HeadlessTaskSupport(), disposable)
+    ApplicationManager.getApplication()
+      .registerOrReplaceServiceInstance(TaskSupport::class.java, HeadlessTaskSupport(), disposable)
   }
 
   override fun after() {

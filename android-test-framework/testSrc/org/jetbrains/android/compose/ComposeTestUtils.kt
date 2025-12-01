@@ -31,16 +31,12 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 private const val DEFAULT_COMPOSE_LIB_VERSION = "1.7.1"
 
 private enum class ComposeLib(private val libPath: String) {
-  Runtime(
-    "androidx/compose/runtime/runtime-android/%s/runtime-android-%s.aar"
-  ),
+  Runtime("androidx/compose/runtime/runtime-android/%s/runtime-android-%s.aar"),
   RuntimeSaveable(
     "androidx/compose/runtime/runtime-saveable-android/%s/runtime-saveable-android-%s.aar"
   ),
   Ui("androidx/compose/ui/ui-android/%s/ui-android-%s.aar"),
-  UiGraphics(
-    "androidx/compose/ui/ui-graphics-android/%s/ui-graphics-android-%s.aar"
-  ),
+  UiGraphics("androidx/compose/ui/ui-graphics-android/%s/ui-graphics-android-%s.aar"),
   UiToolingPreview(
     "androidx/compose/ui/ui-tooling-preview-android/%s/ui-tooling-preview-android-%s.aar"
   );
@@ -52,7 +48,9 @@ fun CodeInsightTestFixture.addComposeRuntimeDep(version: String = DEFAULT_COMPOS
   addLibDep(ComposeLib.Runtime, version)
 }
 
-fun CodeInsightTestFixture.addComposeRuntimeSaveableDep(version: String = DEFAULT_COMPOSE_LIB_VERSION) {
+fun CodeInsightTestFixture.addComposeRuntimeSaveableDep(
+  version: String = DEFAULT_COMPOSE_LIB_VERSION
+) {
   addLibDep(ComposeLib.RuntimeSaveable, version)
 }
 
@@ -64,7 +62,9 @@ fun CodeInsightTestFixture.addComposeUiGraphicsDep(version: String = DEFAULT_COM
   addLibDep(ComposeLib.UiGraphics, version)
 }
 
-fun CodeInsightTestFixture.addComposeUiToolingPreviewDep(version: String = DEFAULT_COMPOSE_LIB_VERSION) {
+fun CodeInsightTestFixture.addComposeUiToolingPreviewDep(
+  version: String = DEFAULT_COMPOSE_LIB_VERSION
+) {
   addLibDep(ComposeLib.UiToolingPreview, version)
 }
 

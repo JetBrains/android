@@ -21,10 +21,10 @@ import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices.ApplicationLiveEditServicesForTests
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.module.Module
 import com.intellij.testFramework.ExtensionTestUtil
 
-class FakeBuildSystemLiveEditServices : BuildSystemLiveEditServices<AndroidProjectSystem, ApplicationProjectContext> {
+class FakeBuildSystemLiveEditServices :
+  BuildSystemLiveEditServices<AndroidProjectSystem, ApplicationProjectContext> {
   var testApplicationLiveEditServices: ApplicationLiveEditServices? = null
 
   override fun isApplicable(applicationProjectContext: ApplicationProjectContext): Boolean {
@@ -35,24 +35,33 @@ class FakeBuildSystemLiveEditServices : BuildSystemLiveEditServices<AndroidProje
 
   override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean = true
 
-  override fun getApplicationServices(applicationProjectContext: ApplicationProjectContext): ApplicationLiveEditServices {
+  override fun getApplicationServices(
+    applicationProjectContext: ApplicationProjectContext
+  ): ApplicationLiveEditServices {
     val testApplicationLiveEditServices = testApplicationLiveEditServices
     return when {
       testApplicationLiveEditServices != null -> testApplicationLiveEditServices
-      applicationProjectContext is FacetBasedApplicationProjectContext -> ApplicationLiveEditServices.LegacyForTests(applicationProjectContext.project)
-      applicationProjectContext is TestApplicationProjectContext -> ApplicationLiveEditServicesForTests(classFiles = mapOf())
+      applicationProjectContext is FacetBasedApplicationProjectContext ->
+        ApplicationLiveEditServices.LegacyForTests(applicationProjectContext.project)
+      applicationProjectContext is TestApplicationProjectContext ->
+        ApplicationLiveEditServicesForTests(classFiles = mapOf())
       else -> error("Unexpected application project context: $applicationProjectContext")
     }
   }
 
-  override fun disqualifyingBytecodeTransformation (
+  override fun disqualifyingBytecodeTransformation(
     applicationProjectContext: ApplicationProjectContext
   ): BuildSystemBytecodeTransformation? = null
 
   /**
-   * Registers this fake implementation for the lifespan of [parentDisposable] for all project systems.
+   * Registers this fake implementation for the lifespan of [parentDisposable] for all project
+   * systems.
    */
   fun register(parentDisposable: Disposable) {
-    ExtensionTestUtil.maskExtensions(BuildSystemLiveEditServices.EP_NAME, listOf(this), parentDisposable)
+    ExtensionTestUtil.maskExtensions(
+      BuildSystemLiveEditServices.EP_NAME,
+      listOf(this),
+      parentDisposable,
+    )
   }
 }

@@ -28,6 +28,7 @@ import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.util.text.LineColumn
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
+import java.util.concurrent.TimeUnit
 import org.jetbrains.android.ComponentStack
 import org.junit.rules.ExternalResource
 import org.mockito.ArgumentCaptor
@@ -38,7 +39,6 @@ import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
-import java.util.concurrent.TimeUnit
 
 private const val TIMEOUT = 10L // seconds
 
@@ -62,7 +62,7 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
     lineNumber: Int,
     text: String,
     timeout: Long = TIMEOUT,
-    unit: TimeUnit = TimeUnit.SECONDS
+    unit: TimeUnit = TimeUnit.SECONDS,
   ) {
     val descriptor = checkEditorOpened(fileName, focusEditor = true, timeout, unit)
     check(descriptor is OpenFileDescriptor) // Downcast needed to extract file offset.
@@ -75,9 +75,11 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
     fileName: String,
     focusEditor: Boolean,
     timeout: Long = TIMEOUT,
-    unit: TimeUnit = TimeUnit.SECONDS
+    unit: TimeUnit = TimeUnit.SECONDS,
   ): FileEditorNavigatable {
-    waitForCondition(timeout, unit) { Mockito.mockingDetails(fileManager!!).invocations.any { it.method.name == "openFileEditor" }}
+    waitForCondition(timeout, unit) {
+      Mockito.mockingDetails(fileManager!!).invocations.any { it.method.name == "openFileEditor" }
+    }
     val file = ArgumentCaptor.forClass(FileEditorNavigatable::class.java)
     verify(fileManager!!).openFileEditor(file.capture(), eq(focusEditor))
     val descriptor = file.value
@@ -89,9 +91,11 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
     fileName: String,
     focusEditor: Boolean,
     timeout: Long = TIMEOUT,
-    unit: TimeUnit = TimeUnit.SECONDS
+    unit: TimeUnit = TimeUnit.SECONDS,
   ) {
-    waitForCondition(timeout, unit) { Mockito.mockingDetails(fileManager!!).invocations.any { it.method.name == "openFile" }}
+    waitForCondition(timeout, unit) {
+      Mockito.mockingDetails(fileManager!!).invocations.any { it.method.name == "openFile" }
+    }
     val file = ArgumentCaptor.forClass(VirtualFile::class.java)
     verify(fileManager!!).openFile(file.capture(), eq(focusEditor))
     val vFile = file.value
@@ -104,7 +108,10 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
   }
 
   private fun findLineAtOffset(file: VirtualFile, offset: Int): Pair<LineColumn, String> {
-    val text = ReadAction.compute<String, Throwable> {  FileDocumentManager.getInstance().getDocument(file)!!.text }
+    val text =
+      ReadAction.compute<String, Throwable> {
+        FileDocumentManager.getInstance().getDocument(file)!!.text
+      }
     val line = StringUtil.offsetToLineColumn(text, offset)
     val lineText = text.substring(offset - line.column, text.indexOf('\n', offset))
     return Pair(line, lineText.trim())
@@ -113,7 +120,8 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
   private fun enableFileOpenCaptures() {
     fileManager = Mockito.mock(FileEditorManagerEx::class.java)
     whenever(fileManager!!.openEditor(any(), anyBoolean())).thenCallRealMethod()
-    whenever(fileManager!!.openFileEditor(any(), anyBoolean())).thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
+    whenever(fileManager!!.openFileEditor(any(), anyBoolean()))
+      .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
     whenever(fileManager!!.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     whenever(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     @Suppress("UnstableApiUsage")

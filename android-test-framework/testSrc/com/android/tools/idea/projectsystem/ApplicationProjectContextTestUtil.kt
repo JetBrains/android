@@ -20,7 +20,9 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 
 val ModuleBasedConfiguration<*, *>.applicationProjectContextForTests: ApplicationProjectContext
-  get() = FacetBasedApplicationProjectContext(
-    project.getProjectSystem().getApplicationIdProvider(this)?.packageName ?: error("Cannot get applicationId"),
-    this.configurationModule.module?.androidFacet ?: error("Cannot get AndroidFacet")
-  )
+  get() =
+    FacetBasedApplicationProjectContext(
+      project.getProjectSystem().getApplicationIdProvider(this)?.packageName
+        ?: error("Cannot get applicationId"),
+      this.configurationModule.module?.androidFacet ?: error("Cannot get AndroidFacet"),
+    )

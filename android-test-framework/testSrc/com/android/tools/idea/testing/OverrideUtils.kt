@@ -21,9 +21,7 @@ import kotlin.reflect.KMutableProperty
 
 /** Sets this property to [value] and restores the original value when [disposable] is disposed. */
 fun <T> KMutableProperty<T>.override(value: T, disposable: Disposable) {
-    val oldValue = getter.call()
-    Disposer.register(disposable) {
-        setter.call(oldValue)
-    }
-    setter.call(value)
+  val oldValue = getter.call()
+  Disposer.register(disposable) { setter.call(oldValue) }
+  setter.call(value)
 }

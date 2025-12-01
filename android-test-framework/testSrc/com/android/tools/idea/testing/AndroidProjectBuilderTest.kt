@@ -20,26 +20,24 @@ import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.project.sync.InternedModels
 import com.android.utils.appendCapitalized
 import com.google.common.truth.Expect
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 class AndroidProjectBuilderTest {
-  @get:Rule
-  val expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun `multiple flavor support`() {
     val builder =
       AndroidProjectBuilder(
-        flavorDimensions = { listOf("dim1", "dim2") },
-        productFlavorsStub = { dimension ->
-          when (dimension) {
-            "dim1" -> listOf("firstAbc", "firstXyz")
-            "dim2" -> listOf("secondAbc", "secondXyz")
-            else -> error("Unknown: $dimension")
-          }
-            .flatMap { flavorName ->
+          flavorDimensions = { listOf("dim1", "dim2") },
+          productFlavorsStub = { dimension ->
+            when (dimension) {
+              "dim1" -> listOf("firstAbc", "firstXyz")
+              "dim2" -> listOf("secondAbc", "secondXyz")
+              else -> error("Unknown: $dimension")
+            }.flatMap { flavorName ->
               listOf(
                 IdeProductFlavorImpl(
                   name = flavorName,
@@ -65,34 +63,58 @@ class AndroidProjectBuilderTest {
                   resourceConfigurations = emptyList(),
                   vectorDrawables = null,
                   matchingFallbacks = emptyList(),
-                  isDefault = null
+                  isDefault = null,
                 )
               )
             }
-        }
-      )
+          },
+        )
         .build()
-    val model = builder(
-      "projectName",
-      ":app",
-      File("/root"),
-      File("/root/app"),
-      "99.99-agp",
-      InternedModels(null)
-    )
+    val model =
+      builder(
+        "projectName",
+        ":app",
+        File("/root"),
+        File("/root/app"),
+        "99.99-agp",
+        InternedModels(null),
+      )
 
     expect.that(model.androidProject.flavorDimensions).containsExactly("dim1", "dim2").inOrder()
-    expect.that(model.variants.map { it.name })
-      .containsAllOf("firstAbcSecondAbcDebug", "firstAbcSecondAbcRelease", "firstAbcSecondXyzDebug", "firstAbcSecondXyzRelease",
-                     "firstXyzSecondAbcDebug", "firstXyzSecondAbcRelease", "firstXyzSecondXyzDebug", "firstXyzSecondXyzRelease")
-    expect.that(model.variants.map { it.deviceTestArtifacts.find { v-> v.name == IdeArtifactName.ANDROID_TEST }?.applicationId })
+    expect
+      .that(model.variants.map { it.name })
+      .containsAllOf(
+        "firstAbcSecondAbcDebug",
+        "firstAbcSecondAbcRelease",
+        "firstAbcSecondXyzDebug",
+        "firstAbcSecondXyzRelease",
+        "firstXyzSecondAbcDebug",
+        "firstXyzSecondAbcRelease",
+        "firstXyzSecondXyzDebug",
+        "firstXyzSecondXyzRelease",
+      )
+    expect
+      .that(
+        model.variants.map {
+          it.deviceTestArtifacts.find { v -> v.name == IdeArtifactName.ANDROID_TEST }?.applicationId
+        }
+      )
       .containsAllOf("testFirstAbc", "testFirstXyz", "testFirstXyz", "testFirstXyz", "testFirstXyz")
-    expect.that(model.variants.map { it.deprecatedPreMergedTestApplicationId })
+    expect
+      .that(model.variants.map { it.deprecatedPreMergedTestApplicationId })
       .containsAllOf("testFirstAbc", "testFirstXyz", "testFirstXyz", "testFirstXyz", "testFirstXyz")
-    expect.that(model.variants.map { it.versionNameWithSuffix })
-      .containsAllOf("firstAbcSuffix", "firstAbcSuffix", "firstAbcSuffix", "firstAbcSuffix", "firstXyzSuffix", "firstXyzSuffix",
-                     "firstXyzSuffix", "firstXyzSuffix")
-    expect.that(model.variants.map { it.buildType }.distinct())
-      .containsExactly("debug", "release")
+    expect
+      .that(model.variants.map { it.versionNameWithSuffix })
+      .containsAllOf(
+        "firstAbcSuffix",
+        "firstAbcSuffix",
+        "firstAbcSuffix",
+        "firstAbcSuffix",
+        "firstXyzSuffix",
+        "firstXyzSuffix",
+        "firstXyzSuffix",
+        "firstXyzSuffix",
+      )
+    expect.that(model.variants.map { it.buildType }.distinct()).containsExactly("debug", "release")
   }
 }

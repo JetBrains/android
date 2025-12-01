@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("ServiceUtil")
+
 package com.android.tools.idea.testing
 
 import com.intellij.openapi.Disposable
@@ -24,13 +25,17 @@ import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
 
 /**
- * Registers a service implementation, possibly replacing an existent one. The lifetime of
- * the service implementation is controlled by [parentDisposable].
+ * Registers a service implementation, possibly replacing an existent one. The lifetime of the
+ * service implementation is controlled by [parentDisposable].
  *
- * Note that for this method to work in all situations the service class has to be final and
- * to have a `@Service` annotation.
+ * Note that for this method to work in all situations the service class has to be final and to have
+ * a `@Service` annotation.
  */
-fun <T : Any> ComponentManager.registerServiceInstance(serviceInterface: Class<T>, instance: T, parentDisposable: Disposable) {
+fun <T : Any> ComponentManager.registerServiceInstance(
+  serviceInterface: Class<T>,
+  instance: T,
+  parentDisposable: Disposable,
+) {
   if (getService(serviceInterface) == null) {
     registerServiceInstance(serviceInterface, instance)
     Disposer.register(parentDisposable) {

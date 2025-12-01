@@ -16,8 +16,8 @@
 package com.android.tools.idea.testing
 
 /**
- * Checks for whether the threading agent has been loaded. Skips this check if the test is not
- * being run from bazel.
+ * Checks for whether the threading agent has been loaded. Skips this check if the test is not being
+ * run from bazel.
  */
 fun maybeCheckThreadingAgentIsRunning() {
   if (!System.getProperties().containsKey("bazel.test_suite")) {
@@ -34,9 +34,11 @@ fun maybeCheckThreadingAgentIsRunning() {
   findBootstrapClassOrNullMethod.isAccessible = true
   findBootstrapClassOrNullMethod.invoke(
     ThreadingCheckRule::class.java.classLoader,
-    "com.android.tools.instrumentation.threading.agent.Agent")
-  ?: throw RuntimeException(
-    "ThreadingCheckRule works in conjunction with the threading java agent which can be "
-    + "loaded by adding 'test_agents = [\"//tools/base/threading-agent:threading_agent.jar\"]' "
-    + "argument to an iml_module build rule.")
+    "com.android.tools.instrumentation.threading.agent.Agent",
+  )
+    ?: throw RuntimeException(
+      "ThreadingCheckRule works in conjunction with the threading java agent which can be " +
+        "loaded by adding 'test_agents = [\"//tools/base/threading-agent:threading_agent.jar\"]' " +
+        "argument to an iml_module build rule."
+    )
 }

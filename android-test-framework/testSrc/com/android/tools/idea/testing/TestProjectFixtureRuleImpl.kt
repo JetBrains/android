@@ -22,10 +22,10 @@ import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
 import com.android.tools.idea.sdk.AndroidSdkPathStore
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.android.tools.tests.AdtTestProjectDescriptor
 import com.android.tools.tests.AdtTestProjectDescriptors
-import com.android.tools.idea.sdk.Jdks
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runWriteAction
@@ -37,21 +37,23 @@ import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
-import org.junit.runner.Description
-import org.junit.runners.model.Statement
 import java.io.File
 import java.nio.file.Path
+import org.junit.runner.Description
+import org.junit.runners.model.Statement
 
 internal class TestProjectFixtureRuleImpl(
   private val testProject: TestProjectDefinition,
-  private val syncReady: Boolean
+  private val syncReady: Boolean,
 ) : FixtureRule<JavaCodeInsightTestFixture> {
   private val tempDirFixture = AndroidProjectRuleTempDirectoryFixture("p")
-  private val projectBuilder = IdeaTestFixtureFactory.getFixtureFactory()
-    .createFixtureBuilder("_", tempDirFixture.projectDir.parentFile.toPath(), true)
+  private val projectBuilder =
+    IdeaTestFixtureFactory.getFixtureFactory()
+      .createFixtureBuilder("_", tempDirFixture.projectDir.parentFile.toPath(), true)
   private var projectContext_: PreparedTestProject.Context? = null
 
-  override val fixture: JavaCodeInsightTestFixture get() = projectContext_?.fixture ?: noTestYet()
+  override val fixture: JavaCodeInsightTestFixture
+    get() = projectContext_?.fixture ?: noTestYet()
 
   override var initAndroid: Boolean
     get() = true
@@ -62,11 +64,14 @@ internal class TestProjectFixtureRuleImpl(
   override var fixtureName: String? = null
   override var projectDescriptor: AdtTestProjectDescriptor
     get() = AdtTestProjectDescriptors.default()
-    set(_) { error("Not supported") }
+    set(_) {
+      error("Not supported")
+    }
 
   override val testRootDisposable: Disposable = projectBuilder.fixture.testRootDisposable
 
-  val projectRoot: File get() = projectContext_?.projectRoot ?: noTestYet()
+  val projectRoot: File
+    get() = projectContext_?.projectRoot ?: noTestYet()
 
   override fun apply(base: Statement, description: Description): Statement {
     return object : Statement() {
@@ -78,16 +83,18 @@ internal class TestProjectFixtureRuleImpl(
             val fixtureName = fixtureName ?: description.shortDisplayName
             usingIdeaTestFixture(projectBuilder.fixture) {
               withSdksHandled(testRootDisposable) {
-                val preparedProject = testProject.prepareTestProject(
-                  integrationTestEnvironment = object : IntegrationTestEnvironment {
-                    override fun getBaseTestPath(): String = tempDirPath.path
-                  },
-                  fixtureName,
-                  AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
-                  null,
-                  sdk = it,
-                  syncReady
-                )
+                val preparedProject =
+                  testProject.prepareTestProject(
+                    integrationTestEnvironment =
+                      object : IntegrationTestEnvironment {
+                        override fun getBaseTestPath(): String = tempDirPath.path
+                      },
+                    fixtureName,
+                    AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+                    null,
+                    sdk = it,
+                    syncReady,
+                  )
                 preparedProject.open {
                   projectContext_ = this
                   base.evaluate()
@@ -122,17 +129,25 @@ private fun setupJdk(path: Path, testRootDisposable: Disposable): Sdk? {
   return addedSdk
 }
 
-private inline fun AggregateAndThrowIfAnyContext.withSdksHandled(testRootDisposable: Disposable, body: (Sdk?) -> Unit) {
+private inline fun AggregateAndThrowIfAnyContext.withSdksHandled(
+  testRootDisposable: Disposable,
+  body: (Sdk?) -> Unit,
+) {
   val jdkPath = TestUtils.getJava17Jdk()
-  val sdk = WriteAction.computeAndWait<Sdk, Throwable> {
-    // drop any discovered SDKs to not leak them
-    cleanJdkTable()
-    setupJdk(jdkPath, testRootDisposable) ?: error("Failed to set JDK")
-  }
+  val sdk =
+    WriteAction.computeAndWait<Sdk, Throwable> {
+      // drop any discovered SDKs to not leak them
+      cleanJdkTable()
+      setupJdk(jdkPath, testRootDisposable) ?: error("Failed to set JDK")
+    }
 
   val oldAndroidSdkPath = IdeSdks.getInstance().androidSdkPath
   Disposer.register(testRootDisposable) {
-    runWriteAction { runCatchingAndRecord { AndroidSdkPathStore.getInstance().androidSdkPath = oldAndroidSdkPath?.toPath() } }
+    runWriteAction {
+      runCatchingAndRecord {
+        AndroidSdkPathStore.getInstance().androidSdkPath = oldAndroidSdkPath?.toPath()
+      }
+    }
   }
   runCatchingAndRecord { body(sdk) }
   runInEdtAndWait { runCatchingAndRecord { removeAllAndroidSdks() } }
@@ -141,4 +156,3 @@ private inline fun AggregateAndThrowIfAnyContext.withSdksHandled(testRootDisposa
 private fun noTestYet(): Nothing {
   error("Test is not yet running")
 }
-
