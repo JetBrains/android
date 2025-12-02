@@ -23,6 +23,9 @@ import kotlin.math.roundToInt
 /** Returns this integer multiplied by [scale] and rounded to the closest integer. */
 fun Int.scaled(scale: Double): Int = (this * scale).roundToInt()
 
+/** Returns this integer scaled by the ratio of [numerator] and [denominator]. */
+fun Int.scaled(numerator: Int, denominator: Int): Int = scaled(numerator.toDouble() / denominator)
+
 /** Returns this [Dimension] scaled by the given factor. */
 fun Dimension.scaled(scale: Double): Dimension =
   if (scale == 1.0) this else Dimension(width.scaled(scale), height.scaled(scale))

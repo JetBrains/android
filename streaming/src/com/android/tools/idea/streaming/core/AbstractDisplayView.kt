@@ -80,7 +80,6 @@ import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 import java.awt.geom.Area
-import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
 import javax.swing.AbstractAction
 import javax.swing.JButton
@@ -210,19 +209,6 @@ abstract class AbstractDisplayView(
     val subtleColor = Color(color.red, color.green, color.blue, (color.alpha * intensity * 0.15).roundToInt())
     g.paint = RadialGradientPaint(center, r.toFloat(), floatArrayOf(0F, 0.8F, 1F), arrayOf(subtleColor, intenseColor, subtleColor))
     g.fillCircle(center, r)
-  }
-
-  private fun createCircle(center: Point, radius: Int): Ellipse2D {
-    val diameter = radius * 2.0
-    return Ellipse2D.Double((center.x - radius).toDouble(), (center.y - radius).toDouble(), diameter, diameter)
-  }
-
-  private fun Graphics.drawCircle(center: Point, radius: Int) {
-    drawOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
-  }
-
-  private fun Graphics.fillCircle(center: Point, radius: Int) {
-    fillOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
   }
 
   fun showLongRunningOperationIndicator(text: String) {
