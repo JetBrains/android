@@ -1716,10 +1716,6 @@ private const val CTRL_SHIFT_DOWN_MASK = CTRL_DOWN_MASK or SHIFT_DOWN_MASK
 
 private val STATS_LOG_INTERVAL_MILLIS = StudioFlags.EMBEDDED_EMULATOR_STATISTICS_INTERVAL_SECONDS.get().toLong() * 1000
 
-// The same as MTS_PRESSURE_RANGE_MAX defined in
-// https://android.googlesource.com/platform/external/qemu/+/refs/heads/emu-master-dev/android/android-emu/android/multitouch-screen.h
-private const val PRESSURE_RANGE_MAX = 0x400
-
 internal const val EMULATOR_SCROLL_ADJUSTMENT_FACTOR = 120f
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)

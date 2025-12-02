@@ -25,3 +25,7 @@ import com.intellij.openapi.actionSystem.DataKey
 @JvmField internal val EMULATOR_VIEW_KEY = DataKey.create<EmulatorView>("EmulatorView")
 
 internal const val EMULATOR_MAIN_TOOLBAR_ID = "StreamingToolbarVirtualDevice"
+
+// The same as MTS_PRESSURE_RANGE_MAX defined in
+// https://android.googlesource.com/platform/external/qemu/+/refs/heads/emu-master-dev/android/android-emu/android/multitouch-screen.h
+internal const val PRESSURE_RANGE_MAX = 0x400
