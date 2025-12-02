@@ -297,7 +297,7 @@ private val jbModelDumpers = listOf(
  * Note: Other tests in the IDE (e.g., templates, editor, UI tools, deployment) should not use
  * this constant as they don't need to test against the latest preview version of Kotlin.
  */
-const val KOTLIN_VERSION_FOR_TESTS = "2.3.0-Beta2"
+const val KOTLIN_VERSION_FOR_TESTS = "2.3.0-RC2"
 
 fun String.replaceKotlinVersionForTests(): String = replace(KOTLIN_VERSION_FOR_TESTS, "<KOTLIN_VERSION_FOR_TESTS>")
 
