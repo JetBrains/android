@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.adtui.ZoomController
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.actions.LAYOUT_PREVIEW_HANDLER_KEY
 import com.android.tools.idea.actions.LayoutPreviewHandler
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
@@ -543,7 +544,10 @@ internal constructor(
   fun resetColorBlindMode() {
     colorBlindMode = ColorBlindMode.NONE
     for (manager in sceneManagers) {
-      manager.model.configuration.imageTransformation = null
+      manager.model.configuration.setImageTransformation(
+        Configuration.ImageTransformationType.COLOR_BLIND_MODE,
+        null,
+      )
     }
   }
 }

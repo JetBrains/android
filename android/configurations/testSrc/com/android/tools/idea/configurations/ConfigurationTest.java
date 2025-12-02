@@ -40,6 +40,9 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationListener;
 import com.android.tools.layoutlib.AndroidTargets;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.awt.image.BufferedImage;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
@@ -401,5 +404,48 @@ public class ConfigurationTest extends AndroidTestCase {
 
     configuration.setDevice(original, false);
     assertEquals(original, configuration.getDevice());
+  }
+
+  public void testImageTransformation() {
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
+    Configuration configuration = Configuration.create(manager, new FolderConfiguration());
+
+    assertNull(configuration.getImageTransformation());
+
+    AtomicBoolean colorBlindInvoked = new AtomicBoolean(false);
+    Consumer<BufferedImage> colorBlindConsumer = (image) -> colorBlindInvoked.set(true);
+
+    configuration.setImageTransformation(Configuration.ImageTransformationType.COLOR_BLIND_MODE, colorBlindConsumer);
+    assertNotNull(configuration.getImageTransformation());
+
+    // Execute the returned consumer
+    configuration.getImageTransformation().accept(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB));
+    assertTrue(colorBlindInvoked.get());
+
+    // Add a second transformation and check both are invoked
+    AtomicBoolean glassesInvoked = new AtomicBoolean(false);
+    Consumer<BufferedImage> glassesConsumer = (image) -> glassesInvoked.set(true);
+    configuration.setImageTransformation(Configuration.ImageTransformationType.GLASSES_BACKGROUND_IMAGE, glassesConsumer);
+    assertNotNull(configuration.getImageTransformation());
+
+    // Reset and check again
+    colorBlindInvoked.set(false);
+    configuration.getImageTransformation().accept(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB));
+    assertTrue(colorBlindInvoked.get());
+    assertTrue(glassesInvoked.get());
+
+    // Remove one and check the other is still there
+    configuration.setImageTransformation(Configuration.ImageTransformationType.COLOR_BLIND_MODE, null);
+    assertNotNull(configuration.getImageTransformation());
+    colorBlindInvoked.set(false);
+    glassesInvoked.set(false);
+    configuration.getImageTransformation().accept(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB));
+    assertFalse(colorBlindInvoked.get());
+    assertTrue(glassesInvoked.get());
+
+
+    // Remove the second one
+    configuration.setImageTransformation(Configuration.ImageTransformationType.GLASSES_BACKGROUND_IMAGE, null);
+    assertNull(configuration.getImageTransformation());
   }
 }

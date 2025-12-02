@@ -312,7 +312,10 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.createOrReuseModelForPreview
     Configuration.create(configurationManager, FolderConfiguration.createDefault()).also {
       // Always use the imageTransformation from the surface, regardless of whether the model is
       // reused or new.
-      it.imageTransformation = this.getGlobalImageTransformation()
+      it.setImageTransformation(
+        Configuration.ImageTransformationType.COLOR_BLIND_MODE,
+        this.getGlobalImageTransformation(),
+      )
     }
   if (modelToReuse != null) {
     var forceReinflate = true

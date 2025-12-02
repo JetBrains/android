@@ -71,6 +71,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -208,7 +209,7 @@ public class Configuration {
   @NotNull private AdaptiveIconShape myAdaptiveShape = AdaptiveIconShape.getDefaultShape();
   private boolean myUseThemedIcon = false;
   private Wallpaper myWallpaper = null;
-  private Consumer<BufferedImage> myImageTransformation = null;
+  private final EnumMap<ImageTransformationType, Consumer<BufferedImage>> myImageTransformations = new EnumMap<>(ImageTransformationType.class);
   private boolean myGestureNav = true;
   private boolean myEdgeToEdge = true;
   private FrameworkOverlay myCutoutOverlay = FrameworkOverlay.CUTOUT_NONE;
@@ -262,6 +263,16 @@ public class Configuration {
       }
     }
   }
+
+  /**
+   * Multiple image transformation types can be applied at once to the configuration but only of each type.
+   */
+  public enum ImageTransformationType {
+    /** Reserved for transformations for Color Blind mode in the surface. */
+    COLOR_BLIND_MODE,
+    /** Reserved to apply backgrounds for AI Glasses. */
+    GLASSES_BACKGROUND_IMAGE
+  };
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -988,21 +999,32 @@ public class Configuration {
   /**
    * Sets the consumer that applies a transformation function to the rendered image.
    *
+   * @param type the type of the transformation function to retrieve.
    * @param imageTransformation the consumer containing a transformation function to be applied to the rendered image
    */
-  public void setImageTransformation(@Nullable Consumer<BufferedImage> imageTransformation) {
-    myImageTransformation = imageTransformation;
+  public void setImageTransformation(@NotNull ImageTransformationType type,
+                                     @Nullable Consumer<BufferedImage> imageTransformation) {
+    if (imageTransformation == null) {
+      myImageTransformations.remove(type);
+    } else {
+      myImageTransformations.put(type, imageTransformation);
+    }
   }
 
   /**
-   * Returns the transformation function to apply to the rendered image
+   * Returns a {@link Consumer} that applies all transformations that have been set via
+   * {@link #setImageTransformation}.
    *
    * @return the image transformation consumer
    */
   @Nullable
   public Consumer<BufferedImage> getImageTransformation() {
-    return myImageTransformation;
+    if (myImageTransformations.isEmpty()) {
+      return null;
+    }
+    return (image) -> myImageTransformations.values().forEach(c -> c.accept(image));
   }
+
 
   /**
    * Returns whether to use the themed version of adaptive icons
