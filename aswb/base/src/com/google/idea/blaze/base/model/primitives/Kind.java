@@ -80,6 +80,9 @@ public abstract class Kind {
     }
   }
 
+  public static final Kind UNKNOWN =
+      Provider.create("unknown", ImmutableSet.of(), RuleType.UNKNOWN, -1);
+
   /**
    * We cache target kinds provided by the extension points above. This state is associated with an
    * application, so for example needs to be reset between unit test runs with manual extension

@@ -271,6 +271,27 @@ public class TestMapTest extends BlazeTestCase {
         .containsExactly(Label.create("//test:test"));
   }
 
+  @Test
+  public void testTargetWithNoKindDoesNotCauseNpe() throws Exception {
+    mockBlazeProjectDataManager.targetMap =
+        TargetMapBuilder.builder()
+            .addTarget(
+                TargetIdeInfo.builder()
+                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setLabel("//test:test")
+                    // .setKind("") // Intentionally not set.
+                    .addSource(sourceRoot("test/Test.java")))
+            .build();
+
+    Collection<TargetInfo> targets =
+        SourceToTargetFinder.findTargetsForSourceFile(
+            project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
+
+    // Unknown rule type does not match the test rule type but the intention of this test is to make sure unknown rule types
+    // do not cause NPE crashes.
+    assertThat(targets).isEmpty();
+  }
+
   private ArtifactLocation sourceRoot(String relativePath) {
     return ArtifactLocation.builder().setRelativePath(relativePath).setIsSource(true).build();
   }
