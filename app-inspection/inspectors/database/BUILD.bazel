@@ -17,7 +17,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "//libraries/guava",
     "@lib//:jetbrains-annotations",
-    "@lib//:jgoodies-common",
+    "//libraries/jgoodies/common",
     "@lib//:kotlin-stdlib",
     "//libraries/kotlinx/coroutines/core",
     "//libraries/kotlinx/coroutines/guava",

@@ -249,7 +249,7 @@ jvm_library(
     "//plugins/kotlin/gradle/gradle",
     "//android/completion",
     "@lib//:kotlinc-analysis-api-k2-provided",
-    "@lib//:jgoodies-forms",
+    "//libraries/jgoodies/forms",
     "//spellchecker/xml",
     "@lib//:android-core-kotlin-metadata-jvm",
     ":plugins_maven_artifactResolver-m31_provided",
