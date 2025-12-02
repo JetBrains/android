@@ -26,6 +26,7 @@ import com.google.idea.blaze.base.bazel.FakeBuildSystem;
 import com.google.idea.blaze.base.bazel.FakeBuildSystemProvider;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
+import com.google.idea.blaze.base.command.BlazeCommandRunnerExperiments;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BuildFlagsProvider;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
@@ -52,8 +53,6 @@ import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BlazeUserSettings;
 import com.google.idea.blaze.base.settings.BuildSystemName;
-import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
-import com.google.idea.blaze.exception.ConfigurationException;
 import com.google.idea.blaze.java.JavaBlazeRules;
 import com.google.idea.blaze.java.run.hotswap.HotSwapCommandBuilder;
 import com.google.idea.blaze.java.sync.source.JavaLikeLanguage;
@@ -65,7 +64,6 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.util.List;
 import java.util.concurrent.Future;
-import javax.annotation.Nullable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -237,8 +235,56 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
                     ExecutorType.DEBUG,
                     "/path/to/kotlinx-coroutines-lib.jar")
                 .build()
+                .toList());
+    assertThat(
+            BlazeJavaRunProfileState.getBlazeCommandBuilder(
+                    project,
+                    FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
+                    configuration,
+                    ImmutableList.of(),
+                    ExecutorType.DEBUG,
+                    "/path/to/kotlinx-coroutines-lib.jar")
+                .build()
                 .toList())
         .contains("--jvmopt=-javaagent:/path/to/kotlinx-coroutines-lib.jar");
+  }
+
+  @Test
+  public void kotlinxCoroutinesJavaAgentShouldBeAddedAsWrapperScriptFlagWhenExperimentEnabled() {
+    ((MockExperimentService) ExperimentService.getInstance())
+        .setExperiment(
+          BlazeCommandRunnerExperiments.BAZEL_DEBUG_USE_WRAPPER_SCRIPT_FLAG_FOR_JAVA_AGENT, true);
+    configuration.setTargetInfo(
+        TargetInfo.builder(Label.create("//label:main"), "java_binary").build());
+    BlazeCommandRunConfigurationCommonState handlerState =
+        (BlazeCommandRunConfigurationCommonState) configuration.getHandler().getState();
+    handlerState.getCommandState().setCommand(BlazeCommandName.fromString("command"));
+
+    assertThat(
+            BlazeJavaRunProfileState.getBlazeCommandBuilder(
+                    project,
+                    FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
+                    configuration,
+                    ImmutableList.of(),
+                    ExecutorType.DEBUG,
+                    "/path/to/kotlinx-coroutines-lib.jar")
+                .build()
+                .toList())
+        .contains("--wrapper_script_flag=--jvm_flag=-javaagent:/path/to/kotlinx-coroutines-lib.jar");
+
+    configuration.setTargetInfo(
+        TargetInfo.builder(Label.create("//label:test"), "java_test").build());
+    assertThat(
+            BlazeJavaRunProfileState.getBlazeCommandBuilder(
+                    project,
+                    FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
+                    configuration,
+                    ImmutableList.of(),
+                    ExecutorType.DEBUG,
+                    "/path/to/kotlinx-coroutines-lib.jar")
+                .build()
+                .toList())
+        .contains("--test_arg=--wrapper_script_flag=--jvm_flag=-javaagent:/path/to/kotlinx-coroutines-lib.jar");
   }
 
   @Test

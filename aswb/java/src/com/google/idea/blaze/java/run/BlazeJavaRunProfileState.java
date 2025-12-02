@@ -290,7 +290,16 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
         command.addBlazeFlags(debugPortFlag(true, debugPort));
       }
       if (kotlinxCoroutinesJavaAgent != null) {
-        command.addBlazeFlags("--jvmopt=-javaagent:" + kotlinxCoroutinesJavaAgent);
+        if (BlazeCommandRunnerExperiments.BAZEL_DEBUG_USE_WRAPPER_SCRIPT_FLAG_FOR_JAVA_AGENT.getValue()) {
+          String flag = "--wrapper_script_flag=--jvm_flag=-javaagent:" + kotlinxCoroutinesJavaAgent;
+          if (isBinary) {
+            command.addExeFlags(flag);
+          } else {
+            command.addBlazeFlags(testArg(flag));
+          }
+        } else {
+          command.addBlazeFlags("--jvmopt=-javaagent:" + kotlinxCoroutinesJavaAgent);
+        }
       }
     }
 
