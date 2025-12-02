@@ -260,7 +260,7 @@ private fun <T : PreviewElementInstance<*>> colorBlindPreviews(
   return ColorBlindMode.values()
     .map { colorBlindMode ->
       val colorFilterBaseConfig =
-        baseConfig.copy(imageTransformation = colorBlindMode.imageTransform)
+        baseConfig.copy(colorBlindImageTransformation = colorBlindMode.imageTransform)
       val displaySettings =
         baseDisplaySettings.copy(
           name = "${colorBlindMode.displayName} - ${baseDisplaySettings.name}",
