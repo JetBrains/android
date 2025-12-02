@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationListener
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotification
 import com.android.tools.idea.project.DefaultModuleSystem
@@ -65,9 +66,13 @@ class ComposeWarningTest {
     projectSystem.setModuleSystem(moduleSystem.module, moduleSystem)
     moduleSystem.usesCompose = true
     val notificationModel = NotificationModel(projectRule.project)
-    notificationModel.notificationListeners.add {
-      lastNotification = notificationModel.notifications.lastOrNull()
-    }
+    notificationModel.addNotificationListener(
+      object : NotificationListener {
+        override fun notificationsChanged(notifications: List<StatusNotification>) {
+          lastNotification = notificationModel.notifications.lastOrNull()
+        }
+      }
+    )
     composeWarning = ComposeWarning(projectRule.project, notificationModel)
   }
 

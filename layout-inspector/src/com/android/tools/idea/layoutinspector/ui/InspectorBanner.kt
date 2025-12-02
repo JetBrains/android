@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.idea.layoutinspector.model.NotificationListener
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotification
 import com.google.common.html.HtmlEscapers
@@ -31,7 +32,13 @@ class InspectorBanner(
   parentDisposable: Disposable,
   private val notificationModel: NotificationModel,
 ) : JPanel(), Disposable {
-  private var notifications: List<StatusNotification> = emptyList()
+
+  private val notificationListener =
+    object : NotificationListener {
+      override fun notificationsChanged(notifications: List<StatusNotification>) {
+        updateNotifications(notifications)
+      }
+    }
 
   init {
     Disposer.register(parentDisposable, this)
@@ -39,18 +46,17 @@ class InspectorBanner(
     background = UIUtil.TRANSPARENT_COLOR
     isOpaque = false
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    notificationModel.notificationListeners.add(::updateNotifications)
+    notificationModel.addNotificationListener(notificationListener)
   }
 
   override fun dispose() {
-    notificationModel.notificationListeners.remove(::updateNotifications)
+    notificationModel.removeNotificationListener(notificationListener)
   }
 
-  private fun updateNotifications() {
+  private fun updateNotifications(notifications: List<StatusNotification>) {
     // fire the data changed on the UI thread:
     ApplicationManager.getApplication().invokeLater {
       removeAll()
-      notifications = notificationModel.notifications
       isVisible = notifications.isNotEmpty()
       notifications.forEach { notification ->
         val panel = EditorNotificationPanel(notification.status)
