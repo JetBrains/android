@@ -38,6 +38,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.preview.focus.FocusModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
+import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.icons.AllIcons
@@ -384,6 +385,7 @@ internal class ComposePreviewViewImpl(
           if (project.isDisposed) true
           else ProjectFileIndex.getInstance(project).isInLibrary(virtualFile)
         }
+    val isTestFile = isTestFile(project, virtualFile)
 
     withContext(Dispatchers.EDT) {
       if (
@@ -403,9 +405,11 @@ internal class ComposePreviewViewImpl(
             workbench.hideLoading()
             workbench.showContent()
           } else {
-            // Do not show AI actions for files in libraries, since they are read-only.
+            // Do not show AI actions for:
+            // - files in libraries, since they are read-only.
+            // - Test files, since the generation of Previews in test cases is not useful
             val actions =
-              if (isGeminiAvailable() && !isInLibrary) {
+              if (isGeminiAvailable() && !isInLibrary && !isTestFile) {
                 withContext(Dispatchers.Default) {
                   listOfNotNull(
                     if (StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.get()) {

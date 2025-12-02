@@ -43,17 +43,24 @@ import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gemini.LlmPrompt
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.preview.createOrReuseModelForPreviewElement
 import com.android.tools.idea.preview.find.PreviewElementProvider
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.projectsystem.SourceProviderManager
+import com.android.tools.idea.projectsystem.isTestFile
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.androidFacet
@@ -66,6 +73,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
@@ -134,8 +142,25 @@ private fun InstructionsPanel.toDisplayText(): String =
 
 @RunWith(Parameterized::class)
 class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeFlag: Boolean) {
-  @get:Rule val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule
+  val projectRule =
+    AndroidProjectRule.withAndroidModels(
+        // The root module builder
+        JavaModuleModelBuilder.rootModuleBuilder,
 
+        // The main app module
+        AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder()),
+
+        // The test module
+        AndroidModuleModelBuilder(
+          ":testModule",
+          "debug",
+          createAndroidProjectBuilderForDefaultTestProjectStructure(
+            IdeAndroidProjectType.PROJECT_TYPE_TEST
+          ),
+        ),
+      )
+      .initAndroid(true)
   @get:Rule
   val generatePreviewFlagRule =
     FlagRule(StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW, generatePreviewFlag)
@@ -174,6 +199,7 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
         MutableStateFlow(RenderingBuildStatus.Ready)
     }
   private lateinit var mainFileSmartPointer: SmartPsiElementPointer<PsiFile>
+  private lateinit var mainSurfaceBuilder: NlSurfaceBuilder
   private lateinit var previewView: ComposePreviewView
   private lateinit var fakeUi: FakeUi
   private val fakeStudioBotActionFactory =
@@ -283,7 +309,7 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
 
       mainFileSmartPointer = SmartPointerManager.createPointer(psiMainFile)
 
-      val mainSurfaceBuilder =
+      mainSurfaceBuilder =
         createMainDesignSurfaceBuilder(
           project,
           navigationHandler,
@@ -568,6 +594,54 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
         instructionsText,
       )
     }
+  }
+
+  @Test
+  fun `empty preview state for test file`() = runBlocking {
+    geminiPluginApi.contextAllowed = true
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
+    StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.override(true)
+
+    val testPsiFile =
+      fixture.addFileToProjectAndInvalidate(
+        "testModule/src/main/java/MyTest.kt",
+        """
+            import org.junit.Test
+
+            class Test{
+              @Test
+              fun assertTest(){
+              }
+            }
+            """
+          .trimIndent(),
+      )
+    // Ensure the newly created file is a test file
+    assertTrue(isTestFile(project, testPsiFile.virtualFile))
+    // We need to create a new ComposePreviewImpl with the new pointer to the psiFile
+    previewView =
+      ComposePreviewViewImpl(
+        project,
+        readAction { SmartPointerManager.createPointer(testPsiFile) },
+        statusManager,
+        nopUiDataProvider,
+        mainSurfaceBuilder,
+        fixture.testRootDisposable,
+      )
+    runBlocking(Dispatchers.EDT) {
+      fakeUi =
+        FakeUi(
+          JPanel().apply {
+            layout = BorderLayout()
+            size = Dimension(1000, 800)
+            add(previewView.component, BorderLayout.CENTER)
+          },
+          1.0,
+          true,
+        )
+    }
+    fakeUi.root.validate()
+    checkEmptyPreviewState(showAutoGenerateAction = false, showScreenshotToAction = false)
   }
 
   @Test

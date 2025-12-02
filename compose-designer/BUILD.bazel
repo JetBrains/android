@@ -348,6 +348,7 @@ jvm_library(
     "//android/execution/common",
     "//libraries/kotlinx/coroutines/test",
     "//platform/refactoring",
+    "//android/project-system-gradle-models:projectSystem-gradle-models",
   ],
   runtime_deps = [":compose-designer-tests"],
   plugins = ["@lib//:compose-plugin"]
