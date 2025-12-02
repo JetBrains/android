@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.actions
 
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
@@ -39,7 +40,10 @@ class SetColorBlindModeAction(val colorBlindMode: ColorBlindMode) :
     val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface ?: return
     surface.colorBlindMode = if (state) colorBlindMode else ColorBlindMode.NONE
     for (manager in surface.sceneManagers) {
-      manager.model.configuration.imageTransformation = surface.colorBlindMode.imageTransform
+      manager.model.configuration.setImageTransformation(
+        Configuration.ImageTransformationType.COLOR_BLIND_MODE,
+        surface.colorBlindMode.imageTransform,
+      )
       manager.model.notifyModified(ChangeType.CONFIGURATION_CHANGE)
     }
   }

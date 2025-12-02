@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
@@ -57,7 +58,10 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
     val models = mutableListOf<NlModel>()
     for (mode in ColorBlindMode.entries) {
       val config = defaultConfig.clone()
-      config.imageTransformation = mode.imageTransform
+      config.setImageTransformation(
+        Configuration.ImageTransformationType.COLOR_BLIND_MODE,
+        mode.imageTransform,
+      )
       val model =
         NlModel.Builder(parent, buildTarget, virtualFile, config)
           .withComponentRegistrar(NlComponentRegistrar)
