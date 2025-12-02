@@ -19,6 +19,7 @@
   <dependencies>
     <plugin id="com.intellij.platform.images"/>
     <plugin id="com.intellij.java"/>
+    <plugin id="org.intellij.groovy.live.templates" />
     <plugin id="com.intellij.modules.json"/>
     <module name="intellij.platform.lvcs.impl"/>
     <module name="intellij.platform.vcs.impl"/>
@@ -38,6 +39,7 @@
 <!--    <module name="intellij.libraries.grpc"/>-->
 <!--    <module name="intellij.libraries.grpc.netty.shaded"/>-->
 <!--    <module name="intellij.settingsSync.core"/>-->
+
   </dependencies>
 
   <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
