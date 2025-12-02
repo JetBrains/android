@@ -221,7 +221,7 @@ public interface ExternalTask {
                           .stdout(stdout)
                           .environmentVars(environmentVariables)
                           .build()
-                          .run();
+                          .run(context);
                   if (!ignoreExitCode && exitValue != 0) {
                     context.setHasError();
                   }

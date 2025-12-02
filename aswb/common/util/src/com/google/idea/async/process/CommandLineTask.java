@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.idea.blaze.common.Context;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.EnvironmentUtil;
 import com.intellij.util.execution.ParametersListUtil;
@@ -33,6 +34,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
@@ -140,7 +142,7 @@ public interface CommandLineTask {
    * @throws InterruptedException if interrupted while waiting for completion
    * @throws TimeoutException if the invocation times out
    */
-  int run() throws IOException, InterruptedException, TimeoutException;
+  int run(@Nullable Context<?> context) throws IOException, InterruptedException, TimeoutException;
 
   /** A representation of a configured CLI command. */
   class Runner implements CommandLineTask {
@@ -180,7 +182,7 @@ public interface CommandLineTask {
     }
 
     @Override
-    public int run() throws IOException, InterruptedException, TimeoutException {
+    public int run(@Nullable Context<?> context) throws IOException, InterruptedException, TimeoutException {
 
       String logCommand = ParametersListUtil.join(command);
       if (logCommand.length() > 2000) {
@@ -202,7 +204,24 @@ public interface CommandLineTask {
         env.put("PWD", workingDirectory.getPath());
 
         try {
+          final AtomicReference<Process> runningProcess = new AtomicReference<>();
+          if (context != null && context.isCancelled()) {
+            throw new InterruptedException();
+          }
+          if (context != null) {
+            context.addCancellationHandler(() -> {
+              Process p = runningProcess.get();
+              if (p != null) {
+                p.destroy();
+              }
+            });
+          }
           final Process process = builder.start();
+          runningProcess.set(process);
+          if (context != null && context.isCancelled()) {
+            process.destroy();
+            throw new InterruptedException();
+          }
           Thread shutdownHook = new Thread(process::destroy);
           try {
             Runtime.getRuntime().addShutdownHook(shutdownHook);
