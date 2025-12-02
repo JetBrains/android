@@ -104,8 +104,7 @@ internal class VirtualDevice(
   fun hasPlayStore(image: ISystemImage) =
     hasPlaystore && image.getServices() == Services.GOOGLE_PLAY_STORE
 
-  fun isEnvironmentAllowed(): Boolean =
-    formFactor in setOf(FormFactors.AI_GLASSES, FormFactors.XR_GLASSES)
+  fun isEnvironmentAllowed(): Boolean = formFactor == FormFactors.AI_GLASSES
 
   /** Initializes the device based on its device profile. */
   fun initializeFromProfile() {

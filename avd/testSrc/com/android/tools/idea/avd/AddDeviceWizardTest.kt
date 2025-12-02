@@ -62,8 +62,8 @@ class AddDeviceWizardTest {
   @get:Rule val edtRule = EdtRule()
   @get:Rule val applicationRule = ApplicationRule()
   @get:Rule val composeTestRule = createStudioComposeTestRule()
-  @get:Rule val xrFlagRule = FlagRule(StudioFlags.XR_DEVICE_SUPPORT_ENABLED, true)
   @get:Rule val aiGlassesFlagRule = FlagRule(StudioFlags.AI_GLASSES_DEVICE_SUPPORT_ENABLED, true)
+  @get:Rule val xrGlassesFlagRule = FlagRule(StudioFlags.XR_GLASSES_DEVICE_SUPPORT_ENABLED, true)
 
   /**
    * Pick a device, advance, and then finish (using default system image and settings). Verify that
@@ -179,7 +179,9 @@ class AddDeviceWizardTest {
       composeTestRule.onNodeWithText(api36Glasses.displayName).assertIsSelected()
       composeTestRule.onNodeWithText("Additional settings").performClick()
       // Glasses have background, not skin.
-      composeTestRule.onNodeWithText("Skin").assertDoesNotExist()
+      composeTestRule
+        .onNodeWithText("skin", substring = true, ignoreCase = true)
+        .assertDoesNotExist()
       composeTestRule.onNodeWithText("Background").assertIsDisplayed()
       // We need to disable the external storage, since we can't run mksdcard.
       composeTestRule
@@ -199,9 +201,60 @@ class AddDeviceWizardTest {
       assertThat(properties[ConfigKey.LCD_TRANSPARENT]).isEqualTo("yes")
       assertThat(properties[ConfigKey.FORCE_COLD_BOOT_MODE]).isEqualTo("yes")
 
-      val userSettings = AvdManager.parseEnvironmentFile(avdFolder, null)
-      assertThat(userSettings[EnvironmentKey.IMAGE])
+      val environment = AvdManager.parseEnvironmentFile(avdFolder, null)
+      assertThat(environment[EnvironmentKey.IMAGE])
         .isEqualTo("environment" + File.separator + defaultEnvironments().first().fileName)
+    }
+  }
+
+  @Test
+  fun addXrGlassesDevice() {
+    // The AVD needs to be on a real filesystem for the copy of the default environment to work.
+    val fixture = SdkFixture(avdRoot = createTempDirectory("AddXrGlassesDeviceTest"))
+    with(fixture) {
+      val api34XrOst =
+        createLocalSystemImage(
+          "xr-glasses",
+          listOf(SystemImageTags.XR_GLASSES_TAG, SystemImageTags.XR_HEADSET_TAG),
+          AndroidVersion(34, null, 9, false),
+        )
+      repoPackages.setLocalPkgInfos(listOf(api34XrOst))
+
+      val source = createLocalVirtualDeviceSource()
+      val wizard = createTestAddDeviceWizard(source)
+
+      composeTestRule.setContentWithSdkLocals { wizard.Content() }
+
+      composeTestRule.onNodeWithText("XR").performClick()
+      composeTestRule.onAllNodesWithText("XR Glasses", substring = true).onFirst().performClick()
+      composeTestRule.waitForIdle()
+
+      wizard.performAction(wizard.nextAction)
+
+      composeTestRule.onNodeWithText(api34XrOst.displayName).assertIsSelected()
+      composeTestRule.onNodeWithText("Additional settings").performClick()
+      // XR Glasses have skin, not background.
+      composeTestRule.onNodeWithText("Background").assertDoesNotExist()
+      composeTestRule.onNodeWithText("Device skin").assertIsDisplayed()
+      // We need to disable the external storage, since we can't run mksdcard.
+      composeTestRule
+        .onNode(hasText("None") and hasParent(hasTestTag("StorageGroup")))
+        .performClick()
+
+      composeTestRule.waitForIdle()
+
+      wizard.performAction(wizard.finishAction)
+      wizard.awaitClose()
+
+      val avdFolder = avdRoot.listDirectoryEntries("*.avd").single()
+      val properties =
+        checkNotNull(
+          AvdManager.parseIniFile(PathFileWrapper(avdFolder.resolve("config.ini")), null)
+        )
+      assertThat(properties[ConfigKey.LCD_TRANSPARENT]).isNotEqualTo("yes")
+
+      val environment = AvdManager.parseEnvironmentFile(avdFolder, null)
+      assertThat(environment).isEmpty()
     }
   }
 
