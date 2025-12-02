@@ -27,6 +27,8 @@ public class BlazeCommandRunnerExperiments {
     new BoolExperiment("debug.localtests.singlejar.enable", true);
   public static final BoolExperiment ANDROID_JNI_LIBRARY_FORCE_ANDROID =
     new BoolExperiment("debug.localtests.android.jni.library", SystemInfo.isMac);
+  public static final BoolExperiment BAZEL_DEBUG_USE_WRAPPER_SCRIPT_FLAG_FOR_JAVA_AGENT =
+    new BoolExperiment("aswb.bazel.debug.use.wrapper.script.flag.for.java.agent", false);
   public static final BoolExperiment DBIP_OPTOUT = new BoolExperiment("aswb.dbip.optout", false);
   private static final String DBIP_ONCORP_ENV = System.getenv("REPLACE_BLAZE_WITH_DBIP");
 
