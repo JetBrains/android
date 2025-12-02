@@ -93,14 +93,16 @@ private fun loadClasses(
   val classesBytes = getBytes(cls, *additionalClassesToLoad) ?: return null
   val dexBytes = dex(context, classesBytes) ?: return null
   val dexByteBuffer = wrapToByteBuffer(dexBytes, context)
-  val classLoader =
+  val classLoader = context.computeAndKeep {
     context.debugProcess.newInstance(
       context,
       inMemoryClassLoader,
       constructorMethod,
       listOf(dexByteBuffer, context.classLoader),
-    ) as? ClassLoaderReference ?: return null
-  context.keep(classLoader)
+      0,
+      true
+    )
+  } as? ClassLoaderReference ?: return null
   return context.debugProcess.findClass(context, cls.name, classLoader) as? ClassType
 }
 
@@ -178,6 +180,7 @@ private fun wrapToByteBuffer(bytes: ByteArray, context: EvaluationContextImpl): 
       ?: return null
   val wrapMethod =
     byteBufferClass.concreteMethodByName("wrap", "([B)Ljava/nio/ByteBuffer;") ?: return null
-  return debugProcess.invokeMethod(context, byteBufferClass, wrapMethod, listOf(bytesMirror), true)
-    as? ObjectReference
+  return context.computeAndKeep {
+    debugProcess.invokeMethod(context, byteBufferClass, wrapMethod, listOf(bytesMirror), true) as? ObjectReference
+  }
 }
