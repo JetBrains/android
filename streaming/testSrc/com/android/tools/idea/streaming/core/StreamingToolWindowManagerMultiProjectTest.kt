@@ -56,24 +56,8 @@ class StreamingToolWindowManagerMultiProjectTest {
   val ruleChain = RuleChain(agentRule, project2Rule, androidExecutorsRule, EdtRule())
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
-  private val toolWindow1: FakeToolWindow by lazy {
-      createFakeToolWindow(
-        windowFactory,
-        RUNNING_DEVICES_TOOL_WINDOW_ID,
-        StudioIcons.Shell.ToolWindows.EMULATOR,
-        project1,
-        testRootDisposable,
-      )
-    }
-  private val toolWindow2: FakeToolWindow by lazy {
-      createFakeToolWindow(
-        windowFactory,
-        RUNNING_DEVICES_TOOL_WINDOW_ID,
-        StudioIcons.Shell.ToolWindows.EMULATOR,
-        project2,
-        testRootDisposable,
-      )
-    }
+  private val toolWindow1: FakeToolWindow by lazy { createToolWindow(project1) }
+  private val toolWindow2: FakeToolWindow by lazy { createToolWindow(project2) }
   private val contentManager1: ContentManager by lazy { toolWindow1.contentManager }
   private val contentManager2: ContentManager by lazy { toolWindow2.contentManager }
 
@@ -165,4 +149,7 @@ class StreamingToolWindowManagerMultiProjectTest {
     assertThat(mirroringManager2.mirroringHandles.value[pixel4Handle2]?.mirroringState).isEqualTo(MirroringState.ACTIVE)
     assertThat(mirroringManager2.mirroringHandles.value[pixel7Handle2]?.mirroringState).isEqualTo(MirroringState.ACTIVE)
   }
+
+  private fun createToolWindow(project: Project): FakeToolWindow =
+    createFakeToolWindow(windowFactory, RUNNING_DEVICES_TOOL_WINDOW_ID, StudioIcons.Shell.ToolWindows.EMULATOR, project,testRootDisposable)
 }
