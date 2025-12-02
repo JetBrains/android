@@ -16,6 +16,7 @@
 package com.google.idea.blaze.java.run.hotswap;
 
 import com.google.common.collect.ImmutableList;
+import com.google.idea.blaze.base.model.BazelVersionCompat;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy;
@@ -58,19 +59,18 @@ public interface JavaClasspathAspectStrategy {
     @Override
     public ImmutableList<String> getBuildFlags(BlazeVersionData versionData) {
       String intellijAspect;
-      if (versionData.bazelIsAtLeastVersion(6, 0, 0)) {
-        intellijAspect = "--aspects=@@intellij_aspect//:java_classpath.bzl%java_classpath_aspect";
-      } else {
-        intellijAspect = "--aspects=@intellij_aspect//:java_classpath.bzl%java_classpath_aspect";
-      }
+      BazelVersionCompat compat = new BazelVersionCompat(versionData::bazelIsAtLeastVersion);
+      intellijAspect = compat.makeAspectFromInjectedRepositoryFlag("intellij_aspect", "java_classpath.bzl%java_classpath_aspect");
 
       return ImmutableList.of(
-          intellijAspect, getAspectRepositoryOverrideFlag(), "--output_groups=" + OUTPUT_GROUP);
+          intellijAspect,
+          getAspectRepositoryOverrideFlag(versionData),
+          "--output_groups=" + OUTPUT_GROUP);
     }
 
-    private static String getAspectRepositoryOverrideFlag() {
-      return String.format(
-          "--override_repository=intellij_aspect=%s", findAspectDirectory().getPath());
+    private static String getAspectRepositoryOverrideFlag(BlazeVersionData versionData) {
+      BazelVersionCompat compat = new BazelVersionCompat(versionData::bazelIsAtLeastVersion);
+      return compat.makeInjectRepositoryFlag("intellij_aspect", findAspectDirectory().getPath());
     }
 
     private static File findAspectDirectory() {
