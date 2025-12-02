@@ -165,6 +165,7 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/visual-lint:intellij.android.visual-lint",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
     ],
     test_friends = ["//tools/adt/idea/compose-designer:intellij.android.compose-designer"],
     test_jvm_flags = ["-Dcom.google.testing.junit.runner.shouldInstallTestSecurityManager=false"],
