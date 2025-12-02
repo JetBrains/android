@@ -16,8 +16,6 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.Note
-import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.model.connection.AppConnection
 import com.android.tools.idea.insights.model.connection.Connection
@@ -29,6 +27,8 @@ import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.issue.IssueState
 import com.android.tools.idea.insights.model.issue.IssueVariant
+import com.android.tools.idea.insights.model.note.Note
+import com.android.tools.idea.insights.model.note.NoteId
 
 interface AppInsightsClient {
   suspend fun listConnections(): LoadingState.Done<List<AppConnection>>
