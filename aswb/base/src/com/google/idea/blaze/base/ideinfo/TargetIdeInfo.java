@@ -80,7 +80,7 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
       @Nullable KotlinToolchainIdeInfo kotlinToolchainIdeInfo,
       @Nullable Long syncTimeMillis) {
     this.key = key;
-    this.kind = kind;
+    this.kind = kind != null ? kind : Kind.UNKNOWN;
     this.buildFile = buildFile;
     this.dependencies = dependencies;
     this.tags = tags;
