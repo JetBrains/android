@@ -62,6 +62,7 @@ import com.android.tools.idea.insights.model.issue.IssueState
 import com.android.tools.idea.insights.model.issue.IssueVariant
 import com.android.tools.idea.insights.model.issue.SignalType
 import com.android.tools.idea.insights.model.issue.VisibilityType
+import com.android.tools.idea.insights.model.note.Note
 import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.android.tools.idea.insights.persistence.InsightsFilterSettings
 import com.intellij.openapi.components.service

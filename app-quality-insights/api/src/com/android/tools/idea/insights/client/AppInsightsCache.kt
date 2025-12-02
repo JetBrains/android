@@ -16,8 +16,6 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.InsightsProvider
-import com.android.tools.idea.insights.Note
-import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.model.common.Interval
@@ -29,6 +27,8 @@ import com.android.tools.idea.insights.model.issue.IssueDetails
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.issue.IssueState
 import com.android.tools.idea.insights.model.issue.SignalType
+import com.android.tools.idea.insights.model.note.Note
+import com.android.tools.idea.insights.model.note.NoteId
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import java.util.SortedSet

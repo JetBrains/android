@@ -47,6 +47,8 @@ import com.android.tools.idea.insights.model.issue.IssueState
 import com.android.tools.idea.insights.model.issue.IssueVariant
 import com.android.tools.idea.insights.model.issue.SignalType
 import com.android.tools.idea.insights.model.issue.VisibilityType
+import com.android.tools.idea.insights.model.note.Note
+import com.android.tools.idea.insights.model.note.NoteId
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.google.common.truth.Truth.assertThat

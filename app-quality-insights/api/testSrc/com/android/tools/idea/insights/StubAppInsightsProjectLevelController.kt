@@ -29,6 +29,7 @@ import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueVariant
 import com.android.tools.idea.insights.model.issue.SignalType
 import com.android.tools.idea.insights.model.issue.VisibilityType
+import com.android.tools.idea.insights.model.note.Note
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import kotlin.coroutines.EmptyCoroutineContext
