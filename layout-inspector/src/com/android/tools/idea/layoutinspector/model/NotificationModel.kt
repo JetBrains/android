@@ -19,6 +19,11 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel
 import java.util.concurrent.atomic.AtomicReference
+import org.jetbrains.annotations.VisibleForTesting
+
+interface NotificationListener {
+  fun notificationsChanged(notifications: List<StatusNotification>)
+}
 
 fun learnMoreAction(url: String) =
   StatusNotificationAction("Learn More") { BrowserUtil.browse(url) }
@@ -39,7 +44,7 @@ class NotificationModel(val project: Project) {
   private val notificationList = AtomicReference<List<StatusNotification>>(emptyList())
 
   /** Listeners to be notified when the notifications have changed. */
-  val notificationListeners = mutableListOf<() -> Unit>()
+  @VisibleForTesting val notificationListeners = mutableListOf<NotificationListener>()
 
   /**
    * The current notifications.
@@ -97,11 +102,20 @@ class NotificationModel(val project: Project) {
     notifyChanges()
   }
 
+  fun addNotificationListener(listener: NotificationListener) {
+    notificationListeners.add(listener)
+    listener.notificationsChanged(notifications)
+  }
+
+  fun removeNotificationListener(listener: NotificationListener) {
+    notificationListeners.remove(listener)
+  }
+
   private fun notifyChanges() {
     if (isDisposed) {
       return
     }
     notifications = notificationData
-    notificationListeners.forEach { it() }
+    notificationListeners.forEach { it.notificationsChanged(notifications) }
   }
 }

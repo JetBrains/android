@@ -35,4 +35,24 @@ class NotificationModelTest {
     val hasNotification2 = notificationModel.hasNotification("notification.id")
     assertThat(hasNotification2).isTrue()
   }
+
+  @Test
+  fun testNewListenerIsNotifiedOfExistingNotifications() {
+    val notificationModel = NotificationModel(projectRule.project)
+
+    notificationModel.addNotification("notification.id", "test notification")
+
+    val observedNotifications = mutableListOf<List<StatusNotification>>()
+    notificationModel.addNotificationListener(
+      object : NotificationListener {
+        override fun notificationsChanged(notifications: List<StatusNotification>) {
+          observedNotifications.add(notifications)
+        }
+      }
+    )
+
+    assertThat(observedNotifications).hasSize(1)
+    assertThat(observedNotifications.first()).hasSize(1)
+    assertThat(observedNotifications.first().first().id).isEqualTo("notification.id")
+  }
 }
