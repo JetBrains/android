@@ -20,6 +20,7 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
@@ -77,6 +78,7 @@ import javax.swing.JPanel
 import kotlinx.coroutines.launch
 
 private const val LAYOUT_INSPECTOR_SNAPSHOT_ID = "Layout Inspector Snapshot"
+private const val SNAPSHOT_OUTDATED_ID = "snapshot.outdated"
 
 class FileEditorInspectorClient(
   private val model: InspectorModel,
@@ -160,6 +162,22 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
         } else {
           createOldLayoutInspectorUi(this, project, layoutInspector)
         }
+
+      val hasBitmapImage =
+        when (model.pictureType) {
+          AndroidWindow.ImageType.BITMAP_AS_REQUESTED -> true
+          AndroidWindow.ImageType.UNKNOWN,
+          AndroidWindow.ImageType.SKP_PENDING,
+          AndroidWindow.ImageType.SKP -> false
+        }
+
+      if (!hasBitmapImage && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_STANDALONE_V2.get()) {
+        notificationModel.addNotification(
+          id = SNAPSHOT_OUTDATED_ID,
+          text = LayoutInspectorBundle.message(SNAPSHOT_OUTDATED_ID),
+          sticky = true,
+        )
+      }
 
       metadata.loadDuration = System.currentTimeMillis() - startTime
       model.updateConnection(client)
