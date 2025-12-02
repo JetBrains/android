@@ -623,6 +623,8 @@ jvm_library(
         "//libraries/kotlinx/coroutines/test:test_test_lib",
         "//platform/refactoring",
         "//platform/refactoring:refactoring_test_lib",
+        "//android/project-system-gradle-models:projectSystem-gradle-models",
+        "//android/project-system-gradle-models:projectSystem-gradle-models_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.compose-designer.tests` end
