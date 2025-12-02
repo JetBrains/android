@@ -360,6 +360,7 @@ fun showEmbeddedLayoutInspectorBanner(
     id = BANNER_STRING_ID,
     text = LayoutInspectorBundle.message(BANNER_STRING_ID),
     status = EditorNotificationPanel.Status.Info,
+    sticky = true,
     actions =
       listOf(
         StatusNotificationAction(LayoutInspectorBundle.message("do.not.show.again")) { notification
