@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.sync.aspects.strategy;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.idea.blaze.base.model.BazelVersionCompat;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.ide.plugins.PluginManager;
@@ -43,17 +44,9 @@ public class AspectStrategyBazel extends AspectStrategy {
   @VisibleForTesting
   public AspectStrategyBazel(BlazeVersionData versionData) {
     super(/* aspectSupportsDirectDepsTrimming= */ true);
-    if (versionData.bazelIsAtLeastVersion(6, 0, 0) && !versionData.bazelIsAtLeastVersion(8, 0, 0)) {
-      // Bazel 8+ uses --inject_repository and requires single @.
-      aspectFlag = "--aspects=@@intellij_aspect//:intellij_info_bundled.bzl%intellij_info_aspect";
-    } else {
-      aspectFlag = "--aspects=@intellij_aspect//:intellij_info_bundled.bzl%intellij_info_aspect";
-    }
-    if (versionData.bazelIsAtLeastVersion(8, 0, 0)) {
-      repositoryFlag = "--inject_repository=intellij_aspect";
-    } else {
-      repositoryFlag = "--override_repository=intellij_aspect";
-    }
+    BazelVersionCompat compat = new BazelVersionCompat(versionData::bazelIsAtLeastVersion);
+    aspectFlag = compat.makeAspectFromInjectedRepositoryFlag("intellij_aspect", "intellij_info_bundled.bzl%intellij_info_aspect");
+    repositoryFlag = compat.getRepositoryOverrideFlag() + "=intellij_aspect";
   }
 
   @VisibleForTesting
