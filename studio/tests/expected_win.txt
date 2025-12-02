@@ -671,6 +671,7 @@ android-studio/license/layoutlib.jar.txt
 android-studio/license/layoutlib_jni.dll.txt
 android-studio/license/layoutlib_jni.dylib.txt
 android-studio/license/layoutlib_jni.so.txt
+android-studio/license/leakcanary-NOTICE
 android-studio/license/libandroid_runtime.dll.txt
 android-studio/license/libandroid_runtime.dylib.txt
 android-studio/license/libandroid_runtime.so.txt
