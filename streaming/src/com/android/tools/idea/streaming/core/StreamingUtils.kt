@@ -37,10 +37,12 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
+import java.awt.Graphics
 import java.awt.KeyboardFocusManager
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
+import java.awt.geom.Ellipse2D
 import java.nio.ByteBuffer
 import javax.swing.Icon
 import javax.swing.JEditorPane
@@ -138,9 +140,7 @@ internal fun Int.scaledDown(scale: Double): Int =
 internal fun Int.scaledUp(scale: Double): Int =
     ceil(this * scale).roundToInt()
 
-/**
- * Returns this integer scaled by multiplying by [numerator] and then dividing by [denominator].
- */
+/** Returns this integer scaled by multiplying by [numerator] and then dividing by [denominator]. */
 internal fun Int.scaledDown(numerator: Int, denominator: Int): Int =
     ((this.toLong() * numerator) / denominator).toInt()
 
@@ -240,4 +240,17 @@ internal fun Component.containsFocus(): Boolean {
     component = component.parent
   }
   return false
+}
+
+internal fun createCircle(center: Point, radius: Int): Ellipse2D {
+  val diameter = radius * 2.0
+  return Ellipse2D.Double((center.x - radius).toDouble(), (center.y - radius).toDouble(), diameter, diameter)
+}
+
+internal fun Graphics.drawCircle(center: Point, radius: Int) {
+  drawOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
+}
+
+internal fun Graphics.fillCircle(center: Point, radius: Int) {
+  fillOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
 }

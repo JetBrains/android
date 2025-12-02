@@ -138,6 +138,10 @@ internal class EmulatorToolWindowPanel(
   init {
     Disposer.register(disposableParent, this)
 
+    if (deviceType == DeviceType.AI_GLASSES) {
+      addTopPanel(GlassesInputPanel(emulator))
+    }
+
     // Start Adb ready service for context menu actions.
     project.service<EmulatorAdbReadyService>()
   }
