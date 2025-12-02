@@ -38,6 +38,9 @@ import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.issue.IssueStats
 import com.android.tools.idea.insights.model.issue.IssueVariant
 import com.android.tools.idea.insights.model.issue.SignalType
+import com.android.tools.idea.insights.model.note.Note
+import com.android.tools.idea.insights.model.note.NoteId
+import com.android.tools.idea.insights.model.note.NoteState
 import com.android.tools.idea.insights.model.stacktrace.Blames
 import com.android.tools.idea.insights.model.stacktrace.Caption
 import com.android.tools.idea.insights.model.stacktrace.ExceptionStack

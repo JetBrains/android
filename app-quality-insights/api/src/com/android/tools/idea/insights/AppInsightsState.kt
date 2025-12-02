@@ -20,6 +20,7 @@ import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueVariant
 import com.android.tools.idea.insights.model.issue.SignalType
 import com.android.tools.idea.insights.model.issue.VisibilityType
+import com.android.tools.idea.insights.model.note.Note
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
