@@ -159,9 +159,6 @@ data class BindingClassConfig(
 
   override val scopedViewIds: Map<BindingLayout, Collection<ViewIdData>>
     get() {
-      if (DumbService.isDumb(facet.module.project)) {
-        thisLogger().info("scopedViewIds: called while in dumb mode")
-      }
       if (!application.isReadAccessAllowed) {
         thisLogger().error("scopedViewIds: called without read access")
       }
