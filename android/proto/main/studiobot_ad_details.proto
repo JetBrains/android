@@ -1,0 +1,122 @@
+syntax = "proto2";
+
+import "google/protobuf/timestamp.proto";
+
+option java_package = "com.android.tools.idea.serverflags.protos";
+option java_multiple_files = true;
+
+// A spec for showing an advert in Android Studio.
+// You can read more about Studio Ads here: go/as-server-driven-ad-notification
+message StudioAd {
+  // The user action that can be performed in ads.
+  message Actions {
+    // Displays an action to browse to the given URL
+    message BrowseAction {
+      // URL where the user needs to be redirected.
+      optional string url = 1;
+    }
+    // Displays an action to open a specific UI screen in Android Studio.
+    message OpenUiAction {
+      enum UiScreen {
+        UI_SCREEN_UNKNOWN = 0;
+        AGENT_WINDOW = 1;
+        MODEL_PROVIDER_SETTINGS = 2;
+        PROMPT_LIBRARY_SETTINGS = 3;
+        MCP_SERVERS_SETTINGS = 4;
+      }
+      // Screen where the user needs to be redirected to.
+      optional UiScreen ui_screen = 1;
+    }
+    // CTA Title.
+    optional string title = 1;
+
+    // Action to be performed when the user clicks on the CTA.
+    oneof action {
+      BrowseAction browse_action = 2;
+      OpenUiAction openui_action = 3;
+    }
+  }
+  // A spec for showing an advert as an IntelliJ notification -
+  // https://plugins.jetbrains.com/docs/intellij/balloon.html
+  message NotificationAdSpec {
+    enum AdType {
+      AD_TYPE_UNKNOWN = 0;
+      INFORMATION = 1;
+      WARNING = 2;
+      ERROR = 3;
+    }
+
+    // Unique identifier for the notifications.
+    optional string id = 1;
+    optional string title = 2;
+    optional string description = 3;
+    // The type of ad that needs to be shown.
+    optional AdType ad_type = 4;
+    // List of user actions associated with the notification
+    repeated Actions actions = 5;
+  }
+
+  // A spec for showing an advert as a IntelliJ got-it tooltip.
+  // https://plugins.jetbrains.com/docs/intellij/got-it-tooltip.html
+  message GotItTooltipAdSpec {
+    message PlacementDetails {
+      enum ToolWindow {
+        TOOL_WINDOW_UNKNOWN = 0;
+        STUDIO_BOT_WINDOW = 1;
+      }
+      enum Position {
+        POSITION_UNKNOWN = 0;
+        MODEL_PICKER = 1;
+      }
+      // The specific tool window where the tooltip needs to be rendered.
+      optional ToolWindow tool_window = 1;
+      // The specific UI position in the tool window where the tooltip needs to
+      // be rendered.
+      optional Position position = 2;
+    }
+
+    // Unique identifier for the notifications.
+    optional string id = 1;
+    optional string title = 2;
+    optional string description = 3;
+    // Placement details for the tooltip. If not set, the tooltip will not be
+    // shown.
+    optional PlacementDetails placement_details = 4;
+    // List of user actions associated with the notification.
+    repeated Actions actions = 5;
+  }
+
+  message Requirement {
+    // The model provider type that must be configured for the ad to be shown.
+    enum ModelProviderType {
+      MODEL_PROVIDER_TYPE_UNKNOWN = 0;
+      FREE_TIER = 1;
+      BUSINESS_TIER = 2;
+      AI_STUDIO = 3;
+      LOCAL_MODEL = 4;
+      REMOTE_MODEL = 5;
+    }
+
+    message DateCondition {
+      // only shown if the current date is between [shown_after, shown_before]
+      optional google.protobuf.Timestamp shown_after = 1;
+      optional google.protobuf.Timestamp shown_before = 2;
+    }
+    // Note: The AS version conditions are already part of the server flag
+    // definition.
+    oneof condition {
+      ModelProviderType model_provider_type = 1;
+      DateCondition date_condition = 2;
+    }
+  }
+
+  // List of requirements that need to be met for the ad to be shown.
+  // All requirements need to be met for the ad to be shown.
+  repeated Requirement requirements = 1;
+
+  // Ad specifications for the notification.
+  oneof ad_spec {
+    NotificationAdSpec notification_ad_spec = 2;
+    GotItTooltipAdSpec got_it_tooltip_ad_spec = 3;
+  }
+}
