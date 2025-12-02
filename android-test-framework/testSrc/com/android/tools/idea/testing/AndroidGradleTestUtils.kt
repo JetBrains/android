@@ -2734,7 +2734,7 @@ fun injectBuildOutputDumpingBuildViewManager(
 }
 
 @Suppress("UnstableApiUsage")
-private fun fixDummySyncViewManager(project: Project, disposable: Disposable, eventHandler: (BuildEvent) -> Unit = {}) {
+ fun fixDummySyncViewManager(project: Project, disposable: Disposable, eventHandler: (BuildEvent) -> Unit = {}) {
   if (project.getService(SyncViewManager::class.java) is DummySyncViewManager) {
     val listeners = CopyOnWriteArrayList<BuildProgressListener>()
     project.replaceService(
