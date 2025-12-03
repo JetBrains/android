@@ -18,9 +18,9 @@ package com.android.screenshottest.action
 import com.android.screenshottest.util.UPDATE_ACTION_DESCRIPTION
 import com.android.screenshottest.util.UPDATE_ACTION_TEXT
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.testartifacts.screenshot.isClassDeclarationWithPreviewTestAnnotatedMethods
-import com.android.tools.idea.testartifacts.screenshot.isMethodDeclarationPreviewTestAnnotated
-import com.android.tools.idea.testartifacts.screenshot.isScreenshotTestSourceSet
+import com.android.screenshottest.producers.isClassDeclarationWithPreviewTestAnnotatedMethods
+import com.android.screenshottest.producers.isMethodDeclarationPreviewTestAnnotated
+import com.android.screenshottest.producers.isScreenshotTestSourceSet
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread

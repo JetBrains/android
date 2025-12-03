@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testartifacts.screenshot
+package com.android.screenshottest.producers
 
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.projectsystem.CommonTestType
@@ -31,8 +31,6 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.PsiUtilCore
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiAnnotation
 import org.jetbrains.plugins.gradle.util.GradleUtil
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 

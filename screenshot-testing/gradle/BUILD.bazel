@@ -44,6 +44,8 @@ jvm_library(
     "//platform/core-impl",
     "//libraries/protobuf",
     "//platform/core-ui",
+    "//plugins/gradle/java",
+    "//java/execution/impl",
   ]
 )
 ### auto-generated section `build intellij.android.screenshot-test.gradle` end
