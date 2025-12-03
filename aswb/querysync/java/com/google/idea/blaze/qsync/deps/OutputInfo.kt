@@ -36,6 +36,7 @@ interface OutputInfo {
   val ccTargets: Map<Label, CcTargetInfo>
   val ccToolchains: Map<String, CcToolchainInfo>
   val jars: List<OutputArtifact>
+  val transitiveRuntimeJars: List<OutputArtifact>
   val externalTransitiveRuntimeJars: List<OutputArtifact>
   val aars: List<OutputArtifact>
   val generatedSources: List<OutputArtifact>
@@ -73,6 +74,8 @@ interface OutputInfo {
       get() = OutputGroup.entries.filter { it.usedBySymbolResolution }.flatMap { artifacts[it].orEmpty() }
     override val jars: List<OutputArtifact>
       get() = artifacts[OutputGroup.JARS].orEmpty()
+    override val transitiveRuntimeJars: List<OutputArtifact>
+      get() = artifacts[OutputGroup.TRANSITIVE_RUNTIME_JARS].orEmpty()
     override val externalTransitiveRuntimeJars: List<OutputArtifact>
       get() = artifacts[OutputGroup.EXTERNAL_TRANSITIVE_RUNTIME_JARS].orEmpty()
     override val aars: List<OutputArtifact>

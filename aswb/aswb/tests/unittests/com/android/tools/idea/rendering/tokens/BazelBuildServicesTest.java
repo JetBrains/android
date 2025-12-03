@@ -74,10 +74,11 @@ public final class BazelBuildServicesTest {
 
       var groups = EnumSet.of(OutputGroup.JARS,
                               OutputGroup.TRANSITIVE_RUNTIME_JARS,
+                              OutputGroup.EXTERNAL_TRANSITIVE_RUNTIME_JARS,
                               OutputGroup.AARS,
                               OutputGroup.GENSRCS,
-                              OutputGroup.JDEPS,
-                              OutputGroup.ARTIFACT_INFO_FILE);
+                              OutputGroup.ARTIFACT_INFO_FILE,
+                              OutputGroup.JDEPS);
 
       assertEquals(1, builds.size());
       assertEquals(groups, builds.get(0).getOutputGroups());

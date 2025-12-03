@@ -86,6 +86,7 @@ public interface DependencyTracker {
 
       if (type.equals(RequestType.FILE_PREVIEWS)) {
         outputGroups.add(OutputGroup.TRANSITIVE_RUNTIME_JARS);
+        outputGroups.add(OutputGroup.EXTERNAL_TRANSITIVE_RUNTIME_JARS);
       }
 
       return outputGroups;
