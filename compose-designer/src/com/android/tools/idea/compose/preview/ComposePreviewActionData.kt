@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.DesignSurface
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
@@ -30,6 +31,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import java.awt.event.InputEvent
@@ -68,7 +70,19 @@ internal suspend fun createPreviewActionData(
   return ActionData(text, icon = icon, suffixIcon = suffixIcon) { inputEvent ->
     val event =
       previewActionEvent(action, psiFilePointer, mainSurface, inputEvent) ?: return@ActionData
-    action.actionPerformed(event)
+    if (action is ActionGroup) {
+      JBPopupFactory.getInstance()
+        .createActionGroupPopup(
+          null,
+          action,
+          event.dataContext,
+          JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
+          false,
+        )
+        .showUnderneathOf(inputEvent.component)
+    } else {
+      action.actionPerformed(event)
+    }
   }
 }
 
