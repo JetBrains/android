@@ -132,11 +132,14 @@ class StateInspectionModelTest {
   fun testDefaults() = runTestWithDisposable { disposable ->
     var results = 0
     val model = StateInspectionModelImpl(inspectorModel, this, disposable) { results++ }
+    val content = model.content.value
     assertThat(model.show.value).isFalse()
-    assertThat(model.recompositionText.value).isEqualTo("")
-    assertThat(model.stateReadsText.value).isEqualTo("")
-    assertThat(model.stackTraceText.value).isEqualTo("")
-    assertThat(model.composableInspected.value).isEqualTo(null)
+    assertThat(content.recompositionText).isEmpty()
+    assertThat(content.stateReadsText).isEmpty()
+    assertThat(content.stackTraceText).isEmpty()
+    assertThat(content.composableInspected).isNull()
+    assertThat(content.emptyStateText).isEmpty()
+    assertThat(content.updates).isEqualTo(1)
     assertThat(results).isEqualTo(0)
   }
 
@@ -150,17 +153,18 @@ class StateInspectionModelTest {
     testScheduler.advanceUntilIdle()
 
     // Nothing to show yet:
+    var content = model.content.value
     assertThat(model.show.value).isTrue()
-    assertThat(model.updates.value).isEqualTo(3)
-    assertThat(model.recompositionText.value).isEqualTo("Waiting for interactions")
-    assertThat(model.emptyStateText.value)
+    assertThat(content.updates).isEqualTo(3)
+    assertThat(content.recompositionText).isEqualTo("Waiting for interactions")
+    assertThat(content.emptyStateText)
       .isEqualTo(
         "The selected composable has not recomposed yet.\n" +
           "Try interacting with the app to cause recompositions."
       )
-    assertThat(model.stateReadsText.value).isEqualTo("")
-    assertThat(model.stackTraceText.value).isEqualTo("")
-    assertThat(model.composableInspected.value).isEqualTo(null)
+    assertThat(content.stateReadsText).isEmpty()
+    assertThat(content.stackTraceText).isEmpty()
+    assertThat(content.composableInspected).isNull()
     assertThat(model.prevAction.isEnabled()).isFalse()
     assertThat(model.nextAction.isEnabled()).isFalse()
     assertThat(model.minimizeAction.isEnabled()).isTrue()
@@ -170,11 +174,12 @@ class StateInspectionModelTest {
     inspectorModel.stateReadsModel.stateReads.emit(read2Anchor1.convert(compose1, 2))
     testScheduler.advanceUntilIdle()
     assertThat(model.show.value).isTrue()
-    assertThat(model.updates.value).isEqualTo(4)
-    assertThat(model.recompositionText.value).isEqualTo("Recomposition 2")
-    assertThat(model.emptyStateText.value).isEmpty()
-    assertThat(model.stateReadsText.value).isEqualTo("State Reads: 1")
-    assertThat(model.stackTraceText.value)
+    content = model.content.value
+    assertThat(content.updates).isEqualTo(4)
+    assertThat(content.recompositionText).isEqualTo("Recomposition 2")
+    assertThat(content.emptyStateText).isEmpty()
+    assertThat(content.stateReadsText).isEqualTo("State Reads: 1")
+    assertThat(content.stackTraceText)
       .isEqualTo(
         """
         State read value: 1.0dp <invalidated>
@@ -185,7 +190,7 @@ class StateInspectionModelTest {
       """
           .trimIndent()
       )
-    assertThat(model.composableInspected.value)
+    assertThat(content.composableInspected)
       .isEqualTo(ComposableDefinition("Item", "MainActivity.kt"))
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isFalse()
@@ -195,25 +200,28 @@ class StateInspectionModelTest {
     // Selecting the same node should not cause updates:
     inspectorModel.setSelection(compose1, SelectionOrigin.INTERNAL)
     testScheduler.advanceUntilIdle()
-    assertThat(model.updates.value).isEqualTo(4)
+    content = model.content.value
+    assertThat(content.updates).isEqualTo(4)
     assertThat(results).isEqualTo(1)
 
     // Selecting a ViewNode:
     inspectorModel.setSelection(view1, SelectionOrigin.INTERNAL)
     testScheduler.advanceUntilIdle()
+    content = model.content.value
 
     // There are no state reads for View nodes:
     assertThat(model.show.value).isTrue()
-    assertThat(model.updates.value).isEqualTo(5)
-    assertThat(model.recompositionText.value).isEqualTo("Not a compose node")
-    assertThat(model.emptyStateText.value)
+    assertThat(content.updates).isEqualTo(5)
+    assertThat(content.recompositionText).isEqualTo("Not a compose node")
+    assertThat(content.emptyStateText)
       .isEqualTo(
         "The selected node is a View. State reads are not supported for views.\n" +
           "Select a compose node to see recomposition state reads."
       )
-    assertThat(model.stateReadsText.value).isEqualTo("")
-    assertThat(model.stackTraceText.value).isEqualTo("")
-    assertThat(model.composableInspected.value).isEqualTo(null)
+
+    assertThat(content.stateReadsText).isEmpty()
+    assertThat(content.stackTraceText).isEmpty()
+    assertThat(content.composableInspected).isNull()
     assertThat(model.prevAction.isEnabled()).isFalse()
     assertThat(model.nextAction.isEnabled()).isFalse()
     assertThat(model.minimizeAction.isEnabled()).isTrue()
@@ -221,13 +229,15 @@ class StateInspectionModelTest {
     // Selecting an observed composable:
     inspectorModel.setSelection(compose1, SelectionOrigin.INTERNAL)
     testScheduler.advanceUntilIdle()
+    content = model.content.value
 
     // Now the previously shown state reads are shown again:
     assertThat(model.show.value).isTrue()
-    assertThat(model.updates.value).isEqualTo(6)
-    assertThat(model.recompositionText.value).isEqualTo("Recomposition 2")
-    assertThat(model.stateReadsText.value).isEqualTo("State Reads: 1")
-    assertThat(model.stackTraceText.value)
+    assertThat(content.updates).isEqualTo(6)
+    assertThat(content.recompositionText).isEqualTo("Recomposition 2")
+    assertThat(content.emptyStateText).isEmpty()
+    assertThat(content.stateReadsText).isEqualTo("State Reads: 1")
+    assertThat(content.stackTraceText)
       .isEqualTo(
         """
         State read value: 1.0dp <invalidated>
@@ -238,7 +248,7 @@ class StateInspectionModelTest {
       """
           .trimIndent()
       )
-    assertThat(model.composableInspected.value)
+    assertThat(content.composableInspected)
       .isEqualTo(ComposableDefinition("Item", "MainActivity.kt"))
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isFalse()
@@ -248,19 +258,21 @@ class StateInspectionModelTest {
     // Selecting a non observed composable:
     inspectorModel.setSelection(compose2, SelectionOrigin.INTERNAL)
     testScheduler.advanceUntilIdle()
+    content = model.content.value
 
     // There are no state reads for a non observed node:
     assertThat(model.show.value).isTrue()
-    assertThat(model.updates.value).isEqualTo(7)
-    assertThat(model.recompositionText.value).isEqualTo("Node is not observed")
-    assertThat(model.emptyStateText.value)
+    assertThat(content.updates).isEqualTo(7)
+    assertThat(content.recompositionText).isEqualTo("Node is not observed")
+    assertThat(content.emptyStateText)
       .isEqualTo(
         "The selected composable is not being observed.\n" +
           "Select a different node to see recomposition state reads."
       )
-    assertThat(model.stateReadsText.value).isEqualTo("")
-    assertThat(model.stackTraceText.value).isEqualTo("")
-    assertThat(model.composableInspected.value).isEqualTo(null)
+
+    assertThat(content.stateReadsText).isEmpty()
+    assertThat(content.stackTraceText).isEmpty()
+    assertThat(content.composableInspected).isNull()
     assertThat(model.prevAction.isEnabled()).isFalse()
     assertThat(model.nextAction.isEnabled()).isFalse()
     assertThat(model.minimizeAction.isEnabled()).isTrue()
@@ -268,14 +280,20 @@ class StateInspectionModelTest {
     // Make it observable:
     inspectorModel.stateReadsModel.observeNode(compose2)
     testScheduler.advanceUntilIdle()
+    content = model.content.value
 
     // We are now waiting for state reads for compose2:
     assertThat(model.show.value).isTrue()
-    assertThat(model.updates.value).isEqualTo(8)
-    assertThat(model.recompositionText.value).isEqualTo("Waiting for interactions")
-    assertThat(model.stateReadsText.value).isEqualTo("")
-    assertThat(model.stackTraceText.value).isEqualTo("")
-    assertThat(model.composableInspected.value).isEqualTo(null)
+    assertThat(content.updates).isEqualTo(8)
+    assertThat(content.recompositionText).isEqualTo("Waiting for interactions")
+    assertThat(content.emptyStateText)
+      .isEqualTo(
+        "The selected composable has not recomposed yet.\n" +
+          "Try interacting with the app to cause recompositions."
+      )
+    assertThat(content.stateReadsText).isEmpty()
+    assertThat(content.stackTraceText).isEmpty()
+    assertThat(content.composableInspected).isNull()
     assertThat(model.prevAction.isEnabled()).isFalse()
     assertThat(model.nextAction.isEnabled()).isFalse()
     assertThat(model.minimizeAction.isEnabled()).isTrue()
@@ -285,18 +303,19 @@ class StateInspectionModelTest {
   fun testPrevAndNext() = runTestWithDisposable { disposable ->
     var results = 0
     val model = StateInspectionModelImpl(inspectorModel, this, disposable) { results++ }
-    assertThat(model.updates.value).isEqualTo(1)
+    assertThat(model.content.value.updates).isEqualTo(1)
 
     // Select compose1 for showing state reads:
     inspectorModel.stateReadsModel.requestStateReadFor(compose1)
     testScheduler.advanceUntilIdle()
-    assertThat(model.updates.value).isEqualTo(3)
+    assertThat(model.content.value.updates).isEqualTo(3)
 
     // A state read is received from the compose agent:
     inspectorModel.stateReadsModel.stateReads.emit(read2Anchor1.convert(compose1, 2))
     testScheduler.advanceUntilIdle()
-    assertThat(model.updates.value).isEqualTo(4)
-    assertThat(model.recompositionText.value).isEqualTo("Recomposition 2")
+    var content = model.content.value
+    assertThat(content.updates).isEqualTo(4)
+    assertThat(content.recompositionText).isEqualTo("Recomposition 2")
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isFalse()
     assertThat(results).isEqualTo(1)
@@ -324,24 +343,27 @@ class StateInspectionModelTest {
       }
     inspectorModel.update(updatedRecompositionCounts, listOf(ROOT), 0)
     testScheduler.advanceUntilIdle()
-    assertThat(model.updates.value).isEqualTo(5)
-    assertThat(model.recompositionText.value).isEqualTo("Recomposition 2")
+    content = model.content.value
+    assertThat(content.updates).isEqualTo(5)
+    assertThat(content.recompositionText).isEqualTo("Recomposition 2")
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isTrue()
 
     model.nextAction.perform()
     testScheduler.advanceUntilIdle()
+    content = model.content.value
     assertThat(inspectorModel.stateReadsModel.stateReadRequested.value)
       .isEqualTo(StateReadKey(compose1, 3))
-    assertThat(model.updates.value).isEqualTo(6)
-    assertThat(model.recompositionText.value).isEqualTo("Waiting for interactions")
-    assertThat(model.stateReadsText.value).isEqualTo("")
-    assertThat(model.stackTraceText.value).isEqualTo("")
+    assertThat(content.updates).isEqualTo(6)
+    assertThat(content.recompositionText).isEqualTo("Waiting for interactions")
+    assertThat(content.stateReadsText).isEmpty()
+    assertThat(content.stackTraceText).isEmpty()
 
     inspectorModel.stateReadsModel.stateReads.emit(read3Anchor1.convert(compose1, 3))
     testScheduler.advanceUntilIdle()
-    assertThat(model.updates.value).isEqualTo(7)
-    assertThat(model.recompositionText.value).isEqualTo("Recomposition 3")
+    content = model.content.value
+    assertThat(content.updates).isEqualTo(7)
+    assertThat(content.recompositionText).isEqualTo("Recomposition 3")
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isFalse()
     assertThat(results).isEqualTo(2)
@@ -350,34 +372,38 @@ class StateInspectionModelTest {
     testScheduler.advanceUntilIdle()
     assertThat(inspectorModel.stateReadsModel.stateReadRequested.value)
       .isEqualTo(StateReadKey(compose1, 2))
-    assertThat(model.updates.value).isEqualTo(8)
-    assertThat(model.recompositionText.value).isEqualTo("Waiting for interactions")
-    assertThat(model.stateReadsText.value).isEqualTo("")
-    assertThat(model.stackTraceText.value).isEqualTo("")
+    content = model.content.value
+    assertThat(content.updates).isEqualTo(8)
+    assertThat(content.recompositionText).isEqualTo("Waiting for interactions")
+    assertThat(content.stateReadsText).isEmpty()
+    assertThat(content.stackTraceText).isEmpty()
 
     inspectorModel.stateReadsModel.stateReads.emit(read2Anchor1.convert(compose1, 2))
     testScheduler.advanceUntilIdle()
-    assertThat(model.updates.value).isEqualTo(9)
-    assertThat(model.recompositionText.value).isEqualTo("Recomposition 2")
+    content = model.content.value
+    assertThat(content.updates).isEqualTo(9)
+    assertThat(content.recompositionText).isEqualTo("Recomposition 2")
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isTrue()
     assertThat(results).isEqualTo(3)
 
     model.prevAction.perform()
     testScheduler.advanceUntilIdle()
+    content = model.content.value
     assertThat(inspectorModel.stateReadsModel.stateReadRequested.value)
       .isEqualTo(StateReadKey(compose1, 1))
-    assertThat(model.updates.value).isEqualTo(10)
-    assertThat(model.recompositionText.value).isEqualTo("Waiting for interactions")
-    assertThat(model.stateReadsText.value).isEqualTo("")
-    assertThat(model.stackTraceText.value).isEqualTo("")
+    assertThat(content.updates).isEqualTo(10)
+    assertThat(content.recompositionText).isEqualTo("Waiting for interactions")
+    assertThat(content.stateReadsText).isEmpty()
+    assertThat(content.stackTraceText).isEmpty()
 
     inspectorModel.stateReadsModel.stateReads.emit(
       read1Anchor1.convert(compose1, 1, hasPrevious = false)
     )
     testScheduler.advanceUntilIdle()
-    assertThat(model.updates.value).isEqualTo(11)
-    assertThat(model.recompositionText.value).isEqualTo("Recomposition 1")
+    content = model.content.value
+    assertThat(content.updates).isEqualTo(11)
+    assertThat(content.recompositionText).isEqualTo("Recomposition 1")
     assertThat(model.prevAction.isEnabled()).isFalse()
     assertThat(model.nextAction.isEnabled()).isTrue()
     assertThat(results).isEqualTo(4)
