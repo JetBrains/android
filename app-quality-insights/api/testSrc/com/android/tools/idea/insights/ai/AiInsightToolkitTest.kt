@@ -21,10 +21,17 @@ import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus.SUPPORTED
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus.UNSUPPORTED
+import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
+import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
+import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
+import com.android.tools.idea.insights.client.FakeAiInsightClient
 import com.android.tools.idea.insights.model.connection.Connection
+import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.issue.FailureType
+import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
@@ -85,12 +92,7 @@ class AiInsightToolkitTest {
 
   @Test
   fun `code context resolver returns empty result when context sharing is off`() = runBlocking {
-    val toolKit =
-      AiInsightToolkitImpl(
-        projectRule.project,
-        StubInsightsOnboardingProvider(),
-        FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))),
-      )
+    val toolKit = createToolkit(FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))))
 
     fakeGeminiPluginApi.contextAllowed = false
     assertThat(toolKit.getSource(conn, StacktraceGroup())).isEqualTo(CodeContextData.DISABLED)
@@ -103,12 +105,7 @@ class AiInsightToolkitTest {
   fun `code context resolver returns empty result when connection does not match project`() =
     runBlocking {
       doReturn(false).whenever(conn).isMatchingProject()
-      val toolKit =
-        AiInsightToolkitImpl(
-          projectRule.project,
-          StubInsightsOnboardingProvider(),
-          FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))),
-        )
+      val toolKit = createToolkit(FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))))
       fakeGeminiPluginApi.contextAllowed = true
 
       assertThat(toolKit.getSource(conn, StacktraceGroup()).isEmpty()).isTrue()
@@ -120,12 +117,7 @@ class AiInsightToolkitTest {
       .thenReturn(DevServicesDeprecationData("Gemini", "desc", "url", true, UNSUPPORTED))
     whenever(deprecationDataProvider.getCurrentDeprecationData(eq("aqi/insights"), any()))
       .thenReturn(DevServicesDeprecationData("", "", "", false, SUPPORTED))
-    val toolkit =
-      AiInsightToolkitImpl(
-        projectRule.project,
-        StubInsightsOnboardingProvider(),
-        FakeCodeContextResolver(emptyList()),
-      )
+    val toolkit = createToolkit(FakeCodeContextResolver(emptyList()))
 
     val data = toolkit.insightDeprecationData
     assertThat(data.isUnsupported()).isTrue()
@@ -141,12 +133,7 @@ class AiInsightToolkitTest {
       .thenReturn(DevServicesDeprecationData("", "", "", false, SUPPORTED))
     whenever(deprecationDataProvider.getCurrentDeprecationData(eq("aqi/insights"), any()))
       .thenReturn(DevServicesDeprecationData("AQI", "desc", "url", true, UNSUPPORTED))
-    val toolkit =
-      AiInsightToolkitImpl(
-        projectRule.project,
-        StubInsightsOnboardingProvider(),
-        FakeCodeContextResolver(emptyList()),
-      )
+    val toolkit = createToolkit(FakeCodeContextResolver(emptyList()))
 
     val data = toolkit.insightDeprecationData
     assertThat(data.isUnsupported()).isTrue()
@@ -155,4 +142,18 @@ class AiInsightToolkitTest {
     assertThat(data.moreInfoUrl).isEqualTo("url")
     assertThat(data.showUpdateAction).isTrue()
   }
+
+  private fun createToolkit(codeContextResolver: CodeContextResolver) =
+    object : AiInsightToolkit(projectRule.project, codeContextResolver, FakeAiInsightClient) {
+      override val aiInsightOnboardingProvider: InsightsOnboardingProvider
+        get() = StubInsightsOnboardingProvider()
+
+      override suspend fun fetchInsight(
+        connection: Connection,
+        issueId: IssueId,
+        variantId: String?,
+        failureType: FailureType,
+        event: Event,
+      ) = LoadingState.Ready(DEFAULT_AI_INSIGHT)
+    }
 }

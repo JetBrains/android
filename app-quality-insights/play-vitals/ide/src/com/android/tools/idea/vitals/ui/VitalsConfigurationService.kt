@@ -23,7 +23,6 @@ import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerImpl
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
-import com.android.tools.idea.insights.ai.AiInsightToolkitImpl
 import com.android.tools.idea.insights.ai.GeminiAiInsightsOnboardingProvider
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -41,6 +40,7 @@ import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.vitals.IntellijStackTraceGroupParser
+import com.android.tools.idea.vitals.VitalsAiInsightToolkit
 import com.android.tools.idea.vitals.VitalsInsightsProvider
 import com.android.tools.idea.vitals.VitalsLoginFeature
 import com.android.tools.idea.vitals.client.VitalsClient
@@ -226,7 +226,6 @@ class VitalsConfigurationManager(
               GoogleLoginService.instance.getActiveUserAuthInterceptor(
                 LoginFeature.feature<VitalsLoginFeature>()
               ),
-              aiInsightClient = GeminiAiInsightClient(project, cache),
               stackTraceGroupParser = IntellijStackTraceGroupParser(),
             )
           )
@@ -240,6 +239,8 @@ class VitalsConfigurationManager(
             // Project is disposed.
             return@launch
           }
+
+        val codeContextResolver = CodeContextResolverImpl(project)
         val vitalsController =
           AppInsightsProjectLevelControllerImpl(
             provider = VitalsInsightsProvider,
@@ -261,10 +262,11 @@ class VitalsConfigurationManager(
             },
             defaultFilters = createVitalsFilters(),
             aiInsightToolkit =
-              AiInsightToolkitImpl(
+              VitalsAiInsightToolkit(
                 project,
                 GeminiAiInsightsOnboardingProvider(project),
-                CodeContextResolverImpl(project),
+                codeContextResolver,
+                GeminiAiInsightClient(project, cache, codeContextResolver),
               ),
             cache = cache,
           )

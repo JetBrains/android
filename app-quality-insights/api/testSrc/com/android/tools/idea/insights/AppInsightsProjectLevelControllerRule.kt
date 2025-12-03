@@ -35,7 +35,6 @@ import com.android.tools.idea.insights.model.connection.AppConnection
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.event.Device
-import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version
@@ -105,7 +104,7 @@ class AppInsightsProjectLevelControllerRule(
   private lateinit var cache: AppInsightsCache
 
   lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
-  private val geminiToolkit = FakeAiInsightToolkit()
+  lateinit var geminiToolkit: FakeAiInsightToolkit
 
   override fun before(description: Description) {
     val offlineStatusManager = OfflineStatusManagerImpl()
@@ -116,6 +115,7 @@ class AppInsightsProjectLevelControllerRule(
     connections = MutableSharedFlow(replay = 1)
     tracker = mock<AppInsightsTracker>()
     fakeGeminiPluginApi = FakeGeminiPluginApi()
+    geminiToolkit = FakeAiInsightToolkit(projectProvider(), cache = cache)
     ExtensionTestUtil.maskExtensions(
       GeminiPluginApi.EP_NAME,
       listOf(fakeGeminiPluginApi),
@@ -177,7 +177,7 @@ class AppInsightsProjectLevelControllerRule(
           client.completeIssueVariantsCallWith(issueVariantsState)
           client.completeListEvents(eventsState)
         } else {
-          client.completeFetchInsightCallWith(insightState)
+          geminiToolkit.completeFetchInsightCallWith(insightState)
         }
       }
       if (provider.supportsMultipleEvents) {
@@ -188,7 +188,7 @@ class AppInsightsProjectLevelControllerRule(
           eventsState.valueOrNull()?.events?.isNotEmpty() == true &&
             resultState.selectedEvent?.isStackTraceEmpty() == false
         ) {
-          client.completeFetchInsightCallWith(insightState)
+          geminiToolkit.completeFetchInsightCallWith(insightState)
           consumeNext()
         }
         client.completeListNotesCallWith(notesState)
@@ -313,7 +313,6 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   private val createNoteCall = CallInProgress<LoadingState.Done<Note>>()
   private val deleteNoteCall = CallInProgress<LoadingState.Done<Unit>>()
   private val listEventsCall = CallInProgress<LoadingState.Done<EventPage>>()
-  private val fetchInsightCall = CallInProgress<LoadingState.Done<AiInsight>>()
 
   override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> =
     listConnections.initiateCall()
@@ -421,15 +420,4 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   suspend fun completeDeleteNoteCallWith(value: LoadingState.Done<Unit>) {
     deleteNoteCall.completeWith(value)
   }
-
-  override suspend fun fetchInsight(
-    connection: Connection,
-    issueId: IssueId,
-    variantId: String?,
-    failureType: FailureType,
-    event: Event,
-  ): LoadingState.Done<AiInsight> = fetchInsightCall.initiateCall()
-
-  suspend fun completeFetchInsightCallWith(value: LoadingState.Done<AiInsight>) =
-    fetchInsightCall.completeWith(value)
 }
