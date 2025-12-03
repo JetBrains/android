@@ -372,7 +372,7 @@ class ActionDispatcher(
               }
             }
             else -> {
-              appInsightsClient.fetchInsight(
+              aiInsightToolkit.fetchInsight(
                 connection,
                 action.id,
                 action.variantId,

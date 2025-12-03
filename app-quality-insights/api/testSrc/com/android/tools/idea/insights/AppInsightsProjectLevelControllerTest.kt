@@ -677,7 +677,9 @@ class AppInsightsProjectLevelControllerTest {
     client.completeListNotesCallWith(LoadingState.Ready(emptyList()))
     controllerRule.consumeNext()
 
-    client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+    controllerRule.geminiToolkit.completeFetchInsightCallWith(
+      LoadingState.Ready(DEFAULT_AI_INSIGHT)
+    )
     controllerRule.consumeNext()
 
     controllerRule.refreshAndConsumeLoadingState()
@@ -842,7 +844,9 @@ class AppInsightsProjectLevelControllerTest {
     client.completeListNotesCallWith(LoadingState.Ready(emptyList()))
     controllerRule.consumeNext()
 
-    client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+    controllerRule.geminiToolkit.completeFetchInsightCallWith(
+      LoadingState.Ready(DEFAULT_AI_INSIGHT)
+    )
 
     assertThat(controllerRule.consumeNext())
       .isEqualTo(
@@ -1580,7 +1584,7 @@ class AppInsightsProjectLevelControllerTest {
     assertThat(state.currentInsight).isEqualTo(LoadingState.Loading("Regenerating insight..."))
 
     val newInsight = AiInsight("Insight", ISSUE1.sampleEvent)
-    client.completeFetchInsightCallWith(LoadingState.Ready(newInsight))
+    controllerRule.geminiToolkit.completeFetchInsightCallWith(LoadingState.Ready(newInsight))
     state = controllerRule.consumeNext()
     assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(newInsight))
   }
@@ -1615,7 +1619,9 @@ class AppInsightsProjectLevelControllerTest {
 
     try {
       withTimeout(1000) {
-        client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+        controllerRule.geminiToolkit.completeFetchInsightCallWith(
+          LoadingState.Ready(DEFAULT_AI_INSIGHT)
+        )
       }
     } catch (_: TimeoutCancellationException) {}
 
@@ -1629,7 +1635,9 @@ class AppInsightsProjectLevelControllerTest {
     controllerRule.controller.refreshInsight(false)
     try {
       withTimeout(1000) {
-        client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+        controllerRule.geminiToolkit.completeFetchInsightCallWith(
+          LoadingState.Ready(DEFAULT_AI_INSIGHT)
+        )
       }
     } catch (_: TimeoutCancellationException) {}
 

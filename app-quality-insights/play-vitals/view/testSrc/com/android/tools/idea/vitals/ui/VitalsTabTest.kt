@@ -403,7 +403,9 @@ class VitalsTabTest {
       )
 
       createTab()
-      controllerRule.client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+      controllerRule.geminiToolkit.completeFetchInsightCallWith(
+        LoadingState.Ready(DEFAULT_AI_INSIGHT)
+      )
       var state = controllerRule.consumeNext()
       assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
 
@@ -417,7 +419,9 @@ class VitalsTabTest {
       assertThat(state.currentInsight).isEqualTo(LoadingState.Loading)
       try {
         withTimeout(1000) {
-          controllerRule.client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+          controllerRule.geminiToolkit.completeFetchInsightCallWith(
+            LoadingState.Ready(DEFAULT_AI_INSIGHT)
+          )
         }
         fail("Should have timed out")
       } catch (_: TimeoutCancellationException) {}
@@ -426,7 +430,9 @@ class VitalsTabTest {
       state = controllerRule.consumeNext()
       assertThat(state.disabledActions).isEmpty()
 
-      controllerRule.client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+      controllerRule.geminiToolkit.completeFetchInsightCallWith(
+        LoadingState.Ready(DEFAULT_AI_INSIGHT)
+      )
       state = controllerRule.consumeNext()
       assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
     }
