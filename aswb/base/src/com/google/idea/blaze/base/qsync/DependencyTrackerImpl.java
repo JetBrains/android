@@ -48,14 +48,17 @@ public class DependencyTrackerImpl implements DependencyTracker {
   private final SnapshotHolder snapshotHolder;
   private final DependencyBuilder builder;
   private final ArtifactTracker<BlazeContext> artifactTracker;
+  private final QuerySyncUserPreferences querySyncUserPreferences;
 
   public DependencyTrackerImpl(
     SnapshotHolder snapshotHolder,
     DependencyBuilder builder,
-    ArtifactTracker<BlazeContext> artifactTracker) {
+    ArtifactTracker<BlazeContext> artifactTracker,
+    QuerySyncUserPreferences querySyncUserPreferences) {
     this.snapshotHolder = snapshotHolder;
     this.builder = builder;
     this.artifactTracker = artifactTracker;
+    this.querySyncUserPreferences = querySyncUserPreferences;
   }
 
   private QuerySyncProjectSnapshot getCurrentSnapshot() {
@@ -83,7 +86,8 @@ public class DependencyTrackerImpl implements DependencyTracker {
   private RequestedTargets getRequestedTargets(
       QuerySyncProjectSnapshot snapshot, DependencyBuildRequest request) {
     return switch (request.requestType) {
-      case MULTIPLE_TARGETS -> snapshot.getGraph().computeRequestedTargets(request.targets);
+      case MULTIPLE_TARGETS -> snapshot.getGraph()
+        .computeRequestedTargets(request.targets, querySyncUserPreferences.getExperimentalBuildNativeTargetsFromAndroidTransitionPoint());
       case WHOLE_PROJECT -> snapshot.getGraph().computeWholeProjectTargets();
       case FILE_PREVIEWS -> new RequestedTargets(request.targets, ImmutableSet.of());
     };

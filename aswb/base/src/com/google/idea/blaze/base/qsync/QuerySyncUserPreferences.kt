@@ -26,9 +26,12 @@ import kotlin.jvm.optionals.getOrDefault
 interface QuerySyncUserPreferences {
   val enableCodeAnalysisOnSync: Boolean
   val refreshQueryDataOnStartup: Boolean
+  val experimentalBuildNativeTargetsFromAndroidTransitionPoint: Boolean
 }
 
 private val skipRefreshQueryDataOnStartup = BoolExperiment("aswb.query.sync.skip.query.on.startup", true)
+private val buildNativeTargetsFromAndroidTransitionPoint =
+    BoolExperiment("aswb.query.sync.build.native.targets.from.android.transition.point", false)
 
 @Service(Service.Level.PROJECT)
 class QuerySyncUserPreferencesProvider(private val project: Project) {
@@ -37,8 +40,12 @@ class QuerySyncUserPreferencesProvider(private val project: Project) {
       get() =
         ProjectViewManager.getInstance(project).projectViewSet?.getScalarValue(EnableCodeAnalysisOnSyncSection.KEY)?.getOrDefault(false)
         ?: false
+
     override val refreshQueryDataOnStartup: Boolean
       get() = !skipRefreshQueryDataOnStartup.value
+
+    override val experimentalBuildNativeTargetsFromAndroidTransitionPoint: Boolean
+      get() = buildNativeTargetsFromAndroidTransitionPoint.value
   }
 
   companion object {

@@ -221,7 +221,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
     BlazeImportSettings importSettings =
         Preconditions.checkNotNull(
             BlazeImportSettingsManager.getInstance(project).getImportSettings());
-
+    final var querySyncUserPreferences = QuerySyncUserPreferencesProvider.getInstance(project).getUserPreferences();
     final var projectToLoad =
         loadProjectDefinition(BlazeImportSettingsManager.getInstance(project).getProjectViewSet());
     final var workspaceRoot = projectToLoad.workspaceRoot();
@@ -289,7 +289,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
     AppInspectorTracker appInspectorTracker =
         new AppInspectorTrackerImpl(appInspectorBuilder, appInspectorArtifactTracker);
     DependencyTracker dependencyTracker =
-        new DependencyTrackerImpl(snapshotHolder, dependencyBuilder, artifactTracker);
+        new DependencyTrackerImpl(snapshotHolder, dependencyBuilder, artifactTracker, querySyncUserPreferences);
     ProjectRefresher projectRefresher =
         new ProjectRefresher(
             vcsHandler.map(it -> (VcsStateDiffer) it::diffVcsState).orElse(VcsStateDiffer.NONE),
