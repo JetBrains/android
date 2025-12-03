@@ -497,7 +497,7 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
     checkEmptyPreviewState(
       showAutoGenerateAction = true,
       showScreenshotToAction = StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get(),
-      expectedAutoGenerateActionText = "Generate Preview for Composable",
+      expectedAutoGenerateActionText = "Generate Preview for composable",
     )
   }
 
@@ -516,7 +516,7 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
   private fun checkEmptyPreviewState(
     showAutoGenerateAction: Boolean,
     showScreenshotToAction: Boolean,
-    expectedAutoGenerateActionText: String = "Generate Preview for Composable",
+    expectedAutoGenerateActionText: String = "Generate Preview for composable",
   ) = runBlocking {
     previewView.hasRendered = true
     previewView.hasContent = false
