@@ -18,7 +18,9 @@ package com.google.idea.blaze.base.run;
 public enum RuntimeArtifactKind {
   APK(".apk"),
   SYMBOL_FILE(".so"),
-  JAR(".jar");
+  JAR(".jar"),
+  TRANSITIVE_RUNTIME_JAR(".jar"),
+  EXTERNAL_TRANSITIVE_RUNTIME_JAR(".jar");
 
   public final String extension;
 

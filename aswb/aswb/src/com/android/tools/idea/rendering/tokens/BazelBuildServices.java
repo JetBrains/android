@@ -35,6 +35,8 @@ import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup;
 import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors;
+import com.google.idea.blaze.base.run.RuntimeArtifactCache;
+import com.google.idea.blaze.base.run.RuntimeArtifactKind;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
@@ -100,22 +102,20 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
       BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt(popup -> popup.showCenteredInCurrentWindow(project)),
       TargetDisambiguationAnchors.NONE,
       scope,
-      labels -> buildAndRefresh(project, labels, scope));
+      labels -> buildAndRefresh(project, Iterables.getOnlyElement(labels), scope));
   }
 
   /**
    * Executed by the EDT
    */
   @UiThread
-  private Deferred<Boolean> buildAndRefresh(Project project, Set<Label> labels, QuerySyncActionStatsScope scope) {
-    var manager = QuerySyncManager.getInstance(project);
-
+  private Deferred<Boolean> buildAndRefresh(Project project, Label label, QuerySyncActionStatsScope scope) {
     var buildAndRefresh = QuerySyncManager.createOperation("Build & Refresh",
                                                            "Building and refreshing",
                                                            OperationType.BUILD_DEPS,
-                                                           context -> buildAndRefresh(manager, context, labels));
+                                                           context -> buildAndRefresh(project, context, label));
 
-    var buildAndRefreshFuture = manager.runOperation(scope, TaskOrigin.USER_ACTION, buildAndRefresh);
+    var buildAndRefreshFuture = QuerySyncManager.getInstance(project).runOperation(scope, TaskOrigin.USER_ACTION, buildAndRefresh);
 
     var newBuildResultFuture = Futures.transform(buildAndRefreshFuture,
                                                  succeeded -> newBuildResult(succeeded, project),
@@ -129,15 +129,19 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
   /**
    * Executed by the Blaze executor
    */
-  private static void buildAndRefresh(QuerySyncManager manager, BlazeContext context, Set<Label> labels) throws BuildException {
-    var tracker = manager.getDependencyTracker();
+  private static void buildAndRefresh(Project project, BlazeContext context, Label label) throws BuildException {
+    var tracker = QuerySyncManager.getInstance(project).getDependencyTracker();
     assert tracker != null;
 
     var builder = tracker.getBuilder();
     var groups = DependencyBuildRequest.getOutputGroups(List.of(QuerySyncLanguage.JVM), RequestType.FILE_PREVIEWS);
+    var cache = RuntimeArtifactCache.getInstance(project);
 
     try {
-      builder.build(context, labels, groups);
+      var output = builder.build(context, Set.of(label), groups);
+
+      cache.fetchArtifacts(label, output.getTransitiveRuntimeJars(), context, RuntimeArtifactKind.TRANSITIVE_RUNTIME_JAR);
+      cache.fetchArtifacts(label, output.getExternalTransitiveRuntimeJars(), context, RuntimeArtifactKind.EXTERNAL_TRANSITIVE_RUNTIME_JAR);
     }
     catch (IOException exception) {
       throw new BuildException(exception);
