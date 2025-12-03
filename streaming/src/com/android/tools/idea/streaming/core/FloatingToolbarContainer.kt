@@ -629,7 +629,7 @@ internal class FloatingToolbarContainer(
     private fun Int.scaled(numerator: Int, denominator: Int): Int =
         ((this.toLong() * numerator + denominator / 2) / denominator).toInt()
 
-    private fun numFrames(durationMillis: Int): Int = max(durationMillis.scaled(1000, ANIMATION_FRAMES_PER_SECOND), 1)
+    private fun numFrames(durationMillis: Int): Int = max(durationMillis.scaled(ANIMATION_FRAMES_PER_SECOND, 1000), 1)
 
     private const val ANIMATION_FRAMES_PER_SECOND = 60
     private const val ACTIVATION_ANIMATION_DURATION_MILLIS = 100
