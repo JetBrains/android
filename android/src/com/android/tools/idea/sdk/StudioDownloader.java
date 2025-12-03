@@ -220,57 +220,78 @@ public class StudioDownloader implements Downloader {
         // https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35
         String rangeHeader = String.format("bytes=%1$s-", CancellableFileIo.size(interimDownload));
         rb.tuner(c -> c.setRequestProperty("Range", rangeHeader));
+
+        // We cannot use "Accept-Encoding: gzip" in combination with a range request. The range is
+        // defined with respect to the zipped bytes, so we would need to write the gzip-encoded
+        // bytes to the intermediate file and then decompress the whole archive once it is complete.
+        // However, the stream provided by HttpRequests does not give us access to the raw bytes; it
+        // deflates the content as it is read. Given that these are generally compressed archives
+        // already, there is little advantage to adding the gzip encoding.
+        rb.gzip(false);
       }
       else {
         Files.deleteIfExists(interimDownload);
       }
     }
 
-    rb.connect(request -> {
-      // If the range is specified, then the returned content length will be the length of the remaining content to download.
-      // To simplify calculations, regard content length invariant: always keep the value as the full content length.
-      long startOffset = interimExists ? CancellableFileIo.size(interimDownload) : 0;
-      long contentLength = startOffset + request.getConnection().getContentLengthLong();
-      DownloadProgressIndicator downloadProgressIndicator = new DownloadProgressIndicator(indicator.createSubProgress(0.8), target.getFileName().toString(),
-                                                                                          contentLength, startOffset);
-      PathUtils.createDirectories(interimDownload.getParent());
+    // Request the data from the server and write it to the interim location
+    try {
+      rb.connect(request -> {
+        // If the range is specified, then the returned content length will be the length of the remaining content to download.
+        // To simplify calculations, regard content length invariant: always keep the value as the full content length.
+        long startOffset = interimExists ? CancellableFileIo.size(interimDownload) : 0;
+        long contentLength = startOffset + request.getConnection().getContentLengthLong();
+        DownloadProgressIndicator downloadProgressIndicator =
+            new DownloadProgressIndicator(
+                indicator.createSubProgress(0.8), target.getFileName().toString(), contentLength, startOffset);
+        PathUtils.createDirectories(interimDownload.getParent());
 
-      try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(interimDownload, StandardOpenOption.APPEND, StandardOpenOption.CREATE))) {
-        NetUtils.copyStreamContent(downloadProgressIndicator, request.getInputStream(), out,
-                                   request.getConnection().getContentLengthLong());
+        try (OutputStream out = new BufferedOutputStream(
+            Files.newOutputStream(interimDownload, StandardOpenOption.APPEND, StandardOpenOption.CREATE))) {
+          NetUtils.copyStreamContent(downloadProgressIndicator, request.getInputStream(), out,
+                                     request.getConnection().getContentLengthLong());
+        }
+        return null;
+      });
+    } catch (HttpRequests.HttpStatusException e) {
+      if (e.getStatusCode() == 416) {
+        // The requested bytes are out of range; this means that we downloaded all the bytes previously, but
+        // were cancelled before copying it from the intermediate location.
+        indicator.logInfo("Intermediate file is already complete");
+      } else {
+        throw e;
       }
+    }
 
-      try {
-        PathUtils.createDirectories(target.getParent());
-        Files.move(interimDownload, target, StandardCopyOption.REPLACE_EXISTING);
-        if (CancellableFileIo.exists(target) && checksum != null) {
-          try (BufferedInputStream stream = new BufferedInputStream(CancellableFileIo.newInputStream(target))) {
-            String hash = Downloader.hash(stream, CancellableFileIo.size(target), checksum.getType(), indicator.createSubProgress(1.0));
-            if (!checksum.getValue().equals(hash)) {
-              throw new IllegalStateException("Checksum of the downloaded result didn't match the expected value.");
-            }
+    // Move the interim file to its final location
+    try {
+      PathUtils.createDirectories(target.getParent());
+      Files.move(interimDownload, target, StandardCopyOption.REPLACE_EXISTING);
+      if (CancellableFileIo.exists(target) && checksum != null) {
+        try (BufferedInputStream stream = new BufferedInputStream(CancellableFileIo.newInputStream(target))) {
+          String hash = Downloader.hash(stream, CancellableFileIo.size(target), checksum.getType(), indicator.createSubProgress(1.0));
+          if (!checksum.getValue().equals(hash)) {
+            throw new IllegalStateException("Checksum of the downloaded result didn't match the expected value.");
           }
         }
       }
-      catch (Throwable e) {
-        if (allowNetworkCaches) {
-          indicator.logWarning("This download could not be finalized from the interim state. Retrying without caching.", e);
-          try {
-            Files.delete(interimDownload);
-            Files.delete(target);
-          }
-          catch (Exception deleteException) {
-            indicator.logWarning("Error removing interim files, continuing with download", deleteException);
-          }
-          doDownloadFully(url, target, checksum, false, indicator);
-          return null;
+    }
+    catch (Throwable e) {
+      if (allowNetworkCaches) {
+        indicator.logWarning("This download could not be finalized from the interim state. Retrying without caching.", e);
+        try {
+          Files.delete(interimDownload);
+          Files.delete(target);
         }
-        else {
-          throw e; // Re-throw. There is nothing we can do in this case.
+        catch (Exception deleteException) {
+          indicator.logWarning("Error removing interim files, continuing with download", deleteException);
         }
+        doDownloadFully(url, target, checksum, false, indicator);
       }
-      return target;
-    });
+      else {
+        throw e; // Re-throw. There is nothing we can do in this case.
+      }
+    }
   }
 
   @NotNull

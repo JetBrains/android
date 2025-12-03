@@ -16,6 +16,7 @@
 package com.android.tools.idea.sdk;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
@@ -41,6 +42,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpServer;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -56,9 +58,11 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPOutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -118,41 +122,60 @@ public class StudioDownloaderTest {
   }
 
   private void createServerContextThatReturnsCustomContent(String content) {
+    createServerContextThatReturnsCustomContent(content.getBytes(StandardCharsets.UTF_8));
+  }
+
+  private void createServerContextThatReturnsCustomContent(byte[] content) {
     myServer.createContext("/myfile", ex -> {
-      StringBuilder response = new StringBuilder(content.length());
       Headers headers = ex.getRequestHeaders();
-      List<String> rangeHeader = headers.get("Range");
-      String contentToReturn = content;
+      byte[] encodedContent = content;
+      List<String> acceptEncodingHeader = headers.get("Accept-Encoding");
+      if (acceptEncodingHeader != null && acceptEncodingHeader.contains("gzip")) {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             GZIPOutputStream gzip = new GZIPOutputStream(bos)) {
+          gzip.write(encodedContent);
+          gzip.close();
+          encodedContent = bos.toByteArray();
+          ex.getResponseHeaders().add("Content-Encoding", "gzip");
+        }
+      }
+      int contentOffset = 0;
+      int contentLength = encodedContent.length;
       int httpResponseCode = 200;
+
+      List<String> rangeHeader = headers.get("Range");
       if (rangeHeader != null) {
         Pattern rangeHeaderPattern = Pattern.compile("bytes=(\\d+)-(\\d*)");
         Matcher matcher = rangeHeaderPattern.matcher(rangeHeader.get(0));
         if (matcher.matches()) {
           int fromByte = Integer.parseInt(matcher.group(1));
           int toByte = 0;
+          contentOffset = fromByte;
           if (!Strings.isNullOrEmpty(matcher.group(2))) {
             toByte = Integer.parseInt(matcher.group(2));
-            contentToReturn = content.substring(fromByte, toByte);
-          }
-          else {
-            contentToReturn = content.substring(fromByte);
+            contentLength = toByte - fromByte + 1;
+          } else {
+            contentLength = encodedContent.length - fromByte;
           }
           requestedRanges.add(Pair.of(fromByte, toByte));
           httpResponseCode = 206;
           Headers responseHeaders = ex.getResponseHeaders();
           responseHeaders.add("Content-Range", String.format("bytes %s-%s/%s", fromByte,
                                                              (toByte == 0) ? "" : toByte,
-                                                             content.length()));
+                                                             encodedContent.length));
         }
       }
       else {
         requestedRanges.add(Pair.of(-1, -1));
       }
 
-      response.append(contentToReturn);
-      byte[] responseBody = response.toString().getBytes(StandardCharsets.UTF_8);
-      ex.sendResponseHeaders(httpResponseCode, responseBody.length);
-      ex.getResponseBody().write(responseBody);
+      if (contentOffset >= encodedContent.length) {
+        // HTTP 416: Range Not Satisfiable
+        ex.sendResponseHeaders(416, -1);
+      } else {
+        ex.sendResponseHeaders(httpResponseCode, contentLength);
+        ex.getResponseBody().write(encodedContent, contentOffset, contentLength);
+      }
       ex.close();
     });
   }
@@ -182,8 +205,8 @@ public class StudioDownloaderTest {
     FileSystem fs = InMemoryFileSystems.createInMemoryFileSystem();
     // Create some sizeable custom content to download.
     int howMany = (1 << 20);
-    String stuff = "A quick brown brown fox jumps over the lazy dog.";
-    String content = stuff.repeat(howMany);
+    byte[] content = new byte[howMany];
+    new Random().nextBytes(content);
     createServerContextThatReturnsCustomContent(content);
 
     Path downloadResult = FileOpUtils.getNewTempDir("testResumableDownloads", fs).resolve("studio_partial_downloads_test.txt");
@@ -193,7 +216,7 @@ public class StudioDownloaderTest {
     Path intermediatesLocation = FileOpUtils.getNewTempDir("intermediates", fs);
     downloader.setDownloadIntermediatesLocation(intermediatesLocation);
 
-    int CANCELLATIONS_COUNT = 10;
+    int CANCELLATIONS_COUNT = 3;
     AtomicInteger currentCancellationsCount = new AtomicInteger(0);
     Path interimDownload = intermediatesLocation.resolve(downloadResult.getFileName().toString()
                                                            + StudioDownloader.DOWNLOAD_SUFFIX_FN);
@@ -204,7 +227,7 @@ public class StudioDownloaderTest {
           public void setFraction(double fraction) {
             super.setFraction(fraction);
             // The sub-progress for the actual download runs from 0.1 to 0.8; after that we can't cancel.
-            if (fraction >= 0.8 * currentCancellationsCount.get() / CANCELLATIONS_COUNT) {
+            if (fraction >= 0.4 * currentCancellationsCount.get() / CANCELLATIONS_COUNT) {
               currentCancellationsCount.incrementAndGet();
               cancel();
             }
@@ -223,10 +246,10 @@ public class StudioDownloaderTest {
     assertTrue(Files.exists(downloadResult));
     assertFalse(Files.exists(interimDownload));
 
-    String downloadedContent = new String(Files.readAllBytes(downloadResult));
-    assertEquals(content, downloadedContent);
-    // We should have made 11 requests total
-    assertEquals(11, requestedRanges.size());
+    byte[] downloadedContent = Files.readAllBytes(downloadResult);
+    assertArrayEquals(content, downloadedContent);
+    // We should have made CANCELLATIONS_COUNT cancelled requests plus one to finish it
+    assertEquals(CANCELLATIONS_COUNT + 1, requestedRanges.size());
     // Assert that all but the first request were for partial content
     assertTrue(requestedRanges.subList(1, requestedRanges.size()).stream().map(Pair::getFirst).allMatch((v) -> v > 0));
   }
