@@ -95,6 +95,7 @@ import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.needsBuild
+import com.android.tools.idea.rendering.RenderUtils
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -1303,6 +1304,11 @@ class ComposePreviewRepresentation(
         !qualityManager.needsQualityChange(surface)
     ) {
       return CompletableDeferred(Unit)
+    }
+
+    // Check if resources are out-of-date and clear the resources cache if so.
+    if (renderingBuildStatusManager.status is RenderingBuildStatus.OutOfDate.Resources) {
+      RenderUtils.clearCache(surface.configurations)
     }
 
     val startTime = System.nanoTime()
