@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface.sceneview
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionGroupUtil
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
@@ -169,6 +170,11 @@ class SceneViewTopPanel(
       val component = e.inputEvent?.component as? JComponent ?: return
       val popup = createPopup(e)
       popup.showUnderneathOf(component)
+    }
+
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      e.presentation.isVisible = ActionGroupUtil.getVisibleActions(actionGroup, e).isNotEmpty
     }
   }
 }
