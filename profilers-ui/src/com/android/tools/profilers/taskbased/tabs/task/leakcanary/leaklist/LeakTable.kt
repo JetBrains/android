@@ -56,7 +56,7 @@ import org.jetbrains.jewel.ui.component.Divider
 @Composable
 private fun LeakListRow(leak: Leak, isSelected: Boolean) {
   val name = LeakCanaryModel.getLeakClassName(leak)
-  val totalLeakedKb = "${leak.retainedByteSize / 1024} kb"
+  val totalLeakedKb = "${leak.retainedByteSize / 1024} KB"
   val occurrences = leak.leakTraceCount.toString()
 
   Row(
