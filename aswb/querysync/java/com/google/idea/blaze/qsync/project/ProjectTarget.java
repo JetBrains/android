@@ -68,6 +68,8 @@ public abstract class ProjectTarget implements BuildTarget {
 
   public abstract Optional<Label> testApp();
 
+  public abstract Optional<Label> library();
+
   public abstract Optional<Label> instruments();
 
   public abstract Optional<String> customPackage();
@@ -102,6 +104,8 @@ public abstract class ProjectTarget implements BuildTarget {
     public abstract ImmutableList.Builder<String> coptsBuilder();
 
     public abstract Builder testApp(Label testApp);
+
+    public abstract Builder library(Label library);
 
     public abstract Builder instruments(Label instruments);
 

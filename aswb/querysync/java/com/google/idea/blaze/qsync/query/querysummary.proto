@@ -59,6 +59,7 @@ message StoredRule {
   repeated StoredLabel resource_files = 7;
   StoredLabel manifest = 8;
   int32 test_app = 9;
+  StoredLabel library = 17;
   int32 instruments = 10;
   int32 custom_package = 11;
   repeated StoredLabel hdrs = 12;
