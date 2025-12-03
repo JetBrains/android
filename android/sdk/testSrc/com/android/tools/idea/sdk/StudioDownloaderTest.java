@@ -204,7 +204,7 @@ public class StudioDownloaderTest {
   public void testResumableDownloads() throws Exception {
     FileSystem fs = InMemoryFileSystems.createInMemoryFileSystem();
     // Create some sizeable custom content to download.
-    int howMany = (1 << 20);
+    int howMany = (1 << 23);
     byte[] content = new byte[howMany];
     new Random().nextBytes(content);
     createServerContextThatReturnsCustomContent(content);
