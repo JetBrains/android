@@ -124,9 +124,9 @@ class LeakListTest : WithFakeTimer {
     composeTestRule.onNodeWithText("501").isDisplayed()
     composeTestRule.onNodeWithText("504").isDisplayed()
     composeTestRule.onNodeWithText("506").isDisplayed()
-    composeTestRule.onNodeWithText("2 kb").isDisplayed()
-    composeTestRule.onNodeWithText("4 kb").isDisplayed()
-    composeTestRule.onNodeWithText("8 kb").isDisplayed()
+    composeTestRule.onNodeWithText("2 KB").isDisplayed()
+    composeTestRule.onNodeWithText("4 KB").isDisplayed()
+    composeTestRule.onNodeWithText("8 KB").isDisplayed()
   }
 
   @Test
@@ -162,9 +162,9 @@ class LeakListTest : WithFakeTimer {
     composeTestRule.onNodeWithText("501").isDisplayed()
     composeTestRule.onNodeWithText("504").isDisplayed()
     composeTestRule.onNodeWithText("506").isDisplayed()
-    composeTestRule.onNodeWithText("2 kb").isDisplayed()
-    composeTestRule.onNodeWithText("4 kb").isDisplayed()
-    composeTestRule.onNodeWithText("8 kb").isDisplayed()
+    composeTestRule.onNodeWithText("2 KB").isDisplayed()
+    composeTestRule.onNodeWithText("4 KB").isDisplayed()
+    composeTestRule.onNodeWithText("8 KB").isDisplayed()
 
     composeTestRule.onNodeWithText("504").performClick()
     assertEquals(mockLeak2, leakCanaryModel.selectedLeak.value)
@@ -174,6 +174,6 @@ class LeakListTest : WithFakeTimer {
                                           232323L, 342323L, mapOf(), listOf(mockLeak4))
     leakCanaryModel.addLeaks(analysisSuccess2.leaks)
     composeTestRule.onNodeWithText("509").isDisplayed()
-    composeTestRule.onNodeWithText("16 kb").isDisplayed()
+    composeTestRule.onNodeWithText("16 KB").isDisplayed()
   }
 }
