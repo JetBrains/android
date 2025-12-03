@@ -17,8 +17,8 @@ package com.android.tools.idea.streaming.device
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
-import com.android.testutils.TestUtils
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.actions.createTestEvent
@@ -37,7 +37,7 @@ import com.android.tools.idea.streaming.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceDisplayListener
 import com.android.tools.idea.streaming.core.DisplayType
-import com.android.tools.idea.streaming.core.FloatingToolbarContainer
+import com.android.tools.idea.streaming.core.expandFloatingToolbar
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
@@ -362,7 +362,7 @@ class DeviceToolWindowPanelTest {
     waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
     waitForFrame()
 
-    expandFloatingToolbar()
+    fakeUi.expandFloatingToolbar()
     fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "View Direction" })
 
     val xrInputController = DeviceXrInputController.getInstance(project, displayView.deviceClient)
@@ -424,7 +424,7 @@ class DeviceToolWindowPanelTest {
     fakeUi.keyboard.release(VK_E)
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrVelocityMessage(-1f, -1f, 0f))
 
-    expandFloatingToolbar()
+    fakeUi.expandFloatingToolbar()
     fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Interact with Apps" })
     // Switching to Interact with Apps resets state of the navigation keys.
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrVelocityMessage(0f, 0f, 0f))
@@ -443,7 +443,7 @@ class DeviceToolWindowPanelTest {
     waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
     waitForFrame()
 
-    expandFloatingToolbar()
+    fakeUi.expandFloatingToolbar()
     fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "View Direction" })
 
     val xrInputController = DeviceXrInputController.getInstance(project, displayView.deviceClient)
@@ -471,7 +471,7 @@ class DeviceToolWindowPanelTest {
     waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
     waitForFrame()
 
-    expandFloatingToolbar()
+    fakeUi.expandFloatingToolbar()
     fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Move Right/Left and Up/Down" })
 
     val xrInputController = DeviceXrInputController.getInstance(project, displayView.deviceClient)
@@ -494,7 +494,7 @@ class DeviceToolWindowPanelTest {
     fakeUi.mouse.wheel(10, 100, -3)
     assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.0, z = -0.25)")
 
-    expandFloatingToolbar()
+    fakeUi.expandFloatingToolbar()
     fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Move Forward/Backward" })
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.LOCATION_IN_SPACE_Z)
     assertThat(project.service<HardwareInputStateStorage>().isHardwareInputEnabled(displayView.deviceId)).isFalse()
@@ -774,16 +774,6 @@ class DeviceToolWindowPanelTest {
   private fun renderAndGetFrameNumber(displayId: Int = PRIMARY_DISPLAY_ID): UInt {
     fakeUi.render() // The frame number may get updated as a result of rendering.
     return panel.findDisplayView(displayId)!!.frameNumber
-  }
-
-  private fun expandFloatingToolbar() {
-    fakeUi.layoutAndDispatchEvents()
-    val toolbar = fakeUi.getComponent<FloatingToolbarContainer>()
-    // Trigger expansion of the floating toolbar.
-    fakeUi.mouse.moveTo(toolbar.locationOnScreen.x + toolbar.width / 2, toolbar.locationOnScreen.y + toolbar.height - toolbar.width / 2)
-    fakeUi.layoutAndDispatchEvents()
-    waitForCondition(1.seconds) { toolbar.activationFactor == 1.0 }
-    fakeUi.layoutAndDispatchEvents()
   }
 
   @Suppress("SameParameterValue")
