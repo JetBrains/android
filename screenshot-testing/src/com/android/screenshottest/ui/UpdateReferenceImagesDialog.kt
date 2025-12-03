@@ -40,6 +40,8 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.wm.ToolWindowId
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckboxTreeListener
@@ -172,6 +174,25 @@ class UpdateReferenceImagesDialog(
         isTestSuiteFinished = true
         logger.debug("TestSuite finished. Enabling the 'Add' button.")
         updateOkButtonState()
+      }
+    }
+  }
+
+  /**
+   * Handles cases where the build or execution fails before tests start.
+   * Closes the dialog and opens the Run tool window to show errors.
+   */
+  fun onBuildFailed() {
+    ApplicationManager.getApplication().invokeLater {
+      // Only act if we haven't discovered any tests yet (meaning the failure happened during build or startup)
+      if (!isFirstTestDiscovered) {
+        logger.warn("Build or execution failed. Closing dialog.")
+        close(CANCEL_EXIT_CODE)
+
+        // Open the Run window so the user can see the build error
+        project?.let {
+          ToolWindowManager.getInstance(it).getToolWindow(ToolWindowId.RUN)?.activate(null)
+        }
       }
     }
   }
