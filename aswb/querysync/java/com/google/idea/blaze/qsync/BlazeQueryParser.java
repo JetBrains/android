@@ -204,6 +204,9 @@ public class BlazeQueryParser {
       if (!rule.testApp().isEmpty()) {
         targetBuilder.testApp(Label.of(rule.testApp()));
       }
+      if (rule.library() != null) {
+        targetBuilder.library(rule.library());
+      }
       if (!rule.instruments().isEmpty()) {
         targetBuilder.instruments(Label.of(rule.instruments()));
       }

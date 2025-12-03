@@ -90,6 +90,9 @@ data class QuerySummaryImpl(
       if (r.manifest != null) {
         builder.setManifest(indexLabel(r.manifest))
       }
+      if (r.library != null) {
+        builder.setLibrary(indexLabel(r.library))
+      }
       return builder.build()
     }
 
@@ -141,6 +144,7 @@ data class QuerySummaryImpl(
         runtimeDeps = lookupLabels(r.runtimeDepsList),
         resourceFiles = lookupLabels(r.resourceFilesList),
         testApp = lookupString(r.testApp),
+        library = if (r.hasLibrary()) lookupLabel(r.library) else null,
         instruments = lookupString(r.instruments),
         customPackage = lookupString(r.customPackage),
         hdrs = lookupLabels(r.hdrsList),
@@ -459,6 +463,9 @@ data class QuerySummaryImpl(
                 }
                 attributeName == "test_app" -> {
                   rule.setTestApp(indexer.index(a.getStringValue()))
+                }
+                attributeName == "library" || attributeName == "cc_library"-> {
+                  a.asLabelSafe()?.let { rule.setLibrary(indexer.indexLabel(it)) }
                 }
                 attributeName == "instruments" -> {
                   rule.setInstruments(indexer.index(a.getStringValue()))
