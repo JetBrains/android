@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea
 
+import com.android.tools.idea.diagnostics.InstallationId
 import com.intellij.openapi.application.ApplicationInfo
-import com.intellij.openapi.application.PermanentInstallationID
 import com.intellij.openapi.application.ex.ApplicationInfoEx
 import com.intellij.openapi.updateSettings.impl.ExternalUpdateManager
 import com.intellij.openapi.util.BuildNumber
@@ -38,7 +38,7 @@ class AndroidStudioResourceUrls : ExternalProductResourceUrls {
 
   init {
     parameters["build"] = ApplicationInfo.getInstance().build.asString()
-    parameters["uid"] = PermanentInstallationID.get()
+    parameters["uid"] = InstallationId.get()
     parameters["os"] = SystemInfo.OS_NAME + ' ' + SystemInfo.OS_VERSION
     val updateManager = ExternalUpdateManager.ACTUAL
     if (updateManager != null) {

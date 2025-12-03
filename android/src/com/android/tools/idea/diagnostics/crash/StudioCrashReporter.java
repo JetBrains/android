@@ -18,15 +18,14 @@ package com.android.tools.idea.diagnostics.crash;
 
 import com.android.tools.analytics.Anonymizer;
 import com.android.tools.analytics.crash.GoogleCrashReporter;
+import com.android.tools.idea.diagnostics.InstallationId;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PermanentInstallationID;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Ide-specific implementation of {@link GoogleCrashReporter} reporter. This implementation uses IDE-specific ambient information to amend
@@ -53,7 +52,7 @@ public class StudioCrashReporter extends GoogleCrashReporter {
       return "UnitTest";
     }
 
-    return Anonymizer.anonymize(PermanentInstallationID.get());
+    return Anonymizer.anonymize(InstallationId.get());
   }
 
   protected StudioCrashReporter() {
