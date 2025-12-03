@@ -17,7 +17,6 @@ package com.google.idea.blaze.qsync.project
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Preconditions
-import com.google.common.collect.Queues
 import com.google.common.graph.Traverser
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
@@ -31,9 +30,9 @@ import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
 import com.google.idea.blaze.qsync.project.TargetsToBuild.Companion.forUnknownSourceFile
 import com.google.idea.blaze.qsync.project.TargetsToBuild.Companion.targetGroup
 import com.google.idea.blaze.qsync.query.PackageSet
+import com.intellij.openapi.diagnostic.thisLogger
 import java.nio.file.Path
 import java.util.Collections
-import java.util.Queue
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import kotlin.jvm.optionals.getOrNull
@@ -65,6 +64,7 @@ data class BuildGraphDataImpl private constructor(
     val rdeps: Collection<GraphNode>
     val data: NodeData
     val protoModes: Set<BuildGraphData.ProtoMode>
+    val androidTransitionTarget: Label?
   }
 
   private sealed interface NodeData
@@ -73,7 +73,7 @@ data class BuildGraphDataImpl private constructor(
 
   private class GraphNodeImpl(
     override val label: Label,
-    override val data: NodeData
+    override val data: NodeData,
   ) : GraphNode {
     override val deps = mutableListOf<GraphNodeImpl>()
     override val rdeps = mutableListOf<GraphNodeImpl>()
@@ -86,6 +86,7 @@ data class BuildGraphDataImpl private constructor(
         addAll(upwardProtoModes)
       }
     var explicitProtoMode: BuildGraphData.ProtoMode? = null
+    override var androidTransitionTarget: Label? = null
     override fun toString(): String {
       return "GraphNodeImpl(label=$label, data=$data)"
     }
@@ -193,7 +194,7 @@ data class BuildGraphDataImpl private constructor(
     val projectDefinitionTargetPatterns: TargetPatternCollection,
     val alwaysBuildRules: Set<String>,
     val supportedBuildRules: Set<String>,
-    val protoRules: BuildGraphData.ProtoRules
+    val protoRules: BuildGraphData.ProtoRules,
   ) {
 
     /**
@@ -430,33 +431,49 @@ data class BuildGraphDataImpl private constructor(
    */
   override fun computeRequestedTargets(
     projectTargets: Collection<Label>,
-    replaceNativeTargetsWithAndroidTransitionTriggeringTargets: Boolean
+    replaceNativeTargetsWithAndroidTransitionTriggeringTargets: Boolean,
   ): RequestedTargets {
-    val filteredProjectTargets = filterRedundantTargets(filterContributingTargets(projectTargets))
+    val filteredProjectTargets =
+      filterRedundantTargets(collectTargetsToBuildForSourcesIn(projectTargets, replaceNativeTargetsWithAndroidTransitionTriggeringTargets))
     val requiredTargets = getTargetsRequiredFor(filteredProjectTargets)
     return RequestedTargets(filteredProjectTargets, requiredTargets)
   }
 
-  private fun filterContributingTargets(projectTargets: Collection<Label>): Collection<Label> {
+  /**
+   * Collects project targets that contribute
+   */
+  private fun collectTargetsToBuildForSourcesIn(
+    projectTargets: Collection<Label>,
+    replaceNativeTargetsWithAndroidTransitionTriggeringTargets: Boolean,
+  ): Collection<Label> {
     return buildSet {
       val seenSources = mutableSetOf<Label>()
-      projectTargets.forEach { label ->
-        val target = storage.targetMap[label]
+      projectTargets.forEach { targetLabel ->
+        val target = storage.targetMap[targetLabel]
                      ?: let {
-                       add(label) // Unknown target requested so let's just return it.
+                       add(targetLabel); // Unknown target requested so let's just return it.
+                       thisLogger().error("Unknown target: $targetLabel")
                        return@forEach
                      }
         var newSourceFileAdded = false
+        var containsCcSources = false
         target.sourceLabels().asMap().entries.forEach { (kind, labels) ->
           if (kind !in SUPPORTED_SOURCE_TYPES) return@forEach
           labels.forEach { label ->
             if (seenSources.add(label)) {
               newSourceFileAdded = true
+              if (kind == SourceType.REGULAR_CC) {
+                containsCcSources = true
+              }
             }
           }
         }
         if (newSourceFileAdded) {
-          add(label)
+          if (add(targetLabel)) {
+            if (containsCcSources && replaceNativeTargetsWithAndroidTransitionTriggeringTargets) {
+              nodes[targetLabel]?.androidTransitionTarget?.let { add(it) }
+            }
+          }
         }
       }
     }
@@ -568,7 +585,7 @@ data class BuildGraphDataImpl private constructor(
     }
 
     private fun computeAlwaysBuildTargets(
-      storage: Storage
+      storage: Storage,
     ): Set<Label> {
       val sourceOwners = computeSourceOwners(storage)
       return storage.targetMap.values
@@ -588,6 +605,7 @@ data class BuildGraphDataImpl private constructor(
     private fun computeNodes(storage: Storage): Map<Label, GraphNode> {
       val nodes = buildGraph(storage)
       propagateProtoModes(nodes.values, storage.protoRules)
+      propagateAndroidTransitionTargets(nodes.values)
       return nodes
     }
 
@@ -657,6 +675,38 @@ data class BuildGraphDataImpl private constructor(
       val explicitNodes = initializeExplicitNodes()
       propagateDownward(explicitNodes)
       propagateUpward(explicitNodes)
+    }
+
+    private fun propagateAndroidTransitionTargets(nodes: Collection<GraphNodeImpl>) {
+      fun initializeExplicitNodes(): List<GraphNodeImpl> {
+        return buildList {
+          for (node in nodes) {
+            val target = (node.data as? ProjectNodeData)?.target ?: continue
+            if (ANDROID_TRANSITION_RULES.contains(target.kind())) {
+              node.androidTransitionTarget = node.label
+              add(node)
+            }
+          }
+        }
+      }
+
+      fun propagateDownward(explicitNodes: List<GraphNodeImpl>) {
+        val queue = ArrayDeque(explicitNodes)
+        while (queue.isNotEmpty()) {
+          val u = queue.removeFirst()
+          for (v in u.deps) {
+            if (v.androidTransitionTarget == null) {
+              v.androidTransitionTarget = u.androidTransitionTarget
+              queue.addLast(v)
+            }
+          }
+        }
+      }
+
+      val explicitNodes = initializeExplicitNodes()
+      // We are looking for the nearest ancestor that is an Android transition target.
+      // Since Android transition targets are ancestors of CC targets, we propagate downwards.
+      propagateDownward(explicitNodes)
     }
 
     private fun getProtoMode(data: NodeData, protoRules: BuildGraphData.ProtoRules): BuildGraphData.ProtoMode? {
@@ -729,3 +779,5 @@ private fun ProjectTarget.allDeps(): Sequence<Label> =
     yieldAll(deps())
     testRule().getOrNull()?.let { yield(it) }
   }
+// TODO: b/465698133 - find a way to move such configuration to _deps.bzl files.
+private val ANDROID_TRANSITION_RULES = setOf("android_binary", "ndk_cc_dynamic_library_force_android_rule", "_android_binary")
