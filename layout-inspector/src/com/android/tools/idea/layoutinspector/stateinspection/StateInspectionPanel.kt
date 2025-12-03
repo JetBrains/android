@@ -160,6 +160,10 @@ private class InnerStateInspectionPanel(
   private val listener = EditorHyperlinkListener { logUsageEvent(it) }
   private val hyperlinkDetector = hyperLinkDetectorFactory.create(editor, scope, listener)
   private val foldingDetector = StateInspectionFoldingDetector(editor, scope)
+  private val prev = ActionButton(model.prevAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
+  private val next = ActionButton(model.nextAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
+  private val minimize =
+    ActionButton(model.minimizeAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
 
   init {
     isFocusable = false
@@ -167,13 +171,10 @@ private class InnerStateInspectionPanel(
     parent.putUserData(STATE_READ_EDITOR_KEY, editor) // For testing
     title.text = LayoutInspectorBundle.message("layout.inspector.recomposition.state.reads")
     title.border = JBUI.Borders.empty(2, 5)
-    val prev = ActionButton(model.prevAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
     prev.maximumSize = DEFAULT_MINIMUM_BUTTON_SIZE
     prev.isFocusable = true
-    val next = ActionButton(model.nextAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
     next.maximumSize = DEFAULT_MINIMUM_BUTTON_SIZE
     next.isFocusable = true
-    val minimize = ActionButton(model.minimizeAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
     minimize.maximumSize = DEFAULT_MINIMUM_BUTTON_SIZE
     minimize.border = JBUI.Borders.emptyRight(10)
     minimize.isFocusable = true
@@ -201,17 +202,21 @@ private class InnerStateInspectionPanel(
     add(contentPanel, BorderLayout.CENTER)
     border = JBUI.Borders.empty()
 
-    scope.launch { model.recompositionText.collect { recompositionText.text = it } }
-    scope.launch { model.stateReadsText.collect { stateReadCountText.text = it } }
-    scope.launch { model.stackTraceText.collect { setTextInEditor(it) } }
-    scope.launch { model.composableInspected.collect { setComposableInspectedInEditor(it) } }
-    scope.launch { model.updates.collect { updateButtons(prev, next, minimize) } }
-    scope.launch { model.emptyStateText.collect { showEmptyStateText(it) } }
+    parentScope.launch { model.content.collect { update(it) } }
   }
 
   override fun dispose() {
     scope.cancel()
     parent.putUserData(STATE_READ_EDITOR_KEY, null)
+  }
+
+  private suspend fun update(content: StateInspectionContent) {
+    recompositionText.text = content.recompositionText
+    stateReadCountText.text = content.stateReadsText
+    editor.putUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY, content.composableInspected)
+    showEmptyStateText(content.emptyStateText)
+    updateButtons(prev, next, minimize)
+    setTextInEditor(content.stackTraceText)
   }
 
   private fun showEmptyStateText(message: String) {
@@ -232,10 +237,6 @@ private class InnerStateInspectionPanel(
     }
   }
 
-  private fun setComposableInspectedInEditor(data: ComposableDefinition?) {
-    editor.putUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY, data)
-  }
-
   private fun updateButtons(vararg buttons: ActionButton) {
     buttons.forEach {
       it.update()
@@ -251,6 +252,7 @@ private class InnerStateInspectionPanel(
     try {
       document.setReadOnly(false)
       edtWriteAction { document.setText(text) }
+      editor.markupModel.removeAllHighlighters()
       highlightInvalidations(text)
       hyperlinkDetector.detectHyperlinks()
       foldingDetector.detectFolding()
