@@ -29,6 +29,9 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import javax.swing.Icon
+import com.intellij.execution.ExecutionListener
+import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.runners.ExecutionEnvironment
 
 /**
  * Base action for adding or updating reference images for screenshot tests.
@@ -59,8 +62,22 @@ abstract class UpdateReferenceImagesBaseAction(
 
     val executor = ExecutorRegistry.getInstance().getExecutorById(DefaultRunExecutor.EXECUTOR_ID) ?: return
 
-    project.messageBus.connect(dialog.disposable)
-      .subscribe(AndroidTestSuiteView.ANDROID_TEST_SUITE_TOPIC, UpdateScreenshotTestResultsListener(dialog))
+    val connection = project.messageBus.connect(dialog.disposable)
+    connection.subscribe(AndroidTestSuiteView.ANDROID_TEST_SUITE_TOPIC, UpdateScreenshotTestResultsListener(dialog))
+
+    connection.subscribe(ExecutionManager.EXECUTION_TOPIC, object : ExecutionListener {
+      override fun processTerminated(
+        executorId: String,
+        env: ExecutionEnvironment,
+        handler: ProcessHandler,
+        exitCode: Int
+      ) {
+        // Check if this termination corresponds to our run configuration
+        if (env.runnerAndConfigurationSettings == updateRunconfigSettings && exitCode != 0) {
+          dialog.onBuildFailed()
+        }
+      }
+    })
     ExecutionManager.getInstance(project).restartRunProfile(
       project,
       executor,
