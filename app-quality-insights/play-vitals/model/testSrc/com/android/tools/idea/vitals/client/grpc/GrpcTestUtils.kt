@@ -18,10 +18,8 @@ package com.android.tools.idea.vitals.client.grpc
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
-import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
-import com.android.tools.idea.insights.client.FakeAiInsightClient
 import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.stacktrace.StackTraceGroupParser
@@ -57,7 +55,6 @@ fun createIssueRequest(connection: VitalsConnection = TEST_CONNECTION_1, clock: 
 fun createVitalsClient(
   cache: AppInsightsCache = AppInsightsCacheImpl(VitalsInsightsProvider),
   grpcClient: VitalsGrpcClient? = null,
-  aiInsightClient: AiInsightClient = FakeAiInsightClient,
   stackTraceParser: StackTraceGroupParser = StubStackTraceGroupParser(),
   channelProvider: () -> Channel,
 ) =
@@ -66,6 +63,5 @@ fun createVitalsClient(
     cache,
     ForwardingInterceptor,
     grpcClient ?: VitalsGrpcClientImpl(channelProvider(), ForwardingInterceptor),
-    aiInsightClient,
     stackTraceParser,
   )

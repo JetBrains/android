@@ -23,7 +23,6 @@ import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
-import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
@@ -126,7 +125,7 @@ private const val CONTEXT_WINDOW_PADDING = 150
 class GeminiAiInsightClient(
   private val project: Project,
   private val cache: AppInsightsCache,
-  private val codeContextResolver: CodeContextResolver = CodeContextResolverImpl(project),
+  private val codeContextResolver: CodeContextResolver,
 ) : AiInsightClient {
   private val logger =
     Logger.getInstance("com.android.tools.idea.insights.client.GeminiAiInsightClient")

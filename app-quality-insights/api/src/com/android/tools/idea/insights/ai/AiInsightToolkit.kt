@@ -18,22 +18,42 @@ package com.android.tools.idea.insights.ai
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
+import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
+import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.model.connection.Connection
+import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.issue.FailureType
+import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
 import com.intellij.openapi.project.Project
 
+internal const val GEMINI_TOOL_WINDOW_ID = "StudioBot"
+
 /** Exposes AI related tools to AQI. */
-interface AiInsightToolkit {
-  val aiInsightOnboardingProvider: InsightsOnboardingProvider
+abstract class AiInsightToolkit(
+  private val project: Project,
+  private val codeContextResolver: CodeContextResolver,
+  protected val aiInsightClient: AiInsightClient,
+) {
+
+  abstract val aiInsightOnboardingProvider: InsightsOnboardingProvider
 
   /**
    * Provides deprecation data related to AI insights only. For deprecation data related to AQI see
    * [com.android.tools.idea.insights.AppInsightsConfigurationManager]
    */
   val insightDeprecationData: DevServicesDeprecationData
+    get() {
+      val geminiData = getDeprecationData("gemini/gemini", "Gemini")
+      return if (geminiData.isUnsupported()) {
+        geminiData
+      } else {
+        getDeprecationData("aqi/insights", "Insights")
+      }
+    }
 
   /**
    * Gets the source files for the given [stack].
@@ -41,32 +61,21 @@ interface AiInsightToolkit {
    * @param conn [Connection] for which the source is needed
    * @param stack [StacktraceGroup] for which the files are needed.
    */
-  suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData
-}
-
-internal const val GEMINI_TOOL_WINDOW_ID = "StudioBot"
-
-class AiInsightToolkitImpl(
-  private val project: Project,
-  override val aiInsightOnboardingProvider: InsightsOnboardingProvider,
-  private val codeContextResolver: CodeContextResolver,
-) : AiInsightToolkit {
-
-  override val insightDeprecationData = run {
-    val geminiData = getDeprecationData("gemini/gemini", "Gemini")
-    if (geminiData.isUnsupported()) {
-      geminiData
-    } else {
-      getDeprecationData("aqi/insights", "Insights")
-    }
-  }
-
-  override suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData {
+  suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData {
     if (!GeminiPluginApi.getInstance().isContextAllowed(project)) return CodeContextData.DISABLED
     return codeContextResolver
       .getSource(conn, stack)
       .copy(contextSharingState = ContextSharingState.ALLOWED)
   }
+
+  /** Fetch insight for the given params */
+  abstract suspend fun fetchInsight(
+    connection: Connection,
+    issueId: IssueId,
+    variantId: String?,
+    failureType: FailureType,
+    event: Event,
+  ): LoadingState.Done<AiInsight>
 
   private fun getDeprecationData(service: String, userFriendlyServiceName: String) =
     DevServicesDeprecationDataProvider.getInstance()

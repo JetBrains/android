@@ -15,23 +15,41 @@
  */
 package com.android.tools.idea.insights.ai
 
-import com.android.tools.idea.gservices.DevServicesDeprecationData
-import com.android.tools.idea.gservices.DevServicesDeprecationStatus
-import com.android.tools.idea.insights.ai.codecontext.CodeContextData
+import com.android.tools.idea.insights.CallInProgress
+import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
+import com.android.tools.idea.insights.client.AppInsightsCache
+import com.android.tools.idea.insights.client.GeminiAiInsightClient
 import com.android.tools.idea.insights.model.connection.Connection
-import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
+import com.android.tools.idea.insights.model.event.Event
+import com.android.tools.idea.insights.model.issue.FailureType
+import com.android.tools.idea.insights.model.issue.IssueId
+import com.intellij.openapi.project.Project
 
 open class FakeAiInsightToolkit(
-  var codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList()),
+  project: Project,
+  codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList()),
   override val aiInsightOnboardingProvider: InsightsOnboardingProvider =
     StubInsightsOnboardingProvider(),
-) : AiInsightToolkit {
+  cache: AppInsightsCache,
+) :
+  AiInsightToolkit(
+    project,
+    codeContextResolver,
+    GeminiAiInsightClient(project, cache, codeContextResolver),
+  ) {
 
-  override val insightDeprecationData: DevServicesDeprecationData
-    get() = DevServicesDeprecationData("", "", "", false, DevServicesDeprecationStatus.SUPPORTED)
+  private val fetchInsightCall = CallInProgress<LoadingState.Done<AiInsight>>()
 
-  override suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData =
-    codeContextResolver.getSource(conn, stack)
+  override suspend fun fetchInsight(
+    connection: Connection,
+    issueId: IssueId,
+    variantId: String?,
+    failureType: FailureType,
+    event: Event,
+  ): LoadingState.Done<AiInsight> = fetchInsightCall.initiateCall()
+
+  suspend fun completeFetchInsightCallWith(value: LoadingState.Done<AiInsight>) =
+    fetchInsightCall.completeWith(value)
 }

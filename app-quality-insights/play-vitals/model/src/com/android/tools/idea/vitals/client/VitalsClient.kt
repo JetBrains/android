@@ -18,8 +18,6 @@ package com.android.tools.idea.vitals.client
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MINIMUM_PERCENTAGE_TO_SHOW
 import com.android.tools.idea.insights.MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW
-import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.client.FetchSource
@@ -27,7 +25,6 @@ import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.client.QueryFilters
-import com.android.tools.idea.insights.client.createGeminiInsightRequest
 import com.android.tools.idea.insights.client.runGrpcCatchingWithSupervisorScope
 import com.android.tools.idea.insights.isOfflineMode
 import com.android.tools.idea.insights.model.common.WithCount
@@ -35,7 +32,6 @@ import com.android.tools.idea.insights.model.connection.AppConnection
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.event.Device
-import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version
@@ -70,7 +66,6 @@ class VitalsClient(
   private val cache: AppInsightsCache,
   private val interceptor: ClientInterceptor,
   private val grpcClientOverride: VitalsGrpcClient? = null,
-  private val aiInsightClient: AiInsightClient,
   private val stackTraceGroupParser: StackTraceGroupParser,
 ) : AppInsightsClient {
 
@@ -212,31 +207,6 @@ class VitalsClient(
 
   override suspend fun deleteNote(connection: Connection, id: NoteId): LoadingState.Done<Unit> {
     throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
-  }
-
-  override suspend fun fetchInsight(
-    connection: Connection,
-    issueId: IssueId,
-    variantId: String?,
-    failureType: FailureType,
-    event: Event,
-  ): LoadingState.Done<AiInsight> {
-    when {
-      failureType != FailureType.FATAL ->
-        return LoadingState.UnsupportedOperation("Insights are currently not available for ANRs")
-      event.isNativeCrash() ->
-        return LoadingState.UnsupportedOperation(
-          "Insights are currently not available for native crashes"
-        )
-    }
-    val failure = LoadingState.UnknownFailure("Unable to fetch insight for the selected issue.")
-    return runGrpcCatchingWithSupervisorScope(failure) {
-      LoadingState.Ready(
-        aiInsightClient.fetchCrashInsight(
-          createGeminiInsightRequest(connection, issueId, variantId, event)
-        )
-      )
-    }
   }
 
   private suspend fun fetchIssues(
@@ -404,13 +374,3 @@ internal fun <T> List<Pair<T, Long>>.aggregateToWithCount(): List<WithCount<T>> 
     }
     .map { (version, count) -> WithCount(count = count, value = version) }
 }
-
-private const val ANDROID_NATIVE_CRASH_HEADER =
-  "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***"
-private val PID_REGEX = Regex("^pid: (\\d+), tid: (\\d+) >>> (.+?) <<<$")
-
-private fun Event.isNativeCrash() =
-  stacktraceGroup.exceptions.any { it.rawExceptionMessage.isNativeCrashHeader() }
-
-private fun String.isNativeCrashHeader() =
-  equals(ANDROID_NATIVE_CRASH_HEADER) || contains(PID_REGEX) || startsWith("backtrace:")
