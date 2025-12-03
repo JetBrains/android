@@ -258,6 +258,10 @@ public final class StudioIcons {
   }
 
   public static final class Emulator {
+    public static final class Glasses {
+      /** 16x16 */ public static final @NotNull Icon BUTTON_1 = load("studio/icons/emulator/glasses/button-1.svg", -90572414, 2);
+    }
+
     public static final class Menu {
       /** 16x16 */ public static final @NotNull Icon MODE_DESKTOP = load("studio/icons/emulator/menu/mode-desktop.svg", 1667783545, 2);
       /** 16x16 */ public static final @NotNull Icon MODE_FOLDABLE = load("studio/icons/emulator/menu/mode-foldable.svg", -1080940418, 2);
@@ -933,7 +937,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon ASK = load("studio/icons/studio-bot/ask.svg", -323558851, 2);
     /** 16x16 */ public static final @NotNull Icon GEMINI_LOGO_MONOCHROME = load("studio/icons/studio-bot/gemini-logo-monochrome.svg", 1337628391, 2);
     /** 16x16 */ public static final @NotNull Icon GEMINI_LOGO = load("studio/icons/studio-bot/gemini-logo.svg", 2058042118, 2);
-    /** 16x16 */ public static final @NotNull Icon GENERIC_AI_ACTION = load("studio/icons/studio-bot/generic-ai-action.svg", -1978498243, 2);
+    /** 16x16 */ public static final @NotNull Icon GENERIC_AI_ACTION = load("studio/icons/studio-bot/generic-ai-action.svg", -1227858604, 2);
   }
 
   public static final class Test {
