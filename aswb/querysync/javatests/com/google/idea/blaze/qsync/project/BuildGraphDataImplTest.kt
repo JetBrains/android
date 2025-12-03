@@ -582,7 +582,8 @@ class BuildGraphDataImplTest {
               .onlySourcePath
               .resolve(Path.of("TestClassExternalDep.java"))
           )
-          .getUnambiguousTargets()
+          .getUnambiguousTargets(),
+        replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false
       )
     assertThat(targets.targetsToBuild)
       .containsExactly(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY.assumedOnlyLabel)
@@ -612,7 +613,8 @@ class BuildGraphDataImplTest {
               .onlySourcePath
               .resolve(Path.of("BUILD"))
           )
-          .getUnambiguousTargets()
+          .getUnambiguousTargets(),
+        replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false
       )
     assertThat(targets.targetsToBuild)
       .containsExactly(
@@ -647,7 +649,8 @@ class BuildGraphDataImplTest {
               .onlySourcePath
               .resolve(Path.of("BUILD"))
           )
-          .getUnambiguousTargets()
+          .getUnambiguousTargets(),
+        replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false
       )
     assertThat(targets.targetsToBuild)
       .containsExactly(TestData.JAVA_LIBRARY_NESTED_PACKAGE.assumedOnlyLabel)
@@ -673,7 +676,8 @@ class BuildGraphDataImplTest {
           .getProjectTargets(
             TestData.JAVA_LIBRARY_NESTED_PACKAGE.onlySourcePath
           )
-          .getUnambiguousTargets()
+          .getUnambiguousTargets(),
+        replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false
       )
     assertThat(targets.targetsToBuild)
       .containsExactly(
@@ -707,7 +711,8 @@ class BuildGraphDataImplTest {
           .getProjectTargets(
             TestData.CC_EXTERNAL_DEP_QUERY.onlySourcePath.resolve("TestClass.cc")
           )
-          .getUnambiguousTargets()
+          .getUnambiguousTargets(),
+        replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false
       )
     assertThat(targets.targetsToBuild)
       .containsExactly(TestData.CC_EXTERNAL_DEP_QUERY.assumedOnlyLabel)
@@ -882,7 +887,12 @@ class BuildGraphDataImplTest {
     graph: BuildGraphData,
     forTargets: Collection<Label>,
   ): Set<Label> {
-    return graph.computeRequestedTargets(forTargets).requiredTargets
+    return graph
+      .computeRequestedTargets(
+        forTargets,
+        replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false
+      )
+      .requiredTargets
   }
 
   companion object {

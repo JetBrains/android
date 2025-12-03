@@ -428,7 +428,10 @@ data class BuildGraphDataImpl private constructor(
    * [.getDependencyTrackingIncludeExternalDependencies] of the targets
    * given.
    */
-  override fun computeRequestedTargets(projectTargets: Collection<Label>): RequestedTargets {
+  override fun computeRequestedTargets(
+    projectTargets: Collection<Label>,
+    replaceNativeTargetsWithAndroidTransitionTriggeringTargets: Boolean
+  ): RequestedTargets {
     val filteredProjectTargets = filterRedundantTargets(filterContributingTargets(projectTargets))
     val requiredTargets = getTargetsRequiredFor(filteredProjectTargets)
     return RequestedTargets(filteredProjectTargets, requiredTargets)
@@ -461,7 +464,8 @@ data class BuildGraphDataImpl private constructor(
 
   override fun computeWholeProjectTargets(): RequestedTargets {
     return computeRequestedTargets(
-      allSupportedTargets.getTargets().filter { projectDefinitionTargetPatterns.inScope(it).status == INCLUDED }.toList()
+      allSupportedTargets.getTargets().filter { projectDefinitionTargetPatterns.inScope(it).status == INCLUDED }.toList(),
+      replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false // storage.allSupportedTargets includes them anyway.
     )
   }
 

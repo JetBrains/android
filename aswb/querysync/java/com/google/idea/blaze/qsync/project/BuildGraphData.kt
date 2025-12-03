@@ -155,7 +155,7 @@ interface BuildGraphData {
   /**
    * Calculates the [RequestedTargets] for a project target.
    */
-  fun computeRequestedTargets(projectTargets: Collection<Label>): RequestedTargets
+  fun computeRequestedTargets(projectTargets: Collection<Label>, replaceNativeTargetsWithAndroidTransitionTriggeringTargets: Boolean): RequestedTargets
 
   /**
    * Calculates the [RequestedTargets] for the whole project.
