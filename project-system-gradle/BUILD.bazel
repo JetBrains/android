@@ -337,6 +337,8 @@ jvm_library(
     "//platform/eel",
     "//platform/eel-provider",
     "//plugins/kotlin/code-insight/api",
+    "//plugins/kotlin/project-wizard/core",
+    "//plugins/kotlin/project-wizard/core:core_test_lib",
   ],
   runtime_deps = [
     "//android/gradle-dsl-groovy",

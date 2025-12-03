@@ -32,7 +32,7 @@ fun androidProjectGradleSettings(appTitle: String,
     GradleSettingsBuilder(appTitle, useGradleKts) {
       withPluginManager(injectedRepositories)
       if (GradleDaemonJvmHelper.isDaemonJvmCriteriaRequiredForNewProjects(gradleVersion)) {
-        withFoojayPlugin()
+        withFoojayPlugin(gradleVersion)
       }
       withDependencyResolutionManagement(injectedRepositories)
     }.build()

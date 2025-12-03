@@ -28,8 +28,10 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.util.lang.JavaVersion
+import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.GradleBuildScriptSupport
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.getTopLevelBuildScriptSettingsPsiFile
+import org.jetbrains.kotlin.tools.projectWizard.compatibility.GradleToPluginsCompatibilityStore
 import org.jetbrains.plugins.gradle.frameworkSupport.settingsScript.getFoojayPluginVersion
 import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
@@ -98,7 +100,8 @@ class GradleDaemonJvmCriteriaTemplatesTest(private val javaVersion: JavaVersion)
 
     private fun updateTemplatesMetadataVersionOfFoojay() {
       val properties = Properties().apply {
-        put(TEMPLATE_METADATA_FOOJAY_PROPERTY, getFoojayPluginVersion())
+        // FIXME: GradleVersion.current() is not a correct way of taking the version but agreed to proceed with this so far
+        put(TEMPLATE_METADATA_FOOJAY_PROPERTY, getFoojayPluginVersion(GradleVersion.current()))
       }
       val metadataFile = workspaceTemplateFile(TEMPLATE_METADATA_FILE)
       PropertiesFiles.savePropertiesToFile(properties, metadataFile, """
@@ -117,7 +120,8 @@ class GradleDaemonJvmCriteriaTemplatesTest(private val javaVersion: JavaVersion)
   fun assertDaemonJvmCriteriaTemplateIsValid() {
     when {
       System.getProperty(UPDATE_DAEMON_JVM_CRITERIA_TEMPLATES) != null -> updateGradleDaemonJvmCriteriaTemplates()
-      getTemplatesBasedFooJayPluginVersion() != getFoojayPluginVersion() ->
+      // FIXME: GradleVersion.current() is not a correct way of taking the version but agreed to proceed with this so far
+      getTemplatesBasedFooJayPluginVersion() != getFoojayPluginVersion(GradleVersion.current()) ->
         error("""
           Daemon JVM criteria templates stored under 'templates/resources/toolchain' with the format 'gradle-daemon-jvm-X.properties'
           and used for NPW, have been created with different version of foojay resolver plugin.
@@ -150,8 +154,12 @@ class GradleDaemonJvmCriteriaTemplatesTest(private val javaVersion: JavaVersion)
 
   private fun addFoojayPluginToGradleSettings(project: Project, externalProjectPath: String) =
     WriteCommandAction.runWriteCommandAction(project) {
+      val gradleVersion = GradleVersion.current() ?: return@runWriteCommandAction
+      val gradleToPluginsCompatibilityStore = GradleToPluginsCompatibilityStore.getInstance()
+      val foojayVersion = gradleToPluginsCompatibilityStore.getFoojayVersion(gradleVersion) ?: return@runWriteCommandAction
+
       val settingsFile = getTopLevelBuildScriptSettingsPsiFile(project, externalProjectPath)!!
       val buildScriptSupport = GradleBuildScriptSupport.getManipulator(settingsFile)
-      buildScriptSupport.addFoojayPlugin(settingsFile)
+      buildScriptSupport.addFoojayPlugin(settingsFile, foojayVersion)
     }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.builders
 
+import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.FOOJAY_RESOLVER_CONVENTION_NAME
 import org.jetbrains.plugins.gradle.frameworkSupport.settingsScript.getFoojayPluginVersion
 import java.net.URL
@@ -71,10 +72,10 @@ pluginManagement {
 }""".trimIndent())
   }
 
-  fun withFoojayPlugin() {
+  fun withFoojayPlugin(gradleVersion: GradleVersion) {
     settingsBuilder.appendLine("""
 plugins {
-    id '$FOOJAY_RESOLVER_CONVENTION_NAME' version '${getFoojayPluginVersion()}'
+    id '$FOOJAY_RESOLVER_CONVENTION_NAME' version '${getFoojayPluginVersion(gradleVersion)}'
 }""".trimIndent())
   }
 
