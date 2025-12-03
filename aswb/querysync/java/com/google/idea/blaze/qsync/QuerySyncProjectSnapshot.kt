@@ -104,7 +104,7 @@ data class QuerySyncProjectSnapshot(
     return projectTargets
       .map { target ->
         graph
-          .computeRequestedTargets(listOf(target))
+          .computeRequestedTargets(listOf(target), replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false)
           .requiredTargets
           .filter { !syncedTargets.contains(it) || incompleteTargets.contains(it) }
           .toSet()
