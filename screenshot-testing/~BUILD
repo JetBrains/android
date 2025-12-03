@@ -46,6 +46,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     test_deps = [
+        "//tools/adt/idea/screenshot-testing/gradle:intellij.android.screenshot-test.gradle",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
@@ -55,9 +56,12 @@ iml_module(
         "@intellij//:JUnit",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/.idea/libraries:kotlin-test",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "long",

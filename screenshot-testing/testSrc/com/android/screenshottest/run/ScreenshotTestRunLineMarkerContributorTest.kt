@@ -58,6 +58,7 @@ class ScreenshotTestRunLineMarkerContributorTest {
   private var file: PsiFile? = null
 
   private val ACTION_ID = "com.android.screenshottest.action.UpdateReferenceImagesAction"
+  private var originalAction: AnAction? = null
 
   val updateReferenceImagesAction: AnAction = object : AnAction("Add/Update Reference Images...") {
     override fun actionPerformed(e: AnActionEvent) {}
@@ -79,15 +80,18 @@ class ScreenshotTestRunLineMarkerContributorTest {
     stubPreviewAnnotation()
     stubPreviewTestAnnotation()
     val actionManager = ActionManager.getInstance() as ActionManagerImpl
+    originalAction = actionManager.getAction(ACTION_ID)
+    if (originalAction != null) {
+      actionManager.unregisterAction(ACTION_ID)
+    }
     actionManager.registerAction(ACTION_ID, updateReferenceImagesAction)
   }
 
   @After
   fun tearDown() {
-    val actionManager = ActionManager.getInstance()
-    if (actionManager.getAction(ACTION_ID) != null) {
-      actionManager.unregisterAction(ACTION_ID)
-    }
+    val actionManager = ActionManager.getInstance() as ActionManagerImpl
+    actionManager.unregisterAction(ACTION_ID)
+    originalAction?.let { actionManager.registerAction(ACTION_ID, it) }
   }
 
   @Test

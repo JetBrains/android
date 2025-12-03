@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.testsuite.temp
 
-import com.android.tools.idea.testartifacts.TestConfigurationTesting
 import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -46,6 +45,7 @@ import org.junit.Test
 import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import org.junit.Ignore
 
 class GradleAndroidTestsExecutionConsoleManagerTest {
   @get:Rule
@@ -64,6 +64,7 @@ class GradleAndroidTestsExecutionConsoleManagerTest {
     PsiTestUtil.addSourceRoot(projectRule.fixture.module, screenshotTestDir, true)
   }
 
+  @Ignore("b/467056793")
   @Test
   fun runScreenshotTestWithAndroidTestSuiteView() {
     val latch = CountDownLatch(1)
