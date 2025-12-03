@@ -31,7 +31,7 @@ interface QuerySyncUserPreferences {
 
 private val skipRefreshQueryDataOnStartup = BoolExperiment("aswb.query.sync.skip.query.on.startup", true)
 private val buildNativeTargetsFromAndroidTransitionPoint =
-    BoolExperiment("aswb.query.sync.build.native.targets.from.android.transition.point", false)
+    BoolExperiment("aswb.query.sync.build.native.targets.from.android.transition.point", true)
 
 @Service(Service.Level.PROJECT)
 class QuerySyncUserPreferencesProvider(private val project: Project) {
