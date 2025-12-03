@@ -25,6 +25,9 @@ import com.android.tools.wear.wff.WFFVersion.WFFVersion3
 import com.android.tools.wear.wff.WFFVersion.WFFVersion4
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.FileContentUtilCore
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -176,6 +179,12 @@ class FeatureRequiresHigherWFFVersionInspectionTest {
 
     // Once we use version 2, there should no longer be any errors
     overrideCurrentWFFVersion(WFFVersion2, projectRule.testRootDisposable)
+    // This will be called by RawWatchFaceXmlSchemaUpdater in production
+    runInEdtAndWait {
+      runWriteAction {
+        FileContentUtilCore.reparseFiles(watchFaceFile.virtualFile)
+      }
+    }
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     errors = fixture.doHighlighting().filter { it.severity == HighlightSeverity.ERROR }
