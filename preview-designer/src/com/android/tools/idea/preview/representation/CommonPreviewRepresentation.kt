@@ -80,6 +80,7 @@ import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.RenderUtils
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.rendering.setupBuildListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -711,6 +712,11 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     if (!shouldEnqueueRequest) {
       onRefreshCompleted?.completeExceptionally(IllegalStateException("Not active"))
       return
+    }
+
+    // Check if resources are out-of-date and clear the resources cache if so.
+    if (renderingBuildStatusManager.status is RenderingBuildStatus.OutOfDate.Resources) {
+      RenderUtils.clearCache(surface.configurations)
     }
 
     val request =
