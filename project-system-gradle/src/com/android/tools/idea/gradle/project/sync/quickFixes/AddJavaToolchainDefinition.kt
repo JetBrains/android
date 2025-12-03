@@ -133,8 +133,7 @@ class AddJavaToolchainDefinition(project: Project, private val versionToSet: Int
   private class AddPluginUsageInfo(psiElement: PsiElement, val projectBuildModel: ProjectBuildModel) :
     UsageInfo(psiElement, TextRange.EMPTY_RANGE, false) {
     fun perform() {
-      PluginsHelper.withModel(projectBuildModel)
-        // FIXME: GradleVersion.current() is not a correct way of taking the version but agreed to proceed with this so far
+      PluginsHelper.withModel(projectBuildModel)// FIXME: GradleVersion.current() is not a correct way of taking the version but agreed to proceed with this so far
         .applySettingsPlugin(FOOJAY_RESOLVER_CONVENTION_NAME, getFoojayPluginVersion(GradleVersion.current()))
     }
   }

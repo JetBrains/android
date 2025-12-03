@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.builders
 
-import java.net.URL
 import org.gradle.util.GradleVersion
+import java.net.URL
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.FOOJAY_RESOLVER_CONVENTION_NAME
 import org.jetbrains.plugins.gradle.frameworkSupport.settingsScript.getFoojayPluginVersion
 

@@ -16,10 +16,10 @@
 package com.android.tools.idea.npw.builder
 
 import com.android.tools.idea.npw.builders.GradleSettingsBuilder
+import org.gradle.util.GradleVersion
 import java.net.URI
 import java.net.URL
 import kotlin.test.assertEquals
-import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.frameworkSupport.settingsScript.getFoojayPluginVersion
 import org.junit.Test
 
