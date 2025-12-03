@@ -2299,9 +2299,9 @@ Android Studio Preview.app/Contents/plugins/android/lib/dec-0.1.2.jar
 Android Studio Preview.app/Contents/plugins/android/lib/deploy_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/emulator_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/explainer.jar
-Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-6.0-1.5.9-macosx-arm64.jar
-Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-6.0-1.5.9.jar
-Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-platform-6.0-1.5.9.jar
+Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-7.1.1-1.5.12-macosx-arm64.jar
+Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-7.1.1-1.5.12.jar
+Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-platform-7.1.1-1.5.12.jar
 Android Studio Preview.app/Contents/plugins/android/lib/flatbuffers-java-1.12.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/game-tools-protos.jar
 Android Studio Preview.app/Contents/plugins/android/lib/game-tools.jar
@@ -2318,9 +2318,9 @@ Android Studio Preview.app/Contents/plugins/android/lib/google-oauth-client-1.35
 Android Studio Preview.app/Contents/plugins/android/lib/google-oauth-client-java6-1.35.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/inspectors-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/instantapps-api-1.8.jar
-Android Studio Preview.app/Contents/plugins/android/lib/javacpp-1.5.9-macosx-arm64.jar
-Android Studio Preview.app/Contents/plugins/android/lib/javacpp-1.5.9.jar
-Android Studio Preview.app/Contents/plugins/android/lib/javacpp-platform-1.5.9.jar
+Android Studio Preview.app/Contents/plugins/android/lib/javacpp-1.5.12-macosx-arm64.jar
+Android Studio Preview.app/Contents/plugins/android/lib/javacpp-1.5.12.jar
+Android Studio Preview.app/Contents/plugins/android/lib/javacpp-platform-1.5.12.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javapoet-1.13.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javax.inject-1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javax.servlet-api-3.0.1.jar
