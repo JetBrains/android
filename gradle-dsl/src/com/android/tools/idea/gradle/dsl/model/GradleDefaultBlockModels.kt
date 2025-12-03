@@ -143,10 +143,6 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       RepositoriesModel::class.java from {
         RepositoriesModelImpl(it.ensurePropertyElement(RepositoriesDslElement.REPOSITORIES))
       },
-
-      JavaDeclarativeModel::class.java from {
-        declarativeJavaBuilder(it)
-      }
     )
 
     private val DECLARATIVE_ROOT_AVAILABLE_MODELS = listOf<BlockModelBuilder<*, GradleBuildFile>>(
@@ -156,7 +152,8 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       ExtModel::class.java from { EmptyExtModelImpl() },
       JavaModel::class.java from { EmptyJavaModelImpl() },
       KotlinModel::class.java from { EmptyKotlinModelImpl() },
-      RepositoriesModel::class.java from { EmptyRepositoriesModelImpl() }
+      RepositoriesModel::class.java from { EmptyRepositoriesModelImpl() },
+      JavaDeclarativeModel::class.java from { declarativeJavaBuilder(it) },
     )
   }
 }
