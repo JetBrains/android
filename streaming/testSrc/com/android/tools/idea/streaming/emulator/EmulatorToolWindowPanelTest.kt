@@ -42,8 +42,8 @@ import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.actions.FloatingXrToolbarState
 import com.android.tools.idea.streaming.actions.ToggleFloatingXrToolbarAction
-import com.android.tools.idea.streaming.core.FloatingToolbarContainer
 import com.android.tools.idea.streaming.core.SplitPanel
+import com.android.tools.idea.streaming.core.expandFloatingToolbar
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_SCREENSHOT_CALL_FILTER
@@ -62,6 +62,7 @@ import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
 import com.intellij.configurationStore.deserialize
 import com.intellij.configurationStore.serialize
+import com.intellij.ide.ActivityTracker
 import com.intellij.ide.DataManager
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfoImpl
@@ -536,6 +537,8 @@ class EmulatorToolWindowPanelTest {
 
     val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
     xrInputController.inputMode = XrInputMode.VIEW_DIRECTION
+    ActivityTracker.getInstance().inc()
+    fakeUi.updateToolbarsIfNecessary()
     fakeUi.keyboard.setFocus(emulatorView)
     fakeUi.keyboard.press(VK_ENTER)
     val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
@@ -591,7 +594,7 @@ class EmulatorToolWindowPanelTest {
     fakeUi.keyboard.release(VK_E)
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { x: -1.0 y: -1.0 }")
 
-    expandFloatingToolbar()
+    fakeUi.expandFloatingToolbar()
     fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Interact with Apps" })
     // Switching to Interact with Apps resets state of the navigation keys.
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { }")
@@ -1010,6 +1013,7 @@ class EmulatorToolWindowPanelTest {
     assertAppearance("MultipleDisplays1", maxPercentDifferentMac = 0.09, maxPercentDifferentWindows = 0.25)
 
     // Check that the largest display view can be zoomed 1:1.
+    fakeUi.expandFloatingToolbar()
     emulator.clearGrpcCallLog()
     val largestDisplayPanel = fakeUi.getComponent<EmulatorDisplayPanel> { it.displayId == 2 }
     var frameNumber = largestDisplayPanel.displayView.frameNumber
@@ -1228,16 +1232,6 @@ class EmulatorToolWindowPanelTest {
 
   private fun getNextGrpcCallIgnoringStreamScreenshot(): GrpcCallRecord =
       emulator.getNextGrpcCall(2.seconds, IGNORE_SCREENSHOT_CALL_FILTER)
-
-  private fun expandFloatingToolbar() {
-    fakeUi.layoutAndDispatchEvents()
-    val toolbar = fakeUi.getComponent<FloatingToolbarContainer>()
-    // Trigger expansion of the floating toolbar.
-    fakeUi.mouse.moveTo(toolbar.locationOnScreen.x + toolbar.width / 2, toolbar.locationOnScreen.y + toolbar.height - toolbar.width / 2)
-    fakeUi.layoutAndDispatchEvents()
-    waitForCondition(1.seconds) { toolbar.activationFactor == 1.0 }
-    fakeUi.layoutAndDispatchEvents()
-  }
 
   private fun assertAppearance(goldenImageName: String,
                                maxPercentDifferentLinux: Double = 0.0003,
