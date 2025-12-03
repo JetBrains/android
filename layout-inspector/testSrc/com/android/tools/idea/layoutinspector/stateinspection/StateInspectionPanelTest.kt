@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.stateinspection
 
-import com.android.testutils.waitForCondition
 import com.android.tools.adtui.common.AdtUiUtils.getActionMask
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.swing.FakeKeyboard
@@ -51,7 +50,6 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
 import javax.swing.text.JTextComponent
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -109,12 +107,12 @@ class StateInspectionPanelTest {
   fun testRecompositionText() {
     val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
     model.show.value = true
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
     val label = panel.getDescendant<JLabel> { it.name == RECOMPOSITION_TEXT_LABEL_NAME }
     assertThat(label.text).isEqualTo("")
 
-    model.recompositionText.value = "Testing"
-    testDispatcher.scheduler.advanceUntilIdle()
+    model.content.value = StateInspectionContent(recompositionText = "Testing")
+    advanceUntilIdle()
     assertThat(label.text).isEqualTo("Testing")
   }
 
@@ -122,15 +120,15 @@ class StateInspectionPanelTest {
   fun testEmptyStateText() {
     val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
     model.show.value = true
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
     assertThat(panel.findDescendant<EmptyStatePanel>()).isNull()
 
-    model.emptyStateText.value = "Hello\nWorld"
-    testDispatcher.scheduler.advanceUntilIdle()
+    model.content.value = StateInspectionContent(emptyStateText = "Hello\nWorld")
+    advanceUntilIdle()
     val emptyState = panel.getDescendant<EmptyStatePanel>()
     assertThat(emptyState.reasonText).isEqualTo("Hello World")
 
-    model.emptyStateText.value = ""
+    model.show.value = false
     testDispatcher.scheduler.advanceUntilIdle()
     assertThat(panel.findDescendant<EmptyStatePanel>()).isNull()
   }
@@ -139,12 +137,12 @@ class StateInspectionPanelTest {
   fun testStateReadText() {
     val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
     model.show.value = true
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
     val label = panel.getDescendant<JLabel> { it.name == STATE_READ_TEXT_LABEL_NAME }
     assertThat(label.text).isEqualTo("")
 
-    model.stateReadsText.value = "Testing"
-    testDispatcher.scheduler.advanceUntilIdle()
+    model.content.value = StateInspectionContent(stateReadsText = "Testing")
+    advanceUntilIdle()
     assertThat(label.text).isEqualTo("Testing")
   }
 
@@ -157,7 +155,7 @@ class StateInspectionPanelTest {
     val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
     assertThat(editor.document.text).isEqualTo("")
 
-    model.stackTraceText.value = "Testing"
+    model.content.value = StateInspectionContent(stackTraceText = "Testing")
     testDispatcher.scheduler.advanceUntilIdle()
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     assertThat(editor.document.text).isEqualTo("Testing")
@@ -182,26 +180,37 @@ class StateInspectionPanelTest {
   fun testStateInspectionData() {
     val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
     model.show.value = true
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
     val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
     assertThat(editor.getUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY)).isNull()
 
     val data = ComposableDefinition("composable", "MyFile.kt")
-    model.composableInspected.value = data
-    testDispatcher.scheduler.advanceUntilIdle()
+    model.content.value = StateInspectionContent(composableInspected = data)
+    advanceUntilIdle()
     assertThat(editor.getUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY)).isEqualTo(data)
+  }
+
+  private fun advanceUntilIdle() {
+    // The write action in StateInspectionPanel.setTextInEditor may not complete with...
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    // Perform the write action:
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
+    // Finish the coroutine after the write action finishes:
+    testDispatcher.scheduler.advanceUntilIdle()
   }
 
   private fun testButton(buttonAction: TestAction) {
     val panel = StateInspectionPanel(model, projectRule.project, stats, testScope, disposable)
     model.show.value = true
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
     val button = panel.getDescendant<ActionButton> { it.action == buttonAction }
     assertThat(button.isEnabled).isFalse()
 
     buttonAction.enabled = true
-    model.updates.value++
-    testDispatcher.scheduler.advanceUntilIdle()
+    model.content.value = StateInspectionContent(updates = 2)
+    advanceUntilIdle()
     assertThat(button.isEnabled).isTrue()
 
     panel.size = Dimension(600, 800)
@@ -214,7 +223,7 @@ class StateInspectionPanelTest {
     assertThat(buttonAction.performedCount).isEqualTo(2)
 
     buttonAction.enabled = false
-    model.updates.value++
+    model.content.value = StateInspectionContent(updates = 3)
     testDispatcher.scheduler.advanceUntilIdle()
     assertThat(button.isEnabled).isFalse()
   }
@@ -278,17 +287,20 @@ class StateInspectionPanelTest {
     val project = projectRule.project
     val detectorFactory = SynchronousHyperLinkDetectorFactory()
     val panel = StateInspectionPanel(model, project, stats, testScope, disposable, detectorFactory)
-    model.show.value = true
     model.prevAction.enabled = true
     model.nextAction.enabled = true
-    model.stackTraceText.value =
-      """
+    model.show.value = true
+    model.content.value =
+      StateInspectionContent(
+        stackTraceText =
+          """
       State read value: [b, c] <invalidated> (Explain with AI)
           at com.example.recompositiontest.MainActivityKt.Item(MainActivity.kt:60)
 
     """
-        .trimIndent()
-    testDispatcher.scheduler.advanceUntilIdle()
+            .trimIndent()
+      )
+    advanceUntilIdle()
     val prev = panel.getDescendant<ActionButton> { it.action == model.prevAction }
     val next = panel.getDescendant<ActionButton> { it.action == model.nextAction }
     val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
@@ -320,12 +332,13 @@ class StateInspectionPanelTest {
 
     // Auto transfer focus away from disabled prev button:
     model.prevAction.enabled = false
-    model.updates.value += 1
-    testDispatcher.scheduler.advanceUntilIdle()
+    model.show.value = true
+    model.content.value = model.content.value.copy(updates = 1)
+    advanceUntilIdle()
     assertThat(focusManager.focusOwner).isSameAs(next)
 
     // Activate a link in the editor:
-    waitForCondition(10.seconds) { editor.markupModel.allHighlighters.size == 3 }
+    assertThat(editor.markupModel.allHighlighters.size).isEqualTo(3)
     validateMarkupModel(editor.markupModel) {
       region(1, "<invalidated>")
       region(1, "(Explain with AI)")
@@ -346,15 +359,10 @@ class StateInspectionPanelTest {
 
   class TestStateInspectionModel : StateInspectionModel {
     override val show = MutableStateFlow(false)
+    override val content = MutableStateFlow(StateInspectionContent())
     override val prevAction = TestAction()
-    override val recompositionText = MutableStateFlow("")
-    override val emptyStateText = MutableStateFlow("")
     override val nextAction = TestAction()
     override val minimizeAction = TestAction()
-    override val stateReadsText = MutableStateFlow("")
-    override val stackTraceText = MutableStateFlow("")
-    override val updates = MutableStateFlow(0)
-    override val composableInspected = MutableStateFlow<ComposableDefinition?>(null)
   }
 
   class TestAction : AnAction() {
