@@ -223,13 +223,19 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
       profilersView.studioProfilers.ideServices.mainExecutor.execute { totalClassLabel.numValue = count }
     }
 
+    // Compute total retained size asynchronously because it can take multiple seconds
+    fun refreshTotalRetainedSizeAsync(heap: HeapSet) = profilersView.studioProfilers.ideServices.poolExecutor.execute {
+      val retainedSize = heap.totalRetainedSize
+      profilersView.studioProfilers.ideServices.mainExecutor.execute { totalRetainedSizeLabel.numValue = retainedSize }
+    }
+
     fun refreshSummaries() {
       selection.selectedHeapSet?.let { heap ->
         refreshTotalClassesAsync(heap)
         totalCountLabel.numValue = heap.totalObjectCount.toLong()
         totalNativeSizeLabel.numValue = heap.totalNativeSize
         totalShallowSizeLabel.numValue = heap.totalShallowSize
-        totalRetainedSizeLabel.numValue = heap.totalRetainedSize
+        refreshTotalRetainedSizeAsync(heap)
 
         val capture = selection.selectedCapture
         isVisible = capture is HeapDumpCaptureObject
