@@ -21,7 +21,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "//libraries/mockito",
     "@lib//:mockito-kotlin",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "@lib//:truth",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//android/android-common:common",

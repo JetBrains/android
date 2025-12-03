@@ -16,7 +16,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/artwork",
     "//platform/observable",
     "//android/android-adb:adb",
@@ -102,7 +102,7 @@ jvm_library(
     "//platform/execution-impl",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//platform/execution",
     "//android/android-adb:adb",
   ]

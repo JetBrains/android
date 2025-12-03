@@ -93,7 +93,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//libraries/kotlinx/html",
     "@lib//:junit4",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/codenavigation",
     "//android/codenavigation:codenavigation_test_lib",
     "//platform/core-impl",

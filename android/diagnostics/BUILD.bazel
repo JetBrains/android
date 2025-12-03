@@ -27,7 +27,7 @@ jvm_library(
     "//libraries/kotlin/reflect",
     "//libraries/kotlinx/coroutines/core",
     "//libraries/kotlinx/coroutines/test",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/server-flags",
     "//android/server-flags:server-flags_test_lib",
     "@lib//:mockito-kotlin",

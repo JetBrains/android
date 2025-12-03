@@ -14,7 +14,7 @@
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.protobuf" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

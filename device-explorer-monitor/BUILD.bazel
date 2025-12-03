@@ -13,7 +13,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//libraries/kotlinx/coroutines/core",
     "//libraries/kotlinx/coroutines/guava",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/android-adb:adb",
     "//android/adt-ui",
     "//android/artwork",

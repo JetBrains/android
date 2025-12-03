@@ -38,7 +38,7 @@ jvm_library(
     "//android/project-system",
     "@lib//:aapt-proto",
     "//android/apkanalyzer",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//libraries/gson",
   ]
 )
@@ -89,7 +89,7 @@ jvm_library(
     "//platform/core-ui",
     "//platform/projectModel-api:projectModel",
     "//android/project-system",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/android-lang:lang-tests_test_lib",
     "//platform/execution",
   ]

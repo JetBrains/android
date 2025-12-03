@@ -18,7 +18,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "//libraries/kotlinx/coroutines/core",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/android-adb:adb",
     "//android/adt-ui",
     "//android/artwork",

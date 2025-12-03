@@ -52,7 +52,7 @@
     <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
-    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.protobuf" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-designer.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wear-preview-elements" scope="TEST" />

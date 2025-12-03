@@ -20,7 +20,7 @@ jvm_library(
     "@lib//:jaxb-api",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/app-inspection/ide",
     "//android/assistant",
     "//android/build-attribution",

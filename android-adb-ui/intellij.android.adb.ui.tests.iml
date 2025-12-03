@@ -14,7 +14,7 @@
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.test" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
-    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.protobuf" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adb.testUtil" scope="TEST" />

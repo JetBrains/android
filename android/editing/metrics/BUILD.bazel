@@ -15,7 +15,7 @@ jvm_library(
   resources = [":metrics_resources"],
   deps = [
     "@lib//:kotlin-stdlib",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "@lib//:studio-platform-provided",
     "//platform/core-api:core",
     "//platform/editor-ui-api:editor-ui",
@@ -35,7 +35,7 @@ jvm_library(
   associates = [":metrics"],
   deps = [
     "@lib//:kotlin-stdlib",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "//libraries/guava",

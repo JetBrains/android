@@ -160,7 +160,7 @@
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.guava" />
-    <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.protobuf" />
     <orderEntry type="module-library">
       <library name="ffmpeg" type="repository">
         <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg:6.0-1.5.9-189">

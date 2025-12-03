@@ -28,7 +28,7 @@ jvm_library(
     "//libraries/fastutil",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/analytics",
     "//android/android-common:common",
     "//android/android:core",

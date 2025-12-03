@@ -12,7 +12,7 @@ jvm_library(
     "//libraries/gson",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/android:core",
     "//android/gmaven",
     "//platform/core-api:core",

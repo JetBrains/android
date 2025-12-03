@@ -20,7 +20,7 @@ jvm_library(
     "//libraries/jcip",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/analytics",
     "//android/android-common:common",
     "//android/android:core",

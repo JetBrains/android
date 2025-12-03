@@ -17,7 +17,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
     "//libraries/kotlinx/coroutines/core",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/adt-ui",
     "//android/adt-ui-model",
     "//android/app-inspection/inspector/api",

@@ -31,7 +31,7 @@ jvm_library(
     "//libraries/kotlinx/datetime",
     "//libraries/mockito",
     "@lib//:mockito-kotlin",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "@lib//:truth",
     "@lib//:kotlinc-kotlin-compiler-common",
     "@lib//:kotlinc-kotlin-compiler-fe10",

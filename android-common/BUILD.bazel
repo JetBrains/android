@@ -69,7 +69,7 @@ jvm_library(
     "//plugins/kotlin/base/facet",
     "//libraries/kotlinx/datetime",
     "//android/server-flags",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
   ]
 )
 ### auto-generated section `build intellij.android.common` end
@@ -119,7 +119,7 @@ jvm_library(
     "//plugins/kotlin/base/plugin:plugin_test_lib",
     "//platform/editor-ui-api:editor-ui",
     "@lib//:mockito-kotlin",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
   ]
 )
 ### auto-generated section `build intellij.android.common.tests` end

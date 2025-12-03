@@ -22,7 +22,7 @@ jvm_library(
     "//libraries/guava",
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/adt-testutils",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",

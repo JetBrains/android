@@ -29,7 +29,7 @@ jvm_library(
     "//platform/util-rt:util-rt_test_lib",
     "//platform/core-api:core",
     "//libraries/gson",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//platform/lang-impl",
   ]
 )

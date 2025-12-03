@@ -16,7 +16,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/adt-ui-model",
     "//android/app-inspection/inspector/api",
     "//android/app-inspection/inspector/ide",

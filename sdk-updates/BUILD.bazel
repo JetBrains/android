@@ -18,7 +18,7 @@ jvm_library(
     "//libraries/guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/adt-ui",
     "//android/android-common:common",
     "//android/android:core",

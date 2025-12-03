@@ -21,7 +21,7 @@ jvm_library(
     "@lib//:google-dexlib2",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//libraries/swingx",
     "//android/adt-ui",
     "//android/artwork",

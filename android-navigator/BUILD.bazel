@@ -21,7 +21,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinc-kotlin-jps-common-provided",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/analytics",
     "//android/apkanalyzer",
     "//android/artwork",

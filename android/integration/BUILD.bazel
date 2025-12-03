@@ -15,7 +15,7 @@ jvm_library(
   deps = [
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "@lib//:studio-platform",
     "//android/intellij.android.testutils:testutils_test_lib",
     "@lib//:truth",

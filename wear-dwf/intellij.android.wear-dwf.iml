@@ -33,7 +33,7 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
-    <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.protobuf" />
     <orderEntry type="module" module-name="intellij.libraries.gson" />
   </component>
 </module>

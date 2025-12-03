@@ -19,7 +19,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "//android/android-common:common",
     "//android/android:core",
     "//android/jps-model",

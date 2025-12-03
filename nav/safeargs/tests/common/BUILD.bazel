@@ -27,7 +27,7 @@ jvm_library(
     "//libraries/kotlinx/coroutines/core",
     "//libraries/mockito",
     "@lib//:mockito-kotlin",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "@lib//:truth",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",

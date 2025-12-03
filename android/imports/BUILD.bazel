@@ -23,7 +23,7 @@ jvm_library(
     "@lib//:kotlin-test",
     "//libraries/mockito",
     "@lib//:mockito-kotlin",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "@lib//:truth",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android:core-tests_test_lib",

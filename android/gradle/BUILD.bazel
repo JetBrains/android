@@ -24,7 +24,7 @@ jvm_library(
     "@lib//:kotlin-test",
     "//libraries/mockito",
     "@lib//:mockito-kotlin",
-    "@lib//:protobuf",
+    "//libraries/protobuf",
     "@lib//:truth",
     "@lib//:kotlinc-analysis-api-impl-base",
     "@lib//:kotlinc-kotlin-compiler-common",
