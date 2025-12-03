@@ -15,7 +15,7 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <postStartupActivity implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestAnalyticsStartupActivity"/>
+    <postStartupActivity implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestAnalyticsProjectActivity"/>
   </extensions>
   <actions>
     <action

@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.testartifacts.screenshot
 
-import com.intellij.execution.ExecutionListener
 import com.intellij.execution.ExecutionManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 
-class ScreenshotTestAnalyticsStartupActivity : StartupActivity {
-  override fun runActivity(project: Project) {
+class ScreenshotTestAnalyticsProjectActivity : ProjectActivity {
+  override suspend fun execute(project: Project) {
     project.messageBus.connect().subscribe(ExecutionManager.EXECUTION_TOPIC, ScreenshotTestExecutionListener())
   }
 }
