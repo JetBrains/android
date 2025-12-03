@@ -116,7 +116,7 @@ public final class BazelBuildServicesTest {
     }
 
     @Override
-    public void buildStarted(@NotNull BuildMode mode, @NotNull ListenableFuture<@NotNull BuildResult> resultFuture) {
+    public void buildStarted(@NotNull BuildMode mode, @NotNull ListenableFuture<BuildResult> resultFuture) {
       this.mode = mode;
       this.resultFuture = resultFuture;
     }
