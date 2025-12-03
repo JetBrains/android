@@ -13,61 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testartifacts.screenshot
+package com.android.screenshottest.producers
 
-import com.android.tools.idea.AndroidPsiUtils.getPsiParentsOfType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW
-import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
-import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiMethod
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer
+import org.jetbrains.plugins.gradle.execution.test.runner.AllInDirectoryGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import org.jetbrains.plugins.gradle.util.TasksToRun
 
 /**
  * A configuration producer for creating Gradle run configurations for screenshot tests
- * for a given method in the screenshot test source set. This class extends {@link TestMethodGradleConfigurationProducer}
- * to provide specialized configuration for screenshot testing. The configuration is only produced
- * if the method is annotated with either a Preview or multi-Preview annotation
+ * within a given directory.  This class extends {@link AllInDirectoryGradleConfigurationProducer}
+ * to leverage its directory-based configuration creation capabilities. The configuration is produced as long
+ * as there is a screenshot test source set present in the directory
  */
-class ScreenshotTestMethodGradleConfigurationProducer: TestMethodGradleConfigurationProducer() {
-  private val visitedAnnotations = mutableMapOf<String, Boolean>()
-  override fun suggestConfigurationName(context: ConfigurationContext, element: PsiMethod, chosenElements: List<PsiClass>): String {
-    return "Screenshot Tests in ${element.name}"
+class ScreenshotTestAllInDirectoryGradleConfigurationProducer: AllInDirectoryGradleConfigurationProducer() {
+  override fun suggestConfigurationName(context: ConfigurationContext, element: PsiElement, chosenElements: List<PsiElement>): String {
+    return "Screenshot Tests in ${context.module!!.name}"
   }
 
   override fun doIsConfigurationFromContext(configuration: GradleRunConfiguration, context: ConfigurationContext): Boolean {
     if (configuration.getUserData<Boolean>(IS_SCREENSHOT_TEST_CONFIGURATION) != true) {
       return false
     }
-
     val location = context.location ?: return false
-    val psiMethod = getPsiParentsOfType(location.psiElement, PsiMethod::class.java, false).firstOrNull()?: return false
+    if (location.psiElement !is PsiDirectory) return false
 
     val androidModule = AndroidUtils.getAndroidModule(context) ?: return false
     val androidFacet = AndroidFacet.getInstance(androidModule) ?: return false
     if (!isScreenshotTestSourceSet(location, androidFacet)) return false
-    if (!isMethodDeclarationPreviewTestAnnotated(psiMethod, visitedAnnotations)) return false
 
+    val taskNames = getScreenshotTestTaskNames(context) ?: return false
     val configurationTaskNames = configuration.settings.taskNames
-    return configurationTaskNames == taskNamesWithFilter(context, psiMethod)
+    return  configurationTaskNames == taskNames
   }
 
   override fun getAllTestsTaskToRun(context: ConfigurationContext,
-                                    element: PsiMethod,
-                                    chosenElements: List<PsiClass>): List<TestTasksToRun> {
+                                    element: PsiElement,
+                                    chosenElements: List<PsiElement>): List<TestTasksToRun> {
     val tasksToRun = mutableListOf<TestTasksToRun>()
-    val className = JavaExecutionUtil.getRuntimeQualifiedName(element.containingClass!!) ?: return tasksToRun
-    val methodName = element.name
-    val testFilter = "--tests \"$className.$methodName\""
     val tasks = getScreenshotTestTaskNames(context) ?: return tasksToRun
-    tasksToRun.add(TestTasksToRun(TasksToRun.Impl("screenshotTest", tasks), testFilter))
+    tasksToRun.add(TestTasksToRun(TasksToRun.Impl("screenshotTest", tasks), ""))
     return tasksToRun
   }
 
@@ -77,13 +69,17 @@ class ScreenshotTestMethodGradleConfigurationProducer: TestMethodGradleConfigura
     if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()) {
       return false
     }
-    configuration.putUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey, true)
-    configuration.putUserData<Boolean>(IS_SCREENSHOT_TEST_CONFIGURATION, true)
-    return configure(configuration, sourceElement, context)
+    val configured = configure(configuration, sourceElement, context)
+    if (configured) {
+      configuration.putUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey, true)
+      configuration.putUserData<Boolean>(IS_SCREENSHOT_TEST_CONFIGURATION, true)
+    }
+    return configured
   }
 
   private fun configure(configuration: GradleRunConfiguration, sourceElementRef: Ref<PsiElement>, context: ConfigurationContext): Boolean {
     val location = context.location ?: return false
+    if (location.psiElement !is PsiDirectory) return false
 
     val myModule = AndroidUtils.getAndroidModule(context) ?: return false
     val facet = AndroidFacet.getInstance(myModule) ?: return false
@@ -92,24 +88,10 @@ class ScreenshotTestMethodGradleConfigurationProducer: TestMethodGradleConfigura
     }
 
     val project = context.project ?: return false
-    getPsiParentsOfType(location.psiElement, PsiMethod::class.java, false).forEach { elementMethod ->
-      if (!isMethodDeclarationPreviewTestAnnotated(elementMethod, visitedAnnotations)) return false
-      sourceElementRef.set(elementMethod)
-      configuration.settings.externalProjectPath = project.basePath
-      configuration.name = suggestConfigurationName(context, elementMethod, emptyList())
-      configuration.settings.taskNames = taskNamesWithFilter(context, elementMethod)
-      configuration.isDebugServerProcess = false
-      configuration.isDebugAllEnabled = false
-
-      return true
-    }
-    return false
+    configuration.settings.externalProjectPath = project.basePath
+    sourceElementRef.set(location.psiElement)
+    configuration.settings.taskNames = getScreenshotTestTaskNames(context)!!
+    configuration.name = suggestConfigurationName(context, location.psiElement, emptyList())
+    return true
   }
-
-  private fun taskNamesWithFilter(context: ConfigurationContext, psiMethod: PsiMethod): List<String> {
-    val className = psiMethod.containingClass?.qualifiedName?: return emptyList()
-    val methodName = psiMethod.name
-    return getScreenshotTestTaskNames(context)!! + "--tests" + "\"$className.$methodName\""
-  }
-
 }

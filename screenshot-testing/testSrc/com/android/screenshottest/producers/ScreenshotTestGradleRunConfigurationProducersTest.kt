@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testartifacts.screenshot
+package com.android.screenshottest.producers
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
@@ -337,7 +337,7 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
   private fun createProjectStructureForTest() {
     //simple screenshotTest
     createRelativeFileWithContent(SIMPLE_SCREENSHOT,
-    """
+                                  """
     package com.example.application
 
     import androidx.compose.runtime.Composable
@@ -408,7 +408,7 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
 
     //Multi preview annotations
     createRelativeFileWithContent(MULTI_PREVIEW,
-    """
+                                  """
     package com.example.application
 
     import androidx.compose.runtime.Composable
@@ -428,7 +428,7 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
       fun AnotherPreviewMethod() {
       }
     }
-    
+
     @Preview(name = "with background", showBackground = true)
     @Preview(name = "without background", showBackground = false)
     annotation class MultiPreview
@@ -437,7 +437,7 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
 
     //file in a different package
     createRelativeFileWithContent(DIFFERENT_PACKAGE,
-    """
+                                  """
     package com.example.application
 
     import androidx.compose.runtime.Composable
@@ -462,7 +462,7 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
 
     //class with no methods
     createRelativeFileWithContent(EMPTY_CLASS,
-    """
+                                  """
     package com.example.application
 
     import androidx.compose.runtime.Composable
@@ -475,7 +475,7 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
 
     //class with no preview methods
     createRelativeFileWithContent(NO_PREVIEWS,
-    """
+                                  """
     package com.example.application
 
     import androidx.compose.runtime.Composable
@@ -485,7 +485,7 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
       @Composable
       fun PreviewMethod() {
       }
-      
+
       @Composable
       fun AnotherPreviewMethod() {
       }
@@ -495,13 +495,13 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
 
     //top level function
     createRelativeFileWithContent(TOP_LEVEL,
-    """
+                                  """
     package com.example.application
 
     import androidx.compose.runtime.Composable
     import androidx.compose.ui.tooling.preview.Preview
     import com.android.tools.screenshot.PreviewTest
- 
+
     @PreviewTest
     @Preview(showBackground = true)
     @Composable

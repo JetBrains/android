@@ -58,10 +58,10 @@ public class NonBlazeProducerConfigurationTest extends BlazeRunConfigurationProd
           "com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer",
           "com.android.tools.idea.run.configuration.BaselineProfileConfigurationProducer",
           "com.android.tools.idea.testartifacts.instrumented.kmp.KotlinMultiplatformAndroidTestConfigurationProducer",
-          "com.android.tools.idea.testartifacts.screenshot.ScreenshotTestAllInDirectoryGradleConfigurationProducer",
-          "com.android.tools.idea.testartifacts.screenshot.ScreenshotTestAllInPackageGradleConfigurationProducer",
-          "com.android.tools.idea.testartifacts.screenshot.ScreenshotTestClassGradleConfigurationProducer",
-          "com.android.tools.idea.testartifacts.screenshot.ScreenshotTestMethodGradleConfigurationProducer",
+          "com.android.screenshottest.producers.ScreenshotTestAllInDirectoryGradleConfigurationProducer",
+          "com.android.screenshottest.producers.ScreenshotTestAllInPackageGradleConfigurationProducer",
+          "com.android.screenshottest.producers.ScreenshotTestClassGradleConfigurationProducer",
+          "com.android.screenshottest.producers.ScreenshotTestMethodGradleConfigurationProducer",
           "com.android.tools.idea.testartifacts.testsuite.runconfiguration.TestSuiteRunConfigurationProducer"
           );
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.screenshot
 
+import com.android.screenshottest.producers.IS_SCREENSHOT_TEST_CONFIGURATION
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension
