@@ -158,26 +158,26 @@ fun LeakDetailsPanel(selectedLeak: Leak?,
  */
 @Composable
 fun GcRootNodeView(leakTrace: LeakTrace) {
-    Column(modifier = Modifier.padding(start = 10.dp)) {
-      Text(
-        text = buildAnnotatedString {
-          withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-            append(LEAKCANARY_GC_ROOT)
-          }
-          append(" (${leakTrace.gcRootType.description})")
-        },
-        modifier = Modifier
-          .border(
-            width = 1.dp,
-            color = Color.Gray,
-            shape = RoundedCornerShape(4.dp)
-          )
-          .padding(horizontal = 8.dp, vertical = 4.dp)
-      )
-      Row(modifier = Modifier.height(16.dp)) {
-        Spacer(Modifier.padding(9.dp))
-        VerticalLeakStatusLine(leakTrace.nodes[0].leakingStatus)
-      }
+  Column(modifier = Modifier.padding(start = 10.dp)) {
+    Text(
+      text = buildAnnotatedString {
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+          append(LEAKCANARY_GC_ROOT)
+        }
+        append(" (${leakTrace.gcRootType.description})")
+      },
+      modifier = Modifier
+        .border(
+          width = 1.dp,
+          color = Color.Gray,
+          shape = RoundedCornerShape(4.dp)
+        )
+        .padding(horizontal = 8.dp, vertical = 4.dp)
+    )
+    Row(modifier = Modifier.height(16.dp)) {
+      Spacer(Modifier.padding(12.dp))
+      VerticalLeakStatusLine(leakTrace.nodes[0].leakingStatus)
+    }
   }
 }
 
@@ -215,14 +215,15 @@ fun LeakTraceNodeView(node: Node,
   }
   Column(modifier = Modifier.height(IntrinsicSize.Min)
     .background(if (isFocused) TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR else Color.Transparent, shape = RoundedCornerShape(4.dp))
+    .padding(horizontal = 5.dp)
   ) {
     Row {
       Row(modifier = rowClickableModifier.testTag(node.className)) {
         if (isOpen) {
-          Icon(AllIconsKeys.General.ArrowDown, LEAKCANARY_OPEN)
+          Icon(AllIconsKeys.General.ArrowDown, LEAKCANARY_OPEN, modifier = Modifier.padding(top = 2.dp))
         }
         else {
-          Icon(AllIconsKeys.General.ArrowRight, LEAKCANARY_CLOSE)
+          Icon(AllIconsKeys.General.ArrowRight, LEAKCANARY_CLOSE, modifier = Modifier.padding(top = 2.dp))
         }
         Spacer(Modifier.padding(2.5.dp))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -234,7 +235,7 @@ fun LeakTraceNodeView(node: Node,
       }
       Spacer(Modifier.padding(20.dp))
       Column(horizontalAlignment = Alignment.Start) {
-        Row(modifier = rowClickableModifier.padding(top = 2.dp, end = 5.dp)) {
+        Row(modifier = rowClickableModifier.padding(top = 3.dp, end = 5.dp)) {
           Text(
             text = buildAnnotatedString {
               appendClassAndStatusText(previousNode, node)
@@ -244,7 +245,7 @@ fun LeakTraceNodeView(node: Node,
           )
           if (isOpen) {
             if (isDeclarationFound) {
-              Link(text = LEAKCANARY_GO_TO_DECLARATION, onClick = { gotoDeclaration(node) })
+              Link(text = LEAKCANARY_GO_TO_DECLARATION, onClick = { gotoDeclaration(node) }, modifier = Modifier.padding(top = 2.dp))
             }
             else {
               NotificationWithTooltip(notificationText = LEAKCANARY_NO_DECLARATION_FOUND,
