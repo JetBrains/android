@@ -312,6 +312,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(panel.primaryDisplayView).isNull()
     streamScreenshotCall.waitForCancellation(2.seconds)
   }
+
   @Test
   fun testWearToolbarActionsApi28() {
     val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(28, 0))
@@ -472,6 +473,46 @@ class EmulatorToolWindowPanelTest {
       else -> "XrToolbarActions2"
     }
     assertAppearance(goldenImageName, maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+
+    panel.destroyContent()
+    assertThat(panel.primaryDisplayView).isNull()
+    streamScreenshotCall.waitForCancellation(2.seconds)
+  }
+
+  @Test
+  fun testAiGlassesToolbarActions() {
+    val avdFolder = FakeEmulator.createAiGlassesAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(36, 0))
+    panel = createWindowPanel(avdFolder)
+
+    assertThat(panel.primaryDisplayView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryDisplayView ?: fail()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS)
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(430, 450)
+    fakeUi.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 430 height: 362")
+    assertAppearance("AiGlassesToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+    emulator.clearGrpcCallLog()
+
+    // Check the Button 1 action.
+    val button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Button 1" }
+    fakeUi.mouseClickOn(button)
+    val streamInputCall = emulator.getNextGrpcCall(2.seconds)
+    assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"Stem1\" }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"Stem1\" }")
+
+    // Check that the buttons not applicable to AI Glasses are hidden.
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Home" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNull()
 
     panel.destroyContent()
     assertThat(panel.primaryDisplayView).isNull()
