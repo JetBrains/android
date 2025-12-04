@@ -29,7 +29,9 @@ import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.dependencies.DeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.IdeBasicVariantName
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
+import com.android.tools.idea.gradle.model.impl.IdeBasicVariantNameImpl
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.android.utils.appendCapitalized
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
@@ -110,7 +112,8 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
                   val androidDsl = controller.findModel(gradleProject, AndroidDsl::class.java)!!
                   val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)!!
 
-                  val defaultVariantName = basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
+                  val defaultVariantName =
+                    basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
                   val selectedVariantName =
                     computeVariantNameToBeSynced(syncOptions, gradleProject.moduleId(), basicAndroidProject, defaultVariantName)
                       ?: return@BuildAction null
@@ -126,7 +129,8 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
                         androidProject,
                         modelVersions,
                         androidDsl,
-                        legacyAndroidGradlePluginProperties = null, // Model shouldn't be fetched when using 8.0+, which is the case for phased sync
+                        // Model shouldn't be fetched when using 8.0+, which is the case for phased sync
+                        legacyAndroidGradlePluginProperties = null,
                         gradlePropertiesModel,
                         defaultVariantName,
                       )
@@ -165,6 +169,8 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
         modelConsumer.consumeProjectModel(gradleProject, data.gradleTaskModel, GradleTaskModel::class.java)
         modelConsumer.consumeProjectModel(gradleProject, data.ideAndroidProject, IdeAndroidProject::class.java)
 
+        val ideBasicVariantNameModel = IdeBasicVariantNameImpl(data.selectedVariantName)
+        modelConsumer.consumeProjectModel(gradleProject, ideBasicVariantNameModel, IdeBasicVariantName::class.java)
         // Optional models
         data.kaptGradleModel?.let { modelConsumer.consumeProjectModel(gradleProject, it, KaptGradleModel::class.java) }
         cachedModels.data[gradleProject] =
@@ -232,7 +238,7 @@ private fun populateIdeaModuleModel(
 private val LOG = logger<PhasedSyncProjectModelProvider>()
 
 /** Use [Modules.createUniqueModuleId] to provide module id. */
-fun computeVariantNameToBeSynced(
+private fun computeVariantNameToBeSynced(
   syncOptions: SyncActionOptions,
   moduleId: String,
   basicAndroidProject: BasicAndroidProject,
@@ -252,9 +258,7 @@ fun computeVariantNameToBeSynced(
           ?.also { LOG.debug("Picked selected variant from last sync $it for $moduleId") }
     else -> null
   } // default variant as specified by the build script (computation could still end up being null)
-  ?: defaultVariantName.also {
-      LOG.debug("Picked the default variant $it for $moduleId")
-    }
+  ?: defaultVariantName.also { LOG.debug("Picked the default variant $it for $moduleId") }
 
 private fun Versions.isAtLeastAgp8() = AgpVersion.parse(agp).isAtLeast(8, 0, 0)
 

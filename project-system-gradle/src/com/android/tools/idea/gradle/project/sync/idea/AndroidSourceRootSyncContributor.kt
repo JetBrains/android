@@ -27,7 +27,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
+import com.android.tools.idea.gradle.model.IdeBasicVariantName
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
+import com.android.tools.idea.gradle.model.impl.IdeBasicVariantNameImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
@@ -42,7 +44,6 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
-import com.android.tools.idea.gradle.project.sync.computeVariantNameToBeSynced
 import com.android.tools.idea.gradle.project.sync.convert
 import com.android.tools.idea.gradle.project.sync.getAllChildren
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.Companion.toIdeDeclaredDependencies
@@ -188,7 +189,8 @@ internal class SyncContributorAndroidProjectContext(
       SdkDependency(SdkId(it.name, AndroidSdkType.SDK_NAME))
     }
   val variantName: String =
-    computeVariantNameToBeSynced(syncOptions, projectModel.moduleId(), basicAndroidProject, ideAndroidProject.defaultVariantName)!!
+    (context.getProjectModel(projectModel, IdeBasicVariantName::class.java) as? IdeBasicVariantNameImpl)?.name
+      ?: error("There was no variant that got fetched for ${gradleProject.path} ")
 
   private val holderModuleEntityNullable: ModuleEntity? = storage.resolve(ModuleId(resolveHolderModuleName()))
 
