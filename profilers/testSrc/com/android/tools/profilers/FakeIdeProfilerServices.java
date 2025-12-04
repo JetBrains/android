@@ -121,7 +121,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
    * Whether the LeakCanary task should be visible.
    */
-  private boolean myLeakCanaryEnabled = false;
+  private boolean myLeakCanaryEnabled = true;
 
   /**
    * Whether the V2 of Task Title should be used.
