@@ -244,6 +244,7 @@ studiobot.support.gias.enterprise=COMPLETE:2025
 studiobot.use.bm25.find.files=PREVIEW
 studiobot.verify.user.tier.in.aida.rpcs=COMPLETE:2025
 studiobot.version.upgrade.agent=PREVIEW
+studiobot.write.critic.main.passes=INTERNAL
 studiobot.write.critic=PREVIEW
 studiolabs.enabled=COMPLETE:2025
 studiolabs.fakefeature=INTERNAL
