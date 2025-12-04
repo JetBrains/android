@@ -20,6 +20,7 @@ import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.EditorUtils.cleanUpListenersFromEditorMouseHoverPopupManager
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -106,6 +107,10 @@ class StateInspectionPanelIntegrationTest {
     state.createFakeStateReads()
 
     val panel = createPanel()
+    waitForCondition(10.seconds) {
+      panel.findAllDescendants<ActionButton>({ true }).toList().size == 3
+    }
+
     val ui = FakeUi(panel, createFakeWindow = true)
     val prev = panel.buttonWithIcon(AllIcons.Actions.Play_back)
     val next = panel.buttonWithIcon(AllIcons.Actions.Play_forward)
