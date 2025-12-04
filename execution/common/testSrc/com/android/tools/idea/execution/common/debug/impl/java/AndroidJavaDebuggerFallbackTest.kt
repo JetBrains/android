@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.execution.common.debug.impl.java
 
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
-import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.fakeadbserver.DeviceState
+import com.android.sdklib.AndroidApiLevel
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
+import com.android.tools.idea.execution.common.launchAndWaitForProcess
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
 import com.android.tools.idea.execution.common.debug.DebuggerThreadCleanupRule
@@ -47,19 +49,24 @@ class AndroidJavaDebuggerFallbackTest {
       )
     )
 
-  @get:Rule(order = 1) val fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
+  @get:Rule(order = 1) val fakeAdbRule = FakeAdbServerAdbLibRule()
 
   @get:Rule(order = 2)
-  val debuggerThreadCleanupRule = DebuggerThreadCleanupRule { fakeAdbRule.server }
+  val debuggerThreadCleanupRule = DebuggerThreadCleanupRule { fakeAdbRule.adbServer }
 
   private lateinit var client: Client
 
   @Before
   fun setUp() = runTest {
-    val deviceState = fakeAdbRule.connectAndWaitForDevice()
-    val device = AndroidDebugBridge.getBridge()!!.devices.single()
-    client = FakeAdbTestRule.launchAndWaitForProcess(deviceState, true)
-    assertThat(device.getClient(FakeAdbTestRule.CLIENT_PACKAGE_NAME)).isEqualTo(client)
+    val deviceState = fakeAdbRule.connectDevice(
+      "test_device_001",
+      "test1",
+      "test2",
+      "model",
+      AndroidApiLevel(26),
+      DeviceState.HostConnectionType.USB)
+    val appId = "com.test.app"
+    client = deviceState.launchAndWaitForProcess(1234, 4321, appId, true)
   }
 
   @After

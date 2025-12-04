@@ -18,12 +18,14 @@ package com.android.tools.idea.execution.common.debug
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.services.ShellCommandOutput
+import com.android.sdklib.AndroidApiLevel
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.execution.common.assertTaskPresentedInStats
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
+import com.android.tools.idea.execution.common.launchAndWaitForProcess
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
@@ -56,7 +58,7 @@ import org.junit.Ignore
 @Ignore("FakeAdbTestRule hangs")
 class StartReattachingDebuggerTest {
 
-  private val APP_ID = FakeAdbTestRule.CLIENT_PACKAGE_NAME
+  private val APP_ID = "com.other"
   private val MASTER_PROCESS_NAME = "com.master.test"
 
   @get:Rule(order = 0)
@@ -70,10 +72,10 @@ class StartReattachingDebuggerTest {
   )
 
   @get:Rule(order = 1)
-  val fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
+  val fakeAdbRule = FakeAdbServerAdbLibRule()
 
   @get:Rule(order = 2)
-  val debuggerThreadCleanupRule = DebuggerThreadCleanupRule { fakeAdbRule.server }
+  val debuggerThreadCleanupRule = DebuggerThreadCleanupRule { fakeAdbRule.adbServer }
 
   @get:Rule
   val usageTrackerRule = UsageTrackerRule()
@@ -87,7 +89,13 @@ class StartReattachingDebuggerTest {
 
   @Before
   fun setUp() {
-    deviceState = fakeAdbRule.connectAndWaitForDevice()
+    deviceState = fakeAdbRule.connectDevice(
+      "test_device_001",
+      "test1",
+      "test2",
+      "model",
+      AndroidApiLevel(26),
+      DeviceState.HostConnectionType.USB)
     device = AndroidDebugBridge.getBridge()!!.devices.single()
     executionEnvironment = createFakeExecutionEnvironment(project, "myTestConfiguration")
   }
@@ -105,7 +113,7 @@ class StartReattachingDebuggerTest {
       executionEnvironment.putUserData(RunStats.KEY, it)
     }
     val masterProcessHandler = AndroidProcessHandler(MASTER_PROCESS_NAME, {})
-    FakeAdbTestRule.launchAndWaitForProcess(deviceState, true)
+    deviceState.launchAndWaitForProcess(1234, 4321, APP_ID, true)
     val firstSession = DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
       device,
       TestApplicationProjectContext(APP_ID,),
@@ -157,10 +165,10 @@ class StartReattachingDebuggerTest {
 
     project.registerServiceInstance(RunContentManager::class.java, runContentManagerImplMock)
 
-    FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1111, MASTER_PROCESS_NAME, false)
+    deviceState.launchAndWaitForProcess(1111, 4321, MASTER_PROCESS_NAME, false)
 
     var pid = Random.nextInt()
-    FakeAdbTestRule.launchAndWaitForProcess(deviceState, pid, FakeAdbTestRule.CLIENT_PACKAGE_NAME, true)
+    deviceState.launchAndWaitForProcess(pid, 4321, APP_ID, true)
 
     DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
       device,
@@ -178,7 +186,7 @@ class StartReattachingDebuggerTest {
       waitForProcessToStop(pid)
       val latchStartDebug = CountDownLatch(1)
       pid = Random.nextInt()
-      FakeAdbTestRule.launchAndWaitForProcess(deviceState, pid, FakeAdbTestRule.CLIENT_PACKAGE_NAME, true)
+      deviceState.launchAndWaitForProcess(pid, 4321, APP_ID, true)
       whenever(runContentManagerImplMock.showRunContent(any(), any())).thenAnswer {
         tabsOpened.incrementAndGet()
         latchStartDebug.countDown()
@@ -194,8 +202,8 @@ class StartReattachingDebuggerTest {
   @Test
   fun testStopping() = runTest {
 
-    FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1111, MASTER_PROCESS_NAME, false)
-    FakeAdbTestRule.launchAndWaitForProcess(deviceState, true)
+    deviceState.launchAndWaitForProcess(1111, 4321, MASTER_PROCESS_NAME, false)
+    deviceState.launchAndWaitForProcess(1234, 4321, APP_ID, true)
 
     val latch = CountDownLatch(1)
 

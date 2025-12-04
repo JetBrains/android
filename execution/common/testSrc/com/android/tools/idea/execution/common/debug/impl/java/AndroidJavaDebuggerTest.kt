@@ -18,8 +18,10 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.fakeadbserver.DeviceState
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.assertTaskPresentedInStats
@@ -27,6 +29,7 @@ import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
 import com.android.tools.idea.execution.common.debug.DebuggerThreadCleanupRule
 import com.android.tools.idea.execution.common.debug.createFakeExecutionEnvironment
+import com.android.tools.idea.execution.common.launchAndWaitForProcess
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
 import com.android.tools.idea.projectsystem.TestApplicationProjectContext
@@ -81,10 +84,10 @@ class AndroidJavaDebuggerTest {
   )
 
   @get:Rule(order = 1)
-  val fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
+  val fakeAdbRule = FakeAdbServerAdbLibRule()
 
   @get:Rule(order = 2)
-  val debuggerThreadCleanupRule = DebuggerThreadCleanupRule { fakeAdbRule.server }
+  val debuggerThreadCleanupRule = DebuggerThreadCleanupRule { fakeAdbRule.adbServer }
 
   @get:Rule
   val usageTrackerRule = UsageTrackerRule()
@@ -96,21 +99,28 @@ class AndroidJavaDebuggerTest {
   private lateinit var device: IDevice
   private lateinit var executionEnvironment: ExecutionEnvironment
   private lateinit var javaDebugger: AndroidJavaDebugger
+  private val appId = "com.test.app"
 
   @Before
   fun setUp() = runTest {
     // Connect a test device.
-    val deviceState = fakeAdbRule.connectAndWaitForDevice()
+    val deviceState = fakeAdbRule.connectDevice(
+      "test_device_001",
+      "test1",
+      "test2",
+      "model",
+      AndroidApiLevel(26),
+      DeviceState.HostConnectionType.USB)
 
     deviceState.setActivityManager { args, _ ->
-      if ("force-stop" == args[0] && FakeAdbTestRule.CLIENT_PACKAGE_NAME == args[1]) {
+      if ("force-stop" == args[0] && appId == args[1]) {
         deviceState.stopClient(client.clientData.pid)
       }
     }
 
     device = AndroidDebugBridge.getBridge()!!.devices.single()
-    client = FakeAdbTestRule.launchAndWaitForProcess(deviceState, true)
-    assertThat(device.getClient(FakeAdbTestRule.CLIENT_PACKAGE_NAME)).isEqualTo(client)
+    deviceState.launchAndWaitForProcess(1234, 4321, appId, true)
+    client = device.getClient(appId)
 
     executionEnvironment = createFakeExecutionEnvironment(project, "myConfiguration")
     javaDebugger = AndroidJavaDebugger()
@@ -124,14 +134,14 @@ class AndroidJavaDebuggerTest {
   }
 
   private val onDebugProcessDestroyed: (IDevice) -> Unit = { device ->
-    device.forceStop(FakeAdbTestRule.CLIENT_PACKAGE_NAME)
+    device.forceStop(appId)
   }
 
   @Test
   fun testAllInformationForPositionManager() = runTest {
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
+      TestApplicationProjectContext(appId),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(),
@@ -152,7 +162,7 @@ class AndroidJavaDebuggerTest {
 
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
+      TestApplicationProjectContext(appId),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(), onDebugProcessDestroyed, EmptyProgressIndicator()
@@ -168,7 +178,7 @@ class AndroidJavaDebuggerTest {
     val countDownLatch = CountDownLatch(1)
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
+      TestApplicationProjectContext(appId),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(), destroyRunningProcess = { countDownLatch.countDown() }, EmptyProgressIndicator())
@@ -212,7 +222,7 @@ class AndroidJavaDebuggerTest {
   fun testKillAppOnDestroy() = runTest {
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
+      TestApplicationProjectContext(appId),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(), onDebugProcessDestroyed, indicator = EmptyProgressIndicator())
@@ -225,7 +235,7 @@ class AndroidJavaDebuggerTest {
 
       override fun deviceChanged(device: IDevice, changeMask: Int) {
         if (device == client.device && changeMask and IDevice.CHANGE_CLIENT_LIST != 0) {
-          if (device.getClient(FakeAdbTestRule.CLIENT_PACKAGE_NAME) == null) {
+          if (device.getClient(appId) == null) {
             countDownLatch.countDown()
             AndroidDebugBridge.removeDeviceChangeListener(this)
           }
@@ -246,7 +256,7 @@ class AndroidJavaDebuggerTest {
     val isDestroyed = AtomicBoolean(false)
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
+      TestApplicationProjectContext(appId),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(),
@@ -272,7 +282,7 @@ class AndroidJavaDebuggerTest {
     val isDestroyed = AtomicBoolean(false)
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
+      TestApplicationProjectContext(appId),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(),
@@ -304,12 +314,12 @@ class AndroidJavaDebuggerTest {
     ApplicationManager.getApplication()
       .replaceService(DeploymentApplicationService::class.java, mockDeploymentAppService, projectRule.project)
 
-    whenever(mockDeploymentAppService.findClient(eq(device), eq(FakeAdbTestRule.CLIENT_PACKAGE_NAME))).thenReturn(listOf(spyClient))
+    whenever(mockDeploymentAppService.findClient(eq(device), eq(appId))).thenReturn(listOf(spyClient))
 
 
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
+      TestApplicationProjectContext(appId),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(),
