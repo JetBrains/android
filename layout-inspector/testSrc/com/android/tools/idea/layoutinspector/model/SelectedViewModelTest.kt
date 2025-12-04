@@ -70,4 +70,19 @@ class SelectedViewModelTest {
     assertThat(model.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.TEXT_VIEW)
     assertThat(model.description).isEqualTo("CoreText")
   }
+
+  @Test
+  fun testCustomWebView() {
+    val view =
+      view(
+        drawId = 10,
+        qualifiedName = "com.example.MyWebView",
+        viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "webview1"),
+        isDerivedFromWebView = true,
+      )
+    val model = SelectedViewModel(view)
+    assertThat(model.id).isEqualTo("@id/webview1")
+    assertThat(model.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.WEB_VIEW)
+    assertThat(model.description).isEqualTo("MyWebView")
+  }
 }
