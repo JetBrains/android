@@ -51,6 +51,7 @@ import kotlin.io.path.readText
 import kotlin.time.Duration.Companion.seconds
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -100,6 +101,7 @@ class StateInspectionPanelIntegrationTest {
     cleanUpListenersFromEditorMouseHoverPopupManager()
   }
 
+  @Ignore("b/465812509")
   @Test
   fun testPanelWithStateReads() {
     imitateObserveAllMode()
