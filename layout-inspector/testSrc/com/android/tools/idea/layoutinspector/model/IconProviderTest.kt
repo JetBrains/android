@@ -96,8 +96,17 @@ class IconProviderTest {
       .isEqualTo(StudioIcons.LayoutEditor.Palette.FRAME_LAYOUT)
   }
 
-  private fun iconOfView(className: String): Icon {
-    val view = view(drawId = 12, qualifiedName = className)
+  @Test
+  fun testWebView() {
+    assertThat(iconOfView(SdkConstants.WEB_VIEW))
+      .isEqualTo(StudioIcons.LayoutEditor.Palette.WEB_VIEW)
+    assertThat(iconOfView("AnyThing", isDerivedFromWebView = true))
+      .isEqualTo(StudioIcons.LayoutEditor.Palette.WEB_VIEW)
+  }
+
+  private fun iconOfView(className: String, isDerivedFromWebView: Boolean = false): Icon {
+    val view =
+      view(drawId = 12, qualifiedName = className, isDerivedFromWebView = isDerivedFromWebView)
     return IconProvider.getIconForView(view)
   }
 }

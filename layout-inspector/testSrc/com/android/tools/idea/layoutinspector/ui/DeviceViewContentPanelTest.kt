@@ -1404,16 +1404,16 @@ class DeviceViewContentPanelTest {
       val event: AnActionEvent = mock()
       whenever(event.actionManager).thenReturn(ActionManager.getInstance())
       val actions = group.getChildren(event)
-      assertThat(actions.size).isEqualTo(2)
-      assertThat(actions[0]).isInstanceOf(DropDownAction::class.java)
-      val selectActions = (actions[0] as DropDownAction).getChildren(event)
+      assertThat(actions.size).isEqualTo(3)
+      assertThat(actions[1]).isInstanceOf(DropDownAction::class.java)
+      val selectActions = (actions[1] as DropDownAction).getChildren(event)
       assertThat(
           selectActions.toList().filterIsInstance(SelectViewAction::class.java).map {
             it.view.drawId
           }
         )
         .containsExactlyElementsIn(expected.toList())
-      assertThat(actions[1]).isEqualTo(GotoDeclarationAction)
+      assertThat(actions[2]).isEqualTo(GotoDeclarationAction)
     }
   }
 
