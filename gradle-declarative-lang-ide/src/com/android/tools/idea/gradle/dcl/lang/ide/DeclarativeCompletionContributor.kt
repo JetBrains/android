@@ -495,7 +495,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   private fun insert(type: ElementType): InsertHandler<LookupElement?> = InsertHandler { context: InsertionContext, _: LookupElement ->
     val editor = context.editor
     val document = editor.document
-    val file = editor.virtualFile?.toPsiFile(context.project)
+    val file = editor.virtualFile?.toPsiFile(context.project) ?: return@InsertHandler
     val offset = editor.caretModel.offset
     val element = file?.findElementAt(offset)
     context.commitDocument()
