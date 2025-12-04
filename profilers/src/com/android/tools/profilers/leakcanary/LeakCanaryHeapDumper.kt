@@ -20,6 +20,7 @@ import com.android.tools.leakcanarylib.LeakCanaryParser
 import com.android.tools.leakcanarylib.data.Analysis
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
+import java.util.concurrent.TimeUnit
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.StudioProfilers
@@ -50,9 +51,10 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
     try {
       val commandId = sendHeapDumpCommand()
       val heapDumpInfo = waitForHeapDumpStatus(commandId)
-      waitForHeapDumpCompletion(heapDumpInfo)
+      val heapDumpEndTime = waitForHeapDumpCompletion(heapDumpInfo)
       val hprofFile = downloadHeapDump(heapDumpInfo)
       analyzeAndHandleResult(hprofFile)
+      sendHeapDumpCompleteCommand(heapDumpEndTime)
     }
     catch (e: Exception) {
       logger.error("Host analysis process failed.", e)
@@ -91,7 +93,7 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
       callback = { event ->
         val status = event.memoryHeapdumpStatus.status
         if (status.status == Memory.HeapDumpStatus.Status.SUCCESS) {
-          logger.info("Heap dump process started on device. Waiting for completion signal.")
+          logger.info("Heap dump process started on device for id ${status.startTime}. Waiting for completion signal.")
           future.complete(Memory.HeapDumpInfo.newBuilder().setStartTime(status.startTime).build())
         }
         else {
@@ -106,8 +108,8 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
   /**
    * Waits for the heap dump completion event.
    */
-  private fun waitForHeapDumpCompletion(heapDumpInfo: Memory.HeapDumpInfo) {
-    val future = CompletableFuture<Void>()
+  private fun waitForHeapDumpCompletion(heapDumpInfo: Memory.HeapDumpInfo): Long {
+    val future = CompletableFuture<Long>()
     val completionListener = TransportEventListener(
       eventKind = Common.Event.Kind.MEMORY_HEAP_DUMP,
       executor = profilers.ideServices.poolExecutor,
@@ -122,8 +124,9 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
           return@TransportEventListener false  // Belongs to a different heap dump.
 
         if (event.memoryHeapdump.info.success) {
-          logger.info("Detected heap dump completion event for id ${heapDumpInfo.startTime}.")
-          future.complete(null)
+          val endTime = event.memoryHeapdump.info.endTime
+          logger.info("Detected heap dump completion event for id ${heapDumpInfo.startTime} with end time $endTime (ns).")
+          future.complete(endTime)
         }
         else {
           future.completeExceptionally(RuntimeException("Heap dump failed on device for id ${heapDumpInfo.startTime}."))
@@ -131,7 +134,7 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
         true // Success. Unregister the listener.
       })
     profilers.transportPoller.registerListener(completionListener)
-    future.get() // Block the background thread until the event arrives.
+    return future.get() // Block the background thread until the event arrives.
   }
 
   /**
@@ -171,5 +174,23 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
     else {
       throw RuntimeException("Heap analysis failed for ${hprofFile.path}")
     }
+  }
+
+  /**
+   * Sends a command to perfa to indicate that the host-side heap dump download and analysis is complete.
+   */
+  private fun sendHeapDumpCompleteCommand(heapDumpTime: Long) {
+    logger.info("Sending heap dump complete signal with timestamp: $heapDumpTime (ns).")
+    val data = Commands.SignalHeapDumpCompleteData.newBuilder()
+      .setHeapDumpTimestamp(heapDumpTime)
+      .build()
+    val command = Commands.Command.newBuilder()
+      .setStreamId(profilers.session.streamId)
+      .setPid(profilers.session.pid)
+      .setSessionId(profilers.session.sessionId)
+      .setType(Commands.Command.CommandType.SIGNAL_HEAP_DUMP_COMPLETE)
+      .setSignalHeapDumpComplete(data)
+      .build()
+    profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
   }
 }
