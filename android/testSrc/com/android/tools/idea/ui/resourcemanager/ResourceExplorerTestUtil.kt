@@ -32,6 +32,7 @@ import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.ex.dummy.DummyFileSystem
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
@@ -119,7 +120,7 @@ inline fun <reified T : JComponent> waitAndAssert(container: JPanel, crossinline
   val waitForComponentCondition = object : WaitFor(WAIT_TIMEOUT) {
     public override fun condition(): Boolean {
       invokeAndWaitIfNeeded {
-        UIUtil.dispatchAllInvocationEvents()
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
       }
       return@condition condition(UIUtil.findComponentOfType(container, T::class.java))
     }
