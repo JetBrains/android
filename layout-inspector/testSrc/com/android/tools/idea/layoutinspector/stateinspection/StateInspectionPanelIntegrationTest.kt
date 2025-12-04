@@ -36,7 +36,6 @@ import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
-import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.ui.getUserData
@@ -51,7 +50,6 @@ import kotlin.io.path.readText
 import kotlin.time.Duration.Companion.seconds
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -101,7 +99,6 @@ class StateInspectionPanelIntegrationTest {
     cleanUpListenersFromEditorMouseHoverPopupManager()
   }
 
-  @Ignore("b/465812509")
   @Test
   fun testPanelWithStateReads() {
     imitateObserveAllMode()
@@ -161,7 +158,6 @@ class StateInspectionPanelIntegrationTest {
     assertThat(prev.isEnabled).isFalse() // The cache will remove elements before the found gap
     assertThat(next.isEnabled).isTrue()
 
-    waitForPendingFilters(panel)
     clickOnStackTrace(ui, panel)
     clickOnAILink(ui, panel)
 
@@ -187,12 +183,6 @@ class StateInspectionPanelIntegrationTest {
 
   private fun imitateObserveByIdMode() {
     inspectorRule.inspectorClient.stats.observingSingleNodeSelected()
-  }
-
-  private fun waitForPendingFilters(panel: StateInspectionPanel) {
-    val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
-    val editorHyperlinkSupport = EditorHyperlinkSupport.get(editor)
-    editorHyperlinkSupport.waitForPendingFilters(10.seconds.inWholeMilliseconds)
   }
 
   private fun clickOnStackTrace(ui: FakeUi, panel: StateInspectionPanel) {
@@ -226,7 +216,7 @@ class StateInspectionPanelIntegrationTest {
     val editor = getUserData(STATE_READ_EDITOR_KEY)
     waitForCondition(10.seconds) {
       val data = editor!!.getUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY)
-      data?.composable == "Column" && data?.fileName == "MainActivity.kt"
+      data?.composable == "Column" && data.fileName == "MainActivity.kt"
     }
   }
 
@@ -249,7 +239,13 @@ class StateInspectionPanelIntegrationTest {
         }
       }
     model.update(window, listOf(ROOT), 0)
-    val panel = createStateInspectionPanel(inspectorRule.inspector, projectRule.testRootDisposable)
+    val detectorFactory = SynchronousHyperLinkDetectorFactory()
+    val panel =
+      createStateInspectionPanel(
+        inspectorRule.inspector,
+        projectRule.testRootDisposable,
+        detectorFactory,
+      )
     panel.size = Dimension(800, 600)
     model.stateReadsModel.requestStateReadFor(model[COMPOSE1] as ComposeViewNode)
     return panel
