@@ -2643,6 +2643,11 @@ public final class StudioFlags {
                     "Enable agent critic",
                     "Enables the agent to look for and report new warnings added after file changes");
 
+  public static final Flag<Boolean> STUDIOBOT_WRITE_CRITIC_MAIN_PASSES =
+    new BooleanFlag(STUDIOBOT, "write.critic.main.passes",
+                    "Enable agent critic via main passes runner API",
+                    "Enables the agent to look for and report new warnings added after file changes by invoking main passes runner API");
+
   public static final Flag<Boolean> STUDIOBOT_PERMISSION_MODEL =
     new BooleanFlag(STUDIOBOT, "permission.model",
                     "Enable new permission model",
