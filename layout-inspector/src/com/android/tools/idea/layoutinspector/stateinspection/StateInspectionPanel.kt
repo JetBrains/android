@@ -76,6 +76,7 @@ private const val KEY_EDITOR = "EDITOR"
 internal fun createStateInspectionPanel(
   layoutInspector: LayoutInspector,
   parentDisposable: Disposable,
+  hyperLinkDetectorFactory: HyperLinkDetectorFactory = StateInspectionHyperLinkDetectorFactory(),
 ): StateInspectionPanel {
   val inspectorModel = layoutInspector.inspectorModel
   val project = inspectorModel.project
@@ -85,7 +86,14 @@ internal fun createStateInspectionPanel(
       stats.stateReadsShown()
     }
   val uiScope = parentDisposable.createCoroutineScope(extraContext = Dispatchers.EDT)
-  return StateInspectionPanel(model, project, stats, uiScope, parentDisposable)
+  return StateInspectionPanel(
+    model,
+    project,
+    stats,
+    uiScope,
+    parentDisposable,
+    hyperLinkDetectorFactory,
+  )
 }
 
 /** A panel to display state reads for recompositions. */
