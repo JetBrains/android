@@ -42,6 +42,7 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.components.AnActionLink;
 import com.intellij.ui.components.labels.LinkLabel;
+import com.intellij.ui.table.JBTable;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
@@ -72,6 +73,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.accessibility.Accessible;
 import javax.accessibility.AccessibleContext;
+import javax.accessibility.AccessibleTable;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.Icon;
@@ -431,6 +433,14 @@ public class StudioInteractionService {
     if (c instanceof JTextField jtf) {
       result = jtf.getText();
     }
+    if (c instanceof JBTable jbTable) {
+      // Swing uses cell rendering to render a JTable, which uses a single component to "paint"
+      // each cell onto the screen. As a result, there are no components to match against when we
+      // want to validate the UI of a table. Instead, we return a textual representation of the
+      // whole table, by parsing the accessibility text.
+      result = getAccessibleTextFromTable(jbTable);
+    }
+
     if (StringUtil.nullize(result) == null) {
       AccessibleContext context = c.getAccessibleContext();
       if (context != null) {
@@ -635,6 +645,56 @@ public class StudioInteractionService {
       allContext.addAll(getAllAccessibleContext(c));
     }
     return allContext;
+  }
+
+  private String getAccessibleTextFromTable(JBTable jbTable) {
+    AccessibleContext ac = jbTable.getAccessibleContext();
+    if (ac == null) {
+      return null;
+    }
+
+    AccessibleTable at = ac.getAccessibleTable();
+    if (at == null) {
+      return null;
+    }
+
+    StringBuilder sb = new StringBuilder();
+
+    // Append column headers
+    AccessibleTable columnHeader = at.getAccessibleColumnHeader();
+    if (columnHeader != null) {
+      for (int col = 0; col < at.getAccessibleColumnCount(); col++) {
+        AccessibleContext headerCell = columnHeader.getAccessibleAt(0, col).getAccessibleContext();
+        if (headerCell != null) {
+          String headerText = headerCell.getAccessibleName();
+          if (headerText == null) {
+            headerText = headerCell.getAccessibleDescription();
+          }
+          if (headerText != null) {
+            sb.append(headerText).append(" | ");
+          }
+        }
+      }
+      sb.append("\n");
+    }
+
+    // Append table data
+    for (int row = 0; row < at.getAccessibleRowCount(); row++) {
+      for (int col = 0; col < at.getAccessibleColumnCount(); col++) {
+        AccessibleContext cellContext = at.getAccessibleAt(row, col).getAccessibleContext();
+        if (cellContext != null) {
+          String cellText = cellContext.getAccessibleName();
+          if (cellText == null) {
+            cellText = cellContext.getAccessibleDescription();
+          }
+          if (cellText != null) {
+            sb.append(cellText).append(" | ");
+          }
+        }
+      }
+      sb.append("\n");
+    }
+    return sb.toString();
   }
 
   private static class JListItemComponent extends Component {
