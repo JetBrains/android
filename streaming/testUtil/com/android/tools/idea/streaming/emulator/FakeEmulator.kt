@@ -2000,13 +2000,13 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       val abi = systemImageFolder.fileName.toString()
       val packageContents = """
           <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-          <ns:sdk-sys-img xmlns:ns="http://schemas.android.com/sdk/android/repo/sys-img2/01">
+          <ns:sdk-sys-img xmlns:ns="http://schemas.android.com/sdk/android/repo/sys-img2/04">
             <localPackage path="${systemImageFolder.toString().replace('/', ';')}" obsolete="false">
               <type-details xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns:sysImgDetailsType">
                 <api-level>${androidVersion.androidApiLevel}</api-level>
                 <tag><id>google_apis</id><display>Google APIs</display></tag>
                 <vendor><id>google</id><display>Google Inc.</display></vendor>
-                <abi>$abi</abi>
+                <abis>$abi</abis>
               </type-details>
               <revision><major>9</major></revision>
               <display-name>Google APIs System Image</display-name>
