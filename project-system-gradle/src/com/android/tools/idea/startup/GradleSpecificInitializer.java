@@ -37,8 +37,6 @@ import com.intellij.openapi.util.registry.Registry;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
-import org.jetbrains.plugins.gradle.service.syncAction.impl.bridge.GradleBridgeData;
-import org.jetbrains.plugins.gradle.service.syncAction.impl.bridge.GradleBridgeProjectDataService;
 
 /**
  * Performs Gradle-specific IDE initialization
