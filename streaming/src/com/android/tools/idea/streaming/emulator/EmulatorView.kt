@@ -48,6 +48,7 @@ import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.adtui.util.scaled
 import com.android.tools.analytics.toProto
 import com.android.tools.idea.avdmanager.EmulatorLogListener
+import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
@@ -571,11 +572,13 @@ class EmulatorView(
       }
     }
     else if (connectionState == ConnectionState.DISCONNECTED) {
-      lastScreenshot = null
-      xrInputController = null
-      hideLongRunningOperationIndicatorInstantly()
       stopClipboardSynchronization()
-      showDisconnectedStateMessage("Disconnected from the Emulator")
+      if (RunningAvdTracker.getInstance().runningAvds[emulatorId.avdFolder]?.isShuttingDown != true) {
+        lastScreenshot = null
+        xrInputController = null
+        hideLongRunningOperationIndicatorInstantly()
+        showDisconnectedStateMessage("Disconnected from the Emulator")
+      }
     }
 
     repaint()
