@@ -16,45 +16,46 @@
 package com.android.tools.idea.execution.common.processhandler
 
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.services.ShellCommandOutput
-import com.android.sdklib.AndroidVersion
+import com.android.sdklib.AndroidApiLevel
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
+import com.android.tools.idea.execution.common.launchAndWaitForProcess
 import com.intellij.testFramework.ProjectRule
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
+import org.junit.rules.RuleChain
 
 @Ignore("FakeAdbTestRule hangs")
 class AndroidProcessHandlerIntegrationTest {
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  private val projectRule = ProjectRule()
 
-  @get:Rule
-  var fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
+  private var fakeAdbRule = FakeAdbServerAdbLibRule()
 
-  private fun createDevice(): IDevice {
-    val mockDevice = mock<IDevice>()
-    whenever(mockDevice.version).thenReturn(AndroidVersion(26))
-    whenever(mockDevice.isOnline).thenReturn(true)
-    return mockDevice
-  }
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(fakeAdbRule)
+
+  private val appId = "com.test.app"
 
   @Test
   fun callCustomTerminationCallback() {
-    val deviceState = fakeAdbRule.connectAndWaitForDevice()
+    val deviceState = fakeAdbRule.connectDevice(
+      "test_device_001",
+      "test1",
+      "test2",
+      "model",
+      AndroidApiLevel(26),
+      DeviceState.HostConnectionType.USB)
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    FakeAdbTestRule.launchAndWaitForProcess(deviceState, false)
+    deviceState.launchAndWaitForProcess(1234, 4321, appId, true)
     val callbackCalled = CountDownLatch(1)
 
-    val handler = AndroidProcessHandler(FakeAdbTestRule.CLIENT_PACKAGE_NAME, { callbackCalled.countDown() })
+    val handler = AndroidProcessHandler(appId, { callbackCalled.countDown() })
 
     handler.addTargetDevice(device)
     handler.startNotify()
@@ -68,19 +69,25 @@ class AndroidProcessHandlerIntegrationTest {
 
   @Test
   fun callForceStopIfCustomCallbackIsNotPassed() {
-    val deviceState = fakeAdbRule.connectAndWaitForDevice()
+    val deviceState = fakeAdbRule.connectDevice(
+      "test_device_001",
+      "test1",
+      "test2",
+      "model",
+      AndroidApiLevel(26),
+      DeviceState.HostConnectionType.USB)
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    FakeAdbTestRule.launchAndWaitForProcess(deviceState, false)
+    deviceState.launchAndWaitForProcess(1234, 4321, appId, true)
     val callbackCalled = CountDownLatch(1)
 
     deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
-      if (("force-stop " + FakeAdbTestRule.CLIENT_PACKAGE_NAME).equals(wholeCommand)) {
+      if (wholeCommand == "force-stop $appId") {
         callbackCalled.countDown()
       }
     }
-    val handler = AndroidProcessHandler(FakeAdbTestRule.CLIENT_PACKAGE_NAME)
+    val handler = AndroidProcessHandler(appId)
 
     handler.addTargetDevice(device)
     handler.startNotify()
