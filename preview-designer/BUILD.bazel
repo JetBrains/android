@@ -73,7 +73,7 @@ jvm_library(
     "//java/java-analysis-impl:analysis-impl",
     "//plugins/kotlin/base/code-insight",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
-    "@lib//:rd-core",
+    "//libraries/rd/core",
   ]
 )
 ### auto-generated section `build intellij.android.preview-designer` end

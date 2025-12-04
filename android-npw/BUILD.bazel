@@ -30,7 +30,7 @@ jvm_library(
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:kxml2",
     "@lib//:protobuf",
-    "@lib//:rd-core",
+    "//libraries/rd/core",
     "//android/android-adb:adb",
     "//android/adt-ui",
     "//android/analytics",

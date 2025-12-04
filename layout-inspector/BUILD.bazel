@@ -288,7 +288,7 @@ jvm_library(
     "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:protobuf",
-    "@lib//:rd-swing",
+    "//libraries/rd/swing",
     "@lib//:truth",
     "//android/project-system",
     "//android/android-adb:adb",

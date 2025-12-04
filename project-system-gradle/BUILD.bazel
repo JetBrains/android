@@ -209,7 +209,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:assert_j",
     "//libraries/icu4j",
-    "@lib//:rd-core",
+    "//libraries/rd/core",
     "//platform/credential-store",
     "//platform/editor-ui-ex:editor-ex",
     "//xml/xml-analysis-api:analysis",
