@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.Gray
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
@@ -101,7 +102,7 @@ class SceneViewErrorsPanel(
         fixWithAiActionGroup.add(action)
       }
     }
-    fixWithAiToolbar.updateActionsAsync()
+    ApplicationManager.getApplication().invokeLater { fixWithAiToolbar.updateActionsAsync() }
   }
 
   /** Updates the look and feel of the panel with the style and returns the current set style. */
@@ -115,7 +116,7 @@ class SceneViewErrorsPanel(
         updateFixWithAiButton()
       } else {
         fixWithAiActionGroup.removeAll()
-        fixWithAiToolbar.updateActionsAsync()
+        ApplicationManager.getApplication().invokeLater { fixWithAiToolbar.updateActionsAsync() }
       }
       when (newStyle) {
         Style.SOLID -> {
