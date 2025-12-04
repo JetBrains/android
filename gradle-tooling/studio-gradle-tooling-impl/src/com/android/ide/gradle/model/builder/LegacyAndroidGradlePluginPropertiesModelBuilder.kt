@@ -61,8 +61,8 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
     val (namespace, androidTestNamespace) = fetchNamespace(parameters, project, problems)
     val dataBindingEnabled = fetchIsDataBindingEnabled(parameters, project, problems)
     val mappingR8TextFiles = fetchMappingTextFiles(parameters, project, problems)
-    val buildTypesMatchingFallbacks = fetchBuildTypesMatchingFallbacks(parameters, project)
-    val productFlavorsMatchingFallbacks = fetchProductFlavorsMatchingFallbacks(parameters, project)
+    val buildTypesMatchingFallbacks = fetchBuildTypesMatchingFallbacks(parameters, project, problems)
+    val productFlavorsMatchingFallbacks = fetchProductFlavorsMatchingFallbacks(parameters, project, problems)
     return LegacyAndroidGradlePluginPropertiesImpl(
       applicationIdMap,
       namespace,
@@ -194,7 +194,8 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
 
   private fun fetchBuildTypesMatchingFallbacks(
     parameters: LegacyAndroidGradlePluginPropertiesModelParameters,
-    project: Project
+    project: Project,
+    problems: MutableList<Exception>
   ): Map<String, List<String>> {
     if (!parameters.matchingFallbacks) return emptyMap()
     val androidExtension = project.extensions.findByName("android") ?: return emptyMap()
@@ -208,7 +209,7 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
       }
 
     } catch (e: Exception) {
-      thisLogger().info("Error when fetching BuildTypes matchingFallbacks:\n$e")
+      problems += RuntimeException("Failed to fetch BuildTypes matchingFallbacks", e)
       return emptyMap()
     }
     return buildTypesToFallbacks
@@ -216,7 +217,8 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
 
   private fun fetchProductFlavorsMatchingFallbacks(
     parameters: LegacyAndroidGradlePluginPropertiesModelParameters,
-    project: Project
+    project: Project,
+    problems: MutableList<Exception>
   ): Map<String, List<String>> {
     if (!parameters.matchingFallbacks) return emptyMap()
     val androidExtension = project.extensions.findByName("android") ?: return emptyMap()
@@ -230,7 +232,7 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
       }
 
     } catch (e: Exception) {
-      thisLogger().info("Error when fetching ProductFlavors matchingFallbacks:\n$e")
+      problems += RuntimeException("Failed to fetch BuildTypes matchingFallbacks", e)
       return emptyMap()
     }
     return productFlavorsToFallbacks
