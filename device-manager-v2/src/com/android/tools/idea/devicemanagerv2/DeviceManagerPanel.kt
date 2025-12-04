@@ -202,7 +202,7 @@ constructor(
         isPopup = true
         add(Separator.create("Group By"))
         add(GroupByNoneAction(deviceTable))
-        add(GroupingAction(deviceTable, DeviceTableColumns.FormFactor, "Form Factor"))
+        add(GroupingAction(deviceTable, DeviceTableColumns.formFactorAttribute, "Form Factor"))
         add(GroupingAction(deviceTable, DeviceTableColumns.Status))
         add(GroupingAction(deviceTable, DeviceTableColumns.HandleType))
       }
@@ -498,7 +498,7 @@ class DeviceTablePersistentStateComponent : CategoryTablePersistentStateComponen
         DeviceTableColumns.Name.attribute.stringSerializer("Name"),
         DeviceTableColumns.Api.attribute.stringSerializer("API"),
         DeviceTableColumns.HandleType.attribute.stringSerializer("Type"),
-        DeviceTableColumns.FormFactor.enumSerializer("FormFactor"),
+        DeviceTableColumns.formFactorAttribute.stringSerializer("FormFactor"),
       )
     )
 }
