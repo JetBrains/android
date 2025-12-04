@@ -46,11 +46,14 @@ internal object DeviceTableColumns {
       component.update(rowValue)
   }
 
-  object FormFactor : Attribute<DeviceRowData, DeviceType> {
-    override val sorter: Comparator<DeviceType> = compareBy { it.name }
-
-    override fun value(t: DeviceRowData): DeviceType = t.type
-  }
+  val formFactorAttribute =
+    stringAttribute<DeviceRowData> {
+      when (it.type) {
+        DeviceType.XR_HEADSET,
+        DeviceType.AI_GLASSES -> "XR"
+        else -> it.type.toString()
+      }
+    }
 
   object Api :
     LabelColumn<DeviceRowData>(
