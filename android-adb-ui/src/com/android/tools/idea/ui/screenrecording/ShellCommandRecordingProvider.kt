@@ -27,17 +27,17 @@ import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.android.tools.idea.ui.util.getPhysicalDisplayId
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.io.delete
+import java.awt.Dimension
+import java.nio.file.Files
+import java.nio.file.Path
+import java.time.Duration
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.awt.Dimension
-import java.nio.file.Path
-import java.time.Duration
-import java.util.concurrent.atomic.AtomicReference
 
 private val CMD_TIMEOUT = Duration.ofSeconds(2)
 
@@ -120,7 +120,8 @@ internal class ShellCommandRecordingProvider(
   }
 
   override suspend fun pullRecording(target: Path) {
-    target.delete()
+    Files.deleteIfExists(target)
+    Files.createDirectories(target.parent)
     adbSession.deviceServices.sync(device).use { sync ->
       try {
         adbSession.channelFactory.createNewFile(target).use {
