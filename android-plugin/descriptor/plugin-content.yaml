@@ -137,13 +137,6 @@
   modules:
   - name: intellij.android.artwork
   - name: intellij.android.artwork-compose
-- name: lib/asm-tools.jar
-  library: asm-tools
-  files:
-  - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm-analysis/9/asm-analysis-9.jar
-  - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm-tree/9/asm-tree-9.jar
-  - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm/9/asm-9.jar
-  reason: withProjectLibrary
 - name: lib/build-common.jar
   modules:
   - name: intellij.android.buildCommon
