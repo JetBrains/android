@@ -103,7 +103,6 @@ class InspectorClientLaunchMonitorTest {
     val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
     val monitor =
       InspectorClientLaunchMonitor(
-        project,
         model,
         ListenerCollection.createWithDirectExecutor(),
         stats,
@@ -134,7 +133,6 @@ class InspectorClientLaunchMonitorTest {
     run {
       val monitor =
         InspectorClientLaunchMonitor(
-          project,
           model,
           ListenerCollection.createWithDirectExecutor(),
           stats,
@@ -159,7 +157,7 @@ class InspectorClientLaunchMonitorTest {
 
     val model = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
-    val monitor = InspectorClientLaunchMonitor(projectRule.project, model, listeners, stats, this)
+    val monitor = InspectorClientLaunchMonitor(model, listeners, stats, this)
     monitor.updateProgress(AttachErrorState.ADB_PING)
 
     verify(mockListener).invoke(AttachErrorState.ADB_PING)
@@ -190,7 +188,6 @@ class InspectorClientLaunchMonitorTest {
     client: AbstractInspectorClient,
     expectedDisconnectMessage: String,
   ) {
-    val project = projectRule.project
     val projectSystem = projectRule.project.getProjectSystem() as DefaultProjectSystem
     val moduleSystem = DefaultModuleSystem(projectRule.module)
     projectSystem.setModuleSystem(moduleSystem.module, moduleSystem)
@@ -203,7 +200,6 @@ class InspectorClientLaunchMonitorTest {
     val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
     val monitor =
       InspectorClientLaunchMonitor(
-        project,
         model,
         ListenerCollection.createWithDirectExecutor(),
         stats,
@@ -252,7 +248,6 @@ class InspectorClientLaunchMonitorTest {
 
   @Test
   fun slowAttachMessageRemovedWhenConnected() {
-    val project = projectRule.project
     val projectSystem = projectRule.project.getProjectSystem() as DefaultProjectSystem
     val moduleSystem = DefaultModuleSystem(projectRule.module)
     projectSystem.setModuleSystem(moduleSystem.module, moduleSystem)
@@ -265,7 +260,6 @@ class InspectorClientLaunchMonitorTest {
     val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
     val monitor =
       InspectorClientLaunchMonitor(
-        project,
         model,
         ListenerCollection.createWithDirectExecutor(),
         stats,
@@ -291,7 +285,6 @@ class InspectorClientLaunchMonitorTest {
 
   @Test
   fun slowAttachedMessageNotScheduledWhenClientIsClosed() {
-    val project = projectRule.project
     val projectSystem = projectRule.project.getProjectSystem() as DefaultProjectSystem
     val moduleSystem = DefaultModuleSystem(projectRule.module)
     projectSystem.setModuleSystem(moduleSystem.module, moduleSystem)
@@ -304,7 +297,6 @@ class InspectorClientLaunchMonitorTest {
     val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
     val monitor =
       InspectorClientLaunchMonitor(
-        project,
         model,
         ListenerCollection.createWithDirectExecutor(),
         stats,
@@ -326,14 +318,12 @@ class InspectorClientLaunchMonitorTest {
     withEmbeddedLayoutInspector(false) {
       runTest {
         val client = setupDebuggingProcess(DebuggerType.JAVA, pausedInJava = true)
-        val project = projectRule.project
         val model = NotificationModel(projectRule.project)
         val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
         val timeoutScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
         val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
         val monitor =
           InspectorClientLaunchMonitor(
-            project,
             model,
             ListenerCollection.createWithDirectExecutor(),
             stats,
@@ -375,7 +365,6 @@ class InspectorClientLaunchMonitorTest {
     withEmbeddedLayoutInspector(true) {
       runTest {
         val client = setupDebuggingProcess(DebuggerType.JAVA, pausedInJava = true)
-        val project = projectRule.project
         val model = NotificationModel(projectRule.project)
         val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
         val unused = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
@@ -384,7 +373,6 @@ class InspectorClientLaunchMonitorTest {
         run {
           val monitor =
             InspectorClientLaunchMonitor(
-              project,
               model,
               ListenerCollection.createWithDirectExecutor(),
               stats,
@@ -423,7 +411,6 @@ class InspectorClientLaunchMonitorTest {
   @Test
   fun debuggerPausedInNative() = runTest {
     val client = setupDebuggingProcess(DebuggerType.HYBRID, pausedInJava = false)
-    val project = projectRule.project
     val model = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
     val unused = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
@@ -432,7 +419,6 @@ class InspectorClientLaunchMonitorTest {
     run {
       val monitor =
         InspectorClientLaunchMonitor(
-          project,
           model,
           ListenerCollection.createWithDirectExecutor(),
           stats,

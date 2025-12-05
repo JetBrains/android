@@ -74,7 +74,6 @@ class LegacyInspectorMetricsTest {
         as LegacyClient
     client.launchMonitor =
       InspectorClientLaunchMonitor(
-        projectRule.project,
         inspector.notificationModel,
         ListenerCollection.createWithDirectExecutor(),
         client.stats,

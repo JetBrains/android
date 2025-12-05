@@ -146,7 +146,6 @@ class AppInspectionInspectorRule(
 
   fun defaultMonitor(client: AbstractInspectorClient): InspectorClientLaunchMonitor {
     return InspectorClientLaunchMonitor(
-      projectRule.project,
       client.notificationModel,
       ListenerCollection.createWithDirectExecutor(),
       client.stats,

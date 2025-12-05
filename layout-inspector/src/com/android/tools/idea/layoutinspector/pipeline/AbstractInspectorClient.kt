@@ -72,13 +72,7 @@ abstract class AbstractInspectorClient(
     >()
 
   var launchMonitor: InspectorClientLaunchMonitor =
-    InspectorClientLaunchMonitor(
-      project,
-      notificationModel,
-      attachStateListeners,
-      stats,
-      coroutineScope,
-    )
+    InspectorClientLaunchMonitor(notificationModel, attachStateListeners, stats, coroutineScope)
     @TestOnly set
 
   override fun dispose() {
