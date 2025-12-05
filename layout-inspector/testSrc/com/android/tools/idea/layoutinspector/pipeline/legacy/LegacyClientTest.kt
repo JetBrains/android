@@ -65,7 +65,6 @@ class LegacyClientTest {
     val notificationModel = inspector.notificationModel
     client.launchMonitor =
       InspectorClientLaunchMonitor(
-        projectRule.project,
         notificationModel,
         ListenerCollection.createWithDirectExecutor(),
         client.stats,

@@ -1124,7 +1124,6 @@ class AppInspectionInspectorClientWithFailingClientTest {
   private val getMonitor: (AbstractInspectorClient) -> InspectorClientLaunchMonitor = { client ->
     spy(
         InspectorClientLaunchMonitor(
-          projectRule.project,
           notificationModel,
           ListenerCollection.createWithDirectExecutor(),
           client.stats,

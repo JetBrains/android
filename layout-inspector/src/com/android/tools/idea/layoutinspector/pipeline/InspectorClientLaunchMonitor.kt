@@ -29,7 +29,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.Att
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel.Status
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -45,7 +44,6 @@ import org.jetbrains.annotations.VisibleForTesting
 @VisibleForTesting const val DEBUGGER_CHECK_MESSAGE_KEY = "debugger.paused"
 
 class InspectorClientLaunchMonitor(
-  private val project: Project,
   private val notificationModel: NotificationModel,
   private val attachErrorStateListeners: ListenerCollection<(AttachErrorState) -> Unit>,
   private val stats: SessionStatistics,
