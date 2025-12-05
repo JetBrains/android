@@ -354,6 +354,10 @@ public final class StudioFlags {
     PROFILER, "leakcanary", "LeakCanary",
     "Enables the integration of leakCanary and display of leaks");
 
+  public static final Flag<Boolean> PROFILER_LEAKCANARY_MILESTONE2 = new BooleanFlag(
+    PROFILER, "leakcanary.milestone2", "LeakCanary Milestone 2",
+    "Enables new features for the LeakCanary profiler as part of Milestone 2.");
+
   public static final Flag<Boolean> PROFILER_TRACEBOX =
     new BooleanFlag(PROFILER, "tracebox", "Tracebox", "Tracebox for versions M,N,O,P of Android");
   //endregion
