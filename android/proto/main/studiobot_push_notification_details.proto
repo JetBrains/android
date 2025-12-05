@@ -84,7 +84,10 @@ message StudioPushNotification {
     // shown.
     optional PlacementDetails placement_details = 4;
     // List of user actions associated with the notification.
-    repeated Actions actions = 5;
+    repeated Actions actions = 5 [deprecated = true];
+    // User action associated with the notification. A single user action is
+    // supported for got-it tooltips.
+    optional Actions action = 6;
   }
 
   message Requirement {
