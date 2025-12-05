@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -98,9 +99,11 @@ fun LeakDetailsPanel(selectedLeak: Leak?,
   val onExpandAll = { onOpenStatesChange(List(traceNodes.size) { true })}
   val onCollapseAll = { onOpenStatesChange(List(traceNodes.size) { false })}
 
-  if (isLeakCanaryPresent == false) {
+  if (!isLeakCanaryPresent) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-      EllipsisText(text = LEAKCANARY_MISSING_MESSAGE, maxLines = 3)
+      SelectionContainer {
+        EllipsisText(text = LEAKCANARY_MISSING_MESSAGE, maxLines = 3)
+      }
     }
   }
   else if (selectedLeak == null) {
