@@ -41,8 +41,6 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.gemini.LlmPrompt
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.preview.createOrReuseModelForPreviewElement
 import com.android.tools.idea.preview.find.PreviewElementProvider
@@ -66,7 +64,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.intellij.codeInsight.daemon.impl.MockWolfTheProblemSolver
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
@@ -77,19 +75,16 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import com.intellij.testFramework.registerExtension
-import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.replaceService
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -129,6 +124,7 @@ private fun configureLayoutlibSceneManagerForPreviewElement(
 /** Converts an [InstructionsPanel] into text that can be easily used in assertions. */
 private fun InstructionsPanel.toDisplayText(): String =
   (0 until componentCount)
+    .filter { getComponent(it) !is DialogPanel }
     .flatMap { getRenderInstructionsForComponent(it) }
     .mapNotNull {
       when (it) {
@@ -138,7 +134,15 @@ private fun InstructionsPanel.toDisplayText(): String =
         else -> null
       }
     }
-    .joinToString("")
+    .joinToString("") +
+    (0 until componentCount)
+      .map { getComponent(it) }
+      .filterIsInstance<DialogPanel>()
+      .mapNotNull { it.components.firstOrNull() as? ActionToolbar }
+      .flatMap { toolbar ->
+        toolbar.actions.map { action -> "\n[${action.templatePresentation.text}]" }
+      }
+      .joinToString("")
 
 @RunWith(Parameterized::class)
 class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeFlag: Boolean) {
@@ -204,42 +208,25 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
   private lateinit var fakeUi: FakeUi
   private val fakeStudioBotActionFactory =
     object : FakeStudioBotActionFactory() {
-      var previewGeneratorAction: AnAction? =
-        object : AnAction() {
-          override fun actionPerformed(e: AnActionEvent) {}
-        }
+      var previewGeneratorAction = super.createPreviewGenerator()
+      var screenshotToCodeAction = super.screenshotToCodeAction()
 
       override fun createPreviewGenerator(): AnAction? = previewGeneratorAction
+
+      override fun screenshotToCodeAction(): AnAction = screenshotToCodeAction
     }
 
-  private val geminiPluginApi =
-    object : GeminiPluginApi {
-      var contextAllowed = false
+  private val disabledAndHiddenAction =
+    object : AnAction() {
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabledAndVisible = false
+      }
 
-      override val MAX_QUERY_CHARS = Int.MAX_VALUE
-
-      override fun isAvailable() = true
-
-      override fun isContextAllowed(project: Project) = contextAllowed
-
-      override fun sendChatQuery(
-        project: Project,
-        prompt: LlmPrompt,
-        displayText: String?,
-        requestSource: GeminiPluginApi.RequestSource,
-      ) {}
-
-      override fun stageChatQuery(
-        project: Project,
-        prompt: String,
-        requestSource: GeminiPluginApi.RequestSource,
-      ) {}
+      override fun actionPerformed(e: AnActionEvent) {}
     }
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication()
-      .registerExtension(GeminiPluginApi.EP_NAME, geminiPluginApi, projectRule.testRootDisposable)
     ExtensionTestUtil.maskExtensions(
       ComposeStudioBotActionFactory.EP_NAME,
       listOf(fakeStudioBotActionFactory),
@@ -411,9 +398,8 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
     }
 
   @Test
-  fun `empty preview state when flag is disabled`() {
+  fun `empty preview state when preview generation flag is disabled`() {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(false)
-    geminiPluginApi.contextAllowed = true
     checkEmptyPreviewState(
       showAutoGenerateAction = false,
       showScreenshotToAction = StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get(),
@@ -421,16 +407,8 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
   }
 
   @Test
-  fun `empty preview state when context-sharing is disabled`() {
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
-    geminiPluginApi.contextAllowed = false
-    checkEmptyPreviewState(showAutoGenerateAction = false, showScreenshotToAction = false)
-  }
-
-  @Test
   fun `empty preview state when preview generator is null`() {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
-    geminiPluginApi.contextAllowed = true
     fakeStudioBotActionFactory.previewGeneratorAction = null
     checkEmptyPreviewState(
       showAutoGenerateAction = false,
@@ -439,9 +417,8 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
   }
 
   @Test
-  fun `empty preview state when flag and context-sharing are enabled`() {
+  fun `empty preview state when preview generation flag is enabled`() {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
-    geminiPluginApi.contextAllowed = true
     checkEmptyPreviewState(
       showAutoGenerateAction = true,
       showScreenshotToAction = StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get(),
@@ -450,7 +427,6 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
 
   @Test
   fun `empty preview state when screenshot to code flag is disabled`() {
-    geminiPluginApi.contextAllowed = true
     StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.override(false)
     checkEmptyPreviewState(
       showAutoGenerateAction = StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.get(),
@@ -460,7 +436,6 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
 
   @Test
   fun `empty preview state when screenshot to code flag is enabled`() {
-    geminiPluginApi.contextAllowed = true
     StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.override(true)
     checkEmptyPreviewState(
       showAutoGenerateAction = StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.get(),
@@ -469,10 +444,15 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
   }
 
   @Test
-  fun `empty preview state when context-sharing is disable, screenshot to code flag is enabled`() {
-    geminiPluginApi.contextAllowed = false
+  fun `empty preview state when screenshot to code action is hidden and disabled`() {
     StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.override(true)
-    checkEmptyPreviewState(showAutoGenerateAction = false, showScreenshotToAction = false)
+
+    fakeStudioBotActionFactory.screenshotToCodeAction = disabledAndHiddenAction
+
+    checkEmptyPreviewState(
+      showAutoGenerateAction = StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.get(),
+      showScreenshotToAction = false,
+    )
   }
 
   // Regression test for b/450783824
@@ -482,16 +462,7 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
       true,
       projectRule.testRootDisposable,
     )
-    geminiPluginApi.contextAllowed = true
 
-    val disabledAndHiddenAction =
-      object : AnAction() {
-        override fun update(e: AnActionEvent) {
-          e.presentation.isEnabledAndVisible = false
-        }
-
-        override fun actionPerformed(e: AnActionEvent) {}
-      }
     fakeStudioBotActionFactory.previewGeneratorAction = disabledAndHiddenAction
 
     checkEmptyPreviewState(
@@ -502,7 +473,6 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
 
   @Test
   fun `empty preview state when preview generation agentic mode is enabled`() {
-    geminiPluginApi.contextAllowed = true
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.override(true)
     checkEmptyPreviewState(
@@ -514,7 +484,6 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
 
   @Test
   fun `empty preview state when preview generation agentic mode is disabled`() {
-    geminiPluginApi.contextAllowed = true
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.override(false)
     checkEmptyPreviewState(
@@ -583,7 +552,6 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
 
   @Test
   fun `empty preview state for test file`() = runBlocking {
-    geminiPluginApi.contextAllowed = true
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
     StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.override(true)
 

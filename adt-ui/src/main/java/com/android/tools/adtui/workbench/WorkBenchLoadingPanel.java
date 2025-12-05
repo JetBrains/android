@@ -27,6 +27,7 @@ import com.android.tools.adtui.stdui.TextChunk;
 import com.android.tools.adtui.stdui.UrlData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLoadingPanel;
 import java.awt.BorderLayout;
@@ -35,6 +36,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.LayoutManager;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -116,7 +119,7 @@ public class WorkBenchLoadingPanel extends JPanel {
   public void abortLoading(@NotNull String message,
                            @Nullable @SuppressWarnings("SameParameterValue") Icon icon,
                            @Nullable ActionData actionData) {
-    abortLoading(message, icon, null, actionData);
+    abortLoading(message, icon, null, Collections.emptyList(), actionData);
 
   }
 
@@ -126,6 +129,7 @@ public class WorkBenchLoadingPanel extends JPanel {
   public void abortLoading(@NotNull String message,
                            @Nullable @SuppressWarnings("SameParameterValue") Icon icon,
                            @Nullable UrlData helpUrlData,
+                           @NotNull List<AnAction> extraActions,
                            @Nullable ActionData... actionData) {
     if (myMessagePanel != null) {
       super.remove(myMessagePanel);
@@ -144,7 +148,7 @@ public class WorkBenchLoadingPanel extends JPanel {
       chunks.add(new TextChunk(line));
     }
 
-    myMessagePanel = new EmptyStatePanel(new LabelData(chunks.toArray(new Chunk[0])), helpUrlData, actionData, myMessagePanelTextColor);
+    myMessagePanel = new EmptyStatePanel(new LabelData(chunks.toArray(new Chunk[0])), helpUrlData, actionData, myMessagePanelTextColor, extraActions);
     super.remove(myLoadingPanel);
     super.add(myMessagePanel);
   }
