@@ -17,7 +17,7 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.commons.compress" scope="TEST" />
-    <orderEntry type="library" name="swingx" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.swingx" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />

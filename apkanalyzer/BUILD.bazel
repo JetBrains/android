@@ -22,7 +22,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
-    "@lib//:swingx",
+    "//libraries/swingx",
     "//android/adt-ui",
     "//android/artwork",
     "//android/android-common:common",

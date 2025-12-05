@@ -15,7 +15,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
-    "@lib//:swingx",
+    "//libraries/swingx",
     "//android/adt-ui",
     "//android/adt-ui-model",
     "//android/artwork",
@@ -47,7 +47,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
-    "@lib//:swingx",
+    "//libraries/swingx",
     "@lib//:studio-test-platform",
     "@lib//:junit4",
     "@lib//:kotlin-test",

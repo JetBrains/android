@@ -23,7 +23,7 @@ jvm_library(
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:kotlinc-kotlin-jps-common-provided",
     "@lib//:protobuf",
-    "@lib//:swingx",
+    "//libraries/swingx",
     "//android/adt-ui",
     "//android/analytics",
     "//android/artwork",
