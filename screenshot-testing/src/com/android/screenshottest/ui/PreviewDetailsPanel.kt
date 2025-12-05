@@ -374,18 +374,17 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
       layout = BoxLayout(this, BoxLayout.Y_AXIS)
     }
 
-    val previewsByMethod = previewsToShow.groupBy { "${it.className}.${it.methodName}" }
+    val previewsByClassAndMethod = previewsToShow.groupBy { "${it.className}.${it.methodName}" }
+    val previewsGroupedByMethodName = previewsToShow.groupBy { it.methodName }
 
-    val methodNameCounts = previewsByMethod.values
-        .map { it.first().methodName }
-        .groupingBy { it }
-        .eachCount()
-
-    previewsByMethod.forEach { (_, previews) ->
+    previewsByClassAndMethod.forEach { (_, previews) ->
       val methodName = previews.first().methodName ?: UNNAMED_FUNCTION_TEXT
       val className = previews.first().className
 
-      val labelText = if ((methodNameCounts[methodName] ?: 0) > 1) {
+      // If the total number of previews with this method name is greater than the
+      // number of previews in this specific class-method group, it means there are
+      // other previews with the same method name but different class.
+      val labelText = if ((previewsGroupedByMethodName[methodName]?.size ?: 0) > previews.size) {
         "${className.substringAfterLast('.')}.$methodName" // SimpleClassName.MethodName
       } else {
         methodName

@@ -226,6 +226,61 @@ class PreviewDetailsPanelTest {
     assertTrue("Toolbar should have multiple actions", actions.size >= 6)
   }
 
+  @Test
+  fun testDuplicateMethodNamesInDifferentClasses() = runInEdtAndWait {
+    val panel = PreviewDetailsPanel()
+    val details1 = PreviewDetails(
+      testId = "test1",
+      className = "com.example.ClassA",
+      methodName = "commonMethod",
+      previewName = "preview1",
+      testResult = AndroidTestCaseResult.PASSED
+    )
+    val details2 = PreviewDetails(
+      testId = "test2",
+      className = "com.example.ClassB",
+      methodName = "commonMethod",
+      previewName = "preview1",
+      testResult = AndroidTestCaseResult.PASSED
+    )
+    val details3 = PreviewDetails(
+      testId = "test3",
+      className = "com.example.ClassC",
+      methodName = "uniqueMethod",
+      previewName = "preview1",
+      testResult = AndroidTestCaseResult.PASSED
+    )
+
+    panel.displayPreviews(
+      listOf(details1, details2, details3),
+      emptyMap(),
+      ScreenshotViewType.NEW,
+      null
+    )
+
+    val visibleComponents = panel.components.filter { it.isVisible }
+    assertEquals(1, visibleComponents.size)
+    val activePanel = visibleComponents[0] as JPanel
+
+    val labels = findLabelsInScrollPaneContent(activePanel)
+
+    // ClassA.commonMethod and ClassB.commonMethod should be disambiguated
+    assertTrue("Should contain ClassA.commonMethod", labels.contains("ClassA.commonMethod"))
+    assertTrue("Should contain ClassB.commonMethod", labels.contains("ClassB.commonMethod"))
+    // uniqueMethod should stay as is
+    assertTrue("Should contain uniqueMethod", labels.contains("uniqueMethod"))
+  }
+
+  private fun findLabelsInScrollPaneContent(container: Container): List<String> {
+    val scrollPane = container.components.find { it is JBScrollPane } as? JBScrollPane ?: return emptyList()
+    val viewport = scrollPane.viewport
+    val contentPanel = viewport.view as? Container ?: return emptyList()
+
+    return contentPanel.components
+      .filterIsInstance<JBLabel>()
+      .map { it.text }
+  }
+
   private fun findImagePanel(container: Container, type: ScreenshotViewType): ImageWithToolbarPanel? {
     if (container is ImageWithToolbarPanel && container.title == type) {
       return container
