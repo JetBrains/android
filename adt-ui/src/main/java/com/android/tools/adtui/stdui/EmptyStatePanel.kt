@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.stdui
 
+import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.instructions.HyperlinkInstruction
 import com.android.tools.adtui.instructions.IconInstruction
@@ -23,6 +24,15 @@ import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.RenderInstruction
 import com.android.tools.adtui.instructions.TextInstruction
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy.NOWRAP_STRATEGY
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.AlignY
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.plus
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtilities
 import java.awt.BorderLayout
@@ -77,10 +87,14 @@ constructor(
   helpUrlData: UrlData? = null,
   @TestOnly vararg val actionData: ActionData?,
   textColor: Color = NamedColorUtil.getInactiveTextColor(),
+  extraActions: List<AnAction> = emptyList(),
 ) : JPanel(BorderLayout()) {
 
   init {
-    add(createInstructionsPanel(this, reason, helpUrlData, *actionData, textColor = textColor))
+    val instructionsPanel =
+      createInstructionsPanel(this, reason, helpUrlData, *actionData, textColor = textColor)
+    instructionsPanel.addExtraActions(extraActions)
+    add(instructionsPanel)
   }
 
   constructor(
@@ -147,4 +161,25 @@ private fun createInstructionsPanel(
     .setMode(InstructionsPanel.Mode.FILL_PANEL)
     .setColors(textColor, null)
     .build()
+}
+
+/**
+ * Adds an [com.intellij.openapi.actionSystem.ActionToolbar] that includes the given [extraActions].
+ * We use a toolbar to ensure that the actions will be updated when there are events in the IDE. The
+ * actions will have their text shown.
+ */
+private fun InstructionsPanel.addExtraActions(extraActions: List<AnAction>) {
+  if (extraActions.isEmpty()) return
+  extraActions.forEach {
+    it.templatePresentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
+  }
+  val toolbar =
+    ActionManager.getInstance()
+      .createActionToolbar("empty panel actions", DefaultActionGroup(extraActions), false)
+  toolbar.targetComponent = this
+  toolbar.layoutStrategy = NOWRAP_STRATEGY
+  val extraActionsPanel = panel {
+    row { cell(toolbar.component).align(AlignX.CENTER + AlignY.TOP) }
+  }
+  add(extraActionsPanel, TabularLayout.Constraint(2, 1))
 }
