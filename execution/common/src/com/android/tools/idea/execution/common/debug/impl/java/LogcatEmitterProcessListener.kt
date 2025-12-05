@@ -17,6 +17,7 @@ package com.android.tools.idea.execution.common.debug.impl.java
 
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl
+import com.intellij.debugger.impl.DebuggerUtilsEx.mirrorOfString
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessListener
 import com.intellij.openapi.diagnostic.debug
@@ -60,7 +61,8 @@ internal class LogcatEmitterProcessListener(private val process: DebugProcessImp
       val logMethod = logClass.methodsByName(ANDROID_LOG_METHOD_NAME, ANDROID_LOG_METHOD_SIGNATURE).first()
 
       val evaluationContext = EvaluationContextImpl(eventContext, eventContext.frameProxy)
-      process.invokeMethod(evaluationContext, logClass, logMethod, listOf(vm.mirrorOf(ANDROID_LOG_TAG), vm.mirrorOf(event.text)))
+      process.invokeMethod(evaluationContext, logClass, logMethod,
+                           listOf(mirrorOfString(ANDROID_LOG_TAG, evaluationContext), mirrorOfString(event.text, evaluationContext)))
 
     } catch (e: Exception) {
       thisLogger().debug(e) { "Failed to emit text to process Logcat: '${event.text}'" }
