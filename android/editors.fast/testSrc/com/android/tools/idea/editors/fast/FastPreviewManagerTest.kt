@@ -158,7 +158,7 @@ internal class FastPreviewManagerTest {
     }
     blockingDaemon.completeOneRequest()
 
-    latch.await() // Wait for the 10 requests to complete
+    latch.await(10, TimeUnit.SECONDS) // Wait for the 10 requests to complete
     assertEquals(
       "Only one compilation was expected for the 10 identical requests",
       1,
@@ -203,7 +203,7 @@ internal class FastPreviewManagerTest {
     }
     repeat(10) { blockingDaemon.completeOneRequest() }
 
-    latch.await() // Wait for the 10 requests to complete
+    latch.await(10, TimeUnit.SECONDS) // Wait for the 10 requests to complete
     assertEquals(
       "10 requests should have triggered 10 compilations",
       10,
@@ -251,7 +251,7 @@ internal class FastPreviewManagerTest {
 
     repeat(5) { blockingDaemon.completeOneRequest() }
 
-    latch.await() // Wait for the 10 requests to complete
+    latch.await(10, TimeUnit.SECONDS) // Wait for the 10 requests to complete
     assertEquals("Only 5 requests were expected to be different", 5, blockingDaemon.requestReceived)
   }
 
