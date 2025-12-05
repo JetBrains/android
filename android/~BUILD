@@ -96,7 +96,7 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint",
         "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
-        "//tools/adt/idea/android:libandroid-core-proto",
+        "//tools/adt/idea/.idea/libraries:android-core-proto",
         "//tools/base/zipflinger:studio.android.sdktools.zipflinger",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync",
@@ -279,7 +279,7 @@ iml_module(
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model",
         "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
-        "//tools/adt/idea/android:libandroid-core-proto",
+        "//tools/adt/idea/.idea/libraries:android-core-proto",
         "//tools/adt/idea/server-flags:intellij.android.server-flags",
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:org.intellij.groovy",
@@ -378,6 +378,7 @@ filegroup(
     # do not sort: must match IML order
     srcs = [
         "//tools/adt/idea/.idea/libraries:agp-version",
+        "//tools/adt/idea/.idea/libraries:android-core-proto",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
@@ -395,16 +396,11 @@ filegroup(
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/.idea/libraries:transport-proto",
         "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
-        "//tools/adt/idea/android-common:libandroid-core-proto",
-        "//tools/adt/idea/android/diagnostics:libandroid-core-proto",
-        "//tools/adt/idea/android/gradle:libandroid-core-proto",
-        "//tools/adt/idea/android:libandroid-core-proto",
         "//tools/adt/idea/android:libandroid-core-proto-test",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:workmanager-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
-        "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_kt_proto",
         "//tools/adt/idea/as-driver:asdriver_proto",
         "//tools/adt/idea/as-driver:librunfiles",
@@ -415,7 +411,6 @@ filegroup(
         "//tools/adt/idea/profilers-ui:traceprocessor-proto",
         "//tools/adt/idea/profilers:traceprocessor-proto",
         "//tools/adt/idea/project-system-gradle-psd:liblint-checks-proto.lib",
-        "//tools/adt/idea/project-system-gradle:libandroid-core-proto",
         "//tools/adt/idea/server-flags:libserver-flag-test-proto",
         "//tools/adt/idea/testartifacts:libjourneys-java-proto",
         "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
@@ -574,13 +569,6 @@ java_binary(
     runtime_deps = [
         ":update_offline_gmaven_index",
     ],
-)
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "libandroid-core-proto",
-    jars = ["//tools/adt/idea/android:libandroid-core-proto.jar"],
-    visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build

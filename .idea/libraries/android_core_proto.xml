@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="android-core-proto">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/adt/idea/android/libandroid-core-proto.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -351,3 +351,10 @@ jvm_import(
     jars = ["//prebuilts/tools/common/m2:protobuf-kotlin_files"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "android-core-proto",
+    jars = ["//tools/adt/idea/android:libandroid-core-proto.jar"],
+    visibility = ["//visibility:public"],
+)

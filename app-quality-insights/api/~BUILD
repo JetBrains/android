@@ -1,5 +1,4 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 iml_module(
@@ -37,7 +36,7 @@ iml_module(
         "//tools/vendor/google/login:google-login",
         "//tools/adt/idea/.idea/libraries:google-api-client",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
-        "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
+        "//tools/adt/idea/.idea/libraries:android-core-proto",
         "//tools/adt/idea/server-flags:intellij.android.server-flags",
         "//tools/adt/idea/ml-api:intellij.android.ml-api",
         "@intellij//:intellij.platform.vcs.dvcs.impl",
@@ -45,11 +44,4 @@ iml_module(
         "@intellij//:intellij.libraries.grpc.netty.shaded",
         "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
     ],
-)
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "libandroid-core-proto",
-    jars = ["//tools/adt/idea/android:libandroid-core-proto.jar"],
-    visibility = ["//visibility:public"],
 )
