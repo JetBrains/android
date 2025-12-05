@@ -124,6 +124,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myLeakCanaryEnabled = true;
 
   /**
+   * Whether the LeakCanary milestone 2 features should be visible.
+   */
+  private boolean myLeakCanaryMilestone2Enabled = false;
+
+  /**
    * Whether the V2 of Task Title should be used.
    */
   private boolean myTaskTitleV2Enabled = false;
@@ -261,6 +266,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isLeakCanaryEnabled() {
         return myLeakCanaryEnabled;
+      }
+
+      @Override
+      public boolean isLeakCanaryMilestone2Enabled() {
+        return myLeakCanaryMilestone2Enabled;
       }
 
       @Override
@@ -450,5 +460,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableLeakCanary(boolean enabled) {
     myLeakCanaryEnabled = enabled;
+  }
+
+  public void enableLeakCanaryMilestone2(boolean enabled) {
+    myLeakCanaryMilestone2Enabled = enabled;
   }
 }
