@@ -27,6 +27,7 @@ import com.google.common.base.Splitter;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -48,6 +49,7 @@ import java.awt.event.ComponentListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -255,7 +257,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
    * The message can contain multiple lines.
    */
   public void loadingStopped(@NotNull String message, @Nullable ActionData actionData) {
-    loadingStopped(message, AllIcons.General.Warning, null, actionData);
+    loadingStopped(message, AllIcons.General.Warning, null, Collections.emptyList(), actionData);
   }
 
   /**
@@ -263,10 +265,20 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
    * The message can contain multiple lines. Multiple action links are displayed vertically stacked.
    */
   public void loadingStopped(@NotNull String message, @Nullable Icon icon, @Nullable UrlData urlData, @Nullable ActionData... actionData) {
+    myLoadingPanel.abortLoading(message, icon, urlData, Collections.emptyList(), actionData);
+  }
+
+  /**
+   * Shows the default empty content panel with the given message and optional icon and {@link ActionData}s.
+   * The message can contain multiple lines. Multiple action links are displayed vertically stacked.
+   * A list of extra {@link AnAction} will be displayed in the panel. They are displayed as action
+   * buttons in a toolbar, as opposed to the {@link ActionData}s which are displayed as hyperlinks.
+   */
+  public void loadingStopped(@NotNull String message, @Nullable Icon icon, @Nullable UrlData urlData, @NotNull List<AnAction> extraActions, @Nullable ActionData... actionData) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("loadingStopped " + message);
     }
-    myLoadingPanel.abortLoading(message, icon, urlData, actionData);
+    myLoadingPanel.abortLoading(message, icon, urlData, extraActions, actionData);
   }
 
   /**

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.flags.ifEnabled
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.stdui.ActionData
@@ -35,14 +34,13 @@ import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.preview.focus.FocusModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.UiDataProvider
@@ -408,8 +406,9 @@ internal class ComposePreviewViewImpl(
             // Do not show AI actions for:
             // - files in libraries, since they are read-only.
             // - Test files, since the generation of Previews in test cases is not useful
-            val actions =
-              if (isGeminiAvailable() && !isInLibrary && !isTestFile) {
+            val extraActions =
+              // TODO(b/467014375): move these checks to the actions themselves
+              if (!isInLibrary && !isTestFile) {
                 withContext(Dispatchers.Default) {
                   listOfNotNull(
                     if (StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.get()) {
@@ -433,7 +432,7 @@ internal class ComposePreviewViewImpl(
               message("panel.no.previews.defined") + message("panel.no.previews.syntax.error.note"),
               null,
               UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
-              *actions.toTypedArray(),
+              extraActions,
             )
           }
         }
@@ -443,49 +442,24 @@ internal class ComposePreviewViewImpl(
     }
   }
 
-  private fun isGeminiAvailable() =
-    GeminiPluginApi.getInstance().isAvailable() &&
-      GeminiPluginApi.getInstance().isContextAllowed(project)
-
   private fun getComposeStudioBotActionFactory(): ComposeStudioBotActionFactory? =
     ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()
 
-  /**
-   * Creates an [ActionData] to invoke an Action to generate Compose Previews for this file. The
-   * action should only be visible if the containing file has Composables.
-   */
-  private suspend fun createGeneratePreviewsActionData(): ActionData? {
-    val previewGeneratorFactory = getComposeStudioBotActionFactory() ?: return null
-
-    return previewGeneratorFactory.createPreviewGenerator()?.let {
-      createPreviewActionData(
-        it,
-        psiFilePointer,
-        mainSurface,
+  /** Creates an [AnAction] to that generates Compose Previews for this file. */
+  private fun createGeneratePreviewsActionData(): AnAction? {
+    return getComposeStudioBotActionFactory()?.createPreviewGenerator()?.also {
+      it.templatePresentation.text =
         if (StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.get())
           message("action.generate.single.preview.for.file.empty.panel")
-        else message("action.generate.previews.for.file.empty.panel"),
-        icon = StudioIcons.StudioBot.GENERIC_AI_ACTION,
-        suffixIcon =
-          StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.ifEnabled {
-            AllIcons.General.ChevronDown
-          },
-      )
+        else message("action.generate.previews.for.file.empty.panel")
+      it.templatePresentation.icon = StudioIcons.StudioBot.GENERIC_AI_ACTION
     }
   }
 
-  /** Creates an [ActionData] to invoke an action that generates code from a screenshot. */
-  private suspend fun createScreenshotToCodeActionData(): ActionData? {
-    val factory = getComposeStudioBotActionFactory() ?: return null
-
-    return factory.screenshotToCodeAction().let {
-      createPreviewActionData(
-        it,
-        psiFilePointer,
-        mainSurface,
-        it.templatePresentation.text,
-        StudioIcons.StudioBot.GENERIC_AI_ACTION,
-      )
+  /** Creates an [AnAction] that generates code from a screenshot. */
+  private fun createScreenshotToCodeActionData(): AnAction? {
+    return getComposeStudioBotActionFactory()?.screenshotToCodeAction()?.also {
+      it.templatePresentation.icon = StudioIcons.StudioBot.GENERIC_AI_ACTION
     }
   }
 
