@@ -29,7 +29,8 @@ import com.intellij.openapi.application.EDT
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.JdkOrderEntry
+import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Key
@@ -82,8 +83,7 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
     if (JavaEditorFileSwapper.findSourceFile(myProject, file) != null) return null
 
     // Since the java source was not found, it might come from an Android SDK.
-    val jdkOrderEntry = findAndroidSdkEntryForFile(myProject, file) ?: return null
-    val sdk = jdkOrderEntry.jdk ?: return null
+    val sdk = findAndroidSdkEntryForFile(myProject, file) ?: return null
 
     // If we have sources, no need to display the panel.
     if (sdk.rootProvider.getFiles(OrderRootType.SOURCES).isNotEmpty()) return null
@@ -143,13 +143,12 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
   protected open fun createCoroutineScopeForEditor(fileEditor: FileEditor): CoroutineScope =
     AndroidCoroutineScope(fileEditor)
 
-  private fun findAndroidSdkEntryForFile(project: Project, file: VirtualFile): JdkOrderEntry? {
+  private fun findAndroidSdkEntryForFile(project: Project, file: VirtualFile): Sdk? {
     return ProjectFileIndex.getInstance(project)
-      .getOrderEntriesForFile(file)
-      .filterIsInstance<JdkOrderEntry>()
-      .firstOrNull { entry ->
-        entry.jdk?.let { AndroidSdks.getInstance().isAndroidSdk(it) } == true
-      }
+      .findContainingSdks(file)
+      .asSequence()
+      .mapNotNull { sdkEntity -> ProjectJdkTable.getInstance().findJdk(sdkEntity.name) }
+      .firstOrNull { sdk -> AndroidSdks.getInstance().isAndroidSdk(sdk) }
   }
 
   @VisibleForTesting
