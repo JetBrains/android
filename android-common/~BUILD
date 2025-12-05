@@ -1,5 +1,4 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 iml_module(
@@ -39,7 +38,7 @@ iml_module(
         "//tools/adt/idea/server-flags:intellij.android.server-flags",
         "//tools/adt/idea/jps-model:intellij.android.jps.model",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
-        "//tools/adt/idea/android-common:libandroid-core-proto",
+        "//tools/adt/idea/.idea/libraries:android-core-proto",
         "//tools/adt/idea/.idea/libraries:agp-version",
     ],
 )
@@ -65,7 +64,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
-        "//tools/adt/idea/android-common:libandroid-core-proto",
+        "//tools/adt/idea/.idea/libraries:android-core-proto",
     ],
     test_srcs = ["test"],
     visibility = ["//visibility:public"],
@@ -85,11 +84,4 @@ iml_module(
         "//tools/adt/idea/jps-model:intellij.android.jps.model",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
     ],
-)
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "libandroid-core-proto",
-    jars = ["//tools/adt/idea/android:libandroid-core-proto.jar"],
-    visibility = ["//visibility:public"],
 )
