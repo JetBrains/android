@@ -38,7 +38,7 @@ import com.android.emulator.control.WheelEvent
 import com.android.emulator.control.XrOptions
 import com.android.ide.common.util.Cancelable
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
 import com.android.tools.adtui.ImageUtils.ALPHA_MASK
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
@@ -209,7 +209,7 @@ class EmulatorView(
   private val displaySize: Dimension?,
   deviceFrameVisible: Boolean,
 ) : AbstractDisplayView(project, displayId, "StreamingContextMenuVirtualDevice"),
-    ConnectionStateListener, EmulatorSettingsListener, EmulatorLogListener {
+    ConnectionStateListener, EmulatorSettingsListener, EmulatorNotificationDispatcher.Listener {
 
   override var displayOrientationQuadrants: Int
     get() = screenshotShape.orientation
@@ -465,7 +465,9 @@ class EmulatorView(
         }
       })
 
-      messageBusConnection.subscribe(EmulatorLogListener.TOPIC, this)
+      ProcessHandleProvider.getProcessHandle(emulatorId.pid)?.let { processHandle ->
+        EmulatorNotificationDispatcher.getInstance().addListener(processHandle, this)
+      }
     }
 
     messageBusConnection.subscribe(LafManagerListener.TOPIC, LafManagerListener { lafManager ->
@@ -846,16 +848,14 @@ class EmulatorView(
     }
   }
 
-  override fun messageLogged(avd: AvdInfo, severity: EmulatorLogListener.Severity, notifyUser: Boolean, message: String) {
-    if (notifyUser && avd.dataFolderPath == emulator.emulatorId.avdFolder) {
-      val status = when (severity) {
-        EmulatorLogListener.Severity.WARNING -> EditorNotificationPanel.Status.Warning
-        EmulatorLogListener.Severity.ERROR, EmulatorLogListener.Severity.FATAL -> EditorNotificationPanel.Status.Error
-        else -> null
-      }
-      UIUtil.invokeLaterIfNeeded {
-        findNotificationHolderPanel()?.showFadeOutNotification(message, status)
-      }
+  override fun notificationMessageLogged(severity: EmulatorLogListener.Severity, message: String) {
+    val status = when (severity) {
+      EmulatorLogListener.Severity.WARNING -> EditorNotificationPanel.Status.Warning
+      EmulatorLogListener.Severity.ERROR, EmulatorLogListener.Severity.FATAL -> EditorNotificationPanel.Status.Error
+      else -> null
+    }
+    UIUtil.invokeLaterIfNeeded {
+      findNotificationHolderPanel()?.showFadeOutNotification(message, status)
     }
   }
 

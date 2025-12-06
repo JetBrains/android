@@ -29,6 +29,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
 import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.util.io.BaseOutputReader
+import java.nio.file.Path
 
 private const val NOTIFY_USER = "(?<notifyUser>USER_)?"
 private const val SEVERITY = "(?<severity>VERBOSE|DEBUG|INFO|WARNING|ERROR|FATAL)"
@@ -83,9 +84,13 @@ class EmulatorProcessHandler(
     ProcessTerminatedListener.attach(this)
   }
 
-  private fun notifyListeners(avd: AvdInfo, severity: EmulatorLogListener.Severity, notifyUser: Boolean, message: String) {
+  private fun notifyListeners(processHandle: ProcessHandle,
+                              avdFolder: Path,
+                              severity: EmulatorLogListener.Severity,
+                              notifyUser: Boolean,
+                              message: String) {
     try {
-      messageBus.syncPublisher(EmulatorLogListener.TOPIC).messageLogged(avd, severity, notifyUser, message)
+      messageBus.syncPublisher(EmulatorLogListener.TOPIC).messageLogged(processHandle, avdFolder, severity, notifyUser, message)
     }
     catch (_: AlreadyDisposedException) {
     }
@@ -96,8 +101,10 @@ class EmulatorProcessHandler(
 
   private inner class EmulatorProcessListener : ProcessListener {
 
+    private val processHandle = process.toHandle()
+
     override fun startNotified(event: ProcessEvent) {
-      ownedRunningEmulators.started(avd.dataFolderPath, process.toHandle(), runType, isLaunchedByThisProcess = true)
+      ownedRunningEmulators.started(avd.dataFolderPath, processHandle, runType, isLaunchedByThisProcess = true)
     }
 
     override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
@@ -153,7 +160,7 @@ class EmulatorProcessHandler(
           notify("Emulator: $avdName", message, NotificationType.ERROR)
         }
       }
-      notifyListeners(avd, severity, notifyUser, message)
+      notifyListeners(processHandle, avd.dataFolderPath, severity, notifyUser, message)
     }
 
     private fun notify(title: String, content: String, @Suppress("SameParameterValue") notificationType: NotificationType) {

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.avdmanager
 
-import com.android.sdklib.internal.avd.AvdInfo
 import com.intellij.util.messages.Topic
+import java.nio.file.Path
 
 /** A listener receiving messages logged by the emulator. */
 interface EmulatorLogListener {
 
-  fun messageLogged(avd: AvdInfo, severity: Severity, notifyUser: Boolean, message: String)
+  fun messageLogged(sourceProcess: ProcessHandle, avdFolder: Path, severity: Severity, notifyUser: Boolean, message: String)
 
   companion object {
     val TOPIC: Topic<EmulatorLogListener> = Topic("Emulator log messages", EmulatorLogListener::class.java)
