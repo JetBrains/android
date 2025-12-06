@@ -17,8 +17,9 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.emulator.control.Posture.PostureValue
 import com.android.mockito.kotlin.whenever
-import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.ProcessHandleProviderRule
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
@@ -128,6 +129,7 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
 import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.seconds
+import org.junit.After
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -152,7 +154,7 @@ class EmulatorViewTest {
 
   private val emulatorViewRule = EmulatorViewRule()
   @get:Rule
-  val ruleChain = RuleChain(emulatorViewRule, ClipboardSynchronizationDisablementRule(), EdtRule())
+  val ruleChain = RuleChain(emulatorViewRule, ClipboardSynchronizationDisablementRule(), ProcessHandleProviderRule(), EdtRule())
   @get:Rule
   val usageTrackerRule = UsageTrackerRule()
   private lateinit var view: EmulatorView
@@ -173,6 +175,11 @@ class EmulatorViewTest {
     mouseInfo.whenever<PointerInfo> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
     focusManager = FakeKeyboardFocusManager(testRootDisposable)
     ActionManager.getInstance() // Instantiate ActionManager to trigger loading of keyboard shortcuts.
+  }
+
+  @After
+  fun tearDown() {
+    EmulatorNotificationDispatcher.getInstance().reset()
   }
 
   @Test
@@ -1029,16 +1036,17 @@ class EmulatorViewTest {
 
     val messageBus = ApplicationManager.getApplication().messageBus
     val avdFolder = view.emulator.emulatorConfig.avdFolder
-    val iniFile = avdFolder.resolveSibling(avdFolder.fileName.toString().substringBefore(".") + ".ini")
-    val avd = AvdInfo(iniFile = iniFile, dataFolderPath = avdFolder, systemImage = null)
 
-    messageBus.syncPublisher(EmulatorLogListener.TOPIC).messageLogged(avd, EmulatorLogListener.Severity.WARNING, true, "Attention!")
+    val processHandle = ProcessHandleProvider.getProcessHandle(view.emulator.emulatorId.pid)!!
+    messageBus.syncPublisher(EmulatorLogListener.TOPIC).messageLogged(
+        processHandle, avdFolder, EmulatorLogListener.Severity.WARNING, true, "Attention!")
     waitForCondition(2.seconds) { notificationHolderPanel.findDescendant<EditorNotificationPanel>() != null }
     var notificationPanel = notificationHolderPanel.getDescendant<EditorNotificationPanel>()
     assertThat(notificationPanel.text).isEqualTo("Attention!")
     assertThat(notificationPanel.background).isEqualTo(JBUI.CurrentTheme.Banner.WARNING_BACKGROUND)
 
-    messageBus.syncPublisher(EmulatorLogListener.TOPIC).messageLogged(avd, EmulatorLogListener.Severity.ERROR, true, "Crashed!")
+    messageBus.syncPublisher(EmulatorLogListener.TOPIC).messageLogged(
+        processHandle, avdFolder, EmulatorLogListener.Severity.ERROR, true, "Crashed!")
     waitForCondition(2.seconds) { notificationHolderPanel.findDescendant<EditorNotificationPanel>() != null }
     notificationPanel = notificationHolderPanel.getDescendant<EditorNotificationPanel>()
     assertThat(notificationPanel.text).isEqualTo("Crashed!")

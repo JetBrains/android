@@ -56,6 +56,7 @@ jvm_library(
     "//platform/analysis-impl",
     "//platform/platform-util-io:ide-util-io",
     "//platform/execution",
+    "//libraries/rd/core",
   ],
   runtime_deps = [
     "@lib//:android-streaming-ffmpeg-linux-x64",
