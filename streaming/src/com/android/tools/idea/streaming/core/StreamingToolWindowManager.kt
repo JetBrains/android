@@ -54,6 +54,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.streaming.emulator.EmulatorId
+import com.android.tools.idea.streaming.emulator.EmulatorNotificationDispatcher
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.streaming.emulator.displayNameWithApi
@@ -285,6 +286,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   init {
     Disposer.register(toolWindow.disposable, this)
+    EmulatorNotificationDispatcher.getInstance() // Make sure that EmulatorNotificationDispatcher is initialized.
     RunningEmulatorCatalog.getInstance().addListener(this, EMULATOR_DISCOVERY_INTERVAL_MILLIS * 10)
     deviceClientRegistry.addListener(this)
     PhysicalDeviceWatcher(this)

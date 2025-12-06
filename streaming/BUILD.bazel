@@ -76,6 +76,7 @@ jvm_library(
         "//platform/platform-util-io:ide-util-io",
         "//platform/progress/shared:ide-progress",
         "//platform/execution",
+        "//libraries/rd/core",
     ],
 )
 
@@ -132,6 +133,7 @@ jvm_library(
         "//platform/platform-util-io:ide-util-io_test_lib",
         "//platform/progress/shared:ide-progress_test_lib",
         "//platform/execution:execution_test_lib",
+        "//libraries/rd/core:core_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.streaming` end
