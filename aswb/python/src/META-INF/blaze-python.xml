@@ -15,7 +15,6 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.google.idea.blaze">
-    <SyncPlugin implementation="com.google.idea.blaze.python.sync.AlwaysPresentPythonSyncPlugin"/>
     <TargetKindProvider implementation="com.google.idea.blaze.python.PythonBlazeRules"/>
   </extensions>
 </idea-plugin>

@@ -15,11 +15,8 @@
  */
 package com.google.idea.blaze.base.model;
 
-import com.google.idea.blaze.base.command.info.BlazeInfo;
-import com.google.idea.blaze.base.ideinfo.TargetMap;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
-import com.google.idea.blaze.base.sync.workspace.ArtifactLocationDecoder;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.common.BuildTarget;
 import javax.annotation.Nullable;
@@ -34,20 +31,5 @@ public interface BlazeProjectData {
 
   WorkspaceLanguageSettings getWorkspaceLanguageSettings();
 
-  // TODO: Many of the following methods are aspect-sync specific, and should probably not appear in
-  //  this interface.
-
-  TargetMap getTargetMap();
-
-  BlazeInfo getBlazeInfo();
-
   BlazeVersionData getBlazeVersionData();
-
-  ArtifactLocationDecoder getArtifactLocationDecoder();
-
-  RemoteOutputArtifacts getRemoteOutputs();
-
-  SyncState getSyncState();
-
-  boolean isQuerySync();
 }

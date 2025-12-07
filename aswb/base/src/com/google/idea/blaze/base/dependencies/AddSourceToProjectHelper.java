@@ -41,15 +41,16 @@ import com.google.idea.blaze.base.projectview.section.sections.AutomaticallyDeri
 import com.google.idea.blaze.base.projectview.section.sections.DirectoryEntry;
 import com.google.idea.blaze.base.projectview.section.sections.DirectorySection;
 import com.google.idea.blaze.base.projectview.section.sections.TargetSection;
+import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.settings.ui.OpenProjectViewAction;
-import com.google.idea.blaze.base.sync.BlazeSyncManager;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.sync.projectview.ImportRoots;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverProvider;
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
+import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -163,9 +164,8 @@ class AddSourceToProjectHelper {
     if (autoDeriveTargets(project)) {
       targetsToSync = ImmutableList.of(TargetExpression.allFromPackageRecursive(parentPath));
     }
-    BlazeSyncManager.getInstance(project)
-        .partialSync(targetsToSync, /* reason= */ "AddSourceToProjectHelper");
-    notifySuccess(project, addDirectory ? parentPath : null, targets);
+    throw new UnsupportedOperationException();
+    // TODO: b/466321064 Implement // notifySuccess(project, addDirectory ? parentPath : null, targets);
   }
 
   private static void addDirectory(ProjectView.Builder builder, WorkspacePath dir) {
@@ -279,7 +279,11 @@ class AddSourceToProjectHelper {
    */
   private static boolean sourceInProjectTargets(
       LocationContext context, Collection<TargetKey> targetsBuildingSource) {
-    if (targetsBuildingSource.stream().anyMatch(context.syncData.getTargetMap()::contains)) {
+    final var maybeGraph = QuerySyncManager.getInstance(context.project).getCurrentSnapshot().map(QuerySyncProjectSnapshot::getGraph);
+    if (maybeGraph.isEmpty()) return false;
+    final var graph = maybeGraph.get();
+    if (targetsBuildingSource.stream()
+      .anyMatch(it -> graph.getProjectTarget(com.google.idea.blaze.common.Label.of(it.getLabel().toString())) != null)) {
       return true;
     }
     ImportRoots roots = context.getImportRoots();

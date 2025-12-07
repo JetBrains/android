@@ -17,21 +17,16 @@ package com.google.idea.blaze.android.sync.model;
 
 import com.android.SdkConstants;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.google.devtools.intellij.model.ProjectData;
-import com.google.idea.blaze.android.libraries.UnpackedAars;
 import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
 import com.google.idea.blaze.base.ideinfo.LibraryArtifact;
 import com.google.idea.blaze.base.model.BlazeLibrary;
-import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.LibraryFilesProvider;
 import com.google.idea.blaze.base.model.LibraryKey;
-import com.google.idea.blaze.base.sync.workspace.ArtifactLocationDecoder;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import java.io.File;
 import java.util.Objects;
 import javax.annotation.concurrent.Immutable;
 import org.jetbrains.annotations.Nullable;
@@ -107,13 +102,6 @@ public final class AarLibrary extends BlazeLibrary {
     return super.toProto().toBuilder().setAarLibrary(aarLibraryBuilder.build()).build();
   }
 
-  @Nullable
-  public File getLintRuleJar(Project project, ArtifactLocationDecoder decoder) {
-    UnpackedAars unpackedAars = UnpackedAars.getInstance(project);
-    File lintRuleJar = unpackedAars.getLintRuleJar(decoder, this);
-    return (lintRuleJar == null || !lintRuleJar.exists()) ? null : lintRuleJar;
-  }
-
   @Override
   public int hashCode() {
     return Objects.hash(super.hashCode(), libraryArtifact, aarArtifact, resourcePackage);
@@ -156,40 +144,6 @@ public final class AarLibrary extends BlazeLibrary {
     @Override
     public String getName() {
       return AarLibrary.this.key.getIntelliJLibraryName();
-    }
-
-    @Override
-    public ImmutableList<File> getClassFiles(BlazeProjectData blazeProjectData) {
-      UnpackedAars unpackedAars = UnpackedAars.getInstance(project);
-      File resourceDirectory =
-          UnpackedAars.getInstance(project)
-              .getResourceDirectory(blazeProjectData.getArtifactLocationDecoder(), AarLibrary.this);
-      if (resourceDirectory == null) {
-        logger.warn("No resource directory found for aar: " + aarArtifact);
-        return ImmutableList.of();
-      }
-
-      File jar =
-          unpackedAars.getClassJar(blazeProjectData.getArtifactLocationDecoder(), AarLibrary.this);
-      // not every aar has class jar attached, do not return non-existent jar to avoid false alarm
-      // log.
-      if (jar != null && jar.exists()) {
-        return ImmutableList.of(resourceDirectory, jar);
-      }
-      return ImmutableList.of(resourceDirectory);
-    }
-
-    @Override
-    public ImmutableList<File> getSourceFiles(BlazeProjectData blazeProjectData) {
-      // Unconditionally add any linked to source jars. BlazeJarLibrary doesn't do this - it only
-      // attaches sources for libraries that the user explicitly asks for. We don't do that for two
-      // reasons: 1) all the logic for attaching sources to a library (AttachSourceJarAction,
-      // BlazeSourceJarNavigationPolicy, LibraryActionHelper etc) are all tied to Java specific
-      // libraries, and 2) So far, aar_imports are primarily used for very few 3rd party
-      // dependencies.
-      // Longer term, we may want to make this behave just like the Java libraries.
-      return UnpackedAars.getInstance(project)
-          .getCachedSrcJars(blazeProjectData.getArtifactLocationDecoder(), AarLibrary.this);
     }
 
     @Override

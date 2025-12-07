@@ -17,13 +17,9 @@ package com.google.idea.blaze.base.run.testmap;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.base.BlazeTestCase;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
-import com.google.idea.blaze.base.ideinfo.TargetMap;
-import com.google.idea.blaze.base.ideinfo.TargetMapBuilder;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataBuilder;
 import com.google.idea.blaze.base.model.primitives.GenericBlazeRules;
@@ -33,7 +29,6 @@ import com.google.idea.blaze.base.model.primitives.RuleType;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.run.SourceToTargetFinder;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.SyncCache;
@@ -47,12 +42,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Tests for the test map */
 @RunWith(JUnit4.class)
+@Ignore("b/466350110")
 public class TestMapTest extends BlazeTestCase {
 
   private MockBlazeProjectDataManager mockBlazeProjectDataManager;
@@ -69,7 +66,7 @@ public class TestMapTest extends BlazeTestCase {
     projectServices.register(SyncCache.class, new SyncCache(project));
     BlazeImportSettingsManager importSettingsManager = new BlazeImportSettingsManager(project);
     BlazeImportSettings settings =
-        new BlazeImportSettings("", "", "", "", "", BuildSystemName.Blaze, ProjectType.ASPECT_SYNC);
+        new BlazeImportSettings("", "", "", "", "", BuildSystemName.Blaze);
     importSettingsManager.setImportSettings(settings);
     projectServices.register(BlazeImportSettingsManager.class, importSettingsManager);
 
@@ -85,15 +82,15 @@ public class TestMapTest extends BlazeTestCase {
 
   @Test
   public void testTrivialTestMap() throws Exception {
-    mockBlazeProjectDataManager.targetMap =
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:test")
-                    .setKind("sh_test")
-                    .addSource(sourceRoot("test/Test.java")))
-            .build();
+    //mockBlazeProjectDataManager.targetMap =
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:test")
+    //                .setKind("sh_test")
+    //                .addSource(sourceRoot("test/Test.java")))
+    //        .build();
 
     Collection<TargetInfo> targets =
         SourceToTargetFinder.findTargetsForSourceFile(
@@ -105,21 +102,21 @@ public class TestMapTest extends BlazeTestCase {
 
   @Test
   public void testOneStepRemovedTestMap() throws Exception {
-    mockBlazeProjectDataManager.targetMap =
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:test")
-                    .setKind("sh_test")
-                    .addDependency("//test:lib"))
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:lib")
-                    .setKind("sh_library")
-                    .addSource(sourceRoot("test/Test.java")))
-            .build();
+    //mockBlazeProjectDataManager.targetMap =
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:test")
+    //                .setKind("sh_test")
+    //                .addDependency("//test:lib"))
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:lib")
+    //                .setKind("sh_library")
+    //                .addSource(sourceRoot("test/Test.java")))
+    //        .build();
 
     Collection<TargetInfo> targets =
         SourceToTargetFinder.findTargetsForSourceFile(
@@ -131,27 +128,27 @@ public class TestMapTest extends BlazeTestCase {
 
   @Test
   public void testTwoCandidatesTestMap() throws Exception {
-    mockBlazeProjectDataManager.targetMap =
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:test")
-                    .setKind("sh_test")
-                    .addDependency("//test:lib"))
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:test2")
-                    .setKind("sh_test")
-                    .addDependency("//test:lib"))
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:lib")
-                    .setKind("sh_library")
-                    .addSource(sourceRoot("test/Test.java")))
-            .build();
+    //mockBlazeProjectDataManager.targetMap =
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:test")
+    //                .setKind("sh_test")
+    //                .addDependency("//test:lib"))
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:test2")
+    //                .setKind("sh_test")
+    //                .addDependency("//test:lib"))
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:lib")
+    //                .setKind("sh_library")
+    //                .addSource(sourceRoot("test/Test.java")))
+    //        .build();
 
     Collection<TargetInfo> targets =
         SourceToTargetFinder.findTargetsForSourceFile(
@@ -163,34 +160,34 @@ public class TestMapTest extends BlazeTestCase {
 
   @Test
   public void testBfsPreferred() throws Exception {
-    mockBlazeProjectDataManager.targetMap =
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:lib")
-                    .setKind("sh_library")
-                    .addSource(sourceRoot("test/Test.java")))
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:lib2")
-                    .setKind("sh_library")
-                    .addDependency("//test:lib"))
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:test2")
-                    .setKind("sh_test")
-                    .addDependency("//test:lib2"))
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:test")
-                    .setKind("sh_test")
-                    .addDependency("//test:lib"))
-            .build();
-
+    //mockBlazeProjectDataManager.targetMap =
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:lib")
+    //                .setKind("sh_library")
+    //                .addSource(sourceRoot("test/Test.java")))
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:lib2")
+    //                .setKind("sh_library")
+    //                .addDependency("//test:lib"))
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:test2")
+    //                .setKind("sh_test")
+    //                .addDependency("//test:lib2"))
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:test")
+    //                .setKind("sh_test")
+    //                .addDependency("//test:lib"))
+    //        .build();
+    //
     Collection<TargetInfo> targets =
         SourceToTargetFinder.findTargetsForSourceFile(
             project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
@@ -202,33 +199,33 @@ public class TestMapTest extends BlazeTestCase {
 
   @Test
   public void testSourceIncludedMultipleTimesFindsAll() throws Exception {
-    mockBlazeProjectDataManager.targetMap =
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:test")
-                    .setKind("sh_test")
-                    .addDependency("//test:lib"))
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:test2")
-                    .setKind("sh_test")
-                    .addDependency("//test:lib2"))
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:lib")
-                    .setKind("sh_library")
-                    .addSource(sourceRoot("test/Test.java")))
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:lib2")
-                    .setKind("sh_library")
-                    .addSource(sourceRoot("test/Test.java")))
-            .build();
+    //mockBlazeProjectDataManager.targetMap =
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:test")
+    //                .setKind("sh_test")
+    //                .addDependency("//test:lib"))
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:test2")
+    //                .setKind("sh_test")
+    //                .addDependency("//test:lib2"))
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:lib")
+    //                .setKind("sh_library")
+    //                .addSource(sourceRoot("test/Test.java")))
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:lib2")
+    //                .setKind("sh_library")
+    //                .addSource(sourceRoot("test/Test.java")))
+    //        .build();
 
     Collection<TargetInfo> targets =
         SourceToTargetFinder.findTargetsForSourceFile(
@@ -240,28 +237,28 @@ public class TestMapTest extends BlazeTestCase {
 
   @Test
   public void testSourceIncludedMultipleTimesShouldOnlyGiveOneInstanceOfTest() throws Exception {
-    mockBlazeProjectDataManager.targetMap =
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:test")
-                    .setKind("sh_test")
-                    .addDependency("//test:lib")
-                    .addDependency("//test:lib2"))
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:lib")
-                    .setKind("sh_library")
-                    .addSource(sourceRoot("test/Test.java")))
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:lib2")
-                    .setKind("sh_library")
-                    .addSource(sourceRoot("test/Test.java")))
-            .build();
+    //mockBlazeProjectDataManager.targetMap =
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:test")
+    //                .setKind("sh_test")
+    //                .addDependency("//test:lib")
+    //                .addDependency("//test:lib2"))
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:lib")
+    //                .setKind("sh_library")
+    //                .addSource(sourceRoot("test/Test.java")))
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:lib2")
+    //                .setKind("sh_library")
+    //                .addSource(sourceRoot("test/Test.java")))
+    //        .build();
 
     Collection<TargetInfo> targets =
         SourceToTargetFinder.findTargetsForSourceFile(
@@ -273,16 +270,16 @@ public class TestMapTest extends BlazeTestCase {
 
   @Test
   public void testTargetWithNoKindDoesNotCauseNpe() throws Exception {
-    mockBlazeProjectDataManager.targetMap =
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
-                    .setLabel("//test:test")
-                    // .setKind("") // Intentionally not set.
-                    .addSource(sourceRoot("test/Test.java")))
-            .build();
-
+    //mockBlazeProjectDataManager.targetMap =
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setBuildFile(sourceRoot("test/BUILD"))
+    //                .setLabel("//test:test")
+    //                // .setKind("") // Intentionally not set.
+    //                .addSource(sourceRoot("test/Test.java")))
+    //        .build();
+    //
     Collection<TargetInfo> targets =
         SourceToTargetFinder.findTargetsForSourceFile(
             project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
@@ -298,12 +295,10 @@ public class TestMapTest extends BlazeTestCase {
 
   private static class MockBlazeProjectDataManager implements BlazeProjectDataManager {
 
-    private TargetMap targetMap = new TargetMap(ImmutableMap.of());
-
     @Nullable
     @Override
     public BlazeProjectData getBlazeProjectData() {
-      return MockBlazeProjectDataBuilder.builder().setTargetMap(targetMap).build();
+      return MockBlazeProjectDataBuilder.builder().build();
     }
 
     @Nullable

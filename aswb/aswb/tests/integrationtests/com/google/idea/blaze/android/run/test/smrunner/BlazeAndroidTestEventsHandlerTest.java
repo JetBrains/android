@@ -31,6 +31,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import javax.annotation.Nullable;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,6 +39,7 @@ import org.junit.runners.JUnit4;
 
 /** Integration tests for {@link BlazeAndroidTestEventsHandler}. */
 @RunWith(JUnit4.class)
+@Ignore("b/466755859")
 public class BlazeAndroidTestEventsHandlerTest extends BlazeIntegrationTestCase {
 
   @Rule

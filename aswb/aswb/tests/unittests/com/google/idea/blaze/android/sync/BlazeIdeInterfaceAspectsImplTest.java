@@ -31,7 +31,6 @@ import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.base.model.primitives.Kind;
-import com.google.idea.blaze.base.sync.aspects.BlazeIdeInterfaceAspectsImpl;
 import com.google.idea.blaze.java.AndroidBlazeRules;
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;

@@ -48,25 +48,8 @@ class ProjectTargetManagerImpl implements ProjectTargetManager {
   private final ConcurrentHashMap<Integer, InProgressSync> inProgressBuilds =
       new ConcurrentHashMap<>();
 
-  private volatile SyncStatus projectSyncStatus = SyncStatus.UNSYNCED;
-
   private ProjectTargetManagerImpl(Project project) {
     this.project = project;
-  }
-
-  @Override
-  public SyncStatus getProjectSyncStatus() {
-    return projectSyncStatus;
-  }
-
-  @Override
-  public SyncStatus getSyncStatus(Label target) {
-    // TODO(brendandouglas): implement logic to determine if a synced target is 'stale'
-    // (time since last sync, any events affecting sync results, etc.)
-    if (syncInProgress(target)) {
-      return inTargetMap(target) ? SyncStatus.RESYNCING : SyncStatus.IN_PROGRESS;
-    }
-    return inTargetMap(target) ? SyncStatus.SYNCED : SyncStatus.UNSYNCED;
   }
 
   @Override
@@ -96,13 +79,6 @@ class ProjectTargetManagerImpl implements ProjectTargetManager {
     return SyncStatus.UNSYNCED;
   }
 
-  private boolean inTargetMap(Label target) {
-    BlazeProjectData projectData =
-        BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
-    return projectData != null
-        && projectData.getTargetMap().contains(TargetKey.forPlainTarget(target));
-  }
-
   @Override
   public boolean syncInProgress(TargetExpression expr) {
     return inProgressBuilds.values().stream()
@@ -122,16 +98,6 @@ class ProjectTargetManagerImpl implements ProjectTargetManager {
     return list.includesPackage(pattern.getBasePackage());
   }
 
-  private void updateProjectSyncStatus() {
-    boolean inProgress = inProgressBuilds.values().stream().anyMatch(s -> s.fullProjectSync);
-    if (inProgress) {
-      projectSyncStatus = SyncStatus.RESYNCING;
-      return;
-    }
-    boolean synced = BlazeProjectDataManager.getInstance(project).getBlazeProjectData() != null;
-    projectSyncStatus = synced ? SyncStatus.SYNCED : SyncStatus.UNSYNCED;
-  }
-
   static class TargetSyncListener implements SyncListener {
     @Override
     public void buildStarted(
@@ -143,27 +109,8 @@ class ProjectTargetManagerImpl implements ProjectTargetManager {
       ProjectTargetManagerImpl manager = getImpl(project);
       manager.inProgressBuilds.put(
           buildId, new InProgressSync(fullProjectSync, TargetExpressionList.create(targets)));
-      if (fullProjectSync) {
-        manager.projectSyncStatus = SyncStatus.RESYNCING;
-      }
       // refresh the sync status indicators
       ProjectView.getInstance(project).refresh();
-    }
-
-    @Override
-    public void afterSync(
-        Project project,
-        BlazeContext context,
-        SyncMode syncMode,
-        SyncResult syncResult,
-        ImmutableSet<Integer> buildIds) {
-      ProjectTargetManagerImpl manager = getImpl(project);
-      buildIds.forEach(manager.inProgressBuilds::remove);
-      manager.updateProjectSyncStatus();
-      if (!syncResult.successful()) {
-        // project view won't otherwise update for failed/cancelled syncs
-        ProjectView.getInstance(project).refresh();
-      }
     }
   }
 

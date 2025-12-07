@@ -19,19 +19,12 @@ import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.settings.BlazeUserSettings;
-import com.google.idea.blaze.base.sync.BlazeSyncManager;
-import com.google.idea.blaze.base.sync.BlazeSyncParams;
 import com.google.idea.blaze.base.sync.SyncListener;
-import com.google.idea.blaze.base.sync.SyncMode;
 import com.google.idea.blaze.base.sync.status.BlazeSyncStatus;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.Contract;
 
 /** Blaze implementation of {@link ProjectSystemSyncManager} */
@@ -59,47 +52,7 @@ public class BlazeProjectSystemSyncManager implements ProjectSystemSyncManager {
 
   @Override
   public ListenableFuture<SyncResult> requestSyncProject(ProjectSystemSyncManager.SyncReason reason) {
-    SettableFuture<ProjectSystemSyncManager.SyncResult> syncResult = SettableFuture.create();
-
-    if (BlazeSyncStatus.getInstance(project).syncInProgress()) {
-      syncResult.setException(
-          new RuntimeException(
-              "A sync was requested while one is already in progress."
-                  + " Use ProjectSystemSyncManager.isSyncInProgress to detect this scenario."));
-    } else {
-      BlazeSyncParams syncParams =
-          BlazeSyncParams.builder()
-              .setTitle("Sync")
-              .setSyncMode(SyncMode.INCREMENTAL)
-              .setSyncOrigin("ProjectSystemSyncManager")
-              .setAddProjectViewTargets(true)
-              .setAddWorkingSet(BlazeUserSettings.getInstance().getExpandSyncToWorkingSet())
-              .setBackgroundSync(true)
-              .build();
-
-      MessageBusConnection connection = project.getMessageBus().connect(project);
-      connection.subscribe(
-          PROJECT_SYSTEM_SYNC_TOPIC,
-          new SyncResultListener() {
-            @Override
-            public void syncEnded(SyncResult result) {
-              connection.disconnect();
-              syncResult.set(result);
-            }
-          });
-
-      try {
-        BlazeSyncManager.getInstance(project).requestProjectSync(syncParams);
-      } catch (Throwable t) {
-        if (!Disposer.isDisposed(connection)) {
-          connection.disconnect();
-        }
-
-        syncResult.setException(t);
-      }
-    }
-
-    return syncResult;
+    return Futures.immediateFuture(SyncResult.UNKNOWN);
   }
 
   @Contract(pure = true)
@@ -125,27 +78,6 @@ public class BlazeProjectSystemSyncManager implements ProjectSystemSyncManager {
    */
   @VisibleForTesting
   static class SyncStatusPublisher implements SyncListener {
-    @Override
-    public void afterSync(
-        Project project,
-        BlazeContext context,
-        SyncMode syncMode,
-        com.google.idea.blaze.base.sync.SyncResult syncResult,
-        ImmutableSet<Integer> buildIds) {
-
-      LastSyncResultCache lastSyncResultCache = LastSyncResultCache.getInstance(project);
-
-      lastSyncResultCache.lastSyncResult =
-          (syncMode == SyncMode.STARTUP
-                  && syncResult == com.google.idea.blaze.base.sync.SyncResult.SUCCESS)
-              ? ProjectSystemSyncManager.SyncResult.SKIPPED_OUT_OF_DATE
-              : convertToProjectSystemSyncResult(syncResult);
-
-      project
-          .getMessageBus()
-          .syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)
-          .syncEnded(lastSyncResultCache.lastSyncResult);
-    }
 
     /** Called after sync. Only used in new query-sync * */
     @Override

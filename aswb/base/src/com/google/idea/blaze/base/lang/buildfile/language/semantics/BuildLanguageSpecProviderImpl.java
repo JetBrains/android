@@ -71,11 +71,13 @@ public class BuildLanguageSpecProviderImpl implements BuildLanguageSpecProvider 
     if (blazeProjectData == null) {
       return null;
     }
-    LanguageSpecResult spec = blazeProjectData.getSyncState().get(LanguageSpecResult.class);
-    if (spec == null) {
-      return null;
-    }
-    return spec.getSpec();
+    return null;
+    // query sync:
+    //LanguageSpecResult spec = blazeProjectData.getSyncState().get(LanguageSpecResult.class);
+    //if (spec == null) {
+    //  return null;
+    //}
+    //return spec.getSpec();
   }
 
   private synchronized void setLanguageSpec(BuildLanguageSpec languageSpec, String blazeRelease) {

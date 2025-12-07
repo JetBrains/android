@@ -70,15 +70,14 @@ public final class BlazeAndroidRunConfigurationValidationUtil {
         ModuleFinder.getInstance(project).findModuleByName(BlazeDataStorage.WORKSPACE_MODULE_NAME);
     if (workspaceModule == null) {
       errors.add(
-          ValidationErrorCompat.fatal(
-              "No workspace module found. Please resync project.", () -> resync(project)));
+          ValidationError.fatal(
+              "No workspace module found. Please resync project." ));
       return errors;
     }
     if (AndroidFacet.getInstance(workspaceModule) == null) {
       errors.add(
-          ValidationErrorCompat.fatal(
-              "Android model missing from workspace module. Please resync project.",
-              () -> resync(project)));
+          ValidationError.fatal(
+              "Android model missing from workspace module. Please resync project."));
     }
     if (AndroidPlatforms.getInstance(workspaceModule) == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
@@ -89,10 +88,6 @@ public final class BlazeAndroidRunConfigurationValidationUtil {
   public static void validate(Project project) throws ExecutionException {
     List<ValidationError> errors = Lists.newArrayList();
     errors.addAll(validateWorkspaceModule(project));
-
-    if (AndroidProjectInfo.getInstance(project).requiredAndroidModelMissing()) {
-      errors.add(ValidationErrorCompat.fatal(SYNC_FAILED_ERR_MSG, () -> resync(project)));
-    }
 
     ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
     if (projectViewSet == null) {
@@ -106,9 +101,5 @@ public final class BlazeAndroidRunConfigurationValidationUtil {
     if (topError.isFatal()) {
       throw new ExecutionException(topError.getMessage());
     }
-  }
-
-  private static void resync(Project project) {
-    BlazeSyncManager.getInstance(project).incrementalProjectSync("MissingProjectInfoForExecution");
   }
 }

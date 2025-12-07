@@ -53,12 +53,12 @@ public class TestTargetSourcesHeuristic implements TestTargetHeuristic {
       return false;
     }
 
-    ArtifactLocationDecoder decoder = projectData.getArtifactLocationDecoder();
-    for (ArtifactLocation src : sources.get()) {
-      if (Objects.equals(decoder.resolveSource(src), sourceFile)) {
-        return true;
-      }
-    }
+    // query sync: //ArtifactLocationDecoder decoder = projectData.getArtifactLocationDecoder();
+    //for (ArtifactLocation src : sources.get()) {
+    //  if (Objects.equals(decoder.resolveSource(src), sourceFile)) {
+    //    return true;
+    //  }
+    //}
     return false;
   }
 }

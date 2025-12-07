@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.devtools.intellij.model.ProjectData;
 import com.google.idea.blaze.base.command.buildresult.RemoteOutputArtifact;
-import com.google.idea.blaze.base.command.info.BlazeConfigurationHandler;
 import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
 import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
@@ -44,10 +43,6 @@ import javax.annotation.Nullable;
 /** A set of {@link RemoteOutputArtifact}s we want to retain a reference to between syncs. */
 public final class RemoteOutputArtifacts
     implements ProtoWrapper<ProjectData.RemoteOutputArtifacts> {
-
-  public static RemoteOutputArtifacts fromProjectData(@Nullable BlazeProjectData projectData) {
-    return projectData == null ? EMPTY : projectData.getRemoteOutputs();
-  }
 
   public static RemoteOutputArtifacts EMPTY = new RemoteOutputArtifacts(ImmutableMap.of());
 

@@ -16,7 +16,6 @@
 package com.google.idea.blaze.base.qsync.settings;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.idea.blaze.base.project.BaseQuerySyncConversionUtility;
 import com.google.idea.blaze.base.qsync.QuerySync;
 import com.intellij.openapi.options.BoundSearchableConfigurable;
 import com.intellij.openapi.options.Configurable;

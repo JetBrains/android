@@ -15,18 +15,11 @@
  */
 package com.google.idea.blaze.base.qsync;
 
-import com.google.idea.blaze.base.project.BaseQuerySyncConversionUtility;
-import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.common.experiments.BoolExperiment;
-import com.google.idea.common.experiments.FeatureRolloutExperiment;
-import com.intellij.openapi.application.ApplicationManager;
 
 /** Holder class for basic information about querysync, e.g. is it enabled? */
 public class QuerySync {
   public static final String BUILD_DEPENDENCIES_ACTION_NAME = "Enable analysis";
-  private static final BoolExperiment TEMPORARY_REENABLE_LEGACY_SYNC =
-    new BoolExperiment("querysync.temporary.reenable.legacy.sync", false);
-
   public static final BoolExperiment ATTACH_DEP_SRCJARS =
       new BoolExperiment("querysync.attach.dep.srcjars", true);
 
@@ -41,13 +34,5 @@ public class QuerySync {
 
   public static boolean syncModeSelectionEnabled() {
     return false;
-  }
-
-  public static boolean legacySyncEnabled() {
-    return legacySyncIsReenabled();
-  }
-
-  private static boolean legacySyncIsReenabled() {
-    return ApplicationManager.getApplication().isUnitTestMode() || TEMPORARY_REENABLE_LEGACY_SYNC.getValue();
   }
 }

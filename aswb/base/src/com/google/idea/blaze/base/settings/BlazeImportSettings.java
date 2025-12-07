@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.settings;
 
-import com.google.common.annotations.VisibleForTesting;
 import javax.annotation.Nullable;
 
 /** Project settings that are set at import time. */
@@ -46,45 +45,23 @@ public final class BlazeImportSettings {
   // default for backwards compatibility with existing projects
   private BuildSystemName buildSystem = BuildSystemName.Blaze;
 
-  // default for backwards compatibility with existing projects
-  private ProjectType projectType = ProjectType.ASPECT_SYNC;
-
-  // Stores the shard count calculated by Legacy Sync
-  private int legacySyncShardCount = 0;
-
   // Used by bean serialization
   @SuppressWarnings("unused")
   BlazeImportSettings() { }
 
-  @VisibleForTesting
   public BlazeImportSettings(
     String workspaceRoot,
     String projectName,
     String projectDataDirectory,
     String locationHash,
     String projectViewFile,
-    BuildSystemName buildSystemName,
-    ProjectType projectType) {
-    this(workspaceRoot, projectName, projectDataDirectory, locationHash, projectViewFile, buildSystemName, projectType, 0);
-  }
-
-  public BlazeImportSettings(
-    String workspaceRoot,
-    String projectName,
-    String projectDataDirectory,
-    String locationHash,
-    String projectViewFile,
-    BuildSystemName buildSystemName,
-    ProjectType projectType,
-    int legacySyncShardCount) {
+    BuildSystemName buildSystemName) {
     this.workspaceRoot = workspaceRoot;
     this.projectName = projectName;
     this.projectDataDirectory = projectDataDirectory;
     this.locationHash = locationHash;
     this.projectViewFile = projectViewFile;
     this.buildSystem = buildSystemName;
-    this.projectType = projectType;
-    this.legacySyncShardCount = legacySyncShardCount;
   }
 
   @Deprecated
@@ -127,19 +104,6 @@ public final class BlazeImportSettings {
     return buildSystem;
   }
 
-  /**
-   * The type of this project.
-   */
-  @Deprecated
-  @SuppressWarnings("unused")
-  public ProjectType getProjectType() {
-    return projectType;
-  }
-
-  public int getLegacySyncShardCount() {
-    return legacySyncShardCount;
-  }
-
   // Used by bean serialization
   @SuppressWarnings("unused")
   public void setWorkspaceRoot(String workspaceRoot) {
@@ -180,15 +144,5 @@ public final class BlazeImportSettings {
   @SuppressWarnings("unused")
   public void setBuildSystem(BuildSystemName buildSystem) {
     this.buildSystem = buildSystem;
-  }
-
-  // Used by bean serialization
-  @SuppressWarnings("unused")
-  public void setProjectType(ProjectType projectType) {
-    this.projectType = projectType;
-  }
-
-  public void setLegacySyncShardCount(int legacySyncShardCount) {
-    this.legacySyncShardCount = legacySyncShardCount;
   }
 }

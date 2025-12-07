@@ -15,31 +15,17 @@
  */
 package com.google.idea.blaze.base.projectview;
 
-import com.google.idea.blaze.base.project.BaseQuerySyncConversionUtility;
-import com.google.idea.blaze.base.project.QuerySyncConversionUtility;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
 import com.google.idea.blaze.base.projectview.section.ScalarSection;
-import com.google.idea.blaze.base.projectview.section.sections.EnableCodeAnalysisOnSyncSection;
-import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
-import com.google.idea.blaze.base.qsync.QuerySync;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.exception.ConfigurationException;
-import com.intellij.ide.BrowserUtil;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationAction;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
-import java.util.Objects;
-import java.util.Optional;
 import javax.annotation.Nullable;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Class that manages access to a project's {@link ProjectView}.
@@ -50,15 +36,11 @@ public abstract class ProjectViewManager {
     return project.getService(ProjectViewManager.class);
   }
 
-  public static boolean migrateImportSettingsToProjectViewFile(Project project,
-                                                        BlazeImportSettings importSettings,
-                                                        ProjectViewSet.ProjectViewFile projectViewFile,
-                                                        QuerySyncConversionUtility querySyncConversionUtility) {
+  public static boolean migrateImportSettingsToProjectViewFile(BlazeImportSettings importSettings,
+                                                               ProjectViewSet.ProjectViewFile projectViewFile) {
     ProjectView.Builder projectView = ProjectView.builder(projectViewFile.projectView);
     boolean isWorkspaceLocationUpdated = addUpdateWorkspaceLocationSection(importSettings, projectViewFile, projectView);
-    boolean isUseQuerySyncSectionUpdated =
-      addUpdateUseQuerySyncSection(project, importSettings, projectViewFile, projectView, querySyncConversionUtility);
-    if (isWorkspaceLocationUpdated || isUseQuerySyncSectionUpdated) {
+    if (isWorkspaceLocationUpdated) {
       String projectViewText = ProjectViewParser.projectViewToString(projectView.build());
       try {
         ProjectViewStorageManager.getInstance()
@@ -83,61 +65,6 @@ public abstract class ProjectViewManager {
     }
     if (workspaceRootSection != null) {
       projectView.add(workspaceRootSection);
-      return true;
-    }
-    return false;
-  }
-
-  private static boolean addUpdateUseQuerySyncSection(Project project,
-                                                      BlazeImportSettings importSettings,
-                                                      ProjectViewSet.ProjectViewFile projectViewFile,
-                                                      ProjectView.Builder projectView,
-                                                      QuerySyncConversionUtility querySyncConversionUtility) {
-    if (!QuerySync.legacySyncEnabled()) {
-      return false;
-    }
-    ScalarSection<Boolean> useQuerySyncSection = ScalarSection.builder(UseQuerySyncSection.KEY)
-      .set(importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC).build();
-    ScalarSection<Boolean> existingUseQuerySyncSection = projectView.getLast(UseQuerySyncSection.KEY);
-    if (existingUseQuerySyncSection == null) {
-      projectView.add(useQuerySyncSection);
-      return true;
-    }
-    BlazeImportSettings.ProjectType existingProjectType =
-      existingUseQuerySyncSection.getValue()
-      ? BlazeImportSettings.ProjectType.QUERY_SYNC
-      : BlazeImportSettings.ProjectType.ASPECT_SYNC;
-
-    if (QuerySync.legacySyncEnabled() &&
-        existingProjectType == BlazeImportSettings.ProjectType.ASPECT_SYNC
-        && importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC) {
-      projectView.remove(existingUseQuerySyncSection);
-      projectView.add(useQuerySyncSection);
-      if (!querySyncConversionUtility.isConverted(projectViewFile)) {
-        projectView.add(BaseQuerySyncConversionUtility.AUTO_CONVERSION_SECTION);
-      }
-      if (projectView.getLast(EnableCodeAnalysisOnSyncSection.KEY) == null) {
-        Objects.requireNonNull(projectViewFile.projectViewFile);
-        projectView.add(ScalarSection.builder(EnableCodeAnalysisOnSyncSection.KEY).set(
-          querySyncConversionUtility.canEnableCodeAnalysisOnSync(
-            importSettings,
-            projectViewFile.projectViewFile.toPath(),
-            importSettings.getLegacySyncShardCount())
-        ).build());
-      }
-      Notifications.Bus.notify(
-        new Notification(
-          "QuerySync",
-          "Your project was auto-converted to Query Sync. To learn more, click the link below.",
-          NotificationType.INFORMATION).addAction(new NotificationAction("go/query-sync#auto-convert") {
-
-          @Override
-          public void actionPerformed(@NotNull AnActionEvent e,
-                                      @NotNull Notification notification) {
-            BrowserUtil.browse("http://go/query-sync#auto-convert");
-          }
-        }),
-        project);
       return true;
     }
     return false;

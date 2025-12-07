@@ -125,7 +125,6 @@ public class LoggedProjectDataDirectoryTest {
         temporaryFolder.getRoot().toString(),
         "",
         "",
-        buildSystemName,
-        ProjectType.ASPECT_SYNC);
+        buildSystemName);
   }
 }

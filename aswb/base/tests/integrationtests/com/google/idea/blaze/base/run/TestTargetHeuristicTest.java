@@ -34,6 +34,7 @@ import java.io.File;
 import java.time.Instant;
 import java.util.Collection;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -73,6 +74,7 @@ public class TestTargetHeuristicTest extends BlazeIntegrationTestCase {
   }
 
   @Test
+  @Ignore("b/466755859")
   public void testTargetSourcesMatched() {
     File source = workspaceRoot.fileForPath(new WorkspacePath("java/com/foo/FooTest.java"));
     Collection<TargetInfo> targets =
@@ -163,6 +165,7 @@ public class TestTargetHeuristicTest extends BlazeIntegrationTestCase {
   }
 
   @Test
+  @Ignore("b/466755859")
   public void testTargetSourcesCheckedBeforeTestSize() {
     File source = workspaceRoot.fileForPath(new WorkspacePath("java/com/foo/FooTest.java"));
     Collection<TargetInfo> targets =

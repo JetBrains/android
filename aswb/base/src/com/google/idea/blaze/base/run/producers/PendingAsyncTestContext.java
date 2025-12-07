@@ -64,12 +64,13 @@ class PendingAsyncTestContext extends TestContext implements PendingRunConfigura
                 return new FailedPendingRunConfiguration(
                     sourceElement, String.format("No %s target found.", buildSystem));
               }
-              RunConfigurationContext context =
-                  PendingWebTestContext.findWebTestContext(
-                      project, supportedExecutors, t, sourceElement, blazeFlags, description);
-              return context != null
-                  ? context
-                  : new KnownTargetTestContext(t, sourceElement, blazeFlags, description);
+              //// query sync: RunConfigurationContext context =
+              //    PendingWebTestContext.findWebTestContext(
+              //        project, supportedExecutors, t, sourceElement, blazeFlags, description);
+              //return context != null
+              //    ? context
+              //    : new KnownTargetTestContext(t, sourceElement, blazeFlags, description);
+              return new KnownTargetTestContext(t, sourceElement, blazeFlags, description);
             },
             MoreExecutors.directExecutor());
     return new PendingAsyncTestContext(

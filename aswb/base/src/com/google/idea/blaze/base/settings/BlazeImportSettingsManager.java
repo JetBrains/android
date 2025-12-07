@@ -19,29 +19,17 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.idea.blaze.base.projectview.ProjectViewManager.migrateImportSettingsToProjectViewFile;
 
 import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator;
-import com.google.idea.blaze.base.logging.EventLoggingService;
-import com.google.idea.blaze.base.logging.QuerySyncAutoConversionStats;
-import com.google.idea.blaze.base.project.QuerySyncConversionUtility;
-import com.google.idea.blaze.base.projectview.ProjectView;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.projectview.ProjectViewStorageManager;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
 import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
-import com.google.idea.blaze.base.qsync.QuerySync;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.scopes.ToolWindowScopeRunner;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
-import com.intellij.ide.BrowserUtil;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationAction;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.NotificationsManager;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -52,7 +40,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -78,12 +65,10 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
   private final AtomicReference<BlazeImportSettings> importSettings = new AtomicReference<>(null);
 
   private final Project project;
-  private final QuerySyncConversionUtility querySyncConversionUtility;
   @Nullable private BlazeImportSettings loadedImportSettings;
 
   public BlazeImportSettingsManager(Project project) {
     this.project = project;
-    this.querySyncConversionUtility = project.getService(QuerySyncConversionUtility.class);
   }
 
   public static BlazeImportSettingsManager getInstance(Project project) {
@@ -119,8 +104,7 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
       // For example the default project accessed from the Settings dialog.
       return;
     }
-    final var defaultProjectType = QuerySyncSettings.getInstance().useQuerySync() ? BlazeImportSettings.ProjectType.QUERY_SYNC
-                                                                                  : BlazeImportSettings.ProjectType.ASPECT_SYNC;
+    final var defaultProjectType = BlazeImportSettings.ProjectType.QUERY_SYNC;
     // Loaded import settings are previous settings stored in `.idea` directory. Any values that changed in `.bazelproject` file take
     // precedence over previously stored values.
 
@@ -144,80 +128,18 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
     final var topLevelProjectViewFile = parseTopLevelProjectViewFile(projectViewFilePath.toFile());
     final var topLevelProjectView = Objects.requireNonNull(topLevelProjectViewFile).projectView;
 
-    final var projectViewProjectType =
-      Optional.ofNullable(topLevelProjectView.getScalarValue(UseQuerySyncSection.KEY))
-        .map(querySync -> (querySync
-                           ? BlazeImportSettings.ProjectType.QUERY_SYNC
-                           : BlazeImportSettings.ProjectType.ASPECT_SYNC));
     final var projectViewWorkspaceLocation = Optional.ofNullable(topLevelProjectView.getScalarValue(WorkspaceLocationSection.KEY));
-
-    if (!QuerySync.legacySyncEnabled() && (projectViewProjectType.orElse(null) == BlazeImportSettings.ProjectType.ASPECT_SYNC)) {
-      Notification notification = new Notification("ASwB Legacy Sync Mode", "Legacy sync mode is not supported",
-                                                         "`use_query_sync: false` was ignored and can be removed",
-                                                         NotificationType.INFORMATION);
-      notification.addAction(new NotificationAction("Remove") {
-        @Override
-        public void actionPerformed(@NotNull AnActionEvent anActionEvent,
-                                    @NotNull Notification notification) {
-          ProjectViewSet viewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
-          if (viewSet == null) return;
-          ProjectViewSet.ProjectViewFile levelProjectViewFile = viewSet.getTopLevelProjectViewFile();
-          if (levelProjectViewFile == null) return;
-          final var newFile = ProjectView.builder(levelProjectViewFile.projectView);
-          viewSet.getSections(UseQuerySyncSection.KEY).forEach(newFile::remove);
-          try {
-            ProjectViewStorageManager.getInstance()
-              .writeProjectView(ProjectViewParser.projectViewToString(newFile.build()), levelProjectViewFile.projectViewFile);
-          }
-          catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-          notification.hideBalloon();
-        }
-      });
-      notification.addAction(new NotificationAction("Ack") {
-        @Override
-        public void actionPerformed(@NotNull AnActionEvent anActionEvent,
-                                    @NotNull Notification notification) {
-          //noinspection UnstableApiUsage
-          notification.setDoNotAskFor(project);
-          notification.hideBalloon();
-        }
-      });
-      notification.addAction(new NotificationAction("Learn more...") {
-        @Override
-        public void actionPerformed(@NotNull AnActionEvent anActionEvent,
-                                    @NotNull Notification notification) {
-          BrowserUtil.browse("http://go/aswb-new-sync-mode");
-        }
-      });
-      NotificationsManager.getNotificationsManager().showNotification(notification, project);
-    }
 
     final var workspaceLocation = projectViewWorkspaceLocation.or(() -> loadedImportSettings.map(BlazeImportSettings::getWorkspaceRoot));
     if (workspaceLocation.isEmpty()) {
       return;
     }
-    final var projectType =
-      projectViewProjectType.or(() -> loadedImportSettings.map(BlazeImportSettings::getProjectType)).orElse(defaultProjectType);
     final var buildSystem = projectViewFilePath.endsWith(".bazelproject") ? BuildSystemName.Bazel : BuildSystemName.Blaze;
 
     String workspaceRoot = workspaceLocation.get();
-    final var legacySyncShardCount = loadedImportSettings.map(BlazeImportSettings::getLegacySyncShardCount).orElse(0);
     final var importSettings =
       new BlazeImportSettings(workspaceRoot, projectName, projectBasePath, locationHash, projectViewFilePath.toString(),
-                              buildSystem, projectType, legacySyncShardCount);
-
-    if (querySyncConversionUtility.canConvert(importSettings, projectViewFilePath)) {
-      importSettings.setProjectType(BlazeImportSettings.ProjectType.QUERY_SYNC);
-      querySyncConversionUtility.backupExistingProjectDirectories();
-    }
-    EventLoggingService.getInstance().log(
-      QuerySyncAutoConversionStats.builder()
-        .setProject(project)
-        .setStatus(querySyncConversionUtility.calculateStatus(importSettings, projectViewFilePath))
-        .setShardingType(querySyncConversionUtility.calculateShardingType(importSettings, projectViewFilePath, legacySyncShardCount))
-        .build());
+                              buildSystem);
 
     this.importSettings.set(importSettings);
   }
@@ -289,10 +211,10 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
                                                     BlazeUserSettings.getInstance(), context -> {
             final var importSettings = getImportSettings();
             var loadedProjectView = ProjectViewManager.getInstance(project).doLoadProjectView(context, importSettings);
-            final var migrated = migrateImportSettingsToProjectViewFile(project,
-                                                   importSettings,
-                                                   Objects.requireNonNull(loadedProjectView.getTopLevelProjectViewFile()),
-                                                   querySyncConversionUtility);
+            final var migrated = migrateImportSettingsToProjectViewFile(
+              importSettings,
+              Objects.requireNonNull(loadedProjectView.getTopLevelProjectViewFile())
+            );
             if (migrated) {
               context.output(PrintOutput.output("Some project settings have been migrated to .bazelproject file. Re-parsing..."));
               loadedProjectView = ProjectViewManager.getInstance(project).doLoadProjectView(context, importSettings);

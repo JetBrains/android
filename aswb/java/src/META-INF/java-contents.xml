@@ -17,37 +17,6 @@
   <depends>JUnit</depends>
   <depends>com.intellij.java</depends>
 
-  <actions>
-    <action class="com.google.idea.blaze.java.libraries.ExcludeLibraryAction"
-      id="Blaze.ExcludeLibraryAction"
-      text="Exclude Library and Resync">
-    </action>
-    <action class="com.google.idea.blaze.java.libraries.AttachSourceJarAction"
-      id="Blaze.AttachSourceJarAction"
-      text="Attach Source Jar">
-    </action>
-    <action class="com.google.idea.blaze.java.libraries.DetachAllSourceJarsAction"
-      id="Blaze.DetachAllSourceJars"
-      text="Detach All Blaze Source Jars">
-    </action>
-    <action class="com.google.idea.blaze.java.libraries.DescribeLibraryAction"
-      id="Blaze.DescribeLibraryAction"
-      text="Show Library Source Location">
-    </action>
-    <action class="com.google.idea.blaze.java.libraries.AddLibraryTargetDirectoryToProjectViewAction"
-      id="Blaze.AddLibraryTargetDirectoryToProjectView"
-      text="Add Library Target Directory to Project View">
-    </action>
-
-    <group id="Blaze.Java.ProjectViewPopupMenu">
-      <add-to-group group-id="Blaze.PerFileContextMenu"/>
-      <reference ref="Blaze.ExcludeLibraryAction"/>
-      <reference ref="Blaze.AttachSourceJarAction"/>
-      <reference ref="Blaze.AddLibraryTargetDirectoryToProjectView"/>
-      <reference ref="Blaze.DescribeLibraryAction"/>
-    </group>
-  </actions>
-
   <extensions defaultExtensionNs="com.google.idea.blaze">
     <SyncPlugin implementation="com.google.idea.blaze.java.sync.BlazeJavaSyncPlugin"/>
     <QuerySyncPlugin implementation="com.google.idea.blaze.java.qsync.BlazeJavaQuerySyncPlugin"/>
@@ -55,14 +24,12 @@
     <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.java.run.BlazeJavaRunConfigurationHandlerProvider"/>
     <SettingsUiContributor implementation="com.google.idea.blaze.java.settings.BlazeJavaUserSettingsConfigurable$UiContributor"/>
     <FileCache implementation="com.google.idea.blaze.java.libraries.JarCache$FileCacheAdapter"/>
-    <PrefetchFileSource implementation="com.google.idea.blaze.java.sync.JavaPrefetchFileSource"/>
     <BlazeTestEventsHandler implementation="com.google.idea.blaze.java.run.BlazeJavaTestEventsHandler"/>
     <AttributeSpecificStringLiteralReferenceProvider implementation="com.google.idea.blaze.java.lang.build.references.JavaClassQualifiedNameReference"/>
     <TestTargetHeuristic implementation="com.google.idea.blaze.java.run.JUnitTestHeuristic" order="before TestSizeHeuristic"/>
     <TestTargetHeuristic implementation="com.google.idea.blaze.java.run.ClassPackagePathHeuristic" id="ClassPackagePathHeuristic" order="before TargetNameHeuristic"/>
     <TestTargetHeuristic implementation="com.google.idea.blaze.java.run.QualifiedClassNameHeuristic" id="QualifiedClassNameHeuristic" order="before ClassPackagePathHeuristic"/>
     <TestTargetHeuristic implementation="com.google.idea.blaze.java.run.TestClassHeuristic" order="before QualifiedClassNameHeuristic"/>
-    <SyncListener implementation="com.google.idea.blaze.java.libraries.DetachAllSourceJarsAction$DetachAllOnSync"/>
     <JavaClasspathAspectStrategy implementation="com.google.idea.blaze.java.run.hotswap.JavaClasspathAspectStrategy$BazelStrategy"/>
     <TestComparisonFailureParser implementation="com.google.idea.blaze.java.run.smrunner.JunitTestComparisonFailureParser"/>
     <SyncStatusContributor implementation="com.google.idea.blaze.java.syncstatus.JavaSyncStatusContributor"/>
@@ -77,7 +44,6 @@
     <TestContextProvider
         implementation="com.google.idea.blaze.java.run.producers.MultipleJavaClassesTestContextProvider"
         order="after JavaTestContextProvider"/>
-    <BinaryContextProvider implementation="com.google.idea.blaze.java.run.producers.JavaBinaryContextProvider"/>
     <OutputsProvider implementation="com.google.idea.blaze.java.sync.JavaOutputsProvider"/>
   </extensions>
 
@@ -86,7 +52,6 @@
         implementation="com.google.idea.blaze.java.run.producers.BlazeJavaAbstractTestCaseConfigurationProducer"
         order="first, before testContextProducer"/>
     <applicationService serviceImplementation="com.google.idea.blaze.java.sync.source.JavaSourcePackageReader"/>
-    <applicationService serviceImplementation="com.google.idea.blaze.java.sync.source.PackageManifestReader"/>
     <programRunner implementation="com.google.idea.blaze.java.run.BlazeJavaDebuggerRunner" id="BlazeJavaDebug"/>
     <projectService serviceImplementation="com.google.idea.blaze.java.libraries.AttachedSourceJarManager"/>
     <postStartupActivity implementation="com.google.idea.blaze.java.libraries.DisableLibraryBytecodeNotification"/>
@@ -104,8 +69,6 @@
         serviceImplementation="com.google.idea.blaze.java.libraries.JarCacheFolderProvider"/>
     <projectService serviceImplementation="com.google.idea.blaze.java.libraries.JarCache"/>
 
-    <attachSourcesProvider implementation="com.google.idea.blaze.java.libraries.AddLibraryTargetDirectoryToProjectViewAttachSourcesProvider"/>
-    <attachSourcesProvider implementation="com.google.idea.blaze.java.libraries.BlazeAttachSourceProvider"/>
     <applicationService serviceImplementation="com.google.idea.blaze.java.settings.BlazeJavaUserSettings"/>
     <psi.referenceContributor language="BUILD" implementation="com.google.idea.blaze.java.lang.build.references.JavaClassReferenceContributor"/>
     <useScopeEnlarger implementation="com.google.idea.blaze.java.psi.AutoFactoryUseScopeEnlarger"/>

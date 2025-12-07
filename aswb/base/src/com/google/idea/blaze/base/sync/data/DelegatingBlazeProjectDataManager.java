@@ -37,11 +37,10 @@ public class DelegatingBlazeProjectDataManager implements BlazeProjectDataManage
               ProjectType projectType = Blaze.getProjectType(project);
               switch (projectType) {
                 case UNKNOWN:
+                case ASPECT_SYNC:
                   return new EmptyBlazeProjectDataManager();
                 case QUERY_SYNC:
                   return new QuerySyncProjectDataManager(project);
-                case ASPECT_SYNC:
-                  return new AspectSyncProjectDataManager(project);
               }
               throw new AssertionError(projectType);
             });

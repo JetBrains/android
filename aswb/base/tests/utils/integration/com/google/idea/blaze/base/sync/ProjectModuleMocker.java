@@ -17,10 +17,6 @@ package com.google.idea.blaze.base.sync;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
-import com.google.idea.blaze.base.sync.projectstructure.ModuleEditorImpl;
-import com.google.idea.blaze.base.sync.projectstructure.ModuleEditorProvider;
 import com.google.idea.blaze.base.sync.projectstructure.ModuleFinder;
 import com.google.idea.testing.ServiceHelper;
 import com.intellij.openapi.Disposable;
@@ -42,8 +38,6 @@ class ProjectModuleMocker implements Disposable {
   private ImmutableList<ContentEntry> workspaceContentEntries = ImmutableList.of();
 
   ProjectModuleMocker(Project project, Disposable parentDisposable) {
-    ServiceHelper.registerApplicationService(
-        ModuleEditorProvider.class, MockModuleEditor::new, parentDisposable);
     ServiceHelper.registerProjectService(
         project, ModuleFinder.class, new MockModuleFinder(), parentDisposable);
     Disposer.register(parentDisposable, this);
@@ -77,25 +71,6 @@ class ProjectModuleMocker implements Disposable {
     @Override
     public Module findModuleByName(String name) {
       return getModuleCreatedDuringSync(name);
-    }
-  }
-
-  private class MockModuleEditor extends ModuleEditorImpl {
-    MockModuleEditor(Project project, BlazeImportSettings importSettings) {
-      super(project, importSettings);
-    }
-
-    @Override
-    public void commit() {
-      // don't commit module changes,
-      // and make sure they're properly disposed when the test is finished
-      for (ModifiableRootModel model : modules.values()) {
-        Disposer.register(ProjectModuleMocker.this, model.getModule());
-        if (model.getModule().getName().equals(BlazeDataStorage.WORKSPACE_MODULE_NAME)) {
-          workspaceContentEntries = ImmutableList.copyOf(model.getContentEntries());
-        }
-      }
-      ProjectModuleMocker.this.modules = modules;
     }
   }
 }

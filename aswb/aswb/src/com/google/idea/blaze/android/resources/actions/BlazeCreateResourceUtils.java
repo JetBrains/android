@@ -17,23 +17,10 @@ package com.google.idea.blaze.android.resources.actions;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.Sets;
-import com.google.idea.blaze.android.sync.model.AndroidResourceModule;
-import com.google.idea.blaze.android.sync.model.BlazeAndroidSyncData;
-import com.google.idea.blaze.base.command.buildresult.OutputArtifactResolver;
-import com.google.idea.blaze.base.ideinfo.TargetKey;
-import com.google.idea.blaze.base.model.BlazeProjectData;
-import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
-import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
-import com.google.idea.blaze.base.sync.workspace.ArtifactLocationDecoder;
-import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
 import com.intellij.ide.util.DirectoryUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
@@ -41,8 +28,6 @@ import com.intellij.psi.PsiManager;
 import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.ui.components.JBLabel;
 import java.io.File;
-import java.util.Collection;
-import java.util.Set;
 import javax.swing.JComboBox;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,144 +47,27 @@ class BlazeCreateResourceUtils {
     // Reset the item list before filling it back up.
     resDirComboAndBrowser.getComboBox().removeAllItems();
 
-    if (Blaze.getProjectType(project).equals(ProjectType.QUERY_SYNC)) {
-      if (contextFile == null) {
-        return;
-      }
-      // For query sync, populates the combo box with either the directory itself, if a directory
-      // was right-clicked, or the containing directory, if a file was right-clicked. This
-      // could be augmented with additional options (i.e. res folders in higher directories and
-      // perhaps other res folders)
-      File fileFromContext = VfsUtilCore.virtualToIoFile(contextFile);
-      if (!fileFromContext.isDirectory()) {
-        fileFromContext = fileFromContext.getParentFile();
-      }
-      File closestDirToContext = new File(fileFromContext.getPath(), "res");
-
-      @SuppressWarnings({"unchecked", "rawtypes"}) // Class comes with raw type from JetBrains
-      JComboBox resDirCombo = resDirComboAndBrowser.getComboBox();
-      resDirCombo.setEditable(true);
-      resDirCombo.addItem(closestDirToContext);
-      resDirCombo.setSelectedItem(closestDirToContext);
-      resDirComboAndBrowser.setVisible(true);
-      resDirLabel.setVisible(true);
+    if (contextFile == null) {
       return;
     }
-
-    BlazeProjectData blazeProjectData =
-        BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
-    if (blazeProjectData != null) {
-      BlazeAndroidSyncData syncData =
-          blazeProjectData.getSyncState().get(BlazeAndroidSyncData.class);
-      if (syncData != null) {
-        ImmutableCollection<TargetKey> rulesRelatedToContext = null;
-        File fileFromContext = null;
-        if (contextFile != null) {
-          fileFromContext = VfsUtilCore.virtualToIoFile(contextFile);
-          rulesRelatedToContext =
-              SourceToTargetMap.getInstance(project).getRulesForSourceFile(fileFromContext);
-          if (rulesRelatedToContext.isEmpty()) {
-            rulesRelatedToContext = null;
-          }
-        }
-
-        ArtifactLocationDecoder artifactLocationDecoder =
-            blazeProjectData.getArtifactLocationDecoder();
-
-        // Sort:
-        // - contextFile/res if contextFile is a directory,
-        //   to optimize the right click on directory case, or the "closest" string
-        //   match to the contextFile from the res directories known to blaze
-        // - the rest of the direct dirs, then transitive dirs of the context rules,
-        //   then any known res dir in the project
-        //   as a backup, in alphabetical order.
-        Set<File> resourceDirs = Sets.newTreeSet();
-        Set<File> transitiveDirs = Sets.newTreeSet();
-        Set<File> allResDirs = Sets.newTreeSet();
-        for (AndroidResourceModule androidResourceModule :
-            syncData.importResult.androidResourceModules) {
-
-          Collection<File> resources =
-              OutputArtifactResolver.resolveAll(
-                  project, artifactLocationDecoder, androidResourceModule.resources);
-
-          Collection<File> transitiveResources =
-              OutputArtifactResolver.resolveAll(
-                  project, artifactLocationDecoder, androidResourceModule.transitiveResources);
-
-          // labelsRelatedToContext should include deps,
-          // but as a first pass we only check the rules themselves
-          // for resources. If we come up empty, then have anyResDir as a backup.
-          allResDirs.addAll(transitiveResources);
-
-          if (rulesRelatedToContext != null
-              && !rulesRelatedToContext.contains(androidResourceModule.targetKey)) {
-            continue;
-          }
-          resourceDirs.addAll(resources);
-          transitiveDirs.addAll(transitiveResources);
-        }
-        // No need to show some directories twice.
-        transitiveDirs.removeAll(resourceDirs);
-
-        JComboBox resDirCombo = resDirComboAndBrowser.getComboBox();
-        // Allow the user to browse and overwrite some of the entries,
-        // in case our inference is wrong.
-        resDirCombo.setEditable(true);
-        // Optimize the right-click on a non-res directory (consider res directory right under that)
-        // After the use confirms the choice, a directory will be created if it is missing.
-        if (fileFromContext != null && fileFromContext.isDirectory()) {
-          File closestDirToContext = new File(fileFromContext.getPath(), "res");
-          resDirCombo.setSelectedItem(closestDirToContext);
-        } else {
-          // If we're not completely sure, let people know there are options
-          // via the placeholder text, and put the most likely on top.
-          String placeHolder = PLACEHOLDER_TEXT;
-          resDirCombo.addItem(placeHolder);
-          resDirCombo.setSelectedItem(placeHolder);
-          if (fileFromContext != null) {
-            File closestDirToContext =
-                findClosestDirToContext(fileFromContext.getPath(), resourceDirs);
-            closestDirToContext =
-                closestDirToContext != null
-                    ? closestDirToContext
-                    : findClosestDirToContext(fileFromContext.getPath(), transitiveDirs);
-            if (closestDirToContext != null) {
-              resDirCombo.addItem(closestDirToContext);
-              resourceDirs.remove(closestDirToContext);
-              transitiveDirs.remove(closestDirToContext);
-            }
-          }
-        }
-        if (!resourceDirs.isEmpty() || !transitiveDirs.isEmpty()) {
-          for (File resourceDir : resourceDirs) {
-            resDirCombo.addItem(resourceDir);
-          }
-          for (File resourceDir : transitiveDirs) {
-            resDirCombo.addItem(resourceDir);
-          }
-        } else {
-          for (File resourceDir : allResDirs) {
-            resDirCombo.addItem(resourceDir);
-          }
-        }
-        resDirComboAndBrowser.setVisible(true);
-        resDirLabel.setVisible(true);
-      }
+    // For query sync, populates the combo box with either the directory itself, if a directory
+    // was right-clicked, or the containing directory, if a file was right-clicked. This
+    // could be augmented with additional options (i.e. res folders in higher directories and
+    // perhaps other res folders)
+    File fileFromContext = VfsUtilCore.virtualToIoFile(contextFile);
+    if (!fileFromContext.isDirectory()) {
+      fileFromContext = fileFromContext.getParentFile();
     }
-  }
+    File closestDirToContext = new File(fileFromContext.getPath(), "res");
 
-  private static File findClosestDirToContext(String contextPath, Set<File> resourceDirs) {
-    File closestDirToContext = null;
-    int curStringDistance = Integer.MAX_VALUE;
-    for (File resDir : resourceDirs) {
-      int distance = StringUtil.difference(contextPath, resDir.getPath());
-      if (distance < curStringDistance) {
-        curStringDistance = distance;
-        closestDirToContext = resDir;
-      }
-    }
-    return closestDirToContext;
+    @SuppressWarnings({"unchecked", "rawtypes"}) // Class comes with raw type from JetBrains
+    JComboBox resDirCombo = resDirComboAndBrowser.getComboBox();
+    resDirCombo.setEditable(true);
+    resDirCombo.addItem(closestDirToContext);
+    resDirCombo.setSelectedItem(closestDirToContext);
+    resDirComboAndBrowser.setVisible(true);
+    resDirLabel.setVisible(true);
+    return;
   }
 
   static PsiDirectory getResDirFromUI(Project project, ComboboxWithBrowseButton directoryCombo) {

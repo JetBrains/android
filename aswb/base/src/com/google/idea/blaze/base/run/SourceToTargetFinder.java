@@ -41,15 +41,6 @@ public interface SourceToTargetFinder {
       ExtensionPointName.create("com.google.idea.blaze.SourceToTargetFinder");
 
   /**
-   * Finds all rules of the given type 'reachable' from source file (i.e. with source included in
-   * srcs, deps or runtime_deps).
-   */
-  default Future<Collection<TargetInfo>> targetsForSourceFile(
-      Project project, File sourceFile, Optional<RuleType> ruleType) {
-    return targetsForSourceFiles(project, ImmutableSet.of(sourceFile), ruleType);
-  }
-
-  /**
    * Finds all rules of the given type 'reachable' from the given source files (i.e. with one of the
    * sources included in srcs, deps or runtime_deps).
    */

@@ -38,12 +38,14 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.impl.RunManagerImpl;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Test that ensures required android debuggers are available through debugger info providers. */
 @RunWith(JUnit4.class)
+@Ignore("b/466755859")
 public class DebuggerInfoProviderTest extends BlazeAndroidIntegrationTestCase {
   private AndroidDebuggerInfoProvider debuggerInfoProvider;
 
