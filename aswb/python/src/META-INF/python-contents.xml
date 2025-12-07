@@ -16,20 +16,13 @@
 <idea-plugin>
 
   <extensions defaultExtensionNs="com.google.idea.blaze">
-    <SyncPlugin implementation="com.google.idea.blaze.python.sync.BlazePythonSyncPlugin"/>
     <SyncStatusContributor implementation="com.google.idea.blaze.python.sync.PySyncStatusContributor"/>
-    <PrefetchFileSource implementation="com.google.idea.blaze.python.sync.PythonPrefetchFileSource"/>
-    <OutputsProvider implementation="com.google.idea.blaze.python.sync.PythonPrefetchFileSource"/>
     <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.python.run.BlazePyRunConfigurationHandlerProvider" order="first"/>
     <BlazeTestEventsHandler implementation="com.google.idea.blaze.python.run.smrunner.BlazePythonTestEventsHandler"/>
     <PyParameterizedNameConverter implementation="com.google.idea.blaze.python.run.smrunner.PyBaseParameterizedNameConverter" order="first"/>
     <BlazeIssueParserProvider implementation="com.google.idea.blaze.python.issueparser.PyIssueParserProvider"/>
     <TestContextProvider implementation="com.google.idea.blaze.python.run.producers.PyTestContextProvider"/>
     <BinaryContextProvider implementation="com.google.idea.blaze.python.run.producers.PyBinaryContextProvider"/>
-
-    <!-- check genfiles before non-genfiles -->
-    <PyImportResolverStrategy implementation="com.google.idea.blaze.python.resolve.provider.BazelPyGenfilesImportResolverStrategy"/>
-    <PyImportResolverStrategy implementation="com.google.idea.blaze.python.resolve.provider.BazelPyImportResolverStrategy"/>
 
     <PySdkSuggester implementation="com.google.idea.blaze.python.sdk.FallbackPythonSdkSuggester" order="last"/>
   </extensions>

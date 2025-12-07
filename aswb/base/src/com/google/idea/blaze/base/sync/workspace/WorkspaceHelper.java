@@ -15,27 +15,20 @@
  */
 package com.google.idea.blaze.base.sync.workspace;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.base.bazel.BuildSystemProvider;
-import com.google.idea.blaze.base.io.FileOperationProvider;
-import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.TargetName;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
-import com.google.idea.blaze.base.sync.SyncCache;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 /** External-workspace-aware resolution of workspace paths. */
@@ -49,12 +42,6 @@ public class WorkspaceHelper {
       this.root = root;
       this.externalWorkspaceName = externalWorkspaceName;
     }
-  }
-
-  @Nullable
-  public static WorkspaceRoot resolveExternalWorkspace(Project project, String workspaceName) {
-    Map<String, WorkspaceRoot> externalWorkspaces = getExternalWorkspaceRoots(project);
-    return externalWorkspaces != null ? externalWorkspaces.get(workspaceName) : null;
   }
 
   /** Resolves the parent blaze package corresponding to this label. */
@@ -156,34 +143,11 @@ public class WorkspaceHelper {
     return null;
   }
 
-  @Nullable
   private static synchronized Map<String, WorkspaceRoot> getExternalWorkspaceRoots(
       Project project) {
     if (Blaze.getBuildSystemName(project) == BuildSystemName.Blaze) {
       return ImmutableMap.of();
     }
-    if (Blaze.getProjectType(project) == ProjectType.QUERY_SYNC) {
-      return ImmutableMap.of();
-    }
-    return SyncCache.getInstance(project)
-        .get(WorkspaceHelper.class, WorkspaceHelper::enumerateExternalWorkspaces);
-  }
-
-  @SuppressWarnings("unused")
-  private static Map<String, WorkspaceRoot> enumerateExternalWorkspaces(
-      Project project, BlazeProjectData blazeProjectData) {
-    FileOperationProvider provider = FileOperationProvider.getInstance();
-    File[] children = provider.listFiles(getExternalSourceRoot(blazeProjectData));
-    if (children == null) {
-      return ImmutableMap.of();
-    }
-    return Arrays.stream(children)
-        .filter(provider::isDirectory)
-        .collect(Collectors.toMap(File::getName, WorkspaceRoot::new));
-  }
-
-  @VisibleForTesting
-  public static File getExternalSourceRoot(BlazeProjectData projectData) {
-    return new File(projectData.getBlazeInfo().getOutputBase(), "external");
+    return ImmutableMap.of();
   }
 }

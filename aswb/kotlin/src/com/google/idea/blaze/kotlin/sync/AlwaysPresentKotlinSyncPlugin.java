@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.kotlin.sync;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.model.primitives.LanguageClass;
 import com.google.idea.blaze.base.model.primitives.WorkspaceType;
@@ -27,7 +26,6 @@ import com.google.idea.blaze.base.sync.BlazeSyncManager;
 import com.google.idea.blaze.base.sync.BlazeSyncPlugin;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import com.intellij.openapi.project.Project;
-import java.util.Collection;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -44,13 +42,6 @@ public class AlwaysPresentKotlinSyncPlugin implements BlazeSyncPlugin {
     return KotlinUtils.isKotlinSupportEnabled(workspaceType)
         ? ImmutableSet.of(LanguageClass.KOTLIN)
         : ImmutableSet.of();
-  }
-
-  @Override
-  public ImmutableList<String> getRequiredExternalPluginIds(Collection<LanguageClass> languages) {
-    return languages.contains(LanguageClass.KOTLIN)
-        ? ImmutableList.of(KOTLIN_PLUGIN_ID)
-        : ImmutableList.of();
   }
 
   @Override

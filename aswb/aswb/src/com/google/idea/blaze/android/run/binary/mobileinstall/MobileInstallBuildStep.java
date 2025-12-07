@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoOuterClass.AndroidDeployInfo;
 import com.google.idea.blaze.android.run.binary.mobileinstall.AdbTunnelConfigurator.AdbTunnelConfiguratorProvider;
@@ -38,9 +37,7 @@ import com.google.idea.blaze.android.run.runner.ExecRootUtil;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
-import com.google.idea.blaze.base.filecache.FileCaches;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -181,9 +178,6 @@ public class MobileInstallBuildStep implements ApkBuildStep {
           IssueOutput.error("Blaze build failed. See Blaze Console for details.").submit(context);
           return;
         }
-
-        ListenableFuture<Void> unusedFuture =
-          FileCaches.refresh(project, context, BlazeBuildOutputs.noOutputs(BuildResult.fromExitCode(exitCode)));
 
         context.output(new StatusOutput("Reading deployment information..."));
         String executionRoot = ExecRootUtil.getExecutionRoot(invoker, context);

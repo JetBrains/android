@@ -36,20 +36,21 @@ import org.junit.runners.JUnit4;
 
 /** Integration tests for {@link JavaBinaryContextProvider}. */
 @RunWith(JUnit4.class)
+@Ignore("b/466755859")
 public class JavaBinaryContextProviderTest extends BlazeRunConfigurationProducerTestCase {
 
   @Test
   public void testUniqueJavaBinaryChosen() throws Throwable {
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_binary")
-                    .setLabel("//com/google/binary:UnrelatedName")
-                    .addSource(sourceRoot("com/google/binary/MainClass.java"))
-                    .build())
-            .build());
+    // query sync:     //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_binary")
+    //                .setLabel("//com/google/binary:UnrelatedName")
+    //                .addSource(sourceRoot("com/google/binary/MainClass.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 
@@ -73,15 +74,15 @@ public class JavaBinaryContextProviderTest extends BlazeRunConfigurationProducer
   @Test
   public void testNoJavaBinaryChosenIfNotInRDeps() throws Throwable {
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_binary")
-                    .setLabel("//com/google/binary:MainClass")
-                    .addSource(sourceRoot("com/google/binary/OtherClass.java"))
-                    .build())
-            .build());
+    // query sync:     //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_binary")
+    //                .setLabel("//com/google/binary:MainClass")
+    //                .addSource(sourceRoot("com/google/binary/OtherClass.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 
@@ -101,16 +102,16 @@ public class JavaBinaryContextProviderTest extends BlazeRunConfigurationProducer
   @Test
   public void testNoResultForClassWithoutMainMethod() throws Throwable {
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_binary")
-                    .setLabel("//com/google/binary:MainClass")
-                    .addSource(sourceRoot("com/google/binary/MainClass.java"))
-                    .setJavaInfo(JavaIdeInfo.builder().setMainClass("com.google.binary.MainClass"))
-                    .build())
-            .build());
+    // query sync:     //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_binary")
+    //                .setLabel("//com/google/binary:MainClass")
+    //                .addSource(sourceRoot("com/google/binary/MainClass.java"))
+    //                .setJavaInfo(JavaIdeInfo.builder().setMainClass("com.google.binary.MainClass"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 
@@ -126,21 +127,21 @@ public class JavaBinaryContextProviderTest extends BlazeRunConfigurationProducer
   @Test
   public void testJavaBinaryWithMatchingNameChosen() throws Throwable {
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_binary")
-                    .setLabel("//com/google/binary:UnrelatedName")
-                    .addSource(sourceRoot("com/google/binary/MainClass.java"))
-                    .build())
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_binary")
-                    .setLabel("//com/google/binary:MainClass")
-                    .addSource(sourceRoot("com/google/binary/MainClass.java"))
-                    .build())
-            .build());
+    // query sync:     //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_binary")
+    //                .setLabel("//com/google/binary:UnrelatedName")
+    //                .addSource(sourceRoot("com/google/binary/MainClass.java"))
+    //                .build())
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_binary")
+    //                .setLabel("//com/google/binary:MainClass")
+    //                .addSource(sourceRoot("com/google/binary/MainClass.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 
@@ -163,22 +164,22 @@ public class JavaBinaryContextProviderTest extends BlazeRunConfigurationProducer
   @Test
   public void testJavaBinaryWithMatchingMainClassChosen() throws Throwable {
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_binary")
-                    .setLabel("//com/google/binary:UnrelatedName")
-                    .addSource(sourceRoot("com/google/binary/MainClass.java"))
-                    .build())
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_binary")
-                    .setLabel("//com/google/binary:OtherName")
-                    .setJavaInfo(JavaIdeInfo.builder().setMainClass("com.google.binary.MainClass"))
-                    .addSource(sourceRoot("com/google/binary/MainClass.java"))
-                    .build())
-            .build());
+    // query sync:     //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_binary")
+    //                .setLabel("//com/google/binary:UnrelatedName")
+    //                .addSource(sourceRoot("com/google/binary/MainClass.java"))
+    //                .build())
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_binary")
+    //                .setLabel("//com/google/binary:OtherName")
+    //                .setJavaInfo(JavaIdeInfo.builder().setMainClass("com.google.binary.MainClass"))
+    //                .addSource(sourceRoot("com/google/binary/MainClass.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 

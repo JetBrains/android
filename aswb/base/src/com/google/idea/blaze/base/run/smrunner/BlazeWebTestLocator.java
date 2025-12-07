@@ -63,35 +63,35 @@ class BlazeWebTestLocator implements SMTestLocator {
     if (wrapperLabel == null) {
       return ImmutableList.of();
     }
-    TargetIdeInfo wrapperTarget =
-        projectData.getTargetMap().get(TargetKey.forPlainTarget(wrapperLabel));
-    if (wrapperTarget == null) {
+    // query sync: //TargetIdeInfo wrapperTarget =
+    //    projectData.getTargetMap().get(TargetKey.forPlainTarget(wrapperLabel));
+    //if (wrapperTarget == null) {
       return ImmutableList.of();
-    }
-    ImmutableList.Builder<Location> builder = ImmutableList.builder();
-    for (Dependency dependency : wrapperTarget.getDependencies()) {
-      TargetKey targetKey = dependency.getTargetKey();
-      TargetIdeInfo target = projectData.getTargetMap().get(targetKey);
-      if (target == null) {
-        continue;
-      }
-      Kind kind = target.getKind();
-      Label label = targetKey.getLabel();
-      if (Stream.of("_wrapped_test", "_debug").noneMatch(label.targetName().toString()::endsWith)) {
-        continue;
-      }
-      BlazeTestEventsHandler handler =
-          BlazeTestEventsHandler.getHandlerForTargetKind(kind).orElse(null);
-      if (handler == null || handler.getTestLocator() == null) {
-        continue;
-      }
-      String url = recreateUrl(handler, label, kind, components);
-      if (url == null) {
-        continue;
-      }
-      builder.addAll(locate(handler.getTestLocator(), url, project, scope));
-    }
-    return builder.build();
+    // query sync: //}
+    //ImmutableList.Builder<Location> builder = ImmutableList.builder();
+    //for (Dependency dependency : wrapperTarget.getDependencies()) {
+    //  TargetKey targetKey = dependency.getTargetKey();
+    //  TargetIdeInfo target = projectData.getTargetMap().get(targetKey);
+    //  if (target == null) {
+    //    continue;
+    //  }
+    //  Kind kind = target.getKind();
+    //  Label label = targetKey.getLabel();
+    //  if (Stream.of("_wrapped_test", "_debug").noneMatch(label.targetName().toString()::endsWith)) {
+    //    continue;
+    //  }
+    //  BlazeTestEventsHandler handler =
+    //      BlazeTestEventsHandler.getHandlerForTargetKind(kind).orElse(null);
+    //  if (handler == null || handler.getTestLocator() == null) {
+    //    continue;
+    //  }
+    //  String url = recreateUrl(handler, label, kind, components);
+    //  if (url == null) {
+    //    continue;
+    //  }
+    //  builder.addAll(locate(handler.getTestLocator(), url, project, scope));
+    //}
+    //return builder.build();
   }
 
   @Nullable

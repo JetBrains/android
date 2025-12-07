@@ -119,8 +119,6 @@ public class LexicographicTargetSharder implements BuildBatchingService {
    *     LexicographicTargetSharder#minimumRemoteShardSize}
    * @param max The maximum number of targets per remote build shard. {@link
    *     LexicographicTargetSharder#maximumRemoteShardSize}
-   * @param suggested The target_shard_size, if specified in the blazeproject file. Otherwise {@link
-   *     BlazeBuildTargetSharder#defaultTargetShardSize} Takes precedence if smaller than min.
    * @return The number of targets per build shard.
    */
   @VisibleForTesting

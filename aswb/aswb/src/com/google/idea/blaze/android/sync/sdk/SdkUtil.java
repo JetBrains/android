@@ -22,14 +22,11 @@ import com.android.tools.idea.updater.configure.SdkUpdaterConfigurableProvider;
 import com.android.tools.sdk.AndroidPlatform;
 import com.google.idea.blaze.android.projectview.AndroidSdkPlatformSection;
 import com.google.idea.blaze.android.sdk.BlazeSdkProvider;
-import com.google.idea.blaze.android.sync.model.BlazeAndroidSyncData;
 import com.google.idea.blaze.base.logging.EventLoggingService;
 import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -44,7 +41,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
-import java.util.Optional;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,19 +52,11 @@ public class SdkUtil {
   @Nullable
   private static String getAndroidSdkPlatform(Project project, BlazeProjectData blazeProjectData) {
     // TODO(b/271874279): Retrieve sdk from project data
-    if (Blaze.getProjectType(project) == ProjectType.QUERY_SYNC) {
-      ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
-      if (projectViewSet == null) {
-        return null;
-      }
-      return projectViewSet.getScalarValue(AndroidSdkPlatformSection.KEY).orElse(null);
+    ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
+    if (projectViewSet == null) {
+      return null;
     }
-
-    BlazeAndroidSyncData syncData = blazeProjectData.getSyncState().get(BlazeAndroidSyncData.class);
-    return Optional.ofNullable(syncData)
-        .map(data -> data.androidSdkPlatform)
-        .map(sdk -> sdk.androidSdk)
-        .orElse(null);
+    return projectViewSet.getScalarValue(AndroidSdkPlatformSection.KEY).orElse(null);
   }
 
   @Nullable

@@ -17,11 +17,11 @@ package com.google.idea.blaze.base.run.producers;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.idea.blaze.base.command.BlazeCommandName;
+import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfigurationType;
 import com.google.idea.blaze.base.run.smrunner.SmRunnerUtils;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
-import com.google.idea.blaze.base.sync.BlazeSyncModificationTracker;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
@@ -81,9 +81,9 @@ public class TestContextRunConfigurationProducer
             cacheKey,
             () ->
                 CachedValueProvider.Result.create(
-                    doFindTestContext(wrapper.context),
-                    PsiModificationTracker.MODIFICATION_COUNT,
-                    BlazeSyncModificationTracker.getInstance(wrapper.context.getProject())));
+                  doFindTestContext(wrapper.context),
+                  PsiModificationTracker.MODIFICATION_COUNT,
+                  QuerySyncManager.getInstance(context.getProject()).getProjectModificationTracker()));
   }
 
   @Nullable

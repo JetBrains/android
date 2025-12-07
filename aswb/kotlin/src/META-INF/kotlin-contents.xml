@@ -15,11 +15,8 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.google.idea.blaze">
-    <SyncPlugin implementation="com.google.idea.blaze.kotlin.sync.BlazeKotlinSyncPlugin"/>
     <QuerySyncPlugin implementation="com.google.idea.blaze.kotlin.qsync.BlazeKotlinQuerySyncPlugin"/>
-    <SyncListener implementation="com.google.idea.blaze.kotlin.sync.BlazeKotlinSyncPlugin$Listener"/>
     <JavaLikeLanguage implementation="com.google.idea.blaze.kotlin.KotlinJavaLikeLanguage"/>
-    <JavaSyncAugmenter implementation="com.google.idea.blaze.kotlin.sync.importer.KotlinSyncAugmenter"/>
     <SyncStatusContributor implementation="com.google.idea.blaze.kotlin.syncstatus.KotlinSyncStatusContributor"/>
     <TestContextProvider implementation="com.google.idea.blaze.kotlin.run.producers.KotlinTestContextProvider"/>
     <BinaryContextProvider implementation="com.google.idea.blaze.kotlin.run.producers.KotlinBinaryContextProvider"/>
@@ -36,7 +33,6 @@
 
   <extensions defaultExtensionNs="com.google.idea.blaze">
     <kotlinxCoroutinesLibFinder implementation="com.google.idea.blaze.kotlin.run.debug.BazelKotlinxCoroutinesLibFinder"/>
-    <kotlinxCoroutinesDebuggingLibProvider implementation="com.google.idea.blaze.kotlin.run.debug.BazelKotlinxCoroutinesDebuggingLibProvider"/>
   </extensions>
 
 </idea-plugin>

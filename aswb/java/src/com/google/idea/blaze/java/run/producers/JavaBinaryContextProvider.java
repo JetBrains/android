@@ -18,21 +18,11 @@ package com.google.idea.blaze.java.run.producers;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
-import com.google.idea.blaze.base.model.BlazeProjectData;
-import com.google.idea.blaze.base.model.primitives.LanguageClass;
-import com.google.idea.blaze.base.model.primitives.RuleType;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.run.producers.BinaryContextProvider;
-import com.google.idea.blaze.base.run.testmap.FilteredTargetMap;
-import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
-import com.google.idea.blaze.base.sync.SyncCache;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.java.run.RunUtil;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
@@ -49,7 +39,6 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiMethodUtil;
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -57,8 +46,6 @@ import javax.annotation.Nullable;
 
 /** Creates run configurations for Java main classes sourced by java_binary targets. */
 public class JavaBinaryContextProvider implements BinaryContextProvider {
-
-  private static final String JAVA_BINARY_MAP_KEY = "BlazeJavaBinaryMap";
 
   @Nullable
   @Override
@@ -104,11 +91,7 @@ public class JavaBinaryContextProvider implements BinaryContextProvider {
       return null;
     }
 
-    if (Blaze.getProjectType(project) == ProjectType.QUERY_SYNC) {
-      return getTargetInfoQuerySync(project, mainClass, mainClassFile);
-    } else {
-      return getTargetInfoAspectSync(project, mainClass, mainClassFile);
-    }
+    return getTargetInfoQuerySync(project, mainClass, mainClassFile);
   }
 
   @Nullable
@@ -164,71 +147,5 @@ public class JavaBinaryContextProvider implements BinaryContextProvider {
       pt = possibleMatch.orElse(binaryTargets.stream().findFirst().orElseThrow());
     }
     return TargetInfo.fromBuildTarget(pt);
-  }
-
-  @Nullable
-  private static TargetInfo getTargetInfoAspectSync(
-      Project project, PsiClass mainClass, File mainClassFile) {
-    TargetIdeInfo targetIdeInfo = getTargetIdeInfo(project, mainClass, mainClassFile);
-    if (targetIdeInfo == null) {
-      return null;
-    }
-    return targetIdeInfo.toTargetInfo();
-  }
-
-  @Nullable
-  private static TargetIdeInfo getTargetIdeInfo(
-      Project project, PsiClass mainClass, File mainClassFile) {
-    Collection<TargetIdeInfo> javaBinaryTargets = findJavaBinaryTargets(project, mainClassFile);
-
-    String qualifiedName = mainClass.getQualifiedName();
-    String className = mainClass.getName();
-    if (qualifiedName == null || className == null) {
-      // out of date psi element; just take the first match
-      return Iterables.getFirst(javaBinaryTargets, null);
-    }
-
-    // first look for a matching main_class
-    TargetIdeInfo match =
-        javaBinaryTargets.stream()
-            .filter(
-                target ->
-                    target.getJavaIdeInfo() != null
-                        && qualifiedName.equals(target.getJavaIdeInfo().getJavaBinaryMainClass()))
-            .findFirst()
-            .orElse(null);
-    if (match != null) {
-      return match;
-    }
-
-    match =
-        javaBinaryTargets.stream()
-            .filter(target -> className.equals(target.getKey().getLabel().targetName().toString()))
-            .findFirst()
-            .orElse(null);
-    if (match != null) {
-      return match;
-    }
-    return Iterables.getFirst(javaBinaryTargets, null);
-  }
-
-  /** Returns all java_binary targets reachable from the given source file. */
-  private static Collection<TargetIdeInfo> findJavaBinaryTargets(
-      Project project, File mainClassFile) {
-    FilteredTargetMap map =
-        SyncCache.getInstance(project)
-            .get(JAVA_BINARY_MAP_KEY, JavaBinaryContextProvider::computeTargetMap);
-    return map != null ? map.targetsForSourceFile(mainClassFile) : ImmutableList.of();
-  }
-
-  private static FilteredTargetMap computeTargetMap(Project project, BlazeProjectData projectData) {
-    return new FilteredTargetMap(
-        project,
-        projectData.getArtifactLocationDecoder(),
-        projectData.getTargetMap(),
-        target ->
-            target.isPlainTarget()
-                && target.getKind().hasLanguage(LanguageClass.JAVA)
-                && target.getKind().getRuleType().equals(RuleType.BINARY));
   }
 }

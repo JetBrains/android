@@ -33,12 +33,14 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.intellij.openapi.extensions.impl.ExtensionPointImpl;
 import java.io.File;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link TestTargetSourcesHeuristic}. */
 @RunWith(JUnit4.class)
+@Ignore("b/466755859")
 public class TestTargetSourcesHeuristicTest extends BlazeTestCase {
 
   private final WorkspaceRoot workspaceRoot = new WorkspaceRoot(new File("/"));

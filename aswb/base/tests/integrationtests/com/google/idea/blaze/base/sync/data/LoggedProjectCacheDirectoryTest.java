@@ -123,7 +123,6 @@ public class LoggedProjectCacheDirectoryTest {
         "",
         "",
         "",
-        buildSystemName,
-        ProjectType.ASPECT_SYNC);
+        buildSystemName);
   }
 }

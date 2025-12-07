@@ -427,17 +427,11 @@ data class QuerySummaryImpl(
             for (a in target.rule.attributeList) {
               val attributeName = intern(a.getName())
               when {
-                SRCS_ATTRIBUTES.contains(attributeName) -> {
-                  rule.addAllSources(indexer.indexLabels(a.asLabelListSafe()))
-                }
                 attributeName == "hdrs" -> {
                   rule.addAllHdrs(indexer.indexLabels(a.asLabelListSafe()))
                 }
                 attributeIsTrackedDependency(attributeName, target) -> {
                   rule.addAllDeps(indexer.indexLabels(a.asLabelListSafe()))
-                }
-                RUNTIME_DEP_ATTRIBUTES.contains(attributeName) -> {
-                  rule.addAllRuntimeDeps(indexer.indexLabels(a.asLabelListSafe()))
                 }
                 attributeName == "idl_srcs" -> {
                   rule.addAllIdlSources(indexer.indexLabels(a.asLabelListSafe()))
@@ -473,6 +467,14 @@ data class QuerySummaryImpl(
                 attributeName == "test_rule" -> {
                   a.asLabelSafe()
                     ?.let { rule.setTestRule(indexer.indexLabel(it)) }
+                }
+              }
+              when {
+                SRCS_ATTRIBUTES.contains(attributeName) -> {
+                  rule.addAllSources(indexer.indexLabels(a.asLabelListSafe()))
+                }
+                RUNTIME_DEP_ATTRIBUTES.contains(attributeName) -> {
+                  rule.addAllRuntimeDeps(indexer.indexLabels(a.asLabelListSafe()))
                 }
               }
             }

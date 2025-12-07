@@ -78,7 +78,7 @@ public class BlazeBuildFileRunConfigurationProducer
     BlazeProjectData blazeProjectData =
         BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
     // With query sync we don't need a sync to run a configuration
-    if (blazeProjectData == null && Blaze.getProjectType(project) != ProjectType.QUERY_SYNC) {
+    if (blazeProjectData == null) {
       return false;
     }
     BuildTarget target = getBuildTarget(context);

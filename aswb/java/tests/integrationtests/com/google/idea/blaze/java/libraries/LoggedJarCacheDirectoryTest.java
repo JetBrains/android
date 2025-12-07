@@ -134,7 +134,6 @@ public class LoggedJarCacheDirectoryTest {
         "",
         "",
         "",
-        buildSystemName,
-        ProjectType.ASPECT_SYNC);
+        buildSystemName);
   }
 }

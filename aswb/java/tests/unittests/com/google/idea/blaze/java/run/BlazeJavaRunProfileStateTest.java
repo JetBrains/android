@@ -73,7 +73,7 @@ import org.junit.runners.JUnit4;
 public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
 
   private static final BlazeImportSettings DUMMY_IMPORT_SETTINGS =
-      new BlazeImportSettings("", "", "", "", "", BuildSystemName.Blaze, ProjectType.ASPECT_SYNC);
+      new BlazeImportSettings("", "", "", "", "", BuildSystemName.Blaze);
 
   private BlazeCommandRunConfiguration configuration;
 

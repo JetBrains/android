@@ -119,8 +119,8 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
 
                       BlazeProjectData projectData =
                           BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
-                      TargetIdeInfo targetInfo =
-                          projectData.getTargetMap().get(TargetKey.forPlainTarget(target));
+                      TargetIdeInfo targetInfo = null;
+                          // query sync: projectData.getTargetMap().get(TargetKey.forPlainTarget(target));
                       if (targetInfo == null
                           || targetInfo.getKind()
                               != RuleTypes.ANDROID_INSTRUMENTATION_TEST.getKind()) {

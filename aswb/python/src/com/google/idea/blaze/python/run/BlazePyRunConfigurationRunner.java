@@ -27,9 +27,6 @@ import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
 import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
-import com.google.idea.blaze.base.ideinfo.PyIdeInfo;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
-import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
@@ -366,15 +363,7 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
 
   private static ImmutableList<String> getPythonArgsFor(
       BlazeProjectData projectData, Label target) {
-    TargetIdeInfo ideInfo = projectData.getTargetMap().get(TargetKey.forPlainTarget(target));
-    if (ideInfo == null) {
       return ImmutableList.of();
-    }
-    PyIdeInfo pyIdeInfo = ideInfo.getPyIdeInfo();
-    if (pyIdeInfo == null) {
-      return ImmutableList.of();
-    }
-    return pyIdeInfo.getArgs();
   }
 
   /**

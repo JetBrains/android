@@ -55,10 +55,7 @@ public class Blaze {
     if (blazeImportSettings == null) {
       return ProjectType.UNKNOWN;
     }
-    if (!QuerySync.legacySyncEnabled()) {
-      return ProjectType.QUERY_SYNC;
-    }
-    return blazeImportSettings.getProjectType();
+    return ProjectType.QUERY_SYNC;
   }
 
   /**

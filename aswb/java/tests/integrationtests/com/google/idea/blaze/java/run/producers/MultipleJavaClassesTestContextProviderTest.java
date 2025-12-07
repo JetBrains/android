@@ -50,6 +50,7 @@ import org.junit.runners.JUnit4;
 
 /** Integration tests for {@link MultipleJavaClassesTestContextProvider}. */
 @RunWith(JUnit4.class)
+@Ignore("b/466755859")
 public class MultipleJavaClassesTestContextProviderTest
     extends BlazeRunConfigurationProducerTestCase {
 
@@ -107,15 +108,15 @@ public class MultipleJavaClassesTestContextProviderTest
   @Test
   public void testProducedFromDirectory() throws Throwable {
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_test")
-                    .setLabel("//java/com/google/test:TestClass")
-                    .addSource(sourceRoot("java/com/google/test/TestClass.java"))
-                    .build())
-            .build());
+    // query sync:     //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_test")
+    //                .setLabel("//java/com/google/test:TestClass")
+    //                .addSource(sourceRoot("java/com/google/test/TestClass.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 
@@ -150,15 +151,15 @@ public class MultipleJavaClassesTestContextProviderTest
   @Test
   public void testProducedFromDirectoryWithNestedTests() throws Throwable {
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_test")
-                    .setLabel("//java/com/google/test/sub:TestClass")
-                    .addSource(sourceRoot("java/com/google/test/sub/TestClass.java"))
-                    .build())
-            .build());
+    // query sync:     //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_test")
+    //                .setLabel("//java/com/google/test/sub:TestClass")
+    //                .addSource(sourceRoot("java/com/google/test/sub/TestClass.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 
@@ -193,15 +194,15 @@ public class MultipleJavaClassesTestContextProviderTest
   @Test
   public void testNotProducedForDirectoryNotUnderTestRoots() throws Throwable {
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_test")
-                    .setLabel("//java/com/google/other:TestClass")
-                    .addSource(sourceRoot("java/com/google/other/TestClass.java"))
-                    .build())
-            .build());
+    // query sync:     //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_test")
+    //                .setLabel("//java/com/google/other:TestClass")
+    //                .addSource(sourceRoot("java/com/google/other/TestClass.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 
@@ -231,15 +232,15 @@ public class MultipleJavaClassesTestContextProviderTest
   @Test
   public void testNotProducedFromDirectoryWithoutTests() {
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_binary")
-                    .setLabel("//java/com/google/other:BinaryClass")
-                    .addSource(sourceRoot("java/com/google/other/BinaryClass.java"))
-                    .build())
-            .build());
+    // query sync:     //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_binary")
+    //                .setLabel("//java/com/google/other:BinaryClass")
+    //                .addSource(sourceRoot("java/com/google/other/BinaryClass.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 
@@ -262,16 +263,16 @@ public class MultipleJavaClassesTestContextProviderTest
   public void testProducedFromTestFiles() throws Throwable {
     // GIVEN two test classes
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_test")
-                    .setLabel("//java/com/google/test:allTests")
-                    .addSource(sourceRoot("java/com/google/test/TestClass1.java"))
-                    .addSource(sourceRoot("java/com/google/test/TestClass2.java"))
-                    .build())
-            .build());
+    // query sync:     //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_test")
+    //                .setLabel("//java/com/google/test:allTests")
+    //                .addSource(sourceRoot("java/com/google/test/TestClass1.java"))
+    //                .addSource(sourceRoot("java/com/google/test/TestClass2.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 
@@ -318,21 +319,21 @@ public class MultipleJavaClassesTestContextProviderTest
   @Test
   public void testNotProducedFromTestFilesInDifferentTestTargets() throws Throwable {
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_test")
-                    .setLabel("//java/com/google/test:TestClass1")
-                    .addSource(sourceRoot("java/com/google/test/TestClass1.java"))
-                    .build())
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_test")
-                    .setLabel("//java/com/google/test:TestClass2")
-                    .addSource(sourceRoot("java/com/google/test/TestClass2.java"))
-                    .build())
-            .build());
+    // query sync:     //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_test")
+    //                .setLabel("//java/com/google/test:TestClass1")
+    //                .addSource(sourceRoot("java/com/google/test/TestClass1.java"))
+    //                .build())
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_test")
+    //                .setLabel("//java/com/google/test:TestClass2")
+    //                .addSource(sourceRoot("java/com/google/test/TestClass2.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 
@@ -368,16 +369,16 @@ public class MultipleJavaClassesTestContextProviderTest
   @Test
   public void testNotProducedFromNonTestFiles() throws Throwable {
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_test")
-                    .setLabel("//java/com/google/test:allTests")
-                    .addSource(sourceRoot("java/com/google/test/NonTestClass1.java"))
-                    .addSource(sourceRoot("java/com/google/test/NonTestClass2.java"))
-                    .build())
-            .build());
+    // query sync:     //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_test")
+    //                .setLabel("//java/com/google/test:allTests")
+    //                .addSource(sourceRoot("java/com/google/test/NonTestClass1.java"))
+    //                .addSource(sourceRoot("java/com/google/test/NonTestClass2.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 

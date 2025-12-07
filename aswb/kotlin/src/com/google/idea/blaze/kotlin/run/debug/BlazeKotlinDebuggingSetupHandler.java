@@ -42,20 +42,10 @@ public class BlazeKotlinDebuggingSetupHandler implements BlazeJavaDebuggingSetup
   public boolean setUpDebugging(ExecutionEnvironment env) {
       BlazeCommandRunConfiguration config =
           BlazeCommandRunConfigurationRunner.getConfiguration(env);
-    if (Blaze.getProjectType(config.getProject()).equals(ProjectType.QUERY_SYNC)) {
-      if (KotlinProjectTraversingService.getInstance().dependsOnKotlinxCoroutinesLib(config)) {
-        getCoroutinesDebuggingLib(null, config)
-            .ifPresent(path -> env.getCopyableUserData(COROUTINES_LIB_PATH).set(path));
-      }
-      return true;
+    if (KotlinProjectTraversingService.getInstance().dependsOnKotlinxCoroutinesLib(config)) {
+      getCoroutinesDebuggingLib(null, config)
+        .ifPresent(path -> env.getCopyableUserData(COROUTINES_LIB_PATH).set(path));
     }
-
-      Optional<ArtifactLocation> libArtifact =
-          KotlinProjectTraversingService.getInstance().findKotlinxCoroutinesLib(config);
-
-      libArtifact
-          .flatMap(artifact -> getCoroutinesDebuggingLib(artifact, config))
-          .ifPresent(path -> env.getCopyableUserData(COROUTINES_LIB_PATH).set(path));
     return true;
   }
 

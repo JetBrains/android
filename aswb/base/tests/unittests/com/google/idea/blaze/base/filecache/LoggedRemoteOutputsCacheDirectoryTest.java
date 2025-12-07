@@ -125,7 +125,6 @@ public class LoggedRemoteOutputsCacheDirectoryTest {
         temporaryFolder.getRoot().toString(),
         "",
         "",
-        buildSystemName,
-        ProjectType.ASPECT_SYNC);
+        buildSystemName);
   }
 }

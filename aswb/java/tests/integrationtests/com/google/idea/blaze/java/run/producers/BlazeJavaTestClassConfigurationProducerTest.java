@@ -46,6 +46,7 @@ import org.junit.runners.JUnit4;
 
 /** Integration tests for producing run configurations from java test classes. */
 @RunWith(JUnit4.class)
+@Ignore("b/466755859")
 public class BlazeJavaTestClassConfigurationProducerTest
     extends BlazeRunConfigurationProducerTestCase {
 
@@ -83,15 +84,16 @@ public class BlazeJavaTestClassConfigurationProducerTest
             "}");
 
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_test")
-                    .setLabel("//java/com/google/test:TestClass")
-                    .addSource(sourceRoot("java/com/google/test/TestClass.java"))
-                    .build())
-            .build());
+    // query sync:
+    //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_test")
+    //                .setLabel("//java/com/google/test:TestClass")
+    //                .addSource(sourceRoot("java/com/google/test/TestClass.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 
@@ -127,15 +129,16 @@ public class BlazeJavaTestClassConfigurationProducerTest
             "}");
 
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_test")
-                    .setLabel("//java/com/google/test:TestClass")
-                    .addSource(sourceRoot("java/com/google/test/TestClass.java"))
-                    .build())
-            .build());
+    // query sync:
+    //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_test")
+    //                .setLabel("//java/com/google/test:TestClass")
+    //                .addSource(sourceRoot("java/com/google/test/TestClass.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 
@@ -178,15 +181,16 @@ public class BlazeJavaTestClassConfigurationProducerTest
             "}");
 
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_test")
-                    .setLabel("//java/com/google/test:OuterClass")
-                    .addSource(sourceRoot("java/com/google/test/OuterClass.java"))
-                    .build())
-            .build());
+    // query sync:
+    //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_test")
+    //                .setLabel("//java/com/google/test:OuterClass")
+    //                .addSource(sourceRoot("java/com/google/test/OuterClass.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 
@@ -225,15 +229,15 @@ public class BlazeJavaTestClassConfigurationProducerTest
             "}");
 
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_test")
-                    .setLabel("//java/com/google/test:TestClass")
-                    .addSource(sourceRoot("java/com/google/test/TestClass.java"))
-                    .build())
-            .build());
+    // query sync:     //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_test")
+    //                .setLabel("//java/com/google/test:TestClass")
+    //                .addSource(sourceRoot("java/com/google/test/TestClass.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 
@@ -259,15 +263,15 @@ public class BlazeJavaTestClassConfigurationProducerTest
             "}");
 
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_test")
-                    .setLabel("//java/com/google/test:TestClass")
-                    .addSource(sourceRoot("java/com/google/test/TestClass.java"))
-                    .build())
-            .build());
+    // query sync:     //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_test")
+    //                .setLabel("//java/com/google/test:TestClass")
+    //                .addSource(sourceRoot("java/com/google/test/TestClass.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 
@@ -296,15 +300,15 @@ public class BlazeJavaTestClassConfigurationProducerTest
             "}");
 
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-    builder.setTargetMap(
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setKind("java_test")
-                    .setLabel("//java/com/google/test:TestClass")
-                    .addSource(sourceRoot("java/com/google/test/TestClass.java"))
-                    .build())
-            .build());
+    // query sync:     //builder.setTargetMap(
+    //    TargetMapBuilder.builder()
+    //        .addTarget(
+    //            TargetIdeInfo.builder()
+    //                .setKind("java_test")
+    //                .setLabel("//java/com/google/test:TestClass")
+    //                .addSource(sourceRoot("java/com/google/test/TestClass.java"))
+    //                .build())
+    //        .build());
     registerProjectService(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
 

@@ -67,7 +67,6 @@ public class LanguageSupport {
   public static boolean validateLanguageSettings(
       BlazeContext context, WorkspaceLanguageSettings languageSettings) {
     Set<WorkspaceType> supportedTypes = supportedWorkspaceTypes();
-    WorkspaceType workspaceType = languageSettings.getWorkspaceType();
     if (!supportedTypes.contains(languageSettings.getWorkspaceType())) {
       String message =
           String.format(
@@ -76,30 +75,6 @@ public class LanguageSupport {
       IssueOutput.error(message).submit(context);
       context.output(new PrintOutput(message, OutputType.ERROR));
       return false;
-    }
-    Set<LanguageClass> supportedLanguages = supportedLanguagesForWorkspaceType(workspaceType);
-    Set<LanguageClass> availableLanguages = EnumSet.noneOf(LanguageClass.class);
-    for (WorkspaceType type : supportedTypes) {
-      availableLanguages.addAll(supportedLanguagesForWorkspaceType(type));
-    }
-
-    for (LanguageClass languageClass : languageSettings.getActiveLanguages()) {
-      if (!availableLanguages.contains(languageClass)) {
-        String message =
-            String.format("Language '%s' is not supported by this plugin", languageClass.getName());
-        IssueOutput.error(message).submit(context);
-        context.output(new PrintOutput(message, OutputType.ERROR));
-        return false;
-      }
-      if (!supportedLanguages.contains(languageClass)) {
-        String message =
-            String.format(
-                "Language '%s' is not supported for this plugin with workspace type: '%s'",
-                languageClass.getName(), workspaceType.getName());
-        IssueOutput.error(message).submit(context);
-        context.output(new PrintOutput(message, OutputType.ERROR));
-        return false;
-      }
     }
     return true;
   }

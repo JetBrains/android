@@ -216,24 +216,8 @@ interface BuildSystem {
    * otherwise returns the standard invoker.
    */
   fun getBuildInvoker(project: Project): BuildInvoker {
-    if (Blaze.getProjectType(project) != BlazeImportSettings.ProjectType.QUERY_SYNC
-        && getSyncStrategy(project) == SyncStrategy.PARALLEL
-    ) {
-      return getBuildInvoker(
-        project,
-        requirements = setOf(Capability.BUILD_PARALLEL_SHARDS)
-      ).orElseThrow()
-    }
-    return getBuildInvoker(
-      project,
-      requirements = emptySet()
-    ).orElseThrow()
+    return getBuildInvoker(project, requirements = emptySet()).orElseThrow()
   }
-
-  /**
-   * Return the strategy for remote syncs to be used with this build system.
-   */
-  fun getSyncStrategy(project: Project): SyncStrategy
 
   /**
    * Populates the passed builder with version data.

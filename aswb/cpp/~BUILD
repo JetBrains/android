@@ -113,7 +113,6 @@ java_library(
     testonly = 1,
     srcs = [
         "tests/integrationtests/com/google/idea/blaze/cpp/BlazeCppIntegrationTestCase.java",
-        "tests/integrationtests/com/google/idea/blaze/cpp/BlazeCppResolvingTestCase.java",
     ],
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [

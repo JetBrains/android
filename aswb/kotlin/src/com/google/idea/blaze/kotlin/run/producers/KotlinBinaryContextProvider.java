@@ -15,31 +15,20 @@
  */
 package com.google.idea.blaze.kotlin.run.producers;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
-import com.google.idea.blaze.base.model.BlazeProjectData;
-import com.google.idea.blaze.base.model.primitives.Kind;
-import com.google.idea.blaze.base.model.primitives.LanguageClass;
-import com.google.idea.blaze.base.model.primitives.RuleType;
 import com.google.idea.blaze.base.run.producers.BinaryContextProvider;
-import com.google.idea.blaze.base.run.testmap.FilteredTargetMap;
-import com.google.idea.blaze.base.sync.SyncCache;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import javax.annotation.Nullable;
 import org.jetbrains.kotlin.idea.run.KotlinRunConfigurationProducer;
 import org.jetbrains.kotlin.psi.KtDeclarationContainer;
 
 /** Creates run configurations for Kotlin main methods. */
 class KotlinBinaryContextProvider implements BinaryContextProvider {
-
-  private static final String KOTLIN_BINARY_MAP_KEY = "BlazeKotlinBinaryMap";
 
   @Nullable
   @Override
@@ -76,8 +65,7 @@ class KotlinBinaryContextProvider implements BinaryContextProvider {
     if (startClassFqName == null) {
       return null;
     }
-    Collection<TargetIdeInfo> kotlinBinaryTargets =
-        findKotlinBinaryTargets(context.getProject(), VfsUtil.virtualToIoFile(virtualFile));
+    Collection<TargetIdeInfo> kotlinBinaryTargets = Collections.emptyList(); // TODO: b/466357478 - support query sync.
 
     // first look for a matching main_class
     TargetIdeInfo match =
@@ -105,33 +93,5 @@ class KotlinBinaryContextProvider implements BinaryContextProvider {
     }
 
     return Iterables.getFirst(kotlinBinaryTargets, null);
-  }
-
-  /** Returns all kt_jvm_binary targets reachable from the given source file. */
-  private static Collection<TargetIdeInfo> findKotlinBinaryTargets(
-      Project project, File mainClassFile) {
-    FilteredTargetMap map =
-        SyncCache.getInstance(project)
-            .get(KOTLIN_BINARY_MAP_KEY, KotlinBinaryContextProvider::computeTargetMap);
-    return map != null ? map.targetsForSourceFile(mainClassFile) : ImmutableList.of();
-  }
-
-  private static FilteredTargetMap computeTargetMap(Project project, BlazeProjectData projectData) {
-    return new FilteredTargetMap(
-        project,
-        projectData.getArtifactLocationDecoder(),
-        projectData.getTargetMap(),
-        KotlinBinaryContextProvider::possiblyRelevantTarget);
-  }
-
-  private static boolean possiblyRelevantTarget(TargetIdeInfo target) {
-    if (!target.isPlainTarget()) {
-      return false;
-    }
-    Kind kind = target.getKind();
-    if (kind.getRuleType() != RuleType.BINARY) {
-      return false;
-    }
-    return kind.hasAnyLanguageIn(LanguageClass.KOTLIN, LanguageClass.JAVA);
   }
 }
