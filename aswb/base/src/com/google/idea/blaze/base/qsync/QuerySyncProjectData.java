@@ -36,6 +36,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Optional;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /** Implementation of {@link BlazeProjectData} specific to querysync. */
 public class QuerySyncProjectData implements BlazeProjectData {
@@ -52,7 +53,8 @@ public class QuerySyncProjectData implements BlazeProjectData {
    */
   private final WorkspaceLanguageSettings staticLanguageSettings;
 
-  QuerySyncProjectData(
+  @VisibleForTesting
+  public  QuerySyncProjectData(
       WorkspacePathResolver workspacePathResolver,
       WorkspaceLanguageSettings workspaceLanguageSettings) {
     this(Optional.empty(), workspacePathResolver, workspaceLanguageSettings);
@@ -117,16 +119,6 @@ public class QuerySyncProjectData implements BlazeProjectData {
   }
 
   @Override
-  public TargetMap getTargetMap() {
-    throw new NotSupportedWithQuerySyncException("getTargetMap");
-  }
-
-  @Override
-  public BlazeInfo getBlazeInfo() {
-    throw new NotSupportedWithQuerySyncException("getBlazeInfo");
-  }
-
-  @Override
   public BlazeVersionData getBlazeVersionData() {
     // TODO(mathewi) Investigate uses of this, and remove them if necessary. BlazeVersionData
     //  assumes that the base VCS revision is a decimal integer, which may not be true.
@@ -148,25 +140,5 @@ public class QuerySyncProjectData implements BlazeProjectData {
         .ifPresent(version -> data.setBazelVersion(BazelVersion.parseVersion(version)));
 
     return data.build();
-  }
-
-  @Override
-  public ArtifactLocationDecoder getArtifactLocationDecoder() {
-    throw new NotSupportedWithQuerySyncException("getArtifactLocationDecoder");
-  }
-
-  @Override
-  public RemoteOutputArtifacts getRemoteOutputs() {
-    throw new NotSupportedWithQuerySyncException("getRemoteOutputs");
-  }
-
-  @Override
-  public SyncState getSyncState() {
-    throw new NotSupportedWithQuerySyncException("getSyncState");
-  }
-
-  @Override
-  public boolean isQuerySync() {
-    return true;
   }
 }

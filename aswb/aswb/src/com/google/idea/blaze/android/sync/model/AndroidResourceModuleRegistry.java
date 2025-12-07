@@ -17,7 +17,6 @@ package com.google.idea.blaze.android.sync.model;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.google.idea.blaze.android.sync.importer.BlazeAndroidWorkspaceImporter;
 import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -33,8 +32,7 @@ import javax.annotation.Nullable;
  *
  * <p>Each {@link AndroidResourceModule} (and therefore {@link Module}) may contain resources of
  * multiple {@link TargetKey}. When multiple blaze targets share the same R package name, their
- * resources may be merged into one {@link AndroidResourceModule}. See {@link
- * BlazeAndroidWorkspaceImporter} for more details.
+ * resources may be merged into one {@link AndroidResourceModule}.
  */
 public class AndroidResourceModuleRegistry {
   /**

@@ -177,15 +177,6 @@ public class ProjectViewSetTest extends BlazeTestCase {
   }
 
   @Test
-  public void testUseQuerySyncCaseInsensitive() {
-    ProjectViewParser parser = new ProjectViewParser(BlazeContext.create(), null);
-    parser.parseProjectViewFile("use_query_sync: tRuE", List.of(UseQuerySyncSection.PARSER));
-    assertThat(parser.getResult().getTopLevelProjectViewFile()).isNotNull();
-    ProjectView projectView = parser.getResult().getTopLevelProjectViewFile().projectView;
-    assertThat(projectView.getScalarValue(UseQuerySyncSection.KEY)).isTrue();
-  }
-
-    @Test
     public void testEnableCodeAnalysisOnSyncInsensitive() {
         ProjectViewParser parser = new ProjectViewParser(BlazeContext.create(), null);
         parser.parseProjectViewFile(

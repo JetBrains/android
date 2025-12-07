@@ -21,17 +21,13 @@ import com.android.annotations.concurrency.WorkerThread;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
-import com.google.idea.blaze.base.bazel.BuildSystem.SyncStrategy;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.experiments.ExperimentScope;
-import com.google.idea.blaze.base.filecache.FileCaches;
 import com.google.idea.blaze.base.issueparser.BlazeIssueParser;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
@@ -56,18 +52,14 @@ import com.google.idea.blaze.base.sync.SyncScope.SyncCanceledException;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.sync.aspects.BlazeIdeInterface;
-import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy.OutputGroup;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
-import com.google.idea.blaze.base.sync.sharding.BlazeBuildTargetSharder;
-import com.google.idea.blaze.base.sync.sharding.BlazeBuildTargetSharder.ShardedTargetsResult;
 import com.google.idea.blaze.base.toolwindow.Task;
 import com.google.idea.blaze.base.util.SaveUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.util.List;
 import java.util.function.Function;
-import javax.annotation.Nullable;
 
 /** Utility to build various collections of targets. */
 public class BlazeBuildService {
@@ -236,18 +228,6 @@ public class BlazeBuildService {
 
     BuildInvoker buildInvoker = buildSystem.getBuildInvoker(project);
 
-    ShardedTargetsResult shardedTargets =
-        BlazeBuildTargetSharder.expandAndShardTargets(
-          project,
-          context,
-          projectView,
-          projectData.getWorkspacePathResolver(),
-          targets,
-          buildInvoker,
-          SyncStrategy.SERIAL);
-    if (shardedTargets.buildResult.status == BuildResult.Status.FATAL_ERROR) {
-      return false;
-    }
     BlazeBuildOutputs buildOutputs =
         BlazeIdeInterface.getInstance()
             .build(
@@ -257,11 +237,11 @@ public class BlazeBuildService {
               projectData.getBlazeVersionData(),
               buildInvoker,
               projectView,
-              shardedTargets.shardedTargets,
+              targets,
               projectData.getWorkspaceLanguageSettings(),
               ImmutableSet.of(OutputGroup.COMPILE),
               BlazeInvocationContext.OTHER_CONTEXT,
-                shardedTargets.shardedTargets.shardCount() > 1);
+                false);
 
     refreshFileCachesAndNotifyListeners(context, buildOutputs, project);
 
@@ -277,28 +257,17 @@ public class BlazeBuildService {
    */
   private static void refreshFileCachesAndNotifyListeners(
       BlazeContext context, BlazeBuildOutputs buildOutputs, Project project) {
-    ListenableFuture<Void> refreshFuture = FileCaches.refresh(project, context, buildOutputs);
-    // Notify the build listeners after file caches are done refreshing.
-    Futures.addCallback(
-        refreshFuture,
-        new FutureCallback<Void>() {
-          @Override
-          public void onSuccess(@Nullable Void unused) {
-            BlazeBuildListener.EP_NAME
-                .extensions()
-                .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult()));
-          }
+    if (buildOutputs.buildResult().status == BuildResult.Status.SUCCESS) {
+      BlazeBuildListener.EP_NAME
+        .getExtensionList()
+        .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult()));
 
-          @Override
-          public void onFailure(Throwable throwable) {
-            // No additional steps for failures. The file caches notify users and
-            // print logs as required.
-            BlazeBuildListener.EP_NAME
-                .extensions()
-                .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult()));
-          }
-        },
-        MoreExecutors.directExecutor());
+    }
+    else {
+      BlazeBuildListener.EP_NAME
+        .getExtensionList()
+        .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult()));
+    }
   }
 }
 

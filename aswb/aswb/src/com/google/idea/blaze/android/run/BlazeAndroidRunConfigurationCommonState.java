@@ -16,16 +16,13 @@
 package com.google.idea.blaze.android.run;
 
 import com.android.tools.idea.run.ValidationError;
-import com.android.tools.idea.run.ValidationErrorCompat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.idea.blaze.android.run.state.DebuggerSettingsState;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
-import com.google.idea.blaze.base.lang.LegacyAdditionalLanguagesHelper;
 import com.google.idea.blaze.base.model.BlazeProjectData;
-import com.google.idea.blaze.base.model.primitives.LanguageClass;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.run.state.RunConfigurationFlagsState;
 import com.google.idea.blaze.base.run.state.RunConfigurationState;
@@ -132,16 +129,6 @@ public class BlazeAndroidRunConfigurationCommonState implements RunConfiguration
     if (blazeProjectData == null) {
       errors.add(ValidationError.fatal("Project data missing. Please sync your project."));
       return errors;
-    }
-
-    if (isNativeDebuggingEnabled()
-        && !blazeProjectData.getWorkspaceLanguageSettings().isLanguageActive(LanguageClass.C)) {
-      errors.add(
-          ValidationErrorCompat.fatal(
-              "Native debugging requires C language support.",
-              () ->
-                  LegacyAdditionalLanguagesHelper.enableLanguageSupport(
-                      project, ImmutableList.of(LanguageClass.C))));
     }
 
     return errors;

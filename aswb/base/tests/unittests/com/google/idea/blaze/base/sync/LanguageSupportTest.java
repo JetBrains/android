@@ -24,9 +24,7 @@ import com.google.idea.blaze.base.model.primitives.LanguageClass;
 import com.google.idea.blaze.base.model.primitives.WorkspaceType;
 import com.google.idea.blaze.base.projectview.ProjectView;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.projectview.section.ListSection;
 import com.google.idea.blaze.base.projectview.section.ScalarSection;
-import com.google.idea.blaze.base.projectview.section.sections.AdditionalLanguagesSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceTypeSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.ErrorCollector;
@@ -114,42 +112,6 @@ public class LanguageSupportTest extends BlazeTestCase {
         LanguageSupport.createWorkspaceLanguageSettings(projectViewSet);
     LanguageSupport.validateLanguageSettings(context, settings);
     errorCollector.assertIssues("Workspace type 'c' is not supported by this plugin");
-  }
-
-  @Test
-  public void testFailWithUnsupportedLanguageType() {
-    syncPlugins.registerExtension(
-        new BlazeSyncPlugin() {
-          @Override
-          public Set<LanguageClass> getSupportedLanguagesInWorkspace(WorkspaceType workspaceType) {
-            return ImmutableSet.of(LanguageClass.C);
-          }
-
-          @Override
-          public ImmutableList<WorkspaceType> getSupportedWorkspaceTypes() {
-            return ImmutableList.of(WorkspaceType.C);
-          }
-
-          @Override
-          public WorkspaceType getDefaultWorkspaceType() {
-            return WorkspaceType.C;
-          }
-        });
-
-    ProjectViewSet projectViewSet =
-        ProjectViewSet.builder()
-            .add(
-                ProjectView.builder()
-                    .add(ScalarSection.builder(WorkspaceTypeSection.KEY).set(WorkspaceType.C))
-                    .add(
-                        ListSection.builder(AdditionalLanguagesSection.KEY)
-                            .add(LanguageClass.PYTHON))
-                    .build())
-            .build();
-    WorkspaceLanguageSettings settings =
-        LanguageSupport.createWorkspaceLanguageSettings(projectViewSet);
-    LanguageSupport.validateLanguageSettings(context, settings);
-    errorCollector.assertIssues("Language 'python' is not supported by this plugin");
   }
 
   /** Tests that we ask for java and android when the workspace type is android. */

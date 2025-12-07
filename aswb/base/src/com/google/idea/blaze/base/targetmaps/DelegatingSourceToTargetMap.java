@@ -15,14 +15,11 @@
  */
 package com.google.idea.blaze.base.targetmaps;
 
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
-import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.function.Supplier;
@@ -32,11 +29,7 @@ public class DelegatingSourceToTargetMap implements SourceToTargetMap {
   private final Supplier<SourceToTargetMap> delegateSupplier;
 
   public DelegatingSourceToTargetMap(Project project) {
-    if (Blaze.getProjectType(project) == ProjectType.QUERY_SYNC) {
-      delegateSupplier = QuerySyncManager.getInstance(project)::getSourceToTargetMap;
-    } else {
-      delegateSupplier = Suppliers.ofInstance(new AspectSyncSourceToTargetMap(project));
-    }
+    delegateSupplier = QuerySyncManager.getInstance(project)::getSourceToTargetMap;
   }
 
   @Override

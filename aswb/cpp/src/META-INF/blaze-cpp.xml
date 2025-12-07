@@ -17,25 +17,13 @@
   <depends>com.intellij.cidr.lang</depends>
   <depends>com.intellij.modules.cidr.debugger</depends>
 
-  <project-components>
-    <component>
-      <implementation-class>com.google.idea.blaze.cpp.BlazeCWorkspace</implementation-class>
-    </component>
-  </project-components>
-
   <extensionPoints>
-    <extensionPoint qualifiedName="com.google.idea.blaze.cpp.BlazeCompilerFlagsProcessorProvider"
-                    interface="com.google.idea.blaze.cpp.BlazeCompilerFlagsProcessor$Provider"/>
     <extensionPoint interface="com.google.idea.blaze.cpp.CppSupportChecker"
         qualifiedName="com.google.idea.blaze.cpp.CppSupportChecker" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.google.idea.blaze">
-    <SyncPlugin implementation="com.google.idea.blaze.cpp.BlazeCSyncPlugin"/>
-    <PrefetchFileSource implementation="com.google.idea.blaze.cpp.CPrefetchFileSource"/>
     <SyncStatusContributor implementation="com.google.idea.blaze.cpp.syncstatus.CppSyncStatusContributor"/>
-    <cpp.BlazeCompilerFlagsProcessorProvider implementation="com.google.idea.blaze.cpp.IncludeRootFlagsProcessor$Provider"/>
-    <cpp.BlazeCompilerFlagsProcessorProvider implementation="com.google.idea.blaze.cpp.SysrootFlagsProcessor$Provider"/>
     <TargetKindProvider implementation="com.google.idea.blaze.cpp.CppBlazeRules"/>
   </extensions>
 

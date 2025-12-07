@@ -296,14 +296,6 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     }
 
     @Override
-    public SyncStrategy getSyncStrategy(Project project) {
-      if (syncStrategy != null) {
-        return syncStrategy;
-      }
-      return inner.getSyncStrategy(project);
-    }
-
-    @Override
     public void populateBlazeVersionData(
         WorkspaceRoot workspaceRoot, BlazeInfo blazeInfo, BlazeVersionData.Builder builder) {
       inner.populateBlazeVersionData(workspaceRoot, blazeInfo, builder);

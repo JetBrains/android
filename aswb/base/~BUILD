@@ -141,7 +141,6 @@ java_library(
 java_library(
     name = "sync_listener_api",
     srcs = [
-        "src/com/google/idea/blaze/base/sync/SimpleSyncListener.java",
         "src/com/google/idea/blaze/base/sync/SyncMode.java",
         "src/com/google/idea/blaze/base/sync/SyncResult.java",
     ],
@@ -271,7 +270,6 @@ java_library(
 java_library(
     name = "library_to_target_api",
     srcs = [
-        "src/com/google/idea/blaze/base/model/LegacyLibraryToTargetResolver.java",
         "src/com/google/idea/blaze/base/model/LibraryKey.java",
     ],
     neverlink = 1,
@@ -302,7 +300,6 @@ java_library(
 java_library(
     name = "dep_finder_api",
     srcs = [
-        "src/com/google/idea/blaze/base/dependencies/DependencyFinder.java",
         "src/com/google/idea/blaze/base/dependencies/SourceToTargetProvider.java",
         "src/com/google/idea/blaze/base/dependencies/TargetInfo.java",
         "src/com/google/idea/blaze/base/dependencies/TestSize.java",
@@ -349,18 +346,6 @@ aswb_library(
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "@maven//:com.google.errorprone.error_prone_annotations",
-    ],
-)
-
-# neverlink library exposed so other plugins can optionally depend on it
-java_library(
-    name = "blaze_sync_modification_tracker_api",
-    srcs = ["src/com/google/idea/blaze/base/sync/BlazeSyncModificationTracker.java"],
-    neverlink = 1,
-    visibility = G3PLUGINS_VISIBILITY,
-    deps = [
-        ":base",
-        "//tools/vendor/google/aswb/plugin_api",
     ],
 )
 

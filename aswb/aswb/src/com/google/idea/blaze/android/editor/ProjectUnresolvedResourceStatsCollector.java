@@ -20,9 +20,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.android.util.ResourcePsiElementFinder;
 import com.google.idea.blaze.base.lang.buildfile.psi.util.PsiUtils;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.HighlightStats;
 import com.google.idea.blaze.base.logging.utils.FileHighlights;
 import com.google.idea.blaze.base.logging.utils.HighlightInfo;
-import com.google.idea.blaze.base.logging.HighlightStats;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -34,7 +34,6 @@ import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceFileFinder;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverProvider;
-import com.google.idea.blaze.base.syncstatus.LegacySyncStatusContributor;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileType;
@@ -66,7 +65,6 @@ class ProjectUnresolvedResourceStatsCollector implements Disposable {
   private final FileTypeRegistry fileTypeRegistry;
 
   private final Project project;
-  private SyncMode lastSyncMode;
   private SyncResult lastSyncResult;
   private boolean isSyncing;
 
@@ -141,15 +139,13 @@ class ProjectUnresolvedResourceStatsCollector implements Disposable {
     fileToHighlightStats.computeIfAbsent(filePath, k -> new ArrayList<>()).add(fileHighlightInfo);
   }
 
-  void onSyncStart(SyncMode syncMode) {
+  void onSyncStart() {
     logStatsAndClearMap();
-    lastSyncMode = syncMode;
     lastSyncResult = null;
     isSyncing = true;
   }
 
-  void onSyncComplete(SyncMode syncMode, SyncResult syncResult) {
-    lastSyncMode = syncMode;
+  void onSyncComplete(SyncResult syncResult) {
     lastSyncResult = syncResult;
     isSyncing = false;
   }
@@ -188,7 +184,6 @@ class ProjectUnresolvedResourceStatsCollector implements Disposable {
         HighlightStats.builder()
             .setProject(project)
             .setGroup(HighlightStats.Group.ANDROID_RESOURCE_MISSING_REF)
-            .setLastSyncMode(lastSyncMode)
             .setLastSyncResult(lastSyncResult)
             .setFileHighlights(getAllFileHighlights())
             .build();
@@ -238,12 +233,6 @@ class ProjectUnresolvedResourceStatsCollector implements Disposable {
     if (workspacePathResolver != null) {
       WorkspacePath workspacePath = workspacePathResolver.getWorkspacePath(file);
       workspaceFilePath = workspacePath == null ? workspaceFilePath : workspacePath.relativePath();
-
-      BlazeProjectData blazeProjectData = blazeProjectDataManager.getBlazeProjectData();
-      if (blazeProjectData != null) {
-        fileSyncStatus = LegacySyncStatusContributor.getSyncStatus(project, blazeProjectData, vFile);
-        fileSyncStatus = fileSyncStatus == null ? SyncStatus.UNSYNCED : fileSyncStatus;
-      }
     }
 
     WorkspaceFileFinder workspaceFileFinder = workspaceFileFinderProvider.getWorkspaceFileFinder();
@@ -278,11 +267,11 @@ class ProjectUnresolvedResourceStatsCollector implements Disposable {
    */
   static class CollectorSyncListener implements SyncListener {
     @Override
-    public void onSyncStart(Project project, BlazeContext context, SyncMode syncMode) {
+    public void onQuerySyncStart(Project project, BlazeContext context) {
       if (!UnresolvedResourceStatsCollector.enabled.getValue()) {
         return;
       }
-      ProjectUnresolvedResourceStatsCollector.getInstance(project).onSyncStart(syncMode);
+      ProjectUnresolvedResourceStatsCollector.getInstance(project).onSyncStart();
     }
 
     @Override
@@ -297,7 +286,7 @@ class ProjectUnresolvedResourceStatsCollector implements Disposable {
         return;
       }
       ProjectUnresolvedResourceStatsCollector.getInstance(project)
-          .onSyncComplete(syncMode, syncResult);
+          .onSyncComplete(syncResult);
     }
   }
 }

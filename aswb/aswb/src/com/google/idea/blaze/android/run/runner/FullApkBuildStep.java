@@ -21,7 +21,6 @@ import com.android.annotations.Nullable;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoOuterClass.AndroidDeployInfo;
 import com.google.idea.blaze.android.run.NativeSymbolFinder;
 import com.google.idea.blaze.android.run.RemoteApkDownloader;
@@ -31,10 +30,8 @@ import com.google.idea.blaze.android.run.deployinfo.BlazeApkDeployInfoProtoHelpe
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.GetArtifactsException;
-import com.google.idea.blaze.base.filecache.FileCaches;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -201,10 +198,6 @@ public class FullApkBuildStep implements ApkBuildStep {
         IssueOutput.error("Blaze build failed. See Blaze Console for details.").submit(context);
         return;
       }
-
-      ListenableFuture<Void> unusedFuture =
-        FileCaches.refresh(
-          project, context, BlazeBuildOutputs.noOutputs(BuildResult.fromExitCode(exitCode)));
 
       context.output(new StatusOutput("Reading deployment information..."));
       String executionRoot = ExecRootUtil.getExecutionRoot(invoker, context);

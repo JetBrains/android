@@ -15,9 +15,6 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.google.idea.blaze">
-    <SyncPlugin implementation="com.google.idea.blaze.dart.BlazeDartSyncPlugin"/>
-    <PrefetchFileSource implementation="com.google.idea.blaze.dart.DartPrefetchFileSource"/>
-    <OutputsProvider implementation="com.google.idea.blaze.dart.DartPrefetchFileSource"/>
     <TargetKindProvider implementation="com.google.idea.blaze.dart.DartBlazeRules"/>
   </extensions>
 </idea-plugin>

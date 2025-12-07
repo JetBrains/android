@@ -15,22 +15,15 @@
  */
 package com.google.idea.blaze.java.sync.model;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
-import com.google.common.collect.ImmutableList;
 import com.google.devtools.intellij.model.ProjectData;
 import com.google.idea.blaze.base.ideinfo.LibraryArtifact;
 import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.model.BlazeLibrary;
-import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.LibraryFilesProvider;
 import com.google.idea.blaze.base.model.LibraryKey;
-import com.google.idea.blaze.java.libraries.AttachedSourceJarManager;
-import com.google.idea.blaze.java.libraries.JarCache;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import java.io.File;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -105,39 +98,6 @@ public final class BlazeJarLibrary extends BlazeLibrary {
     @Override
     public String getName() {
       return BlazeJarLibrary.this.key.getIntelliJLibraryName();
-    }
-
-    @Override
-    public ImmutableList<File> getClassFiles(BlazeProjectData blazeProjectData) {
-      File classJar =
-          JarCache.getInstance(project)
-              .getCachedJar(blazeProjectData.getArtifactLocationDecoder(), BlazeJarLibrary.this);
-      if (classJar == null) {
-        logger.warn("No local file found for " + libraryArtifact);
-        return ImmutableList.of();
-      }
-      return ImmutableList.of(classJar);
-    }
-
-    @Override
-    public ImmutableList<File> getSourceFiles(BlazeProjectData blazeProjectData) {
-      AttachedSourceJarManager sourceJarManager = AttachedSourceJarManager.getInstance(project);
-      JarCache jarCache = JarCache.getInstance(project);
-      for (AttachSourcesFilter decider : AttachSourcesFilter.EP_NAME.getExtensions()) {
-        if (decider.shouldAlwaysAttachSourceJar(BlazeJarLibrary.this)) {
-          sourceJarManager.setHasSourceJarAttached(key, true);
-        }
-      }
-      if (!sourceJarManager.hasSourceJarAttached(key)) {
-        return ImmutableList.of();
-      }
-      return libraryArtifact.getSourceJars().stream()
-          .map(
-              srcJar ->
-                  jarCache.getCachedSourceJar(
-                      blazeProjectData.getArtifactLocationDecoder(), srcJar))
-          .filter(Objects::nonNull)
-          .collect(toImmutableList());
     }
 
     @Override

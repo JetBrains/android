@@ -186,15 +186,4 @@ public final class ProjectDataInterner {
       return libraryArtifactInterner.intern(libraryArtifact);
     }
   }
-
-  static class Updater implements SyncListener {
-    @Override
-    public void onSyncStart(Project project, BlazeContext context, SyncMode syncMode) {
-      boolean useInterner = useInterner();
-      boolean usingInterner = state instanceof Impl;
-      if (useInterner != usingInterner) {
-        state = useInterner ? new Impl() : new NoOp();
-      }
-    }
-  }
 }

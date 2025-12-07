@@ -16,11 +16,8 @@
 package com.google.idea.blaze.base.syncstatus;
 
 import com.google.idea.blaze.base.model.BlazeProjectData;
-import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.sync.autosync.ProjectTargetManager;
 import com.google.idea.blaze.base.sync.autosync.ProjectTargetManager.SyncStatus;
-import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
@@ -42,23 +39,6 @@ public interface LegacySyncStatusContributor {
 
   ExtensionPointName<LegacySyncStatusContributor> EP_NAME =
       ExtensionPointName.create("com.google.idea.blaze.SyncStatusContributor");
-
-  /**
-   * Returns a {@link SyncStatus} for the given file, or null if it's not relevant (not in the
-   * project or otherwise can't be synced).
-   */
-  @Nullable
-  static SyncStatus getSyncStatus(Project project, VirtualFile vf) {
-    if (Blaze.getProjectType(project) == ProjectType.QUERY_SYNC) {
-      return null;
-    }
-    BlazeProjectData projectData =
-        BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
-    if (projectData == null) {
-      return null;
-    }
-    return getSyncStatus(project, projectData, vf);
-  }
 
   /**
    * Returns a {@link SyncStatus} for the given file, or null if it's not relevant (not in the

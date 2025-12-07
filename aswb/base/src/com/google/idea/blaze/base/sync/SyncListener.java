@@ -30,10 +30,6 @@ public interface SyncListener {
   ExtensionPointName<SyncListener> EP_NAME =
       ExtensionPointName.create("com.google.idea.blaze.SyncListener");
 
-  /** Called after open documents have been saved, prior to starting the blaze sync. */
-  default void onSyncStart(Project project, BlazeContext context, SyncMode syncMode)
-      throws SyncFailedException, SyncCanceledException {}
-
   /**
    * Called just prior to starting a blaze build during sync.
    *
@@ -56,14 +52,6 @@ public interface SyncListener {
       BlazeProjectData blazeProjectData,
       SyncMode syncMode,
       SyncResult syncResult) {}
-
-  /** Guaranteed to be called once per sync, regardless of whether it successfully completed */
-  default void afterSync(
-      Project project,
-      BlazeContext context,
-      SyncMode syncMode,
-      SyncResult syncResult,
-      ImmutableSet<Integer> buildIds) {}
 
   /** Called after sync. Only used in new query-sync * */
   default void afterQuerySync(Project project, BlazeContext context) {}

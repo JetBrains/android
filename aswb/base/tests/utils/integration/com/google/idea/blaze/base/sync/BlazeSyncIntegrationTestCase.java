@@ -29,15 +29,13 @@ import com.google.idea.blaze.base.MockEventLoggingService;
 import com.google.idea.blaze.base.MockProjectViewManager;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.command.info.BlazeInfoRunner;
 import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
 import com.google.idea.blaze.base.ideinfo.TargetMap;
 import com.google.idea.blaze.base.logging.SyncStats;
-import com.google.idea.blaze.base.model.AspectSyncProjectData;
 import com.google.idea.blaze.base.model.BlazeVersionData;
-import com.google.idea.blaze.base.model.ProjectTargetData;
-import com.google.idea.blaze.base.model.RemoteOutputArtifacts;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.model.primitives.WorkspaceType;
 import com.google.idea.blaze.base.projectview.ProjectView;
@@ -52,8 +50,6 @@ import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
-import com.google.idea.blaze.base.sync.aspects.BlazeIdeInterface;
-import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy.OutputGroup;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.blaze.base.sync.projectview.LanguageSupport;
@@ -80,7 +76,6 @@ import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.util.lang.JavaVersion;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import javax.annotation.Nullable;
 import org.junit.After;
@@ -101,7 +96,6 @@ public abstract class BlazeSyncIntegrationTestCase extends BlazeIntegrationTestC
   private Disposable thisClassDisposable; // disposed prior to calling parent class's @After methods
   private MockProjectViewManager projectViewManager;
   private MockBlazeInfoRunner blazeInfoData;
-  private MockBlazeIdeInterface blazeIdeInterface;
   private MockEventLoggingService eventLogger;
   @Nullable private ProjectModuleMocker moduleMocker; // this will be null for heavy test cases
 
@@ -115,13 +109,11 @@ public abstract class BlazeSyncIntegrationTestCase extends BlazeIntegrationTestC
     ServiceHelper.registerExtension(
         BlazeVcsHandlerProvider.EP_NAME, new MockBlazeVcsHandlerProvider(), thisClassDisposable);
     blazeInfoData = new MockBlazeInfoRunner();
-    blazeIdeInterface = new MockBlazeIdeInterface();
     eventLogger = new MockEventLoggingService(thisClassDisposable);
     if (isLightTestCase()) {
       moduleMocker = new ProjectModuleMocker(getProject(), thisClassDisposable);
     }
     registerApplicationService(BlazeInfoRunner.class, blazeInfoData);
-    registerApplicationService(BlazeIdeInterface.class, blazeIdeInterface);
 
     errorCollector = new ErrorCollector();
 
@@ -186,7 +178,6 @@ public abstract class BlazeSyncIntegrationTestCase extends BlazeIntegrationTestC
     return null;
   }
 
-  /** The absolute file path for the execution root in the {@link TestFileSystem}. */
   protected String getExecRoot() {
     return execRoot;
   }
@@ -240,10 +231,6 @@ public abstract class BlazeSyncIntegrationTestCase extends BlazeIntegrationTestC
     return projectViewManager.getProjectViewSet();
   }
 
-  protected void setTargetMap(TargetMap targetMap) {
-    blazeIdeInterface.targetMap = targetMap;
-  }
-
   protected void runBlazeSync(BlazeSyncParams syncParams) {
     BlazeContext context = BlazeContext.create();
     context.addOutputSink(IssueOutput.class, errorCollector);
@@ -251,13 +238,7 @@ public abstract class BlazeSyncIntegrationTestCase extends BlazeIntegrationTestC
     // We need to run sync off EDT to keep IntelliJ's transaction system happy
     // Because the sync task itself wants to run occasional EDT tasks, we'll have
     // to keep flushing the event queue.
-    Future<?> future =
-        Executors.newSingleThreadExecutor()
-            .submit(
-                () -> {
-                  SyncPhaseCoordinator.getInstance(getProject()).runSync(syncParams, true, context);
-                  context.close();
-                });
+    Future<?> future = Futures.immediateFailedFuture(new UnsupportedOperationException());
     while (!future.isDone()) {
       IdeEventQueue.getInstance().flushQueue();
       try {
@@ -309,37 +290,6 @@ public abstract class BlazeSyncIntegrationTestCase extends BlazeIntegrationTestC
     public void setResults(Map<String, String> results) {
       this.results.clear();
       this.results.putAll(results);
-    }
-  }
-  private static class MockBlazeIdeInterface implements BlazeIdeInterface {
-    private TargetMap targetMap = new TargetMap(ImmutableMap.of());
-
-    @Override
-    public ProjectTargetData updateTargetData(
-        Project project,
-        BlazeContext context,
-        WorkspaceRoot workspaceRoot,
-        SyncProjectState projectState,
-        BlazeSyncBuildResult buildResult,
-        boolean mergeWithOldState,
-        @Nullable AspectSyncProjectData oldProjectData) {
-      return new ProjectTargetData(targetMap, null, RemoteOutputArtifacts.fromProjectData(null));
-    }
-
-    @Override
-    public BlazeBuildOutputs.Legacy build(
-        Project project,
-        BlazeContext context,
-        WorkspaceRoot workspaceRoot,
-        BlazeVersionData blazeVersion,
-        BuildInvoker invoker,
-        ProjectViewSet projectViewSet,
-        ShardedTargetList shardedTargets,
-        WorkspaceLanguageSettings workspaceLanguageSettings,
-        ImmutableSet<OutputGroup> outputGroups,
-        BlazeInvocationContext blazeInvocationContext,
-        boolean invokeParallel) {
-      return BlazeBuildOutputs.noOutputsForLegacy(BuildResult.SUCCESS);
     }
   }
 }

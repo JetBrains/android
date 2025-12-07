@@ -47,11 +47,6 @@ class BazelBuildSystem implements BuildSystem {
   }
 
   @Override
-  public SyncStrategy getSyncStrategy(Project project) {
-    return SyncStrategy.SERIAL;
-  }
-
-  @Override
   public void populateBlazeVersionData(WorkspaceRoot workspaceRoot, BlazeInfo blazeInfo, BlazeVersionData.Builder builder) {
     builder.setBazelVersion(BazelVersion.parseVersion(blazeInfo));
   }

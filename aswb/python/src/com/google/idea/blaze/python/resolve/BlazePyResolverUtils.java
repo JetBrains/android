@@ -15,63 +15,20 @@
  */
 package com.google.idea.blaze.python.resolve;
 
-import com.google.idea.blaze.base.command.buildresult.OutputArtifactResolver;
-import com.google.idea.blaze.base.command.buildresult.RemoteOutputArtifact;
 import com.google.idea.blaze.base.io.VirtualFileSystemProvider;
 import com.google.idea.blaze.base.model.BlazeProjectData;
-import com.google.idea.blaze.base.model.RemoteOutputArtifacts;
-import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.psi.PsiManager;
 import com.jetbrains.python.psi.resolve.PyQualifiedNameResolveContext;
 import java.io.File;
-import java.util.Optional;
 import javax.annotation.Nullable;
 
 /** Utility methods for {@link com.jetbrains.python.psi.impl.PyImportResolver}s */
 public class BlazePyResolverUtils {
-
-  /**
-   * Looks for a PsiDirectory or PyFile at the given 'blaze-genfiles'-relative path (appending '.py'
-   * to the path when looking for py files).
-   */
-  @Nullable
-  public static PsiElement resolveGenfilesPath(
-      PyQualifiedNameResolveContext context, String relativePath) {
-    return resolveGenfilesPath(context.getProject(), relativePath)
-        .map(f -> resolveFile(context.getPsiManager(), f))
-        .orElse(null);
-  }
-
-  /** Resolves a genfiles-relative path to a locally-accessible file. */
-  private static Optional<File> resolveGenfilesPath(Project project, String relativePath) {
-    if (Blaze.getProjectType(project) == ProjectType.QUERY_SYNC) {
-      // TODO(b/351133513) Fix this if/when we implement python support in querysync.
-      return Optional.empty();
-    }
-    BlazeProjectData projectData =
-        BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
-    if (projectData == null) {
-      return Optional.empty();
-    }
-    // first look for remote output artifacts
-    // TODO(brendandouglas): add a common solution handling both remote and local outputs
-    RemoteOutputArtifacts remotes = RemoteOutputArtifacts.fromProjectData(projectData);
-    RemoteOutputArtifact artifact = remotes.resolveGenfilesPath(relativePath);
-    if (artifact == null) {
-      artifact = remotes.resolveGenfilesPath(relativePath + ".py");
-    }
-    if (artifact != null) {
-      return Optional.ofNullable(OutputArtifactResolver.resolve(project, artifact));
-    }
-    return Optional.of(new File(projectData.getBlazeInfo().getGenfilesDirectory(), relativePath));
-  }
 
   /**
    * Looks for a PsiDirectory or PyFile at the given workspace-relative path (appending '.py' to the

@@ -19,11 +19,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.lint.detector.api.Desugaring
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.idea.blaze.base.model.BlazeProjectData
-import com.google.idea.blaze.base.settings.Blaze
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType
-import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager
-import com.google.idea.blaze.base.sync.libraries.LintCollector
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import java.io.File
@@ -76,13 +71,5 @@ abstract class BlazeAndroidModelBase protected constructor(
   override val desugaring: Set<Desugaring>
     get() = Desugaring.FULL
 
-  override val lintRuleJarsOverride: Iterable<File>?
-    get() {
-      if (Blaze.getProjectType(project) !== ProjectType.ASPECT_SYNC) {
-        return listOf<File>()
-      }
-      val blazeProjectData: BlazeProjectData? =
-        BlazeProjectDataManager.getInstance(project).getBlazeProjectData()
-      return LintCollector.getLintJars(project, blazeProjectData)
-    }
+  override val lintRuleJarsOverride: Iterable<File> = listOf()
 }

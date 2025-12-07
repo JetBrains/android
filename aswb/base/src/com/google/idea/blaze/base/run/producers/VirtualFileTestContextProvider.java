@@ -22,8 +22,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
+import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.run.ExecutorType;
-import com.google.idea.blaze.base.sync.BlazeSyncModificationTracker;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverProvider;
 import com.intellij.execution.Location;
@@ -76,9 +76,9 @@ class VirtualFileTestContextProvider implements TestContextProvider {
         psi,
         () ->
             CachedValueProvider.Result.create(
-                doFindTestContext(context, vf, psi, path),
-                PsiModificationTracker.MODIFICATION_COUNT,
-                BlazeSyncModificationTracker.getInstance(context.getProject())));
+              doFindTestContext(context, vf, psi, path),
+              PsiModificationTracker.MODIFICATION_COUNT,
+              QuerySyncManager.getInstance(context.getProject()).getProjectModificationTracker()));
   }
 
   @Nullable

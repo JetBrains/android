@@ -25,7 +25,6 @@ import com.google.idea.blaze.android.run.runner.BlazeApkBuildStep;
 import com.google.idea.blaze.android.run.runner.InstrumentationInfo;
 import com.google.idea.blaze.android.run.runner.InstrumentationInfo.InstrumentationParserException;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
-import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker.Capability;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.settings.Blaze;
@@ -34,7 +33,6 @@ import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.intellij.execution.ExecutionException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-
 import java.util.Objects;
 import java.util.stream.Stream;
 
