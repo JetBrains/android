@@ -15,10 +15,7 @@
  */
 package com.google.idea.blaze.base.build;
 
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
-
 import com.android.annotations.concurrency.WorkerThread;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
@@ -31,7 +28,6 @@ import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.experiments.ExperimentScope;
 import com.google.idea.blaze.base.issueparser.BlazeIssueParser;
 import com.google.idea.blaze.base.model.BlazeProjectData;
-import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
@@ -56,8 +52,10 @@ import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy.OutputGro
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.toolwindow.Task;
 import com.google.idea.blaze.base.util.SaveUtil;
+import com.google.idea.blaze.common.Label;
 import com.intellij.openapi.project.Project;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 /** Utility to build various collections of targets. */
@@ -75,27 +73,20 @@ public class BlazeBuildService {
   }
 
   public ListenableFuture<Boolean> buildFileForLabels(
-      String displayFileName, ImmutableSet<com.google.idea.blaze.common.Label> labels) {
+      String displayFileName, Set<? extends Label> labels) {
     if (!Blaze.isBlazeProject(project) || displayFileName == null) {
-      return null;
+      return Futures.immediateFuture(false);
     }
-    ImmutableCollection<Label> targets = labels.stream().map(Label::create).collect(toImmutableSet());
+    List<String> targets = labels.stream().map(Label::toString).toList();
     return submitTask(project, context -> buildFileTask(displayFileName, targets, context));
   }
 
-  public ListenableFuture<Boolean> buildFile(String displayFileName, ImmutableCollection<Label> targets) {
-    if (!Blaze.isBlazeProject(project) || displayFileName == null) {
-      return null;
-    }
-    return submitTask(project, context -> buildFileTask(displayFileName, targets, context));
-  }
-
-  public Boolean buildFileTask(String displayFileName, ImmutableCollection<Label> targets, BlazeContext context1) {
+  private boolean buildFileTask(String displayFileName, List<? extends String> targets, BlazeContext context1) {
     ProjectViewSet projectView = ProjectViewManager.getInstance(project).getProjectViewSet();
     BlazeProjectData projectData =
       BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
     if (projectView == null || projectData == null) {
-      return null;
+      return false;
     }
 
     String title = "Make " + displayFileName;
@@ -127,7 +118,7 @@ public class BlazeBuildService {
       return null;
     }
 
-    ScopedFunction<List<TargetExpression>> targets =
+    ScopedFunction<List<? extends String>> targets =
       context1 -> {
         try {
           return SyncProjectTargetsHelper.getProjectTargets(
@@ -136,7 +127,7 @@ public class BlazeBuildService {
               projectView,
               projectData.getWorkspacePathResolver(),
               projectData.getWorkspaceLanguageSettings())
-            .getTargetsToSync();
+            .getTargetsToSync().stream().map(TargetExpression::toString).toList();
         } catch (SyncCanceledException e) {
           context1.setCancelled();
           return null;
@@ -202,8 +193,8 @@ public class BlazeBuildService {
                                                     BuildSystem buildSystem,
                                                     ProjectViewSet projectView,
                                                     BlazeProjectData projectData,
-                                                    ScopedFunction<List<TargetExpression>> targetsFunction) {
-    List<TargetExpression> targets = targetsFunction.execute(context);
+                                                    ScopedFunction<List<? extends String>> targetsFunction) {
+    List<? extends String> targets = targetsFunction.execute(context);
     if (targets == null) {
       return true;
     }
