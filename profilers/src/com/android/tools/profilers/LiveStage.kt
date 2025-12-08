@@ -36,13 +36,16 @@ class LiveStage(@NotNull private val profilers : StudioProfilers, val stopTask: 
   @NotNull
   var eventMonitor:Optional<EventMonitor> = Optional.empty()
 
+  private var sessionData = profilers.session
+
   override fun enter() {
     logEnterStage()
+    sessionData = profilers.session
     // If we are entering this stage for a past recording (i.e., the session is not live),
     // we need to tell the backend which database to query. For a new, live recording,
     // this is handled by TransportService when the session starts.
     if (!studioProfilers.sessionsManager.isSessionAlive) {
-      profilers.sessionsManager.setTaskDb(studioProfilers.session)
+      profilers.sessionsManager.setTaskDb(sessionData)
     }
 
     eventMonitor.ifPresent(EventMonitor::enter)
@@ -87,7 +90,7 @@ class LiveStage(@NotNull private val profilers : StudioProfilers, val stopTask: 
     liveModels.clear()
     eventMonitor.ifPresent(EventMonitor::exit)
     // Disconnects the task DB on the backend when navigating away from the stage.
-    studioProfilers.sessionsManager.unsetTaskDb(studioProfilers.session)
+    studioProfilers.sessionsManager.unsetTaskDb(sessionData)
   }
 
   private fun getEventMonitorInstance(): EventMonitor? {
