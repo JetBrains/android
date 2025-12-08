@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.insights.LoadingState.Ready
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.rpc.Status
-import com.intellij.openapi.diagnostic.thisLogger
+import java.util.logging.Logger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
@@ -75,7 +74,7 @@ sealed class LoadingState<out T> {
   data class NetworkFailure(override val message: String?, override val cause: Throwable? = null) :
     Failure() {
     init {
-      thisLogger().warn("Got network failure: $message. ($cause)")
+      Logger.getLogger("NetworkFailure").warning("Got network failure: $message. ($cause)")
     }
 
     override fun <U> map(fn: (Nothing) -> U): NetworkFailure {
@@ -151,9 +150,9 @@ sealed class LoadingState<out T> {
 fun <T, U> Flow<LoadingState<T>>.mapReady(fn: (T) -> U): Flow<LoadingState<U>> = map { it.map(fn) }
 
 fun <T, U> Flow<LoadingState<T>>.mapReadyOrDefault(defaultValue: U, fn: (T) -> U): Flow<U> = map {
-  if (it is Ready) fn(it.value) else defaultValue
+  if (it is LoadingState.Ready) fn(it.value) else defaultValue
 }
 
 fun <T> Flow<LoadingState<T>>.filterReady(): Flow<T> {
-  return filterIsInstance<Ready<T>>().map { it.value }
+  return filterIsInstance<LoadingState.Ready<T>>().map { it.value }
 }
