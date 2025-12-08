@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android.model.crashlytics
+package com.android.tools.idea.gradle.dsl.model.crashlytics
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
-import com.android.tools.idea.gradle.dsl.android.api.crashlytics.CrashlyticsModel
-import com.android.tools.idea.gradle.dsl.android.api.crashlytics.FirebaseCrashlyticsModel
+import com.android.tools.idea.gradle.dsl.api.crashlytics.CrashlyticsModel
+import com.android.tools.idea.gradle.dsl.api.crashlytics.FirebaseCrashlyticsModel
 import com.android.tools.idea.gradle.dsl.model.BlockModelBuilder
 import com.android.tools.idea.gradle.dsl.model.BlockModelProvider
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement
-import com.android.tools.idea.gradle.dsl.android.parser.crashlytics.CrashlyticsDslElement.CRASHLYTICS
-import com.android.tools.idea.gradle.dsl.android.parser.crashlytics.FirebaseCrashlyticsDslElement.FIREBASE_CRASHLYTICS
+import com.android.tools.idea.gradle.dsl.parser.crashlytics.CrashlyticsDslElement.CRASHLYTICS
+import com.android.tools.idea.gradle.dsl.parser.crashlytics.FirebaseCrashlyticsDslElement.FIREBASE_CRASHLYTICS
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 

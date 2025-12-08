@@ -13,13 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android.api.crashlytics;
+package com.android.tools.idea.gradle.dsl.model.crashlytics;
 
+import com.android.tools.idea.gradle.dsl.api.crashlytics.CrashlyticsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
+import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.parser.crashlytics.CrashlyticsDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public interface FirebaseCrashlyticsModel extends GradleBlockModel {
+public class CrashlyticsModelImpl extends GradleDslBlockModel implements CrashlyticsModel {
+  @NonNls public static final String ENABLE_NDK = "mEnableNdk";
+
+  @Override
   @NotNull
-  ResolvedPropertyModel nativeSymbolUploadEnabled();
+  public ResolvedPropertyModel enableNdk() {
+    return getModelForProperty(ENABLE_NDK);
+  }
+
+  public CrashlyticsModelImpl(@NotNull CrashlyticsDslElement element) {
+    super(element);
+  }
 }
