@@ -24,12 +24,11 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MO
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_EDIT_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_PARSE_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_REMOVE_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelUtilsKt.android;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
-import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.android.model.android.ViewBindingModelImpl;
+import com.android.tools.idea.gradle.dsl.model.AndroidGradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ViewBindingModel;
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
 import org.junit.Test;

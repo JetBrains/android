@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.dependencies
 
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.Companion.defaultInsertionConfig
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.MatchedStrategy
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidGradleDeclarativeBuildModel
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidDeclarativeType
+import com.android.tools.idea.gradle.dsl.api.android.AndroidGradleDeclarativeBuildModel
+import com.android.tools.idea.gradle.dsl.api.android.AndroidDeclarativeType
 import com.android.tools.idea.gradle.dsl.api.BasePluginsModel
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeSettingsModel

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android.parser.android
+package com.android.tools.idea.gradle.dsl.api.android
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
+import com.android.tools.idea.gradle.dsl.api.SoftwareTypesModel
 
-class DeclarativeAndroidDslElement(parent: GradleDslElement, name: GradleNameElement): AndroidDslElement(parent, name) {
-  override fun isInsignificantIfEmpty(): Boolean = false
+interface AndroidSoftwareTypesModel : SoftwareTypesModel {
+  fun androidApp() : AndroidModel
+  fun androidLibrary() : AndroidModel
 }

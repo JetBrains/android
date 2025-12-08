@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android.model
+package com.android.tools.idea.gradle.dsl.model
 
 import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
-import com.android.tools.idea.gradle.dsl.model.BlockModelBuilder
-import com.android.tools.idea.gradle.dsl.model.BlockModelProvider
-import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap
-import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android.model.android
+package com.android.tools.idea.gradle.dsl.model.android
 
 import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeSettingsModel
 import com.android.tools.idea.gradle.dsl.api.SoftwareTypesModel

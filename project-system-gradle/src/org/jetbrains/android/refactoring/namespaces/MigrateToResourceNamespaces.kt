@@ -23,7 +23,7 @@ import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.StudioResourceRepositoryManager

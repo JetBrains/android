@@ -33,7 +33,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtilCore
-import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.model.android.android
 import java.io.File
 
 class ManifestPanelGradleToken : ManifestPanelToken<GradleProjectSystem>, GradleToken {
