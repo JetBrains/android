@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android.api.crashlytics;
+package com.android.tools.idea.gradle.dsl.api.crashlytics;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface CrashlyticsModel extends GradleBlockModel {
+public interface FirebaseCrashlyticsModel extends GradleBlockModel {
   @NotNull
-  ResolvedPropertyModel enableNdk();
+  ResolvedPropertyModel nativeSymbolUploadEnabled();
 }
