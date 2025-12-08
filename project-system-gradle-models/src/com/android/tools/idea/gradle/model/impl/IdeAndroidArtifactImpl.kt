@@ -50,8 +50,8 @@ data class IdeAndroidArtifactCoreImpl(
   override val generatedClassPaths: Map<String, FileImpl>,
   override val bytecodeTransforms: List<IdeBytecodeTransformationImpl>?,
   override val generatedAssetFolders: List<FileImpl>,
-  override val mappingR8TextFile: File?,
-  override val mappingR8PartitionFile: File?,
+  override val mappingR8TextFile: FileImpl?,
+  override val mappingR8PartitionFile: FileImpl?,
 ) : IdeAndroidArtifactCore {
   constructor(
     name: IdeArtifactName,
@@ -110,8 +110,8 @@ data class IdeAndroidArtifactCoreImpl(
     generatedClassPaths.toImpl(),
     bytecodeTransforms,
     generatedAssetFolders.toImpl(),
-    mappingR8TextFile,
-    mappingR8PartitionFile
+    mappingR8TextFile?.toImpl(),
+    mappingR8PartitionFile?.toImpl()
   )
 }
 
@@ -146,8 +146,8 @@ class IdeAndroidArtifactImpl(
   override val runtimeClasspathCore: IdeDependenciesCoreImpl = core.runtimeClasspathCore
   override val desugaredMethodsFiles: List<FileImpl> = core.desugaredMethodsFiles
   override val generatedAssetFolders: List<FileImpl> = core.generatedAssetFolders
-  override val mappingR8TextFile: File? = core.mappingR8TextFile
-  override val mappingR8PartitionFile: File? = core.mappingR8PartitionFile
+  override val mappingR8TextFile: FileImpl? = core.mappingR8TextFile
+  override val mappingR8PartitionFile: FileImpl? = core.mappingR8PartitionFile
 
   override val compileClasspath: IdeDependencies = IdeDependencies(core.compileClasspathCore, resolver)
   override val runtimeClasspath: IdeDependencies = IdeDependencies(core.runtimeClasspathCore, resolver)

@@ -115,7 +115,7 @@ private fun validate(klass: KClass<*>) {
           val kl = propertyKType.classifier as? KClass<*> ?: unexpected("Unexpected classifier: ${propertyKType.classifier}")
           when {
             kl == String::class -> Unit
-            kl == File::class -> Unit
+            kl == File::class -> unexpected("File is not allowed: $propertyKType")
             kl == Int::class -> Unit
             kl == Boolean::class -> Unit
             propertyType.isEnum -> Unit
