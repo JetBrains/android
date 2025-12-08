@@ -72,12 +72,29 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
       }
     }
 
+  /**
+   * Adds a test suite engine dependency to the given [TestSuiteModel].
+   *
+   * If a dependency with the same group and name already exists in the [TestSuiteModel]'s
+   * enginesDependencies, this function does nothing.
+   *
+   * @param testSuiteModel The [TestSuiteModel] to add the dependency to.
+   * @param dependency The dependency string in compact notation (e.g., "group:name:version").
+   * @return A set of [PsiFile]s that were modified, or an empty set if no changes were made.
+   */
   override fun addTestSuiteEngineDependency(testSuiteModel: TestSuiteModel, dependency: String): Set<PsiFile> {
-    val compactNotationMatcher = object : DependencyMatcher {
-      override fun match(model: LibraryDeclarationModel) = model.compactNotation() == dependency
-      override fun match(model: ArtifactDependencyModel) = model.compactNotation() == dependency
+    val parsedDependency = Dependency.parse(dependency)
+    val testSuiteEngineDependencyMatcher = object : DependencyMatcher {
+      override fun match(model: LibraryDeclarationModel): Boolean {
+        return with(model) { group().toString() == parsedDependency.group && name().toString() == parsedDependency.name }
+      }
+
+      override fun match(model: ArtifactDependencyModel): Boolean {
+        return with(model) { group().toString() == parsedDependency.group && name().toString() == parsedDependency.name }
+      }
     }
-    return getOrAddDependencyToCatalog(projectModel, dependency, compactNotationMatcher) { alias, changedFiles ->
+
+    return getOrAddDependencyToCatalog(projectModel, dependency, testSuiteEngineDependencyMatcher) { alias, changedFiles ->
       val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), testSuiteModel.useJunitEngine())
       if (!testSuiteModel.useJunitEngine().hasEngineDependency(reference)) {
         testSuiteModel.useJunitEngine().addEngineDependency(reference)
