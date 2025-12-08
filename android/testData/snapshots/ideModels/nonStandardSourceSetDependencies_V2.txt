@@ -4053,6 +4053,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
+                    useInlineScopesNumbers        : true
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
