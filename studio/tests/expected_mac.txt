@@ -3099,6 +3099,8 @@ Android Studio Preview.app/Contents/plugins/gemini/lib/libv1internal_java_rest.j
 Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-analysis-common-9.12.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-core-9.12.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-facet-9.12.0.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-highlighter-9.12.0.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-memory-9.12.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-queries-9.12.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-queryparser-9.12.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-sandbox-9.12.0.jar
