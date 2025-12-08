@@ -1,50 +1,5 @@
 [
   {
-    "name": "KitKat",
-    "version": "4.4",
-    "apiLevel": 19,
-    "distributionPercentage": 0.001,
-    "url": "https://developer.android.com/about/versions/android-4.4.html",
-    "descriptionBlocks": [
-      {
-        "title": "Printing Framework",
-        "body": "Print generic content<br>Print images<br>OEM print services"
-      },
-      {
-        "title": "SMS Provider",
-        "body": "Read and write SMS and MMS messages<br>Select default SMS app"
-      },
-      {
-        "title": "Wireless and Connectivity",
-        "body": "Host NFC card emulation<br>NFC reader mode<br>Infrared support"
-      },
-      {
-        "title": "Multimedia",
-        "body": "Adaptive video playback<br>On-demand audio timestamps<br>Surface image reader<br>Peak and RMS audio measurements<br>Loudness enhancer<br>Remote controllers<br>Closed captions"
-      },
-      {
-        "title": "Animation and Graphics",
-        "body": "Scenes and transitions<br>Animator pausing<br>Reusable bitmaps"
-      },
-      {
-        "title": "User Content",
-        "body": "Storage access framework<br>External storage access<br>Sync adapters"
-      },
-      {
-        "title": "User Input",
-        "body": "New sensor types, including step detector<br>Batched sensor events<br>Controller identities"
-      },
-      {
-        "title": "User Interface",
-        "body": "Immersive full-screen mode<br>Translucent system bars<br>Enhanced notification listener<br>Live regions for accessibility"
-      },
-      {
-        "title": "",
-        "body": "Last updated: March 1, 2025"
-      }
-    ]
-  },
-  {
     "name": "Lollipop",
     "version": "5",
     "apiLevel": 21,
@@ -105,7 +60,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: March 1, 2025"
+        "body": "Last updated: December 1, 2025"
       }
     ]
   },
@@ -113,7 +68,7 @@
     "name": "Lollipop",
     "version": "5.1",
     "apiLevel": 22,
-    "distributionPercentage": 0.005,
+    "distributionPercentage": 0.003,
     "url": "https://developer.android.com/about/versions/android-5.1.html",
     "descriptionBlocks": [
       {
@@ -126,7 +81,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: March 1, 2025"
+        "body": "Last updated: December 1, 2025"
       }
     ]
   },
@@ -134,7 +89,7 @@
     "name": "Marshmallow",
     "version": "6",
     "apiLevel": 23,
-    "distributionPercentage": 0.008,
+    "distributionPercentage": 0.004,
     "url": "https://developer.android.com/about/versions/marshmallow/android-6.0.html",
     "descriptionBlocks": [
       {
@@ -167,7 +122,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: March 1, 2025"
+        "body": "Last updated: December 1, 2025"
       }
     ]
   },
@@ -175,7 +130,7 @@
     "name": "Nougat",
     "version": "7",
     "apiLevel": 24,
-    "distributionPercentage": 0.006,
+    "distributionPercentage": 0.004,
     "url": "https://developer.android.com/about/versions/nougat/android-7.0.html",
     "descriptionBlocks": [
       {
@@ -224,7 +179,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: March 1, 2025"
+        "body": "Last updated: December 1, 2025"
       }
     ]
   },
@@ -232,7 +187,7 @@
     "name": "Nougat",
     "version": "7.1",
     "apiLevel": 25,
-    "distributionPercentage": 0.007,
+    "distributionPercentage": 0.004,
     "url": "https://developer.android.com/about/versions/nougat/android-7.1.html",
     "descriptionBlocks": [
       {
@@ -261,7 +216,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: March 1, 2025"
+        "body": "Last updated: December 1, 2025"
       }
     ]
   },
@@ -269,7 +224,7 @@
     "name": "Oreo",
     "version": "8",
     "apiLevel": 26,
-    "distributionPercentage": 0.01,
+    "distributionPercentage": 0.008,
     "url": "https://developer.android.com/about/versions/oreo/android-8.0",
     "descriptionBlocks": [
       {
@@ -298,7 +253,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: March 1, 2025"
+        "body": "Last updated: December 1, 2025"
       }
     ]
   },
@@ -306,7 +261,7 @@
     "name": "Oreo",
     "version": "8.1",
     "apiLevel": 27,
-    "distributionPercentage": 0.031,
+    "distributionPercentage": 0.023,
     "url": "https://developer.android.com/about/versions/oreo/android-8.1",
     "descriptionBlocks": [
       {
@@ -327,7 +282,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: March 1, 2025"
+        "body": "Last updated: December 1, 2025"
       }
     ]
   },
@@ -335,7 +290,7 @@
     "name": "Pie",
     "version": "9",
     "apiLevel": 28,
-    "distributionPercentage": 0.059,
+    "distributionPercentage": 0.045,
     "url": "https://developer.android.com/about/versions/pie/android-9.0",
     "descriptionBlocks": [
       {
@@ -360,7 +315,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: March 1, 2025"
+        "body": "Last updated: December 1, 2025"
       }
     ]
   },
@@ -368,7 +323,7 @@
     "name": "Q",
     "version": "10",
     "apiLevel": 29,
-    "distributionPercentage": 0.104,
+    "distributionPercentage": 0.078,
     "url": "https://developer.android.com/about/versions/10",
     "descriptionBlocks": [
       {
@@ -389,7 +344,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: March 1, 2025"
+        "body": "Last updated: December 1, 2025"
       }
     ]
   },
@@ -397,7 +352,7 @@
     "name": "R",
     "version": "11",
     "apiLevel": 30,
-    "distributionPercentage": 0.162,
+    "distributionPercentage": 0.137,
     "url": "https://developer.android.com/about/versions/11",
     "descriptionBlocks": [
       {
@@ -414,7 +369,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: March 1, 2025"
+        "body": "Last updated: December 1, 2025"
       }
     ]
   },
@@ -422,7 +377,7 @@
     "name": "S",
     "version": "12",
     "apiLevel": 31,
-    "distributionPercentage": 0.13,
+    "distributionPercentage": 0.114,
     "url": "https://developer.android.com/about/versions/12",
     "descriptionBlocks": [
       {
@@ -443,7 +398,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: March 1, 2025"
+        "body": "Last updated: December 1, 2025"
       }
     ]
   },
@@ -451,7 +406,7 @@
     "name": "T",
     "version": "13",
     "apiLevel": 33,
-    "distributionPercentage": 0.171,
+    "distributionPercentage": 0.139,
     "url": "https://developer.android.com/about/versions/13",
     "descriptionBlocks": [
       {
@@ -468,7 +423,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: March 1, 2025"
+        "body": "Last updated: December 1, 2025"
       }
     ]
   },
@@ -476,7 +431,7 @@
     "name": "U",
     "version": "14",
     "apiLevel": 34,
-    "distributionPercentage": 0.274,
+    "distributionPercentage": 0.172,
     "url": "https://developer.android.com/about/versions/14",
     "descriptionBlocks": [
       {
@@ -493,7 +448,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: March 1, 2025"
+        "body": "Last updated: December 1, 2025"
       }
     ]
   },
@@ -501,7 +456,7 @@
     "name": "V",
     "version": "15",
     "apiLevel": 35,
-    "distributionPercentage": 0.029,
+    "distributionPercentage": 0.193,
     "url": "https://developer.android.com/about/versions/15",
     "descriptionBlocks": [
       {
@@ -542,7 +497,60 @@
       },
       {
         "title": "",
-        "body": "Last updated: March 1, 2025"
+        "body": "Last updated: December 1, 2025"
+      }
+    ]
+  },
+  {
+    "name": "B",
+    "version": "16",
+    "apiLevel": 36,
+    "distributionPercentage": 0.074,
+    "url": "https://developer.android.com/about/versions/16/summary",
+    "descriptionBlocks": [
+      {
+        "title": "User Experience and System UI",
+        "body": "Progress-centric notifications<br>Richer haptics APIs<br>Predictive back updates and default migration/opt-out requirement (targeting 16+)<br>Automatic themed app icons<br>Edge to edge opt-out removed (targeting 16+)<br>Deprecating disruptive accessibility announcements<br>Content handling for live wallpapers"
+      },
+      {
+        "title": "Security and Privacy",
+        "body": "Improved security against Intent redirection attacks<br>Key sharing API for Android Keystore<br>Privacy Sandbox on Android updates<br>MediaStore version lockdown (targeting 16+)<br>Safer Intent resolution mechanism (targeting 16+)<br>GPU syscall filtering (targeting 16+)"
+      },
+      {
+        "title": "Camera and Media",
+        "body": "UltraHDR image enhancements (HEIC)<br>Precise color temperature and tint adjustments<br>Hybrid auto-exposure modes<br>Motion photo capture Intent actions<br>Camera night mode scene detection (EXTENSION_NIGHT_MODE_INDICATOR)<br>Photo picker improvements (embeddable, cloud search)"
+      },
+      {
+        "title": "Core Functionality",
+        "body": "ART internal changes and performance updates<br>JobScheduler quota optimizations and new abandoned job reason (STOP_REASON_TIMEOUT_ABANDONED)<br>16 KB page size compatibility mode<br>Ordered broadcast priority scope limited to same process<br>Fixed rate work scheduling optimization (targeting 16+)"
+      },
+      {
+        "title": "Connectivity",
+        "body": "Generic ranging APIs (RangingManager)<br>Ranging with enhanced security (Wi-Fi 6 802.11az)<br>Companion device manager device presence APIs<br>Improved Bluetooth bond loss handling and new intents/APIs for targeting 16+"
+      },
+      {
+        "title": "Accessibility",
+        "body": "Improved accessibility APIs<br>Phone as microphone input for voice calls with LEA hearing aids<br>Ambient volume controls for LEA hearing aids"
+      },
+      {
+        "title": "Graphics",
+        "body": "Custom graphical effects with AGSL (RuntimeColorFilter, RuntimeXfermode)"
+      },
+      {
+        "title": "Internationalization",
+        "body": "Vertical text rendering support<br>Measurement system customization in regional preferences"
+      },
+      {
+        "title": "Device Form Factors",
+        "body": "Standardized picture and audio quality framework for TVs (MediaQuality package)<br>Virtual device owner overrides<br>Adaptive layouts (platform ignores screen orientation/aspect ratio restrictions for targeting 16+)"
+      },
+      {
+        "title": "Health and Fitness",
+        "body": "Transition to granular health and fitness permissions (`android.permissions.health` for Health Connect) (targeting 16+)"
+      },
+      {
+        "title": "",
+        "body": "Last updated: December 1, 2025"
       }
     ]
   }
