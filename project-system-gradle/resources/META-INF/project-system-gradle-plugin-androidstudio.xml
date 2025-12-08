@@ -44,9 +44,6 @@
     <applicationService serviceInterface="org.jetbrains.plugins.gradle.settings.GradleSystemSettings"
                         serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSystemSettings"
                         overrides="true"/>
-    <applicationService serviceInterface="org.jetbrains.plugins.gradle.service.GradleInstallationManager"
-                        serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager"
-                        overrides="true"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.projectView.ProjectToolWindowSettings"/>
 
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
