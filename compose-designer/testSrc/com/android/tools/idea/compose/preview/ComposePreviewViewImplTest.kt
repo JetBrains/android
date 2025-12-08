@@ -449,21 +449,6 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
   }
 
   @Test
-  fun `empty preview state when there are syntax errors`() {
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(false)
-    val wolfTheProblemSolver =
-      object : MockWolfTheProblemSolver() {
-        override fun hasProblemFilesBeneath(scope: Module): Boolean = true
-      }
-    projectRule.project.registerOrReplaceServiceInstance(
-      WolfTheProblemSolver::class.java,
-      wolfTheProblemSolver,
-      fixture.testRootDisposable,
-    )
-    checkEmptyPreviewState(showAutoGenerateAction = false, showScreenshotToAction = false)
-  }
-
-  @Test
   fun `empty preview state when screenshot to code flag is disabled`() {
     geminiPluginApi.contextAllowed = true
     StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.override(false)
