@@ -90,7 +90,6 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
 
       Event.Kind.CPU_USAGE,
       Event.Kind.CPU_THREAD,
-      Event.Kind.CPU_TRACE,
 
       Event.Kind.MEMORY_GC,
       Event.Kind.MEMORY_ALLOC_SAMPLING,
