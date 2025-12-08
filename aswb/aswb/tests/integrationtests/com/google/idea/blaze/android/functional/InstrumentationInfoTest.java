@@ -16,8 +16,6 @@
 package com.google.idea.blaze.android.functional;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.idea.blaze.android.targetmapbuilder.NbAndroidInstrumentationTestTarget.android_instrumentation_test;
-import static com.google.idea.blaze.android.targetmapbuilder.NbAndroidTarget.android_binary;
 import static org.junit.Assert.fail;
 
 import com.google.idea.blaze.android.BlazeAndroidIntegrationTestCase;
