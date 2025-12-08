@@ -53,6 +53,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
   private lateinit var statusListener: TransportEventListener
   private lateinit var hostAnalysisTriggerListener: TransportEventListener
   private val logger: Logger = Logger.getInstance(LeakCanaryModel::class.java)
+  private var sessionData = profilers.session
   private val heapDumper = LeakCanaryHeapDumper(profilers).apply {
     onHostAnalysisFinished = { analysis ->
       handleLeakAnalysis(analysis)
@@ -75,16 +76,17 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
   val isLeakCanaryPresent = _isLeakCanaryPresent.asStateFlow()
 
   override fun enter() {
+    sessionData = profilers.session
     // If we are entering this stage for a past recording (i.e., the session is not live),
     // we need to tell the TransportService to use task specific database to query.
     // For a new, live recording, this is handled by TransportService when the session starts.
     if (!profilers.sessionsManager.isSessionAlive) {
-      profilers.sessionsManager.setTaskDb(profilers.session)
+      profilers.sessionsManager.setTaskDb(sessionData)
     }
   }
 
   override fun exit() {
-    profilers.sessionsManager.unsetTaskDb(profilers.session)
+    profilers.sessionsManager.unsetTaskDb(sessionData)
   }
 
   fun startListening() {
