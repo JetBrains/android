@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android.model
+package com.android.tools.idea.gradle.dsl.model
 
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidGradleDeclarativeBuildModel
+import com.android.tools.idea.gradle.dsl.api.android.AndroidGradleDeclarativeBuildModel
 import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel.TypeNameValueElement
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
-import junit.framework.TestCase
 
 abstract class AndroidGradleFileModelTestCase: GradleFileModelTestCase("tools/adt/idea/gradle-dsl-android/testData/parser") {
   override fun getGradleDeclarativeBuildModel(): AndroidGradleDeclarativeBuildModel {

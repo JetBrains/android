@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android.model.android
+package com.android.tools.idea.gradle.dsl.model.android
 
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidDeclarativeType
-import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
+import com.android.tools.idea.gradle.dsl.api.android.AndroidDeclarativeType
+import com.android.tools.idea.gradle.dsl.model.AndroidGradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
-import com.android.tools.idea.gradle.dsl.model.android.ExternalNativeBuildModelImpl
-import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.common.truth.Truth.assertThat

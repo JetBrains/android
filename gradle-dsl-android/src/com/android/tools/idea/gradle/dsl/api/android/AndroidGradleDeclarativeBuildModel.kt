@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android.api.android
+package com.android.tools.idea.gradle.dsl.api.android
 
-import com.android.tools.idea.gradle.dsl.api.SoftwareTypesModel
+import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeBuildModel
 
-interface AndroidSoftwareTypesModel : SoftwareTypesModel {
-  fun androidApp() : AndroidModel
-  fun androidLibrary() : AndroidModel
+enum class AndroidDeclarativeType {
+  APPLICATION, LIBRARY // More to come as soon as AGP ecosystem plugin has support of other AGP project types: test, dynamic feature etc.
+}
+
+interface AndroidGradleDeclarativeBuildModel : GradleDeclarativeBuildModel {
+  fun existingAndroidElement(): AndroidDeclarativeType?
+  fun createAndroidElement(type: AndroidDeclarativeType): AndroidDeclarativeModel
 }

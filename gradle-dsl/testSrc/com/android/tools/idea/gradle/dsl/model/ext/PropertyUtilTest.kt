@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.ext
 
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_UTIL_WRITE_BACK_ELEMENT_WITH_TRIMMED_NAME
-import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.TransformTestCase

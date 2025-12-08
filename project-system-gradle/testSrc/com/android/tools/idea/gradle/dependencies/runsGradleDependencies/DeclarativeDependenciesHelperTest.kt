@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.dependencies.IdPluginMatcher
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.MatchedStrategy
 import com.android.tools.idea.gradle.dependencies.PluginMatcher
-import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.testing.AndroidGradleProjectRule

@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.baselineprofiles
 
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.npw.model.ExistingProjectModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectSyncInvoker

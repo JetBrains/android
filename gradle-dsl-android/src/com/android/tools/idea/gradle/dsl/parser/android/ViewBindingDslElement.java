@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android.parser.android;
+package com.android.tools.idea.gradle.dsl.parser.android;
 
-import static com.android.tools.idea.gradle.dsl.android.model.android.ViewBindingModelImpl.ENABLED;
+import static com.android.tools.idea.gradle.dsl.model.android.ViewBindingModelImpl.ENABLED;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;

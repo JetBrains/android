@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android.api.android;
+package com.android.tools.idea.gradle.dsl.parser.android
 
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 
-public interface AndroidDeclarativeModel extends AndroidModel {
-  @NotNull
-  DependenciesModel dependencies();
+class DeclarativeAndroidDslElement(parent: GradleDslElement, name: GradleNameElement): AndroidDslElement(parent, name) {
+  override fun isInsignificantIfEmpty(): Boolean = false
 }

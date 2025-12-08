@@ -20,13 +20,13 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MO
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_ADD_EXISTING_TEST_SUITE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_TEST_OPTIONS_TEXT;
-import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelUtilsKt.android;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
-import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.AndroidGradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.testSuites.TestSuiteModel;
 import com.android.tools.idea.gradle.model.IdeTestOptions;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
 import java.io.IOException;
 import java.util.List;
