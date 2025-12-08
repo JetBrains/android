@@ -49,7 +49,7 @@ public interface BlazeIdeInterface {
       BlazeVersionData blazeVersion,
       BuildInvoker invoker,
       ProjectViewSet projectViewSet,
-      List<? extends TargetExpression> targets,
+      List<? extends String> targets,
       WorkspaceLanguageSettings workspaceLanguageSettings,
       ImmutableSet<OutputGroup> outputGroups,
       BlazeInvocationContext blazeInvocationContext,
