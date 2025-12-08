@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.util
 
-import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.sdk.IdeSdks
@@ -44,6 +43,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.File
 import java.nio.file.Paths
+import kotlinx.coroutines.runBlocking
 
 @RunsInEdt
 class GradleUtilAndroidGradleTest {
@@ -94,24 +94,23 @@ class GradleUtilAndroidGradleTest {
   }
 
   @Test
-  fun testJdkPathFromProjectJava8() {
+  fun testJdkPathFromProjectJava8() = runBlocking {
     val jdk8Path = AndroidGradleTests.getEmbeddedJdk8Path()
     verifyJdkPathFromProject(jdk8Path)
   }
 
   @Test
-  fun testJdkPathFromProjectJavaCurrent() {
+  fun testJdkPathFromProjectJavaCurrent() = runBlocking {
     verifyJdkPathFromProject(IdeSdks.getInstance().jdkPath!!.toAbsolutePath().toString())
   }
 
   @Test
-  fun testUserGradlePropertiesFileDetectionForGradleHomeChangedInSettings() = underProgressIndicator {
+  fun testUserGradlePropertiesFileDetectionForGradleHomeChangedInSettings() = runBlocking {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
       val gradleHome = Paths.get(projectRule.getBaseTestPath(), "gradleHome").toString()
       ApplicationManager.getApplication().runWriteAction { GradleSettings.getInstance(project).serviceDirectoryPath = gradleHome }
-      val userGradlePropertiesFile =
-        GradleProjectSystemUtil.getUserGradlePropertiesFile(project)
+      val userGradlePropertiesFile = GradleProjectSystemUtil.getUserGradlePropertiesFile(project)
       assertThat(userGradlePropertiesFile).isEqualTo(File(gradleHome, "gradle.properties"))
     }
   }
@@ -137,8 +136,7 @@ class GradleUtilAndroidGradleTest {
       assertThat(basePath).isNotEmpty()
       val managerPath = GradleInstallationManager.getInstance().getGradleJvmPath(project, basePath!!)
       assertThat(managerPath).isNotNull()
-      val settings = GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(
-        project)
+      val settings = GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project)
       val settingsPath = settings.javaHome
       assertThat(settingsPath).isNotNull()
       assertThat(settingsPath).isNotEmpty()

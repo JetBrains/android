@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
+import kotlinx.coroutines.runBlocking
 
 data class GradleTaskManagerTest(
   override val name: String,
@@ -43,7 +44,9 @@ data class GradleTaskManagerTest(
         testProject = TestProject.SIMPLE_APPLICATION,
       ) { project ->
         val id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, project)
-        val settings = GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project)
+        val settings = runBlocking {
+          GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project)
+        }
         val sb = StringBuilder()
         val listener = object : ExternalSystemTaskNotificationListener {
           override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
