@@ -9,7 +9,7 @@
 # All flag entries must be sorted.
 agp.test.suites.enabled=PREVIEW
 apk.ide.enable.apk.project.system=COMPLETE:2024
-app.links.assistant.gemini.add.logic.for.a.new.link=PREVIEW
+app.links.assistant.gemini.add.logic.for.a.new.link=COMPLETE:2025
 app.links.assistant.service.compatibility.enabled=COMPLETE:2025
 app.links.assistant.website.association.generator.v2=PREVIEW
 appinsights.gemini.assisted.context.fetch=PREVIEW
