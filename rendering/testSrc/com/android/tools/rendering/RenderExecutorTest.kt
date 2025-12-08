@@ -20,18 +20,6 @@ import com.android.testutils.concurrency.OnDemandExecutorService
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.google.common.truth.Truth
 import com.google.common.util.concurrent.MoreExecutors
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
-import org.junit.Test
 import java.util.concurrent.AbstractExecutorService
 import java.util.concurrent.Callable
 import java.util.concurrent.CompletableFuture
@@ -45,6 +33,18 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
+import org.junit.Test
 
 private class TestSingleThreadExecutorService(private val delegate: ExecutorService) :
   AbstractExecutorService(), SingleThreadExecutorService {
@@ -482,9 +482,11 @@ class RenderExecutorTest {
       }
     }
     var cancellationCount = executor.cancelActionsByTopic(listOf(lowPriorityTopic), false)
+    var secondCancellationCount = executor.cancelActionsByTopic(listOf(lowPriorityTopic), false)
     var numActions = actionExecutor.runAll()
     assertEquals(20, numActions)
     assertEquals(10, cancellationCount)
+    assertEquals(0, secondCancellationCount)
     assertEquals(10, counterHighPriority.get())
     assertEquals(0, counterLowPriority.get())
 
