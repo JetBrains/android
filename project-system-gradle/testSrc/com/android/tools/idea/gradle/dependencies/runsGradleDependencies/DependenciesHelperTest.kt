@@ -302,6 +302,38 @@ class DependenciesHelperTest {
            })
   }
 
+  @Test
+  fun testAddDifferentVersionTestSuiteEngineDependencyWithCatalog() {
+    doTest(TEST_SUITES_VERSION_CATALOG,
+           { _, moduleModel, helper ->
+             val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
+             val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "junit:junit:4.13")
+             assertThat(updates.size).isEqualTo(0)
+           },
+           {
+             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+             assertThat(countMatches(catalogContent, "{ module = \"junit:junit\", version.ref = \"junit\" }")).isEqualTo(1)
+             assertThat(countMatches(catalogContent, "junit = \"4.12\"")).isEqualTo(1)
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(countMatches(buildFileContent, "enginesDependencies(libs.junit)")).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testAddDifferentVersionTestSuiteEngineDependencyNoCatalog() {
+    doTest(TEST_SUITES,
+           { _, moduleModel, helper ->
+             val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
+             val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "junit:junit:4.13")
+             assertThat(updates.size).isEqualTo(0)
+           },
+           {
+             val buildFileContent = project.getTextForFile("app/build.gradle.kts")
+             assertThat(countMatches(buildFileContent, "enginesDependencies(\"junit:junit:4.12\")")).isEqualTo(1)
+             assertThat(countMatches(buildFileContent, "enginesDependencies(\"junit:junit:4.13\")")).isEqualTo(0)
+           })
+  }
+
   private fun doTest(projectPath: String,
                      change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesInserter) -> Unit,
                      assert: () -> Unit) {

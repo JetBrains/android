@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.intellij.psi.PsiFile
-import kotlin.text.uppercase
 import org.jetbrains.kotlin.utils.addIfNotNull
 
 @Suppress("AddDependencyUsage")
@@ -62,8 +61,23 @@ open class DependenciesInserter {
     return updateFiles
   }
 
+  /**
+   * Adds a test suite engine dependency to the given [TestSuiteModel].
+   *
+   * If a dependency with the same group and name already exists in the [TestSuiteModel]'s
+   * enginesDependencies, this function does nothing.
+   *
+   * @param testSuiteModel The [TestSuiteModel] to add the dependency to.
+   * @param dependency The dependency string in compact notation (e.g., "group:name:version").
+   * @return A set of [PsiFile]s that were modified, or an empty set if no changes were made.
+   */
   open fun addTestSuiteEngineDependency(testSuiteModel: TestSuiteModel, dependency: String): Set<PsiFile> {
-    if (testSuiteModel.useJunitEngine().hasEngineDependency(dependency)) {
+    // First check if any version of the dependency already exists
+    val parsedDependency = Dependency.parse(dependency)
+    if (testSuiteModel.useJunitEngine().enginesDependencies().any {
+        val parsedExisting = Dependency.parse(it.compactNotation())
+        parsedExisting.group == parsedDependency.group && parsedExisting.name == parsedDependency.group
+      }) {
       return emptySet()
     }
 
