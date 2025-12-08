@@ -16,19 +16,13 @@
 package com.google.idea.blaze.android.functional;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.idea.blaze.android.targetmapbuilder.NbAndroidInstrumentationTestTarget.android_instrumentation_test;
-import static com.google.idea.blaze.android.targetmapbuilder.NbAndroidTarget.android_binary;
 
 import com.google.idea.blaze.android.BlazeAndroidIntegrationTestCase;
 import com.google.idea.blaze.android.MockSdkUtil;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
-import com.google.idea.blaze.base.ideinfo.TargetKey;
-import com.google.idea.blaze.base.ideinfo.TargetMap;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
-import com.google.idea.blaze.java.AndroidBlazeRules.RuleTypes;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
