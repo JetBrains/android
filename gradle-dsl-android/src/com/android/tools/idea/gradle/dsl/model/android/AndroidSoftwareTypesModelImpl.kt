@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android.model.android
+package com.android.tools.idea.gradle.dsl.model.android
 
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidSoftwareTypesModel
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
+import com.android.tools.idea.gradle.dsl.api.android.AndroidSoftwareTypesModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
-import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement
-import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement.ANDROID_APP
-import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement.ANDROID_LIBRARY
+import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_APP
+import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_LIBRARY
 import com.android.tools.idea.gradle.dsl.parser.settings.DefaultsDslElement
 
 class AndroidSoftwareTypesModelImpl(private val defaultsDslElement: DefaultsDslElement) : GradleDslBlockModel(defaultsDslElement),

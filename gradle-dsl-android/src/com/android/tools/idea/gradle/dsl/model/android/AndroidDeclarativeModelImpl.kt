@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android.model.android
+package com.android.tools.idea.gradle.dsl.model.android
 
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidDeclarativeModel
+import com.android.tools.idea.gradle.dsl.api.android.AndroidDeclarativeModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ScriptDependenciesModelImpl
-import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 
 class AndroidDeclarativeModelImpl(dslElement: AndroidDslElement): AndroidModelImpl(dslElement), AndroidDeclarativeModel {

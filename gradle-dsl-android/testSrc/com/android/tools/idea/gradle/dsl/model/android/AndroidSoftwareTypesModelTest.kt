@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android.model.android
+package com.android.tools.idea.gradle.dsl.model.android
 
 import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidSoftwareTypesModel
+import com.android.tools.idea.gradle.dsl.model.AndroidGradleFileModelTestCase
+import com.android.tools.idea.gradle.dsl.api.android.AndroidSoftwareTypesModel
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.google.common.truth.Truth.assertThat
 import java.io.File

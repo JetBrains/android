@@ -21,7 +21,7 @@ import com.android.io.CancellableFileIo
 import com.android.prefs.AndroidLocationsException
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.utils.StdLogger
 import com.google.common.base.Strings
 import com.google.common.io.BaseEncoding

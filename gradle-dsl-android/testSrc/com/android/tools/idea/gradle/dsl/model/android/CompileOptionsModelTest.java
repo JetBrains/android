@@ -27,11 +27,11 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_LONG_IDENTIFIER_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelUtilsKt.android;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
-import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.AndroidGradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.intellij.pom.java.LanguageLevel;

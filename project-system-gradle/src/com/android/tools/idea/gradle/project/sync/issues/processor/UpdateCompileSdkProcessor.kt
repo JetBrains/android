@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues.processor
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.projectsystem.toReason
 import com.google.common.annotations.VisibleForTesting

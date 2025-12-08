@@ -25,11 +25,11 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEX_OPTIONS_MOD
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEX_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEX_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEX_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_IN_THE_LIST;
-import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelUtilsKt.android;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
-import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.AndroidGradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.DexOptionsModel;
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;

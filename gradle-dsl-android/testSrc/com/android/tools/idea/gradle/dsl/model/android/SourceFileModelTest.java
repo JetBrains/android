@@ -24,13 +24,12 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MOD
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MODEL_SOURCE_FILE_REMOVE_AND_APPLY;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MODEL_SOURCE_FILE_REMOVE_AND_RESET;
-import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelUtilsKt.android;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl;
+import com.android.tools.idea.gradle.dsl.model.AndroidGradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
 import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceFileModel;
 import java.util.List;

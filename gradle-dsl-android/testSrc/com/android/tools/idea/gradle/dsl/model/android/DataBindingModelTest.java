@@ -23,11 +23,11 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DATA_BINDING_MO
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DATA_BINDING_MODEL_EDIT_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DATA_BINDING_MODEL_PARSE_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DATA_BINDING_MODEL_REMOVE_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelUtilsKt.android;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
-import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.AndroidGradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.DataBindingModel;
 import org.junit.Test;
 

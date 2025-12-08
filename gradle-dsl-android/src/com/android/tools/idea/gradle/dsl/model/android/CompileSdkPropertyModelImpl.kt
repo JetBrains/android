@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android.model.android
+package com.android.tools.idea.gradle.dsl.model.android
 
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkBlockModel
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPropertyModel
@@ -23,9 +23,9 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference
-import com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.COMPILE_SDK_VERSION
-import com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.COMPILE_SDK_MINOR
-import com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.COMPILE_SDK_EXTENSION
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_VERSION
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_MINOR
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_EXTENSION
 import com.android.tools.idea.gradle.dsl.model.android.CompileSdkBlockModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl

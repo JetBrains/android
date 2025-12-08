@@ -16,8 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.android
 
 import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
-import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.model.AndroidGradleFileModelTestCase
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
