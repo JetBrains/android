@@ -197,18 +197,6 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     val separator1 = JSeparator()
     separator1.alignmentX = JComponent.LEFT_ALIGNMENT
     topContent.add(separator1)
-    topContent.add(Box.createRigidArea(Dimension(0, 8)))
-
-    val viewTitleLabel = JBLabel(viewType.displayText).apply {
-      alignmentX = JComponent.LEFT_ALIGNMENT
-    }
-    topContent.add(viewTitleLabel)
-    topContent.add(Box.createRigidArea(Dimension(0, 8)))
-
-    val separator2 = JSeparator()
-    separator2.alignmentX = JComponent.LEFT_ALIGNMENT
-    topContent.add(separator2)
-    topContent.add(Box.createRigidArea(Dimension(0, 4)))
 
     // Add the appropriate image view (either the 3-way split or the tabbed single view).
     val imageDisplayPanel = if (viewType == ScreenshotViewType.ALL) {
