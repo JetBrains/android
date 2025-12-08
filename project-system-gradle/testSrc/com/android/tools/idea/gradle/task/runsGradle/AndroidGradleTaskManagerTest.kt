@@ -32,6 +32,7 @@ import com.intellij.openapi.externalSystem.service.ExternalSystemFacadeManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.writeText
+import kotlinx.coroutines.runBlocking
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.service.task.PredefinedVersionSpecificInitScript
@@ -50,7 +51,7 @@ class AndroidGradleTaskManagerTest {
   val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
-  fun `app assembleDebug from root and app`() {
+  fun `app assembleDebug from root and app`() = runBlocking {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
       val path = preparedProject.root
@@ -92,7 +93,7 @@ class AndroidGradleTaskManagerTest {
   }
 
   @Test
-  fun `Given invalid java home settings When executing any task Then no exception was thrown since invalid path is not specified to TAPI`() {
+  fun `Given invalid java home settings When executing any task Then no exception was thrown since invalid path is not specified to TAPI`() = runBlocking {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open {
       val executionSettings = ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(
@@ -117,7 +118,7 @@ class AndroidGradleTaskManagerTest {
   }
 
   @Test
-  fun `supports version-specific scripts`() {
+  fun `supports version-specific scripts`() = runBlocking {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
       var capturedException: Exception? = null
@@ -155,7 +156,7 @@ class AndroidGradleTaskManagerTest {
   }
 
   @Test
-  fun `throws exception if gradle task execution fails`() {
+  fun `throws exception if gradle task execution fails`() = runBlocking {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
       runWriteActionAndWait {

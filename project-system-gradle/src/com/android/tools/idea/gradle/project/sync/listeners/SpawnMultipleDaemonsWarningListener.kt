@@ -29,7 +29,8 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.impl.NotificationsConfigurationImpl
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import org.jetbrains.android.util.AndroidBundle
@@ -44,27 +45,24 @@ class SpawnMultipleDaemonsWarningListener : GradleSyncListenerWithRoot {
     if (!IdeInfo.getInstance().isAndroidStudio) return
     if (!NotificationsConfigurationImpl.getSettings(JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId).isShouldLog) return
 
-    ApplicationManager.getApplication().executeOnPooledThread {
-      // Use runReadAction because we are accessing Project model data
-      runReadAction {
-        if (project.isDisposed) return@runReadAction
+    ProgressManager.getInstance().runProcess({
+      if (project.isDisposed) return@runProcess
 
-        // This check involves IO/Path resolution, must be off EDT
-        if (IdeSdks.getInstance().isUsingJavaHomeJdk(project)) return@runReadAction
+      // This check involves IO/Path resolution
+      if (IdeSdks.getInstance().isUsingJavaHomeJdk(project)) return@runProcess
 
-        val gradleVersion = GradleSyncStateHolder.getInstance(project).lastSyncedGradleVersion ?: return@runReadAction
-        if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(rootProjectPath, gradleVersion)) return@runReadAction
+      val gradleVersion = GradleSyncStateHolder.getInstance(project).lastSyncedGradleVersion ?: return@runProcess
+      if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(rootProjectPath, gradleVersion)) return@runProcess
 
-        // Pre-calculate strings here to avoid IO on the UI thread later
-        val gradleJvmPath = GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined"
-        val javaHome = IdeSdks.getInstance().jdkFromJavaHome ?: "Undefined"
+      // Pre-calculate strings here to avoid IO on the UI thread later
+      val gradleJvmPath = GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined"
+      val javaHome = IdeSdks.getInstance().jdkFromJavaHome ?: "Undefined"
 
-        // Dispatch back to EDT to show the notification
-        ApplicationManager.getApplication().invokeLater {
-          showMultipleGradleDaemonWarning(project, rootProjectPath, gradleJvmPath, javaHome)
-        }
+      // Dispatch back to EDT to show the notification
+      ApplicationManager.getApplication().invokeLater {
+        showMultipleGradleDaemonWarning(project, rootProjectPath, gradleJvmPath, javaHome)
       }
-    }
+    }, EmptyProgressIndicator())
   }
 
   @UiThread
