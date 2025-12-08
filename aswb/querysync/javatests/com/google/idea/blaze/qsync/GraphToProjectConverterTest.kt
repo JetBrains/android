@@ -31,6 +31,7 @@ import com.google.idea.blaze.qsync.project.ProjectPath.Companion.workspaceRelati
 import com.google.idea.blaze.qsync.project.ProjectPath.ExternalRepositoryFinder.Companion.createEmptyForTests
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
+import com.google.idea.blaze.qsync.project.SourceSet
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.query.PackageSet
 import com.google.idea.blaze.qsync.testdata.BuildGraphs
@@ -150,7 +151,6 @@ class GraphToProjectConverterTest {
 
   @Test
   fun testCalculateRootSources_singleSource_atImportRoot() {
-    val packages = PackageSet.of(Path.of("java/com/test"))
     val sourcePackages = mapOf(Path.of("java/com/test/Class1.java") to "com.test")
 
     val converter =
@@ -160,14 +160,16 @@ class GraphToProjectConverterTest {
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
 
-    val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
+    val sourcesMap = mapOf(
+      Path.of("java/com/test") to SourceSet(javaSourceFiles = sourcePackages.keys.toList())
+    )
+    val rootSources = converter.calculateJavaRootSources(context, sourcesMap)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/test"))
     Truth.assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of(""), "com.test")
   }
 
   @Test
   fun testCalculateRootSources_singleSource_belowImportRoot() {
-    val packages = PackageSet.of(Path.of("java/com/test"))
     val sourcePackages = mapOf(Path.of("java/com/test/subpackage/Class1.java") to "com.test.subpackage")
 
     val converter =
@@ -177,14 +179,16 @@ class GraphToProjectConverterTest {
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
 
-    val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
+    val sourcesMap = mapOf(
+      Path.of("java/com/test") to SourceSet(javaSourceFiles = sourcePackages.keys.toList())
+    )
+    val rootSources = converter.calculateJavaRootSources(context, sourcesMap)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/test"))
     Truth.assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of(""), "com.test")
   }
 
   @Test
   fun testCalculateRootSources_multiSource_belowImportRoot() {
-    val packages = PackageSet.of(Path.of("java/com/test"))
     val sourcePackages =
       mapOf(
         Path.of("java/com/test/package1/Class1.java") to "com.test.package1",
@@ -198,14 +202,16 @@ class GraphToProjectConverterTest {
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
 
-    val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
+    val sourcesMap = mapOf(
+      Path.of("java/com/test") to SourceSet(javaSourceFiles = sourcePackages.keys.toList())
+    )
+    val rootSources = converter.calculateJavaRootSources(context, sourcesMap)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/test"))
     Truth.assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of(""), "com.test")
   }
 
   @Test
   fun testCalculateRootSources_multiRoots() {
-    val packages = PackageSet.of(Path.of("java/com/app"), Path.of("java/com/lib"))
     val sourcePackages = mapOf(Path.of("java/com/app/AppClass.java") to "com.app", Path.of("java/com/lib/LibClass.java") to "com.lib")
 
     val converter =
@@ -215,7 +221,11 @@ class GraphToProjectConverterTest {
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
 
-    val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
+    val sourcesMap = mapOf(
+      Path.of("java/com/app") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/app/AppClass.java"))),
+      Path.of("java/com/lib") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/lib/LibClass.java")))
+    )
+    val rootSources = converter.calculateJavaRootSources(context, sourcesMap)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/app"), Path.of("java/com/lib"))
     Truth.assertThat(rootSources.get(Path.of("java/com/app"))).containsExactly(Path.of(""), "com.app")
     Truth.assertThat(rootSources.get(Path.of("java/com/lib"))).containsExactly(Path.of(""), "com.lib")
@@ -223,7 +233,6 @@ class GraphToProjectConverterTest {
 
   @Test
   fun testCalculateRootSources_multiSource_packageMismatch() {
-    val packages = PackageSet.of(Path.of("java/com/test"), Path.of("java/com/test/package1"))
     val sourcePackages =
       mapOf(
         Path.of("java/com/test/package2/Class1.java") to "com.test.package2",
@@ -237,7 +246,11 @@ class GraphToProjectConverterTest {
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
 
-    val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
+    val sourcesMap = mapOf(
+      Path.of("java/com/test") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/package2/Class1.java"))),
+      Path.of("java/com/test/package1") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/package1/Class2.java")))
+    )
+    val rootSources = converter.calculateJavaRootSources(context, sourcesMap)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/test"))
     Truth.assertThat(rootSources.get(Path.of("java/com/test")))
       .containsExactly(Path.of(""), "com.test", Path.of("package1"), "com.test.oddpackage")
@@ -245,7 +258,6 @@ class GraphToProjectConverterTest {
 
   @Test
   fun testCalculateRootSources_multiSource_samePrefix() {
-    val packages = PackageSet.of(Path.of("java/com/test/package1"), Path.of("java/com/test/package2"))
     val sourcePackages =
       mapOf(
         Path.of("java/com/test/package2/Class1.java") to "com.test.package2",
@@ -259,14 +271,17 @@ class GraphToProjectConverterTest {
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
 
-    val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
+    val sourcesMap = mapOf(
+      Path.of("java/com/test/package1") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/package1/Class2.java"))),
+      Path.of("java/com/test/package2") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/package2/Class1.java")))
+    )
+    val rootSources = converter.calculateJavaRootSources(context, sourcesMap)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/test"))
     Truth.assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of(""), "com.test")
   }
 
   @Test
   fun testCalculateRootSources_multiSource_nextedPrefixCompatible() {
-    val packages = PackageSet.of(Path.of("java/com/test"), Path.of("java/com/test/package"))
     val sourcePackages =
       mapOf(Path.of("java/com/test/Class1.java") to "com.test", Path.of("java/com/test/package/Class2.java") to "com.test.package")
 
@@ -277,14 +292,17 @@ class GraphToProjectConverterTest {
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
 
-    val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
+    val sourcesMap = mapOf(
+      Path.of("java/com/test") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/Class1.java"))),
+      Path.of("java/com/test/package") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/package/Class2.java")))
+    )
+    val rootSources = converter.calculateJavaRootSources(context, sourcesMap)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/test"))
     Truth.assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of(""), "com.test")
   }
 
   @Test
   fun testCalculateRootSources_multiSource_nestedPrefixIncompatible() {
-    val packages = PackageSet.of(Path.of("java/com/test"), Path.of("java/com/test/package"))
     val sourcePackages =
       mapOf(Path.of("java/com/test/Class1.java") to "com.test.odd", Path.of("java/com/test/package/Class2.java") to "com.test.package")
 
@@ -295,7 +313,11 @@ class GraphToProjectConverterTest {
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
 
-    val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
+    val sourcesMap = mapOf(
+      Path.of("java/com/test") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/Class1.java"))),
+      Path.of("java/com/test/package") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/package/Class2.java")))
+    )
+    val rootSources = converter.calculateJavaRootSources(context, sourcesMap)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/test"))
     Truth.assertThat(rootSources.get(Path.of("java/com/test")))
       .containsExactly(Path.of(""), "com.test.odd", Path.of("package"), "com.test.package")
@@ -303,8 +325,6 @@ class GraphToProjectConverterTest {
 
   @Test
   fun testCalculateRootSources_multiSource_rootPrefix() {
-    val packages = PackageSet.of(Path.of("third_party/java"), Path.of("third_party/javatests"))
-
     val sourcePackages =
       mapOf(
         Path.of("third_party/java/com/test/Class1.java") to "com.test",
@@ -318,14 +338,17 @@ class GraphToProjectConverterTest {
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
 
-    val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
+    val sourcesMap = mapOf(
+      Path.of("third_party/java") to SourceSet(javaSourceFiles = listOf(Path.of("third_party/java/com/test/Class1.java"))),
+      Path.of("third_party/javatests") to SourceSet(javaSourceFiles = listOf(Path.of("third_party/javatests/com/test/Class2.java")))
+    )
+    val rootSources = converter.calculateJavaRootSources(context, sourcesMap)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("third_party"))
     Truth.assertThat(rootSources.get(Path.of("third_party"))).containsExactly(Path.of("java"), "", Path.of("javatests"), "")
   }
 
   @Test
   fun testCalculateRootSources_multiSource_repackagedSource() {
-    val packages = PackageSet.of(Path.of("java/com/test"), Path.of("java/com/test/repackaged"))
     val sourcePackages =
       mapOf(
         Path.of("java/com/test/repackaged/com/foo/Class1.java") to "com.foo",
@@ -339,7 +362,11 @@ class GraphToProjectConverterTest {
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
 
-    val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
+    val sourcesMap = mapOf(
+      Path.of("java/com/test") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/somepackage/Class2.java"))),
+      Path.of("java/com/test/repackaged") to SourceSet(javaSourceFiles = listOf(Path.of("java/com/test/repackaged/com/foo/Class1.java")))
+    )
+    val rootSources = converter.calculateJavaRootSources(context, sourcesMap)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/test"))
     Truth.assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of("repackaged"), "", Path.of(""), "com.test")
   }

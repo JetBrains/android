@@ -30,6 +30,7 @@ import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
+import com.google.idea.blaze.qsync.project.SourceSet
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.query.PackageSet
@@ -82,8 +83,15 @@ class GraphToProjectConverter(
    */
   @VisibleForTesting
   @Throws(BuildException::class)
-  fun calculateJavaRootSources(context: Context<*>, sourceFiles: Collection<Path>, packages: PackageSet): Map<Path, Map<Path, String>> {
-    val prefixes = runBlocking { javaPackagePrefixReader.readPrefixes(context, packages, sourceFiles) }
+ fun calculateJavaRootSources(
+    context: Context<*>,
+    packageSourceSets: Map<Path, SourceSet>,
+  ): Map<Path, Map<Path, String>> {
+    val packages = PackageSet(packageSourceSets.keys)
+    val sourceFiles = packageSourceSets.values.flatMap { it.javaSourceFiles }
+    val prefixes = runBlocking {
+      javaPackagePrefixReader.readPrefixes(context, packages, sourceFiles)
+    }
 
     // All packages split by their content roots
     val rootToPrefix = splitByRoot(prefixes)
@@ -127,10 +135,54 @@ class GraphToProjectConverter(
 
   companion object {
     fun initializeProjectStructureData(graph: BuildGraphData): ProjectStructureData {
+      val javaSourceFiles = graph.getJavaSourceFiles()
+      val nonJavaSourceFiles =
+        graph
+          .getSourceFilesByRuleKindAndType({ t -> !RuleKinds.isJava(t) }, *SourceType.all())
+          .values
+          .flatten()
+
+      val packages = graph.packages()
+      val directoryToContainingPackageMap = mutableMapOf<Path, Path?>()
+
+      fun findBuildPackage(filePath: Path): Path? {
+        val parent = filePath.parent ?: return null
+        return directoryToContainingPackageMap.getOrPut(parent) {
+          var current: Path? = parent
+          while (current != null) {
+            if (packages.contains(current)) {
+              return@getOrPut current
+            }
+            current = current.parent
+          }
+          null
+        }
+      }
+
+      val javaSourcesMap = mutableMapOf<Path, MutableList<Path>>()
+      for (file in javaSourceFiles) {
+        findBuildPackage(file)?.let { pkgPath ->
+          javaSourcesMap.computeIfAbsent(pkgPath) { mutableListOf() }.add(file)
+        }
+      }
+
+      val nonJavaSourcesMap = mutableMapOf<Path, MutableList<Path>>()
+      for (file in nonJavaSourceFiles) {
+        findBuildPackage(file)?.let { pkgPath ->
+          nonJavaSourcesMap.computeIfAbsent(pkgPath) { mutableListOf() }.add(file)
+        }
+      }
+
+      val finalSourcesMap =
+        (javaSourcesMap.keys + nonJavaSourcesMap.keys).associateWith { pkg ->
+          SourceSet(
+            javaSourceFiles = javaSourcesMap[pkg]?.sorted() ?: emptyList(),
+            nonJavaSourceFiles = nonJavaSourcesMap[pkg]?.sorted() ?: emptyList(),
+          )
+        }
+
       return ProjectStructureData(
-        javaSourceFiles = graph.getJavaSourceFiles(),
-        packages = graph.packages(),
-        nonJavaSourceFiles = graph.getSourceFilesByRuleKindAndType({ t -> !RuleKinds.isJava(t) }, *SourceType.all()).values.flatten(),
+        packageSourceSets = finalSourcesMap,
         activeLanguages = graph.getActiveLanguages(),
       )
     }
@@ -331,8 +383,10 @@ class GraphToProjectConverter(
     if (projectDefinition.isAndroidWorkspace) {
       markAsAndroidModule()
     }
-    val javaSourceRoots = calculateJavaRootSources(context, packages.javaSourceFiles, packages.packages)
-    val rootToNonJavaSource = nonJavaSourceFolders(packages.nonJavaSourceFiles)
+   val javaSourceRoots =
+      calculateJavaRootSources(context, packages.packageSourceSets)
+    val allNonJavaSourceFiles = packages.packageSourceSets.values.flatMap { it.nonJavaSourceFiles }
+    val rootToNonJavaSource = nonJavaSourceFolders(allNonJavaSourceFiles)
     val excludesByRootDirectory = projectDefinition.excludesByRootDirectory
     val testSourceGlobMatcher = TestSourceGlobMatcher.create(projectDefinition)
     for (dir in projectDefinition.projectIncludes) {

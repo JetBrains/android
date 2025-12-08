@@ -17,7 +17,6 @@ package com.google.idea.blaze.qsync
 
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
-import com.google.idea.blaze.qsync.GraphToProjectConverter.Companion.initializeProjectStructureData
 import com.google.idea.blaze.qsync.cc.ConfigureCcSources
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.java.PackageReader
@@ -62,7 +61,11 @@ class ProjectBuilder(
     val externalRepositoryFinder = ProjectPath.ExternalRepositoryFinder.createAndPrepare(workspaceRoot)
 
     val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
-    graphToProjectConverter.configureProject(initializeProjectStructureData(graph), externalRepositoryFinder, update)
+   graphToProjectConverter.configureProject(
+      GraphToProjectConverter.initializeProjectStructureData(graph),
+      externalRepositoryFinder,
+      update,
+    )
     graphToProjectConverter.configureProject(graph, externalRepositoryFinder, update)
     ConfigureCcSources().update(update, graph, context)
     for (updateOperation in projectProtoUpdates) {

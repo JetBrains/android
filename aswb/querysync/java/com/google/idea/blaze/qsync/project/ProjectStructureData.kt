@@ -15,28 +15,33 @@
  */
 package com.google.idea.blaze.qsync.project
 
-import com.google.idea.blaze.qsync.query.PackageSet
 import java.nio.file.Path
+
+/** Data class to hold the source files within a single build package. */
+data class SourceSet(
+  /** Java/Kotlin source files, relative to the workspace root. */
+  val javaSourceFiles: List<Path> = emptyList(),
+  /** Other source files (e.g. C++, Proto), relative to the workspace root. */
+  val nonJavaSourceFiles: List<Path> = emptyList(),
+)
 
 /**
  * A data class to hold the information required to setup a basic project structure.
  *
- * This class encapsulates a subset of data from [BuildGraphData] that is needed by [GraphToProjectConverter] to setup a basic project. Its
+ * This class encapsulates a subset of data from [BuildGraphData] that is needed by
+ * [GraphToProjectConverter] to setup a basic project. Its
  * contents can be instantiated from a directory traversal and without running `bazel query`.
  */
 data class ProjectStructureData(
-  val javaSourceFiles: List<Path>,
-  val packages: PackageSet,
-  val nonJavaSourceFiles: List<Path>,
+  /** Map from build package path (relative to workspace root) to its source files. */
+  val packageSourceSets: Map<Path, SourceSet>,
   val activeLanguages: Set<QuerySyncLanguage>,
 ) {
   companion object {
     @JvmField
     val EMPTY =
       ProjectStructureData(
-        javaSourceFiles = listOf(),
-        packages = PackageSet.EMPTY,
-        nonJavaSourceFiles = listOf(),
+        packageSourceSets = emptyMap(),
         activeLanguages = emptySet(),
       )
   }
