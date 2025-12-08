@@ -155,7 +155,7 @@ data class ModelVersions(
   val agpVersionAsString: String = agp.toString()
 }
 
-private fun getLegacyAndroidGradlePluginProperties(
+fun getLegacyAndroidGradlePluginProperties(
   controller: BuildController,
   gradleProject: BasicGradleProject,
   modelVersions: ModelVersions,

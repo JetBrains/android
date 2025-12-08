@@ -58,6 +58,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl",
+        "//tools/adt/idea/.idea/libraries:kotlin-test",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "long",

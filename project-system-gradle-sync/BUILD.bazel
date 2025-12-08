@@ -140,6 +140,8 @@ jvm_library(
         "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api_test_lib",
         "//android/gradle-tooling/studio-gradle-tooling-impl:android-gradle-tooling-impl",
         "//android/gradle-tooling/studio-gradle-tooling-impl:android-gradle-tooling-impl_test_lib",
+        "//libraries/kotlin/test:libraries-kotlinTest",
+        "//libraries/kotlin/test:libraries-kotlinTest_test_lib",
         "//plugins/gradle/tooling-extension-api:toolingExtension",
         "//plugins/gradle/tooling-extension-api:toolingExtension_test_lib",
     ],

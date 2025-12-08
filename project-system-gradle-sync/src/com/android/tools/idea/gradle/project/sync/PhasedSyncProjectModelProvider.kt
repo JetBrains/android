@@ -113,6 +113,8 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
                     val androidProject = controller.findModel(gradleProject, AndroidProject::class.java)!!
                     val androidDsl = controller.findModel(gradleProject, AndroidDsl::class.java)!!
                     val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)!!
+                    val legacyAndroidGradlePluginProperties =
+                      getLegacyAndroidGradlePluginProperties(controller, gradleProject, modelVersions)
 
                     val defaultVariantName =
                       basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
@@ -131,8 +133,7 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
                           androidProject,
                           modelVersions,
                           androidDsl,
-                          // Model shouldn't be fetched when using 8.0+, which is the case for phased sync
-                          legacyAndroidGradlePluginProperties = null,
+                          legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
                           gradlePropertiesModel,
                           defaultVariantName,
                         )
@@ -150,6 +151,7 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
                         ideAndroidProject,
                         selectedVariantName,
                         shouldSkipRuntimeClasspathForLibraries(androidProject.flags, gradlePropertiesModel),
+                        legacyAndroidGradlePluginProperties,
                       )
                   }
                   .onFailure { exceptionsPerProject += gradleProject to it }
@@ -273,8 +275,6 @@ private fun computeVariantNameToBeSynced(
   ?: defaultVariantName.also { LOG.debug("Picked the default variant $it for $moduleId") }
 
 private fun Versions.isAtLeastAgp8() = AgpVersion.parse(agp).isAtLeast(8, 0, 0)
-
-internal fun BasicGradleProject.moduleId() = Modules.createUniqueModuleId(projectIdentifier.buildIdentifier.rootDir, path)
 
 internal inline fun <reified T> BuildController.fetchModel(gradleProject: BasicGradleProject, selectedVariantName: String?) =
   if (selectedVariantName != null) {
