@@ -25,7 +25,9 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Pair
 import java.io.File
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.plugins.gradle.GradleManager
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
@@ -58,10 +60,11 @@ object JdkUtils {
   }
 
   fun createNewGradleJvmProjectJdk(project: Project, parent: Disposable): Sdk {
-    val gradleExecutionSettings =
+    val gradleExecutionSettings = runBlocking {
       (ExternalSystemApiUtil.getManager(GradleConstants.SYSTEM_ID) as GradleManager)
         .executionSettingsProvider
-        .`fun`(com.intellij.openapi.util.Pair(project, project.guessProjectDir()?.path))
+        .`fun`(Pair(project, project.guessProjectDir()?.path))
+    }
     @Suppress("UnstableApiUsage")
     val sdk =
       ExternalSystemJdkProvider.getInstance()

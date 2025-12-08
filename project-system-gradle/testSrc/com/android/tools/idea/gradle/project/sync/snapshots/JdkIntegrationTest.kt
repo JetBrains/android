@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.project.sync.utils.EnvironmentUtils
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
 import com.android.tools.idea.gradle.project.sync.utils.ProjectJdkUtils
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
-import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Expect
 import com.intellij.build.events.FailureResult
 import com.intellij.build.events.FinishBuildEvent
@@ -48,6 +47,7 @@ import org.junit.rules.TemporaryFolder
 import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
+import kotlinx.coroutines.runBlocking
 
 class JdkIntegrationTest(
   private val projectRule: IntegrationTestEnvironmentRule,
@@ -58,7 +58,7 @@ class JdkIntegrationTest(
   fun run(
     project: JdkTestProject,
     environment: TestEnvironment = TestEnvironment(),
-    body: ProjectRunnable.() -> Unit
+    body: suspend ProjectRunnable.() -> Unit
   ) {
     val preparedProject = projectRule.prepareTestProject(
       agpVersion = project.agpVersion,
@@ -72,10 +72,12 @@ class JdkIntegrationTest(
     )
 
     try {
-      body(ProjectRunnable(
-        expect = expect,
-        preparedProject = preparedProject
-      ))
+      runBlocking {
+        body(ProjectRunnable(
+          expect = expect,
+          preparedProject = preparedProject
+        ))
+      }
     } finally {
       cleanTestEnvironment()
     }

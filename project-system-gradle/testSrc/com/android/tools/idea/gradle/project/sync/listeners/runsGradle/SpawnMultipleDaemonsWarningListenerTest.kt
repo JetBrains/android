@@ -35,6 +35,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.testFramework.replaceService
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.junit.Rule
@@ -64,7 +65,7 @@ class SpawnMultipleDaemonsWarningListenerTest {
   }
 
   @Test
-  fun `test Given undefined jdkFromJavaHomePath When sync finished Then MultipleGradleDaemons warning is displayed`() {
+  fun `test Given undefined jdkFromJavaHomePath When sync finished Then MultipleGradleDaemons warning is displayed`() = runBlocking {
     val jdkFromJavaHomePath: String? = null
     val mockIdeSdks = Mockito.spy(IdeSdks.getInstance())
     whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
@@ -113,7 +114,7 @@ class SpawnMultipleDaemonsWarningListenerTest {
   }
 
   @Test
-  fun `test Given different jdkFromJavaHomePath and jdkPath When sync finished Then MultipleGradleDaemons warning is displayed`() {
+  fun `test Given different jdkFromJavaHomePath and jdkPath When sync finished Then MultipleGradleDaemons warning is displayed`() = runBlocking {
     val jdkFromJavaHomePath = "/test/jdk/path"
     val mockIdeSdks = Mockito.spy(IdeSdks.getInstance())
     whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
@@ -152,10 +153,11 @@ class SpawnMultipleDaemonsWarningListenerTest {
     project: Project,
     jdkFromJavaHomePath: String? = null
   ) = StringBuilder().apply {
+    val gradleJvmPath = GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath.orEmpty())
     append(
       AndroidBundle.message("project.sync.warning.multiple.gradle.daemons.message",
                             project.name,
-                            GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined",
+                            gradleJvmPath ?: "Undefined",
                             jdkFromJavaHomePath ?: "Undefined"
       )
     )
