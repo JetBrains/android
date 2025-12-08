@@ -11,6 +11,8 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
+        "//tools/adt/idea/.idea/libraries:google-api-client",
+        "@intellij//:intellij.libraries.grpc",
     ],
 )
 
@@ -23,6 +25,8 @@ kotlin_library(
     ]),
     deps = [
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
+        "@maven//:com.google.api-client.google-api-client",
         "@maven//:io.grpc.grpc-protobuf",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core",
     ],
 )
