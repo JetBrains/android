@@ -91,7 +91,7 @@ public final class BlazeCommand {
     private final BlazeCommandName name;
     private boolean invokeParallel;
     private final ImmutableList.Builder<String> blazeStartupFlags = ImmutableList.builder();
-    private final ImmutableList.Builder<TargetExpression> targets = ImmutableList.builder();
+    private final ImmutableList.Builder<String> targets = ImmutableList.builder();
     private final ImmutableList.Builder<String> blazeCmdlineFlags = ImmutableList.builder();
     private final ImmutableList.Builder<String> exeFlags = ImmutableList.builder();
 
@@ -111,9 +111,7 @@ public final class BlazeCommand {
       arguments.add("--");
 
       // Trust the user's ordering of the targets since order matters to blaze
-      for (TargetExpression targetExpression : targets.build()) {
-        arguments.add(targetExpression.toString());
-      }
+      arguments.addAll(targets.build());
 
       arguments.addAll(exeFlags.build());
       return arguments.build();
@@ -140,6 +138,11 @@ public final class BlazeCommand {
 
     @CanIgnoreReturnValue
     public Builder addTargets(List<? extends TargetExpression> targets) {
+      return addTargetStrings(targets.stream().map(TargetExpression::toString).toList());
+    }
+
+    @CanIgnoreReturnValue
+    public Builder addTargetStrings(List<? extends String> targets) {
       this.targets.addAll(targets);
       return this;
     }
