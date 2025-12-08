@@ -87,11 +87,6 @@ interface BuildSystem {
       RETURN_PROCESS_HANDLER,
 
       /**
-       * Capability to run parallel builds
-       */
-      BUILD_PARALLEL_SHARDS,
-
-      /**
        * Capability to run blaze/bazel query command with --query_file flag
        */
       SUPPORT_QUERY_FILE,
