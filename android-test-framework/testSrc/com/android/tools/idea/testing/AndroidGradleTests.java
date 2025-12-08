@@ -757,8 +757,6 @@ public class AndroidGradleTests {
                         IdeSdks.getInstance().isJdkCompatible(currentJdk, JDK_1_8));
 
     // IntelliJ uses project jdk for gradle import by default, see GradleProjectSettings.myGradleJvm
-    // Android Studio overrides GradleInstallationManager.getGradleJdk() using AndroidStudioGradleInstallationManager
-    // so it doesn't require the Gradle JDK setting to be defined
     if (!IdeInfo.getInstance().isAndroidStudio()) {
       WriteAction.runAndWait(() -> ProjectRootManager.getInstance(project).setProjectSdk(currentJdk));
     }

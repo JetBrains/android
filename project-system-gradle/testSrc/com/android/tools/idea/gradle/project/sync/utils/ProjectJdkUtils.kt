@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package com.android.tools.idea.gradle.project.sync.utils
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.extensions.getOptionElement
 import com.android.tools.idea.gradle.project.sync.extensions.getOptionElementName
 import com.android.tools.idea.gradle.project.sync.model.GradleDaemonToolchain
@@ -115,8 +114,7 @@ object ProjectJdkUtils {
   }
 
   fun getGradleDaemonExecutionJdkPath(project: Project, gradleRootPath: @SystemIndependent String): String? {
-    val gradleInstallation = (GradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
-    return gradleInstallation.getGradleJvmPath(project, gradleRootPath)
+    return GradleInstallationManager.getInstance().getGradleJvmPath(project, gradleRootPath)
   }
 
   fun setUserHomeGradlePropertiesJdk(jdkPath: String, disposable: Disposable) {

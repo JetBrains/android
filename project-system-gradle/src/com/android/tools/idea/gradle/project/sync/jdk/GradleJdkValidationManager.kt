@@ -77,7 +77,7 @@ class GradleJdkValidationManager private constructor() {
     }
 
     val gradleJdkException = if (IdeSdks.getInstance().isUsingEnvVariableJdk) {
-      InvalidEnvironmentVariableStudioGradleJdkException(project, gradleRootPath, resolvedGradleJdkPath)
+      InvalidEnvironmentVariableStudioGradleJdkException(project, gradleRootPath)
     } else {
       getInvalidJdkExceptionBasedOnGradleJvm(project, gradleRootPath, resolvedGradleJdkPath)
     }
@@ -100,7 +100,7 @@ class GradleJdkValidationManager private constructor() {
       ExternalSystemJdkUtil.USE_JAVA_HOME -> InvalidEnvironmentVariableJavaHomeException(project, gradleRootPath, resolvedGradleJdkPath)
       USE_GRADLE_JAVA_HOME -> InvalidGradlePropertiesJavaHomeException(project, gradleRootPath, resolvedGradleJdkPath)
       USE_GRADLE_LOCAL_JAVA_HOME -> InvalidGradleLocalJavaHomeException(project, gradleRootPath, resolvedGradleJdkPath)
-      JDK_LOCATION_ENV_VARIABLE_NAME -> InvalidEnvironmentVariableStudioGradleJdkException(project, gradleRootPath, resolvedGradleJdkPath)
+      JDK_LOCATION_ENV_VARIABLE_NAME -> InvalidEnvironmentVariableStudioGradleJdkException(project, gradleRootPath)
       else -> InvalidTableEntryJdkException(project, gradleRootPath, gradleJvm)
     }
   }
