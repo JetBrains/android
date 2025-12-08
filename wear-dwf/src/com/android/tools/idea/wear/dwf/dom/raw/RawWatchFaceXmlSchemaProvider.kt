@@ -34,7 +34,9 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.removeUserData
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.findPsiFile
 import com.intellij.psi.PsiFile
@@ -45,6 +47,13 @@ import com.intellij.xml.util.XmlUtil
 import kotlin.time.Duration
 import org.jetbrains.android.dom.isDeclarativeWatchFaceFile
 import org.jetbrains.annotations.NonNls
+
+/**
+ * Stores whether a Declarative Watch Face file has been opened. This is used to know which files
+ * need to be reparsed whenever a manifest has been modified. This is needed to ensure we use the
+ * latest WFF version.
+ */
+private val DWF_FILE_IN_USE = Key.create<Boolean>("dwf_file_in_use")
 
 /**
  * Provides XSD Schemas based on the current WFF version defined in the merged manifest.
@@ -64,6 +73,7 @@ class RawWatchfaceXmlSchemaProvider() : XmlSchemaProvider() {
     if (module == null) return null
     // We only want to initialize the service on demand when a declarative watch face file is opened
     RawWatchFaceXmlSchemaUpdater.initializeService(module.project)
+    baseFile.putUserData(DWF_FILE_IN_USE, true)
     val (schemaVersion, isFallback) =
       CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) ?: return null
 
@@ -116,7 +126,7 @@ private class RawWatchFaceXmlSchemaUpdater private constructor(val project: Proj
   override fun snapshotCreationEnded(token: Any, duration: Duration, result: MergeResult) {
     if (result != MergeResult.SUCCESS) return
     ApplicationManager.getApplication().invokeLater {
-      val declarativeWatchFaceFiles = project.getDeclarativeWatchFaceFiles()
+      val declarativeWatchFaceFiles = project.getDeclarativeWatchFaceFilesToReparse()
       if (declarativeWatchFaceFiles.isEmpty()) return@invokeLater
       // reparse the files for the caches to be dropped and the schemas recomputed with
       // the latest merged manifest
@@ -128,7 +138,13 @@ private class RawWatchFaceXmlSchemaUpdater private constructor(val project: Proj
 
   override fun dispose() {}
 
-  private fun Project.getDeclarativeWatchFaceFiles() =
+  /**
+   * Retrieves the list of DWFs that need to be reparsed. A DWF needs to be reparsed if it has been
+   * opened by a user and has had a schema loaded for it.
+   *
+   * The [DWF_FILE_IN_USE] key is used to determine if a file is in use.
+   */
+  private fun Project.getDeclarativeWatchFaceFilesToReparse() =
     getAndroidFacets()
       .filter { it.getModuleSystem().type == Type.TYPE_APP }
       .flatMap { facet ->
@@ -137,7 +153,9 @@ private class RawWatchFaceXmlSchemaUpdater private constructor(val project: Proj
           ResourceType.RAW,
         ) {
           val xmlFile = it.getSourceAsVirtualFile()?.findPsiFile(project) as? XmlFile
-          xmlFile?.rootTag?.name == TAG_WATCH_FACE
+          if (xmlFile?.rootTag?.name != TAG_WATCH_FACE) return@getResources false
+          // This will be repopulated if the file is in use
+          xmlFile.removeUserData(DWF_FILE_IN_USE) ?: return@getResources false
         }
       }
       .mapNotNull { it.getSourceAsVirtualFile() }
