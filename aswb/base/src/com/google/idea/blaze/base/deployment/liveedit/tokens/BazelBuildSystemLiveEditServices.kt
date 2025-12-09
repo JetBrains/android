@@ -38,10 +38,7 @@ class BazelBuildSystemLiveEditServices :
   override fun isApplicable(
     applicationProjectContext: ApplicationProjectContext
   ): Boolean {
-    if (applicationProjectContext is BazelApplicationProjectContext) {
-      return Blaze.getProjectType(applicationProjectContext.project) == BlazeImportSettings.ProjectType.QUERY_SYNC
-    }
-    return false
+    return applicationProjectContext is BazelApplicationProjectContext
   }
 
   override fun getApplicationServices(
