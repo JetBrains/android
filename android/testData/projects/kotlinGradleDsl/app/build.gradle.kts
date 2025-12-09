@@ -1,17 +1,19 @@
 import com.android.build.gradle.AppPlugin
-import com.android.build.gradle.AppExtension
+import com.android.build.api.dsl.ApplicationExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
-
 
 apply<AppPlugin>()
 apply<KotlinAndroidPluginWrapper>()
 
-configure<AppExtension> {
+configure<ApplicationExtension> {
     namespace = "com.example.kotlingradle"
+    @Suppress("DEPRECATION")
     compileSdkVersion(28)
 
     defaultConfig {
+        @Suppress("DEPRECATION")
         minSdkVersion(15)
+        @Suppress("DEPRECATION")
         targetSdkVersion(28)
 
         applicationId = "com.example.kotlingradle"
