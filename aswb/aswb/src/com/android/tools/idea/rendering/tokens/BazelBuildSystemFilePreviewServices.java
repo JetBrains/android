@@ -42,8 +42,8 @@ final class BazelBuildSystemFilePreviewServices
 
   @NotNull
   @Override
-  public RenderingServices getRenderingServices(@NotNull BazelBuildTargetReference buildTargetReference) {
-    return new BazelRenderingServices();
+  public RenderingServices getRenderingServices(@NotNull BazelBuildTargetReference target) {
+    return buildServices.getRenderingServices(target);
   }
 
   @NotNull
