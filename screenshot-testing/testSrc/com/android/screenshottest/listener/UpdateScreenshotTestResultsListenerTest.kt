@@ -208,6 +208,8 @@ class UpdateScreenshotTestResultsListenerTest {
 
     listener.onTestSuiteFinished(mockDevice, mockSuite)
 
+    // Flush EDT to ensure invokeLater block from listener runs before verification.
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(dialog).onTestSuiteFinished()
   }
 

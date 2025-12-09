@@ -52,6 +52,8 @@ class UpdateScreenshotTestResultsListener(private val dialog: UpdateReferenceIma
   }
 
   override fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite) {
-    dialog.onTestSuiteFinished()
+    ApplicationManager.getApplication().invokeLater {
+      dialog.onTestSuiteFinished()
+    }
   }
 }
