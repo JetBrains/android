@@ -130,6 +130,7 @@ PROJECT                       : MainActivity
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/localDebugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/androidTest/local/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/androidTest/local/debug [-]
@@ -437,6 +438,7 @@ PROJECT                       : MainActivity
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/localDebugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/test/local/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/test/local/debug [-]
@@ -659,6 +661,7 @@ PROJECT                       : MainActivity
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:javaLib:main]
         CONENT_ENTRY                  : file://<PROJECT>/javaLib/build/generated/source/kapt/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/javaLib/build/generated/source/kaptKotlin/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/javaLib/src/test [-]
@@ -793,6 +796,7 @@ PROJECT                       : MainActivity
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:lib:main]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTestDebug [-]
@@ -1067,6 +1071,7 @@ PROJECT                       : MainActivity
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:lib:main]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/testDebug [-]

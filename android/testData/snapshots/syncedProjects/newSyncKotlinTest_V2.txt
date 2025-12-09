@@ -130,6 +130,7 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/androidTest/debug [-]
@@ -474,6 +475,7 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/test/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/test/debug [-]
@@ -709,6 +711,7 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:awesomeandroidlibrary:main]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/src/androidTest
             JavaSource (test)             : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/java
@@ -1015,6 +1018,7 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:awesomeandroidlibrary:main]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/src/test
             JavaSource (test)             : file://<PROJECT>/awesomeandroidlibrary/src/test/java
@@ -1248,6 +1252,7 @@ PROJECT                       : project
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:contentLib:main]
         CONENT_ENTRY                  : file://<PROJECT>/contentLib/build/generated/source/kapt/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/contentLib/src/test
