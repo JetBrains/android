@@ -7,7 +7,7 @@ appcompat = "1.6.1"
 material = "1.10.0"
 junitPlatformLauncher = "1.13.4"
 junitPlatformEngine = "1.13.4"
-journeysJunitEngine = "0.2.0"
+journeysJunitEngine = "0.2.1"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
