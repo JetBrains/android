@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.common
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.devtools.ChromeDevTools
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.IconProvider
@@ -66,6 +67,7 @@ fun showViewContextMenu(
     object : ActionGroup("", true) {
       override fun getChildren(event: AnActionEvent?): Array<AnAction> {
         val result = mutableListOf<AnAction>()
+        result.add(BrowseChromeDevToolsAction(selectedView))
         if (views.size > 1) {
           val viewMenu = DropDownAction("Select View", null, null)
           viewMenu.addAll(views.map { SelectViewAction(it, inspectorModel) })
@@ -127,6 +129,21 @@ fun showViewContextMenu(
     )
   }
   popupComponent.show(source, x, y)
+}
+
+private class BrowseChromeDevToolsAction(private val selectedView: ViewNode?) :
+  AnAction("Open Chrome DevTools") {
+
+  override fun actionPerformed(e: AnActionEvent) {
+    ChromeDevTools.navigateTo()
+  }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+  override fun update(e: AnActionEvent) {
+    e.presentation.isVisible =
+      selectedView?.isDerivedFromWebView ?: false && ChromeDevTools.isChromeAvailable
+  }
 }
 
 private class ShowAllAction(private val inspectorModel: InspectorModel) : AnAction("Show All") {
