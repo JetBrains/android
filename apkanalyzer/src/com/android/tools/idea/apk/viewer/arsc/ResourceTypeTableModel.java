@@ -17,13 +17,17 @@ package com.android.tools.idea.apk.viewer.arsc;
 
 import com.android.tools.apk.analyzer.BinaryXmlParser;
 import com.google.common.collect.ImmutableList;
-import com.google.devrel.gmscore.tools.apk.arsc.*;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.table.AbstractTableModel;
+import com.google.devrel.gmscore.tools.apk.arsc.PackageChunk;
+import com.google.devrel.gmscore.tools.apk.arsc.ResourceIdentifier;
+import com.google.devrel.gmscore.tools.apk.arsc.ResourceValue;
+import com.google.devrel.gmscore.tools.apk.arsc.StringPoolChunk;
+import com.google.devrel.gmscore.tools.apk.arsc.TypeChunk;
+import com.google.devrel.gmscore.tools.apk.arsc.TypeSpecChunk;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.swing.table.AbstractTableModel;
+import org.jetbrains.annotations.NotNull;
 
 public class ResourceTypeTableModel extends AbstractTableModel {
   private final StringPoolChunk myStringPool;
@@ -52,7 +56,7 @@ public class ResourceTypeTableModel extends AbstractTableModel {
   public Object getValueAt(int row, int col) {
     if (col == 0) { // resource id
       ResourceIdentifier id = ResourceIdentifier.create(myPackageChunk.getId(), myTypeSpec.getId(), row);
-      return id.asHexString();
+      return id.toString();
     }
     else if (col == 1) { // resource name
       String key = "unknown";
