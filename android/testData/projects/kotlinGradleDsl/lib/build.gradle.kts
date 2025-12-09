@@ -1,5 +1,5 @@
 import com.android.build.gradle.LibraryPlugin
-import com.android.build.gradle.LibraryExtension
+import com.android.build.api.dsl.LibraryExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 
 apply {
@@ -9,9 +9,11 @@ apply {
 
 configure<LibraryExtension> {
     namespace = "com.example.lib"
+    @Suppress("DEPRECATION")
     compileSdkVersion(27)
 
     defaultConfig {
+        @Suppress("DEPRECATION")
         minSdkVersion(15)
     }
 

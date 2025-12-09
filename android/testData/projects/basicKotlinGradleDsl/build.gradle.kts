@@ -3,6 +3,7 @@ plugins {
   alias(libs.plugins.kotlinAndroid) apply true
 }
 
+@Suppress("DEPRECATION")
 android {
   namespace = "com.example.kotlingradle"
   compileSdk { version = release(33) }
