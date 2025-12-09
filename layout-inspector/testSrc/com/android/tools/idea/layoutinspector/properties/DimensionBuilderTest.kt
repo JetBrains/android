@@ -57,7 +57,7 @@ class DimensionBuilderTest {
       model(disposableRule.disposable) { view(ROOT, 10, 20, 30, 40, qualifiedName = "rootType") }
     val properties =
       PropertiesTable.create(HashBasedTable.create<String, String, InspectorPropertyItem>())
-    addInternalProperties(properties, model[1L]!!, "root", model)
+    addInternalProperties(properties, model[1L]!!, model)
     val inspector = FakeInspectorPanel()
     DimensionBuilder.attachToInspector(inspector, properties)
     assertThat(inspector.lines).hasSize(1)

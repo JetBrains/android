@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.property.panel.api.SelectedComponentModel
+import icons.StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW
 import javax.swing.Icon
 
 private const val UNNAMED_COMPONENT = "<unnamed>"
@@ -27,14 +27,13 @@ private const val UNNAMED_COMPONENT = "<unnamed>"
  * For displaying which component is being edited. Intended for being shown at the top of the
  * properties panel.
  */
-class SelectedViewModel(name: InspectorPropertyItem, id: InspectorPropertyItem?) :
-  SelectedComponentModel {
-  private val unqualifiedName = name.value?.substringAfterLast('.') ?: ""
+class SelectedViewModel(selectedView: ViewNode?) : SelectedComponentModel {
 
-  override val icon: Icon =
-    IconProvider.getIconForView(unqualifiedName, id?.value?.isEmpty() == true)
+  override val icon: Icon = selectedView?.let { IconProvider.getIconForView(it) } ?: UNKNOWN_VIEW
 
-  override val id: String = id?.value ?: UNNAMED_COMPONENT
+  override val id: String =
+    selectedView?.viewId?.let { it.getRelativeResourceUrl(it.namespace).toString() }
+      ?: if (selectedView is ComposeViewNode) "" else UNNAMED_COMPONENT
 
-  override val description: String = unqualifiedName
+  override val description: String = selectedView?.unqualifiedName.orEmpty()
 }

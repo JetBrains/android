@@ -233,11 +233,7 @@ private fun generateText(viewNode: ViewNode) =
 
 @VisibleForTesting
 class SelectViewAction(val view: ViewNode, val inspectorModel: InspectorModel) :
-  AnAction(
-    generateText(view),
-    null,
-    IconProvider.getIconForView(view.qualifiedName, view is ComposeViewNode),
-  ) {
+  AnAction(generateText(view), null, IconProvider.getIconForView(view)) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 

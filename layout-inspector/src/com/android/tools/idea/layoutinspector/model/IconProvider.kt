@@ -32,15 +32,16 @@ import icons.StudioIcons.LayoutEditor.Palette.TAB_ITEM
 import icons.StudioIcons.LayoutEditor.Palette.TEXT_VIEW
 import icons.StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW
 import icons.StudioIcons.LayoutEditor.Palette.VIEW
-import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import javax.swing.Icon
+import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 
 const val ROOT_NAME = "root"
 
 object IconProvider {
 
-  fun getIconForView(qualifiedName: String, isCompose: Boolean): Icon =
-    if (isCompose) getIconForComposeViewNode(qualifiedName) else getIconForViewNode(qualifiedName)
+  fun getIconForView(view: ViewNode): Icon =
+    if (view is ComposeViewNode) getIconForComposeViewNode(view.qualifiedName)
+    else getIconForViewNode(view.qualifiedName)
 
   private fun getIconForViewNode(viewName: String): Icon {
     // Remove "AppCompat" and "Material" prefixes from the simple tag name such that we get
