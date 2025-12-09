@@ -120,7 +120,6 @@ class LegacyPropertiesProviderTest {
       .isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=textView}")
     // TODO(171901393): assertThat(root.isDimBehind).isTrue()
     assertThat(properties.getOrNull(ANDROID_URI, ATTR_DIM_BEHIND)).isNull()
-    check(properties, NAMESPACE_INTERNAL, SdkConstants.ATTR_NAME, "TextView", PropertySection.VIEW)
     check(properties, NAMESPACE_INTERNAL, "x", "4px", PropertySection.DIMENSION)
     check(properties, NAMESPACE_INTERNAL, "y", "350px", PropertySection.DIMENSION)
     check(properties, NAMESPACE_INTERNAL, "width", "1432px", PropertySection.DIMENSION)

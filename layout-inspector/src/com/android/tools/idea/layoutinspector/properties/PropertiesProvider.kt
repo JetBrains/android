@@ -16,14 +16,11 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.SdkConstants.ATTR_HEIGHT
-import com.android.SdkConstants.ATTR_ID
-import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_WIDTH
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.PropertySection.DIMENSION
 import com.android.tools.idea.layoutinspector.properties.PropertySection.RECOMPOSITIONS
-import com.android.tools.idea.layoutinspector.properties.PropertySection.VIEW
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.util.concurrent.Futures
 import java.util.concurrent.Future
@@ -74,10 +71,8 @@ object EmptyPropertiesProvider : PropertiesProvider {
 fun addInternalProperties(
   table: PropertiesTable<InspectorPropertyItem>,
   view: ViewNode,
-  attrId: String?,
   lookup: ViewNodeAndResourceLookup,
 ) {
-  add(table, ATTR_NAME, PropertyType.STRING, view.qualifiedName, VIEW, view.drawId, lookup)
   add(
     table,
     ATTR_X,
@@ -114,8 +109,6 @@ fun addInternalProperties(
     view.drawId,
     lookup,
   )
-  attrId?.let { add(table, ATTR_ID, PropertyType.STRING, it, VIEW, view.drawId, lookup) }
-
   (view as? ComposeViewNode)?.addComposeProperties(table, lookup)
 }
 

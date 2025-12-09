@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
-import com.android.SdkConstants.ANDROID_URI
-import com.android.SdkConstants.ATTR_ID
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -135,19 +133,14 @@ class AppInspectionPropertiesProvider(
         }
         .forEach { properties.put(it) }
     }
-    addInternalProperties(
-      properties,
-      view,
-      properties.getOrNull(ANDROID_URI, ATTR_ID)?.value,
-      model,
-    )
+    addInternalProperties(properties, view, model)
   }
 
   private fun completeParameters(view: ViewNode, parametersData: ComposeParametersData) {
     val parameters = parametersData.parameters
     if (parameters.getByNamespace(NAMESPACE_INTERNAL).isNotEmpty()) return
 
-    addInternalProperties(parameters, view, "", model)
+    addInternalProperties(parameters, view, model)
   }
 
   /**
