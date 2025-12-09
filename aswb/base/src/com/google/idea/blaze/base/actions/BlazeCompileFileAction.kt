@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.actions
 
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSet
 import com.google.idea.blaze.base.build.BlazeBuildService
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
 import com.google.idea.blaze.base.model.primitives.Label
@@ -73,7 +74,7 @@ internal class BlazeCompileFileAction : BlazeProjectAction() {
       querySyncActionStats = querySyncActionStats,
     ) { labels ->
       BlazeBuildService.getInstance(project)
-        .buildFileForLabels(files.joinToString(", ", limit = 2), labels)
+        .buildFileForLabels(files.joinToString(", ", limit = 2), ImmutableSet.copyOf(labels))
         .asDeferred()
     }
   }
