@@ -25,12 +25,12 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
-import org.jetbrains.annotations.TestOnly
 import java.awt.Rectangle
 import java.awt.Shape
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import org.jetbrains.annotations.TestOnly
 
 // This must have the same value as WindowManager.FLAG_DIM_BEHIND
 @VisibleForTesting const val WINDOW_MANAGER_FLAG_DIM_BEHIND = 0x2
@@ -52,6 +52,7 @@ private val systemPackagePrefixes =
  * @param viewId the id set by the developer in the View.id attribute
  * @param textValue the text value if present
  * @param layoutFlags flags from WindowManager.LayoutParams
+ * @param isDerivedFromWebView if the View class is extending android.webkit.WebView
  */
 open class ViewNode(
   var drawId: Long,
@@ -62,6 +63,7 @@ open class ViewNode(
   var viewId: ResourceReference?,
   var textValue: String,
   var layoutFlags: Int,
+  var isDerivedFromWebView: Boolean,
 ) {
   @TestOnly
   constructor(
@@ -72,6 +74,7 @@ open class ViewNode(
     viewId: ResourceReference?,
     textValue: String,
     layoutFlags: Int,
+    isDerivedFromWebView: Boolean,
   ) : this(
     drawId,
     qualifiedName,
@@ -81,12 +84,23 @@ open class ViewNode(
     viewId,
     textValue,
     layoutFlags,
+    isDerivedFromWebView,
   )
 
   /** constructor for synthetic nodes */
   constructor(
     qualifiedName: String
-  ) : this(-1, qualifiedName, null, Rectangle(), Rectangle(), null, "", 0)
+  ) : this(
+    -1,
+    qualifiedName,
+    null,
+    Rectangle(),
+    Rectangle(),
+    null,
+    "",
+    0,
+    isDerivedFromWebView = false,
+  )
 
   @Suppress("LeakingThis") val treeNode = TreeViewNode(this)
 

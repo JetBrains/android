@@ -83,6 +83,7 @@ class ViewNodeCreator(
         resource,
         textValue,
         view.layoutFlags,
+        (view.flags and LayoutInspectorViewProtocol.ViewNode.Flag.IS_WEBVIEW_VALUE) != 0,
       )
 
     val children = view.childrenList.map { it.convert(shouldInterrupt, access) }.toMutableList()

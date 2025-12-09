@@ -87,6 +87,7 @@ fun viewWindow(
         null,
         "",
         layoutFlags,
+        isDerivedFromWebView = false,
         null,
       )
       .also(body)
@@ -133,6 +134,7 @@ fun window(
         viewId,
         textValue,
         layoutFlags,
+        isDerivedFromWebView = false,
         null,
       )
       .also(body)
@@ -163,6 +165,8 @@ fun view(
   viewId: ResourceReference? = null,
   textValue: String = "",
   layoutFlags: Int = 0,
+  isDerivedFromWebView: Boolean = false,
+  flags: Int = 0,
   layout: ResourceReference? = defaultLayout,
   body: InspectorViewDescriptor.() -> Unit = {},
 ) =
@@ -177,6 +181,7 @@ fun view(
       viewId,
       textValue,
       layoutFlags,
+      isDerivedFromWebView,
       layout,
     )
     .also(body)
@@ -206,6 +211,7 @@ fun compose(
       null,
       "",
       0,
+      isDerivedFromWebView = false,
       composeFilename = composeFilename,
       composePackageHash = composePackageHash,
       composeOffset = composeOffset,
@@ -230,6 +236,7 @@ class InspectorViewDescriptor(
   private val viewId: ResourceReference?,
   private val textValue: String,
   private val layoutFlags: Int,
+  private val isDerivedFromWebView: Boolean = false,
   private val layout: ResourceReference? = defaultLayout,
   private val composeCount: Int = 0,
   private val composeSkips: Int = 0,
@@ -259,6 +266,7 @@ class InspectorViewDescriptor(
     viewId: ResourceReference? = null,
     textValue: String = "",
     layoutFlags: Int = 0,
+    isDerivedFromWebView: Boolean = false,
     layout: ResourceReference? = defaultLayout,
     body: InspectorViewDescriptor.() -> Unit = {},
   ) =
@@ -274,6 +282,7 @@ class InspectorViewDescriptor(
           viewId,
           textValue,
           layoutFlags,
+          isDerivedFromWebView,
           layout,
         )
         .apply(body)
@@ -286,6 +295,7 @@ class InspectorViewDescriptor(
     viewId: ResourceReference? = null,
     textValue: String = "",
     layout: ResourceReference? = null,
+    isDerivedFromWebView: Boolean = false,
     body: InspectorViewDescriptor.() -> Unit = {},
   ) =
     view(
@@ -299,6 +309,7 @@ class InspectorViewDescriptor(
       viewId,
       textValue,
       0,
+      isDerivedFromWebView,
       layout,
       body,
     )
@@ -360,6 +371,7 @@ class InspectorViewDescriptor(
           viewId,
           textValue,
           layoutFlags,
+          isDerivedFromWebView,
         )
       } else {
         ComposeViewNode(
@@ -419,6 +431,7 @@ class InspectorModelDescriptor(
     viewId: ResourceReference? = null,
     textValue: String = "",
     layoutFlags: Int = 0,
+    isDerivedFromWebView: Boolean = false,
     layout: ResourceReference? = defaultLayout,
     imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
     body: InspectorViewDescriptor.() -> Unit = {},
@@ -435,6 +448,7 @@ class InspectorModelDescriptor(
           viewId,
           textValue,
           layoutFlags,
+          isDerivedFromWebView,
           layout,
           imageType = imageType,
         )
@@ -447,6 +461,7 @@ class InspectorModelDescriptor(
     qualifiedName: String = CLASS_VIEW,
     viewId: ResourceReference? = null,
     textValue: String = "",
+    isDerivedFromWebView: Boolean = false,
     imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
     layout: ResourceReference? = defaultLayout,
     body: InspectorViewDescriptor.() -> Unit = {},
@@ -462,6 +477,7 @@ class InspectorModelDescriptor(
       viewId,
       textValue,
       0,
+      isDerivedFromWebView,
       layout,
       imageType,
       body,
