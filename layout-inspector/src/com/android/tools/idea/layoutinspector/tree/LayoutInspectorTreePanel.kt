@@ -732,8 +732,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     override fun textValueOf(node: TreeViewNode) =
       if (node.view.isInlined) "(inline)" else node.view.textValue.nullize()?.let { "\"$it\"" }
 
-    override fun iconOf(node: TreeViewNode): Icon =
-      IconProvider.getIconForView(node.view.qualifiedName, node.view is ComposeViewNode)
+    override fun iconOf(node: TreeViewNode): Icon = IconProvider.getIconForView(node.view)
 
     override fun parentOf(node: TreeViewNode): TreeViewNode? = node.parent
 

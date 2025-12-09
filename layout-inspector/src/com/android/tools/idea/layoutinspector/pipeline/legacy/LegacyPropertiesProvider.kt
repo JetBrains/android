@@ -152,7 +152,7 @@ class LegacyPropertiesProvider : PropertiesProvider {
       table.remove(ANDROID_URI, ATTR_RIGHT)
 
       val properties = PropertiesTable.create(table)
-      addInternalProperties(properties, view, url?.name, lookup)
+      addInternalProperties(properties, view, lookup)
       temp[view.drawId] = properties
     }
   }

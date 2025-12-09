@@ -308,13 +308,6 @@ class AppInspectionPropertiesProviderTest {
       // added
       result.table.run {
         assertProperty(
-          "name",
-          PropertyType.STRING,
-          "androidx.constraintlayout.widget.ConstraintLayout",
-          group = PropertySection.VIEW,
-          namespace = NAMESPACE_INTERNAL,
-        )
-        assertProperty(
           "x",
           PropertyType.DIMENSION,
           "0px",

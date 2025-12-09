@@ -18,8 +18,10 @@ package com.android.tools.idea.layoutinspector.model
 import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.support.AndroidxName
+import com.android.tools.idea.layoutinspector.view
 import com.google.common.truth.Truth.assertThat
 import icons.StudioIcons
+import javax.swing.Icon
 import org.junit.Test
 
 private val FQCN_CONTENT_FRAME_LAYOUT =
@@ -94,5 +96,8 @@ class IconProviderTest {
       .isEqualTo(StudioIcons.LayoutEditor.Palette.FRAME_LAYOUT)
   }
 
-  private fun iconOfView(view: String) = IconProvider.getIconForView(view, false)
+  private fun iconOfView(className: String): Icon {
+    val view = view(drawId = 12, qualifiedName = className)
+    return IconProvider.getIconForView(view)
+  }
 }

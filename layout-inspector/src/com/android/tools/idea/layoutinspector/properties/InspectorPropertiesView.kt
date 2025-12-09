@@ -64,7 +64,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) :
 
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
-    main.builders.add(SelectedViewBuilder)
+    main.builders.add(SelectedViewBuilder(model))
     val attributeSections =
       setOf(PropertySection.DEFAULT, PropertySection.DECLARED, PropertySection.LAYOUT)
     val tab = addTab("")

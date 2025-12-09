@@ -15,30 +15,30 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.SdkConstants.ANDROID_URI
-import com.android.SdkConstants.ATTR_ID
-import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.FQCN_BUTTON
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.TEXT_VIEW
-import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
-import com.android.tools.idea.layoutinspector.properties.PropertySection
-import com.android.tools.idea.layoutinspector.properties.PropertyType
-import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceType
+import com.android.tools.idea.layoutinspector.compose
+import com.android.tools.idea.layoutinspector.view
 import com.google.common.truth.Truth.assertThat
-import com.intellij.util.text.nullize
 import icons.StudioIcons
 import org.junit.Test
-import org.mockito.kotlin.mock
 
 class SelectedViewModelTest {
 
   @Test
   fun testButtonWithId() {
-    val name = nameOf(FQCN_BUTTON)
-    val id = idOf("button1")
-    val model = SelectedViewModel(name, id)
+    val view =
+      view(
+        drawId = 10,
+        qualifiedName = FQCN_BUTTON,
+        viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "button1"),
+      )
+    val model = SelectedViewModel(view)
     assertThat(model.id).isEqualTo("@id/button1")
     assertThat(model.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.BUTTON)
     assertThat(model.description).isEqualTo(BUTTON)
@@ -46,9 +46,8 @@ class SelectedViewModelTest {
 
   @Test
   fun testTextViewWithoutId() {
-    val name = nameOf(FQCN_TEXT_VIEW)
-    val id = idOf(null)
-    val model = SelectedViewModel(name, id)
+    val view = view(drawId = 10, qualifiedName = FQCN_TEXT_VIEW)
+    val model = SelectedViewModel(view)
     assertThat(model.id).isEqualTo("<unnamed>")
     assertThat(model.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.TEXT_VIEW)
     assertThat(model.description).isEqualTo(TEXT_VIEW)
@@ -56,9 +55,8 @@ class SelectedViewModelTest {
 
   @Test
   fun testDecorView() {
-    val name = nameOf("com.android.internal.policy.DecorView")
-    val id = idOf(null)
-    val model = SelectedViewModel(name, id)
+    val view = view(drawId = 10, qualifiedName = "com.android.internal.policy.DecorView")
+    val model = SelectedViewModel(view)
     assertThat(model.id).isEqualTo("<unnamed>")
     assertThat(model.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW)
     assertThat(model.description).isEqualTo("DecorView")
@@ -66,40 +64,10 @@ class SelectedViewModelTest {
 
   @Test
   fun testCoreText() {
-    val name = nameOf("CoreText")
-    val id = idOf("")
-    val model = SelectedViewModel(name, id)
+    val view = compose(drawId = -1, name = "CoreText").build()
+    val model = SelectedViewModel(view)
     assertThat(model.id).isEqualTo("")
     assertThat(model.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.TEXT_VIEW)
     assertThat(model.description).isEqualTo("CoreText")
-  }
-
-  private fun nameOf(name: String): InspectorPropertyItem {
-    val lookup: ViewNodeAndResourceLookup = mock()
-    return InspectorPropertyItem(
-      ANDROID_URI,
-      ATTR_NAME,
-      PropertyType.STRING,
-      name,
-      PropertySection.VIEW,
-      null,
-      1L,
-      lookup,
-    )
-  }
-
-  private fun idOf(id: String?): InspectorPropertyItem {
-    val lookup: ViewNodeAndResourceLookup = mock()
-    val value = id.nullize()?.let { "@id/$id" } ?: id
-    return InspectorPropertyItem(
-      ANDROID_URI,
-      ATTR_ID,
-      PropertyType.STRING,
-      value,
-      PropertySection.VIEW,
-      null,
-      1L,
-      lookup,
-    )
   }
 }
