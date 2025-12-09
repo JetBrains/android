@@ -375,6 +375,7 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:commonMain]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/commonTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -494,6 +495,7 @@ PROJECT                       : kotlinMultiPlatform
             - SourceSetName               : kotlinMultiPlatform.app.commonTest
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:commonMain, :app:jvmMain]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/jvmTest [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/jvmTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/jvmTest/kotlin [-]
@@ -1144,6 +1146,7 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:module2:commonMain, :module2:jvmAndAndroid]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -1324,6 +1327,7 @@ PROJECT                       : kotlinMultiPlatform
             - SourceSetName               : kotlinMultiPlatform.module2.commonTest
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:module2:commonMain, :module2:jvmAndAndroid, :module2:jvmMain]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/jvmTest [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/jvmTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/jvmTest/kotlin [-]

@@ -130,6 +130,7 @@ PROJECT                       : project_sm_src
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>_sm_src/app/src/androidTest/java
@@ -439,6 +440,7 @@ PROJECT                       : project_sm_src
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/src/test
             JavaSource (test)             : file://<PROJECT>_sm_src/app/src/test/java
