@@ -113,7 +113,7 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
     val preparedProject = projectRule.prepareTestProject(testProject())
 
     val buildFile = preparedProject.root.resolve(SdkConstants.FN_BUILD_GRADLE_KTS)
-    buildFile.appendText("\nandroid { abcd { } }")
+    buildFile.appendText("\n@Suppress(\"DEPRECATION\")\nandroid { abcd { } }")
 
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
