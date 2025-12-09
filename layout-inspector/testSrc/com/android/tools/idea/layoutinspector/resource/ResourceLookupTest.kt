@@ -84,7 +84,8 @@ class ResourceLookupTest {
 
   @Test
   fun testSingleColorIcon() = runBlocking {
-    val title = ViewNode(1, "TextView", null, Rectangle(30, 60, 300, 100), null, "Hello Folks", 0)
+    val title =
+      ViewNode(1, "TextView", null, Rectangle(30, 60, 300, 100), null, "Hello Folks", 0, false)
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup = ResourceLookup(projectRule.project)
