@@ -53,12 +53,6 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.LoadingNode
 import com.intellij.ui.treeStructure.Tree
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
@@ -70,7 +64,13 @@ import kotlin.io.path.createParentDirectories
 import kotlin.io.path.pathString
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 
 // Flakiness note: The prior value of 3 seconds was occasionally too low, causing tests to fail.

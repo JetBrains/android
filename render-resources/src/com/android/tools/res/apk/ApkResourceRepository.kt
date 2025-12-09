@@ -34,8 +34,7 @@ import com.android.tools.apk.analyzer.BinaryXmlParser
 import com.android.tools.res.CacheableResourceRepository
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.ListMultimap
-// TODO android merge
-//import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceValue
+import com.google.devrel.gmscore.tools.apk.arsc.ResourceValue as BinaryResourceValue
 import com.google.devrel.gmscore.tools.apk.arsc.StringPoolChunk
 import com.google.devrel.gmscore.tools.apk.arsc.TypeChunk
 import java.util.EnumMap

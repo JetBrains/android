@@ -23,7 +23,7 @@ import com.android.tools.idea.run.blaze.BlazeLaunchContext;
 import com.android.tools.idea.run.blaze.BlazeLaunchTask;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile;
+import com.google.devrel.gmscore.tools.apk.arsc.ResourceFile;
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk;
 import com.google.devrel.gmscore.tools.apk.arsc.XmlAttribute;
 import com.google.devrel.gmscore.tools.apk.arsc.XmlChunk;
@@ -107,7 +107,7 @@ public class CheckApkDebuggableTask implements BlazeLaunchTask {
   public static boolean isApkDebuggable(File apk) throws IOException {
     try (ZipFile zipFile = new ZipFile(apk);
         InputStream stream = zipFile.getInputStream(zipFile.getEntry("AndroidManifest.xml"))) {
-      BinaryResourceFile file = BinaryResourceFile.fromInputStream(stream);
+      ResourceFile file = ResourceFile.fromInputStream(stream);
       List<Chunk> chunks = file.getChunks();
 
       if (chunks.isEmpty()) {
