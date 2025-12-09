@@ -1,0 +1,4 @@
+<idea-plugin>
+  <id>com.android.tools.gradle.dsl</id>
+  <name>Gradle DSL Parser Support</name>
+</idea-plugin>
