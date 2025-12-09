@@ -23,6 +23,7 @@ import com.android.resources.ResourceType
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.devtools.ChromeDevTools
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
@@ -35,11 +36,15 @@ import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
+import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.layoutinspector.ui.LAYOUT_INSPECTOR_DATA_KEY
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.browsers.BrowserLauncher
+import com.intellij.ide.browsers.WebBrowser
+import com.intellij.ide.browsers.WebBrowserManager
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
@@ -52,6 +57,7 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Condition
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RuleChain
@@ -62,9 +68,11 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.whenever
 
 class ViewContextMenuFactoryTest {
@@ -84,9 +92,10 @@ class ViewContextMenuFactoryTest {
   @Suppress("UnstableApiUsage")
   @Before
   fun setUp() {
+    val disposable = disposableRule.disposable
     val mockActionManager: ActionManagerImpl = mock()
     ApplicationManager.getApplication()
-      .replaceService(ActionManager::class.java, mockActionManager, disposableRule.disposable)
+      .replaceService(ActionManager::class.java, mockActionManager, disposable)
     val mockPopupMenu: ActionPopupMenu = mock()
     whenever(mockActionManager.createActionPopupMenu(any(), any())).thenAnswer { invocation ->
       createdGroup = invocation.getTypedArgument(1)
@@ -95,7 +104,7 @@ class ViewContextMenuFactoryTest {
     whenever(mockActionManager.performWithActionCallbacks(any(), any(), any())).thenCallRealMethod()
     whenever(mockPopupMenu.component).thenReturn(popupMenuComponent)
     model =
-      model(disposableRule.disposable) {
+      model(disposable) {
         view(
           ROOT,
           viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId"),
@@ -110,6 +119,7 @@ class ViewContextMenuFactoryTest {
             view(VIEW3, textValue = "myText") { image() }
             image()
           }
+          view(VIEW4, qualifiedName = "MyWebView", isDerivedFromWebView = true)
         }
       }
 
@@ -143,8 +153,8 @@ class ViewContextMenuFactoryTest {
     model.hideSubtree(model[VIEW3]!!)
     showViewContextMenu(null, listOf(), model, source!!, 123, 456)
     val actions = createdGroup?.children(event)
-    assertThat(actions?.size).isEqualTo(3)
-    val createdAction = actions?.get(0)!!
+    assertThat(actions?.size).isEqualTo(4)
+    val createdAction = actions?.get(1)!!
     assertThat(createdAction.templateText).isEqualTo("Show All")
     ActionUtil.performAction(createdAction, event)
     assertThat(model.root.flattenedList().all { model.isVisible(it) }).isTrue()
@@ -158,6 +168,7 @@ class ViewContextMenuFactoryTest {
     showViewContextMenu(model.selection!!, listOf(model[VIEW2]!!), model, source!!, 0, 0)
     assertThat(createdGroup?.children(event)?.map { it.templateText })
       .containsExactly(
+        "Open Chrome DevTools",
         "Hide Subtree",
         "Show Subtree",
         "Show Only Subtree",
@@ -168,13 +179,13 @@ class ViewContextMenuFactoryTest {
       )
       .inOrder()
 
-    val hideSubtree = createdGroup?.children(event)?.get(0)!!
+    val hideSubtree = createdGroup?.children(event)?.get(1)!!
     ActionUtil.performAction(hideSubtree, event)
 
     assertThat(model.root.flattenedList().filter { model.isVisible(it) }.map { it.drawId }.toList())
-      .containsExactly(ROOT, VIEW1, COMPOSE1, COMPOSE2, COMPOSE3, COMPOSE4, COMPOSE5, -1L)
+      .containsExactly(ROOT, VIEW1, VIEW4, COMPOSE1, COMPOSE2, COMPOSE3, COMPOSE4, COMPOSE5, -1L)
 
-    val showSubTree = createdGroup?.children(event)?.get(1)!!
+    val showSubTree = createdGroup?.children(event)?.get(2)!!
     ActionUtil.performAction(showSubTree, event)
 
     assertThat(model.root.flattenedList().filter { model.isVisible(it) }.map { it.drawId }.toList())
@@ -183,6 +194,7 @@ class ViewContextMenuFactoryTest {
         VIEW1,
         VIEW2,
         VIEW3,
+        VIEW4,
         COMPOSE1,
         COMPOSE2,
         COMPOSE3,
@@ -193,14 +205,14 @@ class ViewContextMenuFactoryTest {
 
     model.hideSubtree(model[VIEW1]!!)
     model.hideSubtree(model[VIEW3]!!)
-    val showOnlySubtree = createdGroup?.children(event)?.get(2)!!
+    val showOnlySubtree = createdGroup?.children(event)?.get(3)!!
     ActionUtil.performAction(showOnlySubtree, event)
 
     assertThat(model.root.flattenedList().filter { model.isVisible(it) }.map { it.drawId }.toList())
       .containsExactly(VIEW2, VIEW3)
 
     model.showAll()
-    val showOnlyParents = createdGroup?.children(event)?.get(3)!!
+    val showOnlyParents = createdGroup?.children(event)?.get(4)!!
     ActionUtil.performAction(showOnlyParents, event)
 
     assertThat(model.root.flattenedList().filter { model.isVisible(it) }.map { it.drawId }.toList())
@@ -213,6 +225,7 @@ class ViewContextMenuFactoryTest {
     showViewContextMenu(model.selection!!, listOf(model[COMPOSE2]!!), model, source!!, 0, 0)
     assertThat(createdGroup?.children(event)?.map { it.templateText })
       .containsExactly(
+        "Open Chrome DevTools",
         "Hide Subtree",
         "Show Subtree",
         "Show Only Subtree",
@@ -233,6 +246,7 @@ class ViewContextMenuFactoryTest {
 
     actions?.forEach {
       when (it.templateText) {
+        "Open Chrome DevTools" -> it.checkVisibility(event, expected = false)
         "Show All" -> it.checkIsVisible(event)
         "Hide Subtree" -> it.checkIsVisible(event)
         "Show Only Subtree" -> it.checkIsVisible(event)
@@ -256,6 +270,7 @@ class ViewContextMenuFactoryTest {
     )
     assertThat(createdGroup?.children(event)?.map { it.templateText })
       .containsExactly(
+        "Open Chrome DevTools",
         "Select View",
         "Hide Subtree",
         "Show Subtree",
@@ -267,7 +282,7 @@ class ViewContextMenuFactoryTest {
       )
       .inOrder()
 
-    val selectView = createdGroup?.children(event)?.get(0)!!
+    val selectView = createdGroup?.children(event)?.get(1)!!
     val views = (selectView as DropDownAction).children(event)
     assertThat(views.map { it.templateText })
       .containsExactly("myText", "viewName", "rootId")
@@ -287,6 +302,7 @@ class ViewContextMenuFactoryTest {
     showViewContextMenu(model.selection!!, listOf(model[VIEW2]!!), model, source!!, 0, 0)
     assertThat(createdGroup?.children(event)?.map { it.templateText })
       .containsExactly(
+        "Open Chrome DevTools",
         "Hide Subtree",
         "Show Subtree",
         "Show Only Subtree",
@@ -296,7 +312,7 @@ class ViewContextMenuFactoryTest {
         "Go To Declaration",
       )
       .inOrder()
-    val showSubTree = createdGroup?.children(event)?.get(1)!!
+    val showSubTree = createdGroup?.children(event)?.get(2)!!
 
     model.hideSubtree(model[VIEW3]!!)
     showSubTree.checkIsEnabled(event)
@@ -311,6 +327,7 @@ class ViewContextMenuFactoryTest {
     showViewContextMenu(model.selection!!, listOf(model[VIEW2]!!), model, source!!, 0, 0)
     assertThat(createdGroup?.children(event)?.map { it.templateText })
       .containsExactly(
+        "Open Chrome DevTools",
         "Hide Subtree",
         "Show Subtree",
         "Show Only Subtree",
@@ -320,10 +337,35 @@ class ViewContextMenuFactoryTest {
         "Go To Declaration",
       )
       .inOrder()
-    val hideSubtree = createdGroup?.children(event)?.get(0)!!
+    val hideSubtree = createdGroup?.children(event)?.get(1)!!
 
     model.hideSubtree(model[VIEW2]!!)
     hideSubtree.checkIsNotEnabled(event)
+  }
+
+  @Test
+  fun testWebView() {
+    val disposable = disposableRule.disposable
+    val application = ApplicationManager.getApplication()
+    application.replaceService(WebBrowserManager::class.java, WebBrowserManager(), disposable)
+    application.replaceService(BrowserLauncher::class.java, mock(), disposable)
+    showViewContextMenu(model[VIEW4], listOf(), model, source!!, 123, 456)
+    val actions = createdGroup?.children(event)
+    val action = actions!!.get(0)
+    assertThat(action.templateText).isEqualTo("Open Chrome DevTools")
+    val manager = WebBrowserManager.getInstance()
+    val browser = manager.getBrowsers(Condition { ChromeDevTools.isChrome(it) }).single()
+    browser.simulateSetActive(false)
+    action.checkVisibility(event, expected = false)
+
+    browser.simulateSetActive(true)
+    action.checkVisibility(event, expected = true)
+
+    ActionUtil.performAction(action, event)
+    val launcher = BrowserLauncher.instance
+    val url = argumentCaptor<String>()
+    verify(launcher).browse(url.capture(), Mockito.eq(browser))
+    assertThat(url.firstValue).isEqualTo("chrome://inspect")
   }
 }
 
@@ -385,7 +427,7 @@ class ViewContextMenuFactoryLegacyTest {
     model.setSelection(model[VIEW2], origin = SelectionOrigin.INTERNAL)
     showViewContextMenu(model.selection!!, listOf(), model, source!!, 123, 456)
     assertThat(createdGroup?.children(event)?.map { it.templateText })
-      .containsExactly("Go To Declaration")
+      .containsExactly("Open Chrome DevTools", "Go To Declaration")
 
     verify(popupMenuComponent!!).show(source, 123, 456)
   }
@@ -402,10 +444,10 @@ class ViewContextMenuFactoryLegacyTest {
       0,
     )
     assertThat(createdGroup?.children(event)?.map { it.templateText })
-      .containsExactly("Select View", "Go To Declaration")
+      .containsExactly("Open Chrome DevTools", "Select View", "Go To Declaration")
       .inOrder()
 
-    val selectView = createdGroup?.children(event)?.get(0)!!
+    val selectView = createdGroup?.children(event)?.get(1)!!
     val views = selectView.children(event)
     assertThat(views.map { it.templateText })
       .containsExactly("myText", "viewName", "rootId")
@@ -444,4 +486,10 @@ private fun AnAction.checkEnable(event: AnActionEvent, expected: Boolean) {
 private fun AnAction.children(event: AnActionEvent): Array<AnAction> {
   val group = this as? ActionGroup ?: return emptyArray()
   @Suppress("OverrideOnly") return group.getChildren(event)
+}
+
+private fun WebBrowser.simulateSetActive(active: Boolean) {
+  val method = this.javaClass.getMethod("setActive", java.lang.Boolean.TYPE)
+  method.isAccessible = true
+  method.invoke(this, active)
 }
