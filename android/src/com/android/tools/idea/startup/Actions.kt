@@ -16,6 +16,7 @@
 package com.android.tools.idea.startup
 
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionStub
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.ActionWrapperUtil
 import com.intellij.openapi.actionSystem.AnAction
@@ -25,6 +26,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.EmptyActionGroup
 import com.intellij.openapi.actionSystem.PerformWithDocumentsCommitted.isPerformWithDocumentsCommitted
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.util.application
 
 object Actions {
   @JvmStatic
@@ -36,7 +38,7 @@ object Actions {
 
   @JvmStatic
   fun hideAction(actionManager: ActionManager, actionId: String, condition: (AnActionEvent) -> Boolean) {
-    val existingAction = (actionManager.getAction(actionId)) ?: return
+    val existingAction = (actionManager.getExistingActionProvider(actionId)) ?: return
     val replacement =
       if (actionManager.isGroup(actionId)) EmptyActionGroup()
       else ConditionalActionWrapper(delegate = existingAction, replacement = DumbAwareEmptyAction(), condition)
@@ -54,8 +56,9 @@ object Actions {
 
   @JvmStatic
   fun replaceAction(actionManager: ActionManager, actionId: String, newAction: AnAction, condition: (AnActionEvent) -> Boolean) {
-    val existingAction = actionManager.getAction(actionId)
-    val replacement = ConditionalActionWrapper(delegate = existingAction ?: DumbAwareEmptyAction(), replacement = newAction, condition)
+    val existingAction = actionManager.getExistingActionProvider(actionId)
+    val replacement = ConditionalActionWrapper(delegate = existingAction ?: DumbAwareEmptyAction().let { { it } }, replacement = newAction,
+                                               condition)
     if (existingAction != null) {
       actionManager.replaceAction(actionId, replacement)
     } else {
@@ -87,25 +90,28 @@ object Actions {
  * condition.
  */
 class ConditionalActionWrapper(
-  val delegate: AnAction,
+  delegate: () -> AnAction,
   val replacement: AnAction,
   private val replaceCondition: (e: AnActionEvent) -> Boolean,
 ): AnAction() {
-  init {
-    // Something deprecated that we do not support.
-    if (isPerformWithDocumentsCommitted(delegate)) {
-      error("Action $delegate cannot be wrapped. isPerformWithDocumentsCommitted(delegate) returns true.")
-    }
+  // Action update/perform methods are not required to be thread safe even though update now runs in the BGT.
+  val delegate: AnAction by lazy(mode = LazyThreadSafetyMode.PUBLICATION) {
+    delegate().also { delegate ->
+      // Something deprecated that we do not support.
+      if (isPerformWithDocumentsCommitted(delegate)) {
+        error("Action $delegate cannot be wrapped. isPerformWithDocumentsCommitted(delegate) returns true.")
+      }
 
-    // Prevent these cases from happening at all
-    if (delegate.isDumbAware && !replacement.isDumbAware) {
-      error("Cannot wrap dumb-aware $delegate with non-dumb-aware $replacement.")
-    }
-    if (delegate.actionUpdateThread == ActionUpdateThread.BGT && replacement.actionUpdateThread != ActionUpdateThread.BGT) {
-      error("Replacement $replacement must update on BGT, like $delegate.")
-    }
-    if (delegate.isInInjectedContext != replacement.isInInjectedContext) {
-      error("Replacement $replacement should have isInInjectedContext=${delegate.isInInjectedContext}, like $delegate.")
+      // Prevent these cases from happening at all
+      if (delegate.isDumbAware && !replacement.isDumbAware) {
+        error("Cannot wrap dumb-aware $delegate with non-dumb-aware $replacement.")
+      }
+      if (delegate.actionUpdateThread == ActionUpdateThread.BGT && replacement.actionUpdateThread != ActionUpdateThread.BGT) {
+        error("Replacement $replacement must update on BGT, like $delegate.")
+      }
+      if (delegate.isInInjectedContext != replacement.isInInjectedContext) {
+        error("Replacement $replacement should have isInInjectedContext=${delegate.isInInjectedContext}, like $delegate.")
+      }
     }
   }
 
@@ -138,5 +144,39 @@ class DumbAwareEmptyAction () : AnAction() {
   override fun isDumbAware(): Boolean = true
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = false
+  }
+}
+
+private fun ActionManager.getExistingActionProvider(actionId: String): (() -> AnAction)? {
+  // Workaround: We cannot use getAction() here as it triggers action instantiation too soon to be safe. However, if we get a stub and
+  // register a replacement action under the same id, we cannot later unstub the action. A solution is to re-register the sub under a
+  // different action id until we need it and unstub it later and then unregister so that it does not appear in action searches etc.
+  val existingAction = this.getActionOrStub(actionId) ?: return null
+  if (existingAction is ActionStub) {
+    val renamedId = actionId + "_renamedStub_" + existingAction.hashCode().toULong().toString()
+    thisLogger().info("Re-registering action stub for $actionId as $renamedId")
+    registerAction(renamedId, ActionStub(
+      existingAction.className,
+      renamedId,
+      existingAction.plugin,
+      existingAction.iconPath,
+      existingAction.projectType,
+      { existingAction.templatePresentation }
+    ))
+    // Action update/perform methods are not required to be thread safe even though update now runs in the BGT.
+    val delayedAction by lazy(mode = LazyThreadSafetyMode.PUBLICATION) {
+      thisLogger().info("Unstubbing: $renamedId")
+      val baseAction = getAction(renamedId)
+      application.invokeLater {
+        getAction(actionId) // Make sure lazy has finished initialization.
+        unregisterAction(renamedId)
+        thisLogger().info("Unregistering already unstubbed: $renamedId")
+      }
+      baseAction
+    }
+    return { delayedAction }
+  }
+  else {
+    return { existingAction }
   }
 }
