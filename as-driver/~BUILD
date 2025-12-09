@@ -117,10 +117,12 @@ iml_module(
         "//tools/adt/idea/as-driver:as-driver.utils",
         "@intellij//:intellij-sdk",
         "//tools/emulator/testlib:android.sdktools.testlib",
-        "//tools/vendor/google/directaccess-client",
+        "//tools/adt/idea/as-driver:directaccess-client-base",
         "//tools/base/adblib:studio.android.sdktools.adblib",
-        "@intellij//:intellij.libraries.grpc",
-        "@intellij//:intellij.libraries.grpc.netty.shaded",
+        "//prebuilts/tools/common/m2:grpc",
+        "//tools/adt/idea/as-driver:directaccess_client_proto",
+        "//tools/adt/idea/as-driver:adb-proxy",
+        "//tools/adt/idea/.idea/libraries:protobuf-kotlin",
     ],
     test_srcs = ["integration/testSrc"],
     visibility = ["//visibility:public"],
@@ -157,5 +159,30 @@ iml_module(
 jvm_import(
     name = "librunfiles",
     jars = ["//tools/base/bazel:librunfiles.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "directaccess-client-base",
+    jars = ["//tools/vendor/google/directaccess-client:libdirectaccess-client-base.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "adb-proxy",
+    jars = ["//tools/base/adb-proxy:libadb-proxy.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "directaccess_client_proto",
+    # do not sort: must match IML order
+    jars = [
+        "//tools/vendor/google/directaccess-client/proto:device_streaming_kt_proto.jar",
+        "//tools/vendor/google/directaccess-client/proto/legacy:ftl_client_kt_proto.jar",
+    ],
     visibility = ["//visibility:public"],
 )
