@@ -73,7 +73,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
       BlazeVersionData blazeVersion,
       BuildInvoker invoker,
       ProjectViewSet projectViewSet,
-      List<? extends String> targets,
+      List<? extends TargetExpression> targets,
       WorkspaceLanguageSettings workspaceLanguageSettings,
       ImmutableSet<OutputGroup> outputGroups,
       BlazeInvocationContext blazeInvocationContext,
@@ -189,7 +189,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
       BlazeContext context,
       ProjectViewSet viewSet,
       ImmutableSet<LanguageClass> activeLanguages,
-      List<? extends String> targets,
+      List<? extends TargetExpression> targets,
       AspectStrategy aspectStrategy,
       ImmutableSet<OutputGroup> outputGroups,
       List<String> additionalBlazeFlags,
@@ -202,7 +202,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
     BlazeCommand.Builder builder = BlazeCommand.builder(invoker, BlazeCommandName.BUILD);
     builder
         .setInvokeParallel(invokeParallel)
-        .addTargetStrings(targets)
+        .addTargets(targets)
         .addBlazeFlags(BlazeFlags.KEEP_GOING)
         .addBlazeFlags(BlazeFlags.DISABLE_VALIDATIONS) // b/145245918: don't run lint during sync
         .addBlazeFlags(additionalBlazeFlags);
