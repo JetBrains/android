@@ -2749,7 +2749,7 @@ public final class StudioFlags {
     JOURNEYS_WITH_GEMINI, "dependency.journeys.with.gemini.test.suite.journeys.engine.dep",
     "The name of the Journeys test engine dependency used by the Journeys test suite",
     "This dependency is automatically added by the Journeys template engine when configuring a test suite.",
-    "com.android.tools.journeys:journeys-junit-engine:0.2.0"
+    "com.android.tools.journeys:journeys-junit-engine:0.2.1"
   );
   public static final Flag<String> JOURNEYS_WITH_GEMINI_TEST_SUITE_JUNIT_PLATFORM_ENGINE_DEP = new StringFlag(
     JOURNEYS_WITH_GEMINI, "dependency.journeys.with.gemini.test.suite.junit.platform.engine.dep",
