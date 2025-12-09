@@ -173,7 +173,13 @@ object ImportedSessionUtils {
 
     // If a session with this start time already exists, just select it.
     if (sessionsManager.sessionIdToSessionItems.containsKey(sessionStartTimeNs)) {
-      sessionsManager.setSessionById(sessionStartTimeNs)
+      if (sessionsManager.studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+        val session = sessionsManager.sessionIdToSessionItems[sessionStartTimeNs]!!
+        sessionsManager.studioProfilers.pastRecordingsTabModel.recordingListModel.openRecording(session)
+      }
+      else {
+        sessionsManager.setSessionById(sessionStartTimeNs)
+      }
       return
     }
 
