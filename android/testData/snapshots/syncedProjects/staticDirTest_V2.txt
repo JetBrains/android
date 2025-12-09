@@ -134,6 +134,7 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main, :app:testFixtures]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/android
             JavaSource (test)             : file://<PROJECT>/app/src/android/java
@@ -452,6 +453,7 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main, :app:testFixtures]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugScreenshotTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/screenshot
             JavaSource (test)             : file://<PROJECT>/app/src/screenshot/java
@@ -749,6 +751,7 @@ PROJECT                       : project
             Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main, :app:testFixtures]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
