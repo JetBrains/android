@@ -59,13 +59,17 @@ class BuildAndRunTest {
 
     system.runAdb { adb ->
       val androidDeviceManager = AndroidDeviceManager()
-      androidDeviceManager.runEmulator(system.fileSystem, system.sdk, system.display).use { emulator ->
+      androidDeviceManager.runAndroidDevice(system.fileSystem, system.sdk, system.display).use { emulator ->
         system.runStudio(project, watcher.dashboardName) { studio ->
           studio.waitForSync()
           studio.waitForIndex()
 
-          emulator.waitForBoot()
-          adb.waitForDevice(emulator)
+          if(SystemInfo.isWindows) {
+            adb.waitForRemoteDevice()
+          } else {
+            emulator.waitForBoot()
+            adb.waitForDevice(emulator)
+          }
 
           studio.executeAction("MakeGradleProject")
           studio.waitForBuild()
@@ -81,7 +85,7 @@ class BuildAndRunTest {
           studio.executeAction("Run")
           logCat.waitForMatchingLine(".*Hey Minimal World!.*", 30, TimeUnit.SECONDS)
 
-          if(SystemInfo.isWindows) androidDeviceManager.tearDown()
+          androidDeviceManager.tearDown()
         }
       }
     }
