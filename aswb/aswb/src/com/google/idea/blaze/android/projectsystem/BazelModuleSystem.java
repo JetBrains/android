@@ -16,7 +16,9 @@
 package com.google.idea.blaze.android.projectsystem;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory.EXTERNAL_REPOSITORIES;
+import static java.util.Arrays.stream;
 
 import com.android.ide.common.repository.WellKnownMavenArtifactId;
 import com.android.ide.common.util.PathString;
@@ -42,6 +44,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -49,13 +52,21 @@ import com.google.idea.blaze.android.compose.ComposeStatusProvider;
 import com.google.idea.blaze.android.npw.project.BlazeAndroidModuleTemplate;
 import com.google.idea.blaze.android.projectsystem.BazelModuleSystem.BlazeRegisteredDependencyId;
 import com.google.idea.blaze.android.projectsystem.BazelModuleSystem.BlazeRegisteredDependencyQueryId;
+import com.google.idea.blaze.android.sync.model.AndroidResourceModule;
 import com.google.idea.blaze.android.sync.model.AndroidResourceModuleRegistry;
 import com.google.idea.blaze.android.sync.model.idea.BlazeAndroidModel;
+import com.google.idea.blaze.base.command.buildresult.OutputArtifactResolver;
+import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
+import com.google.idea.blaze.base.ideinfo.Dependency;
+import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.ideinfo.TargetKey;
+import com.google.idea.blaze.base.io.VfsUtils;
+import com.google.idea.blaze.base.lang.buildfile.references.BuildReferenceManager;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.settings.Blaze;
+import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
@@ -65,11 +76,16 @@ import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -299,26 +315,27 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
    */
   @Override
   public List<Module> getResourceModuleDependencies() {
-    return ImmutableList.of();
-    // TODO: no modules in query sync.
-    //AndroidResourceModuleRegistry resourceModuleRegistry =
-    //    AndroidResourceModuleRegistry.getInstance(project);
-    //
-    //if (isWorkspaceModule) {
-    //  // The workspace module depends on every resource module.
-    //  return stream(ModuleManager.getInstance(project).getModules())
-    //      .filter(module -> resourceModuleRegistry.get(module) != null)
-    //      .collect(toImmutableList());
-    //}
-    //AndroidResourceModule resourceModule = resourceModuleRegistry.get(module);
-    //if (resourceModule == null) {
-    //  return ImmutableList.of();
-    //}
-    //
-    //return resourceModule.transitiveResourceDependencies.stream()
-    //    .map(resourceModuleRegistry::getModuleContainingResourcesOf)
-    //    .filter(Objects::nonNull)
-    //    .collect(toImmutableList());
+    if (Blaze.getProjectType(project) == ProjectType.QUERY_SYNC) {
+      return ImmutableList.of();
+    }
+    AndroidResourceModuleRegistry resourceModuleRegistry =
+        AndroidResourceModuleRegistry.getInstance(project);
+
+    if (isWorkspaceModule) {
+      // The workspace module depends on every resource module.
+      return stream(ModuleManager.getInstance(project).getModules())
+          .filter(module -> resourceModuleRegistry.get(module) != null)
+          .collect(toImmutableList());
+    }
+    AndroidResourceModule resourceModule = resourceModuleRegistry.get(module);
+    if (resourceModule == null) {
+      return ImmutableList.of();
+    }
+
+    return resourceModule.transitiveResourceDependencies.stream()
+        .map(resourceModuleRegistry::getModuleContainingResourcesOf)
+        .filter(Objects::nonNull)
+        .collect(toImmutableList());
   }
 
   @Override
