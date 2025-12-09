@@ -117,6 +117,7 @@ jvm_library(
     "//plugins/kotlin/jvm-debugger/base/util",
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
     "//platform/forms_rt:java-guiForms-rt",
+    "//platform/xdebugger-impl/shared",
   ]
 )
 ### auto-generated section `build intellij.android.compose-ide-plugin` end
