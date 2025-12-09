@@ -1,16 +1,17 @@
-load(
-    "//tools/adt/idea/aswb:build-visibility.bzl",
-    "ASWB_SUBPACKAGES_VISIBILITY",
-    "TEST_ASWB_SUBPACKAGES_VISIBILITY",
-)
-load(
-    "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
-    "combine_visibilities",
-)
+load("//tools/adt/idea/aswb:build-visibility.bzl", "ASWB_SUBPACKAGES_VISIBILITY", "TEST_ASWB_SUBPACKAGES_VISIBILITY")
+load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library", "combine_visibilities")
 
-java_library(
+aswb_library(
     name = "tokens",
-    srcs = glob(["*.java"]),
+    srcs = [
+        "BazelBuildServices.java",
+        "BazelBuildSystemFilePreviewServices.java",
+        "BazelBuildTargetReference.kt",
+        "BazelBuildTargets.java",
+        "BazelClassFileFinder.java",
+        "BazelRenderingServices.kt",
+        "Key.java",
+    ],
     visibility = combine_visibilities(
         ASWB_SUBPACKAGES_VISIBILITY,
         TEST_ASWB_SUBPACKAGES_VISIBILITY,

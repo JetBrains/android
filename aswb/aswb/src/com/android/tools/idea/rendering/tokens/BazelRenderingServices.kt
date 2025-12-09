@@ -13,25 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.tokens;
 
-import static java.util.Collections.emptyList;
+package com.android.tools.idea.rendering.tokens
 
-import com.android.tools.idea.projectsystem.ClassFileFinder;
-import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.RenderingServices;
-import java.nio.file.Path;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.projectsystem.ClassFileFinder
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.RenderingServices
+import java.nio.file.Path
 
-final class BazelRenderingServices implements RenderingServices {
-  @Override
-  public ClassFileFinder getClassFileFinder() {
-    // TODO: b/438210219 - Inject the output JARs
-    return null;
-  }
-
-  @NotNull
-  @Override
-  public Iterable<Path> getExternalLibraries() {
-    return emptyList();
-  }
+internal class BazelRenderingServices private constructor(
+  override val classFileFinder: ClassFileFinder?,
+  override val externalLibraries: Iterable<Path>,
+) : RenderingServices {
+  internal constructor() : this(null, emptyList())
+  internal constructor(jars: Collection<Path>, externalJars: Iterable<Path>) : this(BazelClassFileFinder(jars), externalJars)
 }

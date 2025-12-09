@@ -21,6 +21,7 @@ import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Bu
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener.BuildMode;
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener.BuildResult;
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices;
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.RenderingServices;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
@@ -48,7 +49,9 @@ import com.intellij.psi.search.GlobalSearchScope;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import kotlinx.coroutines.Deferred;
 import kotlinx.coroutines.guava.ListenableFutureKt;
@@ -57,7 +60,9 @@ import org.jetbrains.annotations.NotNull;
 // TODO: b/418844903 - Update the artifact manager
 final class BazelBuildServices implements BuildServices<BazelBuildTargetReference> {
   private static final FeatureRolloutExperiment aswbComposablePreviews = new FeatureRolloutExperiment("aswb.composable.previews");
+
   private final Collection<BuildListener> listeners = new CopyOnWriteArrayList<>();
+  private final Map<Key, BazelRenderingServices> keyToRenderingServicesMap = new ConcurrentHashMap<>();
 
   /**
    * Executed by an application pool thread and the EDT
@@ -72,6 +77,12 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
   @UiThread
   void remove(BuildListener listener) {
     listeners.remove(listener);
+  }
+
+  RenderingServices getRenderingServices(BazelBuildTargetReference target) {
+    return aswbComposablePreviews.isEnabled()
+           ? keyToRenderingServicesMap.computeIfAbsent(new Key(target), key -> new BazelRenderingServices())
+           : new BazelRenderingServices();
   }
 
   @NotNull
@@ -132,7 +143,7 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
   /**
    * Executed by the Blaze executor
    */
-  private static void buildAndRefresh(BazelBuildTargetReference target, BlazeContext context, Label label) throws BuildException {
+  private void buildAndRefresh(BazelBuildTargetReference target, BlazeContext context, Label label) throws BuildException {
     var tracker = QuerySyncManager.getInstance(target.getProject()).getDependencyTracker();
     assert tracker != null;
 
@@ -147,15 +158,21 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
     }
   }
 
-  private static void cacheOutput(BazelBuildTargetReference target, OutputInfo output, BlazeContext context) {
+  private void cacheOutput(BazelBuildTargetReference target, OutputInfo output, BlazeContext context) {
     var project = target.getProject();
-    var file = Iterables.getOnlyElement(WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, List.of(target.getFile())));
+    var path = target.getFileWorkspaceRelativePath();
 
     var cache = RuntimeArtifactCache.getInstance(project);
-    var label = QuerySyncManager.getInstance(project).getCurrentSnapshot().orElseThrow().getGraph().sourceFileToLabel(file);
+    var label = QuerySyncManager.getInstance(project).getCurrentSnapshot().orElseThrow().getGraph().sourceFileToLabel(path);
 
-    cache.fetchArtifacts(label, output.getTransitiveRuntimeJars(), context, RuntimeArtifactKind.TRANSITIVE_RUNTIME_JAR);
-    cache.fetchArtifacts(label, output.getExternalTransitiveRuntimeJars(), context, RuntimeArtifactKind.EXTERNAL_TRANSITIVE_RUNTIME_JAR);
+    var jars = cache.fetchArtifacts(label, output.getTransitiveRuntimeJars(), context, RuntimeArtifactKind.TRANSITIVE_RUNTIME_JAR);
+
+    var externalJars = cache.fetchArtifacts(label,
+                                            output.getExternalTransitiveRuntimeJars(),
+                                            context,
+                                            RuntimeArtifactKind.EXTERNAL_TRANSITIVE_RUNTIME_JAR);
+
+    keyToRenderingServicesMap.put(new Key(target), new BazelRenderingServices(jars, externalJars));
   }
 
   /**
