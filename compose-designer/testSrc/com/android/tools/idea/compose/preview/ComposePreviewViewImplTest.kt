@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.SdkConstants
-import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.retryUntilPassing
 import com.android.tools.adtui.instructions.HyperlinkInstruction
@@ -40,7 +39,6 @@ import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatusManager
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.preview.createOrReuseModelForPreviewElement
 import com.android.tools.idea.preview.find.PreviewElementProvider
@@ -48,14 +46,12 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.projectsystem.SourceProviderManager
-import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
-import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
@@ -71,7 +67,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
-import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
@@ -84,6 +80,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.ExtensionTestUtil
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import java.awt.BorderLayout
@@ -103,8 +100,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 
 private fun configureLayoutlibSceneManagerForPreviewElement(
   displaySettings: PreviewDisplaySettings,
@@ -140,12 +135,15 @@ private fun InstructionsPanel.toDisplayText(): String =
       .filterIsInstance<DialogPanel>()
       .mapNotNull { it.components.firstOrNull() as? ActionToolbar }
       .flatMap { toolbar ->
-        toolbar.actions.map { action -> "\n[${action.templatePresentation.text}]" }
+        toolbar.actions.mapNotNull { action ->
+          val event = TestActionEvent.createTestEvent(action)
+          action.update(event)
+          if (event.presentation.isVisible) "\n[${event.presentation.text}]" else null
+        }
       }
       .joinToString("")
 
-@RunWith(Parameterized::class)
-class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeFlag: Boolean) {
+class ComposePreviewViewImplTest {
   @get:Rule
   val projectRule =
     AndroidProjectRule.withAndroidModels(
@@ -165,28 +163,6 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
         ),
       )
       .initAndroid(true)
-  @get:Rule
-  val generatePreviewFlagRule =
-    FlagRule(StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW, generatePreviewFlag)
-  @get:Rule
-  val generatePreviewAgenticFlagRule =
-    FlagRule(StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC, true)
-  @get:Rule
-  val screenshotToCodeFlagRule =
-    FlagRule(StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE, screenshotToCodeFlag)
-
-  companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "generatePreview={0}, screenshotToCode={1}")
-    fun data(): Collection<Array<Boolean>> {
-      return listOf(
-        arrayOf(true, true),
-        arrayOf(true, false),
-        arrayOf(false, true),
-        arrayOf(false, false),
-      )
-    }
-  }
 
   private val project: Project
     get() = projectRule.project
@@ -206,23 +182,23 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
   private lateinit var mainSurfaceBuilder: NlSurfaceBuilder
   private lateinit var previewView: ComposePreviewView
   private lateinit var fakeUi: FakeUi
+
+  private class VisibleAction(text: String, var isVisible: Boolean = true) : AnAction(text) {
+    override fun actionPerformed(e: AnActionEvent) {}
+
+    override fun update(e: AnActionEvent) {
+      e.presentation.isVisible = isVisible
+    }
+  }
+
   private val fakeStudioBotActionFactory =
     object : FakeStudioBotActionFactory() {
-      var previewGeneratorAction = super.createPreviewGenerator()
-      var screenshotToCodeAction = super.screenshotToCodeAction()
+      var previewGeneratorAction = VisibleAction("Auto-generate Compose Previews")
+      var screenshotToCodeAction = VisibleAction("Generate Code From Screenshot")
 
       override fun createPreviewGenerator(): AnAction? = previewGeneratorAction
 
       override fun screenshotToCodeAction(): AnAction = screenshotToCodeAction
-    }
-
-  private val disabledAndHiddenAction =
-    object : AnAction() {
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabledAndVisible = false
-      }
-
-      override fun actionPerformed(e: AnActionEvent) {}
     }
 
   @Before
@@ -326,7 +302,7 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
           JPanel().apply {
             layout = BorderLayout()
             size = Dimension(1000, 800)
-            add(composePreviewViewImpl.component, BorderLayout.CENTER)
+            add(previewView.component, BorderLayout.CENTER)
           },
           1.0,
           true,
@@ -398,106 +374,24 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
     }
 
   @Test
-  fun `empty preview state when preview generation flag is disabled`() {
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(false)
-    checkEmptyPreviewState(
-      showAutoGenerateAction = false,
-      showScreenshotToAction = StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get(),
-    )
+  fun `empty preview state respects action visibility and text`() {
+    // Configure actions
+    // We set a stub title here ("Stub Action"). The test passes only if ComposePreviewViewImpl
+    // correctly overwrites this with the actual localized title ("Generate Preview for
+    // Composable").
+    fakeStudioBotActionFactory.previewGeneratorAction.apply {
+      templatePresentation.text = "Stub Action"
+      isVisible = true
+    }
+    fakeStudioBotActionFactory.screenshotToCodeAction.apply {
+      templatePresentation.text = "Invisible Action"
+      isVisible = false
+    }
+
+    checkEmptyPreviewState(listOf("Generate Preview for Composable"))
   }
 
-  @Test
-  fun `empty preview state when preview generator is null`() {
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
-    fakeStudioBotActionFactory.previewGeneratorAction = null
-    checkEmptyPreviewState(
-      showAutoGenerateAction = false,
-      showScreenshotToAction = StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get(),
-    )
-  }
-
-  @Test
-  fun `empty preview state when preview generation flag is enabled`() {
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
-    checkEmptyPreviewState(
-      showAutoGenerateAction = true,
-      showScreenshotToAction = StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get(),
-    )
-  }
-
-  @Test
-  fun `empty preview state when screenshot to code flag is disabled`() {
-    StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.override(false)
-    checkEmptyPreviewState(
-      showAutoGenerateAction = StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.get(),
-      showScreenshotToAction = false,
-    )
-  }
-
-  @Test
-  fun `empty preview state when screenshot to code flag is enabled`() {
-    StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.override(true)
-    checkEmptyPreviewState(
-      showAutoGenerateAction = StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.get(),
-      showScreenshotToAction = true,
-    )
-  }
-
-  @Test
-  fun `empty preview state when screenshot to code action is hidden and disabled`() {
-    StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.override(true)
-
-    fakeStudioBotActionFactory.screenshotToCodeAction = disabledAndHiddenAction
-
-    checkEmptyPreviewState(
-      showAutoGenerateAction = StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.get(),
-      showScreenshotToAction = false,
-    )
-  }
-
-  // Regression test for b/450783824
-  @Test
-  fun `empty preview state with hidden and disabled preview generation action, preview generation flag is enabled`() {
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.overrideForTest(
-      true,
-      projectRule.testRootDisposable,
-    )
-
-    fakeStudioBotActionFactory.previewGeneratorAction = disabledAndHiddenAction
-
-    checkEmptyPreviewState(
-      showAutoGenerateAction = false,
-      showScreenshotToAction = StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get(),
-    )
-  }
-
-  @Test
-  fun `empty preview state when preview generation agentic mode is enabled`() {
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.override(true)
-    checkEmptyPreviewState(
-      showAutoGenerateAction = true,
-      showScreenshotToAction = StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get(),
-      expectedAutoGenerateActionText = "Generate Preview for Composable",
-    )
-  }
-
-  @Test
-  fun `empty preview state when preview generation agentic mode is disabled`() {
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.override(false)
-    checkEmptyPreviewState(
-      showAutoGenerateAction = true,
-      showScreenshotToAction = StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get(),
-      expectedAutoGenerateActionText = "Auto-generate Compose Previews for this file",
-    )
-  }
-
-  private fun checkEmptyPreviewState(
-    showAutoGenerateAction: Boolean,
-    showScreenshotToAction: Boolean,
-    expectedAutoGenerateActionText: String = "Generate Preview for Composable",
-  ) = runBlocking {
+  private fun checkEmptyPreviewState(expectedActions: List<String>) = runBlocking {
     previewView.hasRendered = true
     previewView.hasContent = false
     runBlocking { previewView.updateVisibilityAndNotifications() }
@@ -508,18 +402,16 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
     }
 
     retryUntilPassing(2.seconds) {
-      assertEquals(
+      val expectedText =
         listOfNotNull(
             "No preview found.",
             "Add preview by annotating Composables with @Preview.",
             "Note: syntax errors could cause existing previews not to be found.",
             "[Using the Compose preview]",
-            if (showAutoGenerateAction) "[$expectedAutoGenerateActionText]" else null,
-            if (showScreenshotToAction) "[Generate Code From Screenshot]" else null,
           )
-          .joinToString("\n"),
-        instructionPanel?.toDisplayText(),
-      )
+          .plus(expectedActions.map { "[$it]" })
+          .joinToString("\n")
+      assertEquals(expectedText, instructionPanel?.toDisplayText())
     }
   }
 
@@ -551,9 +443,11 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
   }
 
   @Test
-  fun `empty preview state for test file`() = runBlocking {
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
-    StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.override(true)
+  fun `empty preview state for test file`() {
+    // In a test file, we expect actions to be hidden (simulating production behavior where they
+    // hide themselves).
+    fakeStudioBotActionFactory.previewGeneratorAction.isVisible = false
+    fakeStudioBotActionFactory.screenshotToCodeAction.isVisible = false
 
     val testPsiFile =
       fixture.addFileToProjectAndInvalidate(
@@ -569,13 +463,17 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
             """
           .trimIndent(),
       )
-    // Ensure the newly created file is a test file
-    assertTrue(isTestFile(project, testPsiFile.virtualFile))
-    // We need to create a new ComposePreviewImpl with the new pointer to the psiFile
+    configureComposePreviewView(testPsiFile)
+
+    checkEmptyPreviewState(emptyList())
+  }
+
+  private fun configureComposePreviewView(psiFile: PsiFile) {
+    mainFileSmartPointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
     previewView =
       ComposePreviewViewImpl(
         project,
-        readAction { SmartPointerManager.createPointer(testPsiFile) },
+        mainFileSmartPointer,
         statusManager,
         nopUiDataProvider,
         mainSurfaceBuilder,
@@ -592,9 +490,9 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
           1.0,
           true,
         )
+      previewView.component.findDescendant<SceneViewPanel>()?.setNoComposeHeadersForTests()
+      fakeUi.root.validate()
     }
-    fakeUi.root.validate()
-    checkEmptyPreviewState(showAutoGenerateAction = false, showScreenshotToAction = false)
   }
 
   @Test

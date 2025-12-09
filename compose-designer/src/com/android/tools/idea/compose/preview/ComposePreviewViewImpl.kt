@@ -36,7 +36,6 @@ import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.focus.FocusModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
-import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.Disposable
@@ -45,14 +44,12 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.EDT
-import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -375,16 +372,7 @@ internal class ComposePreviewViewImpl(
   }
 
   @RequiresBackgroundThread
-  private suspend fun handleUpdateVisibilityAndNotificationsRequest() {
-    val virtualFile = psiFilePointer.virtualFile
-    val isInLibrary =
-      virtualFile == null ||
-        readAction {
-          if (project.isDisposed) true
-          else ProjectFileIndex.getInstance(project).isInLibrary(virtualFile)
-        }
-    val isTestFile = isTestFile(project, virtualFile)
-
+  private suspend fun handleUpdateVisibilityAndNotificationsRequest() =
     withContext(Dispatchers.EDT) {
       if (
         workbench.isMessageVisible &&
@@ -403,29 +391,8 @@ internal class ComposePreviewViewImpl(
             workbench.hideLoading()
             workbench.showContent()
           } else {
-            // Do not show AI actions for:
-            // - files in libraries, since they are read-only.
-            // - Test files, since the generation of Previews in test cases is not useful
             val extraActions =
-              // TODO(b/467014375): move these checks to the actions themselves
-              if (!isInLibrary && !isTestFile) {
-                withContext(Dispatchers.Default) {
-                  listOfNotNull(
-                    if (StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.get()) {
-                      createGeneratePreviewsActionData()
-                    } else {
-                      null
-                    },
-                    if (StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get()) {
-                      createScreenshotToCodeActionData()
-                    } else {
-                      null
-                    },
-                  )
-                }
-              } else {
-                emptyList()
-              }
+              listOfNotNull(createGeneratePreviewsActionData(), createScreenshotToCodeActionData())
             workbench.hideLoading()
             workbench.hideContent()
             workbench.loadingStopped(
@@ -437,10 +404,8 @@ internal class ComposePreviewViewImpl(
           }
         }
       }
-
       updateNotifications()
     }
-  }
 
   private fun getComposeStudioBotActionFactory(): ComposeStudioBotActionFactory? =
     ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()
