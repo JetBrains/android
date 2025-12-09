@@ -444,18 +444,36 @@ class ResourceLookupResolverTest {
     val titleId = ResourceReference(exampleNS, ResourceType.ID, "title")
     val buttonId = ResourceReference(exampleNS, ResourceType.ID, "button")
     val relativeLayout =
-      ViewNode(1, "RelativeLayout", demo, Rectangle(0, 0, 300, 900), relativeId, "", 0)
+      ViewNode(1, "RelativeLayout", demo, Rectangle(0, 0, 300, 900), relativeId, "", 0, false)
     val title =
-      ViewNode(2, "TextView", demo, Rectangle(30, 60, 300, 100), titleId, "Hello Folks", 0)
+      ViewNode(2, "TextView", demo, Rectangle(30, 60, 300, 100), titleId, "Hello Folks", 0, false)
     val frameLayout =
-      ViewNode(3, "RelativeLayout", demo, Rectangle(0, 200, 300, 700), frameId, "", 0)
+      ViewNode(3, "RelativeLayout", demo, Rectangle(0, 200, 300, 700), frameId, "", 0, false)
     val textView1 =
-      ViewNode(4, "TextView", demo, Rectangle(400, 60, 300, 100), null, "TextView without an ID", 0)
+      ViewNode(
+        4,
+        "TextView",
+        demo,
+        Rectangle(400, 60, 300, 100),
+        null,
+        "TextView without an ID",
+        0,
+        false,
+      )
     val textView2 =
-      ViewNode(5, "TextView", demo, Rectangle(0, 200, 300, 700), null, "TextView without an ID", 0)
-    val button = ViewNode(6, "Button", demo, Rectangle(30, 400, 300, 100), buttonId, "OK", 0)
+      ViewNode(
+        5,
+        "TextView",
+        demo,
+        Rectangle(0, 200, 300, 700),
+        null,
+        "TextView without an ID",
+        0,
+        false,
+      )
+    val button = ViewNode(6, "Button", demo, Rectangle(30, 400, 300, 100), buttonId, "OK", 0, false)
     val singleTextView =
-      ViewNode(7, "TextView", designText, Rectangle(0, 0, 400, 50), null, "Tab3", 0)
+      ViewNode(7, "TextView", designText, Rectangle(0, 0, 400, 50), null, "Tab3", 0, false)
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup: ResourceLookup = mock()

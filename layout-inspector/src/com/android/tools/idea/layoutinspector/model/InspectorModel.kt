@@ -569,6 +569,7 @@ class InspectorModel(
       oldNode.viewId = newNode.viewId
       oldNode.textValue = newNode.textValue
       oldNode.layoutFlags = newNode.layoutFlags
+      oldNode.isDerivedFromWebView = newNode.isDerivedFromWebView
       oldNode.parent = parent
       if (oldNode is ComposeViewNode && newNode is ComposeViewNode) {
         oldNode.composeFilename = newNode.composeFilename
