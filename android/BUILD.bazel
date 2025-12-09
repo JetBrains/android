@@ -252,6 +252,7 @@ jvm_library(
     "//libraries/jgoodies/forms",
     "//spellchecker/xml",
     "@lib//:android-core-kotlin-metadata-jvm",
+    "//platform/xdebugger-impl/shared",
     ":plugins_maven_artifactResolver-m31_provided",
   ],
   exports = ["//android/build-common"]

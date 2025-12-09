@@ -50,8 +50,8 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.getProjectCacheFileName
+import com.intellij.platform.debugger.impl.shared.XDebuggerActionsCollector
 import com.intellij.util.application
-import com.intellij.xdebugger.impl.XDebuggerActionsCollector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
