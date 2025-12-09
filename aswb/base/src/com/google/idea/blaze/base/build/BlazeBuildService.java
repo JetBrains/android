@@ -21,6 +21,7 @@ import com.android.annotations.concurrency.WorkerThread;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator;
 import com.google.idea.blaze.base.bazel.BuildSystem;
@@ -50,28 +51,19 @@ import com.google.idea.blaze.base.settings.BlazeUserSettings.FocusBehavior;
 import com.google.idea.blaze.base.sync.SyncProjectTargetsHelper;
 import com.google.idea.blaze.base.sync.SyncScope.SyncCanceledException;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
-import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.sync.aspects.BlazeIdeInterface;
 import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy.OutputGroup;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.toolwindow.Task;
 import com.google.idea.blaze.base.util.SaveUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import java.util.List;
 import java.util.function.Function;
 
 /** Utility to build various collections of targets. */
 public class BlazeBuildService {
-  private static final Key<Long> PROJECT_LAST_BUILD_TIMESTAMP_KEY =
-      Key.create("blaze.project.last.build.timestamp");
-
   public static BlazeBuildService getInstance(Project project) {
     return project.getService(BlazeBuildService.class);
-  }
-
-  public static Long getLastBuildTimeStamp(Project project) {
-    return project.getUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY);
   }
 
   private final Project project;
@@ -120,17 +112,12 @@ public class BlazeBuildService {
                                        targets)));
   }
 
-  public void buildProject() {
+  public ListenableFuture<Boolean> buildProject() {
     if (!Blaze.isBlazeProject(project)) {
-      return;
+      return Futures.immediateFuture(false);
     }
-    submitTask(project, this::runBuildProjectTask);
-
-    // In case the user touched a file, but didn't change its content. The user will get a false
-    // positive for class file out of date. We need a way for the user to suppress the false
-    // message. Clicking the "build project" link should at least make the message go away.
-    project.putUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY, System.currentTimeMillis());
-  }
+    return submitTask(project, this::runBuildProjectTask);
+ }
 
   public  Boolean runBuildProjectTask(BlazeContext context) {
     ProjectViewSet projectView = ProjectViewManager.getInstance(project).getProjectViewSet();
@@ -228,46 +215,38 @@ public class BlazeBuildService {
 
     BuildInvoker buildInvoker = buildSystem.getBuildInvoker(project);
 
-    BlazeBuildOutputs buildOutputs =
-        BlazeIdeInterface.getInstance()
-            .build(
-              project,
-              context,
-              workspaceRoot,
-              projectData.getBlazeVersionData(),
-              buildInvoker,
-              projectView,
-              targets,
-              projectData.getWorkspaceLanguageSettings(),
-              ImmutableSet.of(OutputGroup.COMPILE),
-              BlazeInvocationContext.OTHER_CONTEXT,
-                false);
+    BuildResult buildResult =
+      BlazeIdeInterface.getInstance()
+        .build(
+          project,
+          context,
+          workspaceRoot,
+          projectData.getBlazeVersionData(),
+          buildInvoker,
+          projectView,
+          targets,
+          projectData.getWorkspaceLanguageSettings(),
+          ImmutableSet.of(OutputGroup.COMPILE),
+          BlazeInvocationContext.OTHER_CONTEXT,
+          false)
+        .buildResult();
 
-    refreshFileCachesAndNotifyListeners(context, buildOutputs, project);
+    notifyListeners(project, buildResult);
 
-    if (buildOutputs.buildResult().status != BuildResult.Status.SUCCESS) {
+    if (buildResult.status != BuildResult.Status.SUCCESS) {
       context.setHasError();
     }
-    return buildOutputs.buildResult().status == BuildResult.Status.SUCCESS;
+    return buildResult.status == BuildResult.Status.SUCCESS;
   }
 
   /**
    * Asynchronously refreshes the registered file caches and calls {@link
    * BlazeBuildListener#buildCompleted} after all file caches are done refreshing.
    */
-  private static void refreshFileCachesAndNotifyListeners(
-      BlazeContext context, BlazeBuildOutputs buildOutputs, Project project) {
-    if (buildOutputs.buildResult().status == BuildResult.Status.SUCCESS) {
-      BlazeBuildListener.EP_NAME
-        .getExtensionList()
-        .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult()));
-
-    }
-    else {
-      BlazeBuildListener.EP_NAME
-        .getExtensionList()
-        .forEach(ep -> ep.buildCompleted(project, buildOutputs.buildResult()));
-    }
+  private static void notifyListeners(Project project, BuildResult buildResult) {
+    BlazeBuildListener.EP_NAME
+      .getExtensionList()
+      .forEach(ep -> ep.buildCompleted(project, buildResult));
   }
 }
 
