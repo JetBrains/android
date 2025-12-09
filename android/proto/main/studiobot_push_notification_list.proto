@@ -4,6 +4,18 @@ option java_package = "com.android.tools.idea.serverflags.protos";
 option java_multiple_files = true;
 
 message StudioBotPushNotificationList {
+  // Deprecated: Use [StudioPushNotificationList] instead.
+  option deprecated = true;
+
+  // List of notifications that are enabled for Studio Bot.
+  // The value here should match the filename of the textproto file containing
+  // the server configuration for the notification.
+  // For example, if the textproto file is named "foo_notification.textproto",
+  // the value should be "foo_notification".
+  repeated string notifications = 1;
+}
+
+message StudioPushNotificationList {
   // List of notifications that are enabled for Studio Bot.
   // The value here should match the filename of the textproto file containing
   // the server configuration for the notification.
