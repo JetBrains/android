@@ -36,7 +36,7 @@ class AndroidVersionsInfoTest {
      */
     @get:ClassRule
     val compileSdkFlagRule: FlagRule<AndroidApiLevel> =
-      FlagRule(StudioFlags.NPW_COMPILE_SDK_VERSION, AndroidApiLevel(36))
+      FlagRule(StudioFlags.NPW_COMPILE_SDK_VERSION, AndroidApiLevel(36, 1))
   }
 
   /**
