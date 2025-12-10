@@ -34,9 +34,6 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>You must provide a {@link BuildSystemName} to use this class; reasonable defaults are provided
  * for all other values.
- *
- * <p>To modify the behaviour of a real instance of {@link BuildSystem}, consider using {@link
- * com.google.idea.blaze.base.bazel.BuildSystemProviderWrapper.BuildSystemWrapper} instead.
  */
 @AutoValue
 public abstract class FakeBuildSystem implements BuildSystem {
