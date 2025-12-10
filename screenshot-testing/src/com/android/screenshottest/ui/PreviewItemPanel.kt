@@ -94,7 +94,8 @@ class PreviewItemPanel(
   private fun createMatchPercentageLabel(previewData: PreviewDetails): JBLabel {
     val diffDouble = previewData.diffPercent?.toDoubleOrNull()
     val matchPercentage = ScreenshotTestUtils.calculateMatchPercentage(diffDouble)
-    val text = matchPercentage ?: DEFAULT_MATCH_PERCENTAGE
+    val percentageText = matchPercentage ?: DEFAULT_MATCH_PERCENTAGE
+    val text = "Match: $percentageText"
 
     val color = if (previewData.testResult == AndroidTestCaseResult.PASSED) {
       JBColor.GREEN.darker()
