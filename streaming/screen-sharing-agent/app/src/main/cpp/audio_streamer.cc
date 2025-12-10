@@ -175,8 +175,7 @@ bool AudioStreamer::StartAudioCapture() {
     return false;
   }
 
-  bool use_audio_record = (Agent::feature_level() >= 34 || (Agent::feature_level() == 33 && Agent::device_manufacturer() == GOOGLE)) &&
-                          (Agent::flags() & USE_REMOTE_SUBMIX) == 0;
+  bool use_audio_record = (Agent::feature_level() >= 34 || (Agent::feature_level() == 33 && Agent::device_manufacturer() == GOOGLE));
   for (;;) {
     if (use_audio_record) {
       Log::D("Audio: using AudioRecordReader");
