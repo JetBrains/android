@@ -104,7 +104,11 @@ internal class PreviewSurfaceActionManager(
 
   private fun getAiActionGroup(shouldShowInDropDown: Boolean): AnAction? {
     val factory = ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()
-    return if (StudioFlags.COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN.get()) {
+    val isTransformEnabled = StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.get()
+    val isMatchUiEnabled = StudioFlags.COMPOSE_PREVIEW_MATCH_UI_AGENT.get()
+    val isUiCheckFixEnabled = StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.get()
+
+    return if (isTransformEnabled && (isMatchUiEnabled || isUiCheckFixEnabled)) {
         if (shouldShowInDropDown) {
           factory?.previewAgentsDropDownAction()
         } else {

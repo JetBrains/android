@@ -37,7 +37,6 @@ import java.awt.event.MouseEvent
 import javax.swing.JPanel
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
-import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -86,13 +85,6 @@ class PreviewSurfaceActionManagerTest {
     actionManager = PreviewSurfaceActionManager(surface, mock())
   }
 
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.clearOverride()
-    StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.clearOverride()
-    StudioFlags.COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN.clearOverride()
-  }
-
   @Test
   fun testCoordinateConversion() {
     val interactionPane = JPanel().apply { bounds = java.awt.Rectangle(0, 0, 500, 800) }
@@ -110,19 +102,15 @@ class PreviewSurfaceActionManagerTest {
   }
 
   @Test
-  fun testAvailableActionsOnPreviewContextMenuWithDropdownEnabled() {
-    testAvailableActionsOnPreviewContextMenu(true)
-  }
+  fun testAvailableActionsOnPreviewContextMenu() {
+    StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.overrideForTest(
+      true,
+      projectRule.testRootDisposable,
+    )
+    StudioFlags.COMPOSE_PREVIEW_MATCH_UI_AGENT.overrideForTest(true, projectRule.testRootDisposable)
+    StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.overrideForTest(true, projectRule.testRootDisposable)
 
-  @Test
-  fun testAvailableActionsOnPreviewContextMenuWithDropdownDisabled() {
-    testAvailableActionsOnPreviewContextMenu(false)
-  }
-
-  fun testAvailableActionsOnPreviewContextMenu(aiActionsDropdownEnabled: Boolean) {
-    StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.override(true)
-    StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.override(true)
-    StudioFlags.COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN.override(aiActionsDropdownEnabled)
+    // Simulate multiple actions
     ExtensionTestUtil.maskExtensions(
       ComposeStudioBotActionFactory.EP_NAME,
       listOf(FakeStudioBotActionFactory()),
@@ -163,12 +151,49 @@ class PreviewSurfaceActionManagerTest {
       ((actions[6] as AnActionWrapper).delegate as AnActionWrapper).delegate
     assertThat(backNavigationAction).isInstanceOf(BackNavigationAction::class.java)
 
-    // AI actions
+    // AI actions - Multiple actions should be in dropdown
     val aiActionsDefaultGroup =
       (actions[7] as ShowGroupUnderConditionWrapper).getChildren(null).single()
-    assertThat(aiActionsDefaultGroup.templatePresentation.text)
-      .isEqualTo(if (aiActionsDropdownEnabled) "previewAgents" else "transformPreview")
+        as DefaultActionGroup
+    assertThat(aiActionsDefaultGroup.templatePresentation.text).isEqualTo("previewAgents")
     assertThat(aiActionsDefaultGroup is DefaultActionGroup)
+    val children = aiActionsDefaultGroup.getChildren(null)
+    assertThat(children.size).isAtLeast(2)
+  }
+
+  @Test
+  fun testAvailableActionsOnPreviewContextMenuWithAgentsDisabled() {
+    StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.overrideForTest(
+      true,
+      projectRule.testRootDisposable,
+    )
+    StudioFlags.COMPOSE_PREVIEW_MATCH_UI_AGENT.overrideForTest(
+      false,
+      projectRule.testRootDisposable,
+    )
+    StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.overrideForTest(false, projectRule.testRootDisposable)
+    ExtensionTestUtil.maskExtensions(
+      ComposeStudioBotActionFactory.EP_NAME,
+      listOf(FakeStudioBotActionFactory()),
+      projectRule.testRootDisposable,
+    )
+
+    val menuGroup = actionManager.getPopupMenuActions(null, fakeMouseEvent)
+
+    val actions = menuGroup.getChildren(null)
+    assertThat(actions.size).isEqualTo(EXPECTED_NUMBER_OF_ACTIONS)
+    // The last action should be the transform preview action wrapped
+    val transformActionOuter = actions[7] as ShowGroupUnderConditionWrapper
+    val children = transformActionOuter.getChildren(null)
+
+    val innerAction = children.single()
+
+    // If text is null, it might be a wrapper.
+    if (innerAction is AnActionWrapper) {
+      assertThat(innerAction.delegate.templatePresentation.text).isEqualTo("transformPreview")
+    } else {
+      assertThat(innerAction.templatePresentation.text).isEqualTo("transformPreview")
+    }
   }
 
   @Test
