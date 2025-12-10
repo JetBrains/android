@@ -141,7 +141,7 @@ fun LeakTable(leaks: List<Leak>, selectedLeak: Leak?, onLeakSelection: (Leak) ->
 
 @Composable
 fun NoLeaksMessageText(isRecording: Boolean) {
-  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+  Box(modifier = Modifier.fillMaxSize().padding(horizontal = 15.dp), contentAlignment = Alignment.Center) {
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally,
            verticalArrangement = Arrangement.Center) {
       if (isRecording) {
