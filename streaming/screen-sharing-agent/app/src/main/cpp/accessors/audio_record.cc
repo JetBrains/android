@@ -38,8 +38,6 @@ constexpr int AudioMix_ROUTE_FLAG_LOOP_BACK = 0x1 << 1;
 constexpr int AudioMixingRule_RULE_MATCH_ATTRIBUTE_USAGE = 0x1;
 // From https://android.googlesource.com/platform/frameworks/base/+/main/media/java/android/media/AudioTimestamp.java.
 constexpr int AudioTimestamp_TIMEBASE_MONOTONIC = 0;
-// From https://android.googlesource.com/platform/frameworks/base/+/main/media/java/android/media/AudioRecord.java
-constexpr int AudioRecord_RECORDSTATE_RECORDING = 3;
 
 JObject CreateAudioRecord(Jni jni, int32_t audio_sample_rate) {
   // Create an AudioAttributes object representing an unused usage type.
@@ -128,15 +126,13 @@ JObject CreateAudioRecord(Jni jni, int32_t audio_sample_rate) {
 }  // namespace
 
 AudioRecord::AudioRecord(Jni jni, int32_t audio_sample_rate)
-    : audio_record_(CreateAudioRecord(jni, audio_sample_rate)) {
-  Log::D("AudioRecord::AudioRecord: audio_record_=%p", audio_record_.ref()); // b/457620853
+    : audio_record_(CreateAudioRecord(jni, audio_sample_rate).ToGlobal()) {
   if (audio_record_.IsNull()) {
     return;
   }
-  JClass clazz = audio_record_.GetClass();
+  JClass clazz = audio_record_.GetClass(jni);
   release_method_ = clazz.GetMethod("release", "()V");
   start_recording_method_ = clazz.GetMethod("startRecording", "()V");
-  get_recording_state_method_ = clazz.GetMethod("getRecordingState", "()I");
   stop_method_ = clazz.GetMethod("stop", "()V");
   read_method_ = clazz.GetMethod("read", "([SII)I");
   get_timestamp_method_ = clazz.GetMethod("getTimestamp", "(Landroid/media/AudioTimestamp;I)I");
@@ -146,7 +142,6 @@ AudioRecord::AudioRecord(Jni jni, int32_t audio_sample_rate)
 }
 
 AudioRecord::~AudioRecord() {
-  Log::D("AudioRecord::~AudioRecord: audio_record_=%p", audio_record_.ref()); // b/457620853
   Release();
 }
 
@@ -155,7 +150,6 @@ AudioRecord& AudioRecord::operator=(AudioRecord&& other) noexcept {
   audio_record_ = std::move(other.audio_record_);
   release_method_ = other.release_method_;
   start_recording_method_ = other.start_recording_method_;
-  get_recording_state_method_ = other.get_recording_state_method_;
   stop_method_ = other.stop_method_;
   read_method_ = other.read_method_;
   get_timestamp_method_ = other.get_timestamp_method_;
@@ -165,30 +159,31 @@ AudioRecord& AudioRecord::operator=(AudioRecord&& other) noexcept {
 }
 
 void AudioRecord::Release() {
-  Log::D("AudioRecord::Release: audio_record_=%p", audio_record_.ref()); // b/457620853
   if (audio_record_.IsNotNull()) {
     Jvm::GetJni()->CallVoidMethod(audio_record_.Release(), release_method_);
   }
 }
 
-bool AudioRecord::Start() {
-  Log::D("AudioRecord::Start: audio_record_=%p", audio_record_.ref()); // b/457620853
-  audio_record_.CallVoidMethod(start_recording_method_);
-  int32_t state = audio_record_.CallIntMethod(get_recording_state_method_);
-  return state == AudioRecord_RECORDSTATE_RECORDING;
+bool AudioRecord::Start(Jni jni) {
+  audio_record_.CallVoidMethod(jni, start_recording_method_);
+  JThrowable exception = jni.GetAndClearException();
+  if (exception.IsNotNull()) {
+    Log::E(std::move(exception), "AudioRecord.startRecording failed");
+    return false;
+  }
+  return true;
 }
 
-void AudioRecord::Stop() {
-  Log::D("AudioRecord::Stop: audio_record_=%p", audio_record_.ref()); // b/457620853
-  audio_record_.CallVoidMethod(stop_method_);
+void AudioRecord::Stop(Jni jni) {
+  audio_record_.CallVoidMethod(jni, stop_method_);
 }
 
-int32_t AudioRecord::Read(JShortArray* buf, int32_t num_samples) {
-  return audio_record_.CallIntMethod(read_method_, buf->ref(), 0, num_samples);
+int32_t AudioRecord::Read(Jni jni, JShortArray* buf, int32_t num_samples) {
+  return audio_record_.CallIntMethod(jni, read_method_, buf->ref(), 0, num_samples);
 }
 
-int64_t AudioRecord::GetTimestamp() {
-  int32_t res = audio_record_.CallIntMethod(get_timestamp_method_, audio_timestamp_.ref(), AudioTimestamp_TIMEBASE_MONOTONIC);
+int64_t AudioRecord::GetTimestamp(Jni jni) {
+  int32_t res = audio_record_.CallIntMethod(jni, get_timestamp_method_, audio_timestamp_.ref(), AudioTimestamp_TIMEBASE_MONOTONIC);
   if (res < 0) {
     return res;
   }
