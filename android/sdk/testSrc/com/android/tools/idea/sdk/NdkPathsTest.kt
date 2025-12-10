@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk
 
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.testutils.file.someRoot
+import com.android.utils.PathUtils
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import junit.framework.TestCase
@@ -25,6 +26,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.AclEntry
 import java.nio.file.attribute.AclEntryPermission
+import java.nio.file.attribute.AclEntryType
 import java.nio.file.attribute.AclFileAttributeView
 import java.nio.file.attribute.PosixFilePermission
 import java.util.EnumSet
@@ -57,14 +59,19 @@ class NdkPathsTest : TestCase() {
 
   @Throws(java.lang.Exception::class)
   fun testUnReadableNdkDirectory() {
-    val mockFile = Files.createTempDirectory("NdkPathsTest-testUnReadableNdkDirectory")
-    setUnreadable(mockFile)
-    var result = validateAndroidNdk(mockFile, false)
-    assertFalse(result.success)
-    assertEquals("The NDK path is not readable.", result.message)
-    result = validateAndroidNdk(mockFile, true)
-    assertFalse(result.success)
-    assertEquals(String.format("The NDK path\n'%1\$s'\nis not readable.", mockFile), result.message)
+    val testDir = Files.createTempDirectory("NdkPathsTest-testUnReadableNdkDirectory")
+    setUnreadable(testDir)
+    try {
+      var result = validateAndroidNdk(testDir, false)
+      assertFalse(result.success)
+      assertEquals("The NDK path is not readable.", result.message)
+      result = validateAndroidNdk(testDir, true)
+      assertFalse(result.success)
+      assertEquals(String.format("The NDK path\n'%1\$s'\nis not readable.", testDir), result.message)
+    } finally {
+      forceDeleteDirectory(testDir)
+      assertFalse(Files.exists(testDir))
+    }
   }
 
   @Throws(java.lang.Exception::class)
@@ -119,5 +126,20 @@ class NdkPathsTest : TestCase() {
     else {
       Files.setPosixFilePermissions(path, EnumSet.noneOf(PosixFilePermission::class.java))
     }
+  }
+
+  fun forceDeleteDirectory(path: Path) {
+    if (SystemInfo.isWindows) {
+      val view = Files.getFileAttributeView(path, AclFileAttributeView::class.java)
+      val allowAll = AclEntry.newBuilder()
+        .setType(AclEntryType.ALLOW)
+        .setPrincipal(view.owner)
+        .setPermissions(EnumSet.allOf(AclEntryPermission::class.java))
+        .build()
+      view.acl = listOf(allowAll)
+    } else {
+      Files.setPosixFilePermissions(path, EnumSet.allOf(PosixFilePermission::class.java))
+    }
+    PathUtils.deleteRecursivelyIfExists(path)
   }
 }
