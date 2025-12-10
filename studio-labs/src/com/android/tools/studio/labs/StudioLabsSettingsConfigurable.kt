@@ -125,21 +125,22 @@ class StudioLabsSettingsConfigurable :
      * [StudioFlags.STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED] is set to true, returns a fake
      * feature panel list for internal testing.
      */
-    private fun getStudioLabsFeaturePanelList(): List<StudioLabsFeaturePanelUi> {
-      val labsFeatures =
-        listOf(
-          // Add a pane for every feature that should be in labs.
-          // e.g.,
-          //    StudioLabsFeaturePanelUi(
-          //      flag = StudioFlags.STUDIOBOT_PROMPT_LIBRARY_ENABLED,
-          //      heading = "Prompt Library",
-          //      description =
-          //      "Allows to store frequently used prompts for quick access." +
-          //      " Optionally share prompts with other people working on a same project.",
-          //      imageSourceDefault = "images/studio_labs/prompt-library-settings.png",
-          //      imageSourceDark = "images/studio_labs/prompt-library-settings_dark.png",
-          //      imageDescription = "Prompt Library settings",
-          //    )
+    private fun getStudioLabsFeaturePanelList(): List<StudioLabsFeaturePanelUi> = buildList {
+      // Add a pane for every feature that should be in labs.
+      // e.g.,
+      //    StudioLabsFeaturePanelUi(
+      //      flag = StudioFlags.STUDIOBOT_PROMPT_LIBRARY_ENABLED,
+      //      heading = "Prompt Library",
+      //      description =
+      //      "Allows to store frequently used prompts for quick access." +
+      //      " Optionally share prompts with other people working on a same project.",
+      //      imageSourceDefault = "images/studio_labs/prompt-library-settings.png",
+      //      imageSourceDark = "images/studio_labs/prompt-library-settings_dark.png",
+      //      imageDescription = "Prompt Library settings",
+      //    )
+
+      if (!StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.get()) {
+        add(
           StudioLabsFeaturePanelUi(
             flag = StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW,
             heading = "Generate Compose Preview",
@@ -150,7 +151,12 @@ class StudioLabsSettingsConfigurable :
                 .trimIndent(),
             imageKey = StudioLabsIcons.Features.GenerateComposePreview,
             imageDescription = "Generate Compose Preview menu",
-          ),
+          )
+        )
+      }
+
+      if (!StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI_AGENTIC.get()) {
+        add(
           StudioLabsFeaturePanelUi(
             flag = StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI,
             heading = "Change Compose UI",
@@ -161,54 +167,54 @@ class StudioLabsSettingsConfigurable :
                 .trimIndent(),
             imageKey = StudioLabsIcons.Features.TransformComposePreview,
             imageDescription = "Change UI action",
-          ),
-          /*
-          Disabled pending move to agent
-          StudioLabsFeaturePanelUi(
-            flag = StudioFlags.SUGGEST_A_FIX,
-            heading = "Generate suggested fix in AQI",
-            description =
-              """
-                Enables AQI to generate suggested fixes based on Gemini insight.
-              """
-                .trimIndent(),
-            imageKey = StudioLabsIcons.Features.SuggestedFix,
-            imageDescription = "Suggested Fix in AQI",
-          ),
-          */
-          StudioLabsFeaturePanelUi(
-            flag = StudioFlags.JOURNEYS_WITH_GEMINI_EXECUTION,
-            heading = "Journeys",
-            description =
-              """
+          )
+        )
+      }
+      /*
+      Disabled pending move to agent
+      add(StudioLabsFeaturePanelUi(
+        flag = StudioFlags.SUGGEST_A_FIX,
+        heading = "Generate suggested fix in AQI",
+        description =
+          """
+            Enables AQI to generate suggested fixes based on Gemini insight.
+          """
+            .trimIndent(),
+        imageKey = StudioLabsIcons.Features.SuggestedFix,
+        imageDescription = "Suggested Fix in AQI",
+      ))
+      */
+      add(
+        StudioLabsFeaturePanelUi(
+          flag = StudioFlags.JOURNEYS_WITH_GEMINI_EXECUTION,
+          heading = "Journeys",
+          description =
+            """
                 Use the vision and reasoning capabilities of AI to convert natural language instructions into automated tests.
 
                 An IDE restart is required for this change to take effect.
               """
-                .trimIndent(),
-            imageKey = StudioLabsIcons.Features.Journeys,
-            imageDescription = "Journeys",
-          ),
+              .trimIndent(),
+          imageKey = StudioLabsIcons.Features.Journeys,
+          imageDescription = "Journeys",
         )
+      )
 
       if (StudioFlags.STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED.get()) {
         // Add a fake feature so that QA can test out Studio Labs in scenarios
         // where there are no real features available under Labs.
-        return labsFeatures +
-          listOf(
-            FakeStudioLabsFeaturePanelUi(
-              flag = StudioFlags.STUDIOBOT_PROMPT_LIBRARY_ENABLED,
-              heading = "(Test only) Prompt Library",
-              description =
-                "Allows to store frequently used prompts for quick access." +
-                  " Optionally share prompts with other people working on a same project.",
-              imageKey = StudioLabsIcons.Features.PromptLibrarySettings,
-              imageDescription = "Prompt Library settings",
-            )
+        add(
+          FakeStudioLabsFeaturePanelUi(
+            flag = StudioFlags.STUDIOBOT_PROMPT_LIBRARY_ENABLED,
+            heading = "(Test only) Prompt Library",
+            description =
+              "Allows to store frequently used prompts for quick access." +
+                " Optionally share prompts with other people working on a same project.",
+            imageKey = StudioLabsIcons.Features.PromptLibrarySettings,
+            imageDescription = "Prompt Library settings",
           )
+        )
       }
-
-      return labsFeatures
     }
   }
 }
