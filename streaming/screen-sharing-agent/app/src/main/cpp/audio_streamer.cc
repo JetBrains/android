@@ -116,6 +116,7 @@ void AudioStreamer::Stop() {
 
 void AudioStreamer::Run() {
   if (!StartAudioCapture()) {
+    fprintf(stderr, "NOTIFICATION Unable to start audio streaming\n");
     return;
   }
 
@@ -157,15 +158,6 @@ void AudioStreamer::StopCodec() {
 }
 
 bool AudioStreamer::StartAudioCapture() {
-  if ((Agent::feature_level() >= 34 || (Agent::feature_level() == 33 && Agent::device_manufacturer() == GOOGLE)) &&
-      (Agent::flags() & USE_REMOTE_SUBMIX) == 0) {
-    Log::D("Audio: using AudioRecordReader");
-    audio_reader_ = new AudioRecordReader(CHANNEL_COUNT, AUDIO_SAMPLE_RATE);
-  } else {
-    Log::D("Audio: using RemoteSubmixReader");
-    audio_reader_ = new RemoteSubmixReader(CHANNEL_COUNT, AUDIO_SAMPLE_RATE);
-  }
-
   AMediaCodec* codec = AMediaCodec_createEncoderByType(MIME_TYPE);
   if (codec == nullptr) {
     Log::W("Audio: unable to create %s encoder", CODEC_NAME);
@@ -182,8 +174,27 @@ bool AudioStreamer::StartAudioCapture() {
   if (!codec_handle_->Start()) {
     return false;
   }
-  audio_reader_->Start(codec_handle_);
-  return true;
+
+  bool use_audio_record = (Agent::feature_level() >= 34 || (Agent::feature_level() == 33 && Agent::device_manufacturer() == GOOGLE)) &&
+                          (Agent::flags() & USE_REMOTE_SUBMIX) == 0;
+  for (;;) {
+    if (use_audio_record) {
+      Log::D("Audio: using AudioRecordReader");
+      audio_reader_ = new AudioRecordReader(CHANNEL_COUNT, AUDIO_SAMPLE_RATE);
+    } else {
+      Log::D("Audio: using RemoteSubmixReader");
+      audio_reader_ = new RemoteSubmixReader(CHANNEL_COUNT, AUDIO_SAMPLE_RATE);
+    }
+
+    if (audio_reader_->Start(codec_handle_)) {
+      return true;
+    }
+    if (!use_audio_record) {
+      return false;
+    }
+    use_audio_record = false;
+    Log::W("Audio: falling back to RemoteSubmixReader");
+  }
 }
 
 void AudioStreamer::StopAudioCapture() {
