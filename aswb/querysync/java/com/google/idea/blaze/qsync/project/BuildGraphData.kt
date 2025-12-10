@@ -147,12 +147,6 @@ interface BuildGraphData {
   fun getProjectTargets(workspaceRelativePath: Path): TargetsToBuild
 
   /**
-   * Returns the set of [target languages][ProjectTarget.languages] for a set of project
-   * targets.
-   */
-  fun getTargetLanguages(targets: Set<Label>): Set<QuerySyncLanguage>
-
-  /**
    * Calculates the [RequestedTargets] for a project target.
    */
   fun computeRequestedTargets(projectTargets: Collection<Label>, replaceNativeTargetsWithAndroidTransitionTriggeringTargets: Boolean): RequestedTargets
