@@ -20,7 +20,6 @@ appinspection.use.experimental.database.inspector=COMPLETE:2025
 backgroundtask.inspector.enable.backgroundtask.inspector.tab=COMPLETE:2021
 backup.enable.running.devices=COMPLETE:2024
 backup.enable=COMPLETE:2025
-compose.ai.agents.dropdown=PREVIEW
 compose.allocation.limiter=COMPLETE:2023
 compose.deploy.live.edit.deploy.desugar.r8=COMPLETE:2023
 compose.deploy.live.edit.deploy.enable.default=COMPLETE:2024

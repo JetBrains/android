@@ -1678,9 +1678,6 @@ public final class StudioFlags {
     "Uses agentic approach when performing transform UI with Gemini."
     );
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN = new BooleanFlag(
-    COMPOSE, "ai.agents.dropdown", "Enable dropdown action to list Compose Preview AI agent actions",
-    "Enables a dropdown action that lists actions that trigger AI agent flows related to Compose Previews.");
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_SCREENSHOT_TO_CODE = new BooleanFlag(
     COMPOSE, "preview.screenshot.to.code", "Enable screenshot to code action",
