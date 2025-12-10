@@ -124,12 +124,6 @@ interface BuildGraphData {
     ruleKindPredicate: (String) -> Boolean, vararg sourceTypes: ProjectTarget.SourceType
   ): Map<Label, List<Path>>
 
-  /**
-   * Returns a list of regular (java/kt) source files owned by an Android target, relative to the
-   * workspace root.
-   */
-  fun getAndroidSourceFiles(): List<Path>
-
   fun getAndroidResourceFiles(): List<Path>
 
   /** Returns a list of custom_package fields that used by current project.  */
