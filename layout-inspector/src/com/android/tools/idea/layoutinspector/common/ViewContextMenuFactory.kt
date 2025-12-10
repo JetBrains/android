@@ -142,6 +142,7 @@ private class BrowseChromeDevToolsAction(private val selectedView: ViewNode?) :
 
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible =
+      StudioFlags.DYNAMIC_LAYOUT_CHROME_DEVTOOLS_MENU.get() &&
       selectedView?.isDerivedFromWebView ?: false && ChromeDevTools.isChromeAvailable
   }
 }
