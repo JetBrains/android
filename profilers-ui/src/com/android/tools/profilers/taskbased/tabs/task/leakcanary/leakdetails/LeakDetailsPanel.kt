@@ -100,14 +100,14 @@ fun LeakDetailsPanel(selectedLeak: Leak?,
   val onCollapseAll = { onOpenStatesChange(List(traceNodes.size) { false })}
 
   if (!isLeakCanaryPresent) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Box(modifier = Modifier.fillMaxSize().padding(horizontal = 15.dp), contentAlignment = Alignment.Center) {
       SelectionContainer {
         EllipsisText(text = LEAKCANARY_MISSING_MESSAGE, maxLines = 3)
       }
     }
   }
   else if (selectedLeak == null) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Box(modifier = Modifier.fillMaxSize().padding(horizontal = 15.dp), contentAlignment = Alignment.Center) {
       EllipsisText(text = emptyLeakMessage, maxLines = 3)
     }
   }
