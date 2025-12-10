@@ -174,7 +174,6 @@ class BuildGraphDataImplTest {
       )
     assertThat(graph.getJavaSourceFiles())
       .containsExactly(TESTDATA_ROOT.resolve("nodeps/TestClassNoDeps.java"))
-    assertThat(graph.getAndroidSourceFiles()).isEmpty()
     assertThat(graph.getSourceFileOwners(TESTDATA_ROOT.resolve("nodeps/TestClassNoDeps.java")))
       .containsExactly(Label.of("//$TESTDATA_ROOT/nodeps:nodeps"))
     assertThat(
@@ -379,8 +378,6 @@ class BuildGraphDataImplTest {
       )
     assertThat(graph.getJavaSourceFiles())
       .containsExactly(TESTDATA_ROOT.resolve("android/TestAndroidClass.java"))
-    assertThat(graph.getAndroidSourceFiles())
-      .containsExactly(TESTDATA_ROOT.resolve("android/TestAndroidClass.java"))
     assertThat(graph.getSourceFileOwners(TESTDATA_ROOT.resolve("android/TestAndroidClass.java")))
       .containsExactly(Label.of("//$TESTDATA_ROOT/android:android"))
     assertThat(
@@ -412,8 +409,6 @@ class BuildGraphDataImplTest {
       )
     assertThat(graph.getJavaSourceFiles())
       .containsExactly(TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"))
-    assertThat(graph.getAndroidSourceFiles())
-      .containsExactly(TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"))
     assertThat(
       getRequiredTargets(
         graph,
@@ -442,8 +437,6 @@ class BuildGraphDataImplTest {
         Label.of("//$TESTDATA_ROOT/aidl:BUILD")
       )
     assertThat(graph.getJavaSourceFiles())
-      .containsExactly(TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"))
-    assertThat(graph.getAndroidSourceFiles())
       .containsExactly(TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"))
     assertThat(graph.getSourceFilesByRuleKindAndType({ RuleKinds.isAndroid(it)}, ProjectTarget.SourceType.AIDL))
       .containsExactly(
@@ -499,7 +492,6 @@ class BuildGraphDataImplTest {
         Label.of("//$TESTDATA_ROOT/cc:BUILD")
       )
     assertThat(graph.getJavaSourceFiles()).isEmpty()
-    assertThat(graph.getAndroidSourceFiles()).isEmpty()
     assertThat(graph.getSourceFileOwners(TESTDATA_ROOT.resolve("cc/TestClass.cc")))
       .containsExactly(Label.of("//$TESTDATA_ROOT/cc:cc"))
     assertThat(

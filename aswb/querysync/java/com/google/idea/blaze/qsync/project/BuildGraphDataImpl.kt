@@ -315,15 +315,6 @@ data class BuildGraphDataImpl private constructor(
       .toMap()
   }
 
-  /**
-   * Returns a list of regular (java/kt) source files owned by an Android target, relative to the
-   * workspace root.
-   */
-  override fun getAndroidSourceFiles(): List<Path> =
-    getSourceFilesByRuleKindAndType(RuleKinds::isAndroid, SourceType.REGULAR_JVM)
-      .values
-      .flatten()
-
   override fun getAndroidResourceFiles(): List<Path> =
     getSourceFilesByRuleKindAndType(RuleKinds::isAndroid, SourceType.ANDROID_RESOURCES)
       .values
