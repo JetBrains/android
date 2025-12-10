@@ -7,6 +7,8 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocation
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.isAndroidProject
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.execution.scratch.JavaScratchConfiguration
@@ -33,14 +35,13 @@ class AndroidProjectTaskRunner : ProjectTaskRunner() {
     return executeTasks(project, tasks.filterIsInstance<ModuleBuildTask>())
   }
 
-  override fun canRun(project: Project, projectTask: ProjectTask, context: ProjectTaskContext?): Boolean {
-    val configuration = context?.runConfiguration
-    return if (configuration is JavaScratchConfiguration) {
-      false
-    }
-    else {
-      canRun(projectTask)
-    }
+  override fun canRun(
+    project: Project,
+    projectTask: ProjectTask,
+    context: ProjectTaskContext?,
+  ): Boolean {
+    if (project.getProjectSystem() !is GradleProjectSystem) return false
+    return canRun(projectTask)
   }
 
   override fun canRun(projectTask: ProjectTask): Boolean {
