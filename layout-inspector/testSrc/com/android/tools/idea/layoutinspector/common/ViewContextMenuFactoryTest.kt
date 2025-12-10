@@ -77,9 +77,10 @@ import org.mockito.kotlin.whenever
 
 class ViewContextMenuFactoryTest {
   private val disposableRule = DisposableRule()
-  private val flagRule = FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS, true)
+  private val flagRule1 = FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS, true)
+  private val flagRule2 = FlagRule(StudioFlags.DYNAMIC_LAYOUT_CHROME_DEVTOOLS_MENU, true)
 
-  @get:Rule val rule = RuleChain(ApplicationRule(), disposableRule, flagRule)
+  @get:Rule val rule = RuleChain(ApplicationRule(), disposableRule, flagRule1, flagRule2)
 
   private var source: JComponent? = mock()
   private var popupMenuComponent: JPopupMenu? = mock()
