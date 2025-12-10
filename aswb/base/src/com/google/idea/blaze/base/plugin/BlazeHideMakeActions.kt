@@ -31,9 +31,6 @@ class BlazeHideMakeActions : ActionConfigurationCustomizer {
       e.project?.let { Blaze.isBlazeProject(it) } == true
     }
 
-    // 'Build' > 'Make Project' action
-    hideAction(actionRegistrar, "CompileDirty", isBlazeProject)
-
     // 'Build' > 'Make Modules' action
     hideAction(actionRegistrar, IdeActions.ACTION_MAKE_MODULE, isBlazeProject)
 
@@ -42,8 +39,5 @@ class BlazeHideMakeActions : ActionConfigurationCustomizer {
 
     // 'Build' > 'Compile Modules' action
     hideAction(actionRegistrar, IdeActions.ACTION_COMPILE, isBlazeProject)
-
-    // 'Build' > 'Recompile' action
-    hideAction(actionRegistrar, "CompileFile", isBlazeProject)
   }
 }
