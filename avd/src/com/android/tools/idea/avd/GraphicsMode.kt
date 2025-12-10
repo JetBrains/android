@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avd
 
-import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.GpuMode
 
 internal enum class GraphicsMode {
