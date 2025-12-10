@@ -61,12 +61,6 @@ interface BuildGraphData {
   fun packages(): PackageSet
 
   /**
-   * Returns a [Label] representing the given path in the workspace with the current build packages. The file does not need to exist.
-   */
-  @VisibleForTesting
-  fun pathToLabel(file: Path): Label?
-
-  /**
    * If the given path represents a currently known source file returns a [Label] representing the given path in the workspace with
    * the current build packages.
    */
@@ -106,13 +100,6 @@ interface BuildGraphData {
   fun getSourceFileOwners(path: Path): Set<Label>
 
   fun getSourceFileOwners(label: Label): Set<Label>
-
-  @Deprecated(
-    """Choosing a target based on the number of deps it has is not a good strategy, as we
-        could end up selecting one that doesn't build in the current config. Allow the user to
-        choose, or require the projects source -> target mapping to be unambiguous instead."""
-  )
-  fun selectLabelWithLeastDeps(candidates: Collection<Label>): Label?
 
   /** Returns a list of all the java source files of the project, relative to the workspace root.  */
   fun getJavaSourceFiles(): List<Path>
