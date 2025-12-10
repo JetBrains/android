@@ -69,21 +69,6 @@ data class QuerySyncProjectSnapshot(
     return graph.getSourceFileOwners(path)
   }
 
-  /**
-   * Given a path to a file it returns the target that owns the file. Note that in general there
-   * could be multiple targets that compile a file, but we try to choose the smallest one, as it
-   * would have everything the file needs to be compiled.
-   *
-   * @param path a workspace relative path.
-   */
-  @Deprecated(
-    """Since the "choose the smallest" logic used in here is problematic, please use
-        {@link #getTargetOwners(Path)} instead."""
-  )
-  fun getTargetOwner(path: Path): Label? {
-    return graph.selectLabelWithLeastDeps(graph.getSourceFileOwners(path))
-  }
-
   val allLoadedTargets: Collection<Label>
     /** Returns mapping of targets to [BuildTarget]  */
     get() = graph.allLoadedTargets()

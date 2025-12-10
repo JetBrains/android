@@ -16,7 +16,6 @@
 package com.google.idea.blaze.qsync.project
 
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.base.Preconditions
 import com.google.common.graph.Traverser
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
@@ -25,7 +24,6 @@ import com.google.idea.blaze.common.RuleKinds
 import com.google.idea.blaze.common.TargetPattern.ScopeStatus.INCLUDED
 import com.google.idea.blaze.common.TargetPatternCollection
 import com.google.idea.blaze.common.TargetTree
-import com.google.idea.blaze.qsync.project.BuildGraphDataImpl.Location.Companion.Location
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
 import com.google.idea.blaze.qsync.project.TargetsToBuild.Companion.forUnknownSourceFile
 import com.google.idea.blaze.qsync.project.TargetsToBuild.Companion.targetGroup
@@ -33,8 +31,6 @@ import com.google.idea.blaze.qsync.query.PackageSet
 import com.intellij.openapi.diagnostic.thisLogger
 import java.nio.file.Path
 import java.util.Collections
-import java.util.regex.Matcher
-import java.util.regex.Pattern
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -100,7 +96,7 @@ data class BuildGraphDataImpl private constructor(
    * Returns a [Label] representing the given path in the workspace with the current build packages. The file does not need to exist.
    */
   @VisibleForTesting
-  override fun pathToLabel(file: Path): Label? {
+  fun pathToLabel(file: Path): Label? {
     var path: Path? = file
     do {
       path = path?.parent
@@ -247,50 +243,12 @@ data class BuildGraphDataImpl private constructor(
     }
   }
 
-  /** Represents a location on a file.  */
-  data class Location(
-    val file: Path, // Relative to workspace root
-    val row: Int,
-    val column: Int,
-  ) {
-
-    companion object {
-      /**
-       * Creates an instance of [Location] from a [location] string in the form as provided by bazel, i.e. `path/to/file:lineno:columnno`
-       */
-      fun Location(location: String): Location {
-        val matcher: Matcher = PATTERN.matcher(location)
-        Preconditions.checkArgument(matcher.matches(), "Location not recognized: %s", location)
-        val file = Path.of(matcher.group(1))
-        Preconditions.checkState(
-          !file.startsWith("/"),
-          "Filename starts with /: ensure that "
-          + "`--relative_locations=true` was specified in the query invocation."
-        )
-        val row = matcher.group(2).toInt()
-        val column = matcher.group(3).toInt()
-        return Location(file, row, column)
-      }
-
-      private val PATTERN: Pattern = Pattern.compile("(.*):(\\d+):(\\d+)")
-    }
-  }
-
   override fun getSourceFileOwners(path: Path): Set<Label> {
     return sourceFileToLabel(path)?.let { getSourceFileOwners(it) }.orEmpty()
   }
 
   override fun getSourceFileOwners(label: Label): Set<Label> {
     return sourceOwners[label]?.toSet().orEmpty()
-  }
-
-  @Deprecated(
-    """Choosing a target based on the number of deps it has is not a good strategy, as we
-        could end up selecting one that doesn't build in the current config. Allow the user to
-        choose, or require the projects source -> target mapping to be unambiguous instead."""
-  )
-  override fun selectLabelWithLeastDeps(candidates: Collection<Label>): Label {
-    return candidates.minBy { storage.targetMap[it]?.deps()?.size ?: Int.MAX_VALUE }
   }
 
   /** Returns a list of all the java source files of the project, relative to the workspace root.  */
