@@ -103,7 +103,7 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
   override fun doSetupConfigurationFromContext(configuration: GradleRunConfiguration,
                                                context: ConfigurationContext,
                                                sourceElement: Ref<PsiElement>): Boolean {
-    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get() || !isScreenshotPluginVersionValid(context)) {
+    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()) {
       return false
     }
     val configured = configure(configuration, sourceElement, context)
