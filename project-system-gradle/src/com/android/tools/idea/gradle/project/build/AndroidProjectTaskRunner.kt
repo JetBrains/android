@@ -8,9 +8,10 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocation
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.isAndroidProject
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
-import com.intellij.execution.scratch.JavaScratchConfiguration
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -35,11 +36,8 @@ class AndroidProjectTaskRunner : ProjectTaskRunner() {
   }
 
   override fun canRun(project: Project, projectTask: ProjectTask, context: ProjectTaskContext?): Boolean {
-    val configuration = context?.runConfiguration
-    if (configuration is JavaScratchConfiguration) {
+    if (project.getProjectSystem() !is GradleProjectSystem)
       return false
-    }
-
     return if (Registry.`is`("android.task.runner.restricted") || !isAndroidStudio || (projectTask is ModuleBuildTask && projectTask.module.isMultiPlatformModule)) {
       projectTask is ModuleBuildTask && AndroidFacet.getInstance(projectTask.module) != null
     }
