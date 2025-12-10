@@ -91,11 +91,10 @@ class PreviewItemPanel(
     }
   }
 
-  private fun createMatchPercentageLabel(previewData: PreviewDetails): JBLabel {
+  private fun createMatchPercentageLabel(previewData: PreviewDetails): JPanel {
     val diffDouble = previewData.diffPercent?.toDoubleOrNull()
     val matchPercentage = ScreenshotTestUtils.calculateMatchPercentage(diffDouble)
     val percentageText = matchPercentage ?: DEFAULT_MATCH_PERCENTAGE
-    val text = "Match: $percentageText"
 
     val color = if (previewData.testResult == AndroidTestCaseResult.PASSED) {
       JBColor.GREEN.darker()
@@ -103,10 +102,16 @@ class PreviewItemPanel(
       JBColor.RED
     }
 
-    return JBLabel(text).apply {
-      foreground = color
-      font = font.deriveFont(Font.BOLD)
+    return JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.X_AXIS)
+      isOpaque = false
       alignmentX = LEFT_ALIGNMENT
+
+      add(JBLabel("Match: "))
+      add(JBLabel(percentageText).apply {
+        foreground = color
+        font = font.deriveFont(Font.BOLD)
+      })
     }
   }
 

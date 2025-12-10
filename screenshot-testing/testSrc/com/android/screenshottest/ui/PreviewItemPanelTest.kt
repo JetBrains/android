@@ -74,10 +74,12 @@ class PreviewItemPanelTest {
 
     val labels = findAllLabels(panel)
 
-    val matchLabel = labels.find { it.text == "Match: 99.00%" }
+    val matchTextLabel = labels.find { it.text == "Match: " }
+    val percentageLabel = labels.find { it.text == "99.00%" }
     val nameLabel = labels.find { it.text == "MyPreview" }
 
-    assertNotNull("Match label 'Match: 99.00%' should exist", matchLabel)
+    assertNotNull("Match prefix label 'Match: ' should exist", matchTextLabel)
+    assertNotNull("Match percentage label '99.00%' should exist", percentageLabel)
     assertNotNull("Name label 'MyPreview' should exist", nameLabel)
   }
 
