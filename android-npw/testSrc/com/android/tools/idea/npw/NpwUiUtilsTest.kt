@@ -32,17 +32,17 @@ class NpwUiUtilsTest {
   }
 
   @Test
-  fun getMinimumAgpVersionForTestSuiteSupport_returnsLatestAlphaVersion_ifLatestVersionIsAlpha() {
+  fun getMinimumAgpVersionForTestSuiteSupport_returnsBetaVersion_ifLatestVersionIsBeta() {
     assertEquals(
-      "9.0.0-alpha14",
-      getMinimumAgpVersionForTestSuiteSupport(AgpVersion.parse("9.0.0-alpha14")),
+      "9.0.0-beta05",
+      getMinimumAgpVersionForTestSuiteSupport(AgpVersion.parse("9.0.0-beta05")),
     )
   }
 
   @Test
   fun getMinimumAgpVersionForTestSuiteSupport_returnsDefaultAlphaVersion_ifLatestVersionIsOlder() {
     assertEquals(
-      "9.0.0-alpha13",
+      "9.0.0-beta05",
       getMinimumAgpVersionForTestSuiteSupport(AgpVersion.parse("8.13.0")),
     )
   }
