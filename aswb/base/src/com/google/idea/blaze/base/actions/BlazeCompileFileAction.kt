@@ -15,22 +15,18 @@
  */
 package com.google.idea.blaze.base.actions
 
-import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
 import com.google.idea.blaze.base.build.BlazeBuildService
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
-import com.google.idea.blaze.base.model.primitives.Label
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt
 import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors
-import com.google.idea.blaze.base.targetmaps.SourceToTargetMap
 import com.google.idea.common.actions.ActionPresentationHelper
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.Project
-import java.io.File
 import kotlinx.coroutines.guava.asDeferred
 
 internal class BlazeCompileFileAction : BlazeProjectAction() {
@@ -76,15 +72,5 @@ internal class BlazeCompileFileAction : BlazeProjectAction() {
         .buildFileForLabels(files.joinToString(", ", limit = 2), labels)
         .asDeferred()
     }
-  }
-
-  private fun getTargets(e: AnActionEvent): ImmutableCollection<Label> {
-    val project = e.project
-    val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
-    if (project != null && virtualFile != null) {
-      return SourceToTargetMap.getInstance(project)
-        .getTargetsToBuildForSourceFile(File(virtualFile.path))
-    }
-    return ImmutableList.of()
   }
 }
