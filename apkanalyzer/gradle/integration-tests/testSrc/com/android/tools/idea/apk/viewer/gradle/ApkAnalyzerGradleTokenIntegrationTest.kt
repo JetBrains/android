@@ -40,7 +40,8 @@ class ApkAnalyzerGradleTokenIntegrationTest(private val agpVersion: AgpVersionSo
 
   @Test
   fun testGetDefaultApkFile() {
-    projectRule.prepareTestProject(ApkAnalyzerTestProject.SIMPLE_APPLICATION, agpVersion = agpVersion).open {
+    projectRule.prepareTestProject(ApkAnalyzerTestProject.SIMPLE_APPLICATION, agpVersion = agpVersion).open(
+      { it.copy(disableForcedAgpUpgradeDialog = true)} ) {
       project.buildAndAssertSuccess { invoker -> invoker.assemble(arrayOf(project.gradleModule(":app")!!)) }
       val defaultApkFile = ApkAnalyzerToken.getDefaultApkToAnalyze(project)
       assertThat(defaultApkFile).isNotNull()
