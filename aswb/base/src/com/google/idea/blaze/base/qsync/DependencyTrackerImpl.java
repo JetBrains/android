@@ -32,9 +32,11 @@ import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.OutputInfo;
 import com.google.idea.blaze.qsync.project.DependencyTrackingBehavior;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
+import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.blaze.qsync.project.RequestedTargets;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * A file that tracks what files in the project can be analyzed and what is the status of their
@@ -103,7 +105,7 @@ public class DependencyTrackerImpl implements DependencyTracker {
         builder.build(
             context,
             requestedTargets.targetsToBuild(),
-            request.getOutputGroups(snapshot.getGraph().getTargetLanguages(requestedTargets.targetsToBuild())));
+            request.getOutputGroups(Arrays.stream(QuerySyncLanguage.values()).toList()));
     reportErrorsAndWarnings(context, snapshot, outputInfo);
 
     artifactTracker.update(requestedTargets.requiredTargets(), outputInfo, context);

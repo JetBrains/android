@@ -379,17 +379,6 @@ data class BuildGraphDataImpl private constructor(
   }
 
   /**
-   * Returns the set of [target languages][ProjectTarget.languages] for a set of project
-   * targets.
-   */
-  override fun getTargetLanguages(targets: Set<Label>): Set<QuerySyncLanguage> {
-    return targets
-      .transitiveClosure()
-      .flatMap { it.languages() }
-      .toSet()
-  }
-
-  /**
    * Traverses the dependency graph starting from `projectTargets` and returns the first level
    * of dependencies which are either not in the project scope or must be built as they are not
    * directly supported by the IDE.
