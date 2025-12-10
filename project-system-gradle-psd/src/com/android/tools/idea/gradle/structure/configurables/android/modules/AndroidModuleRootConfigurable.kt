@@ -69,8 +69,6 @@ fun androidModulePropertiesModel(context: PsContext, module: PsAndroidModule) =
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_SOURCE_COMPATIBILITY),
       uiProperty(AndroidModuleDescriptors.targetCompatibility, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_TARGET_COMPATIBILITY),
-      uiProperty(AndroidModuleDescriptors.kotlinJvmTarget, ::simplePropertyEditor,
-                 null)
     )
     + when (viewBindingPresent(context, module)) {
       true -> listOf(uiProperty(AndroidModuleDescriptors.viewBindingEnabled, ::simplePropertyEditor, null))
