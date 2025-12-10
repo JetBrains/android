@@ -33,19 +33,18 @@ public:
   void Release();
 
   // Returns true if recording started successfully, false otherwise.
-  bool Start();
-  void Stop();
+  bool Start(Jni jni);
+  void Stop(Jni jni);
   // Returns the number of audio samples read or a negative error code.
-  int32_t Read(JShortArray* buf, int32_t num_samples);
+  int32_t Read(Jni jni, JShortArray* buf, int32_t num_samples);
   // Returns nanosecond timestamp of the audio record, if available, or a negative error code otherwise.
-  int64_t GetTimestamp();
+  int64_t GetTimestamp(Jni jni);
   bool IsValid() const { return audio_record_.IsNotNull(); }
 
 private:
   JObject audio_record_;
   jmethodID release_method_;
   jmethodID start_recording_method_;
-  jmethodID get_recording_state_method_;
   jmethodID stop_method_;
   jmethodID read_method_;
   jmethodID get_timestamp_method_;

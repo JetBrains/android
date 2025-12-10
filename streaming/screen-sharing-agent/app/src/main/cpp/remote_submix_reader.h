@@ -30,8 +30,8 @@ public:
   RemoteSubmixReader(int32_t num_channels, int32_t sample_rate);
   virtual ~RemoteSubmixReader();
 
-  virtual void Start(CodecHandle* codec_handle);
-  virtual void Stop();
+  virtual bool Start(CodecHandle* codec_handle) override;
+  virtual void Stop() override;
 
 protected:
   bool StartAudioStream();
