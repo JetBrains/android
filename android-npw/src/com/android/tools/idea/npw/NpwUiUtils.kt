@@ -57,19 +57,16 @@ fun hasTestSuiteMinAgpVersion(project: Project): Boolean {
   return hasMinAgpVersion(project, getMinimumAgpVersionForTestSuiteSupport())
 }
 
-/**
- * Test suites in AGP are supported from AGP 9.0.0-alpha13 onwards. However, if there is a more
- * recent alpha version available, or a stable 9.0.0 version, we should use that instead.
- */
+/** Test suites in AGP are supported from AGP 9.0.0 onwards */
 fun getMinimumAgpVersionForTestSuiteSupport(
   latestKnownVersion: AgpVersion = AgpVersions.latestKnown
 ): String {
   return if (latestKnownVersion >= AgpVersion.parse("9.0.0")) {
     "9.0.0"
-  } else if (latestKnownVersion >= AgpVersion.parse("9.0.0-alpha13")) {
-    latestKnownVersion.toString()
   } else {
-    "9.0.0-alpha13"
+    // When the latest known version is less than 9.0.0, we should recommend the latest known
+    // published AGP release
+    "9.0.0-beta05"
   }
 }
 
