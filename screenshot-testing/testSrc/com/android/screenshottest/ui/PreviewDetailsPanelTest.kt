@@ -271,6 +271,52 @@ class PreviewDetailsPanelTest {
     assertTrue("Should contain uniqueMethod", labels.contains("uniqueMethod"))
   }
 
+  @Test
+  fun testScreenshotAttributesView_withNullDestImagePath() = runInEdtAndWait {
+    val panel = PreviewDetailsPanel()
+    val details = PreviewDetails(
+      testId = "test1",
+      className = "Class",
+      methodName = "method",
+      previewName = "preview",
+      testResult = AndroidTestCaseResult.PASSED,
+      destImagePath = null
+    )
+    val toolbar = ComposePanel()
+
+    panel.displayPreviews(
+      listOf(details),
+      emptyMap(),
+      ScreenshotViewType.NEW,
+      toolbar
+    )
+
+    assertTrue(panel.screenshotAttributesView.state.refLocation == "N/A")
+  }
+
+  @Test
+  fun testScreenshotAttributesView_withNonExistentDestImagePath() = runInEdtAndWait {
+    val panel = PreviewDetailsPanel()
+    val details = PreviewDetails(
+      testId = "test1",
+      className = "Class",
+      methodName = "method",
+      previewName = "preview",
+      testResult = AndroidTestCaseResult.PASSED,
+      destImagePath = "non_existent_ref.png"
+    )
+    val toolbar = ComposePanel()
+
+    panel.displayPreviews(
+      listOf(details),
+      emptyMap(),
+      ScreenshotViewType.NEW,
+      toolbar
+    )
+
+    assertTrue(panel.screenshotAttributesView.state.refLocation == "N/A")
+  }
+
   private fun findLabelsInScrollPaneContent(container: Container): List<String> {
     val scrollPane = container.components.find { it is JBScrollPane } as? JBScrollPane ?: return emptyList()
     val viewport = scrollPane.viewport

@@ -20,6 +20,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ImageWithToolbarPanel
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotAttributesView
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotViewType
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -68,7 +69,8 @@ private val LOG = Logger.getInstance(PreviewDetailsPanel::class.java)
  */
 class PreviewDetailsPanel : JPanel(CardLayout()) {
 
-  private val screenshotAttributesView = ScreenshotAttributesView()
+  @VisibleForTesting
+  val screenshotAttributesView = ScreenshotAttributesView()
   private val multiplePreviewsPanel = JPanel().apply {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
   }
@@ -337,8 +339,13 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     } else {
       previewData.methodName
     }
+
+    val refImagePath = previewData.destImagePath?.let {
+      if (File(it).exists()) it else null
+    }
+
     screenshotAttributesView.updateData(
-      refImagePath = previewData.destImagePath,
+      refImagePath = refImagePath,
       newImagePath = previewData.srcImagePath,
       testMethodName = testMethodName,
       testClassName = previewData.className,
