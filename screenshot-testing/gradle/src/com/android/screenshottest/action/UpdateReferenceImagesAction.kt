@@ -15,13 +15,9 @@
  */
 package com.android.screenshottest.action
 
-import com.android.screenshottest.producers.isScreenshotPluginVersionValid
 import com.android.screenshottest.util.UPDATE_ACTION_DESCRIPTION
 import com.android.screenshottest.util.UPDATE_ACTION_TEXT
-import com.android.tools.idea.flags.StudioFlags
-import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
  * Action to add or update the reference images for screenshot tests.
@@ -31,12 +27,4 @@ class UpdateReferenceImagesAction : UpdateReferenceImagesBaseAction(
   UPDATE_ACTION_TEXT,
   UPDATE_ACTION_DESCRIPTION,
   AllIcons.FileTypes.Image
-) {
-  override fun update(e: AnActionEvent) {
-    e.presentation.isEnabledAndVisible = false
-    if(!StudioFlags.ENABLE_SCREENSHOT_TESTING.get() || !isScreenshotPluginVersionValid(ConfigurationContext.getFromEvent(e))) {
-      return
-    }
-    e.presentation.isEnabledAndVisible = true
-  }
-}
+)

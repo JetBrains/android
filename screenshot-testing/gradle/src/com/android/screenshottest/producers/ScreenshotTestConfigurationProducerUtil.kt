@@ -22,9 +22,7 @@ import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.containsFile
 import com.intellij.execution.Location
 import com.intellij.execution.actions.ConfigurationContext
-import com.intellij.openapi.roots.OrderEnumerator
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
@@ -35,17 +33,8 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.plugins.gradle.util.GradleUtil
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
-import com.android.ide.common.gradle.Version
-import com.android.ide.common.gradle.Module as GradleModule
-import com.android.tools.idea.projectsystem.DependencyScopeType
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
-import com.android.tools.idea.projectsystem.gradle.getScreenshotTestModule
 
-private const val SCREENSHOT_VALIDATION_GROUP_ID = "com.android.tools.screenshot"
-private const val SCREENSHOT_VALIDATION_ARTIFACT_ID = "screenshot-validation-api"
 private const val PREVIEW_TEST_ANNOTATION = "com.android.tools.screenshot.PreviewTest"
-private const val MIN_SCREENSHOT_PLUGIN_VERSION = "0.0.1-alpha12"
 
 val IS_SCREENSHOT_TEST_CONFIGURATION = Key.create<Boolean>("com.android.tools.idea.testartifacts.screenshot.isScreenshotTest")
 
@@ -72,34 +61,6 @@ fun isScreenshotTestSourceSet(location: Location<PsiElement>, facet: AndroidFace
     }
   }
   return false
-}
-
-/**
- * Returns the version string of the screenshot plugin (e.g. "0.0.1-alpha12")
- * using the GradleModuleSystem to resolve dependencies.
- */
-fun getScreenshotTestPluginVersion(module: Module): Version? {
-  val moduleSystem = module.getModuleSystem() as? GradleModuleSystem ?: return null
-
-  val gradleModule = GradleModule(
-    SCREENSHOT_VALIDATION_GROUP_ID,
-    SCREENSHOT_VALIDATION_ARTIFACT_ID
-  )
-  // Return the version string directly
-  return moduleSystem.getResolvedDependency(gradleModule, DependencyScopeType.MAIN)?.version
-}
-
-fun isScreenshotPluginVersionValid(context: ConfigurationContext): Boolean {
-  val module = context.module ?: return false
-
-  val screenshotModule = module.getScreenshotTestModule() ?: return false
-  return try {
-    val current = getScreenshotTestPluginVersion(screenshotModule) ?: return false
-    val required = Version.parse(MIN_SCREENSHOT_PLUGIN_VERSION)
-    current >= required
-  } catch (e: Throwable) {
-    false
-  }
 }
 
 /**
