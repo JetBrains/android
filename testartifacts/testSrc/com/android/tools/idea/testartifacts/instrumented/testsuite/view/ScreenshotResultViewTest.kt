@@ -324,6 +324,24 @@ class ScreenshotResultViewTest {
     assertThat(chessboardAction.isSelected(event)).isFalse()
   }
 
+  @Test
+  fun singleViewTabsDoNotShowRedundantTitles() = runInEdtAndWait {
+    // Helper to check for title label existence
+    fun hasTitleLabel(panel: Container, title: String): Boolean {
+      return findComponent<JLabel>(panel) { it.text == title } != null
+    }
+
+    // Verify titles are NOT present in single views
+    assertThat(hasTitleLabel(view.newImagePanelSingle, ScreenshotViewType.NEW.displayText)).isFalse()
+    assertThat(hasTitleLabel(view.diffImagePanelSingle, ScreenshotViewType.DIFF.displayText)).isFalse()
+    assertThat(hasTitleLabel(view.refImagePanelSingle, ScreenshotViewType.REFERENCE.displayText)).isFalse()
+
+    // Verify titles are present in the "All" view panels
+    assertThat(hasTitleLabel(view.newImagePanel, ScreenshotViewType.NEW.displayText)).isTrue()
+    assertThat(hasTitleLabel(view.diffImagePanel, ScreenshotViewType.DIFF.displayText)).isTrue()
+    assertThat(hasTitleLabel(view.refImagePanel, ScreenshotViewType.REFERENCE.displayText)).isTrue()
+  }
+
   /**
    * Iteratively searches a container to find the first component of a given type
    * that satisfies an optional predicate. This is non-recursive to support inlining.
