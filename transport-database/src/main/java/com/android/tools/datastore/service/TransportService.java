@@ -91,6 +91,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
       Event.Kind.CPU_USAGE,
       Event.Kind.CPU_THREAD,
 
+      Event.Kind.MEMORY_USAGE,
       Event.Kind.MEMORY_GC,
       Event.Kind.MEMORY_ALLOC_SAMPLING,
       Event.Kind.MEMORY_ALLOC_TRACKING,
@@ -99,13 +100,13 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
       Event.Kind.MEMORY_ALLOC_EVENTS,
       Event.Kind.MEMORY_JNI_REF_EVENTS,
       Event.Kind.MEMORY_ALLOC_STATS,
-      Event.Kind.MEMORY_USAGE,
 
-      Event.Kind.VIEW,
       Event.Kind.INTERACTION,
-      Event.Kind.LIVE_VIEW_STATUS,
+      Event.Kind.VIEW,
+
       Event.Kind.LEAKCANARY_ANALYSIS,
-      Event.Kind.LEAKCANARY_ANALYSIS_STATUS
+      Event.Kind.LEAKCANARY_ANALYSIS_STATUS,
+      Event.Kind.LIVE_VIEW_STATUS
     );
 
   /**
@@ -119,8 +120,8 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     ImmutableSet.of(
       Event.Kind.SESSION,
       Event.Kind.MEMORY_ALLOC_TRACKING,
-      Event.Kind.LIVE_VIEW_STATUS,
-      Event.Kind.LEAKCANARY_ANALYSIS_STATUS
+      Event.Kind.LEAKCANARY_ANALYSIS_STATUS,
+      Event.Kind.LIVE_VIEW_STATUS
     );
 
   /**
