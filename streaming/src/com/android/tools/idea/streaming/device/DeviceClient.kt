@@ -425,8 +425,7 @@ class DeviceClient(
                 (if (StudioFlags.DEVICE_MIRRORING_USE_UINPUT.get()) USE_UINPUT else 0) or
                 (if (deviceConfig.deviceType == DeviceType.XR_HEADSET) DEVICE_IS_XR else 0) or // Workaround for b/406870742 and b/408280128.
                 (if (StudioFlags.DEVICE_MIRRORING_UNICODE_TYPING.get()) UNICODE_TYPING else 0) or
-                (if (StudioFlags.DEVICE_MIRRORING_TRACE_CLIPBOARD_SYNCHRONIZATION.get()) TRACE_CLIPBOARD_SYNCHRONIZATION else 0) or
-      (if (StudioFlags.DEVICE_MIRRORING_USE_REMOTE_SUBMIX.get()) USE_REMOTE_SUBMIX else 0)
+                (if (StudioFlags.DEVICE_MIRRORING_TRACE_CLIPBOARD_SYNCHRONIZATION.get()) TRACE_CLIPBOARD_SYNCHRONIZATION else 0)
     val flagsArg = if (flags != 0) " --flags=$flags" else ""
     val maxBitRate = calculateMaxBitRate()
     val maxBitRateArg = if (maxBitRate > 0) " --max_bit_rate=$maxBitRate" else ""
