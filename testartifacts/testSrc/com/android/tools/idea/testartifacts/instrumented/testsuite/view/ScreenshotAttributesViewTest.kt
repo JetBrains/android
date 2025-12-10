@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.google.common.truth.Truth.assertThat
+import java.io.File
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -41,9 +42,11 @@ class ScreenshotAttributesViewTest {
    */
   @Test
   fun updateData_withPassedResult_setsPassedState() {
+    val refFile = File.createTempFile("ref", ".png").apply { deleteOnExit() }
+    val newFile = File.createTempFile("new", ".png").apply { deleteOnExit() }
     view.updateData(
-        refImagePath = "ref.png",
-        newImagePath = "new.png",
+        refImagePath = refFile.absolutePath,
+        newImagePath = newFile.absolutePath,
         testMethodName = "myMethod",
         testClassName = "MyClass",
         result = AndroidTestCaseResult.PASSED,
@@ -51,8 +54,8 @@ class ScreenshotAttributesViewTest {
     )
     assertThat(view.state.matchPercentage).isNull()
     assertThat(view.state.testResult).isEqualTo(AndroidTestCaseResult.PASSED)
-    assertThat(view.state.refLocation).isEqualTo("ref.png")
-    assertThat(view.state.newLocation).isEqualTo("new.png")
+    assertThat(view.state.refLocation).isEqualTo(refFile.absolutePath)
+    assertThat(view.state.newLocation).isEqualTo(newFile.absolutePath)
     assertThat(view.state.methodName).isEqualTo("myMethod")
     assertThat(view.state.className).isEqualTo("MyClass")
   }
@@ -63,9 +66,11 @@ class ScreenshotAttributesViewTest {
    */
   @Test
   fun updateData_withFailedResultAndValidDiff_setsFailedState() {
+    val refFile = File.createTempFile("ref", ".png").apply { deleteOnExit() }
+    val newFile = File.createTempFile("new", ".png").apply { deleteOnExit() }
     view.updateData(
-        refImagePath = "ref.png",
-        newImagePath = "new.png",
+        refImagePath = refFile.absolutePath,
+        newImagePath = newFile.absolutePath,
         testMethodName = "myMethod",
         testClassName = "MyClass",
         result = AndroidTestCaseResult.FAILED,
@@ -73,8 +78,8 @@ class ScreenshotAttributesViewTest {
     )
     assertThat(view.state.matchPercentage).isEqualTo("74.50%")
     assertThat(view.state.testResult).isEqualTo(AndroidTestCaseResult.FAILED)
-    assertThat(view.state.refLocation).isEqualTo("ref.png")
-    assertThat(view.state.newLocation).isEqualTo("new.png")
+    assertThat(view.state.refLocation).isEqualTo(refFile.absolutePath)
+    assertThat(view.state.newLocation).isEqualTo(newFile.absolutePath)
     assertThat(view.state.methodName).isEqualTo("myMethod")
     assertThat(view.state.className).isEqualTo("MyClass")
   }
@@ -85,9 +90,11 @@ class ScreenshotAttributesViewTest {
    */
   @Test
   fun updateData_withFailedResultAndNullDiff_setsFailedState() {
+    val refFile = File.createTempFile("ref", ".png").apply { deleteOnExit() }
+    val newFile = File.createTempFile("new", ".png").apply { deleteOnExit() }
     view.updateData(
-        refImagePath = "ref.png",
-        newImagePath = "new.png",
+        refImagePath = refFile.absolutePath,
+        newImagePath = newFile.absolutePath,
         testMethodName = "myMethod",
         testClassName = "MyClass",
         result = AndroidTestCaseResult.FAILED,
@@ -95,8 +102,8 @@ class ScreenshotAttributesViewTest {
     )
     assertThat(view.state.matchPercentage).isNull()
     assertThat(view.state.testResult).isEqualTo(AndroidTestCaseResult.FAILED)
-    assertThat(view.state.refLocation).isEqualTo("ref.png")
-    assertThat(view.state.newLocation).isEqualTo("new.png")
+    assertThat(view.state.refLocation).isEqualTo(refFile.absolutePath)
+    assertThat(view.state.newLocation).isEqualTo(newFile.absolutePath)
     assertThat(view.state.methodName).isEqualTo("myMethod")
     assertThat(view.state.className).isEqualTo("MyClass")
   }
@@ -121,5 +128,23 @@ class ScreenshotAttributesViewTest {
     assertThat(view.state.className).isEqualTo("N/A")
     assertThat(view.state.testResult).isNull()
     assertThat(view.state.matchPercentage).isNull()
+  }
+
+  /**
+   * Verifies that refLocation is "N/A" when refImagePath is a non-existent file.
+   */
+  @Test
+  fun updateData_withNonExistentRefImagePath_setsRefLocationToNotAvailable() {
+    val newFile = File.createTempFile("new", ".png").apply { deleteOnExit() }
+    view.updateData(
+      refImagePath = "non_existent_ref.png",
+      newImagePath = newFile.absolutePath,
+      testMethodName = "myMethod",
+      testClassName = "MyClass",
+      result = AndroidTestCaseResult.FAILED,
+      diffPercent = 0.1
+    )
+    assertThat(view.state.refLocation).isEqualTo("N/A")
+    assertThat(view.state.newLocation).isEqualTo(newFile.absolutePath)
   }
 }

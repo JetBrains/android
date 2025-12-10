@@ -126,11 +126,15 @@ class ScreenshotAttributesView {
     ) {
         val matchPercentage = calculateMatchPercentage(diffPercent)
 
+        val refLocation = refImagePath?.let {
+            if (File(it).exists()) it else NOT_APPLICABLE
+        } ?: NOT_APPLICABLE
+
         state = ScreenshotAttributesState(
             testResult = result,
             methodName = testMethodName ?: NOT_APPLICABLE,
             className = testClassName ?: NOT_APPLICABLE,
-            refLocation = refImagePath ?: NOT_APPLICABLE,
+            refLocation = refLocation,
             newLocation = newImagePath ?: NOT_APPLICABLE,
             matchPercentage = matchPercentage
         )
