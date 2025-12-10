@@ -2292,9 +2292,11 @@ Android Studio Preview.app/Contents/plugins/android/lib/asm-commons-9.6.jar
 Android Studio Preview.app/Contents/plugins/android/lib/asm-tree-9.6.jar
 Android Studio Preview.app/Contents/plugins/android/lib/asm-util-9.6.jar
 Android Studio Preview.app/Contents/plugins/android/lib/auto-common-0.10.jar
+Android Studio Preview.app/Contents/plugins/android/lib/auto-value-annotations-1.11.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/backgroundtask_inspector_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/build-analysis-results-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/build-common.jar
+Android Studio Preview.app/Contents/plugins/android/lib/checker-compat-qual-2.5.5.jar
 Android Studio Preview.app/Contents/plugins/android/lib/chime_kt_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/commons-lang-2.6.jar
 Android Studio Preview.app/Contents/plugins/android/lib/compilerCommon.antlr.shaded_jar.jar
@@ -2305,6 +2307,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/database_inspector_java_
 Android Studio Preview.app/Contents/plugins/android/lib/dec-0.1.2.jar
 Android Studio Preview.app/Contents/plugins/android/lib/deploy_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/emulator_java_proto.jar
+Android Studio Preview.app/Contents/plugins/android/lib/error_prone_annotations-2.36.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/explainer.jar
 Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-7.1.1-1.5.12-macosx-x86_64.jar
 Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-7.1.1-1.5.12.jar
@@ -2349,6 +2352,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/libadblib-tools-proto.ja
 Android Studio Preview.app/Contents/plugins/android/lib/libagp-version.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libam-instrumentation-data-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libandroid-core-proto.jar
+Android Studio Preview.app/Contents/plugins/android/lib/libbinary-resources.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libcommon_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_sites.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_version.jar

@@ -56,7 +56,7 @@ public class ResourceTypeTableModel extends AbstractTableModel {
   public Object getValueAt(int row, int col) {
     if (col == 0) { // resource id
       ResourceIdentifier id = ResourceIdentifier.create(myPackageChunk.getId(), myTypeSpec.getId(), row);
-      return id.toString();
+      return id.asHexString();
     }
     else if (col == 1) { // resource name
       String key = "unknown";
