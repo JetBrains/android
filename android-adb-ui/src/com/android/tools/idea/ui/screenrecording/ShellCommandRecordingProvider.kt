@@ -120,11 +120,10 @@ internal class ShellCommandRecordingProvider(
   }
 
   override suspend fun pullRecording(target: Path) {
-    Files.deleteIfExists(target)
     Files.createDirectories(target.parent)
     adbSession.deviceServices.sync(device).use { sync ->
       try {
-        adbSession.channelFactory.createNewFile(target).use {
+        adbSession.channelFactory.createFile(target).use {
           sync.recv(remotePath, it, progress = null)
         }
       }
