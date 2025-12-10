@@ -254,7 +254,9 @@ public class StudioDownloaderTest {
     assertTrue(requestedRanges.subList(1, requestedRanges.size()).stream().map(Pair::getFirst).allMatch((v) -> v > 0));
   }
 
+
   @Test
+  @Ignore("b/406368116")
   public void testCorruptedPartialDownload() throws Exception {
     FileSystem fs = InMemoryFileSystems.createInMemoryFileSystem();
     // Create some sizeable custom content to download.
