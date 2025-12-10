@@ -1225,6 +1225,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_STANDALONE_V2 = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.standalone.v2", "Enable standalone Layout Inspector V2",
     "Enable standalone Layout Inspector V2.");
+
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_CHROME_DEVTOOLS_MENU = new BooleanFlag(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.chrome.devtools.menu", "Supply a Chrome DevTools menu item for WebViews",
+    "Add a menu item to the context menu in the Layout Inspector that will launch Chrome DevTools for WebViews.");
   //endregion
 
   //region Embedded Emulator
