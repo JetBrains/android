@@ -501,7 +501,7 @@ class EmulatorToolWindowPanelTest {
     emulator.clearGrpcCallLog()
 
     // Check the Button 1 action.
-    val button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Button 1" }
+    val button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Action Button" }
     fakeUi.mouseClickOn(button)
     val streamInputCall = emulator.getNextGrpcCall(2.seconds)
     assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
