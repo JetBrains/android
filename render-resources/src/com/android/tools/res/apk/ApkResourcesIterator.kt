@@ -47,7 +47,10 @@ internal fun forEveryResource(apkPath: String, processor: ResourceEntryProcessor
                 stringPool,
                 resType,
                 folderConfig,
-                TODO("android merge"), // binaryId.resourceId(),
+                ResourceIdentifier.asInt(
+                  binaryId.packageId(),
+                  binaryId.typeId(),
+                  binaryId.entryId()),
                 typeChunkEntry
               )
             }

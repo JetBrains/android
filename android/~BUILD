@@ -418,6 +418,7 @@ filegroup(
         "//tools/adt/idea/testartifacts:libjourneys-java-proto",
         "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
         "//tools/base/adb-proxy:adb_proxy_proto",
+        "//tools/base/apkparser:libbinary-resources",
         "//tools/base/deploy/deployer:deploy_java_proto",
         "//tools/base/deploy/deployer:fake_device_proto",
         "//tools/base/deploy/deployer:libjava_sites",
