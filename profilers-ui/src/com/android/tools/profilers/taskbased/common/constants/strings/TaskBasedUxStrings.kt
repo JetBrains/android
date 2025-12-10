@@ -175,7 +175,7 @@ object TaskBasedUxStrings {
         ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> "Record Method Calls"
         ProfilerTaskType.NATIVE_ALLOCATIONS -> "Record Memory Allocations (Native)"
         ProfilerTaskType.LIVE_VIEW -> "View Live Telemetry"
-        ProfilerTaskType.LEAKCANARY -> "Find memory leaks with LeakCanary"
+        ProfilerTaskType.LEAKCANARY -> "Find Memory Leaks with LeakCanary"
         ProfilerTaskType.UNSPECIFIED -> ""
       }
     }
@@ -188,7 +188,7 @@ object TaskBasedUxStrings {
         ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> "Find CPU Hotspots"
         ProfilerTaskType.NATIVE_ALLOCATIONS -> "Track Memory Consumption"
         ProfilerTaskType.LIVE_VIEW -> "View Live Telemetry"
-        ProfilerTaskType.LEAKCANARY -> "Find memory leaks with LeakCanary"
+        ProfilerTaskType.LEAKCANARY -> "Find Memory Leaks with LeakCanary"
         ProfilerTaskType.UNSPECIFIED -> ""
       }
     }
