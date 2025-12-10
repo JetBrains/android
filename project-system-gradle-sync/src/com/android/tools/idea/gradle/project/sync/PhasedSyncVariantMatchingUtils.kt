@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.builder.model.v2.dsl.ProductFlavor
 import com.android.builder.model.v2.ide.BasicVariant
+import com.android.builder.model.v2.ide.ProjectType
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
@@ -27,7 +29,13 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeBasicVariantName
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeBasicVariantNameImpl
+import java.io.File
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.forEach
 import kotlin.collections.mutableMapOf
+import kotlin.collections.set
+import kotlinx.collections.immutable.toImmutableMap
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.model.GradleTaskModel
@@ -59,20 +67,33 @@ class AndroidProjectData(
   var selectedVariantName: String,
   val shouldSkipRuntimeClassPathForLibraries: Boolean,
   val legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
+  val rootBuildDir: File, // Path for root project, to be used for composite builds
 ) {
   var isSeen = false
 }
 
 /** Encapsulates the state of variant resolution across all projects during a sync phase. */
 class VariantResolutionContext {
-  // Cache the mapping of gradleProject -> expected variant from dependant projects that got resolved already.
-  val projectsAndRequestedVariants = mutableMapOf<String, String>()
-  // Mapping of the expected variant to it's buildType, followed by all the matchingFallbacks ordered by priority.
-  val variantToBuildTypeAndFallbacks = mutableMapOf<String, BuildTypeAndFallbacks>()
-  // Mapping of variant to every (dimension, product flavor, fallbacks (if any)).
-  // variantName -> (dim1 -> (flavor1.1, backup1, backup2), dim2 ->(flavor2.1, backup11, backup22)).
-  val variantToProductFlavorsAndDimensions = mutableMapOf<String, Map<String, ProductFlavorsAndFallbacks>>()
+  /** Map of project identity to the variant requirements pushed from its consumers. */
+  val projectVariantRequirements = mutableMapOf<ProjectBuildInfo, VariantRequirement>()
+
+  /** Map of project identity to the final variant selection (Registry of Outcomes). */
+  val projectToSelectedVariants = mutableMapOf<ProjectBuildInfo, VariantAndPriority>()
 }
+
+/** The group of requirements defining a project's variant resolution. */
+data class VariantRequirement(
+  /** The expected variant */
+  val variant: BasicVariant,
+  /** The expected buildType details including the fallbacks. */
+  val buildTypeRequirement: VariantBuildTypeAndFallbacks? = null,
+  /** The expected productFlavors requirements and their fallbacks. */
+  val flavorRequirements: Map<String, ProductFlavorsAndFallbacks> = emptyMap(),
+  /** The expected missingDimensionStrategy information. */
+  val missingDimensionStrategies: Map<String, MissingDimensionStrategies> = emptyMap(),
+  /** The priority of this expected variant (used to compare consumers priority) */
+  val priority: Int,
+)
 
 /**
  * Entry point for variant selection / matching and model consumption for all the Android projects.
@@ -87,12 +108,14 @@ class VariantResolutionContext {
  * @param syncOptions that contains the variant switching request (if it exists).
  * @param modelConsumer to report the resolved variant models back to the IDE.
  * @param cachedModels A cache for storing resolved data to be used by other model builders across different sync phases.
+ * @param variantsResolutionIssues A map to collect any exceptions that occurred during variant resolution for each project.
  */
 fun setupProjectsVariantsAndConsume(
   results: List<Pair<BasicGradleProject, AndroidProjectData>>,
   syncOptions: SyncActionOptions,
   modelConsumer: ProjectImportModelProvider.GradleModelConsumer,
   cachedModels: ModelProviderCachedData,
+  variantsResolutionIssues: MutableMap<BasicGradleProject, Throwable>,
 ) {
   // Now sort the projects based on their priority criteria (projectType + number of incoming dependencies).
   val projectsWithPriority =
@@ -112,28 +135,37 @@ fun setupProjectsVariantsAndConsume(
   val variantResolutionContext = VariantResolutionContext()
 
   // Resolve the variants at this stage handling each level of priority at a time, and considering the declared project dependencies.
-  for (nextBatch in projectsWithPriority.values) {
+  projectsWithPriority.forEach { (priority, nextBatch) ->
     val modulesToVisit = nextBatch.filter { !it.second.isSeen }
-    if (modulesToVisit.isEmpty()) continue
-    modulesToVisit.forEach { (gradleProject, androidProjectContext) ->
-      androidProjectContext.isSeen = true
-      val selectedVariantNameModel = getSelectedVariantName(gradleProject, androidProjectContext, variantResolutionContext)
-      // Update the selected variant for this project: this is important because this data is
-      // passed through to other model builders.
-      androidProjectContext.selectedVariantName = selectedVariantNameModel.name
+    modulesToVisit
+      .takeIf { it.isNotEmpty() }
+      ?.forEach { (gradleProject, androidProjectContext) ->
+        var selectedVariantNameModel: IdeBasicVariantNameImpl? = null
+        try {
+          androidProjectContext.isSeen = true
+          selectedVariantNameModel = getSelectedVariantName(gradleProject, androidProjectContext, variantResolutionContext, priority)
 
-      modelConsumer.consumeProjectModel(gradleProject, selectedVariantNameModel, IdeBasicVariantName::class.java)
+          // Update the selected variant for this project: this is important because this data is
+          // passed through to other model builders.
+          androidProjectContext.selectedVariantName = selectedVariantNameModel.name
+        } catch (e: Exception) {
+          variantsResolutionIssues[gradleProject] = e
+        } finally {
+          // If there was an exception fetching the selected variant for the project, then we need to safely fall back to the default value.
+          val finalVariantNameModel = selectedVariantNameModel ?: IdeBasicVariantNameImpl(androidProjectContext.selectedVariantName)
+          modelConsumer.consumeProjectModel(gradleProject, finalVariantNameModel, IdeBasicVariantName::class.java)
 
-      // Set the cachedData variant value.
-      cachedModels.data[gradleProject] =
-        CachedAndroidProjectData(
-          androidProjectContext.modelVersions,
-          androidProjectContext.selectedVariantName,
-          androidProjectContext.ideAndroidProject,
-          androidProjectContext.shouldSkipRuntimeClassPathForLibraries,
-          androidProjectContext.declaredDependencies.allOutgoingProjectDependencies,
-        )
-    }
+          // Set the cachedData variant value.
+          cachedModels.data[gradleProject] =
+            CachedAndroidProjectData(
+              androidProjectContext.modelVersions,
+              androidProjectContext.selectedVariantName,
+              androidProjectContext.ideAndroidProject,
+              androidProjectContext.shouldSkipRuntimeClassPathForLibraries,
+              androidProjectContext.declaredDependencies.allOutgoingProjectDependencies,
+            )
+        }
+      }
   }
 }
 
@@ -230,269 +262,321 @@ fun <T> sortProjectsByPriority(projects: List<T>, nodeMapper: (T) -> ProjectNode
     .toSortedMap()
 }
 
+/**
+ * Resolves the selected variant name for a module during Phased Sync.
+ *
+ * This function applies a hierarchical matching order (Direct Match -> Attributes -> Fallbacks -> Strategies) to ensure that the IDE
+ * selects a stable and functional variant that satisfies all its consumers.
+ */
 @VisibleForTesting
 fun getSelectedVariantName(
   gradleProject: BasicGradleProject,
   androidProjectContext: AndroidProjectData,
   variantResolutionContext: VariantResolutionContext,
+  priority: Int,
 ): IdeBasicVariantNameImpl {
-  val variantFromModule = androidProjectContext.selectedVariantName
-  val androidDsl = androidProjectContext.androidDsl
-  val basicAndroidProject = androidProjectContext.basicAndroidProject
-  val declaredDependenciesModel = androidProjectContext.declaredDependencies
-  val modelVersions = androidProjectContext.modelVersions
-  val legacyAndroidGradlePluginProperties = androidProjectContext.legacyAndroidGradlePluginProperties
 
-  var updatedVariant = variantFromModule
+  val currentProjectId = ProjectBuildInfo(gradleProject.path, androidProjectContext.rootBuildDir.path)
+  val variantRequirement = variantResolutionContext.projectVariantRequirements[currentProjectId]
+  var effectivePriority = variantRequirement?.priority ?: priority
 
-  val expectedVariantFromDependencies = variantResolutionContext.projectsAndRequestedVariants[gradleProject.path]
+  val testProjectExpectedVariantOrNull =
+    if (androidProjectContext.basicAndroidProject.projectType == ProjectType.TEST) {
+      val targetAppPath =
+        androidProjectContext.androidProject.variants.firstOrNull { it.testedTargetVariant != null }?.testedTargetVariant?.targetProjectPath
+      val targetAppId = targetAppPath?.let { ProjectBuildInfo(it, androidProjectContext.rootBuildDir.path) }
+      val targetAppVariant = targetAppId?.let { variantResolutionContext.projectToSelectedVariants[it] }
+      effectivePriority = targetAppVariant?.priority ?: priority
+      targetAppVariant
+    } else null
 
-  // 1st case: we don't expect a specific variant: take the variant that we initially computed.
-  if (expectedVariantFromDependencies == null) {
-    val variantObject = basicAndroidProject.variants.firstOrNull { it.name == variantFromModule }
-    // 1.1: the variant we want to sync exists.
-    if (variantObject != null) {
-      // We don't need to update the value of androidProjectContext.selectedVariantName
-      // Get the build type, productFlavor(s) and their fallbacks in order of priority.
-      setBuildTypeAndProductFlavorsWithFallbacksForVariant(
-        variantObject,
-        variantResolutionContext,
-        androidDsl,
-        modelVersions,
-        legacyAndroidGradlePluginProperties,
-      )
-
-      // Now we set up the expected variant for all our project dependencies.
-      setUpExpectedVariantForDependantProjects(
-        // Here there is nothing we were expecting to Sync initially, so we propagate the variantName that we have asked for.
-        variantObject.name,
-        declaredDependenciesModel.allOutgoingProjectDependencies,
-        variantResolutionContext.projectsAndRequestedVariants,
-      )
-    }
-    // 1.2: the variant we expected to sync doesn't exist, se we fallback to the default variant.
-    else {
-      // TODO: the error thrown below will fail sync, but we should just throw a warning.
-      updatedVariant =
-        getDefaultVariant(basicAndroidProject, androidDsl) ?: error("Unable to find a variant to Sync for ${gradleProject.path}")
-    }
-  }
-  // 2nd case: we are expecting a specific variant to resolve based on this project's dependencies.
-  else {
-    val variantObject = basicAndroidProject.variants.firstOrNull { it.name == expectedVariantFromDependencies }
-    // 2.1: The expected variant exists
-    val variantToSync =
-      if (variantObject != null) {
-        variantObject.name
+  val variantToSync =
+    when {
+      // 1st case: we don't expect a specific variant (and this is not a TEST project that we are resolving): take the variant that we
+      // initially got from the project itself.
+      variantRequirement == null && androidProjectContext.basicAndroidProject.projectType != ProjectType.TEST -> {
+        androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == androidProjectContext.selectedVariantName }
+          ?: throw IllegalStateException(
+            "Variant Conflict: Unable to find variant \"${androidProjectContext.selectedVariantName}\" to Sync for project: ${gradleProject.path}."
+          )
       }
-      // 2.2: The variant we are expecting does not exist, and we need to go through the fallbacks.
-      else {
-        val buildTypeAndFallbacks = variantResolutionContext.variantToBuildTypeAndFallbacks[expectedVariantFromDependencies]
-
-        val productFlavorsAndFallbacks =
-          if (androidDsl.productFlavors.isNotEmpty()) {
-            variantResolutionContext.variantToProductFlavorsAndDimensions[expectedVariantFromDependencies]
-          } else {
-            mutableMapOf() // if this projects does not have any productFlavors, then there is no ambiguity to solve, and we don't need to
-            // resolve productFlavors for it.
-          }
-
-        if (buildTypeAndFallbacks == null) error(" Failed to find a variant for ${gradleProject.path}. Falling back to the default one.")
-        // Get the buildType if exists or fallback into the fallbacks in a priority descending order.
-        val buildTypeOrFallback =
-          androidDsl.buildTypes.firstOrNull { it.name == buildTypeAndFallbacks.buildType }
-            ?:
-            // This case means there isn't a buildType direct match , and need to check  the fallbacks.
-            buildTypeAndFallbacks.matchingFallbacks.firstNotNullOfOrNull { fallback ->
-              androidDsl.buildTypes.firstOrNull { it.name == fallback }
-            }
-
-        // If we have expected productFlavors, then we should use them:
-        val resolvedProductFlavors =
-          productFlavorsAndFallbacks?.map { (dimension, flavors) ->
-            // We first check if we can match directly the productFlavors before falling to the fallbacks.
-            androidDsl.productFlavors.firstOrNull { it.name == flavors.productFlavor && it.dimension == dimension }
-              ?:
-              // Otherwise, pick the first existing matchingFallback.
-              flavors.matchingFallbacks.firstNotNullOfOrNull { fallback -> androidDsl.productFlavors.firstOrNull { it.name == fallback } }
-          }
-            ?:
-            // Otherwise, this means that the request came from a project with
-            // no dimensions, so we will still need to resolve the flavors in this project (if any).
-            // Important: In this case, and because we have no guidelines from the dependencies that we have resolved so far, the only way
-            // we can resolve this
-            // variant for this project would be if there is no productFlavor ambiguity (i.e. each dimension has one flavor), otherwise we
-            // won't be able to pick
-            // a productFlavor accurately, and we should throw the error here).
-            // TODO: this will become a warning in sync, and we will fallback to the default variant for this project.
-            androidDsl.flavorDimensions.map { dim ->
-              androidDsl.productFlavors.singleOrNull { flavor -> flavor.dimension == dim }
-                ?: error(
-                  "Cannot resolve variant ${expectedVariantFromDependencies}. Cannot resolve ambiguity of productFlavors for ${gradleProject.path}."
-                )
-            }
-
-        // If we can't resolve the variant based on the requirements, then we fall back to the default one we had initially.
-        if (buildTypeOrFallback == null || resolvedProductFlavors.contains(null))
-          error("Variant resolution conflict: Cannot find a variant for ${gradleProject.path}.") // variantFromModule
-        else {
-          // need to now create a variant out of this build type and productFlavors.
-          basicAndroidProject.variants
-            .singleOrNull { variant ->
-              buildTypeOrFallback.let { variant.buildType != null && variant.buildType == it.name } &&
-                resolvedProductFlavors.all {
-                  variant.productFlavors.contains(it!!.name)
-                } // This is the case where we should extend to missingDimensionStrategy.
-            }
-            ?.name ?: basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
+      // 2nd case: Project type is TEST, and in this case we should either propagate the app variant or pick the default variant.
+      androidProjectContext.basicAndroidProject.projectType == ProjectType.TEST -> {
+        testProjectExpectedVariantOrNull?.let { expectedVariant ->
+          androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == expectedVariant.variant.name }
         }
-      } ?: error("Variant resolution conflict: Cannot find a variant for ${gradleProject.path}.")
+          ?: androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == androidProjectContext.selectedVariantName }
+          ?: throw IllegalStateException(
+            "Variant Conflict: Unable to find variant " +
+              "\"${variantRequirement?.variant?.name}\" to Sync for project: ${gradleProject.path}."
+          )
+      }
+      // 3rd case: Dynamic feature <-> APP case: we do expect a strict direct match with APP project.
+      // For the case where Application project have any requested dependencies, we treat this as the special cases of incoming dependency
+      // from dynamic features or test projects, and expect a direct variant match in this case.
+      androidProjectContext.basicAndroidProject.projectType == ProjectType.DYNAMIC_FEATURE ||
+        androidProjectContext.basicAndroidProject.projectType == ProjectType.APPLICATION -> {
+        androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == variantRequirement?.variant?.name }
+          ?: throw IllegalStateException(
+            "Variant conflict: Unable to find variant \"${variantRequirement?.variant?.name}\" to " +
+              "Sync for project: ${gradleProject.path}."
+          )
+      }
+      // 4th case: we are expecting a specific variant to resolve based on this project's dependencies. This could be either a test project,
+      // or not.
+      else -> {
+        if (variantRequirement == null)
+          throw IllegalStateException("Variant Conflict: Unable to find a variant to Sync for project: ${gradleProject.path}.")
 
-    setBuildTypeAndProductFlavorsWithFallbacksForVariant(
-      basicAndroidProject.variants.singleOrNull { it.name == variantToSync }
-        ?: error("No existing variant that matches the name $variantToSync for project ${gradleProject.path}."),
-      variantResolutionContext,
-      androidDsl,
-      modelVersions,
-      legacyAndroidGradlePluginProperties,
-    )
-    // get the dependencies as well and set the expected variant for them.
-    setUpExpectedVariantForDependantProjects(
-      expectedVariantFromDependencies,
-      declaredDependenciesModel.allOutgoingProjectDependencies,
-      variantResolutionContext.projectsAndRequestedVariants,
-    )
+        val variantObject = androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == variantRequirement.variant.name }
+        if (variantObject != null && verifyAllVariantAttributesMatch(variantRequirement, variantObject, androidProjectContext.androidDsl)) {
+          variantObject
+        } else {
+          resolveVariantAttributes(gradleProject, androidProjectContext, variantRequirement)
+        }
+      }
+    }
 
-    updatedVariant = variantToSync
-  }
-  return IdeBasicVariantNameImpl(updatedVariant)
-}
-
-fun BasicGradleProject.moduleId() = Modules.createUniqueModuleId(projectIdentifier.buildIdentifier.rootDir, path)
-
-private fun setBuildTypeAndProductFlavorsWithFallbacksForVariant(
-  variant: BasicVariant,
-  variantResolutionContext: VariantResolutionContext,
-  androidDsl: AndroidDsl,
-  modelVersions: ModelVersions,
-  legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-) {
-  getBuildTypesAndFallbacksInPriorityOrder(
-    variant,
-    variantResolutionContext.variantToBuildTypeAndFallbacks,
-    androidDsl,
-    modelVersions,
-    legacyAndroidGradlePluginProperties,
+  setUpExpectedVariantForDependantProjects(
+    gradleProject,
+    androidProjectContext,
+    variantToSync,
+    variantRequirement,
+    variantResolutionContext,
+    effectivePriority,
   )
-  // Now do the productFlavors (if any) and their dimensions.
-  if (androidDsl.productFlavors.isNotEmpty())
-    getProductFlavorsAndFallbacksInOrder(
-      variant,
-      variantResolutionContext.variantToProductFlavorsAndDimensions,
-      androidDsl,
-      modelVersions,
-      legacyAndroidGradlePluginProperties,
-    )
+
+  // Cache the result of the final selected variants.
+  variantResolutionContext.projectToSelectedVariants[currentProjectId] = VariantAndPriority(variantToSync, effectivePriority)
+
+  return IdeBasicVariantNameImpl(variantToSync.name)
 }
 
-private fun getBuildTypesAndFallbacksInPriorityOrder(
-  variant: BasicVariant,
-  variantToBuildTypeAndFallbacks: MutableMap<String, BuildTypeAndFallbacks>,
-  androidDsl: AndroidDsl,
-  modelVersion: ModelVersions,
-  legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-) {
-  val variantAndBuildTypes = variantToBuildTypeAndFallbacks[variant.name]
-  val buildTypesAndFallbacks = getBuildTypeAndFallbacksForVariant(androidDsl, variant, modelVersion, legacyAndroidGradlePluginProperties)
-  if (variantAndBuildTypes == null) {
-    variantToBuildTypeAndFallbacks[variant.name] =
-      BuildTypeAndFallbacks(buildTypesAndFallbacks.first, buildTypesAndFallbacks.second.toMutableSet())
-  } else {
-    variantToBuildTypeAndFallbacks[variant.name]!!.matchingFallbacks.addAll(buildTypesAndFallbacks.second)
-  }
-}
+/** Reconciles variant attributes (BuildType and ProductFlavors) to find a best-fit variant. */
+private fun resolveVariantAttributes(
+  gradleProject: BasicGradleProject,
+  androidProjectContext: AndroidProjectData,
+  variantRequirement: VariantRequirement,
+): BasicVariant {
+  val dimensionsToFlavors = mutableMapOf<String, ProductFlavor>()
 
-private fun getProductFlavorsAndFallbacksInOrder(
-  variant: BasicVariant,
-  variantToProductFlavorsAndFallbacks: MutableMap<String, Map<String, ProductFlavorsAndFallbacks>>,
-  androidDsl: AndroidDsl,
-  modelVersion: ModelVersions,
-  legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-) {
-  // Get the productFlavors and their matchingFallbacks for this variant and this project.
-  val incomingFlavors = getProductFlavorsPerDimensionsForVariant(androidDsl, variant, modelVersion, legacyAndroidGradlePluginProperties)
-  // Get the list of cached productFlavors and their fallbacks (if any) for this variant: these could have been specified by other projects.
-  val existingVariant = variantToProductFlavorsAndFallbacks[variant.name]
-
-  // We don't have any fallbacks yet for this variant.
-  if (existingVariant == null) {
-    variantToProductFlavorsAndFallbacks[variant.name] =
-      incomingFlavors.mapValues { (_, v) -> ProductFlavorsAndFallbacks(v.first, v.second.toMutableSet()) }
-  } else {
-    // We already have fallbacks for this variant, so we append the ones from this project to the existing list.
-    for ((dim, flavorsAndFallbacks) in incomingFlavors) {
-      val existingDimEntry =
-        existingVariant.get(dim)
-          ?: error("Cannot resolve variant: $variant. There are no matching fallbacks specified for the '$dim' dimension.")
-      existingDimEntry.matchingFallbacks.addAll(flavorsAndFallbacks.second)
+  androidProjectContext.androidDsl.flavorDimensions.forEach { dimension ->
+    // 1. multiple flavors: they either need to match as 1 to one mapping or specify fallbacks if they don't match.
+    if (variantRequirement.flavorRequirements.containsKey(dimension)) {
+      val flavorRequirement = variantRequirement.flavorRequirements[dimension]!!
+      dimensionsToFlavors[dimension] =
+        androidProjectContext.androidDsl.productFlavors.firstOrNull {
+          it.name == flavorRequirement.productFlavor && it.dimension == dimension
+        }
+          // Otherwise, pick the first existing matchingFallback.
+          ?: flavorRequirement.matchingFallbacks.firstNotNullOfOrNull { fallback ->
+            androidProjectContext.androidDsl.productFlavors.firstOrNull { it.name == fallback }
+          }
+          // We have dimension matching between dependencies, but there is only one productFlavor in this project, so we do
+          // not need to resolve any ambiguity and can pick the single product flavor
+          ?: androidProjectContext.androidDsl.productFlavors.singleOrNull { it.dimension == dimension }
+          ?: throw IllegalStateException("Variant Conflict: Could not resolve ProductFlavors ambiguity for project: ${gradleProject.path}.")
+    }
+    // 2. In this case we have a mismatch between dimensions and in this case we need to use missingDimensionStrategy to find what to use
+    // for this dimension
+    else if (variantRequirement.missingDimensionStrategies.containsKey(dimension)) {
+      // in this case we do have some resolutionStrategy for this dimension, so use it.
+      dimensionsToFlavors[dimension] =
+        variantRequirement.missingDimensionStrategies[dimension]!!.requestedFlavors.firstNotNullOfOrNull { requestedFlavor ->
+          androidProjectContext.androidDsl.productFlavors.firstOrNull { it.name == requestedFlavor && it.dimension == dimension }
+          // And if we don't find any matching PF, we warn about it.
+        } ?: throw IllegalStateException("Variant Conflict: Could not resolve ProductFlavors ambiguity for project: ${gradleProject.path}")
+    }
+    // We have dimension matching between dependencies, so here we use:
+    // 3. if we have one flavor -> use it.
+    else if (androidProjectContext.androidDsl.productFlavors.singleOrNull { it.dimension == dimension } != null)
+      dimensionsToFlavors[dimension] = androidProjectContext.androidDsl.productFlavors.single { it.dimension == dimension }
+    else {
+      throw IllegalStateException("Variant Conflict: Could not resolve ProductFlavors ambiguity for project: ${gradleProject.path}.")
     }
   }
+
+  // Determine the BuildType for this project's variant.
+  if (variantRequirement.buildTypeRequirement == null && androidProjectContext.androidDsl.buildTypes.isNotEmpty())
+    throw IllegalStateException("Variant Conflict: Could not resolve BuildTypes ambiguity for project: ${gradleProject.path}.")
+
+  val buildTypeOrFallback =
+    if (androidProjectContext.androidDsl.buildTypes.isNotEmpty()) {
+      androidProjectContext.androidDsl.buildTypes.singleOrNull { it.name == variantRequirement.variant.buildType }
+        ?: variantRequirement.buildTypeRequirement?.let { expectedBuildType ->
+          androidProjectContext.androidDsl.buildTypes.singleOrNull { it.name == expectedBuildType.buildType }
+            ?:
+            // This case means there isn't a buildType direct match , and need to check the fallbacks.
+            expectedBuildType.matchingFallbacks.firstNotNullOfOrNull { fallback ->
+              androidProjectContext.androidDsl.buildTypes.firstOrNull { it.name == fallback }
+            }
+        }
+        ?: throw IllegalStateException("Variant Conflict: Could not resolve BuildTypes ambiguity for project: ${gradleProject.path}.")
+    } else null
+
+  // need to now create a variant out of this build type and productFlavors.
+  return androidProjectContext.basicAndroidProject.variants.singleOrNull { variant ->
+    buildTypeOrFallback?.let { variant.buildType != null && variant.buildType == it.name } == true &&
+      dimensionsToFlavors.values.all { variant.productFlavors.contains(it.name) }
+  } ?: throw IllegalStateException("Variant Conflict: Unable to find a variant to Sync for project: ${gradleProject.path}.")
 }
 
-private fun getBuildTypeAndFallbacksForVariant(
+/** Verifies if all variant attributes (BuildType and all DimensionsxProductFlavors) strictly match. */
+private fun verifyAllVariantAttributesMatch(
+  expectedVariantRequirement: VariantRequirement,
+  currentVariant: BasicVariant,
   androidDsl: AndroidDsl,
-  variant: BasicVariant,
-  modelVersions: ModelVersions,
-  legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-): Pair<String, List<String>> {
-  // if this variant buildType specifies fallbacks to use, then add them to the cache of fallbacks.
-  val buildTypeForNewVariant =
-    androidDsl.buildTypes.singleOrNull { variant.buildType == it.name }
-      ?: error(" There is no BuildType associated with ${variant.name} variant.")
-  val fallbacks =
-    if (modelVersions[ModelFeature.HAS_MATCHING_FALLBACKS]) buildTypeForNewVariant.matchingFallbacks
-    else legacyAndroidGradlePluginProperties?.productFlavorsMatchingFallbacks[buildTypeForNewVariant.name] ?: emptyList()
-  return Pair(buildTypeForNewVariant.name, fallbacks)
+): Boolean {
+  val flavorsMatch = currentVariant.productFlavors.toSet() == expectedVariantRequirement.variant.productFlavors.toSet()
+  val dimensionsMatch = androidDsl.flavorDimensions.toSet() == expectedVariantRequirement.flavorRequirements.keys.toSet()
+  val buildTypeMatch = currentVariant.buildType == expectedVariantRequirement.variant.buildType
+
+  return buildTypeMatch && dimensionsMatch && flavorsMatch
 }
 
-/** Returns a map of: dimension -> Pair.of(productFlavor, listOf(fallbacks)) */
-private fun getProductFlavorsPerDimensionsForVariant(
-  androidDsl: AndroidDsl,
+private fun getVariantRequirementAttributesInformation(
+  targetProjectId: ProjectBuildInfo,
   variant: BasicVariant,
-  modelVersions: ModelVersions,
-  legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-): Map<String, Pair<String, List<String>>> {
-  return androidDsl.productFlavors
-    .filter { variant.productFlavors.contains(it.name) }
-    .associate {
+  variantToPropagate: VariantRequirement?,
+  androidProjectContext: AndroidProjectData,
+  priority: Int,
+): VariantRequirement {
+  // 1. Determine BuildType Requirements
+  val buildTypeRequirement =
+    if (variantToPropagate?.buildTypeRequirement != null) {
+      variantToPropagate.buildTypeRequirement.copy()
+    } else if (variantToPropagate == null) {
+      val buildType =
+        androidProjectContext.androidDsl.buildTypes.singleOrNull { it.name == variant.buildType }
+          ?: throw IllegalStateException(
+            "Variant Conflict: Unable to resolve BuildType attribute for " +
+              "variant \"${variant.name}\" for project: ${targetProjectId.gradleProjectPath}."
+          )
       val fallbacks =
-        if (modelVersions[ModelFeature.HAS_MATCHING_FALLBACKS]) it.matchingFallbacks
-        else legacyAndroidGradlePluginProperties?.productFlavorsMatchingFallbacks[it.name] ?: emptyList()
+        if (androidProjectContext.modelVersions[ModelFeature.HAS_MATCHING_FALLBACKS]) buildType.matchingFallbacks
+        else androidProjectContext.legacyAndroidGradlePluginProperties?.buildTypesMatchingFallbacks[buildType.name] ?: emptyList()
+      VariantBuildTypeAndFallbacks(buildType.name, variant.name, fallbacks, priority)
+    } else null
 
-      it.dimension!! to Pair(it.name, fallbacks)
-    }
+  // 2. Determine Flavor Requirements. If we have a required variant from other consumer, then we prioritise it over local attributes.
+  val flavorRequirements =
+    if (variantToPropagate != null && variantToPropagate.flavorRequirements.isNotEmpty()) {
+      variantToPropagate.flavorRequirements.mapValues { it.value.copy() }
+    } else if (variantToPropagate == null) {
+      androidProjectContext.androidDsl.productFlavors
+        .filter { variant.productFlavors.contains(it.name) }
+        .associate { flavor ->
+          val fallbacks =
+            if (androidProjectContext.modelVersions[ModelFeature.HAS_MATCHING_FALLBACKS]) flavor.matchingFallbacks
+            else androidProjectContext.legacyAndroidGradlePluginProperties?.productFlavorsMatchingFallbacks[flavor.name] ?: emptyList()
+          flavor.dimension!! to ProductFlavorsAndFallbacks(flavor.name, variant.name, fallbacks, priority)
+        }
+    } else emptyMap()
+
+  // 3. Determine Strategies.
+  val strategies =
+    if (variantToPropagate != null && variantToPropagate.missingDimensionStrategies.isNotEmpty()) {
+      variantToPropagate.missingDimensionStrategies.mapValues { it.value.copy() }
+    } else if (variantToPropagate == null) {
+      getMissingDimensionStrategyForCurrentProject(
+        androidProjectContext.androidDsl,
+        variant,
+        androidProjectContext.modelVersions,
+        androidProjectContext.legacyAndroidGradlePluginProperties,
+        priority,
+      )
+    } else emptyMap()
+
+  return VariantRequirement(variant, buildTypeRequirement, flavorRequirements, strategies, priority)
 }
 
-private fun getDefaultVariant(basicAndroidProject: BasicAndroidProject, androidDsl: AndroidDsl) =
-  basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
-
+/**
+ * Seeds and propagates variant requirements to downstream dependencies.
+ *
+ * This function ensures 'Intent Atomicity' by allowing high-priority paths (Switch Target) to overwrite existing variant expectations and
+ * implements 'Transitive Tunneling' to bridge silent intermediate modules.
+ */
 private fun setUpExpectedVariantForDependantProjects(
-  variantToSync: String, // If there is an expected variant then we use that, if not then we set using the variantToSync
-  outgoingProjectDependencies: List<String>,
-  projectsAndRequestedVariants: MutableMap<String, String>,
+  gradleProject: BasicGradleProject,
+  androidProjectContext: AndroidProjectData,
+  variantToSync: BasicVariant,
+  variantToPropagate: VariantRequirement?,
+  variantResolutionContext: VariantResolutionContext,
+  currentProjectPriority: Int,
 ) {
-  outgoingProjectDependencies.forEach {
-    // populate that map with the requested variant with its fallbacks IF THEY EXIST
-    val requestedVariantsForDependency = projectsAndRequestedVariants[it]
-    // there is nothing yet (variants / fallbacks) that we expect from this dependency module.
-    if (requestedVariantsForDependency == null) projectsAndRequestedVariants[it] = variantToSync
+  val currentProjectBuildInfo = ProjectBuildInfo(gradleProject.path, androidProjectContext.rootBuildDir.path)
+
+  // Calculate the requirement to propagate once for all outgoing dependencies.
+  val currentRequirement =
+    getVariantRequirementAttributesInformation(
+      currentProjectBuildInfo,
+      variantToSync,
+      variantToPropagate,
+      androidProjectContext,
+      currentProjectPriority,
+    )
+
+  // Now we set the expectations for projects dependencies.
+  androidProjectContext.declaredDependencies.allOutgoingProjectDependencies.forEach { dependencyPath ->
+    val dependencyId = ProjectBuildInfo(dependencyPath, androidProjectContext.rootBuildDir.path)
+    // Higher priority consumer overrides existing variant expectation.
+    val existingVariantRequirement = variantResolutionContext.projectVariantRequirements[dependencyId]
+    if (existingVariantRequirement == null || currentProjectPriority < existingVariantRequirement.priority) {
+      variantResolutionContext.projectVariantRequirements[dependencyId] = currentRequirement
+    }
   }
 }
 
-data class BuildTypeAndFallbacks(val buildType: String, val matchingFallbacks: MutableSet<String>)
+/** Aggregates Missing Dimension Strategies from the defaultConfig and the current variant's ProductFlavors. */
+private fun getMissingDimensionStrategyForCurrentProject(
+  androidDsl: AndroidDsl,
+  variantToSync: BasicVariant,
+  modelVersions: ModelVersions,
+  legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
+  priority: Int,
+): Map<String, MissingDimensionStrategies> {
+  val missingDimensionStrategies = mutableMapOf<String, MissingDimensionStrategies>()
+  if (modelVersions[ModelFeature.HAS_MISSING_DIMENSION_STRATEGY]) {
+    androidDsl.defaultConfig.missingDimensionStrategy.forEach { (dimension, fallbacks) ->
+      missingDimensionStrategies[dimension] = MissingDimensionStrategies(fallbacks, priority = priority)
+    }
+  }
+
+  // Then go through strategies from the productFlavors
+  androidDsl.productFlavors
+    .filter { variantToSync.productFlavors.contains(it.name) }
+    .forEach { flavor ->
+      // Get the missingDimensionStrategy.
+      val flavorStrategies =
+        if (modelVersions[ModelFeature.HAS_MISSING_DIMENSION_STRATEGY]) flavor.missingDimensionStrategy
+        else legacyAndroidGradlePluginProperties?.missingDimensionStrategies[flavor.name] ?: emptyMap()
+
+      flavorStrategies.forEach { (dimension, fallbacks) ->
+        // If there are already matching strategies for this dimension defined by the defaultConfig, or if there is no strategy defined yet,
+        // create one.
+        if (missingDimensionStrategies[dimension]?.overridden != true) {
+          missingDimensionStrategies[dimension] = MissingDimensionStrategies(fallbacks, true, priority)
+        }
+      }
+    }
+  return missingDimensionStrategies.toImmutableMap()
+}
+
+data class VariantBuildTypeAndFallbacks(val buildType: String, val variant: String, val matchingFallbacks: List<String>, val priority: Int)
 
 data class ProductFlavorsAndFallbacks(
   val productFlavor: String,
-  val matchingFallbacks:
-    MutableSet<String>, // This is in reality a LinkedHashSet, so orders of insertion will be respected (for priority of fallbacks).
+  val variant: String,
+  val matchingFallbacks: List<String>,
+  val priority: Int,
 )
+
+data class ProjectBuildInfo(val gradleProjectPath: String, val rootBuildPath: String)
+
+data class MissingDimensionStrategies(
+  var requestedFlavors: List<String>,
+  var overridden: Boolean = false,
+  var priority: Int = Int.MAX_VALUE,
+)
+
+data class VariantAndPriority(val variant: BasicVariant, val priority: Int)

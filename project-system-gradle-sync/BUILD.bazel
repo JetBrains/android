@@ -39,6 +39,7 @@ jvm_library(
         "//plugins/kotlin/gradle/gradle-tooling/impl",
         "//plugins/gradle/tooling-extension-impl:toolingExtension-impl",
         "//libraries/jspecify",
+        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     ],
 )
 
@@ -70,6 +71,7 @@ jvm_library(
         "//plugins/kotlin/gradle/gradle-tooling/impl:impl_test_lib",
         "//plugins/gradle/tooling-extension-impl:toolingExtension-impl_test_lib",
         "//libraries/jspecify:jspecify_test_lib",
+        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.sync` end

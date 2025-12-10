@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.GradleProjectSystemIntegrationTest
 import com.android.tools.idea.gradle.project.sync.HighlightProjectTestDef
@@ -109,7 +110,12 @@ abstract class SyncedProjectTest(selfTest: Boolean = false, agpVersion: AgpVersi
 
   @Test fun testBasicCmakeApp() = testProject(TestProject.BASIC_CMAKE_APP)
 
-  @Test fun testPsdSampleGroovy() = testProject(TestProject.PSD_SAMPLE_GROOVY)
+  @Test
+  fun testPsdSampleGroovy() {
+    // TODO(b/491752957, b/467047467): Skip this test with phased Sync until b/491752957 is solved.
+    if (StudioFlags.PHASED_SYNC_ENABLED.get() == true) return
+    testProject(TestProject.PSD_SAMPLE_GROOVY)
+  }
 
   @Test fun testCompositeBuild() = testProject(TestProject.COMPOSITE_BUILD)
 
@@ -256,7 +262,9 @@ class SyncedProjectTestSelfCheck :
   SyncedProjectTestSelfCheckBase<SyncedProjectTest>(
     syncedProjectTestCase = SyncedProjectTest::class,
     instance = AllTestsForSelfChecks(),
-    allProjects = TestProject.values().toList(),
+    // TODO(b/491752957, b/467047467): Skip this test with phased Sync until b/491752957 is solved.
+    allProjects =
+      TestProject.values().toList().filter { if (StudioFlags.PHASED_SYNC_ENABLED.get() == true) it.name != "PSD_SAMPLE_GROOVY" else true },
   )
 
 private fun selfChecks(): List<SyncedProjectTestDef> {

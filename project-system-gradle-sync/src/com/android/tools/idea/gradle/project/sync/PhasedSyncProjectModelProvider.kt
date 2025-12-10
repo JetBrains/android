@@ -29,6 +29,10 @@ import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.dependencies.DeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.IdeSyncIssue.Companion.SEVERITY_WARNING
+import com.android.tools.idea.gradle.model.IdeSyncIssue.Companion.TYPE_GENERIC
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.android.utils.appendCapitalized
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
@@ -123,7 +127,6 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
                         ?: return@BuildAction null
 
                     val modelCache = modelCacheV2Impl(internedModels, modelVersions, syncTestMode = syncOptions.syncTestMode)
-
                     val ideAndroidProject =
                       modelCache
                         .androidProjectFrom(
@@ -152,6 +155,7 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
                         selectedVariantName,
                         shouldSkipRuntimeClasspathForLibraries(androidProject.flags, gradlePropertiesModel),
                         legacyAndroidGradlePluginProperties,
+                        buildModel.buildIdentifier.rootDir,
                       )
                   }
                   .onFailure { exceptionsPerProject += gradleProject to it }
@@ -175,7 +179,9 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
       modelConsumer.consumeProjectModel(gradleProject, data.ideAndroidProject, IdeAndroidProject::class.java)
     }
 
-    setupProjectsVariantsAndConsume(results, syncOptions, modelConsumer, cachedModels)
+    // Store the list of issues from the variant resolution if any.
+    val variantsResolutionIssues = mutableMapOf<BasicGradleProject, Throwable>()
+    setupProjectsVariantsAndConsume(results, syncOptions, modelConsumer, cachedModels, variantsResolutionIssues)
 
     // Fetch the KAPT models here now that we have the correct selected variant value for all the projects.
     controller
@@ -199,15 +205,31 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
     populateGradleProjectModel(controller, buildModels, modelConsumer, exceptionsPerProject)
     populateIdeaModuleModel(controller, buildModels, modelConsumer)
 
-    exceptionsPerProject
-      .groupBy({ it.first }) { it.second }
-      .filter { (_, exceptions) -> exceptions.isNotEmpty() }
-      .forEach { (gradleProject, exceptions) ->
+    val exceptionsPerProjectMap =
+      exceptionsPerProject.groupBy({ it.first }) { it.second }.filter { (_, exceptions) -> exceptions.isNotEmpty() }
+
+    buildModels.flatMap { buildModel ->
+      buildModel.projects.mapNotNull { gradleProject ->
         // TODO: Explicitly fetch sync issues as well
-        val issuesAndExceptions = IdeAndroidSyncIssuesAndExceptions(syncIssues = emptyList(), exceptions = exceptions)
+        val issuesAndExceptions =
+          IdeAndroidSyncIssuesAndExceptions(
+            syncIssues = variantsResolutionIssues[gradleProject]?.let { listOf(it.toIdeSyncIssue()) } ?: emptyList(),
+            exceptions = exceptionsPerProjectMap[gradleProject] ?: emptyList(),
+          )
         modelConsumer.consumeProjectModel(gradleProject, issuesAndExceptions, IdeAndroidSyncIssuesAndExceptions::class.java)
       }
+    }
   }
+}
+
+private fun Throwable.toIdeSyncIssue(): IdeSyncIssue {
+  return IdeSyncIssueImpl(
+    message = this.localizedMessage,
+    data = this.localizedMessage,
+    multiLineMessage = this.stackTraceAsMultiLineMessage(),
+    severity = SEVERITY_WARNING,
+    type = TYPE_GENERIC,
+  )
 }
 
 private fun populateGradleProjectModel(
@@ -275,6 +297,9 @@ private fun computeVariantNameToBeSynced(
   ?: defaultVariantName.also { LOG.debug("Picked the default variant $it for $moduleId") }
 
 private fun Versions.isAtLeastAgp8() = AgpVersion.parse(agp).isAtLeast(8, 0, 0)
+
+/** Cache the current variant's buildTypes + fallbacks, and flavors + fallbacks. */
+fun BasicGradleProject.moduleId() = Modules.createUniqueModuleId(projectIdentifier.buildIdentifier.rootDir, path)
 
 internal inline fun <reified T> BuildController.fetchModel(gradleProject: BasicGradleProject, selectedVariantName: String?) =
   if (selectedVariantName != null) {

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.builder.model.v2.dsl.BuildType
 import com.android.builder.model.v2.dsl.ProductFlavor
 import com.android.builder.model.v2.ide.BasicVariant
+import com.android.builder.model.v2.ide.ProjectType
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
@@ -287,8 +288,9 @@ class PhasedSyncVariantNameResolutionTest {
     whenever(switchVariantRequest.moduleId).thenReturn(":" + projects[0].moduleId) // App is the switched module using default variant here.
     whenever(switchVariantRequest.variantName).thenReturn("paidDebug")
 
+    // Check that we indeed failed to resolve lib2 because there was no matchingFallback specified for paid by APP.
     val exception = assertFailsWith(Exception::class) { sortProjectsAndGetSelectedVariants(projects) }
-    assertThat(exception).hasMessageThat().contains("Variant resolution conflict: Cannot find a variant for :lib2.")
+    assertThat(exception).hasMessageThat().contains("Variant Conflict: Could not resolve ProductFlavors ambiguity for project: :lib2.")
 
     // Now, select a variant that will propagate back to the dependencies correctly.
     whenever(switchVariantRequest.variantName).thenReturn("freeDebug")
@@ -423,7 +425,7 @@ class PhasedSyncVariantNameResolutionTest {
       ) // Request release variant for lib, which should propagate to lib3 but fail to resolve lib2 because of the productFlavor ambiguity.
 
     val exception = assertFailsWith(Exception::class) { sortProjectsAndGetSelectedVariants(projects) }
-    assertThat(exception).hasMessageThat().contains("Cannot resolve variant release. Cannot resolve ambiguity of productFlavors for :lib2.")
+    assertThat(exception).hasMessageThat().contains("Variant Conflict: Could not resolve ProductFlavors ambiguity for project: :lib2.")
   }
 
   private fun sortProjectsAndGetSelectedVariants(projectsSetups: List<ProjectSetup>): Map<String, String> {
@@ -447,12 +449,17 @@ class PhasedSyncVariantNameResolutionTest {
                 ?: projectSetup.defaultVariant,
             shouldSkipRuntimeClassPathForLibraries = false,
             legacyAndroidGradlePluginProperties = projectParamsMock.legacyAndroidGradlePluginPropertiesImpl,
+            rootBuildDir = File(""),
           )
         projectParamsMock.basicGradleProject to androidProjectData
       }
 
     val cachedModels = ModelProviderCachedData(disableLegacyModelProvidersForSupportedProjects = false)
-    setupProjectsVariantsAndConsume(projectDataList, syncOptions, modelConsumer, cachedModels)
+
+    val variantsResolutionIssues = mutableMapOf<BasicGradleProject, Throwable>()
+    setupProjectsVariantsAndConsume(projectDataList, syncOptions, modelConsumer, cachedModels, variantsResolutionIssues)
+
+    variantsResolutionIssues.values.firstOrNull()?.let { throw it }
 
     return projectDataList.associate { it.first.path to it.second.selectedVariantName }
   }
@@ -462,11 +469,16 @@ class PhasedSyncVariantNameResolutionTest {
     val projectIdentifier = Mockito.mock(ProjectIdentifier::class.java)
     val buildIdentifier = Mockito.mock(BuildIdentifier::class.java)
     val basicAndroidProject = Mockito.mock(BasicAndroidProject::class.java)
+    val androidProject = Mockito.mock(AndroidProject::class.java)
     val androidDsl = Mockito.mock(AndroidDsl::class.java)
     val declaredDependencies = Mockito.mock(DeclaredDependencies::class.java)
-    val modelVersions = ModelVersions(agp = AgpVersion.parse("9.0.0"), modelVersion = ModelVersion(20, 0), minimumModelConsumer = null)
+    val modelVersions = ModelVersions(agp = AgpVersion.parse("9.0.0"), modelVersion = ModelVersion(21, 0), minimumModelConsumer = null)
     val legacyAndroidGradlePluginPropertiesImpl =
       LegacyAndroidGradlePluginPropertiesImpl(emptyMap(), null, null, false, emptyList(), emptyMap(), emptyMap(), emptyMap(), emptyMap())
+
+    val defaultConfig = Mockito.mock(ProductFlavor::class.java)
+    whenever(androidDsl.defaultConfig).thenReturn(defaultConfig)
+    whenever(defaultConfig.missingDimensionStrategy).thenReturn(project.missingDimensionStrategy)
 
     val variants =
       project.variants.map { variantName ->
@@ -495,6 +507,7 @@ class PhasedSyncVariantNameResolutionTest {
         whenever(flavor.name).thenReturn(testProductFlavor.name)
         whenever(flavor.dimension).thenReturn(testProductFlavor.dimension)
         whenever(flavor.matchingFallbacks).thenReturn(testProductFlavor.matchingFallbacks)
+        whenever(flavor.missingDimensionStrategy).thenReturn(testProductFlavor.missingDimensionStrategy)
         flavor
       }
 
@@ -503,6 +516,15 @@ class PhasedSyncVariantNameResolutionTest {
     whenever(projectIdentifier.buildIdentifier).thenReturn(buildIdentifier)
     whenever(buildIdentifier.rootDir).thenReturn(File(""))
     whenever(basicAndroidProject.variants).thenReturn(variants)
+    whenever(basicAndroidProject.projectType)
+      .thenReturn(
+        when (project.projectType) {
+          IdeAndroidProjectType.PROJECT_TYPE_TEST -> ProjectType.TEST
+          IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> ProjectType.DYNAMIC_FEATURE
+          IdeAndroidProjectType.PROJECT_TYPE_APP -> ProjectType.APPLICATION
+          else -> ProjectType.LIBRARY
+        }
+      )
     whenever(androidDsl.buildTypes).thenReturn(buildTypes)
     whenever(androidDsl.productFlavors).thenReturn(productFlavors)
     whenever(androidDsl.flavorDimensions).thenReturn(dimensions)
@@ -511,6 +533,7 @@ class PhasedSyncVariantNameResolutionTest {
     return Parameters(
       gradleProject,
       basicAndroidProject,
+      androidProject,
       androidDsl,
       declaredDependencies,
       legacyAndroidGradlePluginPropertiesImpl,
@@ -526,15 +549,22 @@ class PhasedSyncVariantNameResolutionTest {
     val variants: List<String>,
     val buildTypes: List<TestAndroidBuildType>,
     val productFlavors: List<TestProductFlavor> = emptyList(),
+    val missingDimensionStrategy: Map<String, List<String>> = emptyMap(),
   )
 
   private data class TestAndroidBuildType(val name: String, val matchingFallbacks: List<String> = emptyList())
 
-  private data class TestProductFlavor(val name: String, val dimension: String, val matchingFallbacks: List<String> = emptyList())
+  private data class TestProductFlavor(
+    val name: String,
+    val dimension: String,
+    val matchingFallbacks: List<String> = emptyList(),
+    val missingDimensionStrategy: Map<String, List<String>> = emptyMap(),
+  )
 
   private data class Parameters(
     val basicGradleProject: BasicGradleProject,
     val basicAndroidProject: BasicAndroidProject,
+    val androidProject: AndroidProject,
     val androidDsl: AndroidDsl,
     val declaredDependencies: DeclaredDependencies,
     val legacyAndroidGradlePluginPropertiesImpl: LegacyAndroidGradlePluginPropertiesImpl,
