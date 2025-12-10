@@ -90,7 +90,7 @@ import java.io.File
 
 @RunsInEdt
 class UpgradeAssistantContentManagerTest {
-  val deprecatedAgpVersion = AgpVersion.parse("4.2.0")
+  val deprecatedAgpVersion = AgpVersion.parse("7.0.0")
   val supportedAgpVersion = AgpVersion.parse("7.1.0")
   val latestAgpVersion = AgpVersion.parse("8.12.0")
 
@@ -432,7 +432,7 @@ class UpgradeAssistantContentManagerTest {
     addMinimalBuildGradleToProject(version = deprecatedAgpVersion)
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
-    val model = UpgradeAssistantWindowModel(project, { deprecatedAgpVersion }, AgpVersion.parse("7.1.1"), latestKnownVersion = latestAgpVersion)
+    val model = UpgradeAssistantWindowModel(project, { deprecatedAgpVersion }, AgpVersion.parse("8.1.1"), latestKnownVersion = latestAgpVersion)
     val view = UpgradeAssistantView(model, toolWindow.contentManager)
     val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
     assertThat(detailsPanelContent.text).contains("<b>Update from deprecated Android Gradle Plugin version</b>")
@@ -463,7 +463,7 @@ class UpgradeAssistantContentManagerTest {
     addMinimalBuildGradleToProject(version = deprecatedAgpVersion)
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
-    val model = UpgradeAssistantWindowModel(project, { deprecatedAgpVersion }, AgpVersion.parse("7.2.0-alpha01"), latestKnownVersion = latestAgpVersion)
+    val model = UpgradeAssistantWindowModel(project, { deprecatedAgpVersion }, AgpVersion.parse("8.2.0-alpha01"), latestKnownVersion = latestAgpVersion)
     val view = UpgradeAssistantView(model, toolWindow.contentManager)
     val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
     assertThat(detailsPanelContent.text).contains("<b>Update from deprecated Android Gradle Plugin version</b>")
@@ -760,13 +760,19 @@ class UpgradeAssistantContentManagerTest {
         id 'com.android.application'
       }
 
-      dependencies {
-        compile 'com.example:foo:1.0'
+      android {
+        sourceSets {
+          main {
+            jni {
+              srcDir 'jniSource'
+            }
+          }
+        }
       }
     """.trimIndent())
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
-    val model = UpgradeAssistantWindowModel(project, { deprecatedAgpVersion }, AgpVersion.parse("7.0.0-alpha01"), latestKnownVersion = latestAgpVersion)
+    val model = UpgradeAssistantWindowModel(project, { deprecatedAgpVersion }, AgpVersion.parse("7.4.0"), latestKnownVersion = latestAgpVersion)
     val view = UpgradeAssistantView(model, toolWindow.contentManager)
     val mandatoryCodependentNode = view.tree.getPathForRow(0).lastPathComponent as CheckedTreeNode
     assertThat(mandatoryCodependentNode.userObject).isEqualTo(MANDATORY_CODEPENDENT)
@@ -776,7 +782,7 @@ class UpgradeAssistantContentManagerTest {
     val deprecatedConfigurationsNode = view.tree.getPathForRow(3).lastPathComponent as CheckedTreeNode
     val deprecatedConfigurationsUIPresentation = deprecatedConfigurationsNode.userObject as UpgradeAssistantWindowModel.StepUiPresentation
     assertThat(deprecatedConfigurationsNode.isChecked).isFalse()
-    assertThat(deprecatedConfigurationsUIPresentation.treeText).isEqualTo("Replace deprecated configurations")
+    assertThat(deprecatedConfigurationsUIPresentation.treeText).isEqualTo("Remove jni source directory from sourceSets")
     assertThat(view.okButton.isEnabled).isTrue()
     assertThat(view.previewButton.isEnabled).isTrue()
     assertThat(view.refreshButton.isEnabled).isTrue()
@@ -797,8 +803,14 @@ class UpgradeAssistantContentManagerTest {
         id 'com.android.application'
       }
 
-      dependencies {
-        compile 'com.example:foo:1.0'
+      android {
+        sourceSets {
+          main {
+            jni {
+              srcDir 'jniSource'
+            }
+          }
+        }
       }
     """.trimIndent())
     val contentManager = ContentManagerImpl(project)

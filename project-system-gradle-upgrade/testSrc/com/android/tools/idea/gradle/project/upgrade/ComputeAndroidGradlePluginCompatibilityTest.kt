@@ -40,7 +40,7 @@ class ComputeAndroidGradlePluginCompatibilityTest(private val info: TestInfo) {
     @Parameterized.Parameters
     fun data() = listOf(
       // Special case 1: versions equal
-      TestInfo("4.2.0-alpha01", "4.2.0-alpha01", COMPATIBLE),
+      TestInfo("7.2.0-alpha01", "7.2.0-alpha01", COMPATIBLE),
 
       // Special case 2: current version earlier than minimum supported
       TestInfo("3.1.0", "4.2.0-alpha01", BEFORE_MINIMUM),
