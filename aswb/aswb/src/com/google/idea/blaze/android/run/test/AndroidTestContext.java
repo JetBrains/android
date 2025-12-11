@@ -113,8 +113,7 @@ abstract class AndroidTestContext implements RunConfigurationContext {
       return null;
     }
 
-    if (!RuleTypes.ANDROID_TEST.getKind().equals(target.getKind())
-        && !RuleTypes.ANDROID_INSTRUMENTATION_TEST.getKind().equals(target.getKind())) {
+    if (!RuleTypes.ANDROID_INSTRUMENTATION_TEST.getKind().equals(target.getKind())) {
       return null;
     }
 
@@ -130,8 +129,7 @@ abstract class AndroidTestContext implements RunConfigurationContext {
       return null;
     }
 
-    if (!RuleTypes.ANDROID_TEST.getKind().equals(target.getKind())
-        && !RuleTypes.ANDROID_INSTRUMENTATION_TEST.getKind().equals(target.getKind())) {
+    if (!RuleTypes.ANDROID_INSTRUMENTATION_TEST.getKind().equals(target.getKind())) {
       return null;
     }
 
