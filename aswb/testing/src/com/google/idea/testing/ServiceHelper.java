@@ -119,20 +119,6 @@ public class ServiceHelper {
     }
   }
 
-  public static <T> void registerProjectComponent(
-      Project project, Class<T> key, T implementation, Disposable parentDisposable) {
-    if (project instanceof ComponentManagerImpl) {
-      ServiceContainerUtil.registerComponentInstance(
-          project, key, implementation, parentDisposable);
-    } else if (project instanceof MockProject) {
-      registerComponentInstance(
-          ((MockProject) project).getPicoContainer(), key, implementation, parentDisposable);
-    } else {
-      throw new RuntimeException(
-          "Implementation not supported: " + project.getClass().getSimpleName());
-    }
-  }
-
   private static <T> void registerComponentInstance(
       MutablePicoContainer container, Class<T> key, T implementation, Disposable parentDisposable) {
     Object old = container.getComponentInstance(key);

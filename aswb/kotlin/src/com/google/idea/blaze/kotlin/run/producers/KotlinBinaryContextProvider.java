@@ -57,7 +57,6 @@ class KotlinBinaryContextProvider implements BinaryContextProvider {
       return null;
     }
 
-    // #api213. Switch to EntryPointContainerFinder.find.
     KtDeclarationContainer entryPointContainer =
       KotlinMainFunctionDetectorKt.findMainOwner(KotlinMainFunctionDetector.Companion.getInstance(), location.getPsiElement());
     if (entryPointContainer == null) {
