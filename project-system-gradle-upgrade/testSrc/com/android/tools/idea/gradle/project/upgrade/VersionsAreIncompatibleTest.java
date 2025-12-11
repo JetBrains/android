@@ -36,64 +36,64 @@ public class VersionsAreIncompatibleTest {
   @Parameterized.Parameters(name="{0},{1}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-      {"4.1.0-alpha09", "4.1.0-alpha09", false},
-      {"4.1.0-alpha09", "4.1.0-alpha91", true},
-      {"4.1.0-alpha09", "4.1.0-alpha10", true},
-      {"4.1.0-alpha09", "4.1.0-beta01", true},
-      {"4.1.0-alpha09", "4.1.0", true},
-      {"4.1.0", "4.1.1", false},
-      {"4.1.0", "7.0.0", false},
-      {"4.1.0-beta01", "4.2.0-alpha10", true},
-      {"4.1.0", "4.2.0-alpha10", false},
-      {"4.1.0-alpha01", "4.1.0-dev", false},
-      {"4.1.0-alpha08", "4.1.0-alpha08", false},
-      {"4.1.0-alpha09", "4.1.0-alpha08", true},
-      {"4.2.0", "4.1.0-alpha08", true},
-      {"4.2.0-alpha01", "4.1.0-alpha08", true},
-      {"4.1.0-alpha01", "4.2.0-alpha08", true},
+      {"7.1.0-alpha09", "7.1.0-alpha09", false},
+      {"7.1.0-alpha09", "7.1.0-alpha91", true},
+      {"7.1.0-alpha09", "7.1.0-alpha10", true},
+      {"7.1.0-alpha09", "7.1.0-beta01", true},
+      {"7.1.0-alpha09", "7.1.0", true},
+      {"7.1.0", "7.1.1", false},
+      {"7.1.0", "8.0.0", false},
+      {"7.1.0-beta01", "7.2.0-alpha10", true},
+      {"7.1.0", "7.2.0-alpha10", false},
+      {"7.1.0-alpha01", "7.1.0-dev", false},
+      {"7.1.0-alpha08", "7.1.0-alpha08", false},
+      {"7.1.0-alpha09", "7.1.0-alpha08", true},
+      {"7.2.0", "7.1.0-alpha08", true},
+      {"7.2.0-alpha01", "7.1.0-alpha08", true},
+      {"7.1.0-alpha01", "7.2.0-alpha08", true},
 
       // Treat -rc as effectively stable.  (Upgrades will be recommended, but not forced)
-      {"4.1.1-rc01", "4.3.0-dev", false},
-      {"4.1.1-rc01", "4.3.0-alpha01", false},
-      {"4.2.0-rc02", "4.2.0-rc03", false},
-      {"4.2.0-rc02", "4.2.0", false},
-      {"4.2.0-rc02", "4.3.0", false},
+      {"7.1.1-rc01", "7.3.0-dev", false},
+      {"7.1.1-rc01", "7.3.0-alpha01", false},
+      {"7.2.0-rc02", "7.2.0-rc03", false},
+      {"7.2.0-rc02", "7.2.0", false},
+      {"7.2.0-rc02", "7.3.0", false},
 
-      {"4.2.0-alpha03", "4.2.0-rc01", true},
-      {"4.2.0-beta03", "4.2.0-rc02", true},
-      {"4.2.0-alpha03", "4.3.0", true},
-      {"4.2.0-alpha05", "4.2.0", true},
+      {"7.2.0-alpha03", "7.2.0-rc01", true},
+      {"7.2.0-beta03", "7.2.0-rc02", true},
+      {"7.2.0-alpha03", "7.3.0", true},
+      {"7.2.0-alpha05", "7.2.0", true},
 
-      {"4.2.0-rc01", "4.3.0-alpha01", false},
-      {"4.2.0-rc02", "4.3.0-alpha01", false},
-      {"4.1.1", "4.3.0-alpha01", false},
+      {"7.2.0-rc01", "7.3.0-alpha01", false},
+      {"7.2.0-rc02", "7.3.0-alpha01", false},
+      {"7.1.1", "7.3.0-alpha01", false},
 
       // Force upgrades from -dev to any later stable version.
-      {"4.2.0-dev", "4.2.0", true},
+      {"7.2.0-dev", "7.2.0", true},
       // Declare AGP -dev incompatible with earlier stable versions.
-      {"4.2.0-dev", "4.1.0", true},
+      {"7.2.0-dev", "7.1.0", true},
 
       // Do not force upgrades to -dev of prereleases.
-      {"4.2.0-alpha01", "4.2.0-dev", false},
-      {"4.2.0-beta02", "4.2.0-dev", false},
-      {"4.2.0-rc03", "4.2.0-dev", false},
+      {"7.2.0-alpha01", "7.2.0-dev", false},
+      {"7.2.0-beta02", "7.2.0-dev", false},
+      {"7.2.0-rc03", "7.2.0-dev", false},
 
       // Do not force upgrades to -dev of previous-cycle previews.
-      {"4.2.0-alpha01", "4.3.0-dev", false},
-      {"4.2.0-beta02", "4.3.0-dev", false},
-      {"4.2.0-rc03", "4.3.0-dev", false},
+      {"7.2.0-alpha01", "7.3.0-dev", false},
+      {"7.2.0-beta02", "7.3.0-dev", false},
+      {"7.2.0-rc03", "7.3.0-dev", false},
 
       // Force upgrades from -dev of previous-cycle to previews of current cycle.
-      {"4.2.0-dev", "4.3.0-dev", true},
-      {"4.2.0-dev", "4.3.0-alpha01", true},
-      {"4.2.0-dev", "4.3.0-beta02", true},
-      {"4.2.0-dev", "4.3.0-rc03", true},
+      {"7.2.0-dev", "7.3.0-dev", true},
+      {"7.2.0-dev", "7.3.0-alpha01", true},
+      {"7.2.0-dev", "7.3.0-beta02", true},
+      {"7.2.0-dev", "7.3.0-rc03", true},
 
       // Do not force upgrades from -dev to previews of the same cycle.
-      {"4.2.0-dev", "4.2.0-alpha01", false},
-      {"4.2.0-dev", "4.2.0-beta02", false},
+      {"7.2.0-dev", "7.2.0-alpha01", false},
+      {"7.2.0-dev", "7.2.0-beta02", false},
       // But RCs are treated like releases.
-      {"4.2.0-dev", "4.2.0-rc03", true},
+      {"7.2.0-dev", "7.2.0-rc03", true},
     });
   }
 

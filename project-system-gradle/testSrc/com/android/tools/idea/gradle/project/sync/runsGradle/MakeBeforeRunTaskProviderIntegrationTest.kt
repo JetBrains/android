@@ -22,6 +22,8 @@ import com.android.sdklib.devices.Abi.X86
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.FakeAndroidDevice
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -51,7 +53,6 @@ class MakeBeforeRunTaskProviderIntegrationTest {
       assertThat(ndkFacet?.ndkModuleModel?.ndkModel?.syncedVariantAbis?.map { it.abi }).containsExactly(X86.toString())
 
       fun attemptRunningOn(abi: Abi) {
-        // Note: This is verified to still work in MakeBeforeRunTaskProviderIntegration35Test.
         withSimulatedSyncError(errorMessage) {
           val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
           runConfiguration.executeMakeBeforeRunStepInTest(FakeAndroidDevice.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi)))))
@@ -64,7 +65,7 @@ class MakeBeforeRunTaskProviderIntegrationTest {
   }
 
   @Test
-  fun testModelsAreFetchedForNotSyncedAbi() {
+  fun testModelsAreNotFetchedForNotSyncedAbi() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.DEPENDENT_NATIVE_MODULES)
     preparedProject.open { project ->
       val ndkFacet = NdkFacet.getInstance(project.gradleModule(":app") ?: error(":app module not found"))
@@ -74,7 +75,6 @@ class MakeBeforeRunTaskProviderIntegrationTest {
       assertThat(ndkFacet?.ndkModuleModel?.ndkModel?.syncedVariantAbis?.map { it.abi }).containsExactly(X86.toString())
 
       fun attemptRunningOn(abi: Abi) {
-        // Note: This is verified to still work in MakeBeforeRunTaskProviderIntegration35Test.
         withSimulatedSyncError(errorMessage) {
           val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
           runConfiguration.executeMakeBeforeRunStepInTest(FakeAndroidDevice.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi)))))
@@ -87,6 +87,18 @@ class MakeBeforeRunTaskProviderIntegrationTest {
       assertThat(ndkFacet?.ndkModuleModel?.ndkModel?.syncedVariantAbis?.map { it.abi })
         .containsExactly(X86.toString(), ARMEABI_V7A.toString())
     }
+  }
+
+  @Test
+  fun checkWithSimulatedSyncError() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.DEPENDENT_NATIVE_MODULES)
+    withSimulatedSyncError(errorMessage) {
+      preparedProject.open(updateOptions = { it.copy(verifyOpened = { })}) {
+        val lastSyncResult = project.getProjectSystem().getSyncManager().getLastSyncResult()
+        assertThat(lastSyncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
+      }
+    }
+
   }
 }
 

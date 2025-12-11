@@ -34,7 +34,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
-@OldAgpTest(agpVersions = ["4.0.0"], gradleVersions = ["6.1.1"])
+@OldAgpTest(agpVersions = ["4.2.2"], gradleVersions = ["6.7.1"])
 @RunsInEdt
 class PsModuleDependencyConfigurationsAnalyzerTest {
 
@@ -45,7 +45,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
   fun testObsoleteTestCompileConfigurationInLibrary() {
     // Use a plugin with instant app support
     val preparedProject =
-      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_40)
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_42)
     preparedProject.open { resolvedProject ->
       val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -68,7 +68,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
   fun testObsoleteCompileConfigurationInLibrary() {
     // Use a plugin with instant app support
     val preparedProject =
-      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_40)
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_42)
     preparedProject.open { resolvedProject ->
       val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -89,7 +89,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
   fun testObsoleteTestCompileConfigurationInApp() {
     // Use a plugin with instant app support
     val preparedProject =
-      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_40)
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_42)
     preparedProject.open { resolvedProject ->
       val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -110,7 +110,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
   fun testObsoleteCompileConfigurationInApp() {
     // Use a plugin with instant app support
     val preparedProject =
-      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_40)
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_42)
     preparedProject.open { resolvedProject ->
       val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -140,7 +140,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
   fun testObsoleteCompileConfigurationInTest() {
     // Use a plugin with instant app support
     val preparedProject =
-      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_40)
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_42)
     preparedProject.open { resolvedProject ->
       val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -160,7 +160,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
   @Test
   fun testObsoleteTestCompileConfigurationInDynamicFeature() {
     val preparedProject =
-      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_40)
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_42)
     preparedProject.open { resolvedProject ->
       val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -180,7 +180,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
   @Test
   fun testObsoleteCompileConfigurationInDynamicFeature() {
     val preparedProject =
-      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_40)
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_42)
     preparedProject.open { resolvedProject ->
       val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -201,7 +201,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
   fun testObsoleteTestCompileScopeInJava() {
     // Use a plugin with instant app support
     val preparedProject =
-      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_40)
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_42)
     preparedProject.open { resolvedProject ->
       val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -222,7 +222,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
   fun testObsoleteCompileConfigurationInJava() {
     // Use a plugin with instant app support
     val preparedProject =
-      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_40)
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_42)
     preparedProject.open { resolvedProject ->
       val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 

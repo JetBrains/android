@@ -24,7 +24,6 @@ import static com.intellij.ide.BrowserUtil.browse;
 import static com.intellij.openapi.application.ModalityState.nonModal;
 import static javax.swing.Action.NAME;
 
-import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction;
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction;
 import com.intellij.openapi.application.ActionsKt;
 import com.intellij.openapi.project.DumbService;
@@ -55,19 +54,14 @@ import org.jetbrains.annotations.VisibleForTesting;
 public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
   private JPanel myPanel;
   private JEditorPane myEditorPane;
-  private JPanel myJava8SettingsPanel;
   private JPanel myR8FullModeSettingsPanel;
-  private ComboBox<NoLanguageLevelAction> myNoLanguageLevelActionComboBox;
   private ComboBox<NoPropertyPresentAction> myNoPropertyPresentActionComboBox;
 
   @NotNull private AgpUpgradeRefactoringProcessor myProcessor;
-  @NotNull private Java8DefaultRefactoringProcessor myJava8Processor;
   @NotNull private R8FullModeDefaultRefactoringProcessor myR8FullModeProcessor;
 
   AgpUpgradeRefactoringProcessorDialog(@NotNull AgpUpgradeRefactoringProcessor processor, boolean hasChangedBuildFiles) {
     this(processor,
-         (Java8DefaultRefactoringProcessor)processor.getComponentRefactoringProcessors().stream()
-           .filter((x) -> x instanceof Java8DefaultRefactoringProcessor).findFirst().get(),
          (R8FullModeDefaultRefactoringProcessor)processor.getComponentRefactoringProcessors().stream()
            .filter((x) -> x instanceof R8FullModeDefaultRefactoringProcessor).findFirst().get(),
          hasChangedBuildFiles);
@@ -75,27 +69,24 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
 
   AgpUpgradeRefactoringProcessorDialog(
     @NotNull AgpUpgradeRefactoringProcessor processor,
-    @NotNull Java8DefaultRefactoringProcessor java8Processor,
     @NotNull R8FullModeDefaultRefactoringProcessor r8FullModeProcessor,
     boolean hasChangedBuildFiles
   ) {
-    this(processor, java8Processor, r8FullModeProcessor, hasChangedBuildFiles, false, false);
+    this(processor, r8FullModeProcessor, hasChangedBuildFiles, false, false);
   }
 
   AgpUpgradeRefactoringProcessorDialog(
     @NotNull AgpUpgradeRefactoringProcessor processor,
-    @NotNull Java8DefaultRefactoringProcessor java8Processor,
     @NotNull R8FullModeDefaultRefactoringProcessor r8FullModeProcessor,
     boolean hasChangedBuildFiles,
     boolean preserveComponentProcessorConfigurations
   ) {
-    this(processor, java8Processor, r8FullModeProcessor, hasChangedBuildFiles, preserveComponentProcessorConfigurations, false);
+    this(processor, r8FullModeProcessor, hasChangedBuildFiles, preserveComponentProcessorConfigurations, false);
   }
 
   @VisibleForTesting
   AgpUpgradeRefactoringProcessorDialog(
     @NotNull AgpUpgradeRefactoringProcessor processor,
-    @NotNull Java8DefaultRefactoringProcessor java8Processor,
     @NotNull R8FullModeDefaultRefactoringProcessor r8FullModeProcessor,
     boolean hasChangedBuildFiles,
     boolean preserveComponentProcessorConfigurations,
@@ -104,7 +95,6 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
     super(processor.getProject());
     setupUI();
     myProcessor = processor;
-    myJava8Processor = java8Processor;
     myR8FullModeProcessor = r8FullModeProcessor;
 
     setTitle("Android Gradle Plugin Upgrade Assistant");
@@ -118,14 +108,11 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
       }
     });
 
-    NoLanguageLevelAction initialNoLanguageLevelAction;
     NoPropertyPresentAction initialNoPropertyPresentAction;
     if (preserveComponentProcessorConfigurations) {
-      initialNoLanguageLevelAction = myJava8Processor.getNoLanguageLevelAction();
       initialNoPropertyPresentAction = myR8FullModeProcessor.getNoPropertyPresentAction();
     }
     else {
-      initialNoLanguageLevelAction = NoLanguageLevelAction.ACCEPT_NEW_DEFAULT;
       initialNoPropertyPresentAction = NoPropertyPresentAction.ACCEPT_NEW_DEFAULT;
       for (AgpUpgradeComponentRefactoringProcessor p : myProcessor.getComponentRefactoringProcessors()) {
         AgpUpgradeComponentNecessity necessity = p.necessity();
@@ -142,7 +129,7 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
             nonModal(),
             () -> {
               DialogWrapper dialog = new AgpUpgradeRefactoringProcessorDialog(
-                myProcessor, myJava8Processor, myR8FullModeProcessor, hasChangesInBuildFiles, true, true);
+                myProcessor, myR8FullModeProcessor, hasChangesInBuildFiles, true, true);
               return dialog.showAndGet();
             });
           if (runProcessor) {
@@ -191,21 +178,6 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
     }
     myEditorPane.setText(sb.toString());
 
-    if (myJava8Processor.isEnabled() && !myJava8Processor.isAlwaysNoOpForProject()) {
-      JBLabel label = new JBLabel("Action on no explicit Java language level: ");
-      myJava8SettingsPanel.add(label);
-      myNoLanguageLevelActionComboBox = new ComboBox<>(new NoLanguageLevelAction[]{
-        NoLanguageLevelAction.ACCEPT_NEW_DEFAULT,
-        NoLanguageLevelAction.INSERT_OLD_DEFAULT
-      });
-      myNoLanguageLevelActionComboBox.setSelectedItem(initialNoLanguageLevelAction);
-      myJava8SettingsPanel.add(myNoLanguageLevelActionComboBox);
-      myJava8SettingsPanel.setVisible(true);
-    }
-    else {
-      myJava8SettingsPanel.setVisible(false);
-    }
-
     if (myR8FullModeProcessor.isEnabled() && !myR8FullModeProcessor.isAlwaysNoOpForProject()) {
       JBLabel label = new JBLabel("Action on no android.enableR8.fullMode property: ");
       myR8FullModeSettingsPanel.add(label);
@@ -253,12 +225,6 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
   }
 
   private void doOKActionWithPreviewState() {
-    if (myNoLanguageLevelActionComboBox != null) {
-      NoLanguageLevelAction action = (NoLanguageLevelAction)myNoLanguageLevelActionComboBox.getSelectedItem();
-      if (action != null) {
-        myJava8Processor.setNoLanguageLevelAction(action);
-      }
-    }
     if (myNoPropertyPresentActionComboBox != null) {
       NoPropertyPresentAction action = (NoPropertyPresentAction)myNoPropertyPresentActionComboBox.getSelectedItem();
       if (action != null) {
@@ -285,12 +251,6 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
     myPanel.add(myEditorPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                   GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null,
                                                   new Dimension(150, 50), null, 0, false));
-    myJava8SettingsPanel = new JPanel();
-    myJava8SettingsPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-    myPanel.add(myJava8SettingsPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
-                                                          null, null, 0, false));
     myR8FullModeSettingsPanel = new JPanel();
     myR8FullModeSettingsPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
     myPanel.add(myR8FullModeSettingsPanel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,

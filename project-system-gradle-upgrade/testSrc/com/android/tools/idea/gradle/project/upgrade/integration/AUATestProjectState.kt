@@ -35,8 +35,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.junit4.OldAgpSuite
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.LATEST
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_8_11
-import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_4_0
-import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_4_1
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_4_2
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_7_0
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_7_1
@@ -74,8 +72,6 @@ enum class TestAGPVersion(
   val kotlinVersion: String = "1.3.72",
   val compileSdkVersion: AndroidVersion = AndroidVersion(AndroidApiLevel(34))
 ) {
-  V_4_0("4.0.0", jdkVersion = JavaSdkVersion.JDK_11),
-  V_4_1("4.1.0", jdkVersion = JavaSdkVersion.JDK_11),
   V_4_2("4.2.2", jdkVersion = JavaSdkVersion.JDK_11),
   V_7_0("7.0.0", jdkVersion = JavaSdkVersion.JDK_11),
   V_7_1("7.1.0", jdkVersion = JavaSdkVersion.JDK_11),
@@ -102,8 +98,6 @@ enum class AUATestProjectState(
   val basePath: String,
   val patchPath: String? = null,
 ) {
-  BASIC_4_0(FROM_AGP_40_BASIC, V_4_0, minimalState = true, basePath = "4.0.0"),
-  BASIC_4_1(FROM_AGP_40_BASIC, V_4_1, minimalState = true, basePath = "4.0.0", patchPath = "4.1.0"),
   BASIC_4_2(FROM_AGP_40_BASIC, V_4_2, minimalState = true, basePath = "4.0.0", patchPath = "4.2.0"),
   BASIC_7_0(FROM_AGP_40_BASIC, V_7_0, minimalState = true, basePath = "4.0.0", patchPath = "7.0.0"),
   // No changes from 7.0 apart from versions so reuse the same files.

@@ -276,9 +276,6 @@ class AgpUpgradeRefactoringProcessor(
     GradleVersionRefactoringProcessor(this),
     GradlePluginsRefactoringProcessor(this),
     ProjectJdkRefactoringProcessor(this),
-    // AGP 4.x
-    FabricCrashlyticsRefactoringProcessor(this),
-    Java8DefaultRefactoringProcessor(this),
     // AGP 7.x
     CompileRuntimeConfigurationRefactoringProcessor(this),
     REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(this),
@@ -390,8 +387,6 @@ class AgpUpgradeRefactoringProcessor(
   protected override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
     val filtered = refUsages.get().filter {
       when (it) {
-        is KotlinLanguageLevelUsageInfo, is JavaLanguageLevelUsageInfo ->
-          (it.element as? WrappedPsiElement)?.usageType == Java8DefaultRefactoringProcessor.INSERT_OLD_USAGE_TYPE
         is R8FullModeUsageInfo ->
           (it.element as? WrappedPsiElement)?.usageType == R8FullModeDefaultRefactoringProcessor.INSERT_OLD_USAGE_TYPE
         else -> true

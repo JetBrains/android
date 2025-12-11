@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
-import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement
 import com.intellij.usages.UsageTarget
@@ -27,7 +25,6 @@ import com.intellij.usages.impl.rules.UsageTypeProviderEx
 import org.jetbrains.android.AndroidTestCase
 
 class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
-  // TODO(b/161888480): parameterize across Groovy/KotlinScript
   fun testAgpClasspathDependencyRefactoringProcessor() {
     myFixture.addFileToProject("build.gradle", """
       buildscript {
@@ -56,46 +53,6 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
     assertThat(usages[0].element).isNotNull()
     val usageType = getUsageType(usages[0].element!!)
     assertThat(usageType.toString()).isEqualTo("Update Gradle distribution URL")
-  }
-
-  fun testJava8DefaultRefactoringProcessorInsertOldDefault() {
-    myFixture.addFileToProject("build.gradle", """
-      plugins {
-        id 'com.android.application'
-      }
-      android {
-        compileOptions {
-          sourceCompatibility = JavaVersion.VERSION_1_7
-        }
-      }
-    """.trimIndent())
-    val processor = Java8DefaultRefactoringProcessor(myFixture.project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
-    assertTrue(processor.isEnabled)
-    processor.noLanguageLevelAction = INSERT_OLD_DEFAULT
-    val usages = processor.findUsages()
-    assertThat(usages).hasLength(2)
-    assertThat(usages.mapNotNull { it.element?.let { e -> getUsageType(e).toString() } })
-      .containsExactly("Existing language level directive (leave unchanged)", "Continue using Java 7 (insert language level directives)")
-  }
-
-  fun testJava8DefaultRefactoringProcessorAcceptNewDefault() {
-    myFixture.addFileToProject("build.gradle", """
-      plugins {
-        id 'com.android.application'
-      }
-      android {
-        compileOptions {
-          sourceCompatibility = JavaVersion.VERSION_1_7
-        }
-      }
-    """.trimIndent())
-    val processor = Java8DefaultRefactoringProcessor(myFixture.project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
-    assertTrue(processor.isEnabled)
-    processor.noLanguageLevelAction = ACCEPT_NEW_DEFAULT
-    val usages = processor.findUsages()
-    assertThat(usages).hasLength(2)
-    assertThat(usages.mapNotNull { it.element?.let { e -> getUsageType(e).toString() } })
-      .containsExactly("Existing language level directive (leave unchanged)", "Accept new default (leave unchanged)")
   }
 
   fun testCompileRuntimeConfigurationRefactoringProcessor() {

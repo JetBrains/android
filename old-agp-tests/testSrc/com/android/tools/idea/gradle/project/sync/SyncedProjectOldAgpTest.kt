@@ -69,7 +69,7 @@ class SyncedProjectsAllAgpTest(agpVersion: AgpVersionSoftwareEnvironmentDescript
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun testParameters(): Collection<*> {
-      return applicableAgpVersions().filter { it >= AGP_40 }.reversed().map { arrayOf(it) }
+      return applicableAgpVersions().filter { it >= AGP_42 }.reversed().map { arrayOf(it) }
     }
   }
 }
@@ -80,7 +80,7 @@ class SyncedProjectsAllAgpTest(agpVersion: AgpVersionSoftwareEnvironmentDescript
 class SyncProject_AGP_33Test: SyncedProjectTest(agpVersion = AGP_33)
 class SyncProject_AGP_35Test: SyncedProjectTest(agpVersion = AGP_35)
 class SyncProject_AGP_40Test: SyncedProjectTest(agpVersion = AGP_40)
-class SyncProject_AGP_41Test: SyncedProjectTest(agpVersion =  AGP_41)
+class SyncProject_AGP_41Test: SyncedProjectTest(agpVersion = AGP_41)
 class SyncProject_AGP_42Test: SyncedProjectTest(agpVersion = AGP_42)
 class SyncProject_AGP_70Test: SyncedProjectTest(agpVersion = AGP_70)
 class SyncProject_AGP_71Test: SyncedProjectTest(agpVersion = AGP_71)
