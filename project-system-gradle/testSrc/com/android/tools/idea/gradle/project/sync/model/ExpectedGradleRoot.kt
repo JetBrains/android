@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.model
 
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 
 /**
  * Project expected gradle root representation model
  * @param ideaGradleJdk The jdk.table.xml entry name or macro defined on [ExternalSystemJdkUtil] used to configure the gradle java for sync
- * @param gradleExecutionDaemonJdkPath The jdk path used to configure the gradle daemon and trigger sync [GradleInstallationManager.getGradleJvmPath]
+ * @param gradleExecutionDaemonJdkPath The jdk path used to configure the gradle daemon and trigger sync [AndroidStudioGradleInstallationManager.resolveGradleJvmPath]
  * @param gradleLocalJavaHome The java.home property located on .gradle/config.properties
  */
 data class ExpectedGradleRoot(

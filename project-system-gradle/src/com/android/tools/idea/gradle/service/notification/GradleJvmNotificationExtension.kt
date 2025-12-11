@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification
 
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkValidationManager
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause
 import com.android.tools.idea.sdk.IdeSdks
@@ -25,6 +26,8 @@ import org.jetbrains.plugins.gradle.service.notification.GradleNotificationExten
 import org.jetbrains.plugins.gradle.util.GradleBundle
 import java.io.File
 import java.nio.file.Paths
+import kotlinx.coroutines.async
+import kotlinx.coroutines.future.asCompletableFuture
 
 /**
  * Adds more information to a notification when the selected Gradle JVM is not valid. If the notification message hast this pattern
@@ -61,10 +64,12 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
       val messageBuilder = StringBuilder()
       messageBuilder.appendLine(expectedJvmInvalidPrefix)
       // Add more information on why it is not valid
-      GradleJdkValidationManager.getInstance(project).validateProjectGradleJvmPath(project, externalProjectPath)?.let { exception ->
-        messageBuilder.appendLine(exception.message)
-        notificationData.filePath = exception.jdkPathLocationFile?.absolutePath
-      }
+      project.coroutineScope.async {
+        GradleJdkValidationManager.getInstance(project).validateProjectGradleJvmPath(project, externalProjectPath)?.let { exception ->
+          messageBuilder.appendLine(exception.message)
+          notificationData.filePath = exception.jdkPathLocationFile?.absolutePath
+        }
+      }.asCompletableFuture().join()
 
       // Suggest use embedded
       var registeredListeners = notificationData.registeredListenerIds

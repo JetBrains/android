@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.assertions
 
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause
 import com.android.tools.idea.gradle.project.sync.model.ExpectedGradleRoot
@@ -28,9 +29,9 @@ import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
 import org.jetbrains.plugins.gradle.util.GradleBundle
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import java.io.File
 import kotlin.reflect.KClass
+import kotlinx.coroutines.runBlocking
 
 class AssertInMemoryConfig(
   private val syncedProject: Project,
@@ -39,13 +40,13 @@ class AssertInMemoryConfig(
 
   private val projectFile by lazy { File(syncedProject.basePath.orEmpty()) }
 
-  fun assertGradleJdk(expectedJdkName: String, expectedJdkPath: String? = null, gradleRootName: String = "") {
+  fun assertGradleJdk(expectedJdkName: String, expectedJdkPath: String? = null, gradleRootName: String = "") = runBlocking {
     val currentGradleRootJdkName = ProjectJdkUtils.getGradleRootJdkNameInMemory(syncedProject, gradleRootName)
     expect.that("$gradleRootName:$currentGradleRootJdkName").isEqualTo("$gradleRootName:$expectedJdkName")
 
     expectedJdkPath?.let {
       val linkedProjectPath = File(syncedProject.basePath.orEmpty()).resolve(gradleRootName).absolutePath
-      val resolvedGradleJvmPath = GradleInstallationManager.getInstance().getGradleJvmPath(syncedProject, linkedProjectPath)
+      val resolvedGradleJvmPath = AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(syncedProject, linkedProjectPath)
       expect.that(resolvedGradleJvmPath).isEqualTo(it)
     }
   }

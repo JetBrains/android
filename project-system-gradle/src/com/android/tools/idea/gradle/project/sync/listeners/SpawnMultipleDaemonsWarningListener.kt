@@ -18,51 +18,51 @@ package com.android.tools.idea.gradle.project.sync.listeners
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.extensions.isProjectUsingDaemonJvmCriteria
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
+import com.android.tools.idea.gradle.project.sync.jdk.ProjectJdkUtils
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.impl.NotificationsConfigurationImpl
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.progress.EmptyProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 
-class SpawnMultipleDaemonsWarningListener : GradleSyncListenerWithRoot {
+class SpawnMultipleDaemonsWarningListener(private val coroutineScope: CoroutineScope) : GradleSyncListenerWithRoot {
 
   override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
     if (project.isDisposed) return
     if (!IdeInfo.getInstance().isAndroidStudio) return
     if (!NotificationsConfigurationImpl.getSettings(JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId).isShouldLog) return
 
-    ProgressManager.getInstance().runProcess({
-      if (project.isDisposed) return@runProcess
+    coroutineScope.launch {
+      if (ProjectJdkUtils.isUsingJavaHomeJdk(project)) return@launch
 
-      // This check involves IO/Path resolution
-      if (IdeSdks.getInstance().isUsingJavaHomeJdk(project)) return@runProcess
-
-      val gradleVersion = GradleSyncStateHolder.getInstance(project).lastSyncedGradleVersion ?: return@runProcess
-      if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(rootProjectPath, gradleVersion)) return@runProcess
+      val gradleVersion = GradleSyncStateHolder.getInstance(project).lastSyncedGradleVersion ?: return@launch
+      if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(rootProjectPath, gradleVersion)) return@launch
 
       // Pre-calculate strings here to avoid IO on the UI thread later
-      val gradleJvmPath = GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined"
+      val gradleJvmPath = AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined"
       val javaHome = IdeSdks.getInstance().jdkFromJavaHome ?: "Undefined"
 
       // Dispatch back to EDT to show the notification
-      ApplicationManager.getApplication().invokeLater {
+      withContext(Dispatchers.EDT) {
         showMultipleGradleDaemonWarning(project, rootProjectPath, gradleJvmPath, javaHome)
       }
-    }, EmptyProgressIndicator())
+    }
   }
 
   @UiThread

@@ -22,8 +22,8 @@ import com.android.sdklib.internal.project.ProjectProperties
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.actions.SubmitBugReportAction
-import com.android.tools.idea.actions.SubmitBugReportAction.safeCall
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet.Companion.getInstance
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.gradle.util.LocalProperties
@@ -45,8 +45,6 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.EnvironmentUtil
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -55,6 +53,7 @@ import java.nio.file.Files
 import java.util.Properties
 import java.util.function.Consumer
 import java.util.regex.Pattern
+import org.jetbrains.android.facet.AndroidFacet
 
 private val LOG = Logger.getInstance(GradleAndNdkFeedbackDescriptionProvider::class.java)
 
@@ -81,15 +80,19 @@ class GradleAndNdkFeedbackDescriptionProvider : FeedbackDescriptionProvider {
       return gradleVersion?.version ?: "(gradle version information not found)"
     }
 
-    fun getJdkDetails(): String {
+    suspend fun getJdkDetails(): String {
       return if (project == null) getDefaultJdkDetails() else getProjectJdkDetails(project)
     }
 
     fun getNdkDetails(): String = getNdkDetails(project, sdkHandler, progress)
     fun getCMakeDetails(): String = getCMakeDetails(project, sdkHandler, progress)
 
-    fun StringBuilder.item(prefix: String, getter: () -> String?) {
-      safeCall(getter)?.let { appendLine("$prefix: $it") }
+    suspend fun StringBuilder.item(prefix: String, getter: suspend () -> String?) {
+      runCatching {
+        getter.invoke()?.let { appendLine("$prefix: $it") }
+      }.onFailure { e ->
+        LOG.info("Unable to prepopulate additional version information - proceeding with sending feedback anyway. ", e)
+      }
     }
 
     val description = buildString {
@@ -279,9 +282,9 @@ private fun getDefaultJdkDetails(): String {
   return "(default) " + getJdkVersion(jdk.homePath)
 }
 
-private fun getProjectJdkDetails(project: Project): String {
+private suspend fun getProjectJdkDetails(project: Project): String {
   val basePath = project.basePath ?: return "(cannot find project base path)"
-  return getJdkVersion(GradleInstallationManager.getInstance().getGradleJvmPath(project, basePath))
+  return getJdkVersion(AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, basePath))
 }
 
 private fun getJdkVersion(jdkPath: String?): String {
