@@ -15,20 +15,15 @@
  */
 package com.google.idea.blaze.kotlin.run.debug;
 
-import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.common.Label;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
-import java.util.Optional;
 
 /** Interface for finding the kotlinx coroutines library based on the project Build system. */
 public interface KotlinxCoroutinesLibFinder {
 
   static final ExtensionPointName<KotlinxCoroutinesLibFinder> EP_NAME =
       ExtensionPointName.create("com.google.idea.blaze.kotlinxCoroutinesLibFinder");
-
-  Optional<ArtifactLocation> getKotlinxCoroutinesLib(TargetIdeInfo depInfo);
 
   boolean isApplicable(Project project);
 

@@ -58,10 +58,6 @@ public interface BlazeSyncPlugin {
     return ImmutableSet.of();
   }
 
-  @Nullable
-  default SourceFolderProvider getSourceFolderProvider(BlazeProjectData projectData) {
-    return null;
-  }
   /** Validates the project. */
   default boolean validate(
       Project project, BlazeContext context, BlazeProjectData blazeProjectData) {

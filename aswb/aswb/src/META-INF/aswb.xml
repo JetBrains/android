@@ -94,13 +94,11 @@
     <QuerySyncPlugin implementation="com.google.idea.blaze.android.qsync.BlazeAndroidQuerySyncPlugin"/>
     <SyncListener implementation="com.google.idea.blaze.android.manifest.ParsedManifestService$ClearManifestParser"/>
     <SyncListener implementation="com.google.idea.blaze.android.projectsystem.BlazeProjectSystemSyncManager$SyncStatusPublisher"/>
-    <OutputsProvider implementation="com.google.idea.blaze.android.sync.AndroidOutputsProvider"/>
     <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryRunConfigurationHandlerProvider"/>
     <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.android.run.test.BlazeAndroidTestRunConfigurationHandlerProvider"/>
     <BlazeTestEventsHandler implementation="com.google.idea.blaze.android.run.test.smrunner.BlazeAndroidTestEventsHandler"/>
     <ProjectViewDefaultValueProvider implementation="com.google.idea.blaze.android.projectview.AndroidSdkPlatformSection$AndroidSdkPlatformProjectViewDefaultValueProvider"/>
     <AndroidTestLaunchMethodsProvider implementation="com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProviderImpl"/>
-    <SyncDataExtractor implementation="com.google.idea.blaze.android.sync.model.BlazeAndroidSyncData$Extractor"/>
     <TestContextProvider
         implementation="com.google.idea.blaze.android.run.test.AndroidTestContextProvider"
         order="first, before JavaTestContextProvider"/>

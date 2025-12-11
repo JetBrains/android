@@ -30,15 +30,6 @@ public final class TestIdeInfo implements ProtoWrapper<TestInfo> {
     this.testSize = testSize;
   }
 
-  static TestIdeInfo fromProto(TestInfo proto) {
-
-    TestSize testSize = TestSize.fromString(proto.getSize());
-    if (testSize == null) {
-      testSize = TestSize.DEFAULT_RULE_TEST_SIZE;
-    }
-    return new TestIdeInfo(testSize);
-  }
-
   @Override
   public TestInfo toProto() {
     return IntellijIdeInfo.TestInfo.newBuilder().setSize(testSize.toProto()).build();
