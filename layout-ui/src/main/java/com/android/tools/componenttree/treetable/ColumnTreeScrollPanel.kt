@@ -16,10 +16,9 @@
 package com.android.tools.componenttree.treetable
 
 import com.android.tools.adtui.RangeScrollBarUI
-import com.android.tools.adtui.TabularLayout
 import com.intellij.ui.components.JBScrollBar
 import com.intellij.ui.treeStructure.treetable.TreeTableTree
-import java.awt.Dimension
+import java.awt.BorderLayout
 import javax.swing.BoundedRangeModel
 import javax.swing.JPanel
 import javax.swing.JTable
@@ -28,13 +27,13 @@ import javax.swing.JTable
  * JPanel responsible for creating and managing the horizontal scroll bar for the component tree.
  */
 class ColumnTreeScrollPanel(private val tree: TreeTableTree, private val table: TreeTableImpl) :
-  JPanel(TabularLayout("Fit-,*")) {
+  JPanel(BorderLayout()) {
 
   private val scrollbar = ColumnTreeScrollBar(table)
 
   init {
-    add(scrollbar, TabularLayout.Constraint(0, 0))
-    add(JPanel(), TabularLayout.Constraint(0, 1))
+    add(scrollbar, BorderLayout.SOUTH)
+    add(JPanel(), BorderLayout.CENTER)
   }
 
   fun getModel(): BoundedRangeModel = scrollbar.model
@@ -75,19 +74,6 @@ class ColumnTreeScrollPanel(private val tree: TreeTableTree, private val table: 
 
     override fun updateUI() {
       setUI(RangeScrollBarUI())
-    }
-
-    override fun getMinimumSize(): Dimension {
-      val dim = super.getMinimumSize()
-      return Dimension(getTreeColumnWidth(this@ColumnTreeScrollBar.table), dim.height)
-    }
-
-    private fun getTreeColumnWidth(table: JTable): Int {
-      return if (table.getColumnModel().columnCount == 0) {
-        0
-      } else {
-        table.getColumnModel().getColumn(0).getWidth()
-      }
     }
   }
 }
