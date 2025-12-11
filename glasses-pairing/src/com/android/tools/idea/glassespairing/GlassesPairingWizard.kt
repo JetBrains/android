@@ -552,6 +552,7 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
           .first { it in AiGlassesPairing.TERMINAL_STATES }
       }
     }
+    .distinctUntilChanged()
     .onEach {
       when (it) {
         PairingState.NotStarted,
