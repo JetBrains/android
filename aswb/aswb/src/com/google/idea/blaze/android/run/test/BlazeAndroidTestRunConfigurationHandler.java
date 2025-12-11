@@ -27,7 +27,6 @@ import com.google.idea.blaze.android.run.LaunchMetrics;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunConfigurationRunner;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunContext;
-import com.google.idea.blaze.android.run.runner.FullApkBuildStep;
 import com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProvider.AndroidTestLaunchMethod;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
@@ -42,7 +41,6 @@ import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.blaze.base.sync.projectstructure.ModuleFinder;
-import com.google.idea.blaze.java.AndroidBlazeRules;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.JavaExecutionUtil;
@@ -135,25 +133,18 @@ public class BlazeAndroidTestRunConfigurationHandler
       ImmutableList<String> exeFlags,
       String launchId,
       Label label)
-      throws ExecutionException {
-    if (configuration.getTargetKind()
-        == AndroidBlazeRules.RuleTypes.ANDROID_INSTRUMENTATION_TEST.getKind()) {
-      boolean useMobileInstall =
-          AndroidTestLaunchMethod.MOBILE_INSTALL.equals(configState.getLaunchMethod());
-      return ApkBuildStepProvider.getInstance(Blaze.getBuildSystemName(project))
-          .getAitBuildStep(
-              project,
-              useMobileInstall,
-              /* nativeDebuggingEnabled= */ true,
-              label,
-              blazeFlags,
-              exeFlags,
-              launchId);
-    } else {
-      // TODO(b/248317444): This path is only invoked for the deprecated {@code android_test}
-      // targets, and should eventually be removed.
-      return new FullApkBuildStep(project, label, blazeFlags, /* nativeDebuggingEnabled= */ true);
-    }
+    throws ExecutionException {
+    boolean useMobileInstall =
+      AndroidTestLaunchMethod.MOBILE_INSTALL.equals(configState.getLaunchMethod());
+    return ApkBuildStepProvider.getInstance(Blaze.getBuildSystemName(project))
+      .getAitBuildStep(
+        project,
+        useMobileInstall,
+        /* nativeDebuggingEnabled= */ true,
+        label,
+        blazeFlags,
+        exeFlags,
+        launchId);
   }
 
   @Override
