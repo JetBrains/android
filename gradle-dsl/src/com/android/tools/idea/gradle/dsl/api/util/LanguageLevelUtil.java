@@ -56,6 +56,9 @@ public final class LanguageLevelUtil {
       if (sampleGradleString.startsWith("JavaVersion.VERSION_")) {
         return new RawText("JavaVersion.VERSION_" + underscoreVersion, "JavaVersion.VERSION_" + underscoreVersion);
       }
+      else if (sampleGradleString.startsWith("JvmTarget.JVM_")) {
+        return new RawText("JvmTarget.JVM_" + underscoreVersion, "JvmTarget.JVM_" + underscoreVersion);
+      }
       else if (sampleGradleString.startsWith("VERSION_")) {
         return new RawText("VERSION_" + underscoreVersion, "VERSION_" + underscoreVersion);
       }
