@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.RichVersion
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.utils.usLocaleCapitalize
 import com.google.common.base.Charsets
@@ -39,13 +40,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.util.lang.JavaVersion
-import org.jetbrains.android.uipreview.EditorUtil.openEditor
-import org.jetbrains.android.uipreview.EditorUtil.selectEditor
-import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import java.io.File
 import java.io.IOException
 import java.security.InvalidParameterException
+import org.jetbrains.android.uipreview.EditorUtil.openEditor
+import org.jetbrains.android.uipreview.EditorUtil.selectEditor
+import org.jetbrains.annotations.VisibleForTesting
 
 /** Utility methods pertaining to templates for projects, modules, and activities. */
 object TemplateUtils {
@@ -228,11 +228,11 @@ object TemplateUtils {
    * @return the Java version
    */
   @JvmStatic
-  fun getJavaVersion(project: Project, defaultVersion: String = "JavaVersion.VERSION_17"): String {
+  suspend fun getJavaVersion(project: Project, defaultVersion: String = "JavaVersion.VERSION_17"): String {
     // The user can set Gradle JDK in Settings > Build, Execution, Deployment > Build Tools > Gradle
     val jvmPath =
       project.basePath?.let {
-        GradleInstallationManager.getInstance().getGradleJvmPath(project, it)
+        AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, it)
       }
     val javaVersion = jvmPath?.let { SdkVersionUtil.getJdkVersionInfo(it)?.version }
 

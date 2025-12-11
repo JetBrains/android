@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.jdk
 
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.extensions.isEqualTo
+import com.android.utils.FileUtils
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
@@ -24,6 +26,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.ex.JavaSdkUtil
 import com.intellij.openapi.roots.ProjectRootManager
+import java.io.File
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
@@ -84,5 +87,12 @@ object ProjectJdkUtils {
         ProjectRootManager.getInstance(project).projectSdk = it
       }
     }
+  }
+
+  suspend fun isUsingJavaHomeJdk(project: Project): Boolean {
+    val basePath = project.basePath ?: return false
+    val projectJvmPath = AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, basePath) ?: return false
+    val javaHome = IdeSdks.getInstance().getJdkFromJavaHome() ?: return false
+    return FileUtils.isSameFile(File(projectJvmPath), File(javaHome))
   }
 }

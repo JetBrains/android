@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util
 
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.sdk.IdeSdks
@@ -34,7 +35,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -134,7 +134,9 @@ class GradleUtilAndroidGradleTest {
       val basePath = project.basePath
       assertThat(basePath).isNotNull()
       assertThat(basePath).isNotEmpty()
-      val managerPath = GradleInstallationManager.getInstance().getGradleJvmPath(project, basePath!!)
+      val managerPath = runBlocking {
+        AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, basePath!!)
+      }
       assertThat(managerPath).isNotNull()
       val settings = GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project)
       val settingsPath = settings.javaHome

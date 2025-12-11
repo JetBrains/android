@@ -21,6 +21,7 @@ import com.android.ide.gradle.model.dependencies.Coordinates
 import com.android.ide.gradle.model.dependencies.DeclaredDependencies
 import com.android.repository.Revision
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.IdeAndroidProject
@@ -149,6 +150,7 @@ import java.util.IdentityHashMap
 import java.util.function.Function
 import java.util.zip.ZipException
 import kotlin.io.path.Path
+import kotlinx.coroutines.launch
 
 private val LOG = Logger.getInstance(AndroidGradleProjectResolver::class.java)
 
@@ -309,12 +311,14 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     // Remove platform ProjectSdkDataService data node overwritten by our ProjectJdkUpdateService
     ExternalSystemApiUtil.find(projectDataNode, ProjectSdkData.KEY)?.clear(true)
 
-    if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(linkedExternalProjectPath, gradleVersion)) {
-      gradleProject.javaLanguageSettings.jdk.javaHome.absolutePath
-    } else {
-      GradleJdkConfigurationUtils.getMaxVersionJdkPathFromAllGradleRoots(project)
-    } ?.let { gradleJdkPath ->
-      projectDataNode.createChild(AndroidProjectKeys.PROJECT_JDK_UPDATE, ProjectJdkUpdateData(gradleJdkPath))
+    project.coroutineScope.launch {
+      if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(linkedExternalProjectPath, gradleVersion)) {
+        gradleProject.javaLanguageSettings.jdk.javaHome.absolutePath
+      } else {
+        GradleJdkConfigurationUtils.getMaxVersionJdkPathFromAllGradleRoots(project)
+      } ?.let { gradleJdkPath ->
+        projectDataNode.createChild(AndroidProjectKeys.PROJECT_JDK_UPDATE, ProjectJdkUpdateData(gradleJdkPath))
+      }
     }
   }
 
