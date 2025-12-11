@@ -1,7 +1,6 @@
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "generate_old_agp_tests_from_list")
 load(
     "//tools/adt/idea/old-agp-tests:agp_versions.bzl",
-    "AGP_4_1",
     "AGP_4_2",
     "AGP_7_0",
     "AGP_7_1",
@@ -53,24 +52,6 @@ generate_old_agp_tests_from_list(
     name = "ApkAnalyzerGradleTokenIntegrationTest",
     iml_module = ":intellij.android.apkanalyzer.gradle.integration-tests",
     tests_list = [
-        dict(
-            agp_version = AGP_4_1,
-            data = [
-                "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
-                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication",
-            ] + AGP_DATA[AGP_4_1] + GRADLE_DISTRIBUTIONS[GRADLE_6_7_1],
-            gradle_version = GRADLE_6_7_1,
-            ignore_other_tests = True,
-            maven_deps = [
-                "//tools/base/build-system/previous-versions:4.1.0",
-                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication:deps",
-            ],
-            tags = [
-                "block-network",
-                "noci:studio-win",
-            ],
-            test_class = "com.android.tools.idea.apk.viewer.gradle.ApkAnalyzerGradleIntegrationTestSuite",
-        ),
         dict(
             agp_version = AGP_4_2,
             data = [

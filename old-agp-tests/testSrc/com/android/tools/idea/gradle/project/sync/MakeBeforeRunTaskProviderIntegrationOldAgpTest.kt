@@ -26,7 +26,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 
-@OldAgpTest(agpVersions = ["4.0.0"], gradleVersions = ["6.1.1"])
+@OldAgpTest(agpVersions = ["4.2.2"], gradleVersions = ["6.7.1"])
 class MakeBeforeRunTaskProviderIntegrationOldAgpTest {
 
   @get:Rule
@@ -36,10 +36,10 @@ class MakeBeforeRunTaskProviderIntegrationOldAgpTest {
   fun testWatchFaceProject() {
     val preparedProject = projectRule.prepareTestProject(
       testProject = AndroidCoreTestProject.WEAR_WATCHFACE,
-      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_40,
+      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_42,
     )
     preparedProject.open { project ->
-      val result = project.buildAndWait {buildInvoker ->
+      val result = project.buildAndWait { buildInvoker ->
         buildInvoker.assemble()
       }
       assertThat(result.isBuildSuccessful).isTrue()

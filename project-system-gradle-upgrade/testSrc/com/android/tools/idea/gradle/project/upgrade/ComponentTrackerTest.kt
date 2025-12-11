@@ -21,7 +21,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.UPGRAD
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_PROCESSOR_EVENT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentEvent
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
-import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Java8DefaultProcessorSettings
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.R8FullModeDefaultProcessorSettings
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.AGP_CLASSPATH_DEPENDENCY
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.AIDL_DEFAULT
@@ -31,14 +30,11 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.BUILD_CONFIG_DEFAULT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.COMPILE_RUNTIME_CONFIGURATION
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.DEPENDENCY_CONSTRAINTS_DEFAULT
-import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.FABRIC_CRASHLYTICS
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_PLUGINS
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_VERSION
-import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JAVA8_DEFAULT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_PACKAGING_OPTIONS
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TEST_COVERAGE_ENABLED
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_ANDROID_RESOURCES
-import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_EMULATOR_SNAPSHOTS
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_INSTALLATION
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_LINT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_TEST_COVERAGE
@@ -132,57 +128,6 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
     )
   }
 
-    @Test
-  fun testSimpleApplicationNoLanguageLevelUsageTracker() {
-    writeToBuildFile(TestFileName("Java8Default/SimpleApplicationNoLanguageLevel"))
-    val processor = Java8DefaultRefactoringProcessor(project, AgpVersion.parse("4.1.2"), AgpVersion.parse("4.2.0"))
-    processor.run()
-
-    checkComponentEvents(
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.1.2").setNewAgpVersion("4.2.0")
-        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(JAVA8_DEFAULT).setIsEnabled(true)
-                            .setJava8DefaultSettings(Java8DefaultProcessorSettings.newBuilder()
-                                                       .setNoLanguageLevelAction(
-                                                         Java8DefaultProcessorSettings.NoLanguageLevelAction.INSERT_OLD_DEFAULT)))
-        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(2).setFiles(2))
-        .build(),
-
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.1.2").setNewAgpVersion("4.2.0")
-        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(JAVA8_DEFAULT).setIsEnabled(true)
-                            .setJava8DefaultSettings(Java8DefaultProcessorSettings.newBuilder()
-                                                       .setNoLanguageLevelAction(
-                                                         Java8DefaultProcessorSettings.NoLanguageLevelAction.INSERT_OLD_DEFAULT)))
-        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(2).setFiles(2))
-        .build()
-    )
-  }
-
-  @Test
-  fun testSimpleApplicationNoLanguageLevelAcceptNewUsageTracker() {
-    writeToBuildFile(TestFileName("Java8Default/SimpleApplicationNoLanguageLevel"))
-    val processor = Java8DefaultRefactoringProcessor(project, AgpVersion.parse("4.1.2"), AgpVersion.parse("4.2.0"))
-    processor.noLanguageLevelAction = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
-    processor.run()
-
-    checkComponentEvents(
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.1.2").setNewAgpVersion("4.2.0")
-        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(JAVA8_DEFAULT).setIsEnabled(true)
-                            .setJava8DefaultSettings(Java8DefaultProcessorSettings.newBuilder()
-                                                       .setNoLanguageLevelAction(
-                                                         Java8DefaultProcessorSettings.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT)))
-        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(2).setFiles(2))
-        .build(),
-
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.1.2").setNewAgpVersion("4.2.0")
-        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(JAVA8_DEFAULT).setIsEnabled(true)
-                            .setJava8DefaultSettings(Java8DefaultProcessorSettings.newBuilder()
-                                                       .setNoLanguageLevelAction(
-                                                         Java8DefaultProcessorSettings.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT)))
-        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(2).setFiles(2))
-        .build()
-    )
-  }
-
   @Test
   fun testSimpleApplicationUsageTracker() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleApplication"))
@@ -197,24 +142,6 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
       UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("3.5.0").setNewAgpVersion("7.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(COMPILE_RUNTIME_CONFIGURATION).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(6).setFiles(2))
-        .build(),
-    )
-  }
-
-  @Test
-  fun testClasspathDependenciesUsageTracker() {
-    writeToBuildFile(TestFileName("FabricCrashlytics/FabricClasspathDependencies"))
-    val processor = FabricCrashlyticsRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
-    processor.run()
-
-    checkComponentEvents(
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.0.0").setNewAgpVersion("4.2.0")
-        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(FABRIC_CRASHLYTICS).setIsEnabled(true))
-        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(5).setFiles(2))
-        .build(),
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.0.0").setNewAgpVersion("4.2.0")
-        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(FABRIC_CRASHLYTICS).setIsEnabled(true))
-        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(5).setFiles(2))
         .build(),
     )
   }
