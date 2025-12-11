@@ -150,6 +150,14 @@ public final class StudioFlags {
       "adb.host.logs.diagnostic.report.enable",
       "Enable Adb host logs and display in Diagnostic report",
       "Enable Adb host logs and display in Diagnostic report");
+
+  public static final Flag<Boolean> STUDIO_TRACE_LIBRARY_ENABLED =
+    new BooleanFlag(
+      STUDIO_DIAGNOSTIC,
+      "studio.tracing.enable",
+      "Enable tracing for Android Studio",
+      "Enables the ability to run perfetto traces in Studio");
+
   //endregion
 
   //region New Project Wizard
