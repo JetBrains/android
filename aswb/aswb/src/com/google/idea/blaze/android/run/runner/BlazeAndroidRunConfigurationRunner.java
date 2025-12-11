@@ -43,7 +43,6 @@ import com.android.tools.idea.run.util.LaunchUtils;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryRunConfigurationState;
-import com.google.idea.blaze.android.run.binary.mobileinstall.MobileInstallBuildStep;
 import com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService;
 import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator;
 import com.google.idea.blaze.base.command.BlazeInvocationContext.ContextType;
@@ -216,9 +215,7 @@ public final class BlazeAndroidRunConfigurationRunner
     DeviceFutures deviceFutures = deployTarget.launchDevices(env.getProject());
 
     ApplicationDeployer deployer =
-        runContext.getBuildStep() instanceof MobileInstallBuildStep
-            ? new MobileInstallApplicationDeployer()
-            : new ApplicationDeployerImpl(env.getProject(), RunStats.from(env));
+            new ApplicationDeployerImpl(env.getProject(), RunStats.from(env));
 
     if (launchOptions instanceof TileLaunchOptions) {
       configurationExecutor =

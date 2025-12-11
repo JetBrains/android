@@ -40,7 +40,6 @@ public class BlazeAndroidTestRunConfigurationHandlerProvider
   public boolean canHandleKind(TargetState state, @Nullable Kind kind) {
     return kind != null
         && kind.isOneOf(
-            AndroidBlazeRules.RuleTypes.ANDROID_TEST.getKind(),
             AndroidBlazeRules.RuleTypes.ANDROID_INSTRUMENTATION_TEST.getKind());
   }
 

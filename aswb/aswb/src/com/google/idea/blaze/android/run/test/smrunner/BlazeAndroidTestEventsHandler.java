@@ -45,7 +45,6 @@ public class BlazeAndroidTestEventsHandler implements BlazeTestEventsHandler {
   public boolean handlesKind(@Nullable Kind kind) {
     return kind != null
         && kind.isOneOf(
-            AndroidBlazeRules.RuleTypes.ANDROID_TEST.getKind(),
             AndroidBlazeRules.RuleTypes.ANDROID_INSTRUMENTATION_TEST.getKind());
   }
 
