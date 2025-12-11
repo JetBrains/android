@@ -2503,6 +2503,11 @@ public final class StudioFlags {
                     "Enable using device tools",
                     "Enables a set of tools allowing the agent to list and activate devices.");
 
+  public static final Flag<Boolean> STUDIOBOT_JPS_TOOLS =
+    new BooleanFlag(STUDIOBOT, "include.jps.tools",
+                    "Enable using JPS tools",
+                    "Enables a set of tools allowing the agent to use JPS build and test tools.");
+
   public static final Flag<Boolean> STUDIOBOT_LOGCAT_TOOL =
     new BooleanFlag(STUDIOBOT, "include.logcat.tool",
                     "Enable the Logcat tool",
@@ -2631,6 +2636,11 @@ public final class StudioFlags {
                     "Enable Gemini State Inspection Agent for the Layout Inspector.",
                     "Enables the agent that helps with explaining state read exception traces.");
 
+  public static final Flag<Boolean> STUDIOBOT_SHELL_TOOL =
+    new BooleanFlag(STUDIOBOT, "shell.tool",
+                    "Enable the shell tool in agent mode",
+                    "Enables the shell tool which can run arbitrary commands on the computer");
+
   public static final Flag<Boolean> STUDIOBOT_WRITE_CRITIC =
     new BooleanFlag(STUDIOBOT, "write.critic",
                     "Enable agent critic",
@@ -2640,6 +2650,11 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "permission.model",
                     "Enable new permission model",
                     "Enables the permission model which offers granular permission grants and denials");
+
+  public static final Flag<Boolean> STUDIOBOT_CONTEXT_COMPRESSION =
+    new BooleanFlag(STUDIOBOT, "context.compression",
+                    "Enable context compression",
+                    "Enables agent context compression where when full, the oldest half is summarized to shorten the total context length");
 
   // endregion STUDIO_BOT
 
