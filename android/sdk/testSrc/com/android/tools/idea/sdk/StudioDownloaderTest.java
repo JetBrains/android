@@ -28,6 +28,7 @@ import com.android.repository.api.Downloader;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeSettingsController;
+import com.android.testutils.AssumeUtil;
 import com.android.testutils.file.DelegatingFileSystemProvider;
 import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.flags.StudioFlags;
@@ -202,6 +203,9 @@ public class StudioDownloaderTest {
 
   @Test
   public void testResumableDownloads() throws Exception {
+    // b/465816846: flaky on Windows
+    AssumeUtil.assumeNotWindows();
+
     FileSystem fs = InMemoryFileSystems.createInMemoryFileSystem();
     // Create some sizeable custom content to download.
     int howMany = (1 << 23);
