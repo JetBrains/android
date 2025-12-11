@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.jdk
 
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.sdk.Jdks
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
 import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -46,9 +46,9 @@ object GradleJdkConfigurationUtils {
    * @param project One of the projects currently open in the IDE.
    * @return Jdk path if was possible to obtain
    */
-  fun getMaxVersionJdkPathFromAllGradleRoots(project: Project): String? {
+  suspend fun getMaxVersionJdkPathFromAllGradleRoots(project: Project): String? {
     val maxVersionJdkPaths = GradleSettings.getInstance(project).linkedProjectsSettings
-                               .mapNotNull { GradleInstallationManager.getInstance().getGradleJvmPath(project, it.externalProjectPath) }
+                               .mapNotNull { AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, it.externalProjectPath) }
                                .groupBy { Jdks.getInstance().findVersion(Path(it)) }
                                .mapValues { it.value.toSet() }
                                .toSortedMap(compareByDescending { it?.ordinal })

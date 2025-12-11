@@ -26,13 +26,11 @@ import com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
-import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.jps.model.serialization.JDomSerializationUtil
 import org.jetbrains.jps.model.serialization.JpsComponentLoader
 import org.jetbrains.plugins.gradle.properties.GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME
 import org.jetbrains.plugins.gradle.properties.GRADLE_FOLDER
 import org.jetbrains.plugins.gradle.properties.GRADLE_JAVA_HOME_PROPERTY
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants.GRADLE_PROPERTIES_FILE_NAME
 import java.io.File
@@ -111,10 +109,6 @@ object ProjectJdkUtils {
     val rootElement = JpsComponentLoader.tryLoadRootElement(projectConfigFile)
     val projectRootManagerComponent = JDomSerializationUtil.findComponent(rootElement, "ProjectRootManager")
     return projectRootManagerComponent?.getAttributeValue("project-jdk-name")
-  }
-
-  fun getGradleDaemonExecutionJdkPath(project: Project, gradleRootPath: @SystemIndependent String): String? {
-    return GradleInstallationManager.getInstance().getGradleJvmPath(project, gradleRootPath)
   }
 
   fun setUserHomeGradlePropertiesJdk(jdkPath: String, disposable: Disposable) {

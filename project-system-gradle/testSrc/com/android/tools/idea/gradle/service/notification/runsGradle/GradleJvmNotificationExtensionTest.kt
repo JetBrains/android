@@ -40,6 +40,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import kotlin.test.assertEquals
+import kotlinx.coroutines.runBlocking
 
 class GradleJvmNotificationExtensionTest {
 
@@ -166,7 +167,7 @@ class GradleJvmNotificationExtensionTest {
     assertThat(notificationData.registeredListenerIds).contains(OpenProjectJdkLocationListener.ID)
   }
 
-  private fun mockGradleJdkException(message: String) {
+  private fun mockGradleJdkException(message: String) = runBlocking {
     val gradleJdkException = mock<GradleJdkException>()
     whenever(gradleJdkException.message).thenReturn(message)
     val gradleJdkValidationManager = mock<GradleJdkValidationManager>()

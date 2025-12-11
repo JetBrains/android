@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.listeners.runsGradle
 
 import com.android.tools.idea.gradle.fixtures.createDaemonJvmPropertiesFile
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
@@ -37,7 +38,6 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -65,7 +65,7 @@ class SpawnMultipleDaemonsWarningListenerTest {
   }
 
   @Test
-  fun `test Given undefined jdkFromJavaHomePath When sync finished Then MultipleGradleDaemons warning is displayed`() = runBlocking {
+  fun `test Given undefined jdkFromJavaHomePath When sync finished Then MultipleGradleDaemons warning is displayed`() {
     val jdkFromJavaHomePath: String? = null
     val mockIdeSdks = Mockito.spy(IdeSdks.getInstance())
     whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
@@ -114,7 +114,7 @@ class SpawnMultipleDaemonsWarningListenerTest {
   }
 
   @Test
-  fun `test Given different jdkFromJavaHomePath and jdkPath When sync finished Then MultipleGradleDaemons warning is displayed`() = runBlocking {
+  fun `test Given different jdkFromJavaHomePath and jdkPath When sync finished Then MultipleGradleDaemons warning is displayed`() {
     val jdkFromJavaHomePath = "/test/jdk/path"
     val mockIdeSdks = Mockito.spy(IdeSdks.getInstance())
     whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
@@ -135,7 +135,9 @@ class SpawnMultipleDaemonsWarningListenerTest {
   @Test
   fun `test Given same jdkFromJavaHomePath and jdkPath When sync finished Then MultipleGradleDaemons warning isn't displayed`() {
     val defaultProject = ProjectManager.getInstance().defaultProject
-    val jdkFromJavaHomePath = GradleInstallationManager.getInstance().getGradleJvmPath(defaultProject, defaultProject.basePath.orEmpty())
+    val jdkFromJavaHomePath = runBlocking {
+      AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(defaultProject, defaultProject.basePath.orEmpty())
+    }
     val mockIdeSdks = Mockito.spy(IdeSdks.getInstance())
     whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
     ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, projectRule.testRootDisposable)
@@ -153,7 +155,9 @@ class SpawnMultipleDaemonsWarningListenerTest {
     project: Project,
     jdkFromJavaHomePath: String? = null
   ) = StringBuilder().apply {
-    val gradleJvmPath = GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath.orEmpty())
+    val gradleJvmPath = runBlocking {
+      AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, project.basePath.orEmpty())
+    }
     append(
       AndroidBundle.message("project.sync.warning.multiple.gradle.daemons.message",
                             project.name,
