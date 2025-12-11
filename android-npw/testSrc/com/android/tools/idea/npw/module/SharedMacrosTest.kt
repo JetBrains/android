@@ -8,7 +8,7 @@
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,olgAgpVersion
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -79,5 +79,22 @@ class SharedMacrosTest {
       "compileSdkPreview \"SomeFutureVersion\"",
       compileSdk(AndroidVersion(99, "SomeFutureVersion"), agpVersion),
     )
+  }
+
+  @Test
+  fun toAndroidFieldVersionWithMinorVersion() {
+    val agpVersion = AgpVersion(8, 13, 0)
+
+    assertEquals(
+      "compileSdk {\n  version = release(34) { minorApiLevel = 1 }\n}",
+      compileSdk(AndroidVersion(34, 1), agpVersion),
+    )
+    assertEquals(
+      "compileSdk {\n  version = release(36) { minorApiLevel = 3 }\n}",
+      compileSdk(AndroidVersion(36, 3), agpVersion),
+    )
+    val oldAgpVersion = AgpVersion(8, 12, 0)
+    assertEquals("compileSdk 34", compileSdk(AndroidVersion(34, 1), oldAgpVersion))
+    assertEquals("compileSdk 36", compileSdk(AndroidVersion(36, 3), oldAgpVersion))
   }
 }
