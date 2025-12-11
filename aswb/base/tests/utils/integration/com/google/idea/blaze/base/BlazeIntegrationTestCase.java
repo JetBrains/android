@@ -276,11 +276,6 @@ public abstract class BlazeIntegrationTestCase {
         getProject(), key, implementation, getTestRootDisposable());
   }
 
-  public <T> void registerProjectComponent(Class<T> key, T implementation) {
-    ServiceHelper.registerProjectComponent(
-        getProject(), key, implementation, getTestRootDisposable());
-  }
-
   protected <T> void registerExtension(ExtensionPointName<T> name, T instance) {
     ServiceHelper.registerExtension(name, instance, getTestRootDisposable());
   }
