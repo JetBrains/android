@@ -220,6 +220,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
     val retainedObjectsRegex = """Found (\d+) objects retained""".toRegex()
     return retainedObjectsRegex.find(analysis.message)?.let { matchResult ->
       matchResult.groupValues.getOrNull(1)?.toIntOrNull()?.let { count ->
+        logger.info("LeakCanary: $count objects retained.")
         setObjectRetainedCount(count)
       }
       true
@@ -231,6 +232,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
     val analysisProgressRegex = """Analysis in progress, (\d+)% done""".toRegex()
     return analysisProgressRegex.find(analysis.message)?.let { matchResult ->
       matchResult.groupValues.getOrNull(1)?.toIntOrNull()?.let { progress ->
+        logger.info("LeakCanary: Analysis is $progress% done.")
         setAnalysisProgress(progress)
       }
       true
