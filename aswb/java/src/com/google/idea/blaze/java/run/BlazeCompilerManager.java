@@ -16,18 +16,9 @@
 package com.google.idea.blaze.java.run;
 
 import com.google.common.collect.ImmutableList;
-import com.google.idea.blaze.base.command.buildresult.OutputArtifactResolver;
-import com.google.idea.blaze.base.ideinfo.JavaIdeInfo;
-import com.google.idea.blaze.base.ideinfo.LibraryArtifact;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.model.BlazeProjectData;
-import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.sync.SyncCache;
-import com.google.idea.blaze.base.sync.projectview.ProjectViewTargetImportFilter;
-import com.google.idea.blaze.base.sync.workspace.ArtifactLocationDecoder;
-import com.google.idea.blaze.java.sync.importer.JavaSourceFilter;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.openapi.compiler.ClassObject;
@@ -39,7 +30,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * {@link CompilerManager} with jars for source targets added to the classpath.

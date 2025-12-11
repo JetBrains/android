@@ -33,8 +33,6 @@
     <JavaClasspathAspectStrategy implementation="com.google.idea.blaze.java.run.hotswap.JavaClasspathAspectStrategy$BazelStrategy"/>
     <TestComparisonFailureParser implementation="com.google.idea.blaze.java.run.smrunner.JunitTestComparisonFailureParser"/>
     <SyncStatusContributor implementation="com.google.idea.blaze.java.syncstatus.JavaSyncStatusContributor"/>
-    <SyncDataExtractor implementation="com.google.idea.blaze.java.sync.model.BlazeJavaSyncData$Extractor"/>
-    <SyncDataExtractor implementation="com.google.idea.blaze.java.sync.jdeps.JdepsState$Extractor"/>
     <LoggedSettingsProvider implementation="com.google.idea.blaze.java.settings.BlazeJavaUserSettings$SettingsLogger"/>
     <JavaLikeLanguage implementation="com.google.idea.blaze.java.sync.source.JavaLikeLanguage$Java"/>
     <JavaLikeLanguage implementation="com.google.idea.blaze.java.sync.source.AndroidJavaLikeLanguage"/>
@@ -44,7 +42,6 @@
     <TestContextProvider
         implementation="com.google.idea.blaze.java.run.producers.MultipleJavaClassesTestContextProvider"
         order="after JavaTestContextProvider"/>
-    <OutputsProvider implementation="com.google.idea.blaze.java.sync.JavaOutputsProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -98,8 +95,6 @@
                     interface="com.google.idea.blaze.java.run.producers.JUnitParameterizedClassHeuristic"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.JavaClasspathAspectStrategy"
                     interface="com.google.idea.blaze.java.run.hotswap.JavaClasspathAspectStrategy"/>
-    <extensionPoint qualifiedName="com.google.idea.blaze.AttachSourcesFilter"
-                    interface="com.google.idea.blaze.java.sync.model.AttachSourcesFilter"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.HotSwapCommandBuilder"
                     interface="com.google.idea.blaze.java.run.hotswap.HotSwapCommandBuilder"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.blazeJavaDebuggingSetupHandler"

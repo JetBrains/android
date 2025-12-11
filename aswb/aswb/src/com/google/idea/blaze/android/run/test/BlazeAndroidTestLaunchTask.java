@@ -26,8 +26,6 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.ideinfo.AndroidInstrumentationInfo;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
-import com.google.idea.blaze.base.ideinfo.TargetKey;
-import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
@@ -35,7 +33,6 @@ import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFetcher;
 import com.google.idea.blaze.base.scope.Scope;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.SaveUtil;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.java.AndroidBlazeRules.RuleTypes;
@@ -117,8 +114,6 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
                         return false;
                       }
 
-                      BlazeProjectData projectData =
-                          BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
                       TargetIdeInfo targetInfo = null;
                           // query sync: projectData.getTargetMap().get(TargetKey.forPlainTarget(target));
                       if (targetInfo == null
