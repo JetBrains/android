@@ -40,6 +40,7 @@ public class LanguageLevelUtilTest {
     assertEquals(LanguageLevel.JDK_1_6, parseFromGradleString("'1.6'"));
     assertEquals(LanguageLevel.JDK_1_6, parseFromGradleString("VERSION_1_6"));
     assertEquals(LanguageLevel.JDK_1_6, parseFromGradleString("JavaVersion.VERSION_1_6"));
+    assertEquals(LanguageLevel.JDK_1_6, parseFromGradleString("JvmTarget.JVM_1_6"));
   }
 
   @Test
@@ -53,5 +54,6 @@ public class LanguageLevelUtilTest {
     assertEquals("'1.6'", convertToGradleString(LanguageLevel.JDK_1_6, "'1.3'"));
     assertEquals(new RawText("VERSION_1_6", "VERSION_1_6"), convertToGradleString(LanguageLevel.JDK_1_6, "VERSION_1_3"));
     assertEquals(new RawText("JavaVersion.VERSION_1_6", "JavaVersion.VERSION_1_6"), convertToGradleString(LanguageLevel.JDK_1_6, "JavaVersion.VERSION_1_3"));
+    assertEquals(new RawText("JvmTarget.JVM_1_6", "JvmTarget.JVM_1_6"), convertToGradleString(LanguageLevel.JDK_1_6, "JvmTarget.JVM_1_3"));
   }
 }
