@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.ideinfo;
 
-import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.devtools.intellij.model.ProjectData;
@@ -28,14 +27,6 @@ public final class TargetMap implements ProtoWrapper<ProjectData.TargetMap> {
 
   public TargetMap(ImmutableMap<TargetKey, TargetIdeInfo> targetMap) {
     this.targetMap = targetMap;
-  }
-
-  public static TargetMap fromProto(ProjectData.TargetMap proto) {
-    return new TargetMap(
-        proto.getTargetsList().stream()
-            .map(TargetIdeInfo::fromProto)
-            .filter(Objects::nonNull)
-            .collect(ImmutableMap.toImmutableMap(TargetIdeInfo::getKey, Functions.identity())));
   }
 
   @Override
