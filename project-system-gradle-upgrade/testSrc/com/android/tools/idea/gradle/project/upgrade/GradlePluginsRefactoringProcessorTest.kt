@@ -223,15 +223,6 @@ class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
-  fun testAndroidJUnit5VersionTo400() {
-    writeToBuildFile(TestFileName("GradlePlugins/AndroidJUnit5Version"))
-    val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("3.6.0"), AgpVersion.parse("4.0.0"))
-    processor.run()
-
-    verifyFileContents(buildFile, TestFileName("GradlePlugins/AndroidJUnit5VersionTo400Expected"))
-  }
-
-  @Test
   fun testAndroidJUnit5VersionTo410() {
     writeToBuildFile(TestFileName("GradlePlugins/AndroidJUnit5Version"))
     val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("3.6.0"), AgpVersion.parse("4.1.0"))
@@ -382,15 +373,6 @@ class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("GradlePlugins/FirebasePerfVersionInDslExpected90"))
-  }
-
-  @Test
-  fun testHiltVersionTo41() {
-    writeToBuildFile(TestFileName("GradlePlugins/HiltVersion"))
-    val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("3.4.0"), AgpVersion.parse("4.1.0"))
-    processor.run()
-
-    verifyFileContents(buildFile, TestFileName("GradlePlugins/HiltVersion"))
   }
 
   @Test

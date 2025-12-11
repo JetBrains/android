@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
-import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
 import com.google.common.truth.Expect
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -88,26 +87,9 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
       GradleVersionUsageInfo(wrappedPsiElement, GradleVersion.version("6.1.1"), "https://services.gradle.org/distributions/gradle-6.1.1-bin.zip"),
       WellKnownGradlePluginDependencyUsageInfo(wrappedPsiElement, artifactDependencyModel, gradlePropertyModel, "1.3.72"),
       WellKnownGradlePluginDslUsageInfo(wrappedPsiElement, pluginModel, gradlePropertyModel, "1.3.72"),
-      JavaLanguageLevelUsageInfo(wrappedPsiElement, languageLevelPropertyModel, false, INSERT_OLD_DEFAULT, "sourceCompatibility"),
-      JavaLanguageLevelUsageInfo(wrappedPsiElement, languageLevelPropertyModel, false, INSERT_OLD_DEFAULT, "targetCompatibility"),
-      KotlinLanguageLevelUsageInfo(wrappedPsiElement, languageLevelPropertyModel, false, INSERT_OLD_DEFAULT, "jvmTarget"),
       ObsoleteConfigurationDependencyUsageInfo(wrappedPsiElement, dependencyModel, "api"),
       ObsoleteConfigurationDependencyUsageInfo(wrappedPsiElement, dependencyModel, "implementation"),
       ObsoleteConfigurationConfigurationUsageInfo(wrappedPsiElement, configurationModel, "paidReleaseImplementation"),
-      RemoveFabricMavenRepositoryUsageInfo(wrappedPsiElement, repositoriesModel, repositoryModel),
-      AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, repositoriesModel),
-      RemoveFabricClasspathDependencyUsageInfo(wrappedPsiElement, dependenciesModel, dependencyModel),
-      AddGoogleServicesClasspathDependencyUsageInfo(wrappedPsiElement, dependenciesModel),
-      AddFirebaseCrashlyticsClasspathDependencyUsageInfo(wrappedPsiElement, dependenciesModel),
-      ReplaceFabricPluginUsageInfo(wrappedPsiElement, pluginModel),
-      ApplyGoogleServicesPluginUsageInfo(wrappedPsiElement, gradleBuildModel),
-      RemoveFabricCrashlyticsSdkUsageInfo(wrappedPsiElement, dependenciesModel, dependencyModel),
-      AddFirebaseCrashlyticsSdkUsageInfo(wrappedPsiElement, dependenciesModel),
-      AddGoogleAnalyticsSdkUsageInfo(wrappedPsiElement, dependenciesModel),
-      RemoveFabricNdkUsageInfo(wrappedPsiElement, dependenciesModel, dependencyModel),
-      AddFirebaseCrashlyticsNdkUsageInfo(wrappedPsiElement, dependenciesModel),
-      RemoveCrashlyticsEnableNdkUsageInfo(wrappedPsiElement, gradleBuildModel),
-      AddBuildTypeFirebaseCrashlyticsUsageInfo(wrappedPsiElement, buildTypeModel),
       VIEW_BINDING_ENABLED_INFO
         .MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, gradleBuildModel, { resolvedPropertyModel }),
       DATA_BINDING_ENABLED_INFO

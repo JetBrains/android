@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentRefactoringProcessor
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessor
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginsRefactoringProcessor
-import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor
 import com.android.tools.idea.gradle.project.upgrade.LOG_CATEGORY
 import com.android.tools.idea.gradle.project.upgrade.ProjectJdkRefactoringProcessor
 import com.android.tools.idea.gradle.project.upgrade.ProjectJdkRefactoringProcessor.NewJdkInfo
@@ -618,26 +617,6 @@ class UpgradeAssistantWindowModel(
 
   // TODO(mlazeba/xof): temporary here, need to be defined in processor itself probably
   private fun toStepPresentation(processor: AgpUpgradeComponentRefactoringProcessor) = when (processor) {
-    is Java8DefaultRefactoringProcessor -> object : DefaultStepPresentation(processor), StepUiWithComboSelectorPresentation {
-      override val label: String = "Action on no explicit Java language level: "
-      override val pageHeader: String
-        get() = processor.commandName
-      override val treeText: String
-        get() = processor.noLanguageLevelAction.toString()
-      override val elements: List<Java8DefaultRefactoringProcessor.NoLanguageLevelAction>
-        get() = listOf(
-          Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT,
-          Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
-        )
-      override var selectedValue: Any
-        get() = processor.noLanguageLevelAction
-        set(value) {
-          if (value is Java8DefaultRefactoringProcessor.NoLanguageLevelAction) processor.noLanguageLevelAction = value
-        }
-      init {
-        selectedValue = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
-      }
-    }
     is R8FullModeDefaultRefactoringProcessor -> object : DefaultStepPresentation(processor), StepUiWithComboSelectorPresentation {
       override val label: String = "Action on no android.enableR8.fullMode property: "
       override val pageHeader: String
