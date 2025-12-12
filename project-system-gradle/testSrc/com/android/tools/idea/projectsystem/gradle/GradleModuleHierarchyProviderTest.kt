@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -43,14 +44,15 @@ data class GradleModuleHierarchyProviderTest(
         name = "testCompositeStructure",
         TestProject.COMPOSITE_BUILD,
       ) { project ->
+        val isPhasedSyncEnabled = StudioFlags.PHASED_SYNC_ENABLED.get()
 
         val expected = mutableListOf(
           project.findModule("project.app"),
           project.findModule("project.lib"),
-          project.findModule("TestCompositeLib1"),
-          project.findModule("composite2"),
+          project.findModule(if (isPhasedSyncEnabled) "includedLib1" else  "TestCompositeLib1"),
+          project.findModule(if (isPhasedSyncEnabled) "TestCompositeLib2" else  "composite2"),
           project.findModule("TestCompositeLib3"),
-          project.findModule("composite4"),
+          project.findModule(if (isPhasedSyncEnabled) "TestCompositeLib4" else  "composite4"),
         )
 
         val projectGradleVersion = GradleSettings.getInstance(project)
@@ -61,7 +63,10 @@ data class GradleModuleHierarchyProviderTest(
           // With Gradle 7.x (and below), the names of the included builds had to be unique (even for nested ones), and the identity
           // path is just the build name. In Gradle 8.0+ names don't need to be unique so Gradle identity path includes full parent chain.
           // This means that resulting hierarchy is different.
-          listOf(project.findModule("compositeNest"), project.findModule("com.test.compositeNest3.compositeNest"))
+          listOf(
+              project.findModule(if (isPhasedSyncEnabled) "TestCompositeLibNested_1" else "compositeNest"),
+              project.findModule(if (isPhasedSyncEnabled) "TestCompositeLibNested_3" else "com.test.compositeNest3.compositeNest"),
+            )
         } else {
           emptyList()
         }
