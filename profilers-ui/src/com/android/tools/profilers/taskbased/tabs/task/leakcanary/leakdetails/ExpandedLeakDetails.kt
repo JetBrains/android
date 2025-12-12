@@ -77,11 +77,13 @@ fun LeakNodeDetails(node: Node, modifier: Modifier = Modifier) {
     ) {
       DetailedHeaderText(LEAKCANARY_WHY)
       Spacer(modifier = Modifier.height(5.dp))
-      Text(
-        text = if (node.leakingStatusReason.isNullOrBlank()) LEAKCANARY_NOT_LEAKING else node.leakingStatusReason,
-        fontWeight = FontWeight.Thin,
-        modifier = Modifier.padding(bottom = 8.dp)
-      )
+      if(node.leakingStatusReason.isNotBlank()) {
+        Text(
+          text = node.leakingStatusReason,
+          fontWeight = FontWeight.Thin,
+          modifier = Modifier.padding(bottom = 8.dp)
+        )
+      }
       node.referencingField?.let {
         DetailText("$LEAKCANARY_REFERENCING_FIELD$it")
       }
