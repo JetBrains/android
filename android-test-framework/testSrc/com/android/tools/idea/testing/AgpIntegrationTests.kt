@@ -29,7 +29,7 @@ const val GRADLE_SNAPSHOT_VERSION = "9.4.0-20251215022449+0000"
 const val GRADLE_DECLARATIVE_SNAPSHOT_VERSION = "9.1.0-20250726001724+0000"
 // For available versions:
 // https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml
-const val KOTLIN_SNAPSHOT_VERSION = "2.3.20-dev-825"
+const val KOTLIN_SNAPSHOT_VERSION = "2.3.20-dev-6126"
 
 /** An AGP Version definition to be used in AGP integration tests. */
 enum class AgpVersionSoftwareEnvironmentDescriptor(
