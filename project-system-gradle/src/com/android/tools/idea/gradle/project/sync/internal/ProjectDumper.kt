@@ -21,11 +21,13 @@ import com.android.Version.ANDROID_TOOLS_BASE_VERSION
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.FileUtils
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.io.FileUtil
@@ -327,6 +329,16 @@ class ProjectDumper(
 
   fun String.getAndroidVersionFromDependencyName(): String? =
     androidLibraryPattern.find(this)?.groups?.get(1)?.value
+
+  fun Array<Module>.sortModules() =
+    sortedWith(
+      compareBy(
+        // Sort by build root of each included project to maintain order across naming changes
+        // Skip sorting for comparisons, it breaks the comparison as gradle project path is not always available
+        { it.getGradleProjectPath()?.buildRoot.takeIf { !forSnapshotComparison } }
+        , { it.name }
+      )
+    )
 
   override fun toString(): String = output.toString().trimIndent()
 }

@@ -67,6 +67,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.getHolderModule
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.android.tools.idea.projectsystem.gradle.isLinkedAndroidModule
@@ -117,7 +118,7 @@ fun ProjectDumper.dumpAndroidIdeModel(
       }
       dumpLibraryTable(project)
 
-      ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { module ->
+      ModuleManager.getInstance(project).modules.sortModules().forEach { module ->
         head("MODULE") { module.name }
         nest {
           module.gradleModuleModel?.let {
