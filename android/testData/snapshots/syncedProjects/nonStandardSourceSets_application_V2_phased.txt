@@ -12,8 +12,7 @@ PROJECT                       : application
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/application [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/application.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build

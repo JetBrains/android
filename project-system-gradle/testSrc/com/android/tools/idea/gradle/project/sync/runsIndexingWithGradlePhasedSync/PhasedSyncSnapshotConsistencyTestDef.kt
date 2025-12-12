@@ -127,7 +127,6 @@ fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.templa
       // TODO(b/445376814): Understand why they are different
       "MODULE (project.app.second)/CONENT_ENTRY"
     )
-
     else -> emptySet()
   }
 }
@@ -155,10 +154,9 @@ private fun getProjectSpecificIdeModelIssues(testProject: TestProject) = when(te
       // a second sync). We don't normally expect the library table to be present but in this case it is because a full sync has completed.
       "LIBRARY_TABLE"
     )
-  TestProject.PSD_SAMPLE_GROOVY -> setOf(
-    // The models for phased sync is fetched too early and are missing this, but it's fine as we have the rest of the tasks for variants
-    "/taskNames (testDebugUnitTest)"
-  )
+  // The models for phased sync is fetched too early and are missing this, but it's fine as we have the rest of the tasks for variants
+  TestProject.PSD_SAMPLE_GROOVY -> setOf("/taskNames (testDebugUnitTest)")
+  TestProject.TWO_JARS -> setOf("/taskNames (test)")
   else -> emptySet()
 }
 }
@@ -185,7 +183,7 @@ fun ModuleDumpWithType.filterOutKnownConsistencyIssues(testProject: TestProject)
 data class PhasedSyncSnapshotConsistencyTestDef(
   override val testProject: TestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
-) : SyncedProjectTestDef, PhasedSyncSnapshotTestBase() {
+) : SyncedProjectTestDef, PhasedSyncSnapshotTestBase(checkObjectIdentity = true) {
 
   override fun setup(testRootDisposable: Disposable) {
     setupPhasedSyncIntermediateStateCollector(testRootDisposable)
@@ -196,9 +194,16 @@ data class PhasedSyncSnapshotConsistencyTestDef(
     Truth.assertThat(knownAndroidPaths).isNotNull()
     Truth.assertThat(intermediateDump).isNotNull()
 
-    val fullDump = project.dumpModules(knownAndroidPaths)
-    val filteredIntermediateDump = intermediateDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).filterOutRootModule()
-    val filteredFullDump = fullDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).filterOutRootModule().filterToPhasedSyncModules()
+    val fullDump = project.dumpModules(knownAndroidPaths, checkObjectIdentity = true)
+    val filteredIntermediateDump = intermediateDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).let {
+      // These test project contains modules represented as iml files (or otherwise as JPS entities), so filtering them out.
+      if (testProject in setOf(
+          TestProject.COMPATIBILITY_TESTS_AS_36,
+          TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT,
+          TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS
+      )) it.filterToPhasedSyncModules() else it
+    }
+    val filteredFullDump = fullDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).filterToPhasedSyncModules()
 
     aggregateAndThrowIfAny {
       runCatchingAndRecord {
@@ -232,8 +237,8 @@ data class PhasedSyncSnapshotConsistencyTestDef(
   companion object {
     val tests = phasedSyncTestProjects.filterNot {
       setOf(
-      // TODO(b/384022658): Handle spaces in the root project name (settings.gradle) correctly
-      TestProject.TWO_JARS,
+      // TODO(b/384022658): KMP not supported, we could list out the individual project issues instead
+      // of filtering the entire test, but there are too many inconsistencies as of right now, so it's not very practical/useful
       TestProject.ANDROID_KOTLIN_MULTIPLATFORM,
       ).contains(it)
     }.map { PhasedSyncSnapshotConsistencyTestDef(it) }

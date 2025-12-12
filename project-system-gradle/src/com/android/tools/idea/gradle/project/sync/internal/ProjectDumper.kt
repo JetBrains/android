@@ -56,7 +56,9 @@ class ProjectDumper(
   // - Dumps all the variants, not just the selected one
   // - Dumps models all modules, not just the holder
   // - Skips the root project structure when dumping IDE models, normally included for reference.
-  internal val forSnapshotComparison: Boolean = false
+  internal val forSnapshotComparison: Boolean = false,
+  // Used in certain comparison scenarios to make sure the objects are not re-created.
+  internal val checkObjectIdentity: Boolean = false,
 ) {
   private val gradleCache: File = getGradleCacheLocation()
   private val userM2: File = getUserM2Location()

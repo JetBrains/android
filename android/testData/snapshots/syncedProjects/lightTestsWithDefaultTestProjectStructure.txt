@@ -13,8 +13,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithDefaultTestProjectStructureTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -65,8 +64,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithDefaultTestProjectStructureTest.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -124,8 +122,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithDefaultTestProjectStructureTest.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -189,8 +186,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithDefaultTestProjectStructureTest.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE

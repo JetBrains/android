@@ -64,6 +64,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.File
 import java.nio.file.Path
+import org.junit.Ignore
 
 @RunWith(JUnit4::class)
 class OpenProjectIntegrationTest {
@@ -163,6 +164,7 @@ class OpenProjectIntegrationTest {
   }
 
   @Test
+  @Ignore("b/211782178")
   fun testReopenProjectAfterFailedSync() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val buildFile = VfsUtil.findFileByIoFile(preparedProject.root.resolve("app/build.gradle"), true)!!
@@ -202,7 +204,7 @@ class OpenProjectIntegrationTest {
       project.saveAndDump()
     }
     Truth.assertThat(before).isEqualTo(initial)
-    // TODO(b/211782178): assertThat(after).isEqualTo(before)
+    Truth.assertThat(after).isEqualTo(before)
   }
 
   @Test

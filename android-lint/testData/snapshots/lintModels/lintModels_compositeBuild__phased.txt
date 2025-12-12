@@ -1270,8 +1270,8 @@ MODULE                        : project.lib
 MODULE                        : project.lib.androidTest
 MODULE                        : project.lib.main
 MODULE                        : project.lib.unitTest
-MODULE                        : TestCompositeLib1
-MODULE                        : TestCompositeLib1.app
+MODULE                        : includedLib1
+MODULE                        : includedLib1.app
     Dir                           : <ROOT>/TestCompositeLib1/app
     ModulePath                    : :app
     Type                          : APP
@@ -1898,10 +1898,10 @@ MODULE                        : TestCompositeLib1.app
                 ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
-MODULE                        : TestCompositeLib1.app.androidTest
-MODULE                        : TestCompositeLib1.app.main
-MODULE                        : TestCompositeLib1.app.unitTest
-MODULE                        : TestCompositeLib1.lib
+MODULE                        : includedLib1.app.androidTest
+MODULE                        : includedLib1.app.main
+MODULE                        : includedLib1.app.unitTest
+MODULE                        : includedLib1.lib
     Dir                           : <ROOT>/TestCompositeLib1/lib
     ModulePath                    : :lib
     Type                          : LIBRARY
@@ -2516,15 +2516,15 @@ MODULE                        : TestCompositeLib1.lib
                 ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
-MODULE                        : TestCompositeLib1.lib.androidTest
-MODULE                        : TestCompositeLib1.lib.main
-MODULE                        : TestCompositeLib1.lib.unitTest
-MODULE                        : compositeNest
-MODULE                        : compositeNest.main
-MODULE                        : compositeNest.test
-MODULE                        : composite2
-MODULE                        : composite2.main
-MODULE                        : composite2.test
+MODULE                        : includedLib1.lib.androidTest
+MODULE                        : includedLib1.lib.main
+MODULE                        : includedLib1.lib.unitTest
+MODULE                        : includedLib1.TestCompositeLibNested_1
+MODULE                        : includedLib1.TestCompositeLibNested_1.main
+MODULE                        : includedLib1.TestCompositeLibNested_1.test
+MODULE                        : TestCompositeLib2
+MODULE                        : TestCompositeLib2.main
+MODULE                        : TestCompositeLib2.test
 MODULE                        : TestCompositeLib3
 MODULE                        : TestCompositeLib3.app
     Dir                           : <ROOT>/TestCompositeLib3/app
@@ -3750,9 +3750,9 @@ MODULE                        : TestCompositeLib3.lib
 MODULE                        : TestCompositeLib3.lib.androidTest
 MODULE                        : TestCompositeLib3.lib.main
 MODULE                        : TestCompositeLib3.lib.unitTest
-MODULE                        : com.test.compositeNest3.compositeNest
-MODULE                        : com.test.compositeNest3.compositeNest.main
-MODULE                        : com.test.compositeNest3.compositeNest.test
-MODULE                        : composite4
-MODULE                        : composite4.main
-MODULE                        : composite4.test
+MODULE                        : TestCompositeLib3.TestCompositeLibNested_3
+MODULE                        : TestCompositeLib3.TestCompositeLibNested_3.main
+MODULE                        : TestCompositeLib3.TestCompositeLibNested_3.test
+MODULE                        : TestCompositeLib4
+MODULE                        : TestCompositeLib4.main
+MODULE                        : TestCompositeLib4.test

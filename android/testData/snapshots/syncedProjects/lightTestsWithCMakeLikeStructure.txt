@@ -13,8 +13,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithCMakeLikeStructureTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -70,8 +69,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithCMakeLikeStructureTest.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -137,8 +135,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithCMakeLikeStructureTest.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -204,8 +201,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithCMakeLikeStructureTest.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE

@@ -125,6 +125,9 @@ fun ProjectDumper.dump(module: Module) {
   val moduleFile = module.moduleFilePath.toPrintablePath()
   head("MODULE") { module.name }
   nest {
+    if(checkObjectIdentity) {
+      prop("JavaObjectId") { System.identityHashCode(module).toString() }
+    }
     val groups = ModuleManager.getInstance(module.project).getModuleGroupPath(module)
     groups?.forEach { group ->
       prop("- ModuleGroupPath") { group }
@@ -374,6 +377,9 @@ private fun ProjectDumper.dump(sourceFolder: SourceFolder) {
 private fun ProjectDumper.dump(facet: Facet<*>) {
   head("FACET") { facet.name }
   nest {
+    if(checkObjectIdentity) {
+      prop("JavaObjectId") { System.identityHashCode(facet).toString() }
+    }
     prop("TypeId") { facet.typeId.toString() }
     prop("ExternalSource") { facet.externalSource?.id }
     val configuration = facet.configuration

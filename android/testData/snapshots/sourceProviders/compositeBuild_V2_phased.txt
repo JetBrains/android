@@ -1434,7 +1434,7 @@ MODULE: project.lib
                     file://./lib/src/androidTestDebug/resources
         CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
-MODULE: TestCompositeLib1.app
+MODULE: includedLib1.app
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -2152,7 +2152,7 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/androidTestDebug/resources
         CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
-MODULE: TestCompositeLib1.lib
+MODULE: includedLib1.lib
     by Facet:
         main (IDEA)
             ScopeType: MAIN
