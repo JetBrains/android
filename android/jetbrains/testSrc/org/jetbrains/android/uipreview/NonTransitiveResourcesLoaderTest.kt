@@ -104,8 +104,8 @@ class NonTransitiveResourcesLoaderTest() {
    */
   @Test
   fun testNonTransitiveRClassesAreInitializedCorrectly() {
-    val app = androidProject.project.findModule(":app")
-    val lib = androidProject.project.findModule(":lib")
+    val app = androidProject.project.findModule("app")
+    val lib = androidProject.project.findModule("lib")
     // TODO(b/280427949): Should this be done by the withAndroidModels factory?
     ModuleRootModificationUtil.addDependency(app, lib)
 

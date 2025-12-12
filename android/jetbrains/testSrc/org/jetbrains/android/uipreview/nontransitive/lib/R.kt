@@ -16,9 +16,7 @@
 package org.jetbrains.android.uipreview.nontransitive.lib
 
 class R {
-  class string {
-    companion object {
-      const val lib_name: Int = 0x7f022222
-    }
+  object string {
+    const val lib_name: Int = 0x7f022222
   }
 }
