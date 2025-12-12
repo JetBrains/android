@@ -57,9 +57,11 @@ import java.io.File
 import java.util.Locale
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestBase.getAndroidPluginHome
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.fail
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -269,6 +271,7 @@ class AndroidLintGradleTest {
 
   @Test
   fun testTomlWarningFor16KbAlignment() {
+    Assume.assumeTrue(KotlinPluginModeProvider.isK2Mode())
     projectRule.loadProject(TestProjectPaths.TEST_SIMILAR_DEPENDENCIES_IN_VERSION_CATALOG)
     val appBuildFile = fixture.loadFile("gradle/libs.versions.toml")
     fixture.checkLint(
