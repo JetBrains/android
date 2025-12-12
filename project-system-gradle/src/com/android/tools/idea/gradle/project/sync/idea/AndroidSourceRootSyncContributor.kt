@@ -141,7 +141,6 @@ data class AndroidGradleProjectEntitySource(
   override val phase: GradleSyncPhase
 ) : GradleBridgeEntitySource
 
-@VisibleForTesting
 data class AndroidGradleSourceSetEntitySource(
   val projectEntitySource: AndroidGradleProjectEntitySource,
   val sourceSetName: String,
