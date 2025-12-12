@@ -147,7 +147,7 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
     return ProjectFileIndex.getInstance(project)
       .findContainingSdks(file)
       .asSequence()
-      .mapNotNull { sdkEntity -> ProjectJdkTable.getInstance().findJdk(sdkEntity.name) }
+      .mapNotNull { sdkEntity -> ProjectJdkTable.getInstance(project).findJdk(sdkEntity.name) }
       .firstOrNull { sdk -> AndroidSdks.getInstance().isAndroidSdk(sdk) }
   }
 
