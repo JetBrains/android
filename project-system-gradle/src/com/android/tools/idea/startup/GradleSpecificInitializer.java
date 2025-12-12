@@ -58,7 +58,6 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
     initializePhasedSync();
   }
 
-
   @VisibleForTesting
   public static void initializePhasedSync() {
     Registry.get("gradle.phased.sync.enabled").setValue(StudioFlags.PHASED_SYNC_ENABLED.get());
