@@ -38,12 +38,13 @@ import com.android.tools.profilers.cpu.capturedetails.TreeDetailsView.BottomUpDe
 import com.android.tools.profilers.cpu.capturedetails.TreeDetailsView.TopDownDetailsView
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import javax.swing.SwingUtilities
 
 class CaptureDetailsTest {
@@ -114,10 +115,11 @@ class CaptureDetailsTest {
                            initTree: (StudioProfilersView, T) -> CaptureDetailsView) {
     withTestData { range, captureNodes, cpuCapture ->
       val profilersView = fakeProfilersView()
+      val executor = Executors.newSingleThreadExecutor()
 
       val treeView = benchmarkInit("synthetic") {
         SwingUtilities.invokeAndWait { initTree(profilersView, initModel(ClockType.GLOBAL, range, captureNodes, cpuCapture,
-                                                                         ApplicationManager.getApplication()::executeOnPooledThread) as T) }
+                                                                         executor::execute) as T) }
       }
 
       benchmarkRangeUpdate("synthetic") {
@@ -141,6 +143,8 @@ class CaptureDetailsTest {
       }
 
       treeView.hashCode() // keep it live to make sure it reacts to range change
+      executor.shutdown()
+      executor.awaitTermination(1, TimeUnit.MINUTES)
     }
   }
 
