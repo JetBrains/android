@@ -49,17 +49,19 @@ internal fun setGradleAndroidModelFromDataNode(
   coreModel: GradleAndroidModelImpl,
   resolver: IdeLibraryModelResolverImpl
 ) {
-  storage.modifyModuleEntity(moduleEntity) {
-    this.gradleAndroidModel = GradleAndroidModelEntity(
-      entitySource = moduleEntity.entitySource,
-      gradleAndroidModel = coreModel
-    ) {
-      this.resolvedVariant = coreModel.variants.find {
-        it.name == coreModel.selectedVariantName
-      }?.let { IdeVariantImpl(it, resolver) }
+  updateGradleAndroidModelMapping(
+    storage,
+    storage.modifyModuleEntity(moduleEntity) {
+      this.gradleAndroidModel = GradleAndroidModelEntity(
+        entitySource = moduleEntity.entitySource,
+        gradleAndroidModel = coreModel
+      ) {
+        this.resolvedVariant = coreModel.variants.find {
+          it.name == coreModel.selectedVariantName
+        }?.let { IdeVariantImpl(it, resolver) }
+      }
     }
-  }
-  updateGradleAndroidModelMapping(storage, moduleEntity)
+  )
 }
 
 internal fun attachDependenciesToModuleEntity(
@@ -68,12 +70,14 @@ internal fun attachDependenciesToModuleEntity(
   resolvedVariant: IdeVariantImpl
 ) {
   val gradleAndroidModel = moduleEntity.gradleAndroidModel ?: return
-  storage.modifyModuleEntity(moduleEntity) {
-    storage.modifyGradleAndroidModelEntity(gradleAndroidModel) {
-      this.resolvedVariant = resolvedVariant
+  updateGradleAndroidModelMapping(
+    storage,
+    storage.modifyModuleEntity(moduleEntity) {
+      storage.modifyGradleAndroidModelEntity(gradleAndroidModel) {
+        this.resolvedVariant = resolvedVariant
+      }
     }
-  }
-  updateGradleAndroidModelMapping(storage, moduleEntity)
+  )
 }
 
 internal fun updateGradleAndroidModelMapping(storage: MutableEntityStorage, moduleEntity: ModuleEntity) {
