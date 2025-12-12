@@ -20,6 +20,7 @@ import com.android.tools.asdriver.tests.AndroidStudio
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.ComponentMatchersBuilder
 import com.android.tools.asdriver.tests.MavenRepo
+import java.nio.file.Paths
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,18 +30,19 @@ import kotlin.io.path.name
 @RunWith(JUnit4::class)
 class GoToDeclarationTest {
   @get:Rule
-  val system: AndroidSystem = AndroidSystem.standard()
+  val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
   @Test
   fun goToDeclaration() {
-    val project = AndroidProject("tools/adt/idea/android/integration/testData/languagehighlighting")
+    val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/languagehighlighting_project_model")
+    val project = AndroidProject(projectArtifactsPath.resolve("languagehighlighting").toString())
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/languagehighlighting_deps.manifest"))
-
+    system.getInstallation().copySystemDir(projectArtifactsPath);
     system.runStudio(project).use { studio ->
-      studio.waitForSync()
-      studio.waitForIndex()
+      studio.waitForSyncSkippedLog()
+      studio.waitForIndexingSkippedLog()
 
       val path = project.targetProject.resolve("src/main/java/com/example/languagehighlighting/MainActivity.kt")
       studio.openFile(project.targetProject.name, path.toString())

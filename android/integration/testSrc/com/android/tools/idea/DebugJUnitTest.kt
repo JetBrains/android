@@ -19,6 +19,7 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import java.nio.file.Paths
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -26,19 +27,21 @@ import org.junit.Test
 class DebugJUnitTest {
 
   @get:Rule
-  val system = AndroidSystem.standard()
+  val system = AndroidSystem.standardWithTmpDir()
 
   @get:Rule
   val watcher = MemoryDashboardNameProviderWatcher()
 
   @Test
   fun runJUnitDebuggerTest() {
-    val project = AndroidProject("tools/adt/idea/android/integration/testData/JUnitTestApp")
+    val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/debugjunittest_project_model")
+    val project = AndroidProject(projectArtifactsPath.resolve("JUnitTestApp").toString())
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/debug_junit_test_deps.manifest"))
+    system.getInstallation().copySystemDir(projectArtifactsPath)
     system.runStudio(project, watcher.dashboardName) { studio ->
-      studio.waitForSync()
-      studio.waitForIndex()
+      studio.waitForSyncSkippedLog()
+      studio.waitForIndexingSkippedLog()
       studio.executeAction("MakeGradleProject")
       studio.waitForBuild()
 
