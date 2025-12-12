@@ -16,7 +16,6 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
-import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.dsl.builder.Cell
@@ -26,14 +25,15 @@ import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.labelTable
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.selected
+import com.intellij.ui.dsl.listCellRenderer.listCellRenderer
+import com.intellij.ui.dsl.listCellRenderer.textListCellRenderer
 import com.intellij.util.messages.Topic
-import java.awt.GraphicsEnvironment
-import javax.swing.JLabel
-import javax.swing.JList
-import javax.swing.JSlider
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.AndroidEditorSettings.LayoutType
 import org.jetbrains.annotations.VisibleForTesting
+import java.awt.GraphicsEnvironment
+import javax.swing.JLabel
+import javax.swing.JSlider
 
 private const val CONFIGURABLE_ID = "nele.options"
 private val DISPLAY_NAME =
@@ -64,34 +64,6 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
   private fun fireOptionsChanged() =
     ApplicationManager.getApplication().messageBus.syncPublisher(Listener.TOPIC).onOptionsChanged()
 
-  private class EditorModeCellRenderer :
-    SimpleListCellRenderer<AndroidEditorSettings.EditorMode>() {
-    override fun customize(
-      list: JList<out AndroidEditorSettings.EditorMode>,
-      value: AndroidEditorSettings.EditorMode?,
-      index: Int,
-      selected: Boolean,
-      hasFocus: Boolean,
-    ) {
-      value?.let {
-        text = it.displayName
-        icon = it.icon
-      }
-    }
-  }
-
-  private class LayoutModeCellRenderer : SimpleListCellRenderer<LayoutType>() {
-    override fun customize(
-      list: JList<out LayoutType>,
-      value: LayoutType?,
-      index: Int,
-      selected: Boolean,
-      hasFocus: Boolean,
-    ) {
-      value?.let { text = it.displayName }
-    }
-  }
-
   private lateinit var preferredResourcesEditorMode: ComboBox<AndroidEditorSettings.EditorMode>
   private lateinit var preferredEditorMode: ComboBox<AndroidEditorSettings.EditorMode>
   private lateinit var myPreferredLayoutType: ComboBox<LayoutType>
@@ -105,11 +77,14 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
   override fun getId() = CONFIGURABLE_ID
 
   private fun Row.editorModeComboBox(): Cell<ComboBox<AndroidEditorSettings.EditorMode>> {
-    return comboBox(AndroidEditorSettings.EditorMode.values().asList(), EditorModeCellRenderer())
+    return comboBox(AndroidEditorSettings.EditorMode.entries, listCellRenderer("") {
+      icon(value.icon)
+      text(value.displayName)
+    })
   }
 
   private fun Row.editorPreviewLayoutModeComboBox(): Cell<ComboBox<LayoutType>> {
-    return comboBox(LayoutType.values().asList(), LayoutModeCellRenderer())
+    return comboBox(LayoutType.entries, textListCellRenderer("") { it.displayName })
   }
 
   override fun createPanel(): DialogPanel {
