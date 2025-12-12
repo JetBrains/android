@@ -216,10 +216,6 @@ internal class SyncContributorAndroidProjectContext(
   val isValidContext = (holderModuleEntityNullable != null).logDebugIfFalse {
     "Holder module entity is null for ${projectModel.path}"
    }
-   // TODO(b/384022658): Spaces in module names are causing issues, fix them to  be consistent with data services too.
-   && (!resolveHolderModuleName().contains("\\s".toRegex())).logDebugIfFalse {
-     "Module name has spaces in it ${resolveHolderModuleName()}"
-   }
    // TODO(b/384022658): We don't behave well in the unlikely event when there is a rename that ends up with a holder
    // module with the same name as one of the existing source set modules (i.e. from app to app.main). This needs to be
    // handled separately in the platform
