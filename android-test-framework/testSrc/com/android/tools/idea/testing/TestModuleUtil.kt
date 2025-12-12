@@ -22,7 +22,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import org.junit.AssumptionViolatedException
 
 fun Project.findAppModule(): Module = findModule("app")
 
@@ -40,7 +39,7 @@ fun Project.findAppModule(): Module = findModule("app")
  */
 fun Project.findModule(name: String): Module =
   maybeFindModule(name)
-    ?: throw AssumptionViolatedException(
+    ?: error(
       "Unable to find module with name '$name', existing modules are ${ModuleManager.getInstance(this).modules.joinToString { it.name }}"
     )
 

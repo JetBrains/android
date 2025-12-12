@@ -56,6 +56,7 @@ import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
+import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
@@ -331,7 +332,8 @@ class AndroidRunConfigurationExecutorTest {
     assertThat(processHandler).isEqualTo(runningProcessHandler)
     assertThat(runContentDescriptor.executionConsole).isEqualTo(runningDescriptor.executionConsole)
     val printedMessage = (runContentDescriptor.executionConsole as EmptyTestConsoleView).printedMessages.map { it.first }.first()
-    assertThat(printedMessage).endsWith("Applying changes to app on 'TestTarget'.\n")
+    val moduleName = if (StudioFlags.PHASED_SYNC_ENABLED.get()) projectRule.project.findModule("app").name else "app"
+    assertThat(printedMessage).endsWith("Applying changes to $moduleName on 'TestTarget'.\n")
     assertThat((processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(APPLICATION_ID)
     assertThat(processHandler.autoTerminate).isEqualTo(true)
     assertThat(processHandler.isAssociated(device)).isEqualTo(true)
@@ -384,7 +386,8 @@ class AndroidRunConfigurationExecutorTest {
     assertThat(processHandler).isEqualTo(runningProcessHandler)
     assertThat(runContentDescriptor.executionConsole).isEqualTo(runningDescriptor.executionConsole)
     val printedMessage = (runContentDescriptor.executionConsole as EmptyTestConsoleView).printedMessages.map { it.first }.first()
-    assertThat(printedMessage).endsWith("Applying code changes to app on 'TestTarget'.\n")
+    val moduleName = if (StudioFlags.PHASED_SYNC_ENABLED.get()) projectRule.project.findModule("app").name else "app"
+    assertThat(printedMessage).endsWith("Applying code changes to $moduleName on 'TestTarget'.\n")
     assertThat((processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(APPLICATION_ID)
     assertThat(processHandler.autoTerminate).isEqualTo(true)
     assertThat(processHandler.isAssociated(device)).isEqualTo(true)
