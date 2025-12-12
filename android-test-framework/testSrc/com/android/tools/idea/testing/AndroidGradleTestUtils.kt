@@ -101,7 +101,9 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.android.tools.idea.gradle.project.sync.InternedModels
 import com.android.tools.idea.gradle.project.sync.LibraryIdentity
 import com.android.tools.idea.gradle.project.sync.idea.AdditionalArtifactsPaths
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectEntitySource
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleSourceSetEntitySource
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.ALWAYS_SKIP_SYNC
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil
@@ -206,6 +208,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
+import com.intellij.platform.workspace.jps.entities.ExternalSystemModuleOptionsEntity
+import com.intellij.platform.workspace.jps.entities.InheritedSdkDependency
+import com.intellij.platform.workspace.jps.entities.ModuleEntity
+import com.intellij.platform.workspace.jps.entities.ModuleEntityBuilder
+import com.intellij.platform.workspace.jps.entities.ModuleSourceDependency
+import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiManager
@@ -255,6 +263,7 @@ import org.jetbrains.plugins.gradle.model.GradleTaskModel
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
+import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 import org.jetbrains.plugins.gradle.util.gradlePath
@@ -2092,25 +2101,21 @@ private fun setupTestProjectFromAndroidModelCore(
     projectDataNode.addChild(moduleDataNode)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     // Top level module should already be created
-    if (!skipPhasedSync && moduleBasePath != rootProjectBasePath) {
-      /* b/461542533 disable phased sync for initial IJ 2025.3 merge
+    if (!skipPhasedSync) {
       // Here we are setting up the entity sources for the holder modules
       val linkedProjectRootPath = rootProjectBasePath.absolutePath
-      val linkedProjectRootUrl = virtualFileUrlManager.getOrCreateFromUrl(linkedProjectRootPath)
-      val linkedProjectEntitySource = GradleLinkedProjectEntitySource(linkedProjectRootUrl)
-
-      val buildEntitySource =
-        GradleBuildEntitySource(linkedProjectEntitySource, linkedProjectRootUrl)
-
-      val projectRootUrl = virtualFileUrlManager.getOrCreateFromUrl(moduleBasePath.absolutePath)
-      val projectEntitySource = GradleProjectEntitySource(buildEntitySource, projectRootUrl)
+      val projectEntitySource =
+        AndroidGradleProjectEntitySource(
+          linkedProjectRootPath,
+          GradleSyncPhase.SOURCE_SET_MODEL_PHASE,
+        )
 
       // External module options is an extension of the module that annotates it with external
       // system information, in this case
       // it's to set up Gradle specific information such as the project path and whether it's a
       // source set module or not.
       fun externalModuleOptions(
-        moduleEntity: ModuleEntity.Builder,
+        moduleEntity: ModuleEntityBuilder,
         entitySource: EntitySource,
         moduleId: String,
         isSourceSet: Boolean,
@@ -2149,7 +2154,7 @@ private fun setupTestProjectFromAndroidModelCore(
       // parent)
       moduleDataNode.findAll(GradleSourceSetData.KEY).forEach { data ->
         val sourceSetEntitySource =
-          GradleSourceSetEntitySource(projectEntitySource, data.data.internalName)
+          AndroidGradleSourceSetEntitySource(projectEntitySource, data.data.internalName)
         entityChanges addEntity
           ModuleEntity(
               name = data.data.internalName,
@@ -2166,12 +2171,12 @@ private fun setupTestProjectFromAndroidModelCore(
                 )
             }
       }
-      */
     }
   }
   if (!skipPhasedSync) {
     runWriteAction {
       project.workspaceModel.updateProjectModel("Simulate phased sync entities") { storage ->
+        storage.entities(ModuleEntity::class.java).singleOrNull()?.let { storage.removeEntity(it) }
         storage.applyChangesFrom(entityChanges)
       }
     }
