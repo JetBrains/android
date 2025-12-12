@@ -12,8 +12,7 @@ PROJECT                       : project
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/project.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build
@@ -35,8 +34,7 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -91,8 +89,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -221,13 +218,13 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
-        ORDER_ENTRY                   : TestCompositeLib1.lib.main
+        ORDER_ENTRY                   : TestCompositeLib2.main
             Scope                         : Test
-        ORDER_ENTRY                   : composite2.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
             Scope                         : Test
-        ORDER_ENTRY                   : composite4.main
+        ORDER_ENTRY                   : includedLib1.TestCompositeLibNested_1.main
             Scope                         : Test
-        ORDER_ENTRY                   : compositeNest.main
+        ORDER_ENTRY                   : includedLib1.lib.main
             Scope                         : Test
         ORDER_ENTRY                   : project.app.main
             Scope                         : Test
@@ -259,8 +256,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -354,10 +350,10 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
-        ORDER_ENTRY                   : TestCompositeLib1.lib.main
-        ORDER_ENTRY                   : composite2.main
-        ORDER_ENTRY                   : composite4.main
-        ORDER_ENTRY                   : compositeNest.main
+        ORDER_ENTRY                   : TestCompositeLib2.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
+        ORDER_ENTRY                   : includedLib1.TestCompositeLibNested_1.main
+        ORDER_ENTRY                   : includedLib1.lib.main
         ORDER_ENTRY                   : project.lib.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
@@ -389,8 +385,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -519,13 +514,13 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
-        ORDER_ENTRY                   : TestCompositeLib1.lib.main
+        ORDER_ENTRY                   : TestCompositeLib2.main
             Scope                         : Test
-        ORDER_ENTRY                   : composite2.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
             Scope                         : Test
-        ORDER_ENTRY                   : composite4.main
+        ORDER_ENTRY                   : includedLib1.TestCompositeLibNested_1.main
             Scope                         : Test
-        ORDER_ENTRY                   : compositeNest.main
+        ORDER_ENTRY                   : includedLib1.lib.main
             Scope                         : Test
         ORDER_ENTRY                   : project.app.main
             Scope                         : Test
@@ -557,8 +552,7 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/project.lib.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -611,8 +605,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/project.lib.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -765,8 +758,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/project.lib.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -886,8 +878,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/project.lib.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1026,19 +1017,18 @@ PROJECT                       : project
                 SOURCE_GEN                    : :lib:createMockableJar
                 BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
-    MODULE                        : TestCompositeLib1
+    MODULE                        : includedLib1
         ExternalModuleGroup           : com.test.composite1
         ExternalModuleVersion         : 1.0
         LinkedProjectId               : :includedLib1
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/TestCompositeLib1 [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib1 [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/includedLib1 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/includedLib1 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLib1.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/build
@@ -1046,12 +1036,12 @@ PROJECT                       : project
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-    MODULE                        : TestCompositeLib1.app
+    MODULE                        : includedLib1.app
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : TestCompositeLib1.app
-            main                          : TestCompositeLib1.app.main
-            unitTest                      : TestCompositeLib1.app.unitTest
-            androidTest                   : TestCompositeLib1.app.androidTest
+            holder                        : includedLib1.app
+            main                          : includedLib1.app.main
+            unitTest                      : includedLib1.app.unitTest
+            androidTest                   : includedLib1.app.androidTest
         ExternalModuleGroup           : com.test.composite1
         ExternalModuleVersion         : 1.0
         LinkedProjectId               : :includedLib1:app
@@ -1060,8 +1050,7 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1100,12 +1089,12 @@ PROJECT                       : project
                 APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
                 BASELINE_PROFILE_GEN          : <PROJECT>::includedLib1:app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::includedLib1:app:generateBaselineProfile
-    MODULE                        : TestCompositeLib1.app.androidTest
+    MODULE                        : includedLib1.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : TestCompositeLib1.app
-            main                          : TestCompositeLib1.app.main
-            unitTest                      : TestCompositeLib1.app.unitTest
-            androidTest                   : TestCompositeLib1.app.androidTest
+            holder                        : includedLib1.app
+            main                          : includedLib1.app.main
+            unitTest                      : includedLib1.app.unitTest
+            androidTest                   : includedLib1.app.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :includedLib1:app:androidTest
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/app
@@ -1115,9 +1104,8 @@ PROJECT                       : project
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : TestCompositeLib1.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+            productionModuleName          : includedLib1.app.main
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1221,17 +1209,17 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
-        ORDER_ENTRY                   : TestCompositeLib1.app.main
-            Scope                         : Test
-        ORDER_ENTRY                   : TestCompositeLib1.lib.main
+        ORDER_ENTRY                   : TestCompositeLib2.main
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
             Scope                         : Test
-        ORDER_ENTRY                   : composite2.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
             Scope                         : Test
-        ORDER_ENTRY                   : composite4.main
+        ORDER_ENTRY                   : includedLib1.TestCompositeLibNested_1.main
             Scope                         : Test
-        ORDER_ENTRY                   : compositeNest.main
+        ORDER_ENTRY                   : includedLib1.app.main
+            Scope                         : Test
+        ORDER_ENTRY                   : includedLib1.lib.main
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
@@ -1244,12 +1232,12 @@ PROJECT                       : project
                 SOURCE_GEN                    : <PROJECT>::includedLib1:app:generateDebugAndroidTestSources
                 BASELINE_PROFILE_GEN          : <PROJECT>::includedLib1:app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::includedLib1:app:generateBaselineProfile
-    MODULE                        : TestCompositeLib1.app.main
+    MODULE                        : includedLib1.app.main
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : TestCompositeLib1.app
-            main                          : TestCompositeLib1.app.main
-            unitTest                      : TestCompositeLib1.app.unitTest
-            androidTest                   : TestCompositeLib1.app.androidTest
+            holder                        : includedLib1.app
+            main                          : includedLib1.app.main
+            unitTest                      : includedLib1.app.unitTest
+            androidTest                   : includedLib1.app.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :includedLib1:app:main
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/app
@@ -1258,8 +1246,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1331,11 +1318,11 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
-        ORDER_ENTRY                   : TestCompositeLib1.lib.main
+        ORDER_ENTRY                   : TestCompositeLib2.main
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
-        ORDER_ENTRY                   : composite2.main
-        ORDER_ENTRY                   : composite4.main
-        ORDER_ENTRY                   : compositeNest.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
+        ORDER_ENTRY                   : includedLib1.TestCompositeLibNested_1.main
+        ORDER_ENTRY                   : includedLib1.lib.main
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
@@ -1349,12 +1336,12 @@ PROJECT                       : project
                 APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
                 BASELINE_PROFILE_GEN          : <PROJECT>::includedLib1:app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::includedLib1:app:generateBaselineProfile
-    MODULE                        : TestCompositeLib1.app.unitTest
+    MODULE                        : includedLib1.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : TestCompositeLib1.app
-            main                          : TestCompositeLib1.app.main
-            unitTest                      : TestCompositeLib1.app.unitTest
-            androidTest                   : TestCompositeLib1.app.androidTest
+            holder                        : includedLib1.app
+            main                          : includedLib1.app.main
+            unitTest                      : includedLib1.app.unitTest
+            androidTest                   : includedLib1.app.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :includedLib1:app:unitTest
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/app
@@ -1364,9 +1351,8 @@ PROJECT                       : project
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : TestCompositeLib1.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+            productionModuleName          : includedLib1.app.main
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1470,17 +1456,17 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
-        ORDER_ENTRY                   : TestCompositeLib1.app.main
-            Scope                         : Test
-        ORDER_ENTRY                   : TestCompositeLib1.lib.main
+        ORDER_ENTRY                   : TestCompositeLib2.main
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
             Scope                         : Test
-        ORDER_ENTRY                   : composite2.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
             Scope                         : Test
-        ORDER_ENTRY                   : composite4.main
+        ORDER_ENTRY                   : includedLib1.TestCompositeLibNested_1.main
             Scope                         : Test
-        ORDER_ENTRY                   : compositeNest.main
+        ORDER_ENTRY                   : includedLib1.app.main
+            Scope                         : Test
+        ORDER_ENTRY                   : includedLib1.lib.main
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
@@ -1493,12 +1479,12 @@ PROJECT                       : project
                 SOURCE_GEN                    : <PROJECT>::includedLib1:app:createMockableJar
                 BASELINE_PROFILE_GEN          : <PROJECT>::includedLib1:app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::includedLib1:app:generateBaselineProfile
-    MODULE                        : TestCompositeLib1.lib
+    MODULE                        : includedLib1.lib
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : TestCompositeLib1.lib
-            main                          : TestCompositeLib1.lib.main
-            unitTest                      : TestCompositeLib1.lib.unitTest
-            androidTest                   : TestCompositeLib1.lib.androidTest
+            holder                        : includedLib1.lib
+            main                          : includedLib1.lib.main
+            unitTest                      : includedLib1.lib.unitTest
+            androidTest                   : includedLib1.lib.androidTest
         ExternalModuleGroup           : com.test.composite1
         ExternalModuleVersion         : 1.0
         LinkedProjectId               : :includedLib1:lib
@@ -1507,8 +1493,7 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1545,12 +1530,12 @@ PROJECT                       : project
                 SOURCE_GEN                    : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
                 BASELINE_PROFILE_GEN          : <PROJECT>::includedLib1:lib:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::includedLib1:lib:generateBaselineProfile
-    MODULE                        : TestCompositeLib1.lib.androidTest
+    MODULE                        : includedLib1.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : TestCompositeLib1.lib
-            main                          : TestCompositeLib1.lib.main
-            unitTest                      : TestCompositeLib1.lib.unitTest
-            androidTest                   : TestCompositeLib1.lib.androidTest
+            holder                        : includedLib1.lib
+            main                          : includedLib1.lib.main
+            unitTest                      : includedLib1.lib.unitTest
+            androidTest                   : includedLib1.lib.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :includedLib1:lib:androidTest
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/lib
@@ -1560,9 +1545,8 @@ PROJECT                       : project
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : TestCompositeLib1.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+            productionModuleName          : includedLib1.lib.main
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1662,13 +1646,13 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
-        ORDER_ENTRY                   : TestCompositeLib1.lib.main
+        ORDER_ENTRY                   : TestCompositeLib2.main
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
             Scope                         : Test
-        ORDER_ENTRY                   : composite2.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
             Scope                         : Test
-        ORDER_ENTRY                   : composite4.main
+        ORDER_ENTRY                   : includedLib1.lib.main
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
@@ -1681,12 +1665,12 @@ PROJECT                       : project
                 SOURCE_GEN                    : <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources
                 BASELINE_PROFILE_GEN          : <PROJECT>::includedLib1:lib:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::includedLib1:lib:generateBaselineProfile
-    MODULE                        : TestCompositeLib1.lib.main
+    MODULE                        : includedLib1.lib.main
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : TestCompositeLib1.lib
-            main                          : TestCompositeLib1.lib.main
-            unitTest                      : TestCompositeLib1.lib.unitTest
-            androidTest                   : TestCompositeLib1.lib.androidTest
+            holder                        : includedLib1.lib
+            main                          : includedLib1.lib.main
+            unitTest                      : includedLib1.lib.unitTest
+            androidTest                   : includedLib1.lib.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :includedLib1:lib:main
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/lib
@@ -1695,8 +1679,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1766,9 +1749,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+        ORDER_ENTRY                   : TestCompositeLib2.main
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
-        ORDER_ENTRY                   : composite2.main
-        ORDER_ENTRY                   : composite4.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
@@ -1780,12 +1763,12 @@ PROJECT                       : project
                 SOURCE_GEN                    : <PROJECT>::includedLib1:lib:generateDebugSources
                 BASELINE_PROFILE_GEN          : <PROJECT>::includedLib1:lib:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::includedLib1:lib:generateBaselineProfile
-    MODULE                        : TestCompositeLib1.lib.unitTest
+    MODULE                        : includedLib1.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
-            holder                        : TestCompositeLib1.lib
-            main                          : TestCompositeLib1.lib.main
-            unitTest                      : TestCompositeLib1.lib.unitTest
-            androidTest                   : TestCompositeLib1.lib.androidTest
+            holder                        : includedLib1.lib
+            main                          : includedLib1.lib.main
+            unitTest                      : includedLib1.lib.unitTest
+            androidTest                   : includedLib1.lib.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :includedLib1:lib:unitTest
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/lib
@@ -1795,9 +1778,8 @@ PROJECT                       : project
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : TestCompositeLib1.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+            productionModuleName          : includedLib1.lib.main
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1897,13 +1879,13 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
-        ORDER_ENTRY                   : TestCompositeLib1.lib.main
+        ORDER_ENTRY                   : TestCompositeLib2.main
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
             Scope                         : Test
-        ORDER_ENTRY                   : composite2.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
             Scope                         : Test
-        ORDER_ENTRY                   : composite4.main
+        ORDER_ENTRY                   : includedLib1.lib.main
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
@@ -1916,19 +1898,18 @@ PROJECT                       : project
                 SOURCE_GEN                    : <PROJECT>::includedLib1:lib:createMockableJar
                 BASELINE_PROFILE_GEN          : <PROJECT>::includedLib1:lib:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::includedLib1:lib:generateBaselineProfile
-    MODULE                        : compositeNest
+    MODULE                        : includedLib1.TestCompositeLibNested_1
         ExternalModuleGroup           : com.test.compositeNest1
         ExternalModuleVersion         : 1.0
         LinkedProjectId               : :includedLib1:TestCompositeLibNested_1
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/compositeNest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/compositeNest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/includedLib1.TestCompositeLibNested_1 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/includedLib1.TestCompositeLibNested_1 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLibNested_1/compositeNest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -1942,7 +1923,7 @@ PROJECT                       : project
                 ASSEMBLE                      : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
                 REBUILD                       : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
                 COMPILE_JAVA                  : <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
-    MODULE                        : compositeNest.main
+    MODULE                        : includedLib1.TestCompositeLibNested_1.main
         ExternalModuleGroup           : com.test.compositeNest1
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
@@ -1953,8 +1934,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLibNested_1/compositeNest.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/main/java
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/main/resources [-]
@@ -1967,7 +1947,7 @@ PROJECT                       : project
                 ASSEMBLE                      : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
                 REBUILD                       : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
                 COMPILE_JAVA                  : <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
-    MODULE                        : compositeNest.test
+    MODULE                        : includedLib1.TestCompositeLibNested_1.test
         ExternalModuleGroup           : com.test.compositeNest1
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
@@ -1979,33 +1959,31 @@ PROJECT                       : project
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : compositeNest.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLibNested_1/compositeNest.test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+            productionModuleName          : includedLib1.TestCompositeLibNested_1.main
+        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/test/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : compositeNest.main
+        ORDER_ENTRY                   : includedLib1.TestCompositeLibNested_1.main
         BUILD_TASKS
                 ASSEMBLE                      : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
                 REBUILD                       : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
                 COMPILE_JAVA                  : <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
-    MODULE                        : composite2
+    MODULE                        : TestCompositeLib2
         ExternalModuleGroup           : com.test.composite2
         ExternalModuleVersion         : 1.0
         LinkedProjectId               : :TestCompositeLib2
         LinkedProjectPath             : <PROJECT>/TestCompositeLib2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/composite2 [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/composite2 [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/TestCompositeLib2 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib2 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib2/composite2.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -2019,7 +1997,7 @@ PROJECT                       : project
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:testClasses
                 REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib2:testClasses
                 COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib2:testClasses
-    MODULE                        : composite2.main
+    MODULE                        : TestCompositeLib2.main
         ExternalModuleGroup           : com.test.composite2
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
@@ -2030,8 +2008,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib2/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib2/composite2.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib2/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib2/src/main/java
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/TestCompositeLib2/src/main/resources [-]
@@ -2045,7 +2022,7 @@ PROJECT                       : project
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:testClasses
                 REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib2:testClasses
                 COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib2:testClasses
-    MODULE                        : composite2.test
+    MODULE                        : TestCompositeLib2.test
         ExternalModuleGroup           : com.test.composite2
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
@@ -2057,16 +2034,15 @@ PROJECT                       : project
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : composite2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib2/composite2.test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+            productionModuleName          : TestCompositeLib2.main
+        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib2/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib2/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib2/src/test/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : composite2.main
+        ORDER_ENTRY                   : TestCompositeLib2.main
         BUILD_TASKS
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:testClasses
                 REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib2:testClasses
@@ -2082,8 +2058,7 @@ PROJECT                       : project
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib3 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLib3.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/build
@@ -2105,8 +2080,7 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2161,8 +2135,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : TestCompositeLib3.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2266,13 +2239,13 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
+        ORDER_ENTRY                   : TestCompositeLib3.TestCompositeLibNested_3.main
+            Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.app.main
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
             Scope                         : Test
-        ORDER_ENTRY                   : com.test.compositeNest3.compositeNest.main
-            Scope                         : Test
-        ORDER_ENTRY                   : composite4.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
@@ -2299,8 +2272,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2372,9 +2344,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+        ORDER_ENTRY                   : TestCompositeLib3.TestCompositeLibNested_3.main
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
-        ORDER_ENTRY                   : com.test.compositeNest3.compositeNest.main
-        ORDER_ENTRY                   : composite4.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
@@ -2404,8 +2376,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : TestCompositeLib3.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2509,13 +2480,13 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
+        ORDER_ENTRY                   : TestCompositeLib3.TestCompositeLibNested_3.main
+            Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.app.main
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
             Scope                         : Test
-        ORDER_ENTRY                   : com.test.compositeNest3.compositeNest.main
-            Scope                         : Test
-        ORDER_ENTRY                   : composite4.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
@@ -2542,8 +2513,7 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3.lib.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2596,8 +2566,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : TestCompositeLib3.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3.lib.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2699,7 +2668,7 @@ PROJECT                       : project
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
             Scope                         : Test
-        ORDER_ENTRY                   : composite4.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
@@ -2726,8 +2695,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3.lib.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2797,7 +2765,7 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
-        ORDER_ENTRY                   : composite4.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/TestCompositeLib3/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
@@ -2825,8 +2793,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : TestCompositeLib3.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3.lib.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -2928,7 +2895,7 @@ PROJECT                       : project
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
             Scope                         : Test
-        ORDER_ENTRY                   : composite4.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
@@ -2941,19 +2908,18 @@ PROJECT                       : project
                 SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:createMockableJar
                 BASELINE_PROFILE_GEN          : <PROJECT>::TestCompositeLib3:lib:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::TestCompositeLib3:lib:generateBaselineProfile
-    MODULE                        : com.test.compositeNest3.compositeNest
+    MODULE                        : TestCompositeLib3.TestCompositeLibNested_3
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleVersion         : 1.0
         LinkedProjectId               : :TestCompositeLib3:TestCompositeLibNested_3
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/com.test.compositeNest3.compositeNest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/com.test.compositeNest3.compositeNest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/TestCompositeLib3.TestCompositeLibNested_3 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib3.TestCompositeLibNested_3 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLibNested_3/com.test.compositeNest3.compositeNest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -2967,7 +2933,7 @@ PROJECT                       : project
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
                 REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
                 COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
-    MODULE                        : com.test.compositeNest3.compositeNest.main
+    MODULE                        : TestCompositeLib3.TestCompositeLibNested_3.main
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
@@ -2978,8 +2944,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLibNested_3/com.test.compositeNest3.compositeNest.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/java
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/resources [-]
@@ -2993,7 +2958,7 @@ PROJECT                       : project
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
                 REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
                 COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
-    MODULE                        : com.test.compositeNest3.compositeNest.test
+    MODULE                        : TestCompositeLib3.TestCompositeLibNested_3.test
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
@@ -3005,33 +2970,31 @@ PROJECT                       : project
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : compositeNest.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLibNested_3/com.test.compositeNest3.compositeNest.test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+            productionModuleName          : TestCompositeLib3.TestCompositeLibNested_3.main
+        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/test/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : com.test.compositeNest3.compositeNest.main
+        ORDER_ENTRY                   : TestCompositeLib3.TestCompositeLibNested_3.main
         BUILD_TASKS
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
                 REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
                 COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
-    MODULE                        : composite4
+    MODULE                        : TestCompositeLib4
         ExternalModuleGroup           : com.test.composite4
         ExternalModuleVersion         : 1.0
         LinkedProjectId               : :TestCompositeLib4
         LinkedProjectPath             : <PROJECT>/TestCompositeLib4
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/composite4 [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/composite4 [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/TestCompositeLib4 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib4 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib4/composite4.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -3045,7 +3008,7 @@ PROJECT                       : project
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:testClasses
                 REBUILD                       : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses
                 COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLib4:testClasses
-    MODULE                        : composite4.main
+    MODULE                        : TestCompositeLib4.main
         ExternalModuleGroup           : com.test.composite4
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
@@ -3056,8 +3019,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib4/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib4/composite4.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib4/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib4/src/main/java
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/TestCompositeLib4/src/main/resources [-]
@@ -3071,7 +3033,7 @@ PROJECT                       : project
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:testClasses
                 REBUILD                       : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses
                 COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLib4:testClasses
-    MODULE                        : composite4.test
+    MODULE                        : TestCompositeLib4.test
         ExternalModuleGroup           : com.test.composite4
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
@@ -3083,24 +3045,19 @@ PROJECT                       : project
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
-            productionModuleName          : composite4.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib4/composite4.test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+            productionModuleName          : TestCompositeLib4.main
+        ModuleFile                    :  [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib4/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib4/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib4/src/test/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : composite4.main
+        ORDER_ENTRY                   : TestCompositeLib4.main
         BUILD_TASKS
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:testClasses
                 REBUILD                       : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses
                 COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLib4:testClasses
-    RUN_CONFIGURATION             : TestCompositeLib1.app
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : TestCompositeLib1.app
-        Module                        : TestCompositeLib1.app
     RUN_CONFIGURATION             : TestCompositeLib3.app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : TestCompositeLib3.app
@@ -3109,6 +3066,10 @@ PROJECT                       : project
         *class*                       : AndroidRunConfiguration
         ModuleName                    : project.app
         Module                        : project.app
+    RUN_CONFIGURATION             : includedLib1.app
+        *class*                       : AndroidRunConfiguration
+        ModuleName                    : includedLib1.app
+        Module                        : includedLib1.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
