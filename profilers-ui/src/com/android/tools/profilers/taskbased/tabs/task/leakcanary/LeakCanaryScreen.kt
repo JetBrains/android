@@ -104,7 +104,7 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel) {
       HorizontalSplitLayout(
         state = rememberSplitLayoutState(0.3f),
         firstPaneMinWidth = 150.dp,
-        secondPaneMinWidth = 250.dp,
+        secondPaneMinWidth = 600.dp,
         first = { LeakListView(leakCanaryModel) },
         second = {
           val selectedLeak by leakCanaryModel.selectedLeak.collectAsState()
