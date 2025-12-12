@@ -36,5 +36,5 @@ enum class ResolverType {
 data class LibraryReference(val libraryIndex: Int, val resolverType: ResolverType = ResolverType.GLOBAL) : Serializable
 
 interface IdeLibraryModelResolver {
-  fun resolve(unresolved: IdeDependencyCore) : Sequence<IdeLibrary>
+  fun resolve(unresolved: IdeDependencyCore, lenient: Boolean = false) : Sequence<IdeLibrary>
 }
