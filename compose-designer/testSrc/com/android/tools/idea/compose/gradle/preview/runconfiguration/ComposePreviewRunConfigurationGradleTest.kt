@@ -28,6 +28,7 @@ import com.android.tools.idea.run.ValidationError
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VfsUtil
@@ -146,7 +147,7 @@ private fun validatePreview(
     )
 
   val vFile =
-    VfsUtil.findRelativeFile(filePath, ProjectRootManager.getInstance(project).contentRoots[0])!!
+    VfsUtil.findRelativeFile(filePath, project.guessProjectDir())!!
 
   return runBlocking {
     readAction {
