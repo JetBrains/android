@@ -118,7 +118,9 @@ private class SyncContributorAndroidProjectDependenciesContext(
 
     knownModuleNames += moduleName
 
-    dependencies.flatMap { ideLibraryModelResolver.resolve(it) }.mapNotNull {
+    // It's best to be lenient when resolving dependencies to make sure sync progresses.
+    // It seems this can fail in some scenarios involving variant switching and propagation of the selected variant
+    dependencies.flatMap { ideLibraryModelResolver.resolve(it, lenient = true) }.mapNotNull {
       when (it) {
         is IdeAndroidLibrary ->
           LibraryDependency(it.getOrCreateLibraryEntity(entitySource, moduleName).symbolicId, false, scope)

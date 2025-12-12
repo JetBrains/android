@@ -29,12 +29,19 @@ class IdeLibraryModelResolverImpl @VisibleForTesting constructor(
   private val kmpLibraryTable: KotlinMultiplatformIdeLibraryTable?,
 ) : IdeLibraryModelResolver {
 
-  override fun resolve(unresolved: IdeDependencyCore): Sequence<IdeLibrary> =
-    if (unresolved.target.resolverType == ResolverType.KMP_ANDROID) {
-      kmpLibraryTable!!.libraries[unresolved.target.libraryIndex]
-    } else {
-      globalLibraryTable!!.libraries[unresolved.target.libraryIndex]
-    }.asSequence()
+  override fun resolve(unresolved: IdeDependencyCore, lenient: Boolean): Sequence<IdeLibrary> {
+    val table = if (unresolved.target.resolverType == ResolverType.KMP_ANDROID) {
+      kmpLibraryTable!!.libraries
+    }
+    else {
+      globalLibraryTable!!.libraries
+    }
+    return when {
+      unresolved.target.libraryIndex < table.size -> table[unresolved.target.libraryIndex].asSequence()
+      lenient -> emptySequence()
+      else -> throw IndexOutOfBoundsException("Index ${unresolved.target.libraryIndex} out of bounds, size: ${table.size} ")
+    }
+  }
 
   companion object {
     @JvmStatic
