@@ -42,6 +42,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileTypes.BinaryFileDecompiler;
 import com.intellij.openapi.fileTypes.BinaryFileTypeDecompilers;
 import com.intellij.openapi.fileTypes.FileTypeExtensionPoint;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.PersistentFSConstants;
@@ -88,12 +89,14 @@ public class MlLightClassTest extends AndroidTestCase {
 
   private void setupProject(String version) {
     myFixture = setupTestMlProject(myFixture, version, 28, ImmutableList.of());
+    myModule = ModuleManager.getInstance(myFixture.getProject()).getModules()[0];
   }
 
   private void setupProjectWithKotlin(String version) {
     JavaLibraryDependency kotlinStdlib =
       JavaLibraryDependency.Companion.forJar(AdtTestKotlinArtifacts.INSTANCE.getKotlinStdlib());
     myFixture = setupTestMlProject(myFixture, version, 28, ImmutableList.of(kotlinStdlib));
+    myModule = ModuleManager.getInstance(myFixture.getProject()).getModules()[0];
   }
 
   public void testHighlighting_java() {
