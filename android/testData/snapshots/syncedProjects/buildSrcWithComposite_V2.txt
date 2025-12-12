@@ -680,374 +680,6 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : :app:createMockableJar
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
-    MODULE                        : BuildSrcWithComposite.buildSrc
-        ExternalModuleGroup           :
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId               : :buildSrc
-        LinkedProjectPath             : <PROJECT>/buildSrc
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/BuildSrcWithComposite.buildSrc [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/BuildSrcWithComposite.buildSrc [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/BuildSrcWithComposite.buildSrc.iml [-]
-        ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android-Gradle
-            TypeId                        : android-gradle
-            ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/buildSrc
-            EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/build
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
-        ORDER_ENTRY                   : <Module source>
-        BUILD_TASKS
-    MODULE                        : BuildSrcWithComposite.buildSrc.lib1
-        ExternalModuleGroup           : buildSrc
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId               : :buildSrc:lib1
-        LinkedProjectPath             : <PROJECT>/buildSrc/lib1
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/BuildSrcWithComposite.buildSrc.lib1 [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/BuildSrcWithComposite.buildSrc.lib1 [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib1/BuildSrcWithComposite.buildSrc.lib1.iml [-]
-        ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android-Gradle
-            TypeId                        : android-gradle
-            ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib1
-            EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib1/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib1/build
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
-        ORDER_ENTRY                   : <Module source>
-        BUILD_TASKS
-    MODULE                        : BuildSrcWithComposite.buildSrc.lib1.main
-        ExternalModuleGroup           : buildSrc
-        ExternalModuleType            : sourceSet
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId               : :buildSrc:lib1:main
-        LinkedProjectPath             : <PROJECT>/buildSrc/lib1
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib1/build/classes/java/main
-            isCompilerPathInherited       : false
-            isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib1/BuildSrcWithComposite.buildSrc.lib1.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
-        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib1/src/main
-            JavaSource                    : file://<PROJECT>/buildSrc/lib1/src/main/java
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/buildSrc/lib1/src/main/resources [-]
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
-        ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
-        Classes
-            -                             : file://<PROJECT>/buildSrc/lib1/build/classes/java/main
-            -                             : file://<PROJECT>/buildSrc/lib1/build/resources/main
-        BUILD_TASKS
-    MODULE                        : BuildSrcWithComposite.buildSrc.lib1.test
-        ExternalModuleGroup           : buildSrc
-        ExternalModuleType            : sourceSet
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId               : :buildSrc:lib1:test
-        LinkedProjectPath             : <PROJECT>/buildSrc/lib1
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib1/build/classes/java/test [-]
-            isCompilerPathInherited       : false
-            isExcludeOutput               : true
-        TEST_MODULE_PROPERTIES
-            productionModuleName          : BuildSrcWithComposite.buildSrc.lib1.main
-        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib1/BuildSrcWithComposite.buildSrc.lib1.test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
-        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib1/src/test [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/buildSrc/lib1/src/test/java [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/buildSrc/lib1/src/test/resources [-]
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
-        ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib1.main
-        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
-        BUILD_TASKS
-    MODULE                        : BuildSrcWithComposite.buildSrc.lib2
-        ExternalModuleGroup           : buildSrc
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId               : :buildSrc:lib2
-        LinkedProjectPath             : <PROJECT>/buildSrc/lib2
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/BuildSrcWithComposite.buildSrc.lib2 [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/BuildSrcWithComposite.buildSrc.lib2 [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib2/BuildSrcWithComposite.buildSrc.lib2.iml [-]
-        ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android-Gradle
-            TypeId                        : android-gradle
-            ExternalSource                : GRADLE
-        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib2
-            EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib2/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib2/build
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
-        ORDER_ENTRY                   : <Module source>
-        BUILD_TASKS
-    MODULE                        : BuildSrcWithComposite.buildSrc.lib2.main
-        ExternalModuleGroup           : buildSrc
-        ExternalModuleType            : sourceSet
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId               : :buildSrc:lib2:main
-        LinkedProjectPath             : <PROJECT>/buildSrc/lib2
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib2/build/classes/java/main
-            isCompilerPathInherited       : false
-            isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib2/BuildSrcWithComposite.buildSrc.lib2.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
-        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib2/src/main
-            JavaSource                    : file://<PROJECT>/buildSrc/lib2/src/main/java
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/buildSrc/lib2/src/main/resources [-]
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
-        ORDER_ENTRY                   : <Module source>
-        Classes
-            -                             : file://<PROJECT>/buildSrc/lib2/build/classes/java/main
-            -                             : file://<PROJECT>/buildSrc/lib2/build/resources/main
-        BUILD_TASKS
-    MODULE                        : BuildSrcWithComposite.buildSrc.lib2.test
-        ExternalModuleGroup           : buildSrc
-        ExternalModuleType            : sourceSet
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId               : :buildSrc:lib2:test
-        LinkedProjectPath             : <PROJECT>/buildSrc/lib2
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib2/build/classes/java/test [-]
-            isCompilerPathInherited       : false
-            isExcludeOutput               : true
-        TEST_MODULE_PROPERTIES
-            productionModuleName          : BuildSrcWithComposite.buildSrc.lib2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib2/BuildSrcWithComposite.buildSrc.lib2.test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
-        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib2/src/test [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/buildSrc/lib2/src/test/java [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/buildSrc/lib2/src/test/resources [-]
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
-        ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
-        BUILD_TASKS
-    MODULE                        : BuildSrcWithComposite.buildSrc.main
-        ExternalModuleGroup           :
-        ExternalModuleType            : sourceSet
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId               : :buildSrc:main
-        LinkedProjectPath             : <PROJECT>/buildSrc
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/build/classes/java/main
-            isCompilerPathInherited       : false
-            isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/BuildSrcWithComposite.buildSrc.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
-        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/src/main
-            JavaSource                    : file://<PROJECT>/buildSrc/src/main/java
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/buildSrc/src/main/groovy [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/buildSrc/src/main/resources [-]
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
-        ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib1.main
-        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
-            Scope                         : Runtime
-        LIBRARY                       : Gradle: gradle-api-<GRADLE_VERSION>.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: gradle-api-<GRADLE_VERSION>.jar
-                *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/generated-gradle-jars/gradle-api-<GRADLE_VERSION>.jar!/
-        LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
-        LIBRARY                       : Gradle: groovy-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-ant-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-ant-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-astbuilder-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-astbuilder-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-datetime-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-datetime-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-dateutil-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-dateutil-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-groovydoc-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-groovydoc-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-json-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-json-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-nio-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-nio-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-templates-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-templates-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-xml-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-xml-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-4.0.28.jar!/
-        LIBRARY                       : Gradle: javaparser-core-3.27.0.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: javaparser-core-3.27.0.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.27.0.jar!/
-        LIBRARY                       : Gradle: kotlin-reflect-2.2.0.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-reflect-2.2.0.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle: kotlin-stdlib-2.2.0.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-stdlib-2.2.0.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        Classes
-            -                             : file://<PROJECT>/buildSrc/build/classes/java/main
-            -                             : file://<PROJECT>/buildSrc/build/classes/groovy/main
-            -                             : file://<PROJECT>/buildSrc/build/resources/main
-        BUILD_TASKS
-    MODULE                        : BuildSrcWithComposite.buildSrc.test
-        ExternalModuleGroup           :
-        ExternalModuleType            : sourceSet
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId               : :buildSrc:test
-        LinkedProjectPath             : <PROJECT>/buildSrc
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/buildSrc/build/classes/java/test [-]
-            isCompilerPathInherited       : false
-            isExcludeOutput               : true
-        TEST_MODULE_PROPERTIES
-            productionModuleName          : BuildSrcWithComposite.buildSrc.main
-        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/BuildSrcWithComposite.buildSrc.test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
-        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/src/test [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/buildSrc/src/test/groovy [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/buildSrc/src/test/java [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/buildSrc/src/test/resources [-]
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
-        ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib1.main
-        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
-            Scope                         : Runtime
-        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.main
-        LIBRARY                       : Gradle: gradle-api-<GRADLE_VERSION>.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: gradle-api-<GRADLE_VERSION>.jar
-                *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/generated-gradle-jars/gradle-api-<GRADLE_VERSION>.jar!/
-        LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
-        LIBRARY                       : Gradle: groovy-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-ant-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-ant-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-astbuilder-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-astbuilder-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-datetime-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-datetime-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-dateutil-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-dateutil-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-groovydoc-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-groovydoc-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-json-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-json-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-nio-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-nio-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-templates-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-templates-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-4.0.28.jar!/
-        LIBRARY                       : Gradle: groovy-xml-4.0.28.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: groovy-xml-4.0.28.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-4.0.28.jar!/
-        LIBRARY                       : Gradle: javaparser-core-3.27.0.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: javaparser-core-3.27.0.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.27.0.jar!/
-        LIBRARY                       : Gradle: kotlin-reflect-2.2.0.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-reflect-2.2.0.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle: kotlin-stdlib-2.2.0.jar [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kotlin-stdlib-2.2.0.jar
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        BUILD_TASKS
     MODULE                        : android-included
         ExternalModuleGroup           : com.test.composite1
         ExternalModuleVersion         : 1.0
@@ -1728,6 +1360,374 @@ PROJECT                       : BuildSrcWithComposite
                 SOURCE_GEN                    : <PROJECT>::android-included:lib:createMockableJar
                 BASELINE_PROFILE_GEN          : <PROJECT>::android-included:lib:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::android-included:lib:generateBaselineProfile
+    MODULE                        : BuildSrcWithComposite.buildSrc
+        ExternalModuleGroup           :
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :buildSrc
+        LinkedProjectPath             : <PROJECT>/buildSrc
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/BuildSrcWithComposite.buildSrc [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/BuildSrcWithComposite.buildSrc [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/BuildSrcWithComposite.buildSrc.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            ExternalSource                : GRADLE
+        CONENT_ENTRY                  : file://<PROJECT>/buildSrc
+            EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/.gradle
+            EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/build
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+    MODULE                        : BuildSrcWithComposite.buildSrc.lib1
+        ExternalModuleGroup           : buildSrc
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :buildSrc:lib1
+        LinkedProjectPath             : <PROJECT>/buildSrc/lib1
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/BuildSrcWithComposite.buildSrc.lib1 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/BuildSrcWithComposite.buildSrc.lib1 [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib1/BuildSrcWithComposite.buildSrc.lib1.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            ExternalSource                : GRADLE
+        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib1
+            EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib1/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib1/build
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+    MODULE                        : BuildSrcWithComposite.buildSrc.lib1.main
+        ExternalModuleGroup           : buildSrc
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :buildSrc:lib1:main
+        LinkedProjectPath             : <PROJECT>/buildSrc/lib1
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib1/build/classes/java/main
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib1/BuildSrcWithComposite.buildSrc.lib1.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib1/src/main
+            JavaSource                    : file://<PROJECT>/buildSrc/lib1/src/main/java
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/buildSrc/lib1/src/main/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
+        Classes
+            -                             : file://<PROJECT>/buildSrc/lib1/build/classes/java/main
+            -                             : file://<PROJECT>/buildSrc/lib1/build/resources/main
+        BUILD_TASKS
+    MODULE                        : BuildSrcWithComposite.buildSrc.lib1.test
+        ExternalModuleGroup           : buildSrc
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :buildSrc:lib1:test
+        LinkedProjectPath             : <PROJECT>/buildSrc/lib1
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib1/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : BuildSrcWithComposite.buildSrc.lib1.main
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib1/BuildSrcWithComposite.buildSrc.lib1.test.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib1/src/test [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/buildSrc/lib1/src/test/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/buildSrc/lib1/src/test/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib1.main
+        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
+        BUILD_TASKS
+    MODULE                        : BuildSrcWithComposite.buildSrc.lib2
+        ExternalModuleGroup           : buildSrc
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :buildSrc:lib2
+        LinkedProjectPath             : <PROJECT>/buildSrc/lib2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/BuildSrcWithComposite.buildSrc.lib2 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/BuildSrcWithComposite.buildSrc.lib2 [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib2/BuildSrcWithComposite.buildSrc.lib2.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            ExternalSource                : GRADLE
+        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib2
+            EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib2/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib2/build
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+    MODULE                        : BuildSrcWithComposite.buildSrc.lib2.main
+        ExternalModuleGroup           : buildSrc
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :buildSrc:lib2:main
+        LinkedProjectPath             : <PROJECT>/buildSrc/lib2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib2/build/classes/java/main
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib2/BuildSrcWithComposite.buildSrc.lib2.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib2/src/main
+            JavaSource                    : file://<PROJECT>/buildSrc/lib2/src/main/java
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/buildSrc/lib2/src/main/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        Classes
+            -                             : file://<PROJECT>/buildSrc/lib2/build/classes/java/main
+            -                             : file://<PROJECT>/buildSrc/lib2/build/resources/main
+        BUILD_TASKS
+    MODULE                        : BuildSrcWithComposite.buildSrc.lib2.test
+        ExternalModuleGroup           : buildSrc
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :buildSrc:lib2:test
+        LinkedProjectPath             : <PROJECT>/buildSrc/lib2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib2/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : BuildSrcWithComposite.buildSrc.lib2.main
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib2/BuildSrcWithComposite.buildSrc.lib2.test.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib2/src/test [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/buildSrc/lib2/src/test/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/buildSrc/lib2/src/test/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
+        BUILD_TASKS
+    MODULE                        : BuildSrcWithComposite.buildSrc.main
+        ExternalModuleGroup           :
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :buildSrc:main
+        LinkedProjectPath             : <PROJECT>/buildSrc
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/build/classes/java/main
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/BuildSrcWithComposite.buildSrc.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/src/main
+            JavaSource                    : file://<PROJECT>/buildSrc/src/main/java
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/buildSrc/src/main/groovy [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/buildSrc/src/main/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib1.main
+        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
+            Scope                         : Runtime
+        LIBRARY                       : Gradle: gradle-api-<GRADLE_VERSION>.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: gradle-api-<GRADLE_VERSION>.jar
+                *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/generated-gradle-jars/gradle-api-<GRADLE_VERSION>.jar!/
+        LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
+        LIBRARY                       : Gradle: groovy-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-ant-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-ant-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-astbuilder-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-astbuilder-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-datetime-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-datetime-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-dateutil-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-dateutil-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-groovydoc-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-groovydoc-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-json-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-json-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-nio-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-nio-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-templates-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-templates-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-xml-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-xml-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-4.0.28.jar!/
+        LIBRARY                       : Gradle: javaparser-core-3.27.0.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: javaparser-core-3.27.0.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.27.0.jar!/
+        LIBRARY                       : Gradle: kotlin-reflect-2.2.0.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-reflect-2.2.0.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: kotlin-stdlib-2.2.0.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-stdlib-2.2.0.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+        Classes
+            -                             : file://<PROJECT>/buildSrc/build/classes/java/main
+            -                             : file://<PROJECT>/buildSrc/build/classes/groovy/main
+            -                             : file://<PROJECT>/buildSrc/build/resources/main
+        BUILD_TASKS
+    MODULE                        : BuildSrcWithComposite.buildSrc.test
+        ExternalModuleGroup           :
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :buildSrc:test
+        LinkedProjectPath             : <PROJECT>/buildSrc
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerTestOutputPath        : file://<PROJECT>/buildSrc/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : BuildSrcWithComposite.buildSrc.main
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/BuildSrcWithComposite.buildSrc.test.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        CONENT_ENTRY                  : file://<PROJECT>/buildSrc/src/test [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/buildSrc/src/test/groovy [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/buildSrc/src/test/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/buildSrc/src/test/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib1.main
+        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
+            Scope                         : Runtime
+        ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.main
+        LIBRARY                       : Gradle: gradle-api-<GRADLE_VERSION>.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: gradle-api-<GRADLE_VERSION>.jar
+                *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/generated-gradle-jars/gradle-api-<GRADLE_VERSION>.jar!/
+        LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
+        LIBRARY                       : Gradle: groovy-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-ant-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-ant-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-astbuilder-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-astbuilder-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-datetime-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-datetime-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-dateutil-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-dateutil-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-groovydoc-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-groovydoc-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-json-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-json-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-nio-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-nio-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-templates-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-templates-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-4.0.28.jar!/
+        LIBRARY                       : Gradle: groovy-xml-4.0.28.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-xml-4.0.28.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-4.0.28.jar!/
+        LIBRARY                       : Gradle: javaparser-core-3.27.0.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: javaparser-core-3.27.0.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.27.0.jar!/
+        LIBRARY                       : Gradle: kotlin-reflect-2.2.0.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-reflect-2.2.0.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: kotlin-stdlib-2.2.0.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-stdlib-2.2.0.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+        BUILD_TASKS
     MODULE                        : java-included
         ExternalModuleGroup           : com.test.java.included
         ExternalModuleVersion         : 1.0

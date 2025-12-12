@@ -1,3 +1,4 @@
+MODULE                        : project
 MODULE                        : gradle_project_1
     externalProject               : gradle_project_1 (DefaultExternalProject)
         path                          : : [-]
@@ -2302,4 +2303,3 @@ MODULE                        : gradle_project_name.app
 MODULE                        : gradle_project_name.app.androidTest
 MODULE                        : gradle_project_name.app.main
 MODULE                        : gradle_project_name.app.unitTest
-MODULE                        : project

@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.project.sync.internal.head
 import com.android.tools.idea.gradle.project.sync.internal.prop
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.android.tools.lint.model.LintModelAndroidArtifact
 import com.android.tools.lint.model.LintModelAndroidLibrary
@@ -41,7 +42,7 @@ fun ProjectDumper.dumpLintModels(project: Project) {
   nest(File(project.basePath!!), "PROJECT") {
     ModuleManager.getInstance(project)
       .modules
-      .sortedBy { it.name }
+      .sortModules()
       .forEach { module ->
         head("MODULE") { module.name }
         nest {
