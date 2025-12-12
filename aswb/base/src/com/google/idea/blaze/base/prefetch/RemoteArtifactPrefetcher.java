@@ -27,20 +27,10 @@ public interface RemoteArtifactPrefetcher {
   }
 
   /**
-   * Fetch file content for a list of {@link RemoteOutputArtifact}. Only load content into JVM
-   * memory. Return {@link ListenableFuture} to indicate whether load completed/ any of them failed
-   * with exception.
-   */
-  ListenableFuture<?> loadFilesInJvm(Collection<RemoteOutputArtifact> outputArtifacts);
-
-  /**
    * Download for a list of {@link RemoteOutputArtifact} to local cache directory. Return {@link
    * ListenableFuture} to indicate whether download completed/ any of them failed with exception. If
    * projectName is provided, objfs files will be downloaded to projectName specific directory.
    */
   ListenableFuture<?> downloadArtifacts(
       String projectName, Collection<RemoteOutputArtifact> outputArtifacts);
-
-  /** Clean up any file downloaded into local directory */
-  ListenableFuture<?> cleanupLocalCacheDir(String projectName);
 }
