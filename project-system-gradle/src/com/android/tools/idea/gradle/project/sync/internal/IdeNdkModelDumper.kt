@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeVariant
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V1NdkModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import java.io.File
@@ -35,7 +36,7 @@ import java.io.File
 
 fun ProjectDumper.dumpNdkIdeModel(project: Project) {
   nest(File(project.basePath!!), "PROJECT") {
-    ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { module ->
+    ModuleManager.getInstance(project).modules.sortModules().forEach { module ->
       head("MODULE") { module.name }
       nest {
         NdkModuleModel.get(module)?.let { it ->

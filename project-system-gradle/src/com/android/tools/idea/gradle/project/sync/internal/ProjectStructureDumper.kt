@@ -86,7 +86,7 @@ fun ProjectDumper.dumpProject(project: Project) {
     nest {
       prop("Version") { ProjectRootManager.getInstance(project).projectSdk?.versionString?.replaceJdkVersion() }
     }
-    ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { dump(it) }
+    ModuleManager.getInstance(project).modules.sortModules().forEach { dump(it) }
     RunManagerEx.getInstanceEx(project).allConfigurationsList.sortedBy { it.name }.forEach { dump(it) }
     val libraries = LibraryTablesRegistrar.getInstance().getLibraryTable(project).libraries
     if (libraries.isNotEmpty()) {

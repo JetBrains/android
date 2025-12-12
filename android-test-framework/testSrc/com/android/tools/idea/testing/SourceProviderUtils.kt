@@ -28,6 +28,7 @@ import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.utils.FileUtils
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.systemIndependentPath
@@ -151,7 +152,7 @@ fun Project.dumpSourceProviders(): String {
       }
 
       this@dumpSourceProviders.getAndroidFacets()
-        .sortedBy { it.module.name }
+        .sortedWith(compareBy({ it.module.getGradleProjectPath()?.buildRoot}, { it.module.name }))
         .forEach { facet ->
           out("MODULE: ${facet.module.name}")
           nest {
