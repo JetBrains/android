@@ -25,20 +25,15 @@ import com.intellij.facet.impl.FacetUtil
 import com.intellij.openapi.roots.ExternalProjectSystemRegistry
 import com.intellij.openapi.util.JDOMUtil
 import com.intellij.platform.workspace.jps.entities.FacetEntity
-import com.intellij.platform.workspace.jps.entities.FacetEntityBuilder
 import com.intellij.platform.workspace.jps.entities.FacetEntityTypeId
 import com.intellij.platform.workspace.jps.entities.FacetId
 import com.intellij.platform.workspace.jps.entities.ModuleEntityBuilder
 import com.intellij.platform.workspace.jps.entities.ModuleId
-import com.intellij.platform.workspace.jps.entities.modifyFacetEntity
-import com.intellij.platform.workspace.storage.EntitySource
-import com.intellij.platform.workspace.storage.MutableEntityStorage
+import java.io.File
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import java.io.File
 
-internal fun SyncContributorAndroidProjectContext.createOrUpdateAndroidGradleFacet(
-  storage: MutableEntityStorage,
+internal fun SyncContributorAndroidProjectContext.createAndroidGradleFacet(
   moduleEntity: ModuleEntityBuilder
 ) {
   val configuration = GradleFacet.getFacetType().createDefaultConfiguration().apply {
@@ -49,15 +44,10 @@ internal fun SyncContributorAndroidProjectContext.createOrUpdateAndroidGradleFac
     FacetEntityTypeId(GradleFacet.getFacetType().stringId),
     ModuleId(moduleEntity.name)
   )
-  withExistingFacetFromStorageOrNewBuilder(storage, moduleEntity.entitySource, facetId) {
-    updateFacet(GradleFacet.getFacetTypeId(), configuration, moduleEntity, it)
-  }
+  createFacet(facetId,GradleFacet.getFacetTypeId(), configuration, moduleEntity)
 }
 
-internal fun SyncContributorAndroidProjectContext.createOrUpdateAndroidFacet(
-  storage: MutableEntityStorage,
-  moduleEntity: ModuleEntityBuilder
-) {
+internal fun SyncContributorAndroidProjectContext.createAndroidFacet(moduleEntity: ModuleEntityBuilder) {
   val configuration = AndroidFacet.getFacetType().createDefaultConfiguration().apply {
     state.apply {
       @Suppress("DEPRECATION") // One of the legitimate assignments to the property.
@@ -92,16 +82,15 @@ internal fun SyncContributorAndroidProjectContext.createOrUpdateAndroidFacet(
     ModuleId(moduleEntity.name)
   )
 
-  withExistingFacetFromStorageOrNewBuilder(storage, moduleEntity.entitySource, facetId) {
-    updateFacet(AndroidFacet.getFacetType().id, configuration, moduleEntity, it)
-  }
+  createFacet(facetId, AndroidFacet.getFacetType().id, configuration, moduleEntity)
 }
 
-private fun SyncContributorAndroidProjectContext.updateFacet(
+private fun SyncContributorAndroidProjectContext.createFacet(
+  facetId: FacetId,
   facetTypeId: FacetTypeId<*>,
   configuration: FacetConfiguration,
-  moduleEntity: ModuleEntityBuilder,
-  existingFacet: FacetEntityBuilder) {
+  moduleEntity: ModuleEntityBuilder) {
+  val facet = FacetEntity(facetId.parentId, facetId.name, facetId.type, projectEntitySource)
   // Set external source for facet, as this is not serialized
   registerModuleAction(moduleEntity.name) { module ->
     val facet = FacetManager.getInstance(module).getFacetByType(facetTypeId) ?: return@registerModuleAction
@@ -109,22 +98,11 @@ private fun SyncContributorAndroidProjectContext.updateFacet(
   }
 
   // Associate facet with the module entity
-  existingFacet.module = moduleEntity
+  facet.module = moduleEntity
 
   // Set facet configuration XML
   val configurationString = JDOMUtil.write(FacetUtil.saveFacetConfiguration(configuration) ?: return)
-  if (existingFacet.configurationXmlTag != configurationString) {
-    existingFacet.configurationXmlTag = configurationString
+  if (facet.configurationXmlTag != configurationString) {
+    facet.configurationXmlTag = configurationString
   }
-}
-
-private fun withExistingFacetFromStorageOrNewBuilder(
-  storage: MutableEntityStorage,
-  entitySource: EntitySource,
-  facetId: FacetId,
-  facetUpdater: (facetEntity: FacetEntityBuilder) -> Unit
-) {
-  storage.resolve(facetId)?.let {
-    storage.modifyFacetEntity(it, facetUpdater)
-  } ?: facetUpdater(FacetEntity(facetId.parentId, facetId.name, facetId.type, entitySource))
 }
