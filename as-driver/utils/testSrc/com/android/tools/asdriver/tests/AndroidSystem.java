@@ -136,6 +136,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
       AndroidSystem system = standard();
       Path sdkDir = IdeInstallation.getTmpDir().resolve("sdk");
       AndroidSdk sdk = new AndroidSdk(sdkDir);
+      sdk.install(system.env);
       system.getInstallation().setupTmpDir();
       system.getInstallation().setGlobalSdk(sdk);
       system.useTmpDir = true;

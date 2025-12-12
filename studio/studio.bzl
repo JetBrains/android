@@ -1,5 +1,6 @@
 """This file contains Bazel build rules for the Android Studio release distribution"""
 
+load("@rules_java//java:defs.bzl", "java_binary")
 load("//build/bazel/rules/gathering:prebuilt_package_metadata.bzl", "prebuilt_package_metadata")
 load("//build/bazel/rules/gathering:write_package_metadata.bzl", "write_package_metadata")
 load("//tools/adt/idea/studio/rules:app-icon.bzl", "AppIconInfo", "replace_app_icon")
@@ -1630,7 +1631,7 @@ def _gen_plugin_jars_import_target(name, spec, sdk_dirs, plugin, jars):
         }),
     )
 
-def _studio_project_model_impl(ctx):
+def _studio_project_model_generator_impl(ctx):
     out_dir = ctx.actions.declare_directory(ctx.attr.out_dir_name)
     project_path = ctx.attr.project_path
     manifest_path = ctx.attr.manifest_path
@@ -1656,8 +1657,8 @@ def _studio_project_model_impl(ctx):
     )
     return [DefaultInfo(files = depset([out_dir]), runfiles = ctx.runfiles(files = [out_dir]))]
 
-studio_project_model = rule(
-    implementation = _studio_project_model_impl,
+studio_project_model_generator = rule(
+    implementation = _studio_project_model_generator_impl,
     attrs = {
         "srcs": attr.label_list(allow_files = True),
         "tool": attr.label(executable = True, mandatory = True, cfg = "target"),
@@ -1667,3 +1668,23 @@ studio_project_model = rule(
         "tool_args": attr.string_list(),
     },
 )
+
+def studio_project_model(name, manifest_path, out_dir_name, project_path, srcs = [], visibility = None):
+    generator_name = name + "_generator"
+    java_binary(
+        name = generator_name,
+        testonly = True,
+        main_class = "com.android.tools.idea.ProjectIndexAndGradleSyncGenerator",
+        data = srcs,
+        runtime_deps = ["//tools/adt/idea/android/integration:project_model_generator_lib"],
+    )
+    studio_project_model_generator(
+        name = name,
+        srcs = srcs,
+        testonly = True,
+        manifest_path = manifest_path,
+        out_dir_name = out_dir_name,
+        project_path = project_path,
+        tool = ":" + generator_name,
+        visibility = visibility,
+    )
