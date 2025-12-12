@@ -2281,6 +2281,11 @@ public final class StudioFlags {
                     "Use BM25 for find_files tool",
                     "When enabled, the agent will use find_files tool with BM25 backend together with the original find_files.");
 
+  public static final Flag<Boolean> STUDIOBOT_USE_BM25_FOR_GREP =
+    new BooleanFlag(STUDIOBOT, "use.bm25.grep",
+                    "Use BM25 for grep tool",
+                    "When enabled, the agent will use grep tool with BM25 backend together with the original grep.");
+
   public static final Flag<Boolean> STUDIOBOT_ASK_GEMINI_INCLUDE_BUILD_FILES_IN_CONTEXT =
     new BooleanFlag(STUDIOBOT, "askgemini.include.build.files.in.context",
                     "Allow build files in 'Ask Gemini' context",
