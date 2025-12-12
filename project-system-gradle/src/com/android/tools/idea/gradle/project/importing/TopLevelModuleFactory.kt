@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.importing
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.Projects
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -98,23 +99,25 @@ class TopLevelModuleFactory() {
     }
     projectModifieableModel.commit()
     val projectRootDirPath = PathUtil.toSystemIndependentName(gradleRoot.path)
-    ExternalSystemModulePropertyManager.getInstance(module)
-      .setExternalOptions(
-        GradleProjectSystemUtil.GRADLE_SYSTEM_ID,
-        ModuleData(
-          ":",
+    if (!StudioFlags.PHASED_SYNC_ENABLED.get()) {
+      ExternalSystemModulePropertyManager.getInstance(module)
+        .setExternalOptions(
           GradleProjectSystemUtil.GRADLE_SYSTEM_ID,
-          JAVA_MODULE_ENTITY_TYPE_ID_NAME, gradleRoot.name,
-          projectRootDirPath!!,
-          projectRootDirPath
-        ),
-        ProjectData(
-          /* owner = */ GradleProjectSystemUtil.GRADLE_SYSTEM_ID,
-          /* externalName = */ project.name,
-          /* ideProjectFileDirectoryPath = */ gradleRootPath,
-          /* linkedExternalProjectPath = */ ExternalSystemApiUtil.toCanonicalPath(gradleRoot.canonicalPath)
+          ModuleData(
+            ":",
+            GradleProjectSystemUtil.GRADLE_SYSTEM_ID,
+            JAVA_MODULE_ENTITY_TYPE_ID_NAME, gradleRoot.name,
+            projectRootDirPath!!,
+            projectRootDirPath
+          ),
+          ProjectData(
+            /* owner = */ GradleProjectSystemUtil.GRADLE_SYSTEM_ID,
+            /* externalName = */ project.name,
+            /* ideProjectFileDirectoryPath = */ gradleRootPath,
+            /* linkedExternalProjectPath = */ ExternalSystemApiUtil.toCanonicalPath(gradleRoot.canonicalPath)
+          )
         )
-      )
+    }
     val model = ModuleRootManager.getInstance(module).modifiableModel
 
     if (model.contentEntries.singleOrNull() == null) {
