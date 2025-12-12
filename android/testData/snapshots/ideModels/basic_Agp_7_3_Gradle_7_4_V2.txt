@@ -12,8 +12,7 @@ MODULE                        : project
     COMPILER_MODULE_EXTENSION
         isCompilerPathInherited       : false
         isExcludeOutput               : true
-    ModuleFile                    : <ROOT>/.idea/modules/project.iml [-]
-    ModuleTypeName                : JAVA_MODULE
+    ModuleFile                    :  [-]
     FACET                         : Android
         TypeId                        : android
         ExternalSource                : GRADLE

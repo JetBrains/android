@@ -13,8 +13,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithGradleLikeStructureTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -66,8 +65,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithGradleLikeStructureTest.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -133,8 +131,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithGradleLikeStructureTest.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -200,8 +197,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithGradleLikeStructureTest.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE

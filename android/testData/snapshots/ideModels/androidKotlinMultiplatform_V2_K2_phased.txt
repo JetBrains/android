@@ -9,8 +9,7 @@ MODULE                        : Kotlin_Multiplatform
         compilerTestOutputPath        : file://<ROOT>/build/classes/test/Kotlin_Multiplatform [-]
         isCompilerPathInherited       : true
         isExcludeOutput               : true
-    ModuleFile                    : <ROOT>/.idea/modules/Kotlin_Multiplatform.iml [-]
-    ModuleTypeName                : JAVA_MODULE
+    ModuleFile                    :  [-]
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
         EXCLUDE_FOLDER                : file://<ROOT>/build
@@ -1965,16 +1964,16 @@ MODULE                        : Kotlin_Multiplatform.app
                             module                        : <ROOT>-:androidLib-MAIN
                             module                        : <ROOT>-:kmpSecondLib-androidMain
                             module                        : <ROOT>-:kmpSecondLib-commonMain
-                            module                        : <ROOT>-:kmpJvmOnly-commonMain
                             module                        : <ROOT>-:kmpJvmOnly-jvmMain
+                            module                        : <ROOT>-:kmpJvmOnly-commonMain
                             module                        : <ROOT>-:kmpJvmOnly-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:androidLib-MAIN
                         module                        : <ROOT>-:kmpSecondLib-androidMain
                         module                        : <ROOT>-:kmpSecondLib-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:kmpJvmOnly-commonMain
                         module                        : <ROOT>-:kmpJvmOnly-jvmMain
+                        module                        : <ROOT>-:kmpJvmOnly-commonMain
                         module                        : <ROOT>-:kmpJvmOnly-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 ApplicationId                 : com.example.app
@@ -2119,16 +2118,16 @@ MODULE                        : Kotlin_Multiplatform.app
                             module                        : <ROOT>-:androidLib-MAIN
                             module                        : <ROOT>-:kmpSecondLib-androidMain
                             module                        : <ROOT>-:kmpSecondLib-commonMain
-                            module                        : <ROOT>-:kmpJvmOnly-commonMain
                             module                        : <ROOT>-:kmpJvmOnly-jvmMain
+                            module                        : <ROOT>-:kmpJvmOnly-commonMain
                             module                        : <ROOT>-:kmpJvmOnly-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:androidLib-MAIN
                         module                        : <ROOT>-:kmpSecondLib-androidMain
                         module                        : <ROOT>-:kmpSecondLib-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:kmpJvmOnly-commonMain
                         module                        : <ROOT>-:kmpJvmOnly-jvmMain
+                        module                        : <ROOT>-:kmpJvmOnly-commonMain
                         module                        : <ROOT>-:kmpJvmOnly-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -2291,8 +2290,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         module                        : :-:androidLib-MAIN
                         module                        : :-:kmpSecondLib-commonMain
                         module                        : :-:kmpSecondLib-androidMain
-                        module                        : :-:kmpJvmOnly-commonMain
                         module                        : :-:kmpJvmOnly-jvmMain
+                        module                        : :-:kmpJvmOnly-commonMain
                     runtimeClasspath
                         module                        : :-:kmpFirstLib-commonMain
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
@@ -2300,8 +2299,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         module                        : :-:androidLib-MAIN
                         module                        : :-:kmpSecondLib-commonMain
                         module                        : :-:kmpSecondLib-androidMain
-                        module                        : :-:kmpJvmOnly-commonMain
                         module                        : :-:kmpJvmOnly-jvmMain
+                        module                        : :-:kmpJvmOnly-commonMain
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -2357,8 +2356,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         module                        : :-:androidLib-MAIN
                         module                        : :-:kmpSecondLib-commonMain
                         module                        : :-:kmpSecondLib-androidMain
-                        module                        : :-:kmpJvmOnly-commonMain
                         module                        : :-:kmpJvmOnly-jvmMain
+                        module                        : :-:kmpJvmOnly-commonMain
                     runtimeClasspath
                         module                        : :-:kmpFirstLib-androidMain
                         module                        : :-:kmpFirstLib-commonMain
@@ -2409,8 +2408,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         module                        : :-:androidLib-MAIN
                         module                        : :-:kmpSecondLib-commonMain
                         module                        : :-:kmpSecondLib-androidMain
-                        module                        : :-:kmpJvmOnly-commonMain
                         module                        : :-:kmpJvmOnly-jvmMain
+                        module                        : :-:kmpJvmOnly-commonMain
                 ProvidedDependencies
                     - provided                    : androidx.arch.core:core-runtime:2.0.0
                     - provided                    : androidx.lifecycle:lifecycle-common:2.3.1
@@ -2461,8 +2460,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         module                        : :-:androidLib-MAIN
                         module                        : :-:kmpSecondLib-commonMain
                         module                        : :-:kmpSecondLib-androidMain
-                        module                        : :-:kmpJvmOnly-commonMain
                         module                        : :-:kmpJvmOnly-jvmMain
+                        module                        : :-:kmpJvmOnly-commonMain
                     runtimeClasspath
                         module                        : :-:kmpFirstLib-commonTest
                         module                        : :-:kmpFirstLib-androidMain
@@ -2476,8 +2475,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         module                        : :-:androidLib-MAIN
                         module                        : :-:kmpSecondLib-commonMain
                         module                        : :-:kmpSecondLib-androidMain
-                        module                        : :-:kmpJvmOnly-commonMain
                         module                        : :-:kmpJvmOnly-jvmMain
+                        module                        : :-:kmpJvmOnly-commonMain
                 MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinMppGradleModel          : {androidDeviceTest=androidDeviceTest, androidHostTest=androidHostTest, androidMain=androidMain, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
         dependencies
@@ -3057,7 +3056,6 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
             disambiguationClassifier      : jvm
             jar                           : KotlinTargetJarImpl
                 archiveFile                   : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
-                - compilations                : main (KotlinCompilationImpl) (*seen*)
             platform                      : JVM
             - testRunTasks                : KotlinTestRunTaskImpl
                 compilationName               : test
@@ -3455,7 +3453,6 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
             disambiguationClassifier      : jvm
             jar                           : KotlinTargetJarImpl
                 archiveFile                   : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
-                - compilations                : main (KotlinCompilationImpl) (*seen*)
             platform                      : JVM
             - testRunTasks                : KotlinTestRunTaskImpl
                 compilationName               : test
@@ -3472,8 +3469,3 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib.commonMain
 MODULE                        : Kotlin_Multiplatform.kmpSecondLib.commonTest
 MODULE                        : Kotlin_Multiplatform.kmpSecondLib.jvmMain
 MODULE                        : Kotlin_Multiplatform.kmpSecondLib.jvmTest
-MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.androidLib:build.gradle.kts
-MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.app:build.gradle.kts
-MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.kmpFirstLib:build.gradle.kts
-MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.kmpJvmOnly:build.gradle.kts
-MODULE                        : kotlin.scripts.KotlinProjectScriptTemplate.kmpSecondLib:build.gradle.kts
