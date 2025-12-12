@@ -32,13 +32,11 @@ import com.intellij.openapi.observable.util.whenItemSelected
 import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.EnumComboBoxModel
-import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.panel
-import javax.swing.JEditorPane
-import javax.swing.JList
+import com.intellij.ui.dsl.listCellRenderer.textListCellRenderer
 import org.jetbrains.android.util.AndroidBundle
+import javax.swing.JEditorPane
 
 /**
  * This is a replacement for [Settings | Build, Execution, Deployment | Build Tools] area, which offers IDEA sync project control
@@ -101,17 +99,9 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
 
   private fun addAutoSyncControl(panel: Panel) {
     with(panel) {
-      row {
-        label(AndroidBundle.message("gradle.settings.autoSync.settings.label"))
-        autoSyncBehaviorComboBox = comboBox(EnumComboBoxModel<AutoSyncBehavior>(AutoSyncBehavior::class.java), object : SimpleListCellRenderer<AutoSyncBehavior>() {
-          override fun customize(list: JList<out AutoSyncBehavior?>,
-                                 value: AutoSyncBehavior?,
-                                 index: Int,
-                                 selected: Boolean,
-                                 hasFocus: Boolean) {
-            text = value?.labelBundleKey?.let { AndroidBundle.message(it) }
-          }
-        }).component
+      row(AndroidBundle.message("gradle.settings.autoSync.settings.label")) {
+        autoSyncBehaviorComboBox = comboBox(AutoSyncBehavior.entries,
+                                            textListCellRenderer("") { AndroidBundle.message(it.labelBundleKey) }).component
       }
       row {
         autoSyncBehaviorNote = text(SyncDueMessage.getSnoozedProjectsSummaryNote().orEmpty())
