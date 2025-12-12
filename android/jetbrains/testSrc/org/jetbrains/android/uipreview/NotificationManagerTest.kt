@@ -64,8 +64,8 @@ internal class NotificationManagerTest {
 
   @Test
   fun `flow is updated on every modification`() = runBlocking {
-    val app = BuildTargetReference.gradleOnly(projectRule.project.findModule(":app"))
-    val lib = BuildTargetReference.gradleOnly(projectRule.project.findModule(":lib"))
+    val app = BuildTargetReference.gradleOnly(projectRule.project.findModule("app"))
+    val lib = BuildTargetReference.gradleOnly(projectRule.project.findModule("lib"))
 
     // Copy the classes into a temp directory to use as overlay
     val tempOverlayPath = Files.createTempDirectory("overlayTest")
