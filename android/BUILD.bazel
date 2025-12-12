@@ -253,6 +253,7 @@ jvm_library(
     "//spellchecker/xml",
     "@lib//:android-core-kotlin-metadata-jvm",
     "//platform/xdebugger-impl/shared",
+    "//xml/emmet",
     ":plugins_maven_artifactResolver-m31_provided",
   ],
   exports = ["//android/build-common"]

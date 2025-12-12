@@ -267,5 +267,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.platform.debugger.impl.shared" />
+    <orderEntry type="module" module-name="intellij.xml.emmet" />
   </component>
 </module>
