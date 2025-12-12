@@ -113,9 +113,10 @@ abstract class AbstractBuildRunConfigurationAction :
     return when (runConfiguration) {
       // ModuleBasedConfiguration includes Android (including Android Test) and JUnit run configurations,
       // which is AbstractRerunFailedTestsAction.MyRunProfile.
-      is ModuleRunProfile -> true
+      is ModuleRunProfile -> getModulesToBuild(runConfiguration) != null
       // This is for Run configurations that are not module based like GradleRunConfiguration.
-      is ExternalSystemRunConfiguration -> runConfiguration is GradleRunConfiguration && runConfiguration.isRunAsTest
+      is ExternalSystemRunConfiguration ->
+        runConfiguration is GradleRunConfiguration && runConfiguration.isRunAsTest && getModulesToBuild(runConfiguration) != null
       else -> return false
     }
   }
