@@ -31,6 +31,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.execution.process.ProcessOutputType
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.externalSystem.model.project.ModuleData
@@ -639,8 +640,7 @@ class GradleConnectedAndroidTestInvokerTest {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(1)
       val listener: ExternalSystemTaskNotificationListener = it.getArgument(3)
 
-      // Simulate STDERR output.
-      listener.onTaskOutput(externalTaskId, errorText, /*stdOut=*/false)
+      listener.onTaskOutput(externalTaskId, errorText, ProcessOutputType.STDERR)
 
       null
     }
