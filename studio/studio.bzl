@@ -1372,6 +1372,7 @@ def intellij_platform_import(name, spec):
         name = name + "-dist",
         dir = "",
         dir_relative_to_repository = True,
+        compress = True,  # Workaround for b/467773803: IntelliJ 2025.3 is too large for zipper output.
         files = native.glob(
             include = ["**"],
             exclude = ["spec.bzl", "BUILD.bazel", "WORKSPACE"],
