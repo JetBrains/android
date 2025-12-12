@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.importing;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.application.ApplicationManager;
@@ -73,16 +74,27 @@ public class TopLevelModuleFactoryTest {
     Module module = modules[0];
     assertThat(module.getName()).isEqualTo(project.getName());
     File moduleFilePath = AndroidRootUtil.findModuleRootFolderPath(module);
-    assertThat(moduleFilePath.getPath()).isEqualTo(projectRootFolderPath.getPath());
+    if (StudioFlags.PHASED_SYNC_ENABLED.get()) {
+      // parent of ".idea/modules"
+      assertThat(moduleFilePath.getParentFile().getParentFile().getPath()).isEqualTo(projectRootFolderPath.getPath());
+    } else {
+      assertThat(moduleFilePath.getPath()).isEqualTo(projectRootFolderPath.getPath());
+    }
 
     // Verify the module has a JDK.
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
     assertThat(sdk).isNotNull();
 
     ExternalSystemModulePropertyManager externalSystemProperties = ExternalSystemModulePropertyManager.getInstance(module);
-    assertThat(externalSystemProperties.getExternalSystemId()).isEqualTo(GRADLE_SYSTEM_ID.getId());
-    assertThat(externalSystemProperties.getLinkedProjectId()).isEqualTo(":");
-    assertThat(externalSystemProperties.getRootProjectPath()).isEqualTo(FileUtil.toSystemIndependentName(projectRootFolderPath.getPath()));
+    if (StudioFlags.PHASED_SYNC_ENABLED.get()) {
+      assertThat(externalSystemProperties.getExternalSystemId()).isEqualTo(null);
+      assertThat(externalSystemProperties.getLinkedProjectId()).isEqualTo(null);
+      assertThat(externalSystemProperties.getRootProjectPath()).isEqualTo(null);
+    } else {
+      assertThat(externalSystemProperties.getExternalSystemId()).isEqualTo(GRADLE_SYSTEM_ID.getId());
+      assertThat(externalSystemProperties.getLinkedProjectId()).isEqualTo(":");
+      assertThat(externalSystemProperties.getRootProjectPath()).isEqualTo(FileUtil.toSystemIndependentName(projectRootFolderPath.getPath()));
+    }
 
     // Verify the module does not have a "Gradle" facet.
     assertThat(GradleFacet.getInstance(module)).isNull();
