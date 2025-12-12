@@ -93,7 +93,6 @@ import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.EntityStorage
 import com.intellij.platform.workspace.storage.ImmutableEntityStorage
 import com.intellij.platform.workspace.storage.MutableEntityStorage
-import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_RESOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_SOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_RESOURCE_ROOT_ENTITY_TYPE_ID
@@ -104,6 +103,7 @@ import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.android.sdk.AndroidSdkType
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.jps.model.java.JavaResourceRootType
 import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType
@@ -135,14 +135,14 @@ internal data class SourceSetUpdateResult(
   val allAndroidProjectContexts: List<SyncContributorAndroidProjectContext> = emptyList(),
 )
 
-internal data class AndroidGradleProjectEntitySource(
+@VisibleForTesting
+data class AndroidGradleProjectEntitySource(
   override val projectPath: String,
-  override val phase: GradleSyncPhase,
-  val buildRootUrl: VirtualFileUrl,
-  val projectRootUrl: VirtualFileUrl,
+  override val phase: GradleSyncPhase
 ) : GradleBridgeEntitySource
 
-internal data class AndroidGradleSourceSetEntitySource(
+@VisibleForTesting
+data class AndroidGradleSourceSetEntitySource(
   val projectEntitySource: AndroidGradleProjectEntitySource,
   val sourceSetName: String,
 ) : GradleBridgeEntitySource {
@@ -161,8 +161,6 @@ internal open class SyncContributorProjectContext(
   val projectEntitySource = AndroidGradleProjectEntitySource(
     context.projectPath,
     phase,
-    context.virtualFileUrl(buildModel.buildIdentifier.rootDir),
-    context.virtualFileUrl(projectModel.projectDirectory)
   )
 
   val isGradleRootProject = context.projectPath == projectModel.projectDirectory.toPath().toCanonicalPath()
