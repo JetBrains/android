@@ -28,17 +28,18 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
+import java.io.File
+import javax.imageio.ImageIO
 import org.jetbrains.kotlin.idea.base.psi.getLineNumber
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import javax.imageio.ImageIO
 
 class ViewInfoParserTest {
   private val LOG = Logger.getInstance(PreviewNavigationTest::class.java)
@@ -58,7 +59,7 @@ class ViewInfoParserTest {
       val file =
         VfsUtil.findRelativeFile(
           SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
-          ProjectRootManager.getInstance(project).contentRoots[0],
+          project.guessProjectDir(),
         )!!
       val ktFile = PsiManager.getInstance(project).findFile(file) as KtFile
       ktFile.declarations
