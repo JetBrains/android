@@ -364,7 +364,7 @@ void Agent::Shutdown() {
     for (auto& it : display_streamers_) {
       it.second.Stop();
     }
-    DisplayManager::RemoveAllDisplayListeners(Jvm::GetJni());
+    DisplayManager::RemoveAllDisplayListeners();
     if (audio_streamer_ != nullptr) {
       audio_streamer_->Stop();
     }
