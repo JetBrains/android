@@ -15,7 +15,7 @@
  */
 package com.google.idea.blaze.common.artifact;
 
-/** Used to diff blaze {@link BlazeArtifact}s from different builds. */
+/** Used to diff blaze {@link OutputArtifactWithoutDigest}s from different builds. */
 public interface ArtifactState {
 
   /**

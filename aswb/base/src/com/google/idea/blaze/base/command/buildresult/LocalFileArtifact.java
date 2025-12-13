@@ -23,8 +23,8 @@ import com.google.idea.blaze.base.run.RuntimeArtifactCache;
 import com.google.idea.blaze.base.run.RuntimeArtifactKind;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
-import com.google.idea.blaze.common.artifact.BlazeArtifact;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
+import com.google.idea.blaze.common.artifact.OutputArtifactWithoutDigest;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.nio.file.Path;
@@ -33,7 +33,7 @@ import java.util.Collection;
 /**
  * A file artifact available on the local file system.
  */
-public interface LocalFileArtifact extends BlazeArtifact {
+public interface LocalFileArtifact extends OutputArtifactWithoutDigest {
 
   /**
    * Filters out non-local artifacts.
