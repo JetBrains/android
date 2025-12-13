@@ -15,11 +15,8 @@
  */
 package com.google.idea.blaze.base.qsync.cache;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.common.artifact.ArtifactFetcher;
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.util.concurrency.AppExecutorUtil;
 
 /** Static utilities for use with {@link ArtifactFetcher} and implementations. */
 public class ArtifactFetchers {

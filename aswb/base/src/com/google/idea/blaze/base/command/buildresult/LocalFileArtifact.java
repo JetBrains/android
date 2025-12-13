@@ -49,19 +49,6 @@ public interface LocalFileArtifact extends BlazeArtifact {
       .collect(toImmutableList());
   }
 
-  /**
-   * Filters out non-local artifacts for legacy sync as it supports BlazeArtifact.
-   *
-   * <p>Some callers will only ever accept local outputs (e.g. when debugging, and making use of
-   * runfiles directories).
-   */
-  static ImmutableList<File> getLocalFilesForLegacySync(Collection<? extends BlazeArtifact> artifacts) {
-    return artifacts.stream()
-      .filter(a -> a instanceof LocalFileArtifact)
-      .map(a -> ((LocalFileArtifact)a).getFile())
-      .collect(toImmutableList());
-  }
-
   File getFile();
 
   @Override

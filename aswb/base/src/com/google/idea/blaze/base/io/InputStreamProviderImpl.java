@@ -16,12 +16,9 @@
 package com.google.idea.blaze.base.io;
 
 import com.google.errorprone.annotations.MustBeClosed;
-import com.google.idea.blaze.common.artifact.BlazeArtifact;
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 
 /** Default implementation of InputStreamProvider. */
@@ -31,11 +28,5 @@ final class InputStreamProviderImpl implements InputStreamProvider {
   @MustBeClosed
   public InputStream forFile(File file) throws FileNotFoundException {
     return new FileInputStream(file);
-  }
-
-  @Override
-  @MustBeClosed
-  public BufferedInputStream forOutputArtifact(BlazeArtifact output) throws IOException {
-    return output.getInputStream();
   }
 }

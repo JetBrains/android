@@ -49,12 +49,9 @@ import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
-import com.google.idea.blaze.base.sync.workspace.ArtifactLocationDecoder;
-import com.google.idea.blaze.base.sync.workspace.MockArtifactLocationDecoder;
 import com.google.idea.blaze.java.AndroidBlazeRules;
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;
@@ -312,13 +309,6 @@ public class BazelModuleSystemTest extends BlazeTestCase {
                     .setBuildFile(ArtifactLocation.builder().setRelativePath("foo/BUILD").build())
                     .build())
             .build();
-    ArtifactLocationDecoder decoder =
-        new MockArtifactLocationDecoder() {
-          @Override
-          public File decode(ArtifactLocation artifactLocation) {
-            return new File("/", artifactLocation.getRelativePath());
-          }
-        };
     return MockBlazeProjectDataBuilder.builder(workspaceRoot)
         .build();
   }
