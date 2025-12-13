@@ -52,19 +52,6 @@ class BlazeInfoRunnerImpl extends BlazeInfoRunner {
   }
 
   @Override
-  public ListenableFuture<String> runBlazeInfo(
-      Project project,
-      BuildInvoker invoker,
-      BlazeContext context,
-      List<String> blazeFlags,
-      String key) {
-    return Futures.transform(
-        runBlazeInfoGetBytes(project, invoker, context, blazeFlags, key),
-        bytes -> new String(bytes, StandardCharsets.UTF_8).trim(),
-        BlazeExecutor.getInstance().getExecutor());
-  }
-
-  @Override
   public ListenableFuture<BlazeInfo> runBlazeInfo(
       Project project,
       BuildInvoker invoker,

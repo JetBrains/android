@@ -21,9 +21,6 @@ import com.google.idea.blaze.exception.BuildException;
  * Indicates a failure to get artifact information
  */
 public class GetArtifactsException extends BuildException {
-  public GetArtifactsException(Throwable cause) {
-    super(cause);
-  }
 
   public GetArtifactsException(String message) {
     super(message);

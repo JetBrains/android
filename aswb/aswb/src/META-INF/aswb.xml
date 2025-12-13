@@ -82,7 +82,6 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.GeneratedResourceRetentionFilter" interface="com.google.idea.blaze.android.sync.importer.problems.GeneratedResourceRetentionFilter"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.MobileInstallAdbLocationProvider" interface="com.google.idea.blaze.android.run.binary.mobileinstall.MobileInstallAdbLocationProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.AdbTunnelConfiguratorProvider" interface="com.google.idea.blaze.android.run.binary.mobileinstall.AdbTunnelConfigurator$AdbTunnelConfiguratorProvider"/>
-    <extensionPoint qualifiedName="com.google.idea.blaze.RemoteApkDownloader" interface="com.google.idea.blaze.android.run.RemoteApkDownloader"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.ComposeStatusProvider" interface="com.google.idea.blaze.android.compose.ComposeStatusProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.android.ApkBuildStepProvider" interface="com.google.idea.blaze.android.run.ApkBuildStepProvider" />
     <extensionPoint qualifiedName="com.google.idea.blaze.NativeSymbolFinder" interface="com.google.idea.blaze.android.run.NativeSymbolFinder" />

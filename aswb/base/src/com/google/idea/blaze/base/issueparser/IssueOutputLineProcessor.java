@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.issueparser;
 
-import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
@@ -45,12 +44,6 @@ public class IssueOutputLineProcessor implements LineProcessingOutputStream.Line
     this.blazeIssueParser =
         new BlazeIssueParser(
             BlazeIssueParser.defaultIssueParsers(project, workspaceRoot, invocationContext));
-  }
-
-  public IssueOutputLineProcessor(
-      BlazeContext context, ImmutableList<BlazeIssueParser.Parser> parsers) {
-    this.context = context;
-    this.blazeIssueParser = new BlazeIssueParser(parsers);
   }
 
   @Override

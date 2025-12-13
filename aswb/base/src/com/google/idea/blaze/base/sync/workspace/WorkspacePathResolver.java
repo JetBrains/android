@@ -22,8 +22,6 @@ import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import java.io.File;
-import java.util.Arrays;
-import java.util.Objects;
 import javax.annotation.Nullable;
 
 /**
@@ -65,19 +63,8 @@ public interface WorkspacePathResolver extends ProtoWrapper<ProjectData.Workspac
   @Nullable
   WorkspacePath getWorkspacePath(File absoluteFile);
 
-  static WorkspacePathResolver fromProto(ProjectData.WorkspacePathResolver proto) {
-    return Arrays.stream(Extractor.EP_NAME.getExtensions())
-        .map(extractor -> extractor.extract(proto))
-        .filter(Objects::nonNull)
-        .findFirst()
-        .orElse(null);
-  }
-
   /**
    * Deserialize a {@link WorkspacePathResolver} from a proto message.
-   *
-   * <p>{@link WorkspacePathResolver#fromProto} will use the first non-null result from {@link
-   * Extractor#extract}. The EP ordering dictates which is chosen.
    */
   interface Extractor {
     ExtensionPointName<Extractor> EP_NAME =

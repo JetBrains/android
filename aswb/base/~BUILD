@@ -237,7 +237,6 @@ java_library(
     name = "workspace_language_checker_api",
     srcs = [
         "src/com/google/idea/blaze/base/model/primitives/LanguageClass.java",
-        "src/com/google/idea/blaze/base/sync/projectview/WorkspaceLanguageChecker.java",
     ],
     neverlink = 1,
     visibility = G3PLUGINS_VISIBILITY,
@@ -331,7 +330,6 @@ aswb_library(
     srcs = [
         "src/com/google/idea/blaze/base/bazel/BuildSystem.kt",
         "src/com/google/idea/blaze/base/logging/utils/ShardStats.java",
-        "src/com/google/idea/blaze/base/sync/sharding/BuildBatchingService.java",
     ],
     visibility = ["//visibility:private"],
     exports = [

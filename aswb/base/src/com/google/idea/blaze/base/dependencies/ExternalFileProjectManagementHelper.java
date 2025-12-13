@@ -17,10 +17,6 @@ package com.google.idea.blaze.base.dependencies;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.idea.blaze.base.dependencies.AddSourceToProjectHelper.LocationContext;
 import com.google.idea.blaze.base.lang.buildfile.language.BuildFileType;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.LanguageClass;
@@ -29,7 +25,6 @@ import com.google.idea.blaze.base.qsync.action.AddToProjectAction;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.settings.BlazeUserSettings;
 import com.google.idea.blaze.base.settings.ui.BlazeUserSettingsCompositeConfigurable;
 import com.google.idea.blaze.base.settings.ui.BlazeUserSettingsConfigurable;
@@ -54,10 +49,8 @@ import com.intellij.ui.EditorNotifications;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
@@ -133,66 +126,8 @@ public class ExternalFileProjectManagementHelper
 
   @Nullable
   private EditorNotificationPanel createNotificationPanelByProjectType(VirtualFile vf) {
-    ProjectType projectType = Blaze.getProjectType(project);
-    switch (projectType) {
-      case QUERY_SYNC:
-        return createNotificationPanelForQuerySync(vf);
-      case ASPECT_SYNC:
-        return createNotificationPanelForLegacySync(vf);
-      case UNKNOWN:
-        return null;
-    }
-    throw new AssertionError(projectType);
-  }
-
-  @Nullable
-  public EditorNotificationPanel createNotificationPanelForLegacySync(VirtualFile vf) {
-
-    LocationContext context = AddSourceToProjectHelper.getContext(project, vf);
-    if (context == null) {
-      return null;
-    }
-    boolean inProjectDirectories = AddSourceToProjectHelper.sourceInProjectDirectories(context);
-    boolean alreadyBuilt = AddSourceToProjectHelper.sourceCoveredByProjectViewTargets(context);
-    if (alreadyBuilt && inProjectDirectories) {
-      return null;
-    }
-
-    boolean addTargets = !alreadyBuilt && !AddSourceToProjectHelper.autoDeriveTargets(project);
-    ListenableFuture<List<TargetInfo>> targetsFuture =
-        addTargets
-            ? AddSourceToProjectHelper.getTargetsBuildingSource(context)
-            : Futures.immediateFuture(ImmutableList.of());
-    if (targetsFuture == null) {
-      return null;
-    }
-
-    EditorNotificationPanel panel =
-        createPanel(
-            vf,
-            p ->
-                p.createActionLabel(
-                    "Add file to project",
-                    () -> {
-                      AddSourceToProjectHelper.addSourceToProject(
-                          project, context.workspacePath, inProjectDirectories, targetsFuture);
-                      EditorNotifications.getInstance(project).updateNotifications(vf);
-                    }));
-    panel.setVisible(false); // starts off not visible until we get the query results
-
-    targetsFuture.addListener(
-        () -> {
-          try {
-            List<TargetInfo> targets = targetsFuture.get();
-            if (!targets.isEmpty() || !inProjectDirectories) {
-              panel.setVisible(true);
-            }
-          } catch (InterruptedException | ExecutionException e) {
-            // ignore
-          }
-        },
-        MoreExecutors.directExecutor());
-    return panel;
+    if (!Blaze.isBlazeProject(project)) return null;
+    return createNotificationPanelForQuerySync(vf);
   }
 
   @Nullable

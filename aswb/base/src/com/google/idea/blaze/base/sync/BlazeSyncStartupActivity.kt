@@ -28,16 +28,10 @@ class BlazeSyncStartupActivity : ProjectActivity {
     if (!Blaze.isBlazeProject(project)) {
       return
     }
-    val importSettings =
-      BlazeImportSettingsManager.getInstance(project).importSettings ?: return
     BlazeImportSettingsManager.getInstance(project).initProjectView()
 
     // When query sync is not enabled hasProjectData triggers the load
     QuerySyncManager.getInstance(project)
       .onStartup(QuerySyncActionStatsScope.create(project, javaClass, null))
-  }
-
-  companion object {
-    const val SYNC_REASON: String = "BlazeSyncStartupActivity"
   }
 }

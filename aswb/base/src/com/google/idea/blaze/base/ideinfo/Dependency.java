@@ -29,11 +29,6 @@ public final class Dependency implements ProtoWrapper<IntellijIdeInfo.Dependency
     this.dependencyType = dependencyType;
   }
 
-  static Dependency fromProto(IntellijIdeInfo.Dependency proto) {
-    return ProjectDataInterner.intern(
-        new Dependency(TargetKey.fromProto(proto.getTarget()), proto.getDependencyType()));
-  }
-
   @Override
   public IntellijIdeInfo.Dependency toProto() {
     return IntellijIdeInfo.Dependency.newBuilder()

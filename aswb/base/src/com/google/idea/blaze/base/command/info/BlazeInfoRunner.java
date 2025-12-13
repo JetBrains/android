@@ -35,18 +35,6 @@ public abstract class BlazeInfoRunner {
    * @param key The key passed to blaze info
    * @return The blaze info value associated with the specified key
    */
-  public abstract ListenableFuture<String> runBlazeInfo(
-      Project project,
-      BuildInvoker invoker,
-      BlazeContext context,
-      List<String> blazeFlags,
-      String key);
-
-  /**
-   * @param blazeFlags The blaze flags that will be passed to Blaze.
-   * @param key The key passed to blaze info
-   * @return The blaze info value associated with the specified key
-   */
   public abstract ListenableFuture<byte[]> runBlazeInfoGetBytes(
       Project project,
       BuildInvoker invoker,

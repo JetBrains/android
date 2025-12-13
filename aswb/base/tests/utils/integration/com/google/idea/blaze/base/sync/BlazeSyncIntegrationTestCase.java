@@ -20,7 +20,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -28,15 +27,10 @@ import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.MockEventLoggingService;
 import com.google.idea.blaze.base.MockProjectViewManager;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
-import com.google.idea.blaze.base.command.BlazeInvocationContext;
-import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.command.info.BlazeInfoRunner;
 import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
-import com.google.idea.blaze.base.ideinfo.TargetMap;
 import com.google.idea.blaze.base.logging.SyncStats;
-import com.google.idea.blaze.base.model.BlazeVersionData;
-import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.model.primitives.WorkspaceType;
 import com.google.idea.blaze.base.projectview.ProjectView;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
@@ -49,12 +43,8 @@ import com.google.idea.blaze.base.scope.ErrorCollector;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BuildSystemName;
-import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
-import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy.OutputGroup;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.blaze.base.sync.projectview.LanguageSupport;
-import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
-import com.google.idea.blaze.base.sync.sharding.ShardedTargetList;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverImpl;
 import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider;
 import com.google.idea.testing.ServiceHelper;
@@ -255,16 +245,6 @@ public abstract class BlazeSyncIntegrationTestCase extends BlazeIntegrationTestC
 
   private static class MockBlazeInfoRunner extends BlazeInfoRunner {
     private final Map<String, String> results = Maps.newHashMap();
-
-    @Override
-    public ListenableFuture<String> runBlazeInfo(
-        Project project,
-        BuildInvoker invoker,
-        BlazeContext context,
-        List<String> blazeFlags,
-        String key) {
-      return Futures.immediateFuture(results.get(key));
-    }
 
     @Override
     public ListenableFuture<BlazeInfo> runBlazeInfo(
