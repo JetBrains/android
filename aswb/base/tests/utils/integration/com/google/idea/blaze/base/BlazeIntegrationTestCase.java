@@ -17,9 +17,7 @@ package com.google.idea.blaze.base;
 
 
 import com.android.tools.idea.projectsystem.ProjectSystemService;
-import com.google.idea.blaze.android.projectsystem.BazelProjectSystem;
 import com.google.idea.blaze.android.projectsystem.BlazeProjectSystemProvider;
-import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
 import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.base.io.InputStreamProvider;
 import com.google.idea.blaze.base.io.VirtualFileSystemProvider;
@@ -27,13 +25,11 @@ import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.SyncCache;
 import com.google.idea.blaze.base.toolwindow.NoopTasksToolWindowService;
 import com.google.idea.blaze.base.toolwindow.TasksToolWindowService;
-import com.google.idea.blaze.common.artifact.BlazeArtifact;
 import com.google.idea.testing.EdtRule;
 import com.google.idea.testing.IntellijTestSetupRule;
 import com.google.idea.testing.ServiceHelper;
@@ -60,7 +56,6 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl;
 import com.intellij.util.ui.UIUtil;
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -149,13 +144,6 @@ public abstract class BlazeIntegrationTestCase {
             return vf.getInputStream();
           }
 
-          @Override
-          public BufferedInputStream forOutputArtifact(BlazeArtifact output) throws IOException {
-            if (output instanceof LocalFileArtifact) {
-              return new BufferedInputStream(forFile(((LocalFileArtifact) output).getFile()));
-            }
-            throw new RuntimeException("Can't handle output artifact type: " + output.getClass());
-          }
         });
 
     registerApplicationService(QuerySyncSettings.class, new QuerySyncSettings());
