@@ -62,7 +62,8 @@ public final class BinaryDeployInfoExtractor implements DeployInfoExtractor {
         buildOutputs.getOutputGroupArtifacts(deployInfoOutputGroups),
         buildOutputs.getOutputGroupArtifacts(apkOutputGroup),
         suffix,
-        context);
+        context,
+        project);
     RuntimeArtifactCache runtimeArtifactCache = RuntimeArtifactCache.getInstance(project);
     ImmutableList<File> localApks =
       runtimeArtifactCache.fetchArtifacts(targetLabel, deployData.apks(), context, RuntimeArtifactKind.APK).stream()
