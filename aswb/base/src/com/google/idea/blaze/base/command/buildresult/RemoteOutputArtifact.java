@@ -21,8 +21,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.devtools.intellij.model.ProjectData;
 import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import com.google.idea.blaze.base.settings.BuildSystemName;
-import com.google.idea.blaze.common.artifact.BlazeArtifact;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
+import com.google.idea.blaze.common.artifact.OutputArtifactWithoutDigest;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import java.util.Arrays;
 import java.util.Collection;
@@ -43,7 +43,7 @@ public interface RemoteOutputArtifact
   }
 
   static ImmutableList<RemoteOutputArtifact> getRemoteArtifacts(
-      Collection<? extends BlazeArtifact> artifacts) {
+      Collection<? extends OutputArtifactWithoutDigest> artifacts) {
     return artifacts.stream()
         .filter(a -> a instanceof RemoteOutputArtifact)
         .map(a -> ((RemoteOutputArtifact) a))

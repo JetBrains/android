@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.LanguageClass;
+import com.google.idea.blaze.common.artifact.OutputArtifactWithoutDigest;
 import com.google.idea.common.experiments.BoolExperiment;
 import java.util.Collection;
 import java.util.List;

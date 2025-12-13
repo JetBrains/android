@@ -15,13 +15,13 @@
  */
 package com.google.idea.blaze.base.io;
 
-import com.google.idea.blaze.common.artifact.BlazeArtifact;
+import com.google.idea.blaze.common.artifact.OutputArtifactWithoutDigest;
 import com.intellij.openapi.application.ApplicationManager;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-/** Provides input streams for files and {@link BlazeArtifact}s. */
+/** Provides input streams for files and {@link OutputArtifactWithoutDigest}s. */
 public interface InputStreamProvider {
 
   static InputStreamProvider getInstance() {

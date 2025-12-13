@@ -15,10 +15,21 @@
  */
 package com.google.idea.blaze.common.artifact;
 
+import com.google.errorprone.annotations.MustBeClosed;
+import java.io.BufferedInputStream;
+import java.io.IOException;
 import javax.annotation.Nullable;
 
 /** A blaze output artifact, generated during some build action. */
-public interface OutputArtifactWithoutDigest extends BlazeArtifact, OutputArtifactInfo {
+public interface OutputArtifactWithoutDigest extends OutputArtifactInfo {
+
+  /** Returns the length of the underlying file in bytes, or 0 if this can't be determined. */
+  long getLength();
+
+  /** A buffered input stream providing the contents of this artifact. */
+  @MustBeClosed
+  BufferedInputStream getInputStream() throws IOException;
+
   /**
    * Returns the {@link ArtifactState} for this output, used for serialization/diffing purposes. Can
    * require file system operations.
