@@ -18,14 +18,10 @@ package com.google.idea.blaze.base.io;
 import static org.junit.Assert.fail;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
-import com.google.idea.blaze.common.artifact.BlazeArtifact;
 import com.intellij.util.containers.HashMap;
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
@@ -63,13 +59,5 @@ public class MockInputStreamProvider implements InputStreamProvider {
       throw new FileNotFoundException(path + " has not been mapped into MockInputStreamProvider.");
     }
     return new ByteArrayInputStream(contents);
-  }
-
-  @Override
-  public BufferedInputStream forOutputArtifact(BlazeArtifact output) throws IOException {
-    if (output instanceof LocalFileArtifact) {
-      return new BufferedInputStream(forFile(((LocalFileArtifact) output).getFile()));
-    }
-    throw new RuntimeException("Unhandled output type: " + output.getClass());
   }
 }

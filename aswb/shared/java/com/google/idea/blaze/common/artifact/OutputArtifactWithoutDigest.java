@@ -19,15 +19,6 @@ import javax.annotation.Nullable;
 
 /** A blaze output artifact, generated during some build action. */
 public interface OutputArtifactWithoutDigest extends BlazeArtifact, OutputArtifactInfo {
-
-  /** The path component related to the build configuration. */
-  default String getConfigurationMnemonicForLegacySync(){
-    return getArtifactPathPrefixLength() >= 2 && getArtifactPath().getNameCount() >= 2
-      ? getArtifactPath().getName(1).toString()
-      : "";
-
-  };
-
   /**
    * Returns the {@link ArtifactState} for this output, used for serialization/diffing purposes. Can
    * require file system operations.
