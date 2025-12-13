@@ -17,17 +17,10 @@ package com.google.idea.blaze.base.command.buildresult;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.errorprone.annotations.MustBeClosed;
-import com.google.idea.blaze.base.filecache.LocalFileState;
 import com.google.idea.blaze.base.io.FileOperationProvider;
-import com.google.idea.blaze.common.artifact.ArtifactState;
 import com.google.idea.blaze.common.artifact.OutputArtifactWithoutDigest;
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.file.Path;
-import javax.annotation.Nullable;
 
 /** A blaze output artifact which exists on the local file system. */
 public class LocalFileOutputArtifactWithoutDigest
@@ -49,13 +42,6 @@ public class LocalFileOutputArtifactWithoutDigest
   }
 
   @Override
-  @Nullable
-  public ArtifactState toArtifactState() {
-    long lastModifiedTime = getLastModifiedTime();
-    return lastModifiedTime == 0 ? null : new LocalFileState(getBazelOutRelativePath(), lastModifiedTime);
-  }
-
-  @Override
   public Path getArtifactPath() {
     return artifactPath;
   }
@@ -63,12 +49,6 @@ public class LocalFileOutputArtifactWithoutDigest
   @Override
   public int getArtifactPathPrefixLength() {
     return prefixLength;
-  }
-
-  @Override
-  @MustBeClosed
-  public BufferedInputStream getInputStream() throws IOException {
-    return new BufferedInputStream(new FileInputStream(file));
   }
 
   @Override

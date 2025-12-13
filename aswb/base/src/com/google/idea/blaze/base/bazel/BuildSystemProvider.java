@@ -116,15 +116,6 @@ public interface BuildSystemProvider {
   String getProjectViewDocumentationUrl();
 
   /**
-   * The URL providing documentation for language support, if one can be found.
-   *
-   * @param relativeDocName the path to the language doc, relative to the plugin documentation
-   *     site's base URL, without the webpage's file extension.
-   */
-  @Nullable
-  String getLanguageSupportDocumentationUrl(String relativeDocName);
-
-  /**
    * The BUILD filenames supported by this build system, in decreasing order of preference (e.g. if
    * both BUILD and BUILD.bazel exist in a directory, bazel ignores the former).
    */

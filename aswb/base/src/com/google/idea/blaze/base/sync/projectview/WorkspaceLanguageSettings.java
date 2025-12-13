@@ -16,17 +16,11 @@
 package com.google.idea.blaze.base.sync.projectview;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.devtools.intellij.model.ProjectData;
 import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
-import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.LanguageClass;
 import com.google.idea.blaze.base.model.primitives.WorkspaceType;
-import java.util.Collection;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import javax.annotation.concurrent.Immutable;
 
 /** Contains the user's language preferences from the project view. */
@@ -71,35 +65,8 @@ public final class WorkspaceLanguageSettings
     return this.workspaceType == workspaceType;
   }
 
-  public boolean isWorkspaceType(WorkspaceType... workspaceTypes) {
-    for (WorkspaceType workspaceType : workspaceTypes) {
-      if (this.workspaceType == workspaceType) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   public boolean isLanguageActive(LanguageClass languageClass) {
     return getActiveLanguages().contains(languageClass);
-  }
-
-  /**
-   * Returns the set of known rule names corresponding to the currently active languages in this
-   * project.
-   *
-   * <p>Don't rely on this list being complete -- some rule names are recognized at runtime using
-   * heuristics.
-   */
-  public Predicate<String> getAvailableTargetKinds() {
-    ImmutableMultimap<LanguageClass, Kind> kinds = Kind.getPerLanguageKinds();
-    Set<String> ruleNames =
-        activeLanguages.stream()
-            .map(kinds::get)
-            .flatMap(Collection::stream)
-            .map(Kind::getKindString)
-            .collect(Collectors.toSet());
-    return ruleNames::contains;
   }
 
   @Override

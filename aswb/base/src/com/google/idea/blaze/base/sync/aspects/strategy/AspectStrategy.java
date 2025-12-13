@@ -25,21 +25,16 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.LanguageClass;
-import com.google.idea.blaze.common.artifact.OutputArtifactWithoutDigest;
 import com.google.idea.common.experiments.BoolExperiment;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Predicate;
 import javax.annotation.Nullable;
 
 /** Aspect strategy for Skylark. */
 public abstract class AspectStrategy {
-
-  public static final Predicate<String> ASPECT_OUTPUT_FILE_PREDICATE =
-      str -> str.endsWith(".intellij-info.txt");
 
   /** A Blaze output group created by the aspect. */
   public enum OutputGroup {

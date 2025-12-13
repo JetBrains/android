@@ -23,28 +23,13 @@ import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Interner
 import com.google.common.collect.Interners
-import com.google.common.collect.Queues
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEventId.IdCase.ACTION_COMPLETED
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEventId.IdCase.BUILD_FINISHED
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEventId.IdCase.NAMED_SET
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEventId.IdCase.STARTED
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEventId.IdCase.TARGET_COMPLETED
-import com.google.errorprone.annotations.CanIgnoreReturnValue
 import com.google.idea.blaze.common.artifact.OutputArtifact
-import com.google.idea.common.experiments.BoolExperiment
-import com.google.idea.common.experiments.IntExperiment
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.service
-import com.intellij.util.application
-import java.util.concurrent.Semaphore
-
-
-private val parallelBepPoolingEnabled: BoolExperiment = BoolExperiment("bep.parsing.pooling.enabled", true)
-
-// Maximum number of concurrent BEP parsing operations to allow.
-// For large projects, BEP parsing of a single shard can consume several hundred Mb of memory
-private val maxThreads: IntExperiment = IntExperiment("bep.parsing.concurrency.limit", 5)
 
 /**
  * Parses BEP events into {@link ParsedBepOutput}.
@@ -81,34 +66,6 @@ fun parseBepArtifacts(stream: BuildEventStreamProvider, nullableInterner: Intern
     override fun getAllOutputArtifactsForTesting(): List<OutputArtifact> {
       return state.traverseFileSets(state.outputs.fileSetStream()).toDistinctOutputArtifacts().toList()
     }
-  }
-}
-
-/**
- * Parses BEP events into {@link ParsedBepOutput}. String references in {@link BuildEventStreamProtos.NamedSetOfFiles}
- * are interned to conserve memory.
- *
- * <p>BEP protos often contain many duplicate strings both within a single stream and across
- * shards running in parallel, so a {@link Interner} is used to share references.
- */
-@Throws(BuildEventStreamProvider.BuildEventStreamException::class)
-fun parseBepArtifactsForLegacySync(stream: BuildEventStreamProvider, nullableInterner: Interner<String>?): ParsedBepOutput.Legacy {
-  val semaphore = application.service<BepParserSemaphore>()
-  semaphore.start()
-  try {
-    val state = parseBep(stream, nullableInterner)
-    val fileSetMap: ImmutableMap<String, ParsedBepOutput.Legacy.FileSet> =
-      fillInTransitiveFileSetData(state.fileSets, state.outputs, state.startTimeMillis)
-    return ParsedBepOutput.Legacy(
-      state.buildId,
-      fileSetMap,
-      state.startTimeMillis,
-      state.buildResult,
-      stream.getBytesConsumed(),
-      ImmutableSet.copyOf(state.targetsWithErrors))
-  }
-  finally {
-    semaphore.end()
   }
 }
 
@@ -242,51 +199,6 @@ private fun Sequence<NamedFileSet>.toDistinctOutputArtifacts(): Sequence<OutputA
   }
 }
 
-@Service(Service.Level.APP)
-class BepParserSemaphore {
-
-  val parallelParsingSemaphore: Semaphore? = if (parallelBepPoolingEnabled.getValue()) Semaphore(maxThreads.getValue()) else null
-
-  @Throws(BuildEventStreamProvider.BuildEventStreamException::class)
-  fun start() {
-    try {
-      parallelParsingSemaphore?.acquire()
-    }
-    catch (e: InterruptedException) {
-      Thread.currentThread().interrupt()
-      throw BuildEventStreamProvider.BuildEventStreamException("Failed to acquire a parser semphore permit", e)
-    }
-  }
-
-  fun end() {
-    parallelParsingSemaphore?.release()
-  }
-}
-
-private class FileSetBuilder {
-  var namedSet: BuildEventStreamProtos.NamedSetOfFiles? = null
-  var configId: String? = null
-  val outputGroups: MutableSet<String> = HashSet()
-  val targets: MutableSet<String> = HashSet()
-
-  @CanIgnoreReturnValue
-  fun updateFromParent(parent: FileSetBuilder): FileSetBuilder {
-    configId = parent.configId
-    outputGroups.addAll(parent.outputGroups)
-    targets.addAll(parent.targets)
-    return this
-  }
-
-  fun isValid(): Boolean {
-    return namedSet != null && configId != null
-  }
-
-  fun build(startTimeMillis: Long): ParsedBepOutput.Legacy.FileSet {
-    return ParsedBepOutput.Legacy.FileSet(parseFiles(namedSet!!, startTimeMillis).toList(), outputGroups, targets)
-  }
-}
-
-
 @Throws(BuildEventStreamProvider.BuildEventStreamException::class)
 private fun parseBep(stream: BuildEventStreamProvider, nullableInterner: Interner<String>?): BepParserState {
   val interner = nullableInterner ?: Interners.newStrongInterner()
@@ -345,47 +257,6 @@ private fun parseBep(stream: BuildEventStreamProvider, nullableInterner: Interne
 
 private fun getFileSets(group: BuildEventStreamProtos.OutputGroup, interner: Interner<String>): List<String> {
   return group.fileSetsList.map { interner.intern(it.id) }
-}
-
-/**
- * Only top-level targets have configuration mnemonic, producing target, and output group data
- * explicitly provided in BEP. This method fills in that data for the transitive closure.
- */
-private fun fillInTransitiveFileSetData(
-  namedFileSets: FileSets,
-  data: OutputGroupTargetConfigFileSetMap,
-  startTimeMillis: Long,
-): ImmutableMap<String, ParsedBepOutput.Legacy.FileSet> {
-  val fileSets = namedFileSets.toImmutableMap().mapValues { FileSetBuilder().apply { namedSet = it.value } }
-  val topLevelFileSets = HashSet<String>()
-  data.fileSetStream().forEach { entry ->
-    entry.fileSetNames.forEach { fileSetName ->
-      val fileSet = fileSets[fileSetName] ?: error("fileSet $fileSetName not found")
-      fileSet.apply {
-        configId = entry.config
-        outputGroups.add(entry.outputGroup)
-        targets.add(entry.target)
-      }
-      topLevelFileSets.add(fileSetName)
-    }
-  }
-
-  val toVisit = Queues.newArrayDeque(topLevelFileSets)
-  val visited: MutableSet<String> = HashSet(topLevelFileSets)
-  while (!toVisit.isEmpty()) {
-    val setId = toVisit.remove()
-    val fileSet = fileSets[setId] ?: continue
-    fileSet.namedSet
-      ?.fileSetsList
-      ?.map { it.id }
-      ?.filter { !visited.contains(it) }
-      ?.forEach { child ->
-        fileSets[child]?.updateFromParent(fileSet)
-        toVisit.add(child)
-        visited.add(child)
-      }
-  }
-  return ImmutableMap.copyOf(fileSets.filter { it.value.isValid() }.mapValues { it.value.build(startTimeMillis) })
 }
 
 /** Returns a copy of a {@link BuildEventStreamProtos.NamedSetOfFiles} with interned string references. */

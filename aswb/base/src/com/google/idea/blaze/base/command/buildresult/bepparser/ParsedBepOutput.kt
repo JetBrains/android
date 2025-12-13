@@ -15,9 +15,6 @@
  */
 package com.google.idea.blaze.base.command.buildresult.bepparser
 
-import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.ImmutableMap
-import com.google.common.collect.ImmutableSet
 import com.google.idea.blaze.common.artifact.OutputArtifact
 import org.jetbrains.annotations.TestOnly
 
@@ -69,83 +66,4 @@ interface ParsedBepOutput {
   @TestOnly
   fun getAllOutputArtifactsForTesting(): List<OutputArtifact>
 
-  class Legacy internal constructor(
-    val buildId: String?,
-    /**
-     * A map from file set ID to file set, with the same ordering as the BEP stream.
-     */
-    @field:VisibleForTesting
-    @JvmField
-    val fileSets: ImmutableMap<String, FileSet>,
-    private val syncStartTimeMillis: Long,
-    /**
-     * Returns the build result.
-     */
-    val buildResult: Int,
-    val bepBytesConsumed: Long,
-    /**
-     * Returns the set of build targets that had an error.
-     */
-    val targetsWithErrors: ImmutableSet<String>
-  ) {
-    /**
-     * Returns all output artifacts of the build.
-     */
-    @TestOnly
-    fun getAllOutputArtifactsForTesting(): Set<OutputArtifact> {
-      return fileSets
-        .values
-        .flatMap { it.parsedOutputs }
-        .toSet()
-    }
-
-    /**
-     * Returns a map from artifact key to [BepArtifactData] for all artifacts reported during
-     * the build.
-     */
-    fun getFullArtifactData(): ImmutableMap<String, BepArtifactData> {
-      return ImmutableMap.copyOf(
-        fileSets
-          .values
-          .flatMap { it.toPerArtifactData() }
-          .groupBy { it.artifact.bazelOutRelativePath }
-          .mapValues { BepArtifactData.combine(it.value) }
-      )
-    }
-
-    class FileSet internal constructor(
-      @VisibleForTesting
-      val parsedOutputs: List<OutputArtifact>,
-      outputGroups: Set<String>,
-      targets: Set<String>
-    ) {
-      @VisibleForTesting
-      val outputGroups: Set<String>
-
-      @VisibleForTesting
-      val targets: Set<String>
-
-      init {
-        this.outputGroups = ImmutableSet.copyOf<String>(outputGroups)
-        this.targets = ImmutableSet.copyOf<String>(targets)
-      }
-
-      fun toPerArtifactData(): Sequence<BepArtifactData> {
-        return parsedOutputs.asSequence()
-          .map { BepArtifactData(it, outputGroups, targets) }
-      }
-    }
-
-    companion object {
-      @VisibleForTesting
-      val EMPTY: Legacy = Legacy(
-        "build-id",
-        ImmutableMap.of<String?, FileSet?>(),
-        0,
-        0,
-        0,
-        ImmutableSet.of<String?>()
-      )
-    }
-  }
 }

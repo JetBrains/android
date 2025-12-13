@@ -16,22 +16,14 @@
 package com.google.idea.blaze.base.sync.autosync;
 
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.ideinfo.TargetKey;
-import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WildcardTargetPattern;
-import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.SyncListener;
-import com.google.idea.blaze.base.sync.SyncMode;
-import com.google.idea.blaze.base.sync.SyncResult;
-import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.sync.projectview.TargetExpressionList;
 import com.google.idea.blaze.base.sync.workspace.WorkspaceHelper;
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
-import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.concurrent.ConcurrentHashMap;
@@ -99,19 +91,6 @@ class ProjectTargetManagerImpl implements ProjectTargetManager {
   }
 
   static class TargetSyncListener implements SyncListener {
-    @Override
-    public void buildStarted(
-        Project project,
-        BlazeContext context,
-        boolean fullProjectSync,
-        int buildId,
-        ImmutableList<TargetExpression> targets) {
-      ProjectTargetManagerImpl manager = getImpl(project);
-      manager.inProgressBuilds.put(
-          buildId, new InProgressSync(fullProjectSync, TargetExpressionList.create(targets)));
-      // refresh the sync status indicators
-      ProjectView.getInstance(project).refresh();
-    }
   }
 
   private static class InProgressSync {

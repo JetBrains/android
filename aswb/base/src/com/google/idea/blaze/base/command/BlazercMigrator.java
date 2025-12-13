@@ -17,37 +17,21 @@ package com.google.idea.blaze.base.command;
 
 import static com.google.common.base.StandardSystemProperty.USER_HOME;
 
-import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.output.SummaryOutput;
 import com.google.idea.blaze.base.scope.output.SummaryOutput.Prefix;
-import com.google.idea.common.experiments.BoolExperiment;
-import com.google.idea.common.util.MorePlatformUtils;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.io.File;
 import java.io.IOException;
 import org.jetbrains.annotations.VisibleForTesting;
 
 /** Utilities to support migrating user .blazerc from home directory to workspace root */
 public class BlazercMigrator {
-  private static final String USER_BLAZERC = ".blazerc";
-  private static final BoolExperiment ENABLED =
-      new BoolExperiment("blaze.sync.runner.enablebuildapi", true);
-  private static final BoolExperiment BLAZERC_MIGRATION_EXPERIMENT =
-      new BoolExperiment("blaze.sync.userblazerc.enablemigration", false);
   private static final Logger logger = Logger.getInstance(BlazercMigrator.class);
   private final VirtualFile homeBlazerc;
   private final VirtualFile workspaceBlazercDir;
-
-  public BlazercMigrator(Project project) {
-    this.homeBlazerc = VfsUtil.findFileByIoFile(new File(USER_HOME.value(), USER_BLAZERC), true);
-    this.workspaceBlazercDir =
-        VfsUtil.findFileByIoFile(WorkspaceRoot.fromProject(project).directory(), true);
-  }
 
   @VisibleForTesting
   public BlazercMigrator(VirtualFile homeBlazerc, VirtualFile workspaceBlazercDir) {
@@ -74,17 +58,6 @@ public class BlazercMigrator {
               .dedupe());
       logger.error(e.getMessage());
     }
-  }
-
-  public boolean needMigration() {
-    if (!BLAZERC_MIGRATION_EXPERIMENT.getValue()
-        || !ENABLED.getValue()
-        || homeBlazerc == null
-        || !MorePlatformUtils.isAndroidStudio()) {
-      return false;
-    }
-    VirtualFile workspaceBlazerc = workspaceBlazercDir.findChild(USER_BLAZERC);
-    return homeBlazerc.exists() && (workspaceBlazerc == null || !workspaceBlazerc.exists());
   }
 
   private boolean promptMigration() {

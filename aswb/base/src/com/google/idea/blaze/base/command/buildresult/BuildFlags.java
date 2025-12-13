@@ -64,7 +64,7 @@ public final class BuildFlags {
       }
     }
     return new BuildFlags(
-        ImmutableList.copyOf(startupOptions), ImmutableList.copyOf(cmdlineOptions));
+        ImmutableList.copyOf(startupOptions));
   }
 
   private static void addOptionsToBuilder(
@@ -77,22 +77,16 @@ public final class BuildFlags {
   }
 
   private final ImmutableList<String> startupOptions;
-  private final ImmutableList<String> cmdlineOptions;
 
   public BuildFlags() {
-    this(ImmutableList.of(), ImmutableList.of());
+    this(ImmutableList.of());
   }
 
-  public BuildFlags(ImmutableList<String> startupOptions, ImmutableList<String> cmdlineOptions) {
+  public BuildFlags(ImmutableList<String> startupOptions) {
     this.startupOptions = startupOptions;
-    this.cmdlineOptions = cmdlineOptions;
   }
 
   public ImmutableList<String> getStartupOptions() {
     return startupOptions;
-  }
-
-  public ImmutableList<String> getCmdlineOptions() {
-    return cmdlineOptions;
   }
 }
