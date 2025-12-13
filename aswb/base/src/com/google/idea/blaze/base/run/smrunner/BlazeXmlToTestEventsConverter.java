@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.command.buildresult.GetArtifactsException;
+import com.google.idea.blaze.base.qsync.cache.ArtifactFetchers;
+import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.Label;
@@ -37,6 +39,7 @@ import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
+import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.common.artifact.OutputArtifactWithoutDigest;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.execution.process.ProcessOutputTypes;
@@ -72,6 +75,7 @@ public class BlazeXmlToTestEventsConverter extends OutputToGeneralTestEventsConv
     NO_ERROR.message = "No message"; // cannot be null
   }
 
+  private final TestConsoleProperties testConsoleProperties;
   private final BlazeTestResultsProvider testResultFinderStrategy;
 
   public BlazeXmlToTestEventsConverter(
@@ -79,6 +83,7 @@ public class BlazeXmlToTestEventsConverter extends OutputToGeneralTestEventsConv
       TestConsoleProperties testConsoleProperties,
       BlazeTestResultsProvider testResultFinderStrategy) {
     super(testFrameworkName, testConsoleProperties);
+    this.testConsoleProperties = testConsoleProperties;
     this.testResultFinderStrategy = testResultFinderStrategy;
   }
 
@@ -102,10 +107,11 @@ public class BlazeXmlToTestEventsConverter extends OutputToGeneralTestEventsConv
     onStartTesting();
     getProcessor().onTestsReporterAttached();
     List<ListenableFuture<ParsedTargetResults>> futures = new ArrayList<>();
+    Project project = testConsoleProperties.getProject();
     for (Label label : testResults.perTargetResults.keySet()) {
       futures.add(
           FetchExecutor.EXECUTOR.submit(
-              () -> parseTestXml(label, testResults.perTargetResults.get(label))));
+              () -> parseTestXml(label, testResults.perTargetResults.get(label), project)));
     }
     List<ParsedTargetResults> parsedResults =
         FuturesUtil.getIgnoringErrors(Futures.allAsList(futures));
@@ -128,13 +134,13 @@ public class BlazeXmlToTestEventsConverter extends OutputToGeneralTestEventsConv
   private static class ParsedTargetResults {
     private final Label label;
     private final Collection<BlazeTestResult> results;
-    private final List<OutputArtifactWithoutDigest> outputFiles;
+    private final List<OutputArtifact> outputFiles;
     private final List<TestSuite> targetSuites;
 
     ParsedTargetResults(
         Label label,
         Collection<BlazeTestResult> results,
-        List<OutputArtifactWithoutDigest> outputFiles,
+        List<OutputArtifact> outputFiles,
         List<TestSuite> targetSuites) {
       this.label = label;
       this.results = results;
@@ -145,12 +151,13 @@ public class BlazeXmlToTestEventsConverter extends OutputToGeneralTestEventsConv
 
   /** Parse all test XML files from a single test target. */
   private static ParsedTargetResults parseTestXml(
-      Label label, Collection<BlazeTestResult> results) {
-    List<OutputArtifactWithoutDigest> outputFiles = new ArrayList<>();
+      Label label, Collection<BlazeTestResult> results, Project project) {
+    List<OutputArtifact> outputFiles = new ArrayList<>();
     results.forEach(result -> outputFiles.addAll(result.getOutputXmlFiles()));
     List<TestSuite> targetSuites = new ArrayList<>();
-    for (OutputArtifactWithoutDigest file : outputFiles) {
-      try (InputStream input = file.getInputStream()) {
+    BlazeContext context = BlazeContext.create(); // Create a context for the operation
+    for (OutputArtifact file : outputFiles) {
+      try (InputStream input = ArtifactFetchers.downloadArtifact(file, context, project)) {
         targetSuites.add(BlazeXmlSchema.parse(input));
       } catch (Exception e) {
         // ignore parsing errors -- most common cause is user cancellation, which we can't easily
@@ -197,7 +204,7 @@ public class BlazeXmlToTestEventsConverter extends OutputToGeneralTestEventsConv
 
   /** Return false if there's output XML which should be parsed. */
   private static boolean noUsefulOutput(
-      Collection<BlazeTestResult> results, List<OutputArtifactWithoutDigest> outputFiles) {
+      Collection<BlazeTestResult> results, List<OutputArtifact> outputFiles) {
     if (outputFiles.isEmpty()) {
       return true;
     }
