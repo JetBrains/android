@@ -42,10 +42,10 @@ import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.artifact.ArtifactFetcher;
 import com.google.idea.blaze.common.artifact.ArtifactFetcher.ArtifactDestination;
-import com.google.idea.blaze.common.artifact.BlazeArtifact;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.common.artifact.CachedArtifact;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
+import com.google.idea.blaze.common.artifact.OutputArtifactWithoutDigest;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory;
 import com.intellij.openapi.project.Project;
@@ -297,7 +297,7 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
 
         // Fetch absent artifacts
         ImmutableList<OutputArtifact> missingArtifactsToFetch = artifactsByPresence.get(false);
-        long totalSize = missingArtifactsToFetch.stream().collect(Collectors.summarizingLong(BlazeArtifact::getLength)).getSum();
+        long totalSize = missingArtifactsToFetch.stream().collect(Collectors.summarizingLong(OutputArtifactWithoutDigest::getLength)).getSum();
         context.output(PrintOutput.output("Fetching %d new artifacts (%,.2f MB) out of %d requested...",
                                           missingArtifactsToFetch.size(),
                                           (totalSize / (1000f*1000)),
