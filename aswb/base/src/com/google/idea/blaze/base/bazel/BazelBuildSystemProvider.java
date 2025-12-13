@@ -81,11 +81,6 @@ public class BazelBuildSystemProvider implements BuildSystemProvider {
   }
 
   @Override
-  public String getLanguageSupportDocumentationUrl(String relativeDocName) {
-    return String.format("%s/%s.html", BAZEL_DOC_SITE, relativeDocName);
-  }
-
-  @Override
   public ImmutableList<String> possibleBuildFileNames() {
     return BUILD_FILE_NAMES;
   }

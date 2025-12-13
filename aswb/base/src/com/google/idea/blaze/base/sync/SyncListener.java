@@ -15,13 +15,9 @@
  */
 package com.google.idea.blaze.base.sync;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.model.BlazeProjectData;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.sync.SyncScope.SyncCanceledException;
-import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 
@@ -29,20 +25,6 @@ import com.intellij.openapi.project.Project;
 public interface SyncListener {
   ExtensionPointName<SyncListener> EP_NAME =
       ExtensionPointName.create("com.google.idea.blaze.SyncListener");
-
-  /**
-   * Called just prior to starting a blaze build during sync.
-   *
-   * @param fullProjectSync true if all project targets are being synced.
-   * @param buildId a unique ID associated with each sync build. {@link #afterQuerySync} is
-   *     guaranteed to be called with this build ID at some point.
-   */
-  default void buildStarted(
-      Project project,
-      BlazeContext context,
-      boolean fullProjectSync,
-      int buildId,
-      ImmutableList<TargetExpression> targets) {}
 
   /** Called on successful (or partially successful) completion of a sync */
   default void onSyncComplete(

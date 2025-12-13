@@ -19,29 +19,23 @@ package com.google.idea.blaze.base.sync;
 public enum SyncMode {
   // DO NOT REORDER: ordinal is used to merge sync modes from multiple builds
   /** Happens on startup, restores in-memory state */
-  STARTUP(/* involvesBlazeBuild= */ false, /* mayAttachExternalLibraries= */ true),
+  STARTUP(/* involvesBlazeBuild= */ false),
   /** A partial sync, without any blaze build (i.e. updates directories / in-memory state only) */
-  NO_BUILD(/* involvesBlazeBuild= */ false, /* mayAttachExternalLibraries= */ false),
+  NO_BUILD(/* involvesBlazeBuild= */ false),
   /** Partial / working set sync */
-  PARTIAL(/* involvesBlazeBuild= */ true, /* mayAttachExternalLibraries= */ true),
+  PARTIAL(/* involvesBlazeBuild= */ true),
   /** This is the standard incremental sync */
-  INCREMENTAL(/* involvesBlazeBuild= */ true, /* mayAttachExternalLibraries= */ true),
+  INCREMENTAL(/* involvesBlazeBuild= */ true),
   /** Full sync, can invalidate/redo work that an incremental sync does not */
-  FULL(/* involvesBlazeBuild= */ true, /* mayAttachExternalLibraries= */ true);
+  FULL(/* involvesBlazeBuild= */ true);
 
   private final boolean involvesBlazeBuild;
-  private final boolean mayAttachExternalLibraries;
 
-  SyncMode(boolean involvesBlazeBuild, boolean mayAttachExternalLibraries) {
+  SyncMode(boolean involvesBlazeBuild) {
     this.involvesBlazeBuild = involvesBlazeBuild;
-    this.mayAttachExternalLibraries = mayAttachExternalLibraries;
   }
 
   public boolean involvesBlazeBuild() {
     return involvesBlazeBuild;
-  }
-
-  public boolean mayAttachExternalLibraries() {
-    return mayAttachExternalLibraries;
   }
 }

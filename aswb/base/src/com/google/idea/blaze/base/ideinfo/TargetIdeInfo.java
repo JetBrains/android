@@ -41,7 +41,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
   @Nullable private final JavaIdeInfo javaIdeInfo;
   @Nullable private final AndroidInstrumentationInfo androidInstrumentationInfo;
   @Nullable private final TestIdeInfo testIdeInfo;
-  @Nullable private final JavaToolchainIdeInfo javaToolchainIdeInfo;
   @Nullable private final Long syncTimeMillis;
 
   private TargetIdeInfo(
@@ -54,7 +53,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
       @Nullable JavaIdeInfo javaIdeInfo,
       @Nullable AndroidInstrumentationInfo androidInstrumentationInfo,
       @Nullable TestIdeInfo testIdeInfo,
-      @Nullable JavaToolchainIdeInfo javaToolchainIdeInfo,
       @Nullable Long syncTimeMillis) {
     this.key = key;
     this.kind = kind != null ? kind : Kind.UNKNOWN;
@@ -65,7 +63,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
     this.javaIdeInfo = javaIdeInfo;
     this.androidInstrumentationInfo = androidInstrumentationInfo;
     this.testIdeInfo = testIdeInfo;
-    this.javaToolchainIdeInfo = javaToolchainIdeInfo;
     this.syncTimeMillis = syncTimeMillis;
   }
 
@@ -82,7 +79,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
     ProtoWrapper.unwrapAndSetIfNotNull(
         builder::setAndroidInstrumentationInfo, androidInstrumentationInfo);
     ProtoWrapper.unwrapAndSetIfNotNull(builder::setTestInfo, testIdeInfo);
-    ProtoWrapper.unwrapAndSetIfNotNull(builder::setJavaToolchainIdeInfo, javaToolchainIdeInfo);
     ProtoWrapper.setIfNotNull(builder::setSyncTimeMillis, syncTimeMillis);
     return builder.build();
   }
@@ -93,11 +89,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
 
   public Kind getKind() {
     return kind;
-  }
-
-  @Nullable
-  public ArtifactLocation getBuildFile() {
-    return buildFile;
   }
 
   public ImmutableList<Dependency> getDependencies() {
@@ -125,11 +116,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
   @Nullable
   public TestIdeInfo getTestIdeInfo() {
     return testIdeInfo;
-  }
-
-  @Nullable
-  public JavaToolchainIdeInfo getJavaToolchainIdeInfo() {
-    return javaToolchainIdeInfo;
   }
 
   @Nullable
@@ -168,9 +154,7 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
     private final ImmutableList.Builder<String> tags = ImmutableList.builder();
     private final ImmutableSet.Builder<ArtifactLocation> sources = ImmutableSet.builder();
     private JavaIdeInfo javaIdeInfo;
-    private AndroidInstrumentationInfo androidInstrumentationInfo;
     private TestIdeInfo testIdeInfo;
-    private JavaToolchainIdeInfo javaToolchainIdeInfo;
     private Long syncTime;
 
     @CanIgnoreReturnValue
@@ -221,20 +205,8 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
     }
 
     @CanIgnoreReturnValue
-    public Builder setAndroidInstrumentationInfo(AndroidInstrumentationInfo instrumentationInfo) {
-      this.androidInstrumentationInfo = instrumentationInfo;
-      return this;
-    }
-
-    @CanIgnoreReturnValue
     public Builder setTestInfo(TestIdeInfo.Builder testInfo) {
       this.testIdeInfo = testInfo.build();
-      return this;
-    }
-
-    @CanIgnoreReturnValue
-    public Builder setJavaToolchainIdeInfo(JavaToolchainIdeInfo.Builder javaToolchainIdeInfo) {
-      this.javaToolchainIdeInfo = javaToolchainIdeInfo.build();
       return this;
     }
 
@@ -273,7 +245,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
           javaIdeInfo,
           null,
           testIdeInfo,
-          javaToolchainIdeInfo,
           syncTime);
     }
   }
@@ -296,7 +267,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
         && Objects.equals(javaIdeInfo, that.javaIdeInfo)
         && Objects.equals(androidInstrumentationInfo, that.androidInstrumentationInfo)
         && Objects.equals(testIdeInfo, that.testIdeInfo)
-        && Objects.equals(javaToolchainIdeInfo, that.javaToolchainIdeInfo)
         && Objects.equals(syncTimeMillis, that.syncTimeMillis);
   }
 
@@ -312,7 +282,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
         javaIdeInfo,
         androidInstrumentationInfo,
         testIdeInfo,
-        javaToolchainIdeInfo,
         syncTimeMillis);
   }
 }

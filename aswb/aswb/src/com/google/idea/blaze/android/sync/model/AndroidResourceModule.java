@@ -61,16 +61,6 @@ public final class AndroidResourceModule
     this.sourceTargetKeys = sourceTargetKeys;
   }
 
-  static AndroidResourceModule fromProto(ProjectData.AndroidResourceModule proto) {
-    return new AndroidResourceModule(
-        TargetKey.fromProto(proto.getTargetKey()),
-        ProtoWrapper.map(proto.getResourcesList(), ArtifactLocation::fromProto),
-        ProtoWrapper.map(proto.getTransitiveResourcesList(), ArtifactLocation::fromProto),
-        ImmutableList.copyOf(proto.getResourceLibraryKeysList()),
-        ProtoWrapper.map(proto.getTransitiveResourceDependenciesList(), TargetKey::fromProto),
-        ProtoWrapper.map(proto.getSourceTargetKeysList(), TargetKey::fromProto));
-  }
-
   @Override
   public ProjectData.AndroidResourceModule toProto() {
     return ProjectData.AndroidResourceModule.newBuilder()

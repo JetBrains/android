@@ -16,10 +16,7 @@
 package com.google.idea.blaze.common.artifact;
 
 import com.google.auto.value.AutoValue;
-import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.nio.file.Path;
-import javax.annotation.Nullable;
 
 @AutoValue
 public abstract class TestOutputArtifact implements OutputArtifact {
@@ -44,11 +41,6 @@ public abstract class TestOutputArtifact implements OutputArtifact {
   public abstract long getLength();
 
   @Override
-  public BufferedInputStream getInputStream() throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public abstract String getDigest();
 
   @Override
@@ -56,12 +48,6 @@ public abstract class TestOutputArtifact implements OutputArtifact {
 
   @Override
   public abstract int getArtifactPathPrefixLength();
-
-  @Nullable
-  @Override
-  public ArtifactState toArtifactState() {
-    throw new UnsupportedOperationException();
-  }
 
   public abstract Builder toBuilder();
 

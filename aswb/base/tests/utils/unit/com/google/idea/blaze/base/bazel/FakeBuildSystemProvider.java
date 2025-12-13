@@ -90,12 +90,6 @@ public abstract class FakeBuildSystemProvider implements BuildSystemProvider {
 
   abstract Function<String, String> getLanguageSupportDocumentationUrlFunction();
 
-  @Nullable
-  @Override
-  public String getLanguageSupportDocumentationUrl(String relativeDocName) {
-    return getLanguageSupportDocumentationUrlFunction().apply(relativeDocName);
-  }
-
   public abstract ImmutableList<String> getPossibleBuildFileNames();
 
   @Override

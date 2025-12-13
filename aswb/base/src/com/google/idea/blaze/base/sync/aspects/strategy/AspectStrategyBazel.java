@@ -21,7 +21,6 @@ import com.google.idea.blaze.base.model.BazelVersionCompat;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.ide.plugins.PluginManager;
-import com.intellij.openapi.extensions.PluginId;
 import java.io.File;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -47,11 +46,6 @@ public class AspectStrategyBazel extends AspectStrategy {
     BazelVersionCompat compat = new BazelVersionCompat(versionData::bazelIsAtLeastVersion);
     aspectFlag = compat.makeAspectFromInjectedRepositoryFlag("intellij_aspect", "intellij_info_bundled.bzl%intellij_info_aspect");
     repositoryFlag = compat.getRepositoryOverrideFlag() + "=intellij_aspect";
-  }
-
-  @VisibleForTesting
-  public String getAspectFlag() {
-    return aspectFlag;
   }
 
   @Override
