@@ -46,9 +46,7 @@ import com.google.idea.blaze.base.run.smrunner.SmRunnerUtils;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFetcher;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.scope.OutputSink;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.java.TargetKindUtil;
 import com.intellij.execution.DefaultExecutionResult;
@@ -60,7 +58,6 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -327,26 +324,5 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
 
   private static String testArg(String flag) {
     return "--test_arg=" + flag;
-  }
-
-  //TODO(akhildixit) - the following output sink is the same as the one in BlazeCommandGenericRunConfigurationRunner.java.
-  // Extract it into a separate class to avoid code duplication.
-  private static class WritingOutputSink implements OutputSink<PrintOutput> {
-    private final ConsoleView console;
-
-    public WritingOutputSink(ConsoleView console) {
-      this.console = console;
-    }
-
-    @Override
-    public Propagation onOutput(PrintOutput output) {
-      // Add ANSI support to the console to view colored output
-      console.print(
-        output.getText().replaceAll("\u001B\\[[;\\d]*m", "") + "\n",
-        output.getOutputType() == PrintOutput.OutputType.ERROR
-        ? ConsoleViewContentType.ERROR_OUTPUT
-        : ConsoleViewContentType.NORMAL_OUTPUT);
-      return Propagation.Continue;
-    }
   }
 }

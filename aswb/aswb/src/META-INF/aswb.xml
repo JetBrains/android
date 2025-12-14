@@ -79,7 +79,6 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.MavenArtifactLocator" interface="com.google.idea.blaze.android.projectsystem.MavenArtifactLocator"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.DesugaringLibraryConfigFilesLocator" interface="com.google.idea.blaze.android.projectsystem.DesugaringLibraryConfigFilesLocator"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.AndroidTestLaunchMethodsProvider" interface="com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProvider"/>
-    <extensionPoint qualifiedName="com.google.idea.blaze.GeneratedResourceRetentionFilter" interface="com.google.idea.blaze.android.sync.importer.problems.GeneratedResourceRetentionFilter"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.MobileInstallAdbLocationProvider" interface="com.google.idea.blaze.android.run.binary.mobileinstall.MobileInstallAdbLocationProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.AdbTunnelConfiguratorProvider" interface="com.google.idea.blaze.android.run.binary.mobileinstall.AdbTunnelConfigurator$AdbTunnelConfiguratorProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.ComposeStatusProvider" interface="com.google.idea.blaze.android.compose.ComposeStatusProvider"/>

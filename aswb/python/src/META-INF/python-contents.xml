@@ -16,7 +16,6 @@
 <idea-plugin>
 
   <extensions defaultExtensionNs="com.google.idea.blaze">
-    <SyncStatusContributor implementation="com.google.idea.blaze.python.sync.PySyncStatusContributor"/>
     <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.python.run.BlazePyRunConfigurationHandlerProvider" order="first"/>
     <BlazeTestEventsHandler implementation="com.google.idea.blaze.python.run.smrunner.BlazePythonTestEventsHandler"/>
     <PyParameterizedNameConverter implementation="com.google.idea.blaze.python.run.smrunner.PyBaseParameterizedNameConverter" order="first"/>

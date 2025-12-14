@@ -51,9 +51,6 @@ public class FakeRemoteOutputArtifact implements RemoteOutputArtifact {
   }
 
   @Override
-  public void prefetch() {}
-
-  @Override
   public String getHashId() {
     return String.valueOf(FileUtil.fileHashCode(file));
   }

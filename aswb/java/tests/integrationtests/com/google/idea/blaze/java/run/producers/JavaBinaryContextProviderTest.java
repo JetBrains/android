@@ -17,9 +17,6 @@ package com.google.idea.blaze.java.run.producers;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.idea.blaze.base.ideinfo.JavaIdeInfo;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
-import com.google.idea.blaze.base.ideinfo.TargetMapBuilder;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataBuilder;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataManager;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
