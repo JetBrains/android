@@ -19,13 +19,14 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
-import com.android.tools.asdriver.tests.integration.AndroidDeviceManager
+import com.android.tools.asdriver.tests.integration.RemoteDeviceManager
+import com.android.tools.idea.diagnostics.crash.LogBuffer
 import com.android.tools.testlib.Emulator
 import com.android.tools.testlib.LogFile
 import com.intellij.openapi.util.SystemInfo
+import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class BuildAndRunTest {
   @JvmField @Rule
@@ -58,35 +59,42 @@ class BuildAndRunTest {
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
 
     system.runAdb { adb ->
-      val androidDeviceManager = AndroidDeviceManager()
-      androidDeviceManager.runAndroidDevice(system.fileSystem, system.sdk, system.display).use { emulator ->
-        system.runStudio(project, watcher.dashboardName) { studio ->
-          studio.waitForSync()
-          studio.waitForIndex()
+      system.runStudio(project, watcher.dashboardName) { studio ->
+        var logCat: LogFile
+        var emulator: Emulator? = null
+        var remoteDeviceManager: RemoteDeviceManager? = null
 
-          if(SystemInfo.isWindows) {
-            adb.waitForRemoteDevice()
-          } else {
-            emulator.waitForBoot()
-            adb.waitForDevice(emulator)
-          }
-
-          studio.executeAction("MakeGradleProject")
-          studio.waitForBuild()
-
-          val logCat: LogFile = if (SystemInfo.isWindows) adb.logcat() else emulator.logCat
-
-          studio.executeAction("Run")
-          studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.example\\.minapp", 60, TimeUnit.SECONDS)
-          logCat.waitForMatchingLine(".*Hello Minimal World!.*", 30, TimeUnit.SECONDS)
-
-          val path = project.targetProject.resolve("src/main/java/com/example/minapp/MainActivity.kt")
-          studio.editFile(project.targetProject.fileName.toString(), path.toString(), "Hello Minimal", "Hey Minimal")
-          studio.executeAction("Run")
-          logCat.waitForMatchingLine(".*Hey Minimal World!.*", 30, TimeUnit.SECONDS)
-
-          androidDeviceManager.tearDown()
+        if (!SystemInfo.isWindows) {
+          emulator = system.runEmulator()
         }
+
+        studio.waitForSync()
+        studio.waitForIndex()
+
+        if(!SystemInfo.isWindows) {
+          emulator?.waitForBoot()
+          emulator?.let { adb.waitForDevice(it) }
+          logCat = emulator?.logCat!!
+        } else {
+          remoteDeviceManager = RemoteDeviceManager("akita", "34")
+          remoteDeviceManager.setupRemoteDevice()
+          adb.waitForRemoteDevice()
+          logCat = adb.logcat()
+        }
+
+        studio.executeAction("MakeGradleProject")
+        studio.waitForBuild()
+
+        studio.executeAction("Run")
+        studio.waitForEmulatorStart(system.installation.ideaLog, null, "com\\.example\\.minapp", 60, TimeUnit.SECONDS)
+        logCat.waitForMatchingLine(".*Hello Minimal World!.*", 30, TimeUnit.SECONDS)
+
+        val path = project.targetProject.resolve("src/main/java/com/example/minapp/MainActivity.kt")
+        studio.editFile(project.targetProject.fileName.toString(), path.toString(), "Hello Minimal", "Hey Minimal")
+        studio.executeAction("Run")
+        logCat.waitForMatchingLine(".*Hey Minimal World!.*", 30, TimeUnit.SECONDS)
+
+        if (!SystemInfo.isWindows) emulator?.close() else remoteDeviceManager?.close()
       }
     }
   }
