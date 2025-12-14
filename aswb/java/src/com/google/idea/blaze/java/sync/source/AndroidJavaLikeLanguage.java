@@ -43,9 +43,4 @@ class AndroidJavaLikeLanguage implements JavaLikeLanguage {
         AndroidBlazeRules.RuleTypes.WRAPPED_ANDROID_LOCAL_TEST.getKind(),
         AndroidBlazeRules.RuleTypes.KT_ANDROID_LOCAL_TEST.getKind());
   }
-
-  @Override
-  public ImmutableSet<Kind> getNonSourceKinds() {
-    return ImmutableSet.of(AndroidBlazeRules.RuleTypes.AAR_IMPORT.getKind());
-  }
 }

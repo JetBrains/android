@@ -32,7 +32,6 @@
     <TestTargetHeuristic implementation="com.google.idea.blaze.java.run.TestClassHeuristic" order="before QualifiedClassNameHeuristic"/>
     <JavaClasspathAspectStrategy implementation="com.google.idea.blaze.java.run.hotswap.JavaClasspathAspectStrategy$BazelStrategy"/>
     <TestComparisonFailureParser implementation="com.google.idea.blaze.java.run.smrunner.JunitTestComparisonFailureParser"/>
-    <SyncStatusContributor implementation="com.google.idea.blaze.java.syncstatus.JavaSyncStatusContributor"/>
     <LoggedSettingsProvider implementation="com.google.idea.blaze.java.settings.BlazeJavaUserSettings$SettingsLogger"/>
     <JavaLikeLanguage implementation="com.google.idea.blaze.java.sync.source.JavaLikeLanguage$Java"/>
     <JavaLikeLanguage implementation="com.google.idea.blaze.java.sync.source.AndroidJavaLikeLanguage"/>
@@ -48,9 +47,7 @@
     <runConfigurationProducer
         implementation="com.google.idea.blaze.java.run.producers.BlazeJavaAbstractTestCaseConfigurationProducer"
         order="first, before testContextProducer"/>
-    <applicationService serviceImplementation="com.google.idea.blaze.java.sync.source.JavaSourcePackageReader"/>
     <programRunner implementation="com.google.idea.blaze.java.run.BlazeJavaDebuggerRunner" id="BlazeJavaDebug"/>
-    <projectService serviceImplementation="com.google.idea.blaze.java.libraries.AttachedSourceJarManager"/>
     <postStartupActivity implementation="com.google.idea.blaze.java.libraries.DisableLibraryBytecodeNotification"/>
 
     <!--
@@ -62,8 +59,6 @@
     <refactoring.safeDeleteProcessor id="build_file_safe_delete" order="first"
             implementation="com.google.idea.blaze.java.lang.build.BuildFileSafeDeleteProcessor"/>
 
-    <projectService serviceInterface="com.google.idea.blaze.java.libraries.JarCacheFolderProvider"
-        serviceImplementation="com.google.idea.blaze.java.libraries.JarCacheFolderProvider"/>
     <projectService serviceImplementation="com.google.idea.blaze.java.libraries.JarCache"/>
 
     <applicationService serviceImplementation="com.google.idea.blaze.java.settings.BlazeJavaUserSettings"/>

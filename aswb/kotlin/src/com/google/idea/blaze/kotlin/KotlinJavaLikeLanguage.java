@@ -22,7 +22,6 @@ import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.LanguageClass;
 import com.google.idea.blaze.base.model.primitives.RuleType;
 import com.google.idea.blaze.java.sync.source.JavaLikeLanguage;
-import com.google.idea.blaze.kotlin.KotlinBlazeRules.RuleTypes;
 
 /** Kotlin-specific implementation of {@link JavaLikeLanguage}. */
 class KotlinJavaLikeLanguage implements JavaLikeLanguage {
@@ -44,10 +43,5 @@ class KotlinJavaLikeLanguage implements JavaLikeLanguage {
     return Kind.getKindsForLanguage(LanguageClass.KOTLIN).stream()
         .filter(k -> k.getRuleType().equals(RuleType.TEST))
         .collect(toImmutableSet());
-  }
-
-  @Override
-  public ImmutableSet<Kind> getNonSourceKinds() {
-    return ImmutableSet.of(RuleTypes.KT_JVM_IMPORT.getKind(), RuleTypes.KOTLIN_STDLIB.getKind());
   }
 }

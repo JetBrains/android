@@ -402,7 +402,6 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.base.lang.buildfile.DumbAnnotator" interface="com.google.idea.blaze.base.lang.buildfile.validation.BuildAnnotator"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.base.lang.buildfile.Annotator" interface="com.google.idea.blaze.base.lang.buildfile.validation.BuildAnnotator"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.BlazeConsoleLineProcessorProvider" interface="com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider"/>
-    <extensionPoint qualifiedName="com.google.idea.blaze.SyncStatusContributor" interface="com.google.idea.blaze.base.syncstatus.LegacySyncStatusContributor"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.OutputArtifactParser"
                     interface="com.google.idea.blaze.base.command.buildresult.bepparser.OutputArtifactParser"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.RemoteOutputArtifactParser"
@@ -472,7 +471,6 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.CustomFormatter" interface="com.google.idea.blaze.base.formatter.CustomFormatter"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.OutputGroupsProvider" interface="com.google.idea.blaze.base.sync.aspects.strategy.OutputGroupsProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.ExperimentLoader" interface="com.google.idea.common.experiments.ExperimentLoader"/>
-    <extensionPoint qualifiedName="com.google.idea.blaze.EmptyLibraryFilterSettings" interface="com.google.idea.blaze.java.sync.importer.emptylibrary.EmptyLibraryFilterSettings" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.google.idea.blaze">

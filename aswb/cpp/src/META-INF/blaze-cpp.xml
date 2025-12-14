@@ -23,7 +23,6 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.google.idea.blaze">
-    <SyncStatusContributor implementation="com.google.idea.blaze.cpp.syncstatus.CppSyncStatusContributor"/>
     <TargetKindProvider implementation="com.google.idea.blaze.cpp.CppBlazeRules"/>
   </extensions>
 
