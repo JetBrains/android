@@ -17,7 +17,6 @@
   <extensions defaultExtensionNs="com.google.idea.blaze">
     <QuerySyncPlugin implementation="com.google.idea.blaze.kotlin.qsync.BlazeKotlinQuerySyncPlugin"/>
     <JavaLikeLanguage implementation="com.google.idea.blaze.kotlin.KotlinJavaLikeLanguage"/>
-    <SyncStatusContributor implementation="com.google.idea.blaze.kotlin.syncstatus.KotlinSyncStatusContributor"/>
     <TestContextProvider implementation="com.google.idea.blaze.kotlin.run.producers.KotlinTestContextProvider"/>
     <BinaryContextProvider implementation="com.google.idea.blaze.kotlin.run.producers.KotlinBinaryContextProvider"/>
     <blazeJavaDebuggingSetupHandler implementation="com.google.idea.blaze.kotlin.run.debug.BlazeKotlinDebuggingSetupHandler"/>

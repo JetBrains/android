@@ -34,11 +34,7 @@ import com.google.idea.blaze.android.resources.BlazeLightResourceClassService;
 import com.google.idea.blaze.android.sync.model.AndroidResourceModule;
 import com.google.idea.blaze.android.sync.model.AndroidResourceModuleRegistry;
 import com.google.idea.blaze.base.BlazeTestCase;
-import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.ideinfo.TargetKey;
-import com.google.idea.blaze.base.ideinfo.TargetMap;
-import com.google.idea.blaze.base.ideinfo.TargetMapBuilder;
 import com.google.idea.blaze.base.io.VirtualFileSystemProvider;
 import com.google.idea.blaze.base.lang.buildfile.references.BuildReferenceManager;
 import com.google.idea.blaze.base.model.BlazeProjectData;
@@ -300,15 +296,6 @@ public class BazelModuleSystemTest extends BlazeTestCase {
   }
 
   private BlazeProjectData createMockBlazeProjectData() {
-    TargetMap targetMap =
-        TargetMapBuilder.builder()
-            .addTarget(
-                TargetIdeInfo.builder()
-                    .setLabel(Label.create("//foo:bar"))
-                    .setKind(AndroidBlazeRules.RuleTypes.ANDROID_LIBRARY.getKind())
-                    .setBuildFile(ArtifactLocation.builder().setRelativePath("foo/BUILD").build())
-                    .build())
-            .build();
     return MockBlazeProjectDataBuilder.builder(workspaceRoot)
         .build();
   }

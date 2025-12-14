@@ -17,7 +17,6 @@ java_library(
     srcs = glob([
         "src/**/*.java",
         "studio/**/*.java",
-        "cidr/**/*.java",
     ]),
     data = [
         "//tools/adt/idea/studio:required_jvm_args",  # Used by BlazeTestSystemProperties.

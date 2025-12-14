@@ -18,19 +18,13 @@ package com.google.idea.blaze.java.sync.source;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.java.JavaBlazeRules;
 import com.google.idea.blaze.java.run.BlazeJavaDebuggerRunner;
 import com.google.idea.blaze.java.run.BlazeJavaTestEventsHandler;
-import com.google.idea.blaze.java.sync.importer.JavaSourceFilter;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * For languages similar to Java to reuse certain parts of the Java plugin. E.g., package prefix
@@ -39,20 +33,6 @@ import java.util.stream.Collectors;
 public interface JavaLikeLanguage {
   ExtensionPointName<JavaLikeLanguage> EP_NAME =
       ExtensionPointName.create("com.google.idea.blaze.JavaLikeLanguage");
-
-  static Predicate<ArtifactLocation> getSourceFileMatcher() {
-    final Set<String> fileExtensions = getAllFileExtension();
-    return artifactLocation ->
-        fileExtensions.stream()
-            .anyMatch(extension -> artifactLocation.getRelativePath().endsWith(extension));
-  }
-
-  static Set<String> getAllFileExtension() {
-    return Arrays.stream(EP_NAME.getExtensions())
-        .map(JavaLikeLanguage::getFileExtensions)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toSet());
-  }
 
   static ImmutableSet<Kind> getAllDebuggableKinds() {
     return Arrays.stream(EP_NAME.getExtensions())
@@ -68,12 +48,6 @@ public interface JavaLikeLanguage {
         .collect(toImmutableSet());
   }
 
-  static boolean canImportAsSource(TargetIdeInfo target) {
-    return Arrays.stream(EP_NAME.getExtensions())
-        .map(JavaLikeLanguage::getNonSourceKinds)
-        .noneMatch(target::kindIsOneOf);
-  }
-
   /** @return file extensions associated with this particular java-like language. */
   ImmutableSet<String> getFileExtensions();
 
@@ -82,9 +56,6 @@ public interface JavaLikeLanguage {
 
   /** @return test {@link Kind}s to be handled by {@link BlazeJavaTestEventsHandler}. */
   ImmutableSet<Kind> getHandledTestKinds();
-
-  /** @return non-source {@link Kind}s to be filtered out by {@link JavaSourceFilter}. */
-  ImmutableSet<Kind> getNonSourceKinds();
 
   /** Java is itself a Java-like language. */
   class Java implements JavaLikeLanguage {
@@ -106,13 +77,6 @@ public interface JavaLikeLanguage {
           JavaBlazeRules.RuleTypes.JAVA_TEST.getKind(),
           JavaBlazeRules.RuleTypes.GWT_TEST.getKind(),
           JavaBlazeRules.RuleTypes.JAVA_WEB_TEST.getKind());
-    }
-
-    @Override
-    public ImmutableSet<Kind> getNonSourceKinds() {
-      return ImmutableSet.of(
-          JavaBlazeRules.RuleTypes.JAVA_WRAP_CC.getKind(),
-          JavaBlazeRules.RuleTypes.JAVA_IMPORT.getKind());
     }
   }
 }
