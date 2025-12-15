@@ -89,29 +89,15 @@ AudioStreamer::AudioStreamer(SocketWriter* writer)
 }
 
 AudioStreamer::~AudioStreamer() {
-  Stop();
 }
 
 void AudioStreamer::Start() {
-  if (streamer_stopped_.exchange(false)) {
-    Log::D("Audio: starting streaming");
-    thread_ = thread([this]() {
-      Jvm::AttachCurrentThread("AudioStreamer");
-      Run();
-      Jvm::DetachCurrentThread();
-      Log::D("Audio: streaming terminated");
-    });
-  }
+  thread_handle_.Start("AudioStreamer", [this]() { Run(); });
 }
 
 void AudioStreamer::Stop() {
-  if (!streamer_stopped_.exchange(true)) {
-    Log::D("Audio: stopping streaming");
-    StopCodec();
-    if (thread_.get_id() != this_thread::get_id() && thread_.joinable()) {
-      thread_.join();
-    }
-  }
+  thread_handle_.Stop();
+  StopCodec();
 }
 
 void AudioStreamer::Run() {
@@ -122,7 +108,7 @@ void AudioStreamer::Run() {
 
   bool continue_streaming = true;
   consequent_deque_error_count_ = 0;
-  while (continue_streaming && !streamer_stopped_ && !codec_handle_->IsStopped()) {
+  while (continue_streaming && !thread_handle_.IsStopping() && !codec_handle_->IsStopped()) {
     CodecOutputBuffer codec_buffer(codec_handle_->codec(), "Audio: ");
     if (!codec_buffer.Deque(-1)) {
       if (codec_handle_->IsStopped()) {
@@ -197,6 +183,10 @@ bool AudioStreamer::StartAudioCapture() {
 }
 
 void AudioStreamer::StopAudioCapture() {
+  thread_handle_.Stop();
+  if (audio_reader_ != nullptr) {
+    audio_reader_->Stop();
+  }
   delete audio_reader_;
   audio_reader_ = nullptr;
   delete codec_handle_;

@@ -16,6 +16,7 @@
 
 #include "display_manager.h"
 
+#include <mutex>
 #include <vector>
 
 #include "accessors/display_listener_dispatcher.h"

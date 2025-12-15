@@ -16,6 +16,8 @@
 
 #include "xr_simulated_input_event_manager.h"
 
+#include <mutex>
+
 #include "service_manager.h"
 
 namespace screensharing {

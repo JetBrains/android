@@ -43,45 +43,35 @@ AudioRecordReader::~AudioRecordReader() {
 }
 
 bool AudioRecordReader::Start(CodecHandle* codec_handle) {
-  if (reader_stopped_.exchange(false)) {
-    if (!audio_record_.IsValid()) {
-      Log::E("Audio: error creating AudioRecord");
-      return false;
-    }
-    bool started = audio_record_.Start(Jvm::GetJni());
-    if (!started) {
-      return false;
-    }
-    codec_handle_ = codec_handle;
-    thread_ = thread([this]() {
-      Jvm::AttachCurrentThread("AudioRecordReader");
-      Run();
-      Jvm::DetachCurrentThread();
-      Log::D("Audio: reader terminated");
-    });
+  if (!audio_record_.IsValid()) {
+    Log::E("Audio: error creating AudioRecord");
+    return false;
   }
+  bool started = audio_record_.Start(Jvm::GetJni());
+  if (!started) {
+    return false;
+  }
+  codec_handle_ = codec_handle;
+  thread_handle_.Start("AudioRecordReader", [this]() { Run(); });
   return true;
 }
 
 void AudioRecordReader::Stop() {
-  if (!reader_stopped_.exchange(true)) {
-    if (thread_.get_id() != this_thread::get_id() && thread_.joinable()) {
-      thread_.join();
-    }
-  }
+  thread_handle_.Stop();
 }
 
 void AudioRecordReader::Run() {
   Jni jni = Jvm::GetJni();
   consequent_queue_error_count_ = 0;
   ReadUntilStopped(jni);
+  thread_handle_.Stop();
   codec_handle_->Stop();
   audio_record_.Stop(jni);
 }
 
 void AudioRecordReader::ReadUntilStopped(Jni jni) {
   JShortArray audio_data(jni, BUF_SIZE);
-  while (!reader_stopped_) {
+  while (!thread_handle_.IsStopping()) {
     int32_t num_samples = audio_record_.Read(jni, &audio_data, BUF_SIZE);
     if (num_samples <= 0) {
       Log::E("Audio: error reading audio mix: %d", num_samples);
@@ -108,14 +98,14 @@ void AudioRecordReader::ReadUntilStopped(Jni jni) {
       if (!codec_input.Deque(-1)) {
         break;
       }
-      if (reader_stopped_) {
+      if (thread_handle_.IsStopping()) {
         return;
       }
       auto size = min(static_cast<size_t>(num_samples - offset), codec_input.size / sizeof(int16_t));
       audio_data.GetRegion(jni, offset, size, reinterpret_cast<int16_t*>(codec_input.buffer));
       bool queued_ok = codec_input.Queue(size * sizeof(int16_t), presentation_time_us, 0);
       if (!queued_ok && ++consequent_queue_error_count_ >= MAX_SUBSEQUENT_ERRORS) {
-        if (!reader_stopped_) {
+        if (!thread_handle_.IsStopping()) {
           Log::E("Audio: streaming stopped due to repeated errors while queuing data");
           fprintf(stderr, "NOTIFICATION Audio streaming stopped due to repeated errors while queuing data\n");
         }

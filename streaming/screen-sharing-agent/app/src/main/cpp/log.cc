@@ -108,8 +108,7 @@ void Log::Fatal(ExitCode exit_code, const char* message, ...) {
   va_start(args, message);
   LogFatalError(nullptr, message, args);
   va_end(args);
-  Agent::Shutdown();
-  Jvm::Exit(exit_code);
+  Agent::ErrorShutdown(exit_code);
 }
 
 void Log::Fatal(ExitCode exit_code, JThrowable throwable, const char* message, ...) {
@@ -117,8 +116,7 @@ void Log::Fatal(ExitCode exit_code, JThrowable throwable, const char* message, .
   va_start(args, message);
   LogFatalError(&throwable, message, args);
   va_end(args);
-  Agent::Shutdown();
-  Jvm::Exit(exit_code);
+  Agent::ErrorShutdown(exit_code);
 }
 
 Log::Level Log::level_ = Log::Level::INFO;

@@ -35,6 +35,8 @@ constexpr int64_t EVENT_FLAG_DISPLAY_CHANGED = 1L << 2;
 
 }
 
+DisplayListenerDispatcher::DisplayListenerDispatcher()  = default;
+
 DisplayListenerDispatcher::~DisplayListenerDispatcher() {
   Stop();
 }
@@ -42,62 +44,59 @@ DisplayListenerDispatcher::~DisplayListenerDispatcher() {
 void DisplayListenerDispatcher::Start() {
   unique_lock lock(mutex_);
   looper_promise_ = promise<JObject>();
-  thread_ = thread([this]() {
-    jni_ = Jvm::AttachCurrentThread("DisplayListenerDispatcher");
-    Run();
-    Jvm::DetachCurrentThread();
-  });
+  thread_ = CreateThread("DisplayListenerDispatcher", [this]() { Run(); });
 }
 
 void DisplayListenerDispatcher::Run() {
-  JClass looper_class = jni_.GetClass("android/os/Looper");
-  looper_class.CallStaticVoidMethod(jni_, looper_class.GetStaticMethod("prepare", "()V"));
+  Jni jni = Jvm::GetJni();
+  JClass looper_class = jni.GetClass("android/os/Looper");
+  looper_class.CallStaticVoidMethod(jni, looper_class.GetStaticMethod("prepare", "()V"));
 
   // Store the looper so that it can be stopped later.
-  JObject looper = looper_class.CallStaticObjectMethod(jni_, looper_class.GetStaticMethod("myLooper", "()Landroid/os/Looper;"));
+  JObject looper = looper_class.CallStaticObjectMethod(jni, looper_class.GetStaticMethod("myLooper", "()Landroid/os/Looper;"));
   looper.MakeGlobal();
   looper_promise_.set_value(std::move(looper));
 
-  JClass display_listener_class = jni_.GetClass("com/android/tools/screensharing/DisplayListener");
-  JObject listener = display_listener_class.NewObject(jni_, display_listener_class.GetConstructor("()V"));
+  JClass display_listener_class = jni.GetClass("com/android/tools/screensharing/DisplayListener");
+  JObject listener = display_listener_class.NewObject(jni, display_listener_class.GetConstructor("()V"));
 
   if (Agent::feature_level() >= 35) {
     jmethodID register_display_listener_method = DisplayManager::display_manager_global_class_.GetMethod(
-        jni_, "registerDisplayListener",
+        jni, "registerDisplayListener",
         "(Landroid/hardware/display/DisplayManager$DisplayListener;Landroid/os/Handler;JLjava/lang/String;)V");
     DisplayManager::display_manager_global_.CallVoidMethod(
-        jni_, register_display_listener_method, listener.ref(), nullptr,
-        EVENT_FLAG_DISPLAY_ADDED | EVENT_FLAG_DISPLAY_REMOVED | EVENT_FLAG_DISPLAY_CHANGED, JString(jni_, ATTRIBUTION_TAG).ref());
+        jni, register_display_listener_method, listener.ref(), nullptr,
+        EVENT_FLAG_DISPLAY_ADDED | EVENT_FLAG_DISPLAY_REMOVED | EVENT_FLAG_DISPLAY_CHANGED, JString(jni, ATTRIBUTION_TAG).ref());
   } else if (Agent::feature_level() == 34) {
     jmethodID register_display_listener_method = DisplayManager::display_manager_global_class_.FindMethod(
-        jni_, "registerDisplayListener",
+        jni, "registerDisplayListener",
         "(Landroid/hardware/display/DisplayManager$DisplayListener;Landroid/os/Handler;JLjava/lang/String;)V");
     if (register_display_listener_method == nullptr) {
       register_display_listener_method = DisplayManager::display_manager_global_class_.GetMethod(
-          jni_, "registerDisplayListener",
+          jni, "registerDisplayListener",
           "(Landroid/hardware/display/DisplayManager$DisplayListener;Landroid/os/Handler;J)V");
       DisplayManager::display_manager_global_.CallVoidMethod(
-          jni_, register_display_listener_method, listener.ref(), nullptr,
+          jni, register_display_listener_method, listener.ref(), nullptr,
           EVENT_FLAG_DISPLAY_ADDED | EVENT_FLAG_DISPLAY_REMOVED | EVENT_FLAG_DISPLAY_CHANGED);
     } else {
       DisplayManager::display_manager_global_.CallVoidMethod(
-          jni_, register_display_listener_method, listener.ref(), nullptr,
-          EVENT_FLAG_DISPLAY_ADDED | EVENT_FLAG_DISPLAY_REMOVED | EVENT_FLAG_DISPLAY_CHANGED, JString(jni_, ATTRIBUTION_TAG).ref());
+          jni, register_display_listener_method, listener.ref(), nullptr,
+          EVENT_FLAG_DISPLAY_ADDED | EVENT_FLAG_DISPLAY_REMOVED | EVENT_FLAG_DISPLAY_CHANGED, JString(jni, ATTRIBUTION_TAG).ref());
     }
   } else if (Agent::feature_level() >= 31) {
     jmethodID register_display_listener_method = DisplayManager::display_manager_global_class_.GetMethod(
-        jni_, "registerDisplayListener",
+        jni, "registerDisplayListener",
         "(Landroid/hardware/display/DisplayManager$DisplayListener;Landroid/os/Handler;J)V");
     DisplayManager::display_manager_global_.CallVoidMethod(
-        jni_, register_display_listener_method, listener.ref(), nullptr,
+        jni, register_display_listener_method, listener.ref(), nullptr,
         EVENT_FLAG_DISPLAY_ADDED | EVENT_FLAG_DISPLAY_REMOVED | EVENT_FLAG_DISPLAY_CHANGED);
   } else {
     jmethodID register_display_listener_method = DisplayManager::display_manager_global_class_.GetMethod(
-        jni_, "registerDisplayListener",
+        jni, "registerDisplayListener",
         "(Landroid/hardware/display/DisplayManager$DisplayListener;Landroid/os/Handler;)V");
-    DisplayManager::display_manager_global_.CallVoidMethod(jni_, register_display_listener_method, listener.ref(), nullptr);
+    DisplayManager::display_manager_global_.CallVoidMethod(jni, register_display_listener_method, listener.ref(), nullptr);
   }
-  looper_class.CallStaticVoidMethod(jni_, looper_class.GetStaticMethod(jni_, "loop", "()V"));
+  looper_class.CallStaticVoidMethod(jni, looper_class.GetStaticMethod(jni, "loop", "()V"));
 }
 
 void DisplayListenerDispatcher::Stop() {
