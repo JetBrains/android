@@ -20,19 +20,25 @@ import com.intellij.codeInsight.annoPackages.AnnotationPackageSupport
 
 class AndroidAnnotationSupport : AnnotationPackageSupport {
   override fun getNullabilityAnnotations(nullability: Nullability) =
+    // Order matters.
+    // androidx.annotation: preferred
+    // android.support: legacy, preferred only in apps not yet migrated to Androidx
+    // android.annotation: internal annotation in the Android SDK, not recommended for apps
+    // com.android.annotations: internal annotation in the dev tools, not recommended for apps
+    // RecentlyNonNull,RecentlyNullable: internal annotation, not recommended for apps
     when (nullability) {
       Nullability.NOT_NULL -> mutableListOf(
         "androidx.annotation.NonNull",
+        "android.support.annotation.NonNull",
         "android.annotation.NonNull",
         "com.android.annotations.NonNull",
-        "android.support.annotation.NonNull",
         "androidx.annotation.RecentlyNonNull"
       )
       Nullability.NULLABLE -> mutableListOf(
         "androidx.annotation.Nullable",
+        "android.support.annotation.Nullable",
         "android.annotation.Nullable",
         "com.android.annotations.Nullable",
-        "android.support.annotation.Nullable",
         "androidx.annotation.RecentlyNullable"
       )
       else -> mutableListOf()
