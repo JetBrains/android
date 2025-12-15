@@ -115,7 +115,6 @@ class ChooseModuleTypeStepTest {
           message("android.wizard.module.new.library"),
           message("android.wizard.module.new.native.library"),
           message("android.wizard.module.new.dynamic.module"),
-          message("android.wizard.module.new.dynamic.module.instant"),
           message("android.wizard.module.new.automotive"),
           message("android.wizard.module.new.wear"),
           message("android.wizard.module.new.tv"),

@@ -328,7 +328,6 @@ private fun createDefaultDynamicFeatureModel(
       project = project,
       moduleParent = ":",
       projectSyncInvoker = projectSyncInvoker,
-      isInstant = false,
       templateName = "Dynamic Feature",
       templateDescription = "Dynamic Feature description",
     )

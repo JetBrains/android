@@ -34,7 +34,6 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 
 fun RecipeExecutor.generateDynamicFeatureModule(
   moduleData: ModuleTemplateData,
-  isInstantModule: Boolean,
   dynamicFeatureTitle: String,
   fusing: Boolean,
   downloadInstallKind: DownloadInstallKind,
@@ -54,13 +53,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   val baseFeature = moduleData.baseFeature!!
 
   val manifestXml =
-    androidManifestXml(
-      fusing.toString(),
-      isInstantModule,
-      projectSimpleName,
-      downloadInstallKind,
-      deviceFeatures,
-    )
+    androidManifestXml(fusing.toString(), projectSimpleName, downloadInstallKind, deviceFeatures)
 
   createDirectory(srcOut)
   addIncludeToSettings(name)
@@ -99,9 +92,6 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   addTestDependencies()
 
   addDynamicFeature(moduleData.name, baseFeature.dir)
-  if (isInstantModule) {
-    mergeXml(baseAndroidManifestXml(), baseFeature.dir.resolve("src/main/$FN_ANDROID_MANIFEST_XML"))
-  }
   mergeXml(
     stringsXml(dynamicFeatureTitle, projectSimpleName),
     baseFeature.resDir.resolve("values/strings.xml"),
