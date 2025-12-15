@@ -111,6 +111,8 @@ data class ResourceClass(
  * - PUTSTATIC: This indicates one of two things. Either we are trying to set the value of an array
  *   or we are initializing a field that was not initialized at compile time.
  * - IASTORE: This signals that we are putting a new int value in the array.
+ * - ICONST_M1, ICONST_X: These instructions push a constant integer value (-1 to 5) onto the
+ *   operand stack. These values are used in conjunction with PUTSTATIC or IASTORE.
  */
 private class InitializerMethodVisitor(
   val onArrayDeclaration: (Boolean, ResourceClass.Field.IntArray) -> Unit,
@@ -151,16 +153,27 @@ private class InitializerMethodVisitor(
     super.visitFieldInsn(opcode, owner, name, descriptor)
   }
 
+  private fun pushOperand(value: Int) {
+    operandStack.add(ResourceClass.Field.Int("[${arrayStack.size}]", false, value))
+  }
+
   override fun visitInsn(opcode: Int) {
-    if (opcode == Opcodes.IASTORE) {
-      arrayStack.add(operandStack.removeLast())
+    when (opcode) {
+      Opcodes.IASTORE -> arrayStack.add(operandStack.removeLast())
+      Opcodes.ICONST_M1 -> pushOperand(-1)
+      Opcodes.ICONST_0 -> pushOperand(0)
+      Opcodes.ICONST_1 -> pushOperand(1)
+      Opcodes.ICONST_2 -> pushOperand(2)
+      Opcodes.ICONST_3 -> pushOperand(3)
+      Opcodes.ICONST_4 -> pushOperand(4)
+      Opcodes.ICONST_5 -> pushOperand(5)
     }
     super.visitInsn(opcode)
   }
 
   override fun visitLdcInsn(value: Any?) {
     if (value is Int) {
-      operandStack.add(ResourceClass.Field.Int("[${arrayStack.size}]", false, value))
+      pushOperand(value)
     }
     super.visitLdcInsn(value)
   }
