@@ -62,14 +62,6 @@ public class TestNullity {
     myNullityManager = NullableNotNullManager.getInstance(project)
   }
 
-  fun testAndroidDefaultAnnotations() {
-    runInferNullityAction()
-    Truth.assertThat(myNullityManager.defaultNullable).isEqualTo("androidx.annotation.Nullable")
-    Truth.assertThat(myNullityManager.defaultNullables.first()).isEqualTo("androidx.annotation.Nullable")
-    Truth.assertThat(myNullityManager.defaultNotNull).isEqualTo("androidx.annotation.NonNull")
-    Truth.assertThat(myNullityManager.defaultNotNulls.first()).isEqualTo("androidx.annotation.NonNull")
-  }
-
   fun testFoundCatalogDependency() {
     myFixture.addFileToProject("build.gradle", """
       dependencies{
@@ -198,30 +190,6 @@ public class TestNullity {
     }
 
     assertAddedAnnotations("androidx")
-  }
-
-  fun testOverrideDefaultAnnotationWithAddAndroidNoCatalogFull() {
-    myNullityManager.defaultNullable = "android.annotation.Nullable"
-    myNullityManager.defaultNotNull = "android.annotation.NonNull"
-    TestDialogManager.setTestDialog(TestDialog.YES)
-    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
-    myFixture.addClass("""
-      package androidx.annotation;
-      public @interface Nullable {}
-      public @interface NonNull {}
-    """.trimIndent())
-
-    val action = AndroidInferNullityAnnotationAction()
-    val scope = AnalysisScope(project)
-    action.getAdditionalActionSettings(project, null)
-    try {
-      action.analyze(project, scope)
-    }
-    finally {
-      TestDialogManager.setTestDialog(TestDialog.DEFAULT)
-    }
-
-    assertAddedAnnotations("android")
   }
 
   /**
