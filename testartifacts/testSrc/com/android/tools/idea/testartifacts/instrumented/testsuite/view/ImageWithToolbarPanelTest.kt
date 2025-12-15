@@ -28,6 +28,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
 import java.awt.GraphicsEnvironment
+import java.awt.event.ComponentEvent
 import java.awt.image.BufferedImage
 import javax.swing.JFrame
 
@@ -181,5 +182,99 @@ class ImageWithToolbarPanelTest {
      // Zoom out until min
      for (i in 0..50) panel.zoomOut()
      assertFalse(panel.canZoomOut())
+  }
+
+  @Test
+  fun testAutoFitOnImageSet() {
+    val panel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = true)
+    val image = BufferedImage(200, 200, BufferedImage.TYPE_INT_ARGB)
+    // Mock viewport size
+    panel.scrollPane.viewport.extentSize = Dimension(100, 100)
+
+    panel.setImage(image)
+
+    assertTrue(panel.isAutoFitting)
+    // Scale should be 0.5
+    assertEquals(0.5, panel.currentScale, 0.01)
+  }
+
+  @Test
+  fun testZoomDisablesAutoFit() {
+    val panel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = true)
+    panel.setImage(BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB))
+    assertTrue(panel.isAutoFitting)
+
+    panel.zoomIn()
+    assertFalse(panel.isAutoFitting)
+
+    panel.fitToScreen()
+    assertTrue(panel.isAutoFitting)
+
+    panel.zoomOut()
+    assertFalse(panel.isAutoFitting)
+
+    panel.fitToScreen()
+    assertTrue(panel.isAutoFitting)
+
+    panel.setActualSize()
+    assertFalse(panel.isAutoFitting)
+  }
+
+  @Test
+  fun testResizeTriggersFitToScreen() {
+    val panel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = true)
+    val image = BufferedImage(200, 200, BufferedImage.TYPE_INT_ARGB)
+    panel.setImage(image)
+    panel.scrollPane.viewport.extentSize = Dimension(100, 100)
+    // Initial fit
+    panel.fitToScreen()
+    assertEquals(0.5, panel.currentScale, 0.01)
+
+    // Resize viewport to be smaller
+    panel.scrollPane.viewport.extentSize = Dimension(50, 50)
+
+    // Manually trigger the listener since we are not in a real UI hierarchy that dispatches events
+    val event = ComponentEvent(panel.scrollPane, ComponentEvent.COMPONENT_RESIZED)
+    for (listener in panel.scrollPane.componentListeners) {
+      listener.componentResized(event)
+    }
+
+    // Should have re-fitted to 50/200 = 0.25
+    assertEquals(0.25, panel.currentScale, 0.01)
+  }
+
+  @Test
+  fun testDynamicZoomLimits() {
+    val panel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = true)
+    val image = BufferedImage(1000, 1000, BufferedImage.TYPE_INT_ARGB)
+    panel.setImage(image)
+    panel.scrollPane.viewport.extentSize = Dimension(100, 100)
+    panel.fitToScreen()
+
+    // fitScale is 0.1
+    // actualScale is 1.0
+    // min = 0.1 / 2.5 = 0.04
+    // max = 1.0 * 2.5 = 2.5
+
+    // currentScale is 0.1
+
+    // Try to zoom out below min
+    var steps = 0
+    while(panel.canZoomOut() && steps < 100) {
+      panel.zoomOut()
+      steps++
+    }
+    // should stop around 0.04
+    assertTrue(panel.currentScale >= 0.04)
+    assertTrue(panel.currentScale < 0.1)
+
+    // Try to zoom in beyond max
+    steps = 0
+    while(panel.canZoomIn() && steps < 100) {
+      panel.zoomIn()
+      steps++
+    }
+    assertTrue(panel.currentScale <= 2.5)
+    assertTrue(panel.currentScale > 1.0)
   }
 }
