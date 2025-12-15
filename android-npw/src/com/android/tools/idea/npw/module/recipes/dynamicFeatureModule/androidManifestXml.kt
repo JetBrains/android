@@ -25,23 +25,25 @@ fun androidManifestXml(
   isInstantModule: Boolean,
   projectSimpleName: String,
   downloadInstallKind: DownloadInstallKind,
-  deviceFeatures: Collection<DeviceFeatureModel>
+  deviceFeatures: Collection<DeviceFeatureModel>,
 ): String {
 
-  val deliveryBlock = when(downloadInstallKind) {
-    DownloadInstallKind.INCLUDE_AT_INSTALL_TIME -> "<dist:install-time />"
-    DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS -> {
-      val deviceFeaturesBlock = deviceFeatures.joinToString("\n") {
-        when (it.deviceFeatureType.get()) {
-          DeviceFeatureKind.NAME ->
-"""                    <dist:device-feature dist:name="${it.deviceFeatureValue}" />"""
-          DeviceFeatureKind.GL_ES_VERSION ->
-"""                    <dist:device-feature
+  val deliveryBlock =
+    when (downloadInstallKind) {
+      DownloadInstallKind.INCLUDE_AT_INSTALL_TIME -> "<dist:install-time />"
+      DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS -> {
+        val deviceFeaturesBlock =
+          deviceFeatures.joinToString("\n") {
+            when (it.deviceFeatureType.get()) {
+              DeviceFeatureKind.NAME ->
+                """                    <dist:device-feature dist:name="${it.deviceFeatureValue}" />"""
+              DeviceFeatureKind.GL_ES_VERSION ->
+                """                    <dist:device-feature
                         dist:name="android.hardware.opengles.version"
                         dist:version="${it.deviceFeatureValue}" />"""
-        }
-      }
-      """<dist:install-time>
+            }
+          }
+        """<dist:install-time>
                 <dist:conditions>
                     <!-- To include or exclude this module by user countries, uncomment and update this section. -->
                     <!-- Learn more @ [https://d.android.com/r/studio-ui/dynamic-delivery/conditional-delivery] -->
@@ -51,9 +53,9 @@ fun androidManifestXml(
 $deviceFeaturesBlock
                 </dist:conditions>
             </dist:install-time>"""
+      }
+      DownloadInstallKind.ON_DEMAND_ONLY -> "<dist:on-demand />"
     }
-    DownloadInstallKind.ON_DEMAND_ONLY -> "<dist:on-demand />"
-  }
 
   return """
 <?xml version="1.0" encoding="utf-8"?>
