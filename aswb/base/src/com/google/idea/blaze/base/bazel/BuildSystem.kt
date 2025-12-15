@@ -167,7 +167,8 @@ interface BuildSystem {
     fun getInvokeCommandForBinaryPath(userSpecifiedBinaryPath: String): List<String> {
       if (canOverrideBinaryPath) {
         return listOf(userSpecifiedBinaryPath)
-      } else {
+      }
+      else {
         throw UnsupportedOperationException("This BuildInvoker does not support user-specified binary paths.")
       }
     }
@@ -232,8 +233,6 @@ interface BuildSystem {
    * Returns invocation link for the given invocation ID.
    */
   fun getInvocationLink(invocationId: String): Optional<String>
-
-  fun createQueryRunner(project: Project): BazelQueryRunner
 }
 
 @VisibleForTesting
