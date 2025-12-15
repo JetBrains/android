@@ -18,6 +18,8 @@
 
 #include <aaudio/AAudio.h>
 
+#include <atomic>
+
 #include "audio_reader.h"
 #include "jvm.h"
 #include "codec_handle.h"
@@ -28,7 +30,7 @@ namespace screensharing {
 class RemoteSubmixReader : public AudioReader {
 public:
   RemoteSubmixReader(int32_t num_channels, int32_t sample_rate);
-  virtual ~RemoteSubmixReader();
+  ~RemoteSubmixReader() override;
 
   virtual bool Start(CodecHandle* codec_handle) override;
   virtual void Stop() override;
@@ -42,6 +44,9 @@ protected:
 
   AAudioStreamBuilder* stream_builder_ = nullptr;
   AAudioStream* stream_ = nullptr;
+
+private:
+  std::atomic_bool reader_stopped_ = false;
 };
 
 }  // namespace screensharing

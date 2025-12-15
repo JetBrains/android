@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <atomic>
-
 #include "common.h"
 #include "codec_handle.h"
 
@@ -36,7 +34,6 @@ public:
   virtual void Stop() = 0;
 
 protected:
-  std::atomic_bool reader_stopped_ = true;
   CodecHandle* codec_handle_ = nullptr;
   int32_t num_channels_;
   int32_t sample_rate_;

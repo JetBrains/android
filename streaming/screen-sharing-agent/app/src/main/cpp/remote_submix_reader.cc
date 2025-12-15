@@ -78,6 +78,7 @@ bool RemoteSubmixReader::Start(CodecHandle* codec_handle) {
   if (reader_stopped_.exchange(false)) {
     codec_handle_ = codec_handle;
     if (!StartAudioStream()) {
+      reader_stopped_ = true;
       codec_handle_->Stop();
       fprintf(stderr, "NOTIFICATION Unable start the audio stream\n");
       return false;
