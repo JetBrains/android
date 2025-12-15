@@ -276,20 +276,14 @@ class LeakCanaryLogcatCommandHandlerTest {
   private fun verifyEndEvent() {
     `when`(transportServiceGrpc.getCurrentTime(any())).thenReturn(Transport.TimeResponse.newBuilder().setTimestampNs(endTime).build())
     handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.STOP_LOGCAT_TRACKING).setPid(123).build())
-    assertEquals(mockEventQueue.size, 2) // End event is received
+    assertEquals(mockEventQueue.size, 1)
     val leakInfoEndEvent = mockEventQueue.poll()
-    val sessionEndEvent = mockEventQueue.poll()
     assertEquals(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS, leakInfoEndEvent.kind)
     assertEquals(123, leakInfoEndEvent.groupId)
     assertEquals(startTime, leakInfoEndEvent.leakCanaryAnalysisStatus.analysisEnded.startTimestamp)
     assertTrue(leakInfoEndEvent.isEnded)
     assertEquals(endTime, leakInfoEndEvent.leakCanaryAnalysisStatus.analysisEnded.endTimestamp)
     assertEquals(LeakCanary.LeakCanaryAnalysisEnded.Status.SUCCESS, leakInfoEndEvent.leakCanaryAnalysisStatus.analysisEnded.status)
-
-    assertEquals(Common.Event.Kind.SESSION, sessionEndEvent.kind)
-    assertEquals(0, sessionEndEvent.groupId)
-    assertEquals(endTime, sessionEndEvent.timestamp)
-    assertEquals(true, sessionEndEvent.isEnded)
   }
 
   private fun waitForEvent(testScope: TestScope) {
