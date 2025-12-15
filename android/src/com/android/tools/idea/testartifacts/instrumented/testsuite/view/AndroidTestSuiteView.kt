@@ -826,6 +826,13 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
 
   override fun dispose() {
     myLogger.reportImpressions()
+    myScheduledDevices.clear()
+    myStartedDevices.clear()
+    myFinishedDevices.clear()
+    scheduledTestCasesForTestSuite.clear()
+    eventPublisher = null
+    myComponentsSplitter.firstComponent = null
+    myComponentsSplitter.secondComponent = null
   }
 
   class MyItemSeparator : JComponent() {

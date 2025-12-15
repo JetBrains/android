@@ -32,14 +32,17 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.execution.process.ProcessOutputType
+import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.ExecutorService
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
@@ -81,6 +84,8 @@ class GradleConnectedAndroidTestInvokerTest {
   @Mock lateinit var mockGradleTaskManager: GradleTaskManager
   @Mock lateinit var mockModuleData: ModuleData
   @Mock lateinit var mockBuildToolWindow: ToolWindow
+  @Mock lateinit var mockRunContentDescriptor: RunContentDescriptor
+  @Mock lateinit var mockProcessHandler: ProcessHandler
   private lateinit var mockDevices: List<IDevice>
   private lateinit var mockGradleTestResultAdapters: List<GradleTestResultAdapter>
 
@@ -659,5 +664,43 @@ class GradleConnectedAndroidTestInvokerTest {
 
     verify(mockAndroidTestSuiteView).print("Running tests\n", ConsoleViewContentType.NORMAL_OUTPUT)
     verify(mockAndroidTestSuiteView).print(errorText, ConsoleViewContentType.ERROR_OUTPUT)
+  }
+
+  @Test
+  fun processIsDetachedOnTaskEnd() {
+    val executionId = 12345L
+    whenever(mockExecutionEnvironment.executionId).thenReturn(executionId)
+    whenever(mockRunContentDescriptor.processHandler).thenReturn(mockProcessHandler)
+
+    val mockRunContentManager = mock<com.intellij.execution.ui.RunContentManager>()
+    whenever(mockRunContentManager.allDescriptors).thenReturn(listOf(mockRunContentDescriptor))
+    projectRule.project.replaceService(
+      com.intellij.execution.ui.RunContentManager::class.java,
+      mockRunContentManager,
+      projectRule.project
+    )
+    whenever(mockRunContentDescriptor.executionId).thenReturn(executionId)
+
+    whenever(mockGradleTaskManager.executeTasks(any(), any(), any(), any())).then {
+      val projectPath = it.getArgument<String>(2)
+      val listener = it.getArgument<ExternalSystemTaskNotificationListener>(5)
+      val taskId = it.getArgument<ExternalSystemTaskId>(0)
+      listener.onEnd(projectPath, taskId)
+      null
+    }
+
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.runGradleTask(
+      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = false,
+      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
+      extraInstrumentationOptions = ""
+    )
+
+    runInEdtAndWait {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
+
+    verify(mockProcessHandler).detachProcess()
   }
 }
