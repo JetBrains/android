@@ -37,6 +37,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.PathUtil
 import org.jetbrains.android.augment.ResourceLightField
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import java.io.File
 
 data class HighlightProjectTestDef(
@@ -143,7 +144,11 @@ data class HighlightProjectTestDef(
     private fun validateNonTransitiveRClass(fixture: JavaCodeInsightTestFixture) {
       val unresolvedReferenceWarnings =
         fixture.doHighlighting(HighlightSeverity.WARNING).map { it.description }.filter { it.startsWith("[UNRESOLVED_REFERENCE]") }
-      assertThat(unresolvedReferenceWarnings).isEmpty()
+      if (KotlinPluginModeProvider.isK2Mode()) {
+        assertThat(unresolvedReferenceWarnings).isEmpty()
+      } else {
+        assertThat(unresolvedReferenceWarnings).containsExactly("[UNRESOLVED_REFERENCE] Unresolved reference: R")
+      }
     }
 
     private fun validateNonTransitiveRClassTrue(fixture: JavaCodeInsightTestFixture) {
