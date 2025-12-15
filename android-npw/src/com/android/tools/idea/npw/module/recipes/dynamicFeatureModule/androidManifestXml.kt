@@ -22,7 +22,6 @@ import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind
 
 fun androidManifestXml(
   dynamicFeatureFusing: String,
-  isInstantModule: Boolean,
   projectSimpleName: String,
   downloadInstallKind: DownloadInstallKind,
   deviceFeatures: Collection<DeviceFeatureModel>,
@@ -63,7 +62,6 @@ $deviceFeaturesBlock
     xmlns:dist="http://schemas.android.com/apk/distribution">
 
     <dist:module
-        dist:instant="${isInstantModule}"
         dist:title="@string/title_${projectSimpleName}">
         <dist:delivery>
             $deliveryBlock

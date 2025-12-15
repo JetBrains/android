@@ -39,7 +39,6 @@ class DynamicFeatureModel(
   project: Project,
   moduleParent: String,
   projectSyncInvoker: ProjectSyncInvoker,
-  val isInstant: Boolean,
   val templateName: String,
   val templateDescription: String,
 ) :
@@ -56,19 +55,13 @@ class DynamicFeatureModel(
   // TODO(qumeric): investigate why featureOnDemand = !isInstant disappeared
   val featureFusing = BoolValueProperty(true)
   val deviceFeatures = ObservableList<DeviceFeatureModel>()
-  val downloadInstallKind =
-    OptionalValueProperty(
-      if (isInstant) DownloadInstallKind.INCLUDE_AT_INSTALL_TIME
-      else DownloadInstallKind.ON_DEMAND_ONLY
-    )
+  val downloadInstallKind = OptionalValueProperty(DownloadInstallKind.ON_DEMAND_ONLY)
   override val recommendedBuildSdk: AndroidVersion?
     get() =
       baseApplication.valueOrNull?.let { StudioAndroidModuleInfo.getInstance(it)?.buildSdkVersion }
 
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
-    get() =
-      if (isInstant) RenderLoggingEvent.INSTANT_DYNAMIC_FEATURE_MODULE
-      else RenderLoggingEvent.DYNAMIC_FEATURE_MODULE
+    get() = RenderLoggingEvent.DYNAMIC_FEATURE_MODULE
 
   override fun getParamsToLog(): String {
     val deviceFeaturesString =
@@ -95,7 +88,6 @@ class DynamicFeatureModel(
         get() = { td: TemplateData ->
           generateDynamicFeatureModule(
             moduleData = td as ModuleTemplateData,
-            isInstantModule = isInstant,
             dynamicFeatureTitle = featureTitle.get(),
             fusing = featureFusing.get(),
             downloadInstallKind = downloadInstallKind.value,

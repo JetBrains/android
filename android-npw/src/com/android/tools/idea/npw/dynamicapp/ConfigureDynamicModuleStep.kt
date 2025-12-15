@@ -23,27 +23,18 @@ import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.module.generateBuildConfigurationLanguageRow
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
-import com.android.tools.idea.npw.ui.createWarningLabel
 import com.android.tools.idea.npw.validator.ModuleSelectedValidator
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.ui.SelectedItemProperty
-import com.android.tools.idea.observable.ui.SelectedProperty
-import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.AlignX
-import com.intellij.ui.dsl.builder.BottomGap
-import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI.Borders.empty
-import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JComponent
-import javax.swing.JTextField
 import org.jetbrains.android.util.AndroidBundle
 
 class ConfigureDynamicModuleStep(model: DynamicFeatureModel, basePackage: String) :
@@ -56,18 +47,8 @@ class ConfigureDynamicModuleStep(model: DynamicFeatureModel, basePackage: String
   ) {
   private val baseApplication: JComboBox<Module> = ModuleComboProvider().createComponent()
 
-  // TODO(qumeric): unify with ConfigureModuleDownloadOptionsStep?
-  private val moduleTitle: JTextField = JBTextField()
-  private val fusingCheckbox: JCheckBox =
-    JBCheckBox("Fusing (install module on pre-Lollipop devices)")
-
   override fun createMainPanel(): DialogPanel =
     panel {
-        if (model.isInstant) {
-          row { cell(createDeprecationWarningPanel()).align(AlignX.FILL) }
-            .bottomGap(BottomGap.MEDIUM)
-        }
-
         row("Base Application Module") { cell(baseApplication).align(AlignX.FILL) }
 
         row(contextLabel("Module name", AndroidBundle.message("android.wizard.module.help.name"))) {
@@ -80,17 +61,9 @@ class ConfigureDynamicModuleStep(model: DynamicFeatureModel, basePackage: String
 
         row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
 
-        if (model.isInstant) {
-          row(contextLabel("Module title", "This may be visible to users")) {
-            cell(moduleTitle).align(AlignX.FILL)
-          }
-        }
-
         if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
           generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
         }
-
-        row { cell(fusingCheckbox) }.topGap(TopGap.SMALL)
       }
       .withBorder(empty(6))
 
@@ -102,24 +75,10 @@ class ConfigureDynamicModuleStep(model: DynamicFeatureModel, basePackage: String
     bindings.bind(baseApplication, SelectedItemProperty(this.baseApplication))
 
     validatorPanel.registerValidator(baseApplication, ModuleSelectedValidator())
-
-    if (model.isInstant) {
-      bindings.bind(model.featureFusing, SelectedProperty(fusingCheckbox))
-      bindings.bindTwoWay(TextProperty(moduleTitle), getModel().featureTitle)
-    } else {
-      fusingCheckbox.isVisible = false
-    }
   }
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> =
     listOf(ConfigureModuleDownloadOptionsStep(model)) + super.createDependentSteps()
 
   override fun getPreferredFocusComponent(): JComponent? = moduleName
-
-  private fun createDeprecationWarningPanel() =
-    createWarningLabel(
-      "<html>Instant Apps support will be removed by Google Play in December 2025. " +
-        "Publishing and all Google Play Instant APIs will no longer work. " +
-        "Tooling support will be removed in Android Studio Otter Feature Drop.</html>"
-    )
 }
