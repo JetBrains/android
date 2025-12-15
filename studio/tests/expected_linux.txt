@@ -2960,7 +2960,7 @@ android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifHebr
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifHentaigana.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifKannada-VF.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifKhmer-Bold.otf
-android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifKhmer-Regular.otf
+android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifKhmer-Regular.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifLao-Bold.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifLao-Regular.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifMalayalam-VF.ttf

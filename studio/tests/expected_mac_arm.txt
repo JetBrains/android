@@ -2971,7 +2971,7 @@ Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/dat
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifHentaigana.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifKannada-VF.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifKhmer-Bold.otf
-Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifKhmer-Regular.otf
+Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifKhmer-Regular.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifLao-Bold.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifLao-Regular.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifMalayalam-VF.ttf
