@@ -357,10 +357,14 @@ class ViewContextMenuFactoryTest {
     val manager = WebBrowserManager.getInstance()
     val browser = manager.getBrowsers(Condition { ChromeDevTools.isChrome(it) }).single()
     browser.simulateSetActive(false)
-    action.checkVisibility(event, expected = false)
+    action.checkVisibility(event, expected = true)
+    action.checkIsNotEnabled(event)
+    action.checkText(event, "Open Chrome DevTools (Chrome is not installed)")
 
     browser.simulateSetActive(true)
     action.checkVisibility(event, expected = true)
+    action.checkIsEnabled(event)
+    action.checkText(event, "Open Chrome DevTools")
 
     ActionUtil.performAction(action, event)
     val launcher = BrowserLauncher.instance
@@ -482,6 +486,12 @@ private fun AnAction.checkEnable(event: AnActionEvent, expected: Boolean) {
   event.presentation.copyFrom(templatePresentation)
   ActionUtil.updateAction(this, event)
   assertThat(event.presentation.isEnabled).isEqualTo(expected)
+}
+
+private fun AnAction.checkText(event: AnActionEvent, expected: String) {
+  event.presentation.copyFrom(templatePresentation)
+  ActionUtil.updateAction(this, event)
+  assertThat(event.presentation.text).isEqualTo(expected)
 }
 
 private fun AnAction.children(event: AnActionEvent): Array<AnAction> {
