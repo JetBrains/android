@@ -118,11 +118,13 @@ class GradleConnectedAndroidTestInvoker(
     val taskOutputProcessor = TaskOutputProcessor(adapters)
     val executionId = executionEnvironment.executionId
     val listener = object : ExternalSystemTaskNotificationListener {
+      private var view: AndroidTestSuiteView? = androidTestSuiteView
+
       val outputLineProcessor = TaskOutputLineProcessor(object : TaskOutputLineProcessor.LineProcessor {
         override fun processLine(line: String) {
           val processedText = taskOutputProcessor.process(line)
           if (!(processedText.isBlank() && line != processedText)) {
-            androidTestSuiteView.println(processedText)
+            view?.println(processedText)
           }
         }
       })
@@ -140,7 +142,7 @@ class GradleConnectedAndroidTestInvoker(
           outputLineProcessor.append(text)
         }
         else {
-          androidTestSuiteView.print(text, ConsoleViewContentType.ERROR_OUTPUT)
+          view?.print(text, ConsoleViewContentType.ERROR_OUTPUT)
         }
       }
 
@@ -177,7 +179,7 @@ class GradleConnectedAndroidTestInvoker(
             gradleTestResultAdapterFactory,
           )
           rerunDevices.forEach {
-            androidTestSuiteView.onRerunScheduled(it.device)
+            view?.onRerunScheduled(it.device)
           }
           rerunInvoker.runGradleTask(
             project,
@@ -204,13 +206,16 @@ class GradleConnectedAndroidTestInvoker(
                                                               }
                                                             }, ModalityState.nonModal(), project.disposed)
           }
-
-          RunContentManager.getInstance(project).allDescriptors.find {
-            it.executionId == executionEnvironment.executionId
-          }?.let {
-            it.processHandler?.detachProcess()
+          ApplicationManager.getApplication().invokeLater {
+            if (project.isDisposed) return@invokeLater
+            RunContentManager.getInstance(project).allDescriptors.find {
+              it.executionId == executionEnvironment.executionId
+            }?.let {
+              it.processHandler?.detachProcess()
+            }
           }
         }
+        view = null
       }
     }
 
