@@ -163,12 +163,12 @@ class ImageWithToolbarPanel(
   @VisibleForTesting
   val oneToOneAction = object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
     override fun actionPerformed(e: AnActionEvent) = setActualSize()
-    override fun update(e: AnActionEvent) { e.presentation.isEnabled = hasImage() }
+    override fun update(e: AnActionEvent) { e.presentation.isEnabled = hasImage() && currentScale != 1.0 }
   }
   @VisibleForTesting
   val fitToScreenAction = object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
     override fun actionPerformed(e: AnActionEvent) = fitToScreen()
-    override fun update(e: AnActionEvent) { e.presentation.isEnabled = hasImage() }
+    override fun update(e: AnActionEvent) { e.presentation.isEnabled = hasImage() && !isAutoFitting }
   }
   @VisibleForTesting
   val toggleGridViewAction = object : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {

@@ -106,14 +106,14 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
   private val commonOneToOneAction = object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
     override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.setActualSize() }
     override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
+      e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && it.currentScale != 1.0 }
     }
   }
 
   private val commonFitToScreenAction = object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
     override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.fitToScreen() }
     override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
+      e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && !it.isAutoFitting }
     }
   }
 
