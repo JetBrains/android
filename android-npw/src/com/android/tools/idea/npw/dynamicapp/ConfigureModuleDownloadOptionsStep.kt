@@ -41,65 +41,79 @@ import com.intellij.ui.dsl.builder.LabelPosition
 import com.intellij.ui.dsl.builder.RightGap
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
-import org.jetbrains.android.util.AndroidBundle
 import java.util.Optional
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JTextField
+import org.jetbrains.android.util.AndroidBundle
 
-class ConfigureModuleDownloadOptionsStep(
-  model: DynamicFeatureModel
-) : ModelWizardStep<DynamicFeatureModel?>(model, AndroidBundle.message("android.wizard.module.new.dynamic.download.options")) {
+class ConfigureModuleDownloadOptionsStep(model: DynamicFeatureModel) :
+  ModelWizardStep<DynamicFeatureModel?>(
+    model,
+    AndroidBundle.message("android.wizard.module.new.dynamic.download.options"),
+  ) {
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
 
   private val featureTitle: JTextField = JBTextField()
-  private val installationOptionCombo: JComboBox<DownloadInstallKind> = ComboBox(DefaultComboBoxModel(DownloadInstallKind.values()))
-  private val downloadConditionsForm: ModuleDownloadConditions = ModuleDownloadConditions().apply {
-    setModel(model.deviceFeatures)
-  }
-  private val fusingCheckbox: JCheckBox = JBCheckBox("Fusing (include module at install-time for pre-Lollipop devices)")
+  private val installationOptionCombo: JComboBox<DownloadInstallKind> =
+    ComboBox(DefaultComboBoxModel(DownloadInstallKind.values()))
+  private val downloadConditionsForm: ModuleDownloadConditions =
+    ModuleDownloadConditions().apply { setModel(model.deviceFeatures) }
+  private val fusingCheckbox: JCheckBox =
+    JBCheckBox("Fusing (include module at install-time for pre-Lollipop devices)")
 
   val panel: DialogPanel = panel {
     row {
-      text("Dynamic feature modules can be delivered on-demand, included at install time," +
-           "<br>or included conditionally based on device features or user country." +
-           " <a href='https://developer.android.com/studio/projects/dynamic-delivery/overview'>Learn more</a>")
+      text(
+        "Dynamic feature modules can be delivered on-demand, included at install time," +
+          "<br>or included conditionally based on device features or user country." +
+          " <a href='https://developer.android.com/studio/projects/dynamic-delivery/overview'>Learn more</a>"
+      )
     }
 
     row {
       cell(featureTitle)
         .align(AlignX.FILL)
-        .label(contextLabel(
-          "Module title (this may be visible to users)",
-          "The platform uses this title to identify the module to users when," +
-          " for example, confirming whether the user wants to download the module."), LabelPosition.TOP)
+        .label(
+          contextLabel(
+            "Module title (this may be visible to users)",
+            "The platform uses this title to identify the module to users when," +
+              " for example, confirming whether the user wants to download the module.",
+          ),
+          LabelPosition.TOP,
+        )
     }
 
     row {
       cell(installationOptionCombo)
-        .label(contextLabel("Install-time inclusion",
-                            "Specify whether to include this module at install-time unconditionally, or based on device features."),
-               LabelPosition.TOP)
+        .label(
+          contextLabel(
+            "Install-time inclusion",
+            "Specify whether to include this module at install-time unconditionally, or based on device features.",
+          ),
+          LabelPosition.TOP,
+        )
     }
 
-    row {
-      cell(downloadConditionsForm.myRootPanel).align(AlignX.FILL)
-    }
+    row { cell(downloadConditionsForm.myRootPanel).align(AlignX.FILL) }
 
     row {
       cell(fusingCheckbox).gap(RightGap.SMALL)
-      cell(ContextHelpLabel.createWithLink(
-        null, "Enable Fusing if you want this module to be available to devices running Android 4.4 (API level 20) and lower.",
-        "Learn more"
-      ) { BrowserUtil.browse(linkUrl) })
+      cell(
+        ContextHelpLabel.createWithLink(
+          null,
+          "Enable Fusing if you want this module to be available to devices running Android 4.4 (API level 20) and lower.",
+          "Learn more",
+        ) {
+          BrowserUtil.browse(linkUrl)
+        }
+      )
     }
 
-    row {
-      text("Pre-Lollipop devices do not support on-demand modules")
-    }.topGap(TopGap.SMALL)
+    row { text("Pre-Lollipop devices do not support on-demand modules") }.topGap(TopGap.SMALL)
   }
 
   private val validatorPanel = ValidatorPanel(this, wrapWithVScroll(panel))
@@ -116,20 +130,21 @@ class ConfigureModuleDownloadOptionsStep(
     }
 
     // Initialize "conditions" sub-form
-    val isConditionalPanelActive = IsEqualToExpression(
-      model.downloadInstallKind,
-      Optional.of(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS)
-    )
+    val isConditionalPanelActive =
+      IsEqualToExpression(
+        model.downloadInstallKind,
+        Optional.of(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS),
+      )
     downloadConditionsForm.init(model.project, validatorPanel, isConditionalPanelActive)
 
     // Show the "conditions" panel only if the dropdown selection is "with conditions"
     listeners.listenAndFire(model.downloadInstallKind) { value: Optional<DownloadInstallKind> ->
       downloadConditionsForm.myRootPanel.isVisible =
-        value.isPresent && value.get() === DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS
+        value.isPresent &&
+          value.get() === DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS
     }
     validatorPanel.registerValidator(model.featureTitle, ProjectNameValidator())
   }
-
 
   override fun onEntering() {
     featureTitle.selectAll()
@@ -149,4 +164,5 @@ class ConfigureModuleDownloadOptionsStep(
   }
 }
 
-private const val linkUrl = AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/dynamic-delivery/fusing"
+private const val linkUrl =
+  AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/dynamic-delivery/fusing"
