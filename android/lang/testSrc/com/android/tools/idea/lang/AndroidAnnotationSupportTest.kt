@@ -24,7 +24,7 @@ import org.junit.Rule
 import org.junit.Test
 
 
-class AndroidNullableNotNullManagerImplTest {
+class AndroidAnnotationSupportTest {
   @get:Rule
   val projectRule = AndroidProjectRule.onDisk().onEdt()
 
