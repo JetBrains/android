@@ -160,34 +160,18 @@ DisplayStreamer::DisplayStreamer(int32_t display_id, const CodecInfo* codec_info
       video_orientation_(initial_video_orientation) {
 }
 
-DisplayStreamer::~DisplayStreamer() {
-  if (thread_.get_id() != this_thread::get_id() && thread_.joinable()) {
-    thread_.join();
-  }
-}
+DisplayStreamer::~DisplayStreamer() = default;
 
 void DisplayStreamer::Start() {
-  if (streamer_stopped_.exchange(false)) {
-    Log::D("Display %d: starting video stream", display_id_);
-    thread_ = thread([this]() {
-      Jvm::AttachCurrentThread((string("DisplayStreamer ") + to_string(display_id_)).c_str());
-      Run();
-      Jvm::DetachCurrentThread();
-      Log::D("Display %d: streaming terminated", display_id_);
-    });
-  }
+  thread_handle_.Start(StringPrintf("DisplayStreamer for display %d", display_id_), [this]() { Run(); });
 }
 
 void DisplayStreamer::Stop() {
-  if (!streamer_stopped_.exchange(true)) {
-    Log::D("Display %d: stopping video stream", display_id_);
-    StopCodec();
-    if (thread_.get_id() != this_thread::get_id() && thread_.joinable()) {
-      thread_.join();
-    }
-    DeleteCodec();
-    ReleaseVirtualDisplay(Jvm::GetJni());
-  }
+  thread_handle_.Stop();
+  StopCodec();
+  thread_handle_.Join();
+  DeleteCodec();
+  ReleaseVirtualDisplay(Jvm::GetJni());
 }
 
 void DisplayStreamer::OnDisplayAdded(int32_t display_id) {
@@ -218,7 +202,7 @@ void DisplayStreamer::Run() {
   FrameStreamStopReason stop_reason = FrameStreamStopReason::CODEC_STOPPED;
   int error_count = 0;
 
-  while (stop_reason != FrameStreamStopReason::END_OF_STREAM && !streamer_stopped_ && !Agent::IsShuttingDown()) {
+  while (stop_reason != FrameStreamStopReason::END_OF_STREAM && !thread_handle_.IsStopping() && !Agent::IsShuttingDown()) {
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
     if (display_id_ != PRIMARY_DISPLAY_ID && (!display_info.IsValid() || !display_info.IsOn())) {
       Log::W("Display %d: turned off", display_id_);
@@ -332,6 +316,7 @@ void DisplayStreamer::Run() {
   if (stop_reason == FrameStreamStopReason::END_OF_STREAM) {
     Agent::Shutdown();
   }
+  thread_handle_.Stop();
 }
 
 DisplayStreamer::FrameStreamStopReason DisplayStreamer::ProcessFramesUntilCodecStopped(

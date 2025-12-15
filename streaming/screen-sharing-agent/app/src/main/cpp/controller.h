@@ -45,7 +45,7 @@ class Controller : private DisplayManager::DisplayListener, ClipboardManager::Cl
                            XrSimulatedInputManager::EnvironmentListener {
 public:
   explicit Controller(int socket_fd);
-  virtual ~Controller();
+  ~Controller() override;
 
   void Run();
   // Stops the controller asynchronously. The controller can't be restarted one stopped.
@@ -131,7 +131,7 @@ private:
   int socket_fd_;  // Owned.
   Base128InputStream input_stream_;
   Base128OutputStream output_stream_;
-  volatile bool stopped = false;
+  std::atomic_bool stopping_ = false;
   PointerHelper* pointer_helper_ = nullptr;  // Owned.
   JObjectArray pointer_properties_;  // MotionEvent.PointerProperties[]
   JObjectArray pointer_coordinates_;  // MotionEvent.PointerCoords[]
