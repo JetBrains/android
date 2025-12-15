@@ -150,8 +150,6 @@ class ConfigureModuleDownloadOptionsStep(model: DynamicFeatureModel) :
     featureTitle.selectAll()
   }
 
-  override fun shouldShow(): Boolean = !model.isInstant
-
   override fun canGoForward(): ObservableBool = validatorPanel.hasErrors().not()
 
   override fun getComponent(): JComponent = validatorPanel

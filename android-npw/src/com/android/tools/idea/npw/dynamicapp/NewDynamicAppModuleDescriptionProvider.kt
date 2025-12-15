@@ -27,7 +27,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 
 class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
   override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> =
-    listOf(FeatureTemplateGalleryEntry(), InstantFeatureTemplateGalleryEntry())
+    listOf(FeatureTemplateGalleryEntry())
 
   private class FeatureTemplateGalleryEntry : ModuleGalleryEntry {
     override val icon: Icon = StudioIcons.Wizards.Modules.DYNAMIC_FEATURE
@@ -44,28 +44,7 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
     ): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
       return ConfigureDynamicModuleStep(
-        DynamicFeatureModel(project, moduleParent, projectSyncInvoker, false, name, description),
-        basePackage,
-      )
-    }
-  }
-
-  private class InstantFeatureTemplateGalleryEntry : ModuleGalleryEntry {
-    override val icon: Icon = StudioIcons.Wizards.Modules.INSTANT_DYNAMIC_FEATURE
-    override val name: String = message("android.wizard.module.new.dynamic.module.instant")
-    override val description: String =
-      message("android.wizard.module.new.dynamic.module.instant.description")
-
-    override fun toString() = name
-
-    override fun createStep(
-      project: Project,
-      moduleParent: String,
-      projectSyncInvoker: ProjectSyncInvoker,
-    ): SkippableWizardStep<*> {
-      val basePackage = getSuggestedProjectPackage()
-      return ConfigureDynamicModuleStep(
-        DynamicFeatureModel(project, moduleParent, projectSyncInvoker, true, name, description),
+        DynamicFeatureModel(project, moduleParent, projectSyncInvoker, name, description),
         basePackage,
       )
     }
