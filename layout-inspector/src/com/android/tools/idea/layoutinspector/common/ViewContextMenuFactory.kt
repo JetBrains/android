@@ -143,7 +143,11 @@ private class BrowseChromeDevToolsAction(private val selectedView: ViewNode?) :
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible =
       StudioFlags.DYNAMIC_LAYOUT_CHROME_DEVTOOLS_MENU.get() &&
-      selectedView?.isDerivedFromWebView ?: false && ChromeDevTools.isChromeAvailable
+        selectedView?.isDerivedFromWebView ?: false
+    e.presentation.isEnabled = ChromeDevTools.isChromeAvailable
+    e.presentation.text =
+      if (ChromeDevTools.isChromeAvailable) templateText
+      else "$templateText (Chrome is not installed)"
   }
 }
 
