@@ -31,17 +31,18 @@ import com.android.tools.idea.gradle.model.ARTIFACT_NAME_SCREENSHOT_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_TEST_FIXTURES
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeAaptOptions
+import com.android.tools.idea.gradle.model.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
+import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
-import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet
-import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
-import com.android.tools.idea.gradle.model.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
 import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
@@ -58,13 +59,12 @@ import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
-import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
+import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeMultiVariantDataImpl
-import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
-import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
@@ -218,6 +218,8 @@ import com.intellij.util.messages.MessageBusConnection
 import com.intellij.workspaceModel.core.fileIndex.WorkspaceFileIndexContributor
 import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
 import com.intellij.workspaceModel.ide.impl.jps.serialization.DelayedProjectSynchronizer
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import org.jetbrains.android.AndroidTestBase
@@ -2388,20 +2390,23 @@ private fun <T> openPreparedProject(
         // pass it down to `ProjectOpenProcessor`s.
 
         val project = GradleProjectImporter.withAfterCreate(afterCreate = { project -> afterCreate(project) }) {
-          ProjectUtil.openOrImport(
-            projectPath.toPath(),
-            OpenProjectTask.build()
-              .withProjectToClose(null)
-              .withForceOpenInNewFrame(true)
-              .copy(
-                beforeOpen = {
-                  blockingContext {
-                    afterCreate(it)
-                    true
-                  }
-                },
-              )
-          )!!
+          @Suppress("OPT_IN_USAGE") val job = GlobalScope.async {
+            ProjectUtil.openOrImportAsync(
+              projectPath.toPath(),
+              OpenProjectTask.build()
+                .withProjectToClose(null)
+                .withForceOpenInNewFrame(true)
+                .copy(
+                  beforeOpen = {
+                    blockingContext {
+                      afterCreate(it)
+                      true
+                    }
+                  },
+                )
+            )!!
+          }
+          PlatformTestUtil.waitForFuture(job.asCompletableFuture(), TimeUnit.MINUTES.toMillis(10))
         }
         // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
         emulateStartupActivityForTest(project)
