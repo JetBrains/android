@@ -63,11 +63,6 @@ public abstract class FakeBuildSystem implements BuildSystem {
   }
 
   @Override
-  public BazelQueryRunner createQueryRunner(Project project) {
-    return null;
-  }
-
-  @Override
   public @NotNull Optional<@NotNull String> getInvocationLink(@NotNull String invocationId) {
     return Optional.empty();
   }

@@ -363,7 +363,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
   }
 
   protected QueryRunner createQueryRunner(BuildSystem buildSystem) {
-    return buildSystem.createQueryRunner(project);
+    return new BazelQueryRunner(project, buildSystem);
   }
 
   protected DependencyBuilder createDependencyBuilder(
