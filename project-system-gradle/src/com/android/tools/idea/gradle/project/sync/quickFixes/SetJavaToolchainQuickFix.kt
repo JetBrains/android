@@ -32,13 +32,15 @@ class SetJavaToolchainQuickFix(val versionToSet: Int, val gradleModules: List<St
     val future = CompletableFuture<Any>()
     try {
       if (!project.isDisposed) {
-        val projectRootPath = project.guessProjectDir()?.path
+        val projectRootPath = project.guessProjectDir()?.path?.let {
+          FileUtil.toSystemIndependentName(it)
+        }
         val modules =
           gradleModules.mapNotNull { modulePath ->
             projectRootPath ?: return@mapNotNull null
-            GradleHolderProjectPath(FileUtil.toSystemIndependentName(projectRootPath), modulePath).resolveIn(project)
+            GradleHolderProjectPath(projectRootPath, modulePath).resolveIn(project)
           }
-        val processor = AddJavaToolchainDefinition(project, versionToSet, modules)
+        val processor = AddJavaToolchainDefinition(project, projectRootPath, versionToSet, modules)
         processor.setPreviewUsages(true)
         processor.run()
       }

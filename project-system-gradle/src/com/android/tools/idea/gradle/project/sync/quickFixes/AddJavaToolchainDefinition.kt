@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.JavaLanguageVersionPropertyModel
+import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
@@ -30,10 +31,14 @@ import com.intellij.usageView.UsageViewBundle
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.util.containers.addIfNotNull
 import org.gradle.util.GradleVersion
+import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.FOOJAY_RESOLVER_CONVENTION_NAME
 import org.jetbrains.plugins.gradle.frameworkSupport.settingsScript.getFoojayPluginVersion
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
+import org.jetbrains.plugins.gradle.settings.GradleSettings
 
-class AddJavaToolchainDefinition(project: Project, private val versionToSet: Int, private val modules: List<Module>) :
+class AddJavaToolchainDefinition(project: Project, private val gradleRootPath: @SystemIndependent String?,
+  private val versionToSet: Int, private val modules: List<Module>) :
   BaseRefactoringProcessor(project) {
   private val projectBuildModel = ProjectBuildModel.get(myProject)
 
@@ -83,7 +88,7 @@ class AddJavaToolchainDefinition(project: Project, private val versionToSet: Int
       if (!pluginFound) {
         listOf(settingsModel.plugins(), settingsModel)
           .firstNotNullOfOrNull { it.psiElement }
-          ?.let { psiElement -> AddPluginUsageInfo(psiElement, this@AddJavaToolchainDefinition.projectBuildModel) }
+          ?.let { psiElement -> AddPluginUsageInfo(psiElement, this@AddJavaToolchainDefinition.projectBuildModel, gradleRootPath) }
       } else null
     }
   }
@@ -130,11 +135,27 @@ class AddJavaToolchainDefinition(project: Project, private val versionToSet: Int
     }
   }
 
-  private class AddPluginUsageInfo(psiElement: PsiElement, val projectBuildModel: ProjectBuildModel) :
-    UsageInfo(psiElement, TextRange.EMPTY_RANGE, false) {
+  private class AddPluginUsageInfo(
+    psiElement: PsiElement,
+    val projectBuildModel: ProjectBuildModel,
+    private val gradleRootPath: @SystemIndependent String?
+    ) : UsageInfo(psiElement, TextRange.EMPTY_RANGE, false) {
     fun perform() {
-      PluginsHelper.withModel(projectBuildModel)// FIXME: GradleVersion.current() is not a correct way of taking the version but agreed to proceed with this so far
-        .applySettingsPlugin(FOOJAY_RESOLVER_CONVENTION_NAME, getFoojayPluginVersion(GradleVersion.current()))
+      PluginsHelper.withModel(projectBuildModel)
+        .applySettingsPlugin(FOOJAY_RESOLVER_CONVENTION_NAME, getFoojayPluginVersion(getGradleVersion()))
+    }
+
+    private fun getGradleVersion(): GradleVersion {
+      val syncedVersion = GradleSyncStateHolder.getInstance(project).lastSyncedGradleVersion
+      if (syncedVersion != null) return syncedVersion
+
+      val guessedGradleVersion = gradleRootPath?.let { path ->
+        val settings = GradleSettings.getInstance(project).getLinkedProjectSettings(path)
+        settings?.let { GradleInstallationManager.guessGradleVersion(it) }
+      }
+      if (guessedGradleVersion != null) return guessedGradleVersion
+
+      return GradleVersion.current()
     }
   }
 }

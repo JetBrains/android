@@ -37,7 +37,7 @@ class AddJavaToolchainRefactoringProcessorTest : GradleFileModelTestCase() {
   fun addingNewDefinition() {
     writeToBuildFile(TestFileName("JavaToolchain/appNoJavaBlock"))
 
-    val processor = AddJavaToolchainDefinition(project, 17, listOf(projectRule.module))
+    val processor = AddJavaToolchainDefinition(project, project.basePath!!, 17, listOf(projectRule.module))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("JavaToolchain/appToolchain17Defined"))
@@ -47,7 +47,7 @@ class AddJavaToolchainRefactoringProcessorTest : GradleFileModelTestCase() {
   fun updateExistingDefinition() {
     writeToBuildFile(TestFileName("JavaToolchain/appToolchain17Defined"))
 
-    val processor = AddJavaToolchainDefinition(project, 21, listOf(projectRule.module))
+    val processor = AddJavaToolchainDefinition(project, project.basePath!!, 21, listOf(projectRule.module))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("JavaToolchain/appToolchain21Defined"))
@@ -57,7 +57,7 @@ class AddJavaToolchainRefactoringProcessorTest : GradleFileModelTestCase() {
   fun updateExistingDefinitionDefinedInKotlinBlock() {
     writeToBuildFile(TestFileName("JavaToolchain/appToolchain17DefinedInKotlinBlock"))
 
-    val processor = AddJavaToolchainDefinition(project, 21, listOf(projectRule.module))
+    val processor = AddJavaToolchainDefinition(project, project.basePath!!, 21, listOf(projectRule.module))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("JavaToolchain/appToolchain21DefinedInKotlinBlock"))
@@ -67,7 +67,7 @@ class AddJavaToolchainRefactoringProcessorTest : GradleFileModelTestCase() {
   fun updateExistingDefinitionDefinedInBothJavaAndKotlinBlocks() {
     writeToBuildFile(TestFileName("JavaToolchain/appToolchain17DefinedInBothJavaAndKotlinBlocks"))
 
-    val processor = AddJavaToolchainDefinition(project, 21, listOf(projectRule.module))
+    val processor = AddJavaToolchainDefinition(project, project.basePath!!, 21, listOf(projectRule.module))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("JavaToolchain/appToolchain21DefinedInBothJavaAndKotlinBlocks"))
@@ -77,7 +77,7 @@ class AddJavaToolchainRefactoringProcessorTest : GradleFileModelTestCase() {
   fun addingOnlyToRequestedModules() {
     writeToBuildFile(TestFileName("JavaToolchain/appNoJavaBlock"))
 
-    val processor = AddJavaToolchainDefinition(project, 17, emptyList())
+    val processor = AddJavaToolchainDefinition(project, project.basePath!!, 17, emptyList())
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("JavaToolchain/appNoJavaBlock"))
@@ -88,7 +88,7 @@ class AddJavaToolchainRefactoringProcessorTest : GradleFileModelTestCase() {
     writeToSettingsFile(TestFileName("JavaToolchain/settingsEmpty"))
     writeToBuildFile(TestFileName("JavaToolchain/appNoJavaBlock"))
 
-    val processor = AddJavaToolchainDefinition(project, 17, listOf(projectRule.module))
+    val processor = AddJavaToolchainDefinition(project, project.basePath!!, 17, listOf(projectRule.module))
     processor.run()
 
     verifyFileContents(settingsFile, TestFileName("JavaToolchain/settingsWithFooJayResolverConventionApplied"))
@@ -99,7 +99,7 @@ class AddJavaToolchainRefactoringProcessorTest : GradleFileModelTestCase() {
     writeToSettingsFile(TestFileName("JavaToolchain/settingsWithFooJayResolverConventionApplied"))
     writeToBuildFile(TestFileName("JavaToolchain/appNoJavaBlock"))
 
-    val processor = AddJavaToolchainDefinition(project, 17, listOf(projectRule.module))
+    val processor = AddJavaToolchainDefinition(project, project.basePath!!, 17, listOf(projectRule.module))
     processor.run()
 
     verifyFileContents(settingsFile, TestFileName("JavaToolchain/settingsWithFooJayResolverConventionApplied"))
@@ -111,10 +111,10 @@ class AddJavaToolchainRefactoringProcessorTest : GradleFileModelTestCase() {
     writeToBuildFile(TestFileName("JavaToolchain/appNoJavaBlock"))
     createCatalogFile("gradle/libs.versions.toml")
 
-    val processor = AddJavaToolchainDefinition(project, 17, listOf(projectRule.module))
+    val processor = AddJavaToolchainDefinition(project, project.basePath!!, 17, listOf(projectRule.module))
     processor.run()
 
-    verifyFileContents(settingsFile, TestFileName("JavaToolchain/settingsWithFooJayResolverConventionAppliedCatalog"))
+    verifyFileContents(settingsFile, TestFileName("JavaToolchain/settingsWithFooJayResolverConventionApplied"))
     Truth.assertThat(catalogFile.readText()).isEmpty()
   }
 }

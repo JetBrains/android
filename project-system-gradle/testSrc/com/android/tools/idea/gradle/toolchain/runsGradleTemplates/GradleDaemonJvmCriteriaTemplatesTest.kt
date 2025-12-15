@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.toolchain.runsGradleTemplates
 
+import com.android.SdkConstants
 import com.android.tools.idea.gradle.extensions.getPropertyPath
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -68,6 +69,8 @@ class GradleDaemonJvmCriteriaTemplatesTest(private val javaVersion: JavaVersion)
   @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   companion object {
+    private val gradleVersion = GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
+
     @JvmStatic
     @Parameterized.Parameters(name = "template {0} version")
     fun data(): Set<JavaVersion> {
@@ -95,8 +98,7 @@ class GradleDaemonJvmCriteriaTemplatesTest(private val javaVersion: JavaVersion)
 
     private fun updateTemplatesMetadataVersionOfFoojay() {
       val properties = Properties().apply {
-        // FIXME: GradleVersion.current() is not a correct way of taking the version but agreed to proceed with this so far
-        put(TEMPLATE_METADATA_FOOJAY_PROPERTY, getFoojayPluginVersion(GradleVersion.current())) }
+        put(TEMPLATE_METADATA_FOOJAY_PROPERTY, getFoojayPluginVersion(gradleVersion)) }
       val metadataFile = workspaceTemplateFile(TEMPLATE_METADATA_FILE)
       PropertiesFiles.savePropertiesToFile(
         properties,
@@ -119,8 +121,7 @@ class GradleDaemonJvmCriteriaTemplatesTest(private val javaVersion: JavaVersion)
   fun assertDaemonJvmCriteriaTemplateIsValid() {
     when {
       System.getProperty(UPDATE_DAEMON_JVM_CRITERIA_TEMPLATES) != null -> updateGradleDaemonJvmCriteriaTemplates()
-      // FIXME: GradleVersion.current() is not a correct way of taking the version but agreed to proceed with this so far
-      getTemplatesBasedFooJayPluginVersion() != getFoojayPluginVersion(GradleVersion.current()) ->
+      getTemplatesBasedFooJayPluginVersion() != getFoojayPluginVersion(gradleVersion) ->
         error(
           """
           Daemon JVM criteria templates stored under 'templates/resources/toolchain' with the format 'gradle-daemon-jvm-X.properties'

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.builder
 
+import com.android.SdkConstants
 import com.android.tools.idea.npw.builders.GradleSettingsBuilder
 import org.gradle.util.GradleVersion
 import java.net.URI
@@ -24,6 +25,8 @@ import org.jetbrains.plugins.gradle.frameworkSupport.settingsScript.getFoojayPlu
 import org.junit.Test
 
 class GradleSettingsBuilderTest {
+
+  private val gradleVersion = GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
 
   @Test(expected = IllegalArgumentException::class)
   fun testBuildGradleSettingsWithProjectNameUsingBackslashResultsOnException() {
@@ -38,8 +41,6 @@ class GradleSettingsBuilderTest {
 
   @Test
   fun testBuildGroovyGradleSettings() {
-    // FIXME: GradleVersion.current() is not a correct way of taking the version but agreed to proceed with this so far
-    val gradleVersion = GradleVersion.current()
     val gradleSettings =
       GradleSettingsBuilder("groovyProject", false) {
           withDependencyResolutionManagement(listOfUrls("https://www.example.com/1"))
@@ -83,8 +84,6 @@ rootProject.name = "groovyProject""""
 
   @Test
   fun testBuildKotlinGradleSettings() {
-    // FIXME: GradleVersion.current() is not a correct way of taking the version but agreed to proceed with this so far
-    val gradleVersion = GradleVersion.current()
     val gradleSettings =
       GradleSettingsBuilder("kotlinProject", true) {
           withDependencyResolutionManagement(listOfUrls("https://www.example.com/1", "https://www.example.com/2"))
