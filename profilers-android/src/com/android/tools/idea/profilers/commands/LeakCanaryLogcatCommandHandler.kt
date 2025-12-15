@@ -21,6 +21,7 @@ import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.leakcanarylib.LeakCanaryParser
 import com.android.tools.profiler.proto.Commands
+import com.android.tools.profiler.proto.Commands.EndSession
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisData
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisEnded
@@ -108,7 +109,14 @@ class LeakCanaryLogcatCommandHandler(
     val endTime = getCurrentTimestampInNs()
     resetTrackingState()
     sendLeakCanaryAnalysisInfoEvent(timestampNs = endTime, isStarted = false, stopStatus = SUCCESS)
-    addSessionEndedEvent(eventQueue, endTime, pid, command.sessionId)
+    val endSessionCommand = Commands.Command.newBuilder()
+      .setStreamId(command.streamId)
+      .setPid(pid)
+      .setSessionId(command.sessionId)
+      .setType(Commands.Command.CommandType.END_SESSION)
+      .setEndSession(EndSession.newBuilder().setSessionId(command.sessionId))
+      .build()
+    transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(endSessionCommand).build())
   }
 
   private fun getCurrentTimestampInNs(): Long {
