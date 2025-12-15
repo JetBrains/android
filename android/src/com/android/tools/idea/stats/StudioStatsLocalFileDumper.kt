@@ -20,6 +20,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import java.io.IOException
+import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.ZonedDateTime
@@ -53,6 +54,8 @@ object StudioStatsLocalFileDumper {
         try {
           Files.createFile(studioEventFile)
           Files.writeString(studioEventFile, TextFormat.printer().printToString(studioEvent))
+        } catch (e: FileAlreadyExistsException) {
+          LOG.info("File already exists: $studioEventFile. Ignoring current event.")
         } catch (e: IOException) {
           LOG.warn(e)
         }

@@ -27,6 +27,7 @@ import org.junit.Rule
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 import kotlin.time.Duration.Companion.seconds
+import org.junit.AssumptionViolatedException
 
 /**
  * This is the base test class for all unit tests in this project.
@@ -99,32 +100,28 @@ open class ProfilersTestBase {
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo(repoManifestPath))
 
-    var setupComplete = false
-    retry(shouldRetry = { !setupComplete }) {
-      system.runAdb { adb ->
-        system.runEmulator(systemImage) { emulator ->
-          system.runStudio(project, watcher.dashboardName) { studio ->
-            // Waiting for sync and build.
-            studio.waitForSync()
-            studio.waitForIndex()
-            // Assume project build will be triggered by `testFunction` if needed.
-            // Waiting for emulator to boot up.
-            emulator.waitForBoot()
-            adb.waitForDevice(emulator)
+    system.runAdb { adb ->
+      system.runEmulator(systemImage) { emulator ->
+        system.runStudio(project, watcher.dashboardName) { studio ->
+          // Waiting for sync and build.
+          studio.waitForSync()
+          studio.waitForIndex()
+          // Assume project build will be triggered by `testFunction` if needed.
+          // Waiting for emulator to boot up.
+          emulator.waitForBoot()
+          adb.waitForDevice(emulator)
 
-            if (deployApp) {
-              deployApp(studio, adb)
-              invokeProfilerToolWindow(studio)
-              waitForProfilerDeviceConnection()
-              getLogger().info("App Deployment is completed. Profiler tool window opened. Transport Pipeline is successful")
-            }
-
-            getLogger().info("Test set-up completed, starting the test case / invoking test function.")
-            Thread.sleep(2000)
-            setupComplete = true
-            // Test Function or test steps to be executed.
-            testFunction.invoke(studio, adb)
+          if (deployApp) {
+            deployApp(studio, adb)
+            invokeProfilerToolWindow(studio)
+            waitForProfilerDeviceConnection()
+            getLogger().info("App Deployment is completed. Profiler tool window opened. Transport Pipeline is successful")
           }
+
+          getLogger().info("Test set-up completed, starting the test case / invoking test function.")
+          Thread.sleep(2000)
+          // Test Function or test steps to be executed.
+          testFunction.invoke(studio, adb)
         }
       }
     }
@@ -204,6 +201,14 @@ open class ProfilersTestBase {
 
   protected fun waitForProfilerDeviceConnection() {
     verifyIdeaLog(".*TransportProxy\\s+successfully\\s+created\\s+for\\s+device\\:\\s+emulator\\-5554", 60)
+  }
+
+  protected fun waitForAppDeploymentStarted(packageName: String, timeout: Long) {
+    try {
+      verifyIdeaLog(".*Installing\\sapplication:\\s$packageName.*", timeout)
+    } catch (e: InterruptedException) {
+      throw AssumptionViolatedException("Skipping test. Cannot start profiling as app deployment did not start", e)
+    }
   }
 
   protected fun deployApp(studio: AndroidStudio, adb: Adb) {
@@ -348,19 +353,5 @@ open class ProfilersTestBase {
 
   protected fun profileAction(studio: AndroidStudio) {
     studio.executeAction("Android.Profile")
-  }
-
-  protected fun retry(maxAttempts: Int = 3, shouldRetry: (Throwable) -> Boolean, block: () -> Unit) {
-    for (attempt in 1..maxAttempts) {
-      try {
-        block()
-        return
-      } catch(t: Throwable) {
-        if (attempt == maxAttempts || !shouldRetry(t)) {
-          throw t
-        }
-        getLogger().info("Attempt $attempt failed: ${t.message}. Retrying...")
-      }
-    }
   }
 }

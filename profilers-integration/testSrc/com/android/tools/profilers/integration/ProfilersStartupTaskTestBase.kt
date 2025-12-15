@@ -47,10 +47,10 @@ abstract class ProfilersStartupTaskTestBase : ProfilersTestBase() {
         setProfilingStartingPointToProcessStart(studio)
         Thread.sleep(2000)
         startTask(studio)
-
+        verifyTaskStarted(studio)
         // Wait for app to be deployed.
         waitForAppToBeDeployed(adb, ".*Hello Minimal World!.*")
-        verifyTaskStarted(studio)
+
         Thread.sleep(4000)
 
         stopTask(studio)
