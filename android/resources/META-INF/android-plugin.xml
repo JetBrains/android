@@ -453,6 +453,7 @@
     <lang.findUsagesProvider language="" implementationClass="org.jetbrains.android.refactoring.AndroidFallbackFindUsagesProvider" />
 
     <lang.inferredAnnotationProvider implementation="com.android.tools.idea.lang.AndroidSdkInferredAnnotationProvider" />
+    <lang.jvm.annotationPackageSupport implementation="com.android.tools.idea.lang.AndroidAnnotationSupport" order="first"/>
 
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidBinaryResourceFileUsageTypeProvider" order="first" />
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidResourceXmlUsageProvider" order="first" />
