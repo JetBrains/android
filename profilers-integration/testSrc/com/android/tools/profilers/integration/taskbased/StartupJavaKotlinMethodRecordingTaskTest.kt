@@ -30,6 +30,7 @@ class StartupJavaKotlinMethodRecordingTaskTest : ProfilersStartupTaskTestBase() 
     verifyIdeaLog(
       ".*Attempting\\sto\\sstart\\sthe\\s\\'Java\\/Kotlin Method Recording\\'\\stask\\sfrom\\sprocess\\sstart\\s\\(startup\\)\\.\$",
       300)
+    waitForAppDeploymentStarted("com.example.minapp", 300)
     verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
   }
 
