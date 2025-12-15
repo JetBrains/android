@@ -57,11 +57,6 @@ class BazelBuildSystem implements BuildSystem {
   }
 
   @Override
-  public BazelQueryRunner createQueryRunner(Project project) {
-    return new BazelQueryRunner(project, this);
-  }
-
-  @Override
   public @NotNull Optional<@NotNull String> getInvocationLink(@NotNull String invocationId) {
     return Optional.empty();
   }
