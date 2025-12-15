@@ -816,7 +816,7 @@ constructor(
       proguardPath = path
     } catch (e: InvalidMappingFileException) {
       DialogBuilder()
-        .title(CommonBundle.message("dialog.error.title"))
+        .title(CommonBundle.message("title.error"))
         .apply {
           setCenterPanel(
             panel {
