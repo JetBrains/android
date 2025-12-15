@@ -90,18 +90,6 @@ public interface BuildSystemProvider {
     return getBuildSystem().getName();
   }
 
-  /**
-   * Returns true if syncing is done off the user's local machine.
-   *
-   * @deprecated Whether syncs happen remotely is not determined statically anymore. Logic depending
-   *     on this should be reconsidered, or updated to use the state of the most recent sync as
-   *     appropriate.
-   */
-  @Deprecated
-  default boolean syncingRemotely() {
-    return false;
-  }
-
   WorkspaceRootProvider getWorkspaceRootProvider();
 
   /** Directories containing artifacts produced during the build process. */
