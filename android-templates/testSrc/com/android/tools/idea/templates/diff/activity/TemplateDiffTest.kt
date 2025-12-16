@@ -17,11 +17,6 @@ package com.android.tools.idea.templates.diff.activity
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.flags.StudioFlags.JOURNEYS_WITH_GEMINI_EXECUTION
-import com.android.tools.idea.flags.StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE
-import com.android.tools.idea.flags.StudioFlags.NPW_ENABLE_XR_TEMPLATE
-import com.android.tools.idea.npw.model.RenderTemplateModel
-import com.android.tools.idea.npw.project.DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
 import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
@@ -47,6 +42,9 @@ import org.junit.rules.TestRule
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
+import com.android.tools.idea.flags.StudioFlags.JOURNEYS_WITH_GEMINI_EXECUTION
+import com.android.tools.idea.flags.StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE
+import com.android.tools.idea.flags.StudioFlags.NPW_ENABLE_XR_TEMPLATE
 
 /**
  * Template test that generates the template files and diffs them against golden files located in android-templates/testData/golden
@@ -224,14 +222,9 @@ class TemplateDiffTest(private val testMode: TestMode) {
     throw RuntimeException("Must be called from a @Test")
   }
 
-  private fun withKotlin(kotlinVersion: String = DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS): ProjectStateCustomizer =
-    { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-      projectData.language = Language.Kotlin
-      // Use the Kotlin version for tests
-      projectData.kotlinVersion = kotlinVersion
-    }
-
-  private val withSpecificKotlin: ProjectStateCustomizer = withKotlin(RenderTemplateModel.getComposeKotlinVersion())
+  private fun withKotlin(): ProjectStateCustomizer = { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+    projectData.language = Language.Kotlin
+  }
 
   @Suppress("SameParameterValue")
   private fun withApplicationId(applicationId: String): ProjectStateCustomizer =
@@ -487,12 +480,12 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
   @Test
   fun testComposeActivityMaterial3() {
-    checkCreateTemplate("Empty Activity", withSpecificKotlin) // Compose is always Kotlin
+    checkCreateTemplate("Empty Activity", withKotlin()) // Compose is always Kotlin
   }
 
   @Test
   fun testComposeNavigationUiActivityMaterial3() {
-    checkCreateTemplate("Navigation UI Activity", withSpecificKotlin) // Compose is always Kotlin
+    checkCreateTemplate("Navigation UI Activity", withKotlin()) // Compose is always Kotlin
   }
 
   @Test
@@ -507,12 +500,12 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
   @Test
   fun testNewComposeWearActivity() {
-    checkCreateTemplate("Empty Wear App", withSpecificKotlin)
+    checkCreateTemplate("Empty Wear App", withKotlin())
   }
 
   @Test
   fun testNewComposeWearActivityWithTileAndComplication() {
-    checkCreateTemplate("Empty Wear App With Tile And Complication", withSpecificKotlin)
+    checkCreateTemplate("Empty Wear App With Tile And Complication", withKotlin())
   }
 
   @Ignore("b/443868398")
@@ -529,7 +522,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
   @Test
   fun testNewEmptyComposeForTvActivity() {
-    checkCreateTemplate("Empty Activity", withSpecificKotlin, formFactor = FormFactor.Tv)
+    checkCreateTemplate("Empty Activity", withKotlin(), formFactor = FormFactor.Tv)
   }
 
   @Test
@@ -760,7 +753,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
   @Ignore("b/418047552")
   @Test
   fun testXRBasicHeadsetActivity() {
-    checkCreateTemplate("Basic Headset Activity", withSpecificKotlin)
+    checkCreateTemplate("Basic Headset Activity", withKotlin())
   }
 
   @Test

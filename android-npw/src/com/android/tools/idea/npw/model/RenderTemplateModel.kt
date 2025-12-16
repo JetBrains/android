@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.android.tools.idea.npw.project.DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.observable.core.BoolProperty
@@ -56,6 +57,8 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import java.io.File
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradlePluginVersion
+import org.jetbrains.kotlin.idea.gradleTooling.compareTo
 
 private val log = logger<RenderTemplateModel>()
 
@@ -214,9 +217,12 @@ private constructor(
     private fun renderTemplate(dryRun: Boolean, project: Project, paths: AndroidModulePaths): Boolean {
       paths.moduleRoot ?: return false
 
+      // Override the Kotlin version if it's not supported by the Compose Gradle plugin
       if (newTemplate.constraints.contains(TemplateConstraint.Compose)) {
-        // Compose requires this specific Kotlin
-        moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion = getComposeKotlinVersion()
+        val kotlinVersion = moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion
+        if (kotlinVersion == null || !hasMinimumKotlinVersionForComposeKotlinGradlePlugin(kotlinVersion)) {
+          moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion = DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
+        }
       }
 
       val context =
@@ -249,6 +255,12 @@ private constructor(
           createdFiles.addAll(context.filesToOpen)
         }
       }
+    }
+
+    /** The Compose Kotlin Gradle plugin only supports Kotlin 2.0.0 and higher. */
+    private fun hasMinimumKotlinVersionForComposeKotlinGradlePlugin(kotlinVersion: String): Boolean {
+      val parsedKotlinVersion = KotlinGradlePluginVersion.parse(kotlinVersion) ?: return false
+      return parsedKotlinVersion >= "2.0.0"
     }
   }
 
@@ -299,7 +311,5 @@ private constructor(
         Language.fromName(PropertiesComponent.getInstance().getValue(PROPERTIES_RENDER_LANGUAGE_KEY), Language.Kotlin)
       else Language.Java
     }
-
-    fun getComposeKotlinVersion(): String = "2.0.21"
   }
 }

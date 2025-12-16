@@ -16,7 +16,6 @@
 package com.android.tools.idea.templates
 
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.project.DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
@@ -38,14 +37,12 @@ import org.junit.Test
 class ComposeWearActivityTemplateTest {
   @get:Rule val projectRule = AndroidProjectRule.withAndroidModels()
 
-  private val withSpecificKotlin: ProjectStateCustomizer = withKotlin(RenderTemplateModel.getComposeKotlinVersion())
-
   @Test
   fun testApi35() {
     val template = TemplateResolver.getTemplateByName("Empty Wear App")!!
     val renderer = ProjectDiffer(template, goldenDirName = "testNewComposeWearActivity")
 
-    renderer.renderProject(projectRule.project, getPinnedAgpVersion(), withSpecificKotlin, withApi(35))
+    renderer.renderProject(projectRule.project, getPinnedAgpVersion(), withKotlin(), withApi(35))
   }
 
   @Test
@@ -53,7 +50,7 @@ class ComposeWearActivityTemplateTest {
     val template = TemplateResolver.getTemplateByName("Empty Wear App")!!
     val renderer = ProjectDiffer(template, goldenDirName = "testNewComposeWearActivityApi36")
 
-    renderer.renderProject(projectRule.project, getPinnedAgpVersion(), withSpecificKotlin, withApi(36))
+    renderer.renderProject(projectRule.project, getPinnedAgpVersion(), withKotlin(), withApi(36))
   }
 
   private fun withApi(api: Int): ProjectStateCustomizer = { moduleData, projectData ->
