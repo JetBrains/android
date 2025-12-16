@@ -29,9 +29,6 @@ interface GradleSyncInvoker {
   fun requestProjectSync(project: Project, request: Request, listener: GradleSyncListener? = null)
 
   @WorkerThread
-  fun fetchAndMergeNativeVariants(project: Project, requestedAbis: Set<String>)
-
-  @WorkerThread
   fun fetchGradleModels(project: Project): GradleProjectModels
 
   data class Request @JvmOverloads constructor(
@@ -61,9 +58,6 @@ interface GradleSyncInvoker {
       listener?.syncSkipped(project)
       project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SKIPPED)
     }
-
-    @WorkerThread
-    override fun fetchAndMergeNativeVariants(project: Project, requestedAbis: Set<String>) = Unit
 
     @WorkerThread
     override fun fetchGradleModels(project: Project): GradleProjectModels = GradleProjectModels(emptyList(), null, null)

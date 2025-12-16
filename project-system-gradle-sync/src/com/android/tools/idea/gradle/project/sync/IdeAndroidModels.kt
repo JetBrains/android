@@ -18,8 +18,6 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import java.io.Serializable
@@ -30,13 +28,7 @@ class IdeAndroidModels(
   val selectedVariantName: String,
   val selectedAbiName: String?,
   val v2NativeModule: IdeNativeModule?,
-  val v1NativeProject: IdeNativeAndroidProject?,
-  val v1NativeVariantAbi: IdeNativeVariantAbi?,
   val kaptGradleModel: KaptGradleModel?
-) : Serializable
-
-class IdeAndroidNativeVariantsModels(
-  val v1NativeVariantAbis: List<IdeNativeVariantAbi>?, // null if v2.
 ) : Serializable
 
 /**

@@ -112,22 +112,6 @@ internal class AndroidExtraModelProviderWorker(
 
             models + StandaloneDeliverableModel.createModel(syncExecutionReport, buildInfo.rootBuild)
           }
-          is NativeVariantsSyncActionOptions -> {
-            // Native sync may run with just a subset of resolvers, so make sure to fetch  IdeaProject and ExternalProject directly
-            consumer.consumeBuildModel(
-              buildInfo.rootBuild,
-              // TODO(b/215344823): Idea parallel model fetching is broken for now, so we need to request it sequentially.
-              safeActionRunner.runAction { controller -> controller.getModel(IdeaProject::class.java) },
-              IdeaProject::class.java
-            )
-            safeActionRunner.runAction { controller ->
-              // TODO(b/215344823): Idea parallel model fetching is broken for now, so we need to request it sequentially.
-              GradleExternalProjectModelProvider().runModelProvider(controller, buildInfo, consumer)
-              GradleSourceSetModelProvider().runModelProvider(controller, buildInfo, consumer)
-              GradleSourceSetDependencyModelProvider().runModelProvider(controller, buildInfo, consumer)
-            }
-            NativeVariantsSyncActionWorker(buildInfo, syncOptions, safeActionRunner).fetchNativeVariantsAndroidModels()
-          }
           // Note: No more cases.
         }
       modelCollections.forEach { it.deliverModels(consumer) }
@@ -240,4 +224,3 @@ private fun LegacyV1AgpVersionModel.convert(): ModelVersions {
     minimumModelConsumer = null,
   )
 }
-

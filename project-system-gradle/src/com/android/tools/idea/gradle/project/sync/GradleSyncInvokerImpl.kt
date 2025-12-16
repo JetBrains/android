@@ -73,14 +73,6 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
   }
 
   @WorkerThread
-  override fun fetchAndMergeNativeVariants(
-    project: Project,
-    requestedAbis: Set<String>
-  ) {
-    GradleSyncExecutor(project).fetchAndMergeNativeVariants(requestedAbis)
-  }
-
-  @WorkerThread
   override fun fetchGradleModels(project: Project): GradleProjectModels {
     return GradleSyncExecutor(project).fetchGradleModels()
   }

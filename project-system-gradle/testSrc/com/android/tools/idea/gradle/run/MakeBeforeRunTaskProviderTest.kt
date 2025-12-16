@@ -21,11 +21,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantInfoImpl
 import com.android.tools.idea.gradle.project.ProjectStructure
-import com.android.tools.idea.gradle.project.model.V1NdkModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider.SyncNeeded
 import com.android.tools.idea.projectsystem.gradle.RunConfigurationGradleContext
@@ -42,7 +38,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.util.ThreeState
 import org.apache.commons.io.FileUtils
@@ -328,41 +323,6 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
     assertThat(provider.isSyncNeeded(myProject, listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
   }
 
-  fun testRunGradleSyncWithV1Project() {
-    val selected = Abi.ARMEABI_V7A
-    val synced = Abi.X86_64
-    val availableNotSynced1 = Abi.ARM64_V8A
-    val availableNotSynced2 = Abi.X86
-    val notAvailable1 = Abi.ARMEABI
-    val notAvailable2 = Abi.MIPS
-
-    setUpTestProject("4.1.0", ":" to AndroidProjectBuilder(
-      ndkModel = {
-        v1NativeModel(
-          selectedAbi = selected,
-          syncedAbis = listOf(synced, selected),
-          allAbis = listOf(availableNotSynced2, synced, selected, availableNotSynced1)
-        )
-      }
-    ))
-    val provider = MakeBeforeRunTaskProvider()
-    // Don't trigger sync if it is already synced
-    assertThat(provider.isSyncNeeded(myProject, selected)).isEqualTo(SyncNeeded.NOT_NEEDED)
-    assertThat(provider.isSyncNeeded(myProject, synced)).isEqualTo(SyncNeeded.NOT_NEEDED)
-    assertThat(provider.isSyncNeeded(myProject, selected, synced)).isEqualTo(SyncNeeded.NOT_NEEDED)
-    // Trigger sync if it is available and not already synced
-    assertThat(provider.isSyncNeeded(myProject, availableNotSynced1)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
-    assertThat(provider.isSyncNeeded(myProject, availableNotSynced1, availableNotSynced2)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
-    // Trigger sync even if only one of the devices ABIs is available and not already synced
-    assertThat(provider.isSyncNeeded(myProject, availableNotSynced1, notAvailable1)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
-    assertThat(provider.isSyncNeeded(myProject, availableNotSynced1, selected)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
-    // Don't trigger sync if the model is not available
-    assertThat(provider.isSyncNeeded(myProject, notAvailable1)).isEqualTo(SyncNeeded.NOT_NEEDED)
-    assertThat(provider.isSyncNeeded(myProject, notAvailable1, notAvailable2)).isEqualTo(SyncNeeded.NOT_NEEDED)
-    assertThat(provider.isSyncNeeded(myProject, notAvailable1, selected)).isEqualTo(SyncNeeded.NOT_NEEDED)
-
-  }
-
   private fun runningDeviceWithSerial(version: AndroidVersion, adbSerial: String): AndroidDevice {
     val launchedDevice = mock(IDevice::class.java).also {
       whenever(it.serialNumber).thenReturn(adbSerial)
@@ -392,41 +352,6 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
                                                                                          targetDeviceSpec(device1, device2),
                                                                                          deviceSpecs(device1, device2))
     assertThat(argumentsWithDisabledFlag).doesNotContain("-Pinternal.android.inject.device.serials=device_1,device_2")
-  }
-
-  private fun MakeBeforeRunTaskProvider.isSyncNeeded(project: Project, vararg abi: Abi) = isSyncNeeded(project, abi.map { it.toString() })
-
-  private fun v1NativeModel(selectedAbi: Abi, syncedAbis: List<Abi>, allAbis: List<Abi>): V1NdkModel {
-    assertThat(syncedAbis).contains(selectedAbi)
-    assertThat(allAbis).containsAllIn(syncedAbis)
-    return V1NdkModel(
-      androidProject = IdeNativeAndroidProjectImpl(
-        modelVersion = "3.6.0",
-        name = "moduleName",
-        buildFiles = listOf(),
-        variantInfos = mapOf(
-          "debug" to IdeNativeVariantInfoImpl(abiNames = allAbis.map { it.toString() }, buildRootFolderMap = emptyMap())),
-        artifacts = listOf(),
-        toolChains = listOf(),
-        settings = listOf(),
-        fileExtensions = mapOf(),
-        buildSystems = listOf(),
-        defaultNdkVersion = "21.0.0",
-        ndkVersion = "21.0.0",
-        apiVersion = 12,
-      ),
-      nativeVariantAbis = syncedAbis.map {
-        IdeNativeVariantAbiImpl(
-          buildFiles = emptyList(),
-          artifacts = emptyList(),
-          toolChains = emptyList(),
-          settings = emptyList(),
-          fileExtensions = emptyMap(),
-          variantName = "debug",
-          abi = it.toString(),
-        )
-      },
-    )
   }
 
   fun testProfilingMode() {

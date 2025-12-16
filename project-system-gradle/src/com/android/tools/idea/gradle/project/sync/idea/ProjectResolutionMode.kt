@@ -21,11 +21,6 @@ package com.android.tools.idea.gradle.project.sync.idea
  * Note that the requestor may/should additionally configure the chain to contain only a subset of the default resolvers.
  */
 sealed class ProjectResolutionMode {
-  class FetchNativeVariantsMode(
-    /** moduleId => variantName where moduleId is by [com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId] */
-    val moduleVariants: Map<String, String>,
-    val requestedAbis: Set<String>
-  ) : ProjectResolutionMode()
 
   object FetchAllVariantsMode : ProjectResolutionMode()
 

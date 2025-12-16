@@ -48,18 +48,11 @@ import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeFileImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeSettingsImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeToolchainImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
-import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.JavaModuleModelBuilder
@@ -145,14 +138,6 @@ class ModelSerializationTest {
   }
 
   @Test
-  fun testV1NdkModel() = assertSerializable {
-    V1NdkModel(
-      IdeNativeAndroidProjectImpl(
-        "3.6.0", "moduleName", listOf(), mapOf(), listOf(), listOf(), listOf(), mapOf(), listOf(), "21.0.0", "21.0.0", 12),
-      listOf(IdeNativeVariantAbiImpl(listOf(), listOf(), listOf(), listOf(), mapOf(), "variantName", "abi")))
-  }
-
-  @Test
   fun testV2NdkModel() = assertSerializable {
     V2NdkModel(
       "agpVersion",
@@ -166,9 +151,10 @@ class ModelSerializationTest {
       File("some/path"),
       "debug",
       "x86",
-      IdeNativeAndroidProjectImpl(
-        "3.6.0", "moduleName", listOf(), mapOf(), listOf(), listOf(), listOf(), mapOf(), listOf(), "21.0.0", "21.0.0", 12),
-      listOf()
+      V2NdkModel(
+        "4.2.0",
+        IdeNativeModuleImpl("name", emptyList(), NativeBuildSystem.CMAKE, "ndkVersion", "defaultNdkVersion", File("externalNativeBuildFile"))
+      )
     )
   }
 
@@ -251,21 +237,6 @@ class ModelSerializationTest {
 
   @Test
   fun testAndroidGradlePluginProjectFlags() = Truth.assertThat(IdeAndroidGradlePluginProjectFlagsImpl::class.java).isAssignableTo(Serializable::class.java)
-
-  @Test
-  fun testNativeAndroidProjectImpl() = Truth.assertThat(IdeNativeAndroidProjectImpl::class.java).isAssignableTo(Serializable::class.java)
-
-  @Test
-  fun testNativeArtifact() = Truth.assertThat(IdeNativeArtifactImpl::class.java).isAssignableTo(Serializable::class.java)
-
-  @Test
-  fun testNativeFile() = Truth.assertThat(IdeNativeFileImpl::class.java).isAssignableTo(Serializable::class.java)
-
-  @Test
-  fun testNativeSettings() = Truth.assertThat(IdeNativeSettingsImpl::class.java).isAssignableTo(Serializable::class.java)
-
-  @Test
-  fun testNativeToolchain() = Truth.assertThat(IdeNativeToolchainImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
   fun testNativeAbi() = Truth.assertThat(IdeNativeAbiImpl::class.java).isAssignableTo(Serializable::class.java)
