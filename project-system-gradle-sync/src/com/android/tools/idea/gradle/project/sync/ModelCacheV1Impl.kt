@@ -38,14 +38,6 @@ import com.android.builder.model.JavaLibrary
 import com.android.builder.model.Library
 import com.android.builder.model.LintOptions
 import com.android.builder.model.MavenCoordinates
-// TODO android merge
-//import com.android.builder.model.NativeAndroidProject
-//import com.android.builder.model.NativeArtifact
-//import com.android.builder.model.NativeFile
-//import com.android.builder.model.NativeSettings
-//import com.android.builder.model.NativeToolchain
-//import com.android.builder.model.NativeVariantAbi
-//import com.android.builder.model.NativeVariantInfo
 import com.android.builder.model.ProductFlavor
 import com.android.builder.model.ProductFlavorContainer
 import com.android.builder.model.SigningConfig
@@ -117,13 +109,6 @@ import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.gradle.model.impl.ThrowingIdeVariantCore
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeFileImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeSettingsImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeToolchainImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantInfoImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
@@ -1055,80 +1040,6 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     )
   }
 
-  // TODO android merge
-  //fun nativeFileFrom(file: NativeFile): IdeNativeFileImpl {
-  //  return IdeNativeFileImpl(
-  //    filePath = file.filePath,
-  //    settingsName = file.settingsName,
-  //    workingDirectory = file.workingDirectory
-  //  )
-  //}
-  //
-  //fun nativeArtifactFrom(artifact: NativeArtifact): IdeNativeArtifactImpl {
-  //  return IdeNativeArtifactImpl(
-  //    name = artifact.name,
-  //    toolChain = artifact.toolChain,
-  //    groupName = artifact.groupName,
-  //    sourceFiles = copy(artifact::getSourceFiles, ::nativeFileFrom),
-  //    exportedHeaders = copy(artifact::getExportedHeaders, ::deduplicateFile),
-  //    abi = copyNewProperty(artifact::getAbi, ""),
-  //    targetName = copyNewProperty(artifact::getTargetName, ""),
-  //    outputFile = artifact.outputFile
-  //  )
-  //}
-  //
-  //fun nativeToolchainFrom(toolchain: NativeToolchain): IdeNativeToolchainImpl {
-  //  return IdeNativeToolchainImpl(
-  //    name = toolchain.name,
-  //    cCompilerExecutable = toolchain.cCompilerExecutable,
-  //    cppCompilerExecutable = toolchain.cppCompilerExecutable
-  //  )
-  //}
-  //
-  //fun nativeVariantFrom(variantInfo: NativeVariantInfo): IdeNativeVariantInfoImpl {
-  //  return IdeNativeVariantInfoImpl(
-  //    abiNames = copy(variantInfo::getAbiNames, ::deduplicateString),
-  //    buildRootFolderMap = copy(variantInfo::getBuildRootFolderMap, ::deduplicateFile)
-  //  )
-  //}
-  //
-  //fun nativeSettingsFrom(settings: NativeSettings): IdeNativeSettingsImpl {
-  //  return IdeNativeSettingsImpl(
-  //    name = settings.name,
-  //    compilerFlags = copy(settings::getCompilerFlags, ::deduplicateString)
-  //  )
-  //}
-  //
-  //fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String?): IdeNativeAndroidProjectImpl {
-  //  val defaultNdkVersion = copyNewProperty(project::getDefaultNdkVersion, "")
-  //  return IdeNativeAndroidProjectImpl(
-  //    modelVersion = project.modelVersion,
-  //    apiVersion = project.apiVersion,
-  //    name = project.name,
-  //    buildFiles = copy(project::getBuildFiles, ::deduplicateFile),
-  //    variantInfos = copy(project::getVariantInfos, ::nativeVariantFrom),
-  //    artifacts = copy(project::getArtifacts, ::nativeArtifactFrom),
-  //    toolChains = copy(project::getToolChains, ::nativeToolchainFrom),
-  //    settings = copy(project::getSettings, ::nativeSettingsFrom),
-  //    fileExtensions = copy(project::getFileExtensions, ::deduplicateString),
-  //    defaultNdkVersion = defaultNdkVersion,
-  //    ndkVersion = ndkVersion ?: defaultNdkVersion,
-  //    buildSystems = copy(project::getBuildSystems, ::deduplicateString)
-  //  )
-  //}
-  //
-  //fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl {
-  //  return IdeNativeVariantAbiImpl(
-  //    buildFiles = copy(variantAbi::getBuildFiles, ::deduplicateFile),
-  //    artifacts = copy(variantAbi::getArtifacts, ::nativeArtifactFrom),
-  //    toolChains = copy(variantAbi::getToolChains, ::nativeToolchainFrom),
-  //    settings = copy(variantAbi::getSettings, ::nativeSettingsFrom),
-  //    fileExtensions = copy(variantAbi::getFileExtensions, ::deduplicateString),
-  //    variantName = variantAbi.variantName,
-  //    abi = variantAbi.abi
-  //  )
-  //}
-
   fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl {
     return IdeNativeModuleImpl(
       name = nativeModule.name,
@@ -1348,15 +1259,13 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       variantToBuildType = { variant -> suffixToBuildType.entries.firstOrNull { variant.endsWith(it.key)}?.value }
     }
     val basicVariantsCopy: Collection<IdeBasicVariantImpl> =
-      // TODO android merge
-      //(
-      //  if (parsedModelVersion != null && parsedModelVersion < MODEL_VERSION_3_2_0)
-      //    copy(fun(): Collection<String> = project.variants.map { it.name }, ::deduplicateString)
-      //  else
-      //    copy(project::getVariantNames, ::deduplicateString)
-      //  )
-      //  .map { basicVariantFrom(it, variantToBuildType, legacyAndroidGradlePluginProperties) }
-      copy(project::getVariantNames, ::deduplicateString).map { basicVariantFrom(it, variantToBuildType, legacyAndroidGradlePluginProperties) }
+      (
+        if (parsedModelVersion != null && parsedModelVersion < MODEL_VERSION_3_2_0)
+          copy(fun(): Collection<String> = project.variantNames, ::deduplicateString)
+        else
+          copy(project::getVariantNames, ::deduplicateString)
+        )
+        .map { basicVariantFrom(it, variantToBuildType, legacyAndroidGradlePluginProperties) }
     val flavorDimensionCopy: Collection<String> = copy(project::getFlavorDimensions, ::deduplicateString)
     val bootClasspathCopy: Collection<String> = project::getBootClasspath.copy()
     val signingConfigsCopy: Collection<IdeSigningConfigImpl> = copy(project::getSigningConfigs, ::signingConfigFrom)
@@ -1458,14 +1367,6 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       androidArtifactOutputFrom(output)
 
     override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = nativeModuleFrom(nativeModule)
-    // TODO android merge
-    //override fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl =
-    //  nativeVariantAbiFrom(variantAbi)
-    //
-    //override fun nativeAndroidProjectFrom(
-    //  project: NativeAndroidProject,
-    //  ndkVersion: String?
-    //): IdeNativeAndroidProjectImpl = nativeAndroidProjectFrom(project, ndkVersion)
   }
 }
 

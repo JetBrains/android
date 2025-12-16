@@ -16,19 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.SdkConstants
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeFile
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeSettings
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeToolchain
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantInfo
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeVariant
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
-import com.android.tools.idea.gradle.project.model.V1NdkModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
-import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import java.io.File
@@ -52,7 +44,6 @@ fun ProjectDumper.dumpNdkModuleModel(ndkModuleModel: NdkModuleModel) {
   prop("SelectedVariantName") { ndkModuleModel.selectedVariant }
   prop("SelectedAbiName") { ndkModuleModel.selectedAbi }
   if (ndkModel is V2NdkModel) dump(ndkModel.nativeModule)
-  if (ndkModel is V1NdkModel) dump(ndkModel.androidProject)
 }
 
 private fun ProjectDumper.dump(nativeModule: IdeNativeModule) {
@@ -75,64 +66,6 @@ private fun ProjectDumper.dump(nativeModule: IdeNativeModule) {
   }
 }
 
-private fun ProjectDumper.dump(nativeAndroidProject: IdeNativeAndroidProject) {
-  prop("ModelVersion") { nativeAndroidProject.modelVersion }
-  prop("ApiVersion") { nativeAndroidProject.apiVersion.toString() }
-  prop("Name") { nativeAndroidProject.name }
-  prop("DefaultNdkVersion") { nativeAndroidProject.defaultNdkVersion.takeUnless { it.isEmpty() } }
-  prop("NdkVersion") {
-    when (nativeAndroidProject.ndkVersion) {
-      nativeAndroidProject.defaultNdkVersion, SdkConstants.NDK_DEFAULT_VERSION -> "<DEFAULT_NDK_VERSION>"
-      else -> nativeAndroidProject.ndkVersion
-    }
-  }
-  nativeAndroidProject.buildFiles.forEach { prop("BuildFiles") { it.path.toPrintablePath() } }
-  nativeAndroidProject.buildSystems.forEach { prop("BuildSystems") { it } }
-  if (nativeAndroidProject.variantInfos.isNotEmpty()) {
-    head("VariantInfos")
-      nest {
-        nativeAndroidProject.variantInfos.forEach { (key, value) ->
-          head(key)
-          nest {
-            dump(value)
-          }
-        }
-      }
-  }
-  if (nativeAndroidProject.artifacts.isNotEmpty()) {
-    nativeAndroidProject.artifacts.forEach {
-      head("Artifacts")
-        nest {
-          dump(it)
-        }
-    }
-  }
-  if (nativeAndroidProject.toolChains.isNotEmpty()) {
-    nativeAndroidProject.toolChains.forEach {
-      head("ToolChains")
-      nest {
-        dump(it)
-      }
-    }
-  }
-  if (nativeAndroidProject.settings.isNotEmpty()) {
-    nativeAndroidProject.settings.forEach {
-      head("Settings")
-      nest {
-        dump(it)
-      }
-    }
-  }
-  if (nativeAndroidProject.fileExtensions.isNotEmpty()) {
-    head("FileExtensions") // todo: check if we dont need to use printable path in the keys
-      nest {
-        nativeAndroidProject.fileExtensions.forEach { (key, value) ->
-          prop(key) { value }
-        }
-      }
-  }
-}
-
 private fun ProjectDumper.dump(nativeAbi: IdeNativeAbi, variantName: String? = null) {
   head("NativeAbi")
     nest {
@@ -144,44 +77,6 @@ private fun ProjectDumper.dump(nativeAbi: IdeNativeAbi, variantName: String? = n
         nativeAbi.additionalProjectFilesIndexFile?.normalizeCxxPath(variantName)?.toPrintablePath()
       }
     }
-}
-
-private fun ProjectDumper.dump(artifact: IdeNativeArtifact) {
-  prop("Name") { artifact.name }
-  prop("ToolChain") { artifact.toolChain }
-  prop("GroupName") { artifact.groupName }
-  prop("ABI") { artifact.abi }
-  prop("TargetName") { artifact.targetName }
-  prop("OutputFile") { artifact.outputFile?.path?.toPrintablePath() }
-  if (artifact.sourceFiles.isNotEmpty()) {
-    head("SourceFiles")
-      nest {
-        artifact.sourceFiles.forEach {
-          head("SourceFile")
-            nest {
-              dump(it)
-            }
-        }
-      }
-  }
-  artifact.exportedHeaders.forEach { prop("ExportedHeaders") { it.path.toPrintablePath() } }
-}
-
-private fun ProjectDumper.dump(nativeFile: IdeNativeFile) {
-  prop("FilePath") { nativeFile.filePath.path.toPrintablePath() }
-  prop("SettingsName") { nativeFile.settingsName }
-  prop("WorkingDirectory") { nativeFile.workingDirectory?.path?.toPrintablePath() }
-}
-
-private fun ProjectDumper.dump(settings: IdeNativeSettings) {
-  prop("Name") { settings.name }
-  settings.compilerFlags.forEach { prop("CompilerFlags") { it } }
-}
-
-private fun ProjectDumper.dump(toolChain: IdeNativeToolchain) {
-  prop("Name") { toolChain.name }
-  prop("CCompilerExecutable") { toolChain.cCompilerExecutable?.path?.toPrintablePath() }
-  prop("CPPCompilerExecutable") { toolChain.cppCompilerExecutable?.path?.toPrintablePath() }
 }
 
 private fun ProjectDumper.dump(nativeVariant: IdeNativeVariant) {
@@ -199,13 +94,3 @@ private fun ProjectDumper.dump(nativeVariant: IdeNativeVariant) {
   }
 }
 
-private fun ProjectDumper.dump(nativeVariantInfo: IdeNativeVariantInfo) {
-  nativeVariantInfo.abiNames.forEach { prop("AbiName") { it } }
-  if (nativeVariantInfo.buildRootFolderMap.isNotEmpty()) {
-    head("BuildRootFolderMap")
-      nest {
-        nativeVariantInfo.buildRootFolderMap.forEach { (key, value) -> prop(key) { value.path.toPrintablePath() } }
-      }
-  }
-
-}

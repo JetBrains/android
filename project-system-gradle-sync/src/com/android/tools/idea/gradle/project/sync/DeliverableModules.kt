@@ -20,8 +20,6 @@ import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import org.gradle.tooling.model.BuildModel
 import org.gradle.tooling.model.gradle.BasicGradleProject
@@ -88,8 +86,6 @@ class DeliverableAndroidModule(
   val androidProject: IdeAndroidProjectImpl,
   val fetchedVariants: List<IdeVariantCoreImpl>,
   val nativeModule: IdeNativeModule?,
-  val nativeAndroidProject: IdeNativeAndroidProject?,
-  val syncedNativeVariant: IdeNativeVariantAbi?,
   val kotlinGradleModel: KotlinGradleModel?,
   val kaptGradleModel: KaptGradleModel?,
   val additionalClassifierArtifacts: AdditionalClassifierArtifactsModel?
@@ -102,8 +98,6 @@ class DeliverableAndroidModule(
       selectedVariantName,
       selectedAbiName,
       nativeModule,
-      nativeAndroidProject,
-      syncedNativeVariant,
       kaptGradleModel
     )
     ideAndroidModels.deliver()
@@ -122,17 +116,6 @@ class DeliverableJavaModule(
   override fun ModelConsumer.deliverModels() {
     kotlinGradleModel?.deliver()
     kaptGradleModel?.deliver()
-  }
-}
-
-class DeliverableNativeVariantsAndroidModule(
-  gradleProject: BasicGradleProject,
-  projectSyncIssues: List<IdeSyncIssue>,
-  exceptions: List<Throwable>,
-  private val nativeVariants: List<IdeNativeVariantAbi>? // Null means V2.
-) : DeliverableGradleModule(gradleProject, projectSyncIssues, exceptions) {
-  override fun ModelConsumer.deliverModels() {
-    IdeAndroidNativeVariantsModels(nativeVariants).deliver()
   }
 }
 

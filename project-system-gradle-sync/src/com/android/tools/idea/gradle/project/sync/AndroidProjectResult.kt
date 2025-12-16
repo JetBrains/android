@@ -25,7 +25,6 @@ import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.project.sync.AndroidProjectResult.Companion.RuntimeClasspathBehaviour
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapCatching
 import org.gradle.tooling.BuildController
@@ -192,13 +191,11 @@ sealed class AndroidProjectResult {
 }
 
 sealed class NativeVariantAbiResult {
-  class V1(val variantAbi: IdeNativeVariantAbi) : NativeVariantAbiResult()
   class V2(val selectedAbiName: String) : NativeVariantAbiResult()
   object None : NativeVariantAbiResult()
 
   val abi: String?
     get() = when (this) {
-      is V1 -> variantAbi.abi
       is V2 -> selectedAbiName
       None -> null
     }

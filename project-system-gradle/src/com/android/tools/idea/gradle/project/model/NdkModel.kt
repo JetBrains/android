@@ -15,20 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeSettings
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeToolchain
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
-import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
+import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeAbi
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
+import com.android.ide.common.repository.AgpVersion
 import com.intellij.serialization.PropertyMapping
 import java.io.File
 import java.nio.charset.StandardCharsets
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.set
 
 interface INdkModel {
   val features: NdkModelFeatures
@@ -43,144 +38,6 @@ interface INdkModel {
 }
 
 sealed class NdkModel : INdkModel
-
-/**
- * Native information fetched from Android Gradle Plugin about this module using V1 API.
- *
- * Specifically, if single variant sync is turned on (default),
- *
- * - [androidProject] contains the overview of the native information in this module, including
- *   - available variants in this module
- *   - available ABIs for each variants
- * - [nativeVariantAbis] contains detailed build information for the synced variant and ABI
- *
- * If single variant sync is turned off,
- *
- * - [androidProject] contains the overview and additionally
- *   - detailed build information of all variants and ABIs avaialbe in this module
- * - [nativeVariantAbis] is always empty
- */
-data class V1NdkModel(
-  val androidProject: IdeNativeAndroidProject,
-  val nativeVariantAbis: List<IdeNativeVariantAbi>
-) : NdkModel() {
-
-  @Transient
-  override val features: NdkModelFeatures = NdkModelFeatures(AgpVersion.tryParse(androidProject.modelVersion))
-
-  /** Map of synced variants. For full-variants sync, contains all variant and ABIs from [allVariantAbis]. */
-  @Transient
-  private val ndkVariantsByVariantAbi: MutableMap<VariantAbi, NdkVariant> = HashMap()
-
-  @Transient
-  private val toolchainsByName: MutableMap<String, IdeNativeToolchain> = HashMap()
-
-  @Transient
-  private val settingsByName: MutableMap<String, IdeNativeSettings> = HashMap()
-
-  @Transient
-  override val allVariantAbis: Collection<VariantAbi> = LinkedHashSet(
-    androidProject.variantInfos
-      .flatMap { (variant, info) ->
-        info.abiNames.map { abi -> VariantAbi(variant, abi) }
-      }
-      .sortedBy { it.displayName }
-  )
-
-  @Transient
-  override val syncedVariantAbis: Collection<VariantAbi> = ndkVariantsByVariantAbi.keys
-
-  init {
-    if (nativeVariantAbis.isEmpty()) {
-      // Full-variants sync.
-      populateForFullVariantsSync()
-    }
-    else {
-      // Single-variant sync.
-      populateForSingleVariantSync()
-    }
-  }
-
-  // Call this method for full variants sync.
-  private fun populateForFullVariantsSync() {
-    for (artifact in androidProject.artifacts) {
-      val variantName = if (features.isGroupNameSupported) artifact.groupName else artifact.name
-      val variantAbi = VariantAbi(variantName, artifact.abi)
-      var variant = ndkVariantsByVariantAbi[variantAbi]
-      if (variant == null) {
-        variant = NdkVariant(variantAbi.displayName, features.isExportedHeadersSupported)
-        ndkVariantsByVariantAbi[variantAbi] = variant
-      }
-      variant.addArtifact(artifact)
-    }
-
-    // populate toolchains
-    populateToolchains(androidProject.toolChains)
-
-    // populate settings
-    populateSettings(androidProject.settings)
-  }
-
-  // Call this method for single variant sync.
-  private fun populateForSingleVariantSync() {
-    for (variantAbi in nativeVariantAbis) {
-      populateForNativeVariantAbi(variantAbi)
-    }
-  }
-
-  private fun populateForNativeVariantAbi(nativeVariantAbi: IdeNativeVariantAbi) {
-    val variantAbi = VariantAbi(nativeVariantAbi.variantName, nativeVariantAbi.abi)
-    val variant = NdkVariant(variantAbi.displayName, features.isExportedHeadersSupported)
-    for (artifact in nativeVariantAbi.artifacts) {
-      variant.addArtifact(artifact)
-    }
-    ndkVariantsByVariantAbi[variantAbi] = variant
-
-    // populate toolchains
-    populateToolchains(nativeVariantAbi.toolChains)
-
-    // populate settings
-    populateSettings(nativeVariantAbi.settings)
-  }
-
-  private fun populateToolchains(nativeToolchains: Collection<IdeNativeToolchain>) {
-    for (toolchain in nativeToolchains) {
-      toolchainsByName[toolchain.name] = toolchain
-    }
-  }
-
-  private fun populateSettings(nativeSettings: Collection<IdeNativeSettings>) {
-    for (settings in nativeSettings) {
-      settingsByName[settings.name] = settings
-    }
-  }
-
-  val variants: Collection<NdkVariant> get() = ndkVariantsByVariantAbi.values
-
-  override val symbolFolders: Map<VariantAbi, Set<File>> get() = ndkVariantsByVariantAbi.mapValues { (_, ndkVariant) ->
-    ndkVariant.artifacts.mapNotNull { artifact ->
-      artifact.outputFile?.takeIf { it.exists() }?.parentFile
-    }.toSet()
-  }
-
-  @Transient
-  override val buildFiles: Collection<File> = androidProject.buildFiles
-
-  @Transient
-  override val buildSystems: Collection<String> = androidProject.buildSystems
-
-  @Transient
-  override val defaultNdkVersion: String = androidProject.defaultNdkVersion
-
-  @Transient
-  override val ndkVersion: String = androidProject.ndkVersion
-
-  override val needsAbiSyncBeforeRun: Boolean get() = true
-
-  fun getNdkVariant(variantAbi: VariantAbi?): NdkVariant? = ndkVariantsByVariantAbi[variantAbi]
-  fun findToolchain(toolchainName: String): IdeNativeToolchain? = toolchainsByName[toolchainName]
-  fun findSettings(settingsName: String): IdeNativeSettings? = settingsByName[settingsName]
-}
 
 /**
  * Native information fetched from Android Gradle Plugin about this module using V2 API.

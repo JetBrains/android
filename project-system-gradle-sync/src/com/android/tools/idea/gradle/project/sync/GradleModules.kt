@@ -33,8 +33,6 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.toImpl
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.utils.findGradleBuildFile
@@ -112,9 +110,7 @@ sealed class AndroidModule constructor(
   val allVariantNames: Set<String>?,
   val defaultVariantName: String?,
   val variantFetcher: IdeVariantFetcher,
-  /** Old V1 model. It's only set if [nativeModule] is not set. */
   override val androidVariantResolver: AndroidVariantResolver,
-  private val nativeAndroidProject: IdeNativeAndroidProject?,
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
   private val nativeModule: IdeNativeModule?,
   val legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
@@ -123,20 +119,17 @@ sealed class AndroidModule constructor(
 
   fun getVariantAbiNames(variantName: String): Collection<String>? {
     return nativeModule?.variants?.firstOrNull { it.name == variantName }?.abis?.map { it.name }
-           ?: nativeAndroidProject?.variantInfos?.get(variantName)?.abiNames
   }
 
   enum class NativeModelVersion { None, V1, V2 }
 
   val nativeModelVersion: NativeModelVersion = when {
     nativeModule != null -> NativeModelVersion.V2
-    nativeAndroidProject != null -> NativeModelVersion.V1
     else -> NativeModelVersion.None
   }
 
   var syncedVariant: IdeVariantWithPostProcessor? = null
   var syncedNativeVariantAbiName: String? = null
-  var syncedNativeVariant: IdeNativeVariantAbi? = null
   var allVariants: List<IdeVariantWithPostProcessor>? = null
 
   var additionalClassifierArtifacts: AdditionalClassifierArtifactsModel? = null
@@ -161,8 +154,6 @@ sealed class AndroidModule constructor(
     allVariantNames: Set<String>?,
     defaultVariantName: String?,
     variantFetcher: IdeVariantFetcher,
-    /** Old V1 native model. It's only set if [nativeModule] is not set. */
-    nativeAndroidProject: IdeNativeAndroidProject?,
     /** New V2 native model. It's only set if [nativeAndroidProject] is not set. */
     nativeModule: IdeNativeModule?,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
@@ -176,8 +167,6 @@ sealed class AndroidModule constructor(
     defaultVariantName = defaultVariantName,
     variantFetcher = variantFetcher,
     androidVariantResolver = AndroidVariantResolver.NONE,
-    /** Old V1 model. It's only set if [nativeModule] is not set. */
-    nativeAndroidProject = nativeAndroidProject,
     /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
     nativeModule = nativeModule,
     legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
@@ -219,8 +208,6 @@ sealed class AndroidModule constructor(
     defaultVariantName = defaultVariantName,
     variantFetcher = variantFetcher,
     androidVariantResolver = androidVariantResolver,
-    /** Old V1 model. Not used with V2. */
-    nativeAndroidProject = null,
     nativeModule = nativeModule,
     legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
   ) {
@@ -275,8 +262,6 @@ sealed class AndroidModule constructor(
       androidProject = androidProject.patchForKapt(kaptGradleModel).populateBaseFeature(),
       fetchedVariants = (syncedVariant?.let { listOf(it) } ?: allVariants.orEmpty()).map { it.postProcess() }.patchForKapt(kaptGradleModel),
       nativeModule = nativeModule,
-      nativeAndroidProject = nativeAndroidProject,
-      syncedNativeVariant = syncedNativeVariant,
       kotlinGradleModel = kotlinGradleModel,
       kaptGradleModel = kaptGradleModel,
       additionalClassifierArtifacts = additionalClassifierArtifacts
@@ -328,39 +313,6 @@ data class ModuleConfiguration(
   // This is used to determine whether to fetch the runtime classpath for libraries.
   val isRoot: Boolean,
 )
-
-class NativeVariantsAndroidModule private constructor(
-  gradleProject: BasicGradleProject,
-  private val nativeVariants: List<IdeNativeVariantAbi>? // Null means V2.
-) : GradleModule(gradleProject) {
-  companion object {
-    fun createV2(gradleProject: BasicGradleProject): NativeVariantsAndroidModule = NativeVariantsAndroidModule(gradleProject, null)
-    fun createV1(gradleProject: BasicGradleProject, nativeVariants: List<IdeNativeVariantAbi>): NativeVariantsAndroidModule =
-      NativeVariantsAndroidModule(gradleProject, nativeVariants)
-  }
-
-  override fun getFetchSyncIssuesAction(): ActionToRun<Unit> {
-    return ActionToRun(
-      fun(controller: BuildController) {
-        val syncIssues = if (nativeVariants == null) {
-          controller.findModel(this.findModelRoot, ProjectSyncIssuesV2::class.java)?.syncIssues?.toV2SyncIssueData()
-        } else {
-          controller.findModel(this.findModelRoot, ProjectSyncIssuesV1::class.java)?.syncIssues?.toSyncIssueData()
-        }
-
-        if (syncIssues != null) {
-          this.setSyncIssues(syncIssues)
-        }
-      },
-      fetchesV1Models = nativeVariants != null,
-      fetchesV2Models = nativeVariants == null
-    )
-  }
-
-  override fun prepare(indexedModels: IndexedModels): DeliverableGradleModule {
-    return DeliverableNativeVariantsAndroidModule(gradleProject, projectSyncIssues, exceptions, nativeVariants)
-  }
-}
 
 fun Collection<String>.getDefaultOrFirstItem(defaultValue: String): String? =
   if (contains(defaultValue)) defaultValue else minByOrNull { it }

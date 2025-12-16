@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
-import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.IdeDebugInfo
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeSyncIssue
@@ -40,7 +39,6 @@ import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData.Companion.create
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
@@ -51,7 +49,6 @@ import com.android.tools.idea.gradle.project.sync.AndroidProjectSyncMarker
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
-import com.android.tools.idea.gradle.project.sync.IdeAndroidNativeVariantsModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncIssuesAndExceptions
 import com.android.tools.idea.gradle.project.sync.IdeSyncExecutionReport
@@ -203,19 +200,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       printDebugInfo()
     }
 
-    // This is used in the special mode sync to fetch additional native variants.
-    for (gradleModule in gradleProject.modules) {
-      val nativeVariants = resolverCtx.getExtraProject(gradleModule, IdeAndroidNativeVariantsModels::class.java)
-      if (nativeVariants != null) {
-        projectDataNode.createChild(
-          AndroidProjectKeys.NATIVE_VARIANTS,
-          IdeAndroidNativeVariantsModelsWrapper(
-            gradleModule.projectIdentifier.projectPath,
-            nativeVariants
-          )
-        )
-      }
-    }
     val syncExecutionReport = resolverCtx.getRootModel(IdeSyncExecutionReport::class.java)
     if (syncExecutionReport != null) {
       projectDataNode.createChild(AndroidProjectKeys.SYNC_EXECUTION_REPORT, syncExecutionReport)
@@ -929,21 +913,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
           ideModels.selectedVariantName,
           selectedAbiName,
           V2NdkModel(ideModels.androidProject.agpVersion, ideModels.v2NativeModule!!)
-        )
-      }
-      // V2 model not available, fallback to V1 model.
-      if (ideModels.v1NativeProject != null) {
-        val ideNativeVariantAbis: MutableList<IdeNativeVariantAbi> = ArrayList()
-        if (ideModels.v1NativeVariantAbi != null) {
-          ideNativeVariantAbis.add(ideModels.v1NativeVariantAbi!!)
-        }
-        return NdkModuleModel(
-          moduleName,
-          rootModulePath,
-          ideModels.selectedVariantName,
-          selectedAbiName,
-          ideModels.v1NativeProject!!,
-          ideNativeVariantAbis
         )
       }
       return null

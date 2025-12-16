@@ -188,39 +188,16 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
 
   @VisibleForTesting
   enum class SyncNeeded {
-    NOT_NEEDED, NATIVE_VARIANTS_SYNC_NEEDED
+    NOT_NEEDED
   }
 
   @VisibleForTesting
   fun isSyncNeeded(project: Project, abis: Collection<String>): SyncNeeded {
-    // Only trigger sync if both
-    //   The project have native modules, synced with v1 (needsAbiSyncBeforeRun)
-    //   The ABI is available, but it hasn't been synced yet
-    for (module in ModuleManager.getInstance(project).modules) {
-      val ndkModel = NdkModuleModel.get(module)
-      val androidModel = GradleAndroidModel.get(module)
-      if (ndkModel != null && androidModel != null) {
-        if (ndkModel.ndkModel.needsAbiSyncBeforeRun) {
-          val selectedVariantName = androidModel.selectedVariant.name
-          val syncedAbis = ndkModel.syncedVariantAbis
-            .filter { it.variant == selectedVariantName }
-            .map { it.abi }
-            .toSet()
-          val availableAbis = ndkModel.allVariantAbis.filter { it.variant == selectedVariantName }.map { it.abi }.toSet()
-          for (abi in abis) {
-            if (!syncedAbis.contains(abi) && availableAbis.contains(abi)) {
-              return SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED
-            }
-          }
-        }
-      }
-    }
     return SyncNeeded.NOT_NEEDED
   }
 
   private fun runSyncIfNeeded(project: Project, syncNeeded: SyncNeeded, requestedAbis: Set<String>) {
     return when (syncNeeded) {
-      SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED -> GradleSyncInvoker.getInstance().fetchAndMergeNativeVariants(project, requestedAbis)
       SyncNeeded.NOT_NEEDED -> Unit
     }
   }
