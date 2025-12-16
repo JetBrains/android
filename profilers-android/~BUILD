@@ -1,4 +1,4 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:bazel.bzl", "get_xbootclasspath_jvm_flags", "iml_module")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_test")
 
@@ -95,7 +95,7 @@ kotlin_test(
         "//prebuilts/tools/common/trace-processor-daemon",
         "//tools/adt/idea/profilers:test_data",
     ],
-    jvm_flags = ["-Dtest.suite.jar=intellij.android.profilersAndroid.performance.jar"],
+    jvm_flags = ["-Dtest.suite.jar=intellij.android.profilersAndroid.performance.jar"] + get_xbootclasspath_jvm_flags(),
     test_class = "com.android.tools.idea.profilers.PerformanceTestSuite",
     deps = [
         ":intellij.android.profilersAndroid_testlib",
@@ -137,7 +137,7 @@ kotlin_test(
         "//prebuilts/tools/common/trace-processor-daemon",
         "//tools/adt/idea/profilers:test_data",
     ],
-    jvm_flags = ["-Dtest.suite.jar=intellij.android.profilersAndroid.performance.captureDetails.jar"],
+    jvm_flags = ["-Dtest.suite.jar=intellij.android.profilersAndroid.performance.captureDetails.jar"] + get_xbootclasspath_jvm_flags(),
     lint_baseline = "lint_baseline_captureDetails.xml",
     test_class = "com.android.tools.idea.profilers.PerformanceTestSuite",
     deps = [
