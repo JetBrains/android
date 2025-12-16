@@ -92,7 +92,6 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
-import com.android.tools.idea.gradle.project.model.V1NdkModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.model.gradleModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -2315,28 +2314,6 @@ private fun createAndroidModuleDataNode(
             selectedVariantName,
             selectedAbiName,
             ndkModel,
-          ),
-          null,
-        )
-      )
-    }
-    is V1NdkModel -> {
-      val selectedAbiName =
-        selectedAbiName
-          ?: ndkModel.nativeVariantAbis.firstOrNull { it.variantName == selectedVariantName }?.abi
-          ?: error(
-            "Cannot determine the selected ABI for module '$qualifiedModuleName' with the selected variant '$selectedVariantName'"
-          )
-      moduleDataNode.addChild(
-        DataNode<NdkModuleModel>(
-          AndroidProjectKeys.NDK_MODEL,
-          NdkModuleModel(
-            qualifiedModuleName,
-            moduleBasePath,
-            selectedVariantName,
-            selectedAbiName,
-            ndkModel.androidProject,
-            ndkModel.nativeVariantAbis,
           ),
           null,
         )

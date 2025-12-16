@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPENDENCY;
 
-import com.android.tools.idea.gradle.model.IdeCompositeBuildMap;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl;
 import com.android.tools.idea.gradle.model.impl.KotlinMultiplatformIdeLibraryTable;
@@ -27,7 +26,6 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.IdeSyncExecutionReport;
-import com.android.tools.idea.gradle.project.sync.idea.IdeAndroidNativeVariantsModelsWrapper;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetData;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectJdkUpdateData;
@@ -82,12 +80,8 @@ public final class AndroidProjectKeys {
   public static final Key<IdeSyncIssue> SYNC_ISSUE = Key.create(IdeSyncIssue.class, KMP_ANDROID_LIBRARY_TABLE.getProcessingWeight() + 10);
 
   @NotNull
-  public static final Key<IdeAndroidNativeVariantsModelsWrapper> NATIVE_VARIANTS =
-    Key.create(IdeAndroidNativeVariantsModelsWrapper.class, SYNC_ISSUE.getProcessingWeight() + 10);
-
-  @NotNull
   public static final Key<IdeSyncExecutionReport> SYNC_EXECUTION_REPORT =
-    Key.create(IdeSyncExecutionReport.class, NATIVE_VARIANTS.getProcessingWeight() + 10);
+    Key.create(IdeSyncExecutionReport.class, SYNC_ISSUE.getProcessingWeight() + 10);
 
   @NotNull
   public static final Key<ProjectCleanupModel> PROJECT_CLEANUP_MODEL =

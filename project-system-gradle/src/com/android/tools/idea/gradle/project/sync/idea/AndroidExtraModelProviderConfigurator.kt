@@ -21,10 +21,8 @@ import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.AdditionalClassifierArtifactsActionOptions
 import com.android.tools.idea.gradle.project.sync.AllVariantsSyncActionOptions
-import com.android.tools.idea.gradle.project.sync.AndroidExtraModelProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncStudioFlags
 import com.android.tools.idea.gradle.project.sync.ModelConsumerVersion
-import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector
 import com.android.tools.idea.gradle.project.sync.SelectedVariants
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
@@ -32,7 +30,6 @@ import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SyncTestMode
 import com.android.tools.idea.gradle.project.sync.getProjectSyncRequest
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchAllVariantsMode
-import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchNativeVariantsMode
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.SingleVariantSyncProjectMode
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.progress.ProgressManager
@@ -105,14 +102,6 @@ fun ProjectResolverContext.getSyncOptions(project: Project): SyncActionOptions {
       SyncTestMode.PRODUCTION, // No request in this mode.
       getAdditionalArtifactsAction()
     )
-    is FetchNativeVariantsMode -> {
-      NativeVariantsSyncActionOptions(
-        studioFlags,
-        SyncTestMode.PRODUCTION, // No request in this mode.
-        projectResolutionMode.moduleVariants,
-        projectResolutionMode.requestedAbis
-      )
-    }
   }
 }
 

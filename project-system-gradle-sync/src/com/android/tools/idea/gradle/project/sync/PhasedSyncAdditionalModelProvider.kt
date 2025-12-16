@@ -66,8 +66,6 @@ private fun createIdeAndroidModels(
     data.selectedVariantName,
     selectedAbiName = null,
     v2NativeModule = null,
-    v1NativeProject = null,
-    v1NativeVariantAbi = null,
     kaptGradleModel = null
   )
 }

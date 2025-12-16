@@ -47,14 +47,6 @@ class SingleVariantSyncActionOptions(
   override val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions,
 ) : SyncProjectActionOptions(flags, syncTestMode), Serializable
 
-class NativeVariantsSyncActionOptions(
-  flags: GradleSyncStudioFlags,
-  syncTestMode: SyncTestMode,
-  /** moduleId => variantName where moduleId is by [com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId] */
-  val moduleVariants: Map<String, String>,
-  val requestedAbis: Set<String>
-) : SyncActionOptions(flags, syncTestMode), Serializable
-
 class AdditionalClassifierArtifactsActionOptions(
   val cachedLibraries: Collection<String>,
 ) : Serializable

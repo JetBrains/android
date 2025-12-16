@@ -390,16 +390,10 @@ internal class VariantDiscovery(
       if (result is SyncVariantResultSuccess) {
         result.module.syncedVariant = result.ideVariant
         result.module.unresolvedDependencies = result.unresolvedDependencies
-        result.module.syncedNativeVariant = when (val nativeVariantAbiResult = result.nativeVariantAbi) {
-          is NativeVariantAbiResult.V1 -> nativeVariantAbiResult.variantAbi
-          is NativeVariantAbiResult.V2 -> null
-          NativeVariantAbiResult.None -> null
-        }
         result.module.syncedNativeVariantAbiName = when (
 
           val nativeVariantAbiResult = result.nativeVariantAbi
         ) {
-          is NativeVariantAbiResult.V1 -> nativeVariantAbiResult.variantAbi.abi
           is NativeVariantAbiResult.V2 -> nativeVariantAbiResult.selectedAbiName
           NativeVariantAbiResult.None -> null
         }

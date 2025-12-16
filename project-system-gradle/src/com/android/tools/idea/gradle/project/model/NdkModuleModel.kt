@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.intellij.openapi.module.Module
 import com.intellij.serialization.PropertyMapping
@@ -39,18 +37,6 @@ data class NdkModuleModel
   val ndkModel: NdkModel,
   private val syncVersion: String
 ) : ModuleModel, INdkModel by ndkModel {
-
-  /**
-   * Creates an [NdkModuleModel] from V1 Android Gradle Plugin models. See [V1NdkModel] for more details.
-   */
-  constructor(
-    moduleName: String,
-    rootDirPath: File,
-    selectedVariant: String,
-    selectedAbi: String,
-    androidProject: IdeNativeAndroidProject,
-    variantAbi: List<IdeNativeVariantAbi>
-  ) : this(moduleName, rootDirPath, selectedVariant, selectedAbi, V1NdkModel(androidProject, variantAbi), NDK_MODULE_MODEL_SYNC_VERSION)
 
   /** Creates an [NdkModuleModel] from V2 Android Gradle Plugin models. See [V2NdkModel] for more details. */
   constructor(
