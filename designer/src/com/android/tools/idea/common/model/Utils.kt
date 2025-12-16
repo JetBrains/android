@@ -16,18 +16,24 @@
 package com.android.tools.idea.common.model
 
 import com.android.tools.idea.concurrency.runWriteActionAndWait
-import com.intellij.psi.PsiManager
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.LightVirtualFile
+import com.intellij.util.FileContentUtil
 
 suspend fun NlModel.updateFileContentBlocking(content: String): NlModel {
-  val psiFileManager = PsiManager.getInstance(project)
-  val file = virtualFile as LightVirtualFile
   runWriteActionAndWait {
-    // Update the contents of the VirtualFile associated to the NlModel. fireEvent value is
-    // currently ignored, just set to true in case
-    // that changes in the future.
-    file.setContent(null, content, true)
-    psiFileManager.reloadFromDisk(this@updateFileContentBlocking.file)
+    val document = FileDocumentManager.getInstance().getDocument(virtualFile)
+    if (document != null) {
+      document.setText(content)
+      PsiDocumentManager.getInstance(project).commitDocument(document)
+    } else {
+      // Fallback for files without a document. This is not ideal but better than the previous
+      // version.
+      val file = virtualFile as LightVirtualFile
+      file.setContent(null, content, true)
+      FileContentUtil.reparseFiles(project, listOf(file), true)
+    }
   }
   return this
 }
