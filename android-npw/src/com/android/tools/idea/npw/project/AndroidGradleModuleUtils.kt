@@ -89,5 +89,5 @@ fun determineVersionCatalogUse(project: Project): Boolean {
   return GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject
 }
 
-// TODO(b/322863175): Establish process/tests to ensure the default version gets updated.
-const val DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS = "2.0.21"
+/** This version should be kept in sync with the version bundled in AGP */
+const val DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS = "2.2.10"

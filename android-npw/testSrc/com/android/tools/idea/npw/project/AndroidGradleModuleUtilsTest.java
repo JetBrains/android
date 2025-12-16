@@ -16,17 +16,24 @@
 package com.android.tools.idea.npw.project;
 
 import static com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion;
+import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS;
+import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.determineKotlinVersion;
 import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.getContainingModule;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.requestSyncAndWait;
 import static com.android.tools.idea.testing.TestProjectPaths.IMPORTING;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
+import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradlePluginVersion;
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradlePluginVersionKt;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -60,5 +67,29 @@ public class AndroidGradleModuleUtilsTest {
     File file = new File(projectRule.getFixture().getTestDataPath(), join(IMPORTING, "simple", "lib", "library.jar"));
     Module module = getContainingModule(file, projectRule.getProject());
     assertThat(module).isNull();
+  }
+
+  /**
+   * This test checks that the default Kotlin Gradle plugin version is equal to or more recent than
+   * the version bundled in the current Android Gradle plugin.
+   */
+  @Test
+  public void defaultKotlinVersionMatchesAgpBundledVersion() {
+    // Configure the project to use the latest AGP version
+    projectRule.loadProject(
+      TestProjectPaths.SIMPLE_APPLICATION,
+      getAgpVersion()
+    );
+    requestSyncAndWait(projectRule.getProject());
+
+    // Get the resolved Kotlin version from the project model - this should equal the version
+    // of the kotlin-gradle-plugin used by AGP
+    KotlinGradlePluginVersion resolvedKotlinVersion =
+      determineKotlinVersion(projectRule.getProject());
+    assertThat(resolvedKotlinVersion).isNotNull();
+
+    // Assert that the default Kotlin version for new projects is at least as recent as the resolved
+    // Kotlin version
+    assertThat(KotlinGradlePluginVersionKt.compareTo(resolvedKotlinVersion, DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS)).isNotEqualTo(1);
   }
 }
