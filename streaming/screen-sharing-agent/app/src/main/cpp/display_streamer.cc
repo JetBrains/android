@@ -204,10 +204,12 @@ void DisplayStreamer::Run() {
 
   while (stop_reason != FrameStreamStopReason::END_OF_STREAM && !thread_handle_.IsStopping() && !Agent::IsShuttingDown()) {
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
-    if (display_id_ != PRIMARY_DISPLAY_ID && (!display_info.IsValid() || !display_info.IsOn())) {
-      Log::W("Display %d: turned off", display_id_);
-      DisplayManager::OnDisplayRemoved(jni, display_id_);
-      break;
+    if (!display_info.IsValid() || !display_info.IsOn()) {
+      Log::I("Display %d: turned off", display_id_);
+      if (display_id_ != PRIMARY_DISPLAY_ID) {
+        DisplayManager::OnDisplayRemoved(jni, display_id_);
+        break;
+      }
     }
     Log::D("Display %d: display_info: %s", display_id_, display_info.ToDebugString().c_str());
     if (stop_reason == FrameStreamStopReason::TIMEOUT) {
