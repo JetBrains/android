@@ -16,7 +16,7 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.config.installerData
@@ -45,7 +45,7 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
       AndroidStudioWelcomeScreenService.instance.getWizardMode(
         AndroidFirstRunPersistentData.getInstance(),
         installerData,
-        IdeSdks.getInstance(),
+        AndroidSdks.getInstance(),
       ) ?: return null
     val sdkComponentInstaller = SdkComponentInstaller()
     val tracker = FirstRunWizardTracker(wizardMode.toMetricKind(), !useNewWizard)
