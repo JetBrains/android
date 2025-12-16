@@ -506,6 +506,9 @@ def _collect_own_java_artifacts(
             if not ide_aar.is_source:
                 own_ide_aar_file = ide_aar
 
+        if java_proto_info:
+            own_proto_srcjars += getattr(java_proto_info, "proto_source_jars", [])
+
     else:
         if android_info != None:
             resource_package = android_info.java_package
@@ -572,9 +575,6 @@ def _collect_own_java_artifacts(
                         own_srcjar_file_paths.append(file.path)
                     else:
                         own_gensrc_files.append(file)
-
-        if java_proto_info:
-            own_proto_srcjars += getattr(java_proto_info, "proto_source_jars", [])
 
     if not (java_info or kotlin_info or android_info or java_proto_info or own_gensrc_files or own_src_file_paths or own_srcjar_file_paths):
         return None
