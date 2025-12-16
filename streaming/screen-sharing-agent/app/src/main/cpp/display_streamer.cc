@@ -16,7 +16,7 @@
 
 #include "display_streamer.h"
 
-#include <chrono>
+#include <algorithm>
 #include <cmath>
 
 #include "accessors/surface_control.h"
@@ -37,7 +37,7 @@ constexpr int NUM_DEQUE_ATTEMPTS = 2;
 constexpr int MAX_SUBSEQUENT_ERRORS = 5;
 constexpr int MIN_VIDEO_RESOLUTION = 128;
 constexpr duration INITIAL_FRAME_TIMEOUT = 200ms;
-constexpr duration FRAME_TIMEOUT = 30s;
+constexpr duration MAX_FRAME_TIMEOUT = 30s;
 constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface.
 constexpr int MAX_FRAME_RATE = 60;
 constexpr int REDUCED_FRAME_RATE = 30;  // Frame rate used for watches.
@@ -210,7 +210,10 @@ void DisplayStreamer::Run() {
       break;
     }
     Log::D("Display %d: display_info: %s", display_id_, display_info.ToDebugString().c_str());
-    if (stop_reason != FrameStreamStopReason::TIMEOUT) {
+    if (stop_reason == FrameStreamStopReason::TIMEOUT) {
+      frame_timeout_ = min<std::chrono::milliseconds>(frame_timeout_ * 2, MAX_FRAME_TIMEOUT);  // Exponential backoff.
+    } else {
+      frame_timeout_ = INITIAL_FRAME_TIMEOUT;
       ReleaseVirtualDisplay(jni);
     }
     if (virtual_display_.IsNull() && display_token_.IsNull()) {
@@ -324,18 +327,18 @@ DisplayStreamer::FrameStreamStopReason DisplayStreamer::ProcessFramesUntilCodecS
   bool continue_streaming = true;
   bool request_sync_frame = true;
   int32_t error_count = 0;
+  auto initial_frame_number = frame_number_;
   while (continue_streaming && IsCodecRunning()) {
     CodecOutputBuffer codec_buffer(codec_, StringPrintf("Display %d: ", display_id_));
-    if (frame_number_ == initial_frame_number_) {
+    if (frame_number_ == initial_frame_number) {
       Log::D("Display %d: calling AMediaCodec_dequeueOutputBuffer", display_id_);
     }
-    duration timeout = frame_number_ == initial_frame_number_ ? INITIAL_FRAME_TIMEOUT : FRAME_TIMEOUT;
     steady_clock::time_point start_time = steady_clock::now();
-    if (!codec_buffer.Deque(duration_cast<microseconds>(timeout).count())) {
+    if (!codec_buffer.Deque(duration_cast<microseconds>(frame_timeout_).count())) {
       if (!IsCodecRunning()) {
         return FrameStreamStopReason::CODEC_STOPPED;
       }
-      if (steady_clock::now() - start_time >= timeout) {
+      if (steady_clock::now() - start_time >= frame_timeout_) {
         return FrameStreamStopReason::TIMEOUT;
       }
       if (codec_buffer.error_code() == AMEDIACODEC_INFO_TRY_AGAIN_LATER || ++error_count >= NUM_DEQUE_ATTEMPTS) {
@@ -345,6 +348,7 @@ DisplayStreamer::FrameStreamStopReason DisplayStreamer::ProcessFramesUntilCodecS
     }
 
     error_count = 0;
+    frame_timeout_ = MAX_FRAME_TIMEOUT;  // Use a lenient timeout for frames after the initial one.
     continue_streaming = !codec_buffer.IsEndOfStream();
     // Skip an AV1-specific data packet that is not a part of AV1 bitstream.
     // See https://aomediacodec.github.io/av1-spec/#obu-header-semantics.
@@ -352,7 +356,7 @@ DisplayStreamer::FrameStreamStopReason DisplayStreamer::ProcessFramesUntilCodecS
       continue;
     }
 
-    if (frame_number_ == initial_frame_number_) {
+    if (frame_number_ == initial_frame_number) {
       Log::D("Display %d: video frame #%d produced by the encoder", display_id_, frame_number_ + 1) ;
     }
 
@@ -466,7 +470,6 @@ void DisplayStreamer::DeleteCodec() {
 
 void DisplayStreamer::StartCodecUnlocked() {
   Log::D("Display %d: starting codec", display_id_);
-  initial_frame_number_ = frame_number_;
   media_status_t status = AMediaCodec_start(codec_);
   if (status != AMEDIA_OK) {
     Log::Fatal(VIDEO_ENCODER_START_ERROR, "Display %d: AMediaCodec_start returned %d", display_id_, status);

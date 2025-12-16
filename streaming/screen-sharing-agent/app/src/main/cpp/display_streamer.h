@@ -19,7 +19,7 @@
 #include <android/native_window.h>
 #include <media/NdkMediaCodec.h>
 
-#include <atomic>
+#include <chrono>
 #include <mutex>
 
 #include "accessors/display_manager.h"
@@ -118,7 +118,7 @@ private:
   DisplayRotationWatcher display_rotation_watcher_;
   int display_id_;
   uint32_t frame_number_ = 0;
-  uint32_t initial_frame_number_ = 0; // Frame number before the last time the encoder was started.
+  std::chrono::milliseconds frame_timeout_;
   const CodecInfo* codec_info_ = nullptr;  // Not owned.
   SocketWriter* writer_;
   int64_t presentation_timestamp_offset_ = 0;
