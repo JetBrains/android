@@ -21,6 +21,7 @@ import static java.util.function.Predicate.not;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.RuleType;
@@ -34,7 +35,6 @@ import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Future;
 
 /**
  * Used to locate tests from source files for things like right-clicks.
@@ -44,8 +44,8 @@ import java.util.concurrent.Future;
 public class ProjectSourceToTargetFinder implements SourceToTargetFinder {
 
   @Override
-  public Future<Collection<TargetInfo>> targetsForSourceFiles(
-      Project project, Set<File> sourceFiles, Optional<RuleType> ruleType) {
+  public ListenableFuture<Collection<TargetInfo>> targetsForSourceFiles(
+      Project project, Set<? extends File> sourceFiles, Optional<RuleType> ruleType) {
     QuerySyncProjectData projectData =
       (QuerySyncProjectData)BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
     if (projectData == null) {
@@ -73,5 +73,10 @@ public class ProjectSourceToTargetFinder implements SourceToTargetFinder {
               Comparator.comparingInt(target -> target.getKind().getKindPriority()))
             .collect(toImmutableSet());
     return Futures.immediateFuture(targets);
+  }
+
+  @Override
+  public int priority() {
+    return 100;
   }
 }

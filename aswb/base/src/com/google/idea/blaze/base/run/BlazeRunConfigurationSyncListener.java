@@ -62,7 +62,6 @@ public class BlazeRunConfigurationSyncListener implements SyncListener {
       SyncResult syncResult) {
     final var projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
     updateExistingRunConfigurations(project);
-    removeInvalidRunConfigurations(project);
     if (syncMode == SyncMode.STARTUP || syncMode == SyncMode.NO_BUILD) {
       return;
     }
@@ -90,23 +89,6 @@ public class BlazeRunConfigurationSyncListener implements SyncListener {
         });
   }
 
-  private static void removeInvalidRunConfigurations(Project project) {
-    RunManagerImpl manager = RunManagerImpl.getInstanceImpl(project);
-    List<RunnerAndConfigurationSettings> toRemove =
-        manager
-            .getConfigurationSettingsList(BlazeCommandRunConfigurationType.getInstance())
-            .stream()
-            .filter(s -> isInvalidRunConfig(s.getConfiguration()))
-            .collect(Collectors.toList());
-    if (!toRemove.isEmpty()) {
-      manager.removeConfigurations(toRemove);
-    }
-  }
-
-  private static boolean isInvalidRunConfig(RunConfiguration config) {
-    return config instanceof BlazeCommandRunConfiguration
-        && ((BlazeCommandRunConfiguration) config).pendingSetupFailed();
-  }
 
   /**
    * On each sync, re-calculate target kind for all existing run configurations, in case the target

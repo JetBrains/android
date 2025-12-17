@@ -23,8 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.dependencies.TestSize;
 import com.google.idea.blaze.base.lang.buildfile.search.BlazePackage;
@@ -64,7 +62,8 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import org.jetbrains.ide.PooledThreadExecutor;
+
+import java.util.List;
 
 /**
  * Runs tests in all selected java classes (or all classes below selected directory). Ignores
@@ -83,23 +82,19 @@ class MultipleJavaClassesTestContextProvider implements TestContextProvider {
     PsiElement location = context.getPsiLocation();
     if (location instanceof PsiDirectory) {
       PsiDirectory dir = (PsiDirectory) location;
-      ListenableFuture<TargetInfo> future = getTargetContext(dir);
-      return futureEmpty(future) ? null : fromDirectory(future, dir);
+      TargetInfo target = getTargetContext(dir);
+      return target != null ? fromDirectory(target, dir) : null;
     }
     Set<PsiClass> testClasses = selectedTestClasses(context);
     if (testClasses.size() <= 1) {
       return null;
     }
-    ListenableFuture<TargetInfo> target = getTestTargetIfUnique(context.getProject(), testClasses);
-    if (futureEmpty(target)) {
-      return null;
-    }
-    testClasses = ProducerUtils.includeInnerTestClasses(testClasses);
+    TargetInfo target = getTestTargetIfUnique(context.getProject(), testClasses);
     return fromClasses(target, testClasses);
   }
 
   @Nullable
-  private static TestContext fromDirectory(ListenableFuture<TargetInfo> future, PsiDirectory dir) {
+  private static TestContext fromDirectory(TargetInfo target, PsiDirectory dir) {
     String packagePrefix =
         ProjectFileIndex.SERVICE
             .getInstance(dir.getProject())
@@ -109,16 +104,16 @@ class MultipleJavaClassesTestContextProvider implements TestContextProvider {
     }
     String description = String.format("all in directory '%s'", dir.getName());
     String testFilter = packagePrefix.isEmpty() ? null : packagePrefix;
-    return TestContext.builder(dir, ExecutorType.DEBUG_SUPPORTED_TYPES)
-        .setTarget(future)
-        .setTestFilter(testFilter)
-        .setDescription(description)
-        .build();
+    return TestContext.create(
+        dir, target, description, TestContext.BlazeFlagsModification.testFilter(testFilter));
   }
 
   @Nullable
   private static TestContext fromClasses(
-      ListenableFuture<TargetInfo> target, Set<PsiClass> classes) {
+      @Nullable TargetInfo target, Set<PsiClass> classes) {
+    if (target == null) {
+      return null;
+    }
     Map<PsiClass, Collection<Location<?>>> methodsPerClass =
         classes.stream().collect(Collectors.toMap(c -> c, c -> ImmutableList.of()));
     String filter = BlazeJUnitTestFilterFlags.testFilterForClassesAndMethods(methodsPerClass);
@@ -139,11 +134,8 @@ class MultipleJavaClassesTestContextProvider implements TestContextProvider {
     if (name != null && classes.size() > 1) {
       name += String.format(" and %s others", classes.size() - 1);
     }
-    return TestContext.builder(sampleClass, ExecutorType.DEBUG_SUPPORTED_TYPES)
-        .setTarget(target)
-        .setTestFilter(filter)
-        .setDescription(name)
-        .build();
+    return TestContext.create(
+        sampleClass, target, name, TestContext.BlazeFlagsModification.testFilter(filter));
   }
 
   private static Set<PsiClass> selectedTestClasses(ConfigurationContext context) {
@@ -173,7 +165,7 @@ class MultipleJavaClassesTestContextProvider implements TestContextProvider {
    * if one can be found.
    */
   @Nullable
-  private static ListenableFuture<TargetInfo> getTargetContext(PsiDirectory dir) {
+  private static TargetInfo getTargetContext(PsiDirectory dir) {
     Project project = dir.getProject();
     ProjectFileIndex index = ProjectFileIndex.SERVICE.getInstance(project);
     if (!index.isInTestSourceContent(dir.getVirtualFile())) {
@@ -183,21 +175,21 @@ class MultipleJavaClassesTestContextProvider implements TestContextProvider {
       // this case is handled by a separate run config producer
       return null;
     }
-    ListenableFuture<Set<PsiClass>> classes = findAllTestClassesBeneathDirectory(dir);
-    if (classes == null) {
+    try {
+      Set<PsiClass> classes = findAllTestClassesBeneathDirectory(dir);
+      if (classes == null) {
+        return null;
+      }
+      return ReadAction.compute(() -> getTestTargetIfUnique(project, classes));
+    } catch (Exception e) {
       return null;
     }
-    return Futures.transformAsync(
-        classes, set -> ReadAction.compute(() -> getTestTargetIfUnique(project, set)), EXECUTOR);
   }
 
   private static final int MAX_DEPTH_TO_SEARCH = 8;
-  private static final ListeningExecutorService EXECUTOR =
-      ApplicationManager.getApplication().isUnitTestMode()
-          ? MoreExecutors.newDirectExecutorService()
-          : MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
 
-  private static ListenableFuture<Set<PsiClass>> findAllTestClassesBeneathDirectory(
+  @Nullable
+  private static Set<PsiClass> findAllTestClassesBeneathDirectory(
       PsiDirectory dir) {
     Project project = dir.getProject();
     WorkspaceFileFinder finder =
@@ -205,12 +197,9 @@ class MultipleJavaClassesTestContextProvider implements TestContextProvider {
     if (finder == null || !relevantDirectory(finder, dir)) {
       return null;
     }
-    return EXECUTOR.submit(
-        () -> {
-          Set<PsiClass> classes = new HashSet<>();
-          ReadAction.run(() -> addClassesInDirectory(finder, dir, classes, /* currentDepth= */ 0));
-          return classes;
-        });
+    Set<PsiClass> classes = new HashSet<>();
+    ReadAction.run(() -> addClassesInDirectory(finder, dir, classes, /* currentDepth= */ 0));
+    return classes;
   }
 
   private static boolean relevantDirectory(WorkspaceFileFinder finder, PsiDirectory dir) {
@@ -230,10 +219,11 @@ class MultipleJavaClassesTestContextProvider implements TestContextProvider {
     }
   }
 
-  private static ListenableFuture<TargetInfo> getTestTargetIfUnique(
+  @Nullable
+  private static TargetInfo getTestTargetIfUnique(
       Project project, @Nullable Set<PsiClass> classes) {
     if (classes == null) {
-      return Futures.immediateFuture(null);
+      return null;
     }
     Set<File> files =
         classes.stream()
@@ -241,17 +231,12 @@ class MultipleJavaClassesTestContextProvider implements TestContextProvider {
             .filter(Objects::nonNull)
             .map(psi -> getFile(psi))
             .collect(toImmutableSet());
-    ListenableFuture<Collection<TargetInfo>> targets =
-        SourceToTargetFinder.findTargetInfoFuture(project, files, Optional.of(RuleType.TEST));
-    if (futureEmpty(targets)) {
-      return Futures.immediateFuture(null);
+    Collection<TargetInfo> targets =
+        SourceToTargetFinder.findTargetsForSourceFiles(project, files, Optional.of(RuleType.TEST));
+    if (targets == null || targets.isEmpty()) {
+      return null;
     }
-    Executor executor =
-        ApplicationManager.getApplication().isUnitTestMode()
-            ? MoreExecutors.directExecutor()
-            : PooledThreadExecutor.INSTANCE;
-    return Futures.transform(
-        targets, list -> findUniqueRelevantTestTarget(project, classes, list), executor);
+    return findUniqueRelevantTestTarget(project, classes, targets);
   }
 
   /**

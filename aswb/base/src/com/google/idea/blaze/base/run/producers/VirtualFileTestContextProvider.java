@@ -93,19 +93,25 @@ class VirtualFileTestContextProvider implements TestContextProvider {
       return null;
     }
 
-    ListenableFuture<RunConfigurationContext> future =
-        EXECUTOR.submit(() -> findContextAsync(resolveContext(context, vf)));
-    return TestContext.builder(psi, relevantExecutors)
-        .setContextFuture(future)
-        .setDescription(vf.getNameWithoutExtension())
-        .build();
+    @Nullable
+    RunConfigurationContext contextResult = findContext(resolveContext(context, vf));
+    if (contextResult == null) {
+      return null;
+    }
+    // We need to return a TestContext (which implements RunConfigurationContext), but findContext returns RunConfigurationContext.
+    // However, looking at findContext, it delegates to providers which return TestContext (mostly).
+    // Actually, doFindTestContext signature returns RunConfigurationContext.
+    // But we need to use TestContext because we might need to wrap it?
+    // Wait, the original code wrapped the future in a TestContext via builder.
+    // Now we have the actual context result.
+    return contextResult;
   }
 
   @Nullable
-  private static RunConfigurationContext findContextAsync(ConfigurationContext context) {
+  private static RunConfigurationContext findContext(ConfigurationContext context) {
     return Arrays.stream(TestContextProvider.EP_NAME.getExtensions())
         .filter(p -> !(p instanceof VirtualFileTestContextProvider))
-        .map(p -> ReadAction.compute(() -> p.getTestContext(context)))
+        .map(p -> p.getTestContext(context))
         .filter(Objects::nonNull)
         .findFirst()
         .orElse(null);

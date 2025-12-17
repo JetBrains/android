@@ -15,11 +15,9 @@
  */
 package com.google.idea.blaze.kotlin.run.producers;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.dependencies.TestSize;
 import com.google.idea.blaze.base.lang.buildfile.psi.util.PsiUtils;
-import com.google.idea.blaze.base.run.ExecutorType;
 import com.google.idea.blaze.base.run.TestTargetHeuristic;
 import com.google.idea.blaze.base.run.producers.RunConfigurationContext;
 import com.google.idea.blaze.base.run.producers.TestContext;
@@ -57,10 +55,10 @@ class KotlinTestContextProvider implements TestContextProvider {
     return Optional.ofNullable(context.getLocation()).map(Location::getPsiElement);
   }
 
-  private static Optional<ListenableFuture<TargetInfo>> findTarget(
+  private static Optional<TargetInfo> findTarget(
       KtClass testClass, @Nullable KtNamedFunction testMethod) {
     TestSize testSize = getTestSize(testClass, testMethod).orElse(null);
-    return Optional.ofNullable(TestTargetHeuristic.targetFutureForPsiElement(testClass, testSize));
+    return Optional.ofNullable(TestTargetHeuristic.targetForPsiElement(testClass, testSize));
   }
 
   private static Optional<TestSize> getTestSize(
@@ -73,15 +71,16 @@ class KotlinTestContextProvider implements TestContextProvider {
   private static TestContext createTestContext(
       KtClass testClass,
       @Nullable KtNamedFunction testMethod,
-      ListenableFuture<TargetInfo> target) {
+      TargetInfo target) {
     String filter = getTestFilter(testClass, testMethod);
     String description = getDescription(testClass, testMethod);
     PsiElement contextElement = testMethod != null ? testMethod : testClass;
-    return TestContext.builder(contextElement, ExecutorType.DEBUG_SUPPORTED_TYPES)
-        .setTarget(target)
-        .setTestFilter(filter)
-        .setDescription(description)
-        .build();
+
+    return TestContext.create(
+        contextElement,
+        target,
+        description,
+        TestContext.BlazeFlagsModification.testFilter(filter));
   }
 
   @Nullable
