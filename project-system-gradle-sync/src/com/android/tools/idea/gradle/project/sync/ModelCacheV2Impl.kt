@@ -198,11 +198,23 @@ fun modelCacheV2Impl(
     sourceProviderFrom(provider, assetContext.buildFolder)
 
   fun sourceProviderFrom(source: HostJarTestSuiteSource): IdeSourceProvider {
-    fun File.makeRelativeAndDeduplicate(): String = relativeToOrSelf(source.kotlin.first()).path.deduplicate()
+    val topLevel: File = if (modelVersions[ModelFeature.HAS_TEST_SUITES_SOURCES]) {
+      source.defaultTopLevel
+    } else {
+      source.kotlin.first().parentFile
+    }
+
+    fun File.makeRelativeAndDeduplicate(): String = relativeToOrSelf(topLevel).path.deduplicate()
+
+    val manifestFile: File = if (modelVersions[ModelFeature.HAS_TEST_SUITES_SOURCES]) {
+      source.manifestFile!!
+    } else {
+      File(topLevel, "AndroidManifest.xml")
+    }
     return IdeSourceProvider(
       name = source.name.deduplicate(),
-      folder = source.kotlin.first(),
-      manifestFile = File(source.kotlin.first().parent, "AndroidManifest.xml").makeRelativeAndDeduplicate(),
+      folder = topLevel,
+      manifestFile = manifestFile.makeRelativeAndDeduplicate(),
       javaDirectories = source.java.map {
         it.makeRelativeAndDeduplicate()
       },
