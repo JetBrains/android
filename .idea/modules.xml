@@ -13,7 +13,6 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/eval/aiplugin.android.eval.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/eval/aiplugin.android.eval.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/gradle/aiplugin.android.gradle.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/gradle/aiplugin.android.gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/aiplugin.android.journeys.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/aiplugin.android.journeys.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/integration/journeys.integration.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/integration/journeys.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/gradle/aiplugin.android.journeys.gradle.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/gradle/aiplugin.android.journeys.gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/gradle/aiplugin.android.journeys.gradle.tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/gradle/aiplugin.android.journeys.gradle.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/aiplugin.android.journeys.tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/aiplugin.android.journeys.tests.iml" />
@@ -59,6 +58,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/indexer/aiplugin.rag.indexer.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/indexer/aiplugin.rag.indexer.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/indexer-tests/aiplugin.rag.indexer-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/indexer-tests/aiplugin.rag.indexer-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/kb/aiplugin.rag.kb.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/kb/aiplugin.rag.kb.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/lucene/sdkcompat/aiplugin.rag.lucene.sdkcompat.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/lucene/sdkcompat/aiplugin.rag.lucene.sdkcompat.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/sdkcompat/aiplugin.sdkcompat.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/sdkcompat/aiplugin.sdkcompat.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/studiobot-dogfood-plugin/aiplugin.studiobot-dogfood-plugin.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/studiobot-dogfood-plugin/aiplugin.studiobot-dogfood-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/core/altlang-core.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/core/altlang-core.iml" />
@@ -477,6 +477,7 @@
       <module fileurl="file://$PROJECT_DIR$/lint/intellij.lint.iml" filepath="$PROJECT_DIR$/lint/intellij.lint.iml" />
       <module fileurl="file://$PROJECT_DIR$/lint/tests/intellij.lint.tests.iml" filepath="$PROJECT_DIR$/lint/tests/intellij.lint.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/adt-ui-compose/jewel.sdkcompat/jewel.sdkcompat.iml" filepath="$PROJECT_DIR$/adt-ui-compose/jewel.sdkcompat/jewel.sdkcompat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/integration/journeys.integration.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/integration/journeys.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/redhat-developer/lsp4ij/lsp4ij.iml" filepath="$PROJECT_DIR$/../../vendor/redhat-developer/lsp4ij/lsp4ij.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/marketing/marketing.iml" filepath="$PROJECT_DIR$/../../vendor/google/marketing/marketing.iml" />
