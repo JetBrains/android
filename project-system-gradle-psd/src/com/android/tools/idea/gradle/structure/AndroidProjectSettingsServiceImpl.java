@@ -45,6 +45,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.ui.configuration.IdeaProjectSettingsService;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.packaging.artifacts.Artifact;
+import com.intellij.platform.workspace.jps.entities.LibraryEntity;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -262,6 +263,17 @@ public class AndroidProjectSettingsServiceImpl extends AndroidProjectSettingsSer
     }
     else {
       return myDelegate.canOpenLibraryOrSdkSettings(orderEntry);
+    }
+  }
+
+  @Override
+  public boolean canOpenLibrarySettings(LibraryEntity library) {
+    if (!canShowPsd(myProject)) return false;
+    if (isGradleProjectInAndroidStudio()) {
+      return false;
+    }
+    else {
+      return myDelegate.canOpenLibrarySettings(library);
     }
   }
 
