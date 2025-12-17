@@ -60,18 +60,19 @@ class PyTestContextProvider implements TestContextProvider {
     if (testLocation == null) {
       return null;
     }
-    ListenableFuture<TargetInfo> testTarget =
-        TestTargetHeuristic.targetFutureForPsiElement(element, /* testSize= */ null);
+    TargetInfo testTarget =
+        TestTargetHeuristic.targetForPsiElement(element, /* testSize= */ null);
     if (testTarget == null) {
       return null;
     }
 
+
     PythonTestFilterInfo filterInfo = testLocation.testFilter();
-    return TestContext.builder(testLocation.sourceElement(), ExecutorType.DEBUG_SUPPORTED_TYPES)
-        .setTarget(testTarget)
-        .setTestFilter(filterInfo.filter)
-        .setDescription(filterInfo.description)
-        .build();
+    return TestContext.create(
+        testLocation.sourceElement(),
+        testTarget,
+        filterInfo.description,
+        TestContext.BlazeFlagsModification.testFilter(filterInfo.filter));
   }
 
   private static class TestLocation {
