@@ -21,6 +21,7 @@ import com.intellij.java.workspace.entities.javaSourceRoots
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.BaseProjectDirectories
 import com.intellij.openapi.project.BaseProjectDirectories.Companion.getBaseDirectories
 import com.intellij.openapi.project.Project
@@ -58,6 +59,7 @@ import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_ROOT_ENT
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
@@ -87,6 +89,8 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
   }
 
   private var lastProjectProtoSnapshot: ProjectProto.Project = ProjectProto.Project.getDefaultInstance()
+
+  private val logger = Logger.getInstance(ProjectUpdater::class.java)
 
   override fun onNewProjectStructure(
     context: Context<*>,
@@ -279,21 +283,42 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
   private fun EntityWorker.updateProjectModel() {
     runBlocking {
       context.output(PrintOutput.output("Begin updating project model"))
-      val originalSnapshot = WorkspaceModel.getInstance(project).currentSnapshot
-      val changes = MutableEntityStorage.from(originalSnapshot)
-      buildChanges(changes, ProjectData.from(spec))
-      withContext(Dispatchers.EDT) {
-        edtWriteAction {
-          WorkspaceModel.getInstance(project).updateProjectModel("Updating project model") { builder ->
-            context.output(PrintOutput.output("Applying project model changes"))
-            if (originalSnapshot !== WorkspaceModel.getInstance(project).currentSnapshot) {
-              context.output(PrintOutput.error("FAILED: Project model has changed"))
-              error("Concurrent changes to project model detected. TODO: Retry.")
-            }
-            builder.applyChangesFrom(changes)
-            context.output(PrintOutput.output("Project model changes applied"))
-          }
+      var attempts = 0
+      while (attempts < 5) {
+        if (attempts > 0) {
+          delay(250)
         }
+        attempts++
+        if (tryUpdateProjectModel()) {
+          return@runBlocking
+        }
+        val msg = "Concurrent changes to project model detected. Retrying..."
+        logger.warn(msg)
+        context.output(PrintOutput.output(msg))
+      }
+      val message = "FAILED: Concurrent changes to project model detected after $attempts attempts."
+      context.output(PrintOutput.error(message))
+      error(message)
+    }
+  }
+
+  private suspend fun EntityWorker.tryUpdateProjectModel(): Boolean {
+    val originalSnapshot = WorkspaceModel.getInstance(project).currentSnapshot
+    val changes = MutableEntityStorage.from(originalSnapshot)
+    buildChanges(changes, ProjectData.from(spec))
+    return withContext(Dispatchers.EDT) {
+      edtWriteAction {
+        var success = false
+        WorkspaceModel.getInstance(project).updateProjectModel("Updating project model") { builder ->
+          if (originalSnapshot !== WorkspaceModel.getInstance(project).currentSnapshot) {
+            return@updateProjectModel
+          }
+          context.output(PrintOutput.output("Applying project model changes"))
+          builder.applyChangesFrom(changes)
+          context.output(PrintOutput.output("Project model changes applied"))
+          success = true
+        }
+        success
       }
     }
   }
