@@ -501,14 +501,20 @@ class EmulatorToolWindowPanelTest {
     emulator.clearGrpcCallLog()
 
     // Check the Button 1 action.
-    val button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Camera" }
+    var button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Camera" }
     fakeUi.mouseClickOn(button)
     val streamInputCall = emulator.getNextGrpcCall(2.seconds)
     assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"Stem1\" }")
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"Stem1\" }")
 
+    button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Display" }
+    fakeUi.mouseClickOn(button)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"Stem2\" }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"Stem2\" }")
+
     // Check that the buttons not applicable to AI Glasses are hidden.
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Power" }).isNull()
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNull()
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Home" }).isNull()

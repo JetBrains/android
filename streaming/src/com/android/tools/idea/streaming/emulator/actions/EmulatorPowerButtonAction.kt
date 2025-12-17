@@ -20,4 +20,6 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 /**
  * Simulates pressing the Power button on an Android virtual device.
  */
-class EmulatorPowerButtonAction : EmulatorPushButtonAction("Power", configFilter = { it.deviceType != DeviceType.WEAR || it.api < 28 })
+class EmulatorPowerButtonAction :
+  EmulatorPushButtonAction("Power",
+                           configFilter = { it.deviceType != DeviceType.AI_GLASSES && (it.deviceType != DeviceType.WEAR || it.api < 28) })
