@@ -95,46 +95,6 @@ public class ServiceHelper {
     registerService(project, key, implementation, parentDisposable);
   }
 
-  public static <T> void registerApplicationComponent(
-      Class<T> key, T implementation, Disposable parentDisposable) {
-    Application application = ApplicationManager.getApplication();
-    if (application instanceof ComponentManagerImpl) {
-      if (!application.hasComponent(key)) {
-        // registers component from scratch
-        ServiceContainerUtil.registerComponentInstance(
-            application, key, implementation, /* shouldBeRegistered= */ parentDisposable);
-      }
-      // replaces existing component
-      ServiceContainerUtil.registerComponentInstance(
-          application, key, implementation, parentDisposable);
-    } else if (application instanceof MockApplication) {
-      registerComponentInstance(
-          ((MockApplication) application).getPicoContainer(),
-          key,
-          implementation,
-          parentDisposable);
-    } else {
-      throw new RuntimeException(
-          "Implementation not supported: " + application.getClass().getSimpleName());
-    }
-  }
-
-  private static <T> void registerComponentInstance(
-      MutablePicoContainer container, Class<T> key, T implementation, Disposable parentDisposable) {
-    Object old = container.getComponentInstance(key);
-    container.unregisterComponent(key.getName());
-    container.registerComponentInstance(key.getName(), implementation);
-    Object finalOld = old;
-    Disposer.register(
-        parentDisposable,
-        () -> {
-          container.unregisterComponent(key.getName());
-          if (finalOld != null) {
-            container.registerComponentInstance(key.getName(), finalOld);
-          }
-        });
-  }
-
   private static <T> void registerService(
       ComponentManager componentManager,
       Class<T> key,
