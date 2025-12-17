@@ -373,27 +373,29 @@ void Agent::RestoreEnvironment() {
 void Agent::Shutdown() {
   shutting_down_ = true;
   if (this_thread::get_id() == main_thread_id_) {
-    Log::D("Shutting down");
-    for (auto& it: display_streamers_) {
-      it.second.Stop();
+    if (!shutting_down_.exchange(true)) {
+      Log::D("Shutting down");
+      DisplayManager::RemoveAllDisplayListeners();
+      for (auto& it: display_streamers_) {
+        it.second.Stop();
+      }
+      if (audio_streamer_ != nullptr) {
+        audio_streamer_->Stop();
+      }
+      if (controller_ != nullptr) {
+        controller_->Stop();
+      }
+      if (video_socket_writer_ != nullptr) {
+        Log::D("Shutting down video socket");
+        shutdown(video_socket_writer_->socket_fd(), SHUT_RDWR);
+      }
+      if (audio_socket_writer_ != nullptr) {
+        Log::D("Shutting down audio socket");
+        shutdown(audio_socket_writer_->socket_fd(), SHUT_RDWR);
+      }
+      RestoreEnvironment();
+      Jvm::Exit(exit_code_);
     }
-    DisplayManager::RemoveAllDisplayListeners();
-    if (audio_streamer_ != nullptr) {
-      audio_streamer_->Stop();
-    }
-    if (controller_ != nullptr) {
-      controller_->Stop();
-    }
-    if (video_socket_writer_ != nullptr) {
-      Log::D("Shutting down video socket");
-      shutdown(video_socket_writer_->socket_fd(), SHUT_RDWR);
-    }
-    if (audio_socket_writer_ != nullptr) {
-      Log::D("Shutting down audio socket");
-      shutdown(audio_socket_writer_->socket_fd(), SHUT_RDWR);
-    }
-    RestoreEnvironment();
-    Jvm::Exit(exit_code_);
   } else {
     // Shutting down control socket makes Shutdown to be called again on the main thread.
     Log::D("Shutting down control socket");
