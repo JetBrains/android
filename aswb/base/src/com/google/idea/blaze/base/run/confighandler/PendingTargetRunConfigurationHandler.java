@@ -18,7 +18,6 @@ package com.google.idea.blaze.base.run.confighandler;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.ExecutorType;
-import com.google.idea.blaze.base.run.PendingRunConfigurationContext;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
 import com.google.idea.blaze.base.run.state.RunConfigurationState;
 import com.google.idea.blaze.base.settings.Blaze;
@@ -57,7 +56,7 @@ public class PendingTargetRunConfigurationHandler implements BlazeCommandRunConf
   @Override
   public BlazeCommandRunConfigurationRunner createRunner(
       Executor executor, ExecutionEnvironment environment) {
-    return new PendingTargetRunner();
+    return null;
   }
 
   @Override
@@ -80,102 +79,5 @@ public class PendingTargetRunConfigurationHandler implements BlazeCommandRunConf
   @Override
   public String getHandlerName() {
     return "Pending target handler";
-  }
-
-  static class PendingTargetProgramRunner implements ProgramRunner<RunnerSettings> {
-    @Override
-    public String getRunnerId() {
-      return "PendingTargetProgramRunner";
-    }
-
-    @Override
-    public boolean canRun(String executorId, RunProfile profile) {
-      BlazeCommandRunConfiguration config =
-          BlazeCommandRunConfigurationRunner.getBlazeConfig(profile);
-      if (config == null) {
-        return false;
-      }
-      ExecutorType type = ExecutorType.fromExecutorId(executorId);
-      PendingRunConfigurationContext pendingContext = config.getPendingContext();
-      return pendingContext != null
-          && !pendingContext.isDone()
-          && pendingContext.supportedExecutors().contains(type);
-    }
-
-    @Override
-    public void execute(ExecutionEnvironment env) throws ExecutionException {
-      if (!(env.getState() instanceof DummyRunProfileState)) {
-        reRunConfiguration(env);
-        return;
-      }
-      ApplicationManager.getApplication()
-          .executeOnPooledThread(
-              () -> {
-                try {
-                  resolveContext(env);
-                } catch (ExecutionException e) {
-                  ExecutionUtil.handleExecutionError(env, e);
-                }
-              });
-    }
-  }
-
-  private static void reRunConfiguration(ExecutionEnvironment env) throws ExecutionException {
-    BlazeCommandRunConfiguration config = BlazeCommandRunConfigurationRunner.getConfiguration(env);
-    RunnerAndConfigurationSettings settings =
-        RunManager.getInstance(config.getProject()).findSettings(config);
-    if (settings == null) {
-      throw new ExecutionException(
-          "Can't find runner settings for blaze run configuration " + config.getName());
-    }
-    // TODO(brendandouglas): check the executor type and inform the user if it's not applicable to
-    // this target
-    RunManager.getInstance(env.getProject()).setSelectedConfiguration(settings);
-    ExecutionUtil.runConfiguration(settings, env.getExecutor());
-  }
-
-  /**
-   * A placeholder {@link RunProfileState}. This is bypassed entirely by PendingTargetProgramRunner.
-   */
-  private static class DummyRunProfileState implements RunProfileState {
-    @Override
-    public ExecutionResult execute(Executor executor, ProgramRunner<?> runner) {
-      throw new RuntimeException("Unexpected code path");
-    }
-  }
-
-  private static class PendingTargetRunner implements BlazeCommandRunConfigurationRunner {
-    @Override
-    public RunProfileState getRunProfileState(Executor executor, ExecutionEnvironment environment) {
-      return new DummyRunProfileState();
-    }
-
-    @Override
-    public boolean executeBeforeRunTask(ExecutionEnvironment env) {
-      // if we got here, a different ProgramRunner has accepted a pending blaze run config, despite
-      // PendingTargetProgramRunner being first in the list
-      throw new RuntimeException(
-          String.format(
-              "Unexpected code path: program runner %s, executor: %s",
-              env.getRunner().getClass(), env.getExecutor().getId()));
-    }
-  }
-
-  private static void resolveContext(ExecutionEnvironment env) throws ExecutionException {
-    BlazeCommandRunConfiguration config = BlazeCommandRunConfigurationRunner.getConfiguration(env);
-    PendingRunConfigurationContext pendingContext = config.getPendingContext();
-    if (pendingContext == null) {
-      return;
-    }
-    pendingContext.resolve(
-        env,
-        config,
-        () -> {
-          try {
-            reRunConfiguration(env);
-          } catch (ExecutionException e) {
-            ExecutionUtil.handleExecutionError(env, e);
-          }
-        });
   }
 }

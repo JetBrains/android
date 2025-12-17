@@ -130,48 +130,7 @@ public class BlazeCommandRunConfiguration
   /** The blaze-specific parts of the last serialized state of the configuration. */
   private Element blazeElementState = new Element(BLAZE_SETTINGS_TAG);
 
-  /**
-   * Used when we don't yet know all the configuration details, but want to provide a 'run/debug'
-   * context action anyway.
-   */
-  @Nullable private volatile PendingRunConfigurationContext pendingContext;
 
-  /** Set up a run configuration with a not-yet-known target pattern. */
-  public void setPendingContext(PendingRunConfigurationContext pendingContext) {
-    this.pendingContext = pendingContext;
-    this.targetPatterns = ImmutableList.of();
-    this.targetKindString = null;
-    this.contextElementString = pendingContext.getSourceElementString();
-    updateHandler();
-    EventLoggingService.getInstance().log(new GenericEvent(
-      getProject(), getClass(), "async-run-config"));
-  }
-
-  public void clearPendingContext() {
-    this.pendingContext = null;
-  }
-
-  /**
-   * Returns true if this was previously a pending run configuration, but it turned out to be
-   * invalid. We remove these from the project periodically.
-   */
-  boolean pendingSetupFailed() {
-    PendingRunConfigurationContext pendingContext = this.pendingContext;
-    if (pendingContext == null || !pendingContext.isDone()) {
-      return false;
-    }
-    if (targetPatterns.isEmpty()) {
-      return true;
-    }
-    // setup failed, but it still has useful information (perhaps the user modified it?)
-    this.pendingContext = null;
-    return false;
-  }
-
-  @Nullable
-  public PendingRunConfigurationContext getPendingContext() {
-    return pendingContext;
-  }
 
   private volatile ImmutableList<String> targetPatterns = ImmutableList.of();
   // null if the target is null or not a single Label
@@ -274,8 +233,7 @@ public class BlazeCommandRunConfiguration
   }
 
   private TargetState getTargetState() {
-    return (targetPatterns.isEmpty() && pendingContext != null) ||
-           (getTargetKind() == null && (handlerProvider == null || handlerProvider.canHandleKind(TargetState.PENDING, null)))
+    return (getTargetKind() == null && (handlerProvider == null || handlerProvider.canHandleKind(TargetState.PENDING, null)))
            ? TargetState.PENDING
            : TargetState.KNOWN;
   }
@@ -459,10 +417,6 @@ public class BlazeCommandRunConfiguration
               Blaze.buildSystemName(getProject())));
     }
     handler.checkConfiguration();
-    PendingRunConfigurationContext pendingContext = this.pendingContext;
-    if (pendingContext != null && !pendingContext.isDone()) {
-      return;
-    }
     ImmutableList<String> targetPatterns = this.targetPatterns;
     if (targetPatterns.isEmpty()) {
       throw new RuntimeConfigurationError(
@@ -586,7 +540,6 @@ public class BlazeCommandRunConfiguration
     configuration.targetPatterns = targetPatterns;
     configuration.targetKindString = targetKindString;
     configuration.contextElementString = contextElementString;
-    configuration.pendingContext = pendingContext;
     configuration.keepInSync = keepInSync;
     configuration.handlerProvider = handlerProvider;
     configuration.handler = handlerProvider.createHandler(this);

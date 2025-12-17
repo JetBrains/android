@@ -309,10 +309,6 @@
     <typedHandler implementation="com.google.idea.blaze.base.lang.buildfile.completion.BuildCompletionAutoPopupHandler"/>
     <projectViewNodeDecorator implementation="com.google.idea.blaze.base.syncstatus.QuerySyncNodeDecorator"/>
     <macro implementation="com.google.idea.blaze.base.actions.WorkspaceRootMacro"/>
-    <!--needs to run before DefaultJavaProgramRunner at the very least, since that accepts *all* configs -->
-    <programRunner
-        implementation="com.google.idea.blaze.base.run.confighandler.PendingTargetRunConfigurationHandler$PendingTargetProgramRunner"
-        order="first"/>
     <consoleFilterProvider implementation="com.google.idea.blaze.base.run.filter.GenericFileMessageFilter$Provider"/>
     <consoleFilterProvider implementation="com.google.idea.blaze.base.run.filter.TestLogFilter$Provider"/>
     <!-- Add target filter last, so it doesn't override other links containing a target string.-->

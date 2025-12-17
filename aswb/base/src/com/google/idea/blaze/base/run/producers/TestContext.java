@@ -15,19 +15,13 @@
  */
 package com.google.idea.blaze.base.run.producers;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.execution.BlazeParametersListUtil;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.BlazeConfigurationNameBuilder;
-import com.google.idea.blaze.base.run.ExecutorType;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
 import com.google.idea.blaze.base.run.state.RunConfigurationFlagsState;
 import com.intellij.psi.PsiElement;
@@ -140,6 +134,13 @@ public abstract class TestContext implements RunConfigurationContext {
 
     boolean matchesConfigState(RunConfigurationFlagsState state);
 
+    BlazeFlagsModification NOOP = new BlazeFlagsModification() {
+      @Override
+      public void modifyFlags(List<String> flags) {}
+      @Override
+      public boolean matchesConfigState(RunConfigurationFlagsState state) { return true; }
+    };
+
     static BlazeFlagsModification addFlagIfNotPresent(String flag) {
       return new BlazeFlagsModification() {
         @Override
@@ -156,7 +157,10 @@ public abstract class TestContext implements RunConfigurationContext {
       };
     }
 
-    static BlazeFlagsModification testFilter(String filter) {
+    static BlazeFlagsModification testFilter(@Nullable String filter) {
+      if (filter == null || filter.isEmpty()) {
+        return NOOP;
+      }
       return new BlazeFlagsModification() {
         @Override
         public void modifyFlags(List<String> flags) {
@@ -177,78 +181,14 @@ public abstract class TestContext implements RunConfigurationContext {
     }
   }
 
-  public static Builder builder(
-      PsiElement sourceElement, ImmutableSet<ExecutorType> supportedExecutors) {
-    return new Builder(sourceElement, supportedExecutors);
+  public static TestContext create(
+      PsiElement sourceElement,
+      TargetInfo target,
+      @Nullable String description,
+      BlazeFlagsModification... blazeFlags) {
+    return new KnownTargetTestContext(
+        target, sourceElement, ImmutableList.copyOf(blazeFlags), description);
   }
 
-  /** Builder class for {@link TestContext}. */
-  public static class Builder {
-    private final PsiElement sourceElement;
-    private final ImmutableSet<ExecutorType> supportedExecutors;
-    private ListenableFuture<RunConfigurationContext> contextFuture = null;
-    private ListenableFuture<TargetInfo> targetFuture = null;
-    private final ImmutableList.Builder<BlazeFlagsModification> blazeFlags =
-        ImmutableList.builder();
-    private String description = null;
 
-    private Builder(PsiElement sourceElement, ImmutableSet<ExecutorType> supportedExecutors) {
-      this.sourceElement = sourceElement;
-      this.supportedExecutors = supportedExecutors;
-    }
-
-    @CanIgnoreReturnValue
-    public Builder setContextFuture(ListenableFuture<RunConfigurationContext> contextFuture) {
-      this.contextFuture = contextFuture;
-      return this;
-    }
-
-    @CanIgnoreReturnValue
-    public Builder setTarget(ListenableFuture<TargetInfo> future) {
-      this.targetFuture = future;
-      return this;
-    }
-
-    @CanIgnoreReturnValue
-    public Builder setTarget(TargetInfo target) {
-      this.targetFuture = Futures.immediateFuture(target);
-      return this;
-    }
-
-    @CanIgnoreReturnValue
-    public Builder setTestFilter(@Nullable String filter) {
-      if (filter != null) {
-        blazeFlags.add(BlazeFlagsModification.testFilter(filter));
-      }
-      return this;
-    }
-
-    @CanIgnoreReturnValue
-    public Builder addBlazeFlagsModification(BlazeFlagsModification modification) {
-      this.blazeFlags.add(modification);
-      return this;
-    }
-
-    @CanIgnoreReturnValue
-    public Builder setDescription(String description) {
-      this.description = description;
-      return this;
-    }
-
-    public TestContext build() {
-      if (contextFuture != null) {
-        Preconditions.checkState(targetFuture == null);
-        return new PendingAsyncTestContext(
-            supportedExecutors,
-            contextFuture,
-            "Resolving test context",
-            sourceElement,
-            blazeFlags.build(),
-            description);
-      }
-      Preconditions.checkState(targetFuture != null);
-      return PendingAsyncTestContext.fromTargetFuture(
-          supportedExecutors, targetFuture, sourceElement, blazeFlags.build(), description);
-    }
-  }
 }

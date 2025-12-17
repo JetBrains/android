@@ -16,15 +16,12 @@
 package com.google.idea.blaze.java.run.producers;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.dependencies.TestSize;
-import com.google.idea.blaze.base.run.ExecutorType;
 import com.google.idea.blaze.base.run.TestTargetHeuristic;
 import com.google.idea.blaze.base.run.producers.RunConfigurationContext;
 import com.google.idea.blaze.base.run.producers.TestContext;
-import com.google.idea.blaze.base.run.producers.TestContext.BlazeFlagsModification;
 import com.google.idea.blaze.base.run.producers.TestContextProvider;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
@@ -73,16 +70,16 @@ class JavaTestContextProvider implements TestContextProvider {
       return null;
     }
     TestSize testSize = TestSizeFinder.getTestSize(testClass);
-    ListenableFuture<TargetInfo> target =
-        TestTargetHeuristic.targetFutureForPsiElement(testClass, testSize);
+    TargetInfo target =
+        TestTargetHeuristic.targetForPsiElement(testClass, testSize);
     if (target == null) {
       return null;
     }
-    return TestContext.builder(testClass, ExecutorType.FAST_DEBUG_SUPPORTED_TYPES)
-        .setTarget(target)
-        .setTestFilter(testFilter)
-        .setDescription(testClass.getName())
-        .build();
+    return TestContext.create(
+        testClass,
+        target,
+        testClass.getName(),
+        TestContext.BlazeFlagsModification.testFilter(testFilter));
   }
 
   @Nullable
@@ -111,22 +108,21 @@ class JavaTestContextProvider implements TestContextProvider {
       return null;
     }
     TestSize testSize = TestSizeFinder.getTestSize(firstMethod);
-    ListenableFuture<TargetInfo> target =
-        TestTargetHeuristic.targetFutureForPsiElement(containingClass, testSize);
+    TargetInfo target =
+        TestTargetHeuristic.targetForPsiElement(containingClass, testSize);
     if (target == null) {
       return null;
     }
     String methodNames =
         selectedMethods.stream().map(PsiMethod::getName).collect(Collectors.joining(","));
     String description = String.format("%s.%s", containingClass.getName(), methodNames);
-    return TestContext.builder(firstMethod, ExecutorType.FAST_DEBUG_SUPPORTED_TYPES)
-        .setTarget(target)
-        .setTestFilter(testFilter)
-        // test sharding disabled when manually selecting methods (typically only 1)
-        .addBlazeFlagsModification(
-            BlazeFlagsModification.addFlagIfNotPresent(BlazeFlags.DISABLE_TEST_SHARDING))
-        .setDescription(description)
-        .build();
+
+    return TestContext.create(
+        firstMethod,
+        target,
+        description,
+        TestContext.BlazeFlagsModification.testFilter(testFilter),
+        TestContext.BlazeFlagsModification.addFlagIfNotPresent(BlazeFlags.DISABLE_TEST_SHARDING));
   }
 
   @Nullable
