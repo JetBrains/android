@@ -53,7 +53,8 @@ jvm_library(
     "//platform/util:util-ui",
     "//libraries/guava",
     "//java/testFramework",
-  ]
+  ],
+  runtime_deps = [":navigator"]
 )
 ### auto-generated section `build intellij.android.core.navigator` end
 

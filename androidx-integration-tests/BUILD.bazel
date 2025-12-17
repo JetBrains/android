@@ -4,7 +4,8 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 jvm_library(
   name = "androidx-integration-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -25,7 +26,8 @@ jvm_library(
     "//android/android:core-tests_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
     "//android/intellij.android.testutils:testutils_test_lib",
-  ]
+  ],
+  runtime_deps = [":androidx-integration-tests"]
 )
 ### auto-generated section `build intellij.android.androidx-integration-tests` end
 

@@ -11,7 +11,9 @@ create_kotlinc_options(
 jvm_library(
   name = "device-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_library(
@@ -39,6 +41,7 @@ jvm_library(
     "//android/artwork-compose",
     "//android/adt-testutils:adt-testutils_test_lib",
   ],
+  runtime_deps = [":device-tests"],
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.device.tests` end

@@ -60,7 +60,12 @@ jvm_library(
 jvm_library(
   name = "lang-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//android/android:core",
+    "//android/project-system",
+  ]
 )
 
 jvm_library(
@@ -123,7 +128,8 @@ jvm_library(
     "//plugins/kotlin/base/psi",
     "@lib//:mockito-kotlin",
     "@lib//:mockito",
-  ]
+  ],
+  runtime_deps = [":lang-tests"]
 )
 ### auto-generated section `build intellij.android.lang.tests` end
 

@@ -57,7 +57,8 @@ jvm_library(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util:util-ui",
-  ]
+  ],
+  runtime_deps = [":threading-checker-tests"]
 )
 ### auto-generated section `build intellij.android.threading-checker.tests` end
 

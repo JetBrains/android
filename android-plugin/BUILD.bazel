@@ -4,29 +4,10 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 jvm_library(
   name = "plugin",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
-)
-
-jvm_library(
-  name = "plugin_test_lib",
-  module_name = "intellij.android.plugin",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  deps = [
-    "@lib//:studio-platform",
-    "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
-    "@lib//:junit4",
-    "//android/logcat:logcat-tests_test_lib",
-    "//android/adt-testutils:adt-testutils_test_lib",
-    "//platform/core-api:core",
-    "//platform/core-impl",
-    "//platform/core-ui",
-    "//platform/extensions",
-    "//platform/testFramework",
-    "//platform/testFramework:testFramework_test_lib",
-  ],
+  srcs = glob([], allow_empty = True),
   runtime_deps = [
+    "@lib//:studio-platform",
+    "@lib//:kotlin-stdlib",
     "//android/android:core",
     "//android/ml-api",
     "//android/streaming",
@@ -96,6 +77,28 @@ jvm_library(
     "//android/designer/gradle",
     "//android/android-common:common",
   ]
+)
+
+jvm_library(
+  name = "plugin_test_lib",
+  module_name = "intellij.android.plugin",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "//android/logcat:logcat-tests_test_lib",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/extensions",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+  ],
+  runtime_deps = [":plugin"]
 )
 ### auto-generated section `build intellij.android.plugin` end
 

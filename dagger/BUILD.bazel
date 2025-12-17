@@ -61,7 +61,15 @@ jvm_library(
 jvm_library(
   name = "dagger-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "//android/adt-testutils",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/dagger",
+    "//android/project-system",
+    "//android/android-test-framework:testFramework",
+  ]
 )
 
 jvm_library(
@@ -111,7 +119,8 @@ jvm_library(
     "//plugins/kotlin/base/psi",
     "@lib//:mockito-kotlin",
     "//android/intellij.android.testutils:testutils_test_lib",
-  ]
+  ],
+  runtime_deps = [":dagger-tests"]
 )
 ### auto-generated section `build intellij.android.dagger.tests` end
 

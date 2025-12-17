@@ -61,7 +61,8 @@ resourcegroup(
 jvm_library(
   name = "android-designer-customview-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["//android/android:core-tests"]
 )
 
 jvm_library(
@@ -103,7 +104,8 @@ jvm_library(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
-  ]
+  ],
+  runtime_deps = [":android-designer-customview-tests"]
 )
 ### auto-generated section `build intellij.android.designer.customview.tests` end
 

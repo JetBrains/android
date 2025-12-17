@@ -29,7 +29,8 @@ jvm_library(
 jvm_library(
   name = "projectSystem-gradle-repositorySearch-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -45,7 +46,8 @@ jvm_library(
     "@lib//:junit4",
     "//android/project-system-gradle-repository-search:projectSystem-gradle-repositorySearch",
     "//libraries/hamcrest",
-  ]
+  ],
+  runtime_deps = [":projectSystem-gradle-repositorySearch-tests"]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.repositorySearch.tests` end
 

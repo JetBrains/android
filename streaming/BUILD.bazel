@@ -117,7 +117,8 @@ jvm_library(
     "//libraries/guava",
     "//java/testFramework",
     "//android/android-adb:adb-testUtil_test_lib",
-  ]
+  ],
+  runtime_deps = [":streaming-integration"]
 )
 ### auto-generated section `build intellij.android.streaming.integration` end
 
@@ -134,7 +135,18 @@ jps_test(
 jvm_library(
   name = "streaming-testUtil",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "@lib//:android-streaming-test_util-ffmpeg-linux-x64",
+    "@lib//:android-streaming-test_util-ffmpeg-macos-aarch64",
+    "@lib//:android-streaming-test_util-ffmpeg-macos-x64",
+    "@lib//:android-streaming-test_util-ffmpeg-windows-x64",
+    "@lib//:android-streaming-test_util-javacpp-linux-x64",
+    "@lib//:android-streaming-test_util-javacpp-macos-aarch64",
+    "@lib//:android-streaming-test_util-javacpp-macos-x64",
+    "@lib//:android-streaming-test_util-javacpp-windows-x64",
+  ]
 )
 
 jvm_library(
@@ -190,16 +202,7 @@ jvm_library(
     "//android/project-system",
     "//android/android-adb:adb-tests_test_lib",
   ],
-  runtime_deps = [
-    "@lib//:android-streaming-test_util-ffmpeg-linux-x64",
-    "@lib//:android-streaming-test_util-ffmpeg-macos-aarch64",
-    "@lib//:android-streaming-test_util-ffmpeg-macos-x64",
-    "@lib//:android-streaming-test_util-ffmpeg-windows-x64",
-    "@lib//:android-streaming-test_util-javacpp-linux-x64",
-    "@lib//:android-streaming-test_util-javacpp-macos-aarch64",
-    "@lib//:android-streaming-test_util-javacpp-macos-x64",
-    "@lib//:android-streaming-test_util-javacpp-windows-x64",
-  ]
+  runtime_deps = [":streaming-testUtil"]
 )
 ### auto-generated section `build intellij.android.streaming.testUtil` end
 
@@ -216,7 +219,19 @@ jps_test(
 jvm_library(
   name = "streaming-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "@lib//:layoutlib",
+    "@lib//:android-streaming-tests-ffmpeg-linux-x64",
+    "@lib//:android-streaming-tests-ffmpeg-macos-aarch64",
+    "@lib//:android-streaming-tests-ffmpeg-macos-x64",
+    "@lib//:android-streaming-tests-ffmpeg-windows-x64",
+    "@lib//:android-streaming-tests-javacpp-linux-x64",
+    "@lib//:android-streaming-tests-javacpp-macos-aarch64",
+    "@lib//:android-streaming-tests-javacpp-macos-x64",
+    "@lib//:android-streaming-tests-javacpp-windows-x64",
+  ]
 )
 
 jvm_library(
@@ -283,16 +298,7 @@ jvm_library(
     "//android/project-system",
     "@lib//:mockito-kotlin",
   ],
-  runtime_deps = [
-    "@lib//:android-streaming-tests-ffmpeg-linux-x64",
-    "@lib//:android-streaming-tests-ffmpeg-macos-aarch64",
-    "@lib//:android-streaming-tests-ffmpeg-macos-x64",
-    "@lib//:android-streaming-tests-ffmpeg-windows-x64",
-    "@lib//:android-streaming-tests-javacpp-linux-x64",
-    "@lib//:android-streaming-tests-javacpp-macos-aarch64",
-    "@lib//:android-streaming-tests-javacpp-macos-x64",
-    "@lib//:android-streaming-tests-javacpp-windows-x64",
-  ]
+  runtime_deps = [":streaming-tests"]
 )
 ### auto-generated section `build intellij.android.streaming.tests` end
 

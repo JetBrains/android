@@ -62,7 +62,8 @@ jvm_library(
     "@lib//:truth",
     "//android/as-driver/utils:utils_test_lib",
     "//android/device-explorer",
-  ]
+  ],
+  runtime_deps = [":device-explorer-integration-tests"]
 )
 ### auto-generated section `build intellij.android.device-explorer.integration.tests` end
 
@@ -79,7 +80,8 @@ jps_test(
 jvm_library(
   name = "device-explorer-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -109,7 +111,8 @@ jvm_library(
     "//platform/util",
     "//android/project-system",
     "//java/testFramework",
-  ]
+  ],
+  runtime_deps = [":device-explorer-tests"]
 )
 ### auto-generated section `build intellij.android.device-explorer.tests` end
 

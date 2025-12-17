@@ -42,7 +42,8 @@ jvm_library(
 jvm_library(
   name = "rendering-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -76,7 +77,8 @@ jvm_library(
     "//android/android:core",
     "@lib//:layoutlib",
     "//libraries/bouncy-castle-provider",
-  ]
+  ],
+  runtime_deps = [":rendering-tests"]
 )
 ### auto-generated section `build intellij.android.rendering.tests` end
 

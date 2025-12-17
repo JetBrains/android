@@ -36,7 +36,8 @@ jvm_library(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util:util-ui",
-  ]
+  ],
+  runtime_deps = [":ui.designer.overlays"]
 )
 ### auto-generated section `build intellij.android.core.ui.designer.overlays` end
 

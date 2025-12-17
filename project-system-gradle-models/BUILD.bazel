@@ -27,7 +27,11 @@ jvm_library(
 jvm_library(
   name = "projectSystem-gradle-models-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//android/android-test-framework:testFramework",
+  ]
 )
 
 jvm_library(
@@ -42,7 +46,8 @@ jvm_library(
     "@lib//:junit4",
     "//android/android-test-framework:testFramework",
     "//android/android-test-framework:testFramework_test_lib",
-  ]
+  ],
+  runtime_deps = [":projectSystem-gradle-models-tests"]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.models.tests` end
 

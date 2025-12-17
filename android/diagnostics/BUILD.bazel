@@ -47,7 +47,8 @@ jvm_library(
     "//libraries/http-client",
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/plugin:plugin_test_lib",
-  ]
+  ],
+  runtime_deps = [":diagnostics"]
 )
 ### auto-generated section `build intellij.android.core.diagnostics` end
 

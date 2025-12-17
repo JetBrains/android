@@ -124,7 +124,8 @@ jvm_library(
     "//xml/dom-impl",
     "//xml/xml-psi-api:psi",
     "//libraries/kotlinx/coroutines/test",
-  ]
+  ],
+  runtime_deps = [":android-nav-editor-tests"]
 )
 ### auto-generated section `build intellij.android.nav.editor.tests` end
 

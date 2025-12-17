@@ -103,7 +103,18 @@ resourcegroup(
 jvm_library(
   name = "newProjectWizard-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//android/gradle-dsl-kotlin",
+    "//android/gradle-dsl-toml",
+    "//android/gradle-dsl-declarative",
+    "//android/gradle-dsl-groovy",
+    "//plugins/kotlin/gradle/gradle-tooling/impl",
+    "//android/adt-ui-compose",
+    "//android/ml-api",
+  ],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_library(
@@ -184,12 +195,7 @@ jvm_library(
     "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/ml-api",
   ],
-  runtime_deps = [
-    "//android/gradle-dsl-kotlin",
-    "//android/gradle-dsl-toml",
-    "//android/gradle-dsl-declarative",
-    "//android/gradle-dsl-groovy",
-  ],
+  runtime_deps = [":newProjectWizard-tests"],
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.newProjectWizard.tests` end

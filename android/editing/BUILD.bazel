@@ -4,7 +4,8 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 jvm_library(
   name = "core-editing-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -41,7 +42,8 @@ jvm_library(
     "//platform/util",
     "//xml/dom-openapi:dom",
     "//xml/xml-psi-api:psi",
-  ]
+  ],
+  runtime_deps = [":core-editing-tests"]
 )
 ### auto-generated section `build intellij.android.core.editing.tests` end
 

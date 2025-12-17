@@ -82,7 +82,13 @@ jvm_library(
 jvm_library(
   name = "debuggers-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "//libraries/fastutil",
+    "@lib//:kotlin-stdlib",
+    "//android/android-test-framework:testFramework",
+    "//platform/util/nanoxml",
+  ]
 )
 
 jvm_library(
@@ -141,7 +147,8 @@ jvm_library(
     "//platform/util:util-ui",
     "//platform/projectModel-api:projectModel",
     "//plugins/maven",
-  ]
+  ],
+  runtime_deps = [":debuggers-tests"]
 )
 ### auto-generated section `build intellij.android.debuggers.tests` end
 

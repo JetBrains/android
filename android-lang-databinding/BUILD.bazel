@@ -59,7 +59,13 @@ jvm_library(
 jvm_library(
   name = "lang-databinding-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//android/databinding",
+    "//android/android-lang-databinding:lang-databinding",
+    "//android/project-system-gradle:projectSystem-gradle",
+  ]
 )
 
 jvm_library(
@@ -96,7 +102,8 @@ jvm_library(
     "//platform/util",
     "//platform/util:util-ui",
     "//xml/xml-psi-api:psi",
-  ]
+  ],
+  runtime_deps = [":lang-databinding-tests"]
 )
 ### auto-generated section `build intellij.android.lang-databinding.tests` end
 

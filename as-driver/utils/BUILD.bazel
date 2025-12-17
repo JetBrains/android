@@ -4,7 +4,12 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 jvm_library(
   name = "utils",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "@lib//:ktor-client-cio",
+    "//libraries/io",
+  ]
 )
 
 jvm_library(
@@ -31,7 +36,8 @@ jvm_library(
     "//libraries/gson",
     "//libraries/protobuf",
     "//platform/lang-impl",
-  ]
+  ],
+  runtime_deps = [":utils"]
 )
 ### auto-generated section `build intellij.android.as-driver.utils` end
 

@@ -191,7 +191,17 @@ resourcegroup(
 jvm_library(
   name = "projectSystem-gradle-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//platform/editor-ui-ex:editor-ex",
+    "//android/gradle-dsl-groovy",
+    "//android/gradle-dsl-kotlin",
+    "//android/gradle-dsl-toml",
+    "//android/gradle-dsl-declarative",
+    "//android/android-kotlin/idea-android:android-kotlin-idea",
+    "//android/android-kotlin/idea-android/common",
+  ]
 )
 
 jvm_library(
@@ -340,14 +350,7 @@ jvm_library(
     "//plugins/kotlin/project-wizard/core",
     "//plugins/kotlin/project-wizard/core:core_test_lib",
   ],
-  runtime_deps = [
-    "//android/gradle-dsl-groovy",
-    "//android/gradle-dsl-kotlin",
-    "//android/gradle-dsl-toml",
-    "//android/gradle-dsl-declarative",
-    "//android/android-kotlin/idea-android:android-kotlin-idea",
-    "//android/android-kotlin/idea-android/common",
-  ]
+  runtime_deps = [":projectSystem-gradle-tests"]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.tests` end
 

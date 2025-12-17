@@ -66,7 +66,8 @@ jvm_library(
 jvm_library(
   name = "adb-testUtil",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -90,7 +91,8 @@ jvm_library(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
-  ]
+  ],
+  runtime_deps = [":adb-testUtil"]
 )
 ### auto-generated section `build intellij.android.adb.testUtil` end
 
@@ -113,7 +115,9 @@ create_kotlinc_options(
 jvm_library(
   name = "adb-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_library(
@@ -165,6 +169,7 @@ jvm_library(
     "//platform/util/jdom",
     "//platform/util:util-ui",
   ],
+  runtime_deps = [":adb-tests"],
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.adb.tests` end

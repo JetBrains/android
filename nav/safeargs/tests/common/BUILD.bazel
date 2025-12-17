@@ -10,7 +10,8 @@ resourcegroup(
 jvm_library(
   name = "common",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -59,7 +60,8 @@ jvm_library(
     "//xml/xml-psi-api:psi",
     "//xml/xml-psi-impl:psi-impl",
     "//plugins/kotlin/idea",
-  ]
+  ],
+  runtime_deps = [":common"]
 )
 ### auto-generated section `build intellij.android.nav.safeargs.tests.common` end
 

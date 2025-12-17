@@ -4,7 +4,8 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 jvm_library(
   name = "gradle",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -93,7 +94,8 @@ jvm_library(
     "//platform/backend/workspace",
     "//platform/workspace/jps",
     "//platform/workspace/storage",
-  ]
+  ],
+  runtime_deps = [":gradle"]
 )
 ### auto-generated section `build intellij.android.core.gradle` end
 

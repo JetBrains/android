@@ -82,7 +82,8 @@ jvm_library(
 jvm_library(
   name = "preview-designer-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["//platform/analysis-api:analysis"]
 )
 
 jvm_library(
@@ -146,7 +147,8 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "//libraries/asm",
     "//libraries/kotlinx/coroutines/test",
-  ]
+  ],
+  runtime_deps = [":preview-designer-tests"]
 )
 ### auto-generated section `build intellij.android.preview-designer.tests` end
 

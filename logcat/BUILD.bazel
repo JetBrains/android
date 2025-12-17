@@ -76,7 +76,8 @@ jvm_library(
 jvm_library(
   name = "logcat-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["//platform/ide-core-impl"]
 )
 
 jvm_library(
@@ -140,7 +141,8 @@ jvm_library(
     "//java/testFramework",
     "//android/android-adb:adb-testUtil_test_lib",
     "//platform/execution",
-  ]
+  ],
+  runtime_deps = [":logcat-tests"]
 )
 ### auto-generated section `build intellij.android.logcat.tests` end
 

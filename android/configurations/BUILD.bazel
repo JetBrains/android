@@ -37,7 +37,8 @@ jvm_library(
     "//xml/dom-openapi:dom",
     "//xml/xml-psi-api:psi",
     "//libraries/guava",
-  ]
+  ],
+  runtime_deps = [":configurations"]
 )
 ### auto-generated section `build intellij.android.core.configurations` end
 

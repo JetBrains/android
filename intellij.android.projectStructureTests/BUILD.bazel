@@ -21,7 +21,8 @@ jvm_library(
     "//platform/util/jdom",
     "//jps/model-serialization",
     "//java/java-runtime:rt",
-  ]
+  ],
+  runtime_deps = [":projectStructureTests"]
 )
 ### auto-generated section `build intellij.android.projectStructureTests` end
 

@@ -45,7 +45,8 @@ jvm_library(
     "//platform/testFramework/common",
     "//platform/util",
     "//platform/util:util-ui",
-  ]
+  ],
+  runtime_deps = [":ui"]
 )
 ### auto-generated section `build intellij.android.core.ui` end
 

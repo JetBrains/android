@@ -15,7 +15,8 @@ jvm_library(
   deps = [
     "@lib//:jetbrains-annotations",
     "@lib//:studio-test-platform",
-  ]
+  ],
+  runtime_deps = [":platform-performance-testing"]
 )
 ### auto-generated section `build intellij.android.platform-performance-testing` end
 

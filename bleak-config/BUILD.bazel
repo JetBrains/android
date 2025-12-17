@@ -4,7 +4,11 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 jvm_library(
   name = "bleak-config",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//android/bleak",
+  ]
 )
 
 jvm_library(
@@ -21,7 +25,8 @@ jvm_library(
     "//platform/util",
     "//platform/util/base",
     "//platform/util/trove",
-  ]
+  ],
+  runtime_deps = [":bleak-config"]
 )
 ### auto-generated section `build intellij.android.bleak-config` end
 

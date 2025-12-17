@@ -47,7 +47,8 @@ jvm_library(
 jvm_library(
   name = "gradle-dsl-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["//plugins/toml/core"]
 )
 
 jvm_library(
@@ -108,7 +109,8 @@ jvm_library(
     "//platform/backend/workspace",
     "//plugins/gradle",
     "//plugins/kotlin/plugin/k1",
-  ]
+  ],
+  runtime_deps = [":gradle-dsl-tests"]
 )
 ### auto-generated section `build intellij.android.gradle.dsl.tests` end
 
@@ -125,7 +127,13 @@ jps_test(
 jvm_library(
   name = "gradle-dsl-testutils",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "//android/gradle-dsl-kotlin",
+    "//android/gradle-dsl-toml",
+    "//android/gradle-dsl-declarative",
+    "//android/gradle-dsl-groovy",
+  ]
 )
 
 jvm_library(
@@ -166,12 +174,7 @@ jvm_library(
     "//platform/util-rt:util-rt_test_lib",
     "//plugins/toml",
   ],
-  runtime_deps = [
-    "//android/gradle-dsl-kotlin",
-    "//android/gradle-dsl-toml",
-    "//android/gradle-dsl-declarative",
-    "//android/gradle-dsl-groovy",
-  ]
+  runtime_deps = [":gradle-dsl-testutils"]
 )
 ### auto-generated section `build intellij.android.gradle.dsl.testutils` end
 

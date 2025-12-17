@@ -134,7 +134,11 @@ create_kotlinc_options(
 jvm_library(
   name = "compose-ide-plugin-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//android/android-test-framework:testFramework",
+  ]
 )
 
 jvm_library(
@@ -235,7 +239,8 @@ jvm_library(
     "@lib//:kotlin-test",
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared_test_lib",
-  ]
+  ],
+  runtime_deps = [":compose-ide-plugin-tests"]
 )
 ### auto-generated section `build intellij.android.compose-ide-plugin.tests` end
 

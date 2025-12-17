@@ -46,7 +46,14 @@ jvm_library(
 jvm_library(
   name = "whats-new-assistant-test",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//android/assistant",
+    "//android/build-attribution",
+    "//android/android-common:common",
+    "//android/android:core",
+  ]
 )
 
 jvm_library(
@@ -83,7 +90,8 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//platform/util:util-ui",
-  ]
+  ],
+  runtime_deps = [":whats-new-assistant-test"]
 )
 ### auto-generated section `build intellij.android.whats-new-assistant-test` end
 

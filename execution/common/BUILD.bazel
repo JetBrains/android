@@ -60,7 +60,12 @@ jvm_library(
 jvm_library(
   name = "android-execution-common-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//android/execution/common",
+    "//android/android-test-framework:testFramework",
+  ]
 )
 
 jvm_library(
@@ -112,7 +117,8 @@ jvm_library(
     "//android/project-system-gradle-models:projectSystem-gradle-models",
     "//android/android-adb:adb",
     "@lib//:mockito-kotlin",
-  ]
+  ],
+  runtime_deps = [":android-execution-common-tests"]
 )
 ### auto-generated section `build intellij.android.execution.common.tests` end
 

@@ -26,7 +26,8 @@ jvm_library(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "@lib//:javapoet",
-  ]
+  ],
+  runtime_deps = [":completion"]
 )
 ### auto-generated section `build intellij.android.core.completion` end
 

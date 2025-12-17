@@ -66,7 +66,8 @@ jvm_library(
     "//platform/util:util-ui",
     "//plugins/kotlin/base/facet",
     "@lib//:jaxb-api",
-  ]
+  ],
+  runtime_deps = [":sdk"]
 )
 ### auto-generated section `build intellij.android.core.sdk` end
 

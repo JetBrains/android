@@ -100,7 +100,8 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "@lib//:mockito-kotlin",
-  ]
+  ],
+  runtime_deps = [":sdkUpdates-tests"]
 )
 ### auto-generated section `build intellij.android.sdkUpdates.tests` end
 

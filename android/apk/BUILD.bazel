@@ -48,7 +48,8 @@ jvm_library(
     "@lib//:google-dexlib2",
     "@lib//:equalsverifier",
     "//libraries/guava",
-  ]
+  ],
+  runtime_deps = [":apk"]
 )
 ### auto-generated section `build intellij.android.core.apk` end
 

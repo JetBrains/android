@@ -19,7 +19,8 @@ jvm_library(
     "@lib//:junit4",
     "//libraries/kotlinx/coroutines/core",
     "//android/intellij.android.testutils:testutils_test_lib",
-  ]
+  ],
+  runtime_deps = [":tests"]
 )
 ### auto-generated section `build intellij.android.studio.tests` end
 

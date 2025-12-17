@@ -60,7 +60,8 @@ jvm_library(
     "//android/project-system-gradle-sync:projectSystem-gradle-sync",
     "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade",
     "//android/android-test-framework:testFramework_test_lib",
-  ]
+  ],
+  runtime_deps = [":projectSystem-gradle-sync-tests"]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.sync.tests` end
 

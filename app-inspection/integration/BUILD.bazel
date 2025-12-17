@@ -20,7 +20,8 @@ jvm_library(
     "@lib//:truth",
     "//android/as-driver/utils:utils_test_lib",
     "//platform/util",
-  ]
+  ],
+  runtime_deps = [":integration"]
 )
 ### auto-generated section `build intellij.android.app-inspection.integration` end
 

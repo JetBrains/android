@@ -4,7 +4,8 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 jvm_library(
   name = "ui.resourcemanager",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -65,7 +66,8 @@ jvm_library(
     "//xml/xml-psi-api:psi",
     "//plugins/kotlin/base/analysis",
     "//android/layoutlib",
-  ]
+  ],
+  runtime_deps = [":ui.resourcemanager"]
 )
 ### auto-generated section `build intellij.android.core.ui.resourcemanager` end
 

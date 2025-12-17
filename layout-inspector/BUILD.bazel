@@ -217,7 +217,8 @@ resourcegroup(
 jvm_library(
   name = "layout-inspector-integration",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -240,7 +241,8 @@ jvm_library(
     "//android/as-driver/utils:utils_test_lib",
     "//plugins/kotlin/plugin",
     "//plugins/kotlin/plugin/k1",
-  ]
+  ],
+  runtime_deps = [":layout-inspector-integration"]
 )
 ### auto-generated section `build intellij.android.layout-inspector.integration` end
 
@@ -263,7 +265,11 @@ resourcegroup(
 jvm_library(
   name = "layout-inspector-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "//android/project-system",
+    "//fleet/util/core",
+  ]
 )
 
 jvm_library(
@@ -366,7 +372,8 @@ jvm_library(
     "//android/device-manager-v2",
     "//android/device-manager-v2:device-manager-v2_test_lib",
     "//fleet/util/core",
-  ]
+  ],
+  runtime_deps = [":layout-inspector-tests"]
 )
 ### auto-generated section `build intellij.android.layout-inspector.tests` end
 

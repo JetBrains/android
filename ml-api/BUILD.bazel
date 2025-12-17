@@ -52,7 +52,8 @@ jvm_library(
     "//platform/indexing-impl",
     "//java/java-frontback-psi-impl:frontback-psi-impl",
     "//android/adt-testutils:adt-testutils_test_lib",
-  ]
+  ],
+  runtime_deps = [":ml-api-tests"]
 )
 ### auto-generated section `build intellij.android.ml-api-tests` end
 

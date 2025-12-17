@@ -34,7 +34,8 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//android/wear-preview-elements",
     "//android/preview-elements",
-  ]
+  ],
+  runtime_deps = [":wear-preview-elements-tests"]
 )
 ### auto-generated section `build intellij.android.wear-preview-elements.tests` end
 

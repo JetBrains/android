@@ -51,7 +51,12 @@ jvm_library(
 jvm_library(
   name = "assistant-test",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//android/artwork",
+    "//android/android:core",
+  ]
 )
 
 jvm_library(
@@ -86,7 +91,8 @@ jvm_library(
     "//platform/util:util-ui",
     "//android/android-templates:templates",
     "//android/android-templates:templates_test_lib",
-  ]
+  ],
+  runtime_deps = [":assistant-test"]
 )
 ### auto-generated section `build intellij.android.assistant-test` end
 

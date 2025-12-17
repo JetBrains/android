@@ -26,7 +26,8 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "//android/intellij.android.testutils:testutils_test_lib",
-  ]
+  ],
+  runtime_deps = [":android-studio-integration"]
 )
 ### auto-generated section `build intellij.android.studio.integration` end
 

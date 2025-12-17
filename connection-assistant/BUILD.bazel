@@ -39,7 +39,14 @@ jvm_library(
 jvm_library(
   name = "connection-assistant-test",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//android/android-adb:adb",
+    "//android/assistant",
+    "//android/android-common:common",
+    "//android/android:core",
+  ]
 )
 
 jvm_library(
@@ -68,7 +75,8 @@ jvm_library(
     "//platform/platform-impl:ide-impl_test_lib",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
-  ]
+  ],
+  runtime_deps = [":connection-assistant-test"]
 )
 ### auto-generated section `build intellij.android.connection-assistant-test` end
 

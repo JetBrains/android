@@ -102,7 +102,8 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/diff-impl",
     "//libraries/commons/compress",
-  ]
+  ],
+  runtime_deps = [":apkanalyzer-tests"]
 )
 ### auto-generated section `build intellij.android.apkanalyzer.tests` end
 

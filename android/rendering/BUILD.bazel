@@ -70,7 +70,8 @@ jvm_library(
     "//libraries/asm",
     "//libraries/http-client",
     "//xml/dom-openapi:dom",
-  ]
+  ],
+  runtime_deps = [":rendering"]
 )
 ### auto-generated section `build intellij.android.core.rendering` end
 

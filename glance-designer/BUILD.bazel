@@ -57,7 +57,8 @@ jvm_library(
 jvm_library(
   name = "glance-designer-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["//platform/editor-ui-ex:editor-ex"]
 )
 
 jvm_library(
@@ -104,7 +105,8 @@ jvm_library(
     "//android/intellij.android.compose-common:compose-common",
     "@lib//:mockito-kotlin",
     "//plugins/kotlin/code-insight/api",
-  ]
+  ],
+  runtime_deps = [":glance-designer-tests"]
 )
 ### auto-generated section `build intellij.android.glance-designer.tests` end
 

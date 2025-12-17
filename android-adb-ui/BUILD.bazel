@@ -51,7 +51,11 @@ jvm_library(
 jvm_library(
   name = "adb-ui-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//platform/analysis-api:analysis",
+  ]
 )
 
 jvm_library(
@@ -96,7 +100,8 @@ jvm_library(
     "//plugins/webp",
     "@lib//:kotlinc-kotlin-compiler-common",
     "//android/intellij.android.testutils:testutils_test_lib",
-  ]
+  ],
+  runtime_deps = [":adb-ui-tests"]
 )
 ### auto-generated section `build intellij.android.adb.ui.tests` end
 

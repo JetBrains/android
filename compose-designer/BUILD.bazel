@@ -119,7 +119,8 @@ jvm_library(
 jvm_library(
   name = "compose-designer-integration",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -135,7 +136,8 @@ jvm_library(
     "//android/android:core",
     "//android/execution/common",
     "//android/as-driver/utils:utils_test_lib",
-  ]
+  ],
+  runtime_deps = [":compose-designer-integration"]
 )
 ### auto-generated section `build intellij.android.compose-designer.integration` end
 
@@ -152,7 +154,8 @@ jps_test(
 jvm_library(
   name = "compose-designer-testFramework",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -193,7 +196,8 @@ jvm_library(
     "//platform/analysis-impl",
     "//platform/editor-ui-ex:editor-ex",
     "//platform/lang-core",
-  ]
+  ],
+  runtime_deps = [":compose-designer-testFramework"]
 )
 ### auto-generated section `build intellij.android.compose-designer.testFramework` end
 
@@ -228,7 +232,9 @@ resourcegroup(
 jvm_library(
   name = "compose-designer-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["//platform/editor-ui-ex:editor-ex"],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_library(
@@ -339,6 +345,7 @@ jvm_library(
     "//android/execution/common",
     "//libraries/kotlinx/coroutines/test",
   ],
+  runtime_deps = [":compose-designer-tests"],
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.compose-designer.tests` end

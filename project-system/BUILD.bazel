@@ -51,7 +51,8 @@ jvm_library(
 jvm_library(
   name = "projectSystem-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["//android/android-test-framework:testFramework"]
 )
 
 jvm_library(
@@ -84,7 +85,8 @@ jvm_library(
     "//plugins/kotlin/base/util:util_test_lib",
     "//platform/lang-api:lang",
     "//platform/core-impl",
-  ]
+  ],
+  runtime_deps = [":projectSystem-tests"]
 )
 ### auto-generated section `build intellij.android.projectSystem.tests` end
 

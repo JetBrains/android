@@ -62,7 +62,17 @@ jvm_library(
 jvm_library(
   name = "android-app-inspection-inspectors-database-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//libraries/kotlinx/coroutines/guava",
+    "@lib//:sqlite",
+    "//android/app-inspection/inspector/api",
+    "//android/app-inspection/inspector/ide",
+    "//android/artwork",
+    "//android/android-lang:lang",
+    "//android/android-transport:transport",
+  ]
 )
 
 jvm_library(
@@ -126,7 +136,7 @@ jvm_library(
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
   ],
-  runtime_deps = ["@lib//:sqlite"]
+  runtime_deps = [":android-app-inspection-inspectors-database-tests"]
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.database.tests` end
 

@@ -44,7 +44,8 @@ jvm_library(
     "//platform/util/jdom",
     "//xml/dom-openapi:dom",
     "//java/java-psi-api:psi",
-  ]
+  ],
+  runtime_deps = [":project"]
 )
 ### auto-generated section `build intellij.android.core.project` end
 

@@ -31,7 +31,8 @@ jvm_library(
 jvm_library(
   name = "gradle-declarative-lang-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["//android/gradle-declarative-lang-ide"]
 )
 
 jvm_library(
@@ -62,7 +63,7 @@ jvm_library(
     "//android/android-test-framework:testFramework_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
   ],
-  runtime_deps = ["//android/gradle-declarative-lang-ide"]
+  runtime_deps = [":gradle-declarative-lang-tests"]
 )
 ### auto-generated section `build intellij.android.gradle.declarative.lang.tests` end
 

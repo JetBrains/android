@@ -78,7 +78,8 @@ jvm_library(
 jvm_library(
   name = "common-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["//platform/projectModel-api:projectModel"]
 )
 
 jvm_library(
@@ -120,7 +121,8 @@ jvm_library(
     "//platform/editor-ui-api:editor-ui",
     "@lib//:mockito-kotlin",
     "//libraries/protobuf",
-  ]
+  ],
+  runtime_deps = [":common-tests"]
 )
 ### auto-generated section `build intellij.android.common.tests` end
 

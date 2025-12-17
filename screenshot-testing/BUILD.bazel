@@ -59,7 +59,9 @@ create_kotlinc_options(
 jvm_library(
   name = "screenshot-test-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["//android/screenshot-testing:screenshot-test"],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_library(
@@ -93,6 +95,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:studio-platform-provided",
   ],
+  runtime_deps = [":screenshot-test-tests"],
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.screenshot-test.tests` end

@@ -90,7 +90,8 @@ resourcegroup(
 jvm_library(
   name = "android-app-inspection-ide-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -154,7 +155,8 @@ jvm_library(
     "//platform/util",
     "//platform/util/jdom",
     "@lib//:mockito-kotlin",
-  ]
+  ],
+  runtime_deps = [":android-app-inspection-ide-tests"]
 )
 ### auto-generated section `build intellij.android.app-inspection.ide.tests` end
 

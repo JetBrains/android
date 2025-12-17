@@ -12,7 +12,11 @@ kt_javac_options(
 jvm_library(
   name = "testFramework",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//platform/execution",
+  ]
 )
 
 jvm_library(
@@ -99,7 +103,8 @@ jvm_library(
     "//platform/workspace/jps",
     "//plugins/kotlin/base/scripting/scripting.shared",
     "//android/preview-fast-compile",
-  ]
+  ],
+  runtime_deps = [":testFramework"]
 )
 ### auto-generated section `build intellij.android.testFramework` end
 

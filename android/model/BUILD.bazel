@@ -52,7 +52,8 @@ jvm_library(
     "//plugins/kotlin/refactorings/kotlin.refactorings.move.k2:kotlin-refactorings-move_test_lib",
     "//java/testFramework",
     "//libraries/guava",
-  ]
+  ],
+  runtime_deps = [":model"]
 )
 ### auto-generated section `build intellij.android.core.model` end
 

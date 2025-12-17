@@ -264,7 +264,13 @@ jvm_library(
 jvm_library(
   name = "core-agp-integration-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//android/gradle-dsl-kotlin",
+    "//android/gradle-dsl-toml",
+    "//android/gradle-dsl-declarative",
+  ]
 )
 
 jvm_library(
@@ -341,11 +347,7 @@ jvm_library(
     "//platform/execution",
     "//xml/xml-psi-impl:psi-impl",
   ],
-  runtime_deps = [
-    "//android/gradle-dsl-kotlin",
-    "//android/gradle-dsl-toml",
-    "//android/gradle-dsl-declarative",
-  ]
+  runtime_deps = [":core-agp-integration-tests"]
 )
 ### auto-generated section `build intellij.android.core.agp-integration-tests` end
 
@@ -368,7 +370,18 @@ resourcegroup(
 jvm_library(
   name = "core-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "//android/android/lib:instantapps-api-1-8",
+    "@lib//:kotlin-stdlib",
+    "//android/analytics",
+    "//android/app-inspection/inspectors/database",
+    "//android/gradle-dsl",
+    "//android/gradle-dsl:gradle-dsl-testutils",
+    "//android/project-system-gradle-psd:projectSystem-gradle-psd",
+    "//android/server-flags",
+    "//android/gradle-dsl-kotlin",
+  ]
 )
 
 jvm_library(
@@ -503,7 +516,7 @@ jvm_library(
     "//plugins/kotlin/bundled-compiler-plugins-support",
     "@lib//:kotlinc-kotlin-compiler-fe10",
   ],
-  runtime_deps = ["//android/gradle-dsl-kotlin"]
+  runtime_deps = [":core-tests"]
 )
 ### auto-generated section `build intellij.android.core.tests` end
 

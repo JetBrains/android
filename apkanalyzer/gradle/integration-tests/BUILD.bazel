@@ -27,7 +27,8 @@ jvm_library(
     "//platform/core-api:core",
     "//platform/util",
     "//libraries/guava",
-  ]
+  ],
+  runtime_deps = [":integration-tests"]
 )
 ### auto-generated section `build intellij.android.apkanalyzer.gradle.integration-tests` end
 

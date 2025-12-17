@@ -4,7 +4,12 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 jvm_library(
   name = "adt-testutils",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "//android/design-plugin/descriptor",
+    "//android/android-plugin/descriptor",
+    "@lib//:opentest4j",
+  ]
 )
 
 jvm_library(
@@ -42,11 +47,7 @@ jvm_library(
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/plugin:plugin_test_lib",
   ],
-  runtime_deps = [
-    "//android/design-plugin/descriptor",
-    "//android/android-plugin/descriptor",
-    "@lib//:opentest4j",
-  ]
+  runtime_deps = [":adt-testutils"]
 )
 ### auto-generated section `build intellij.android.adt.testutils` end
 

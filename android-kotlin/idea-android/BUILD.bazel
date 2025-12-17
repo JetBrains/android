@@ -56,7 +56,8 @@ jvm_library(
 jvm_library(
   name = "android-kotlin-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -126,7 +127,8 @@ jvm_library(
     "//plugins/kotlin/gradle/code-insight-common:kotlin-gradle-codeInsight-common",
     "//plugins/kotlin/project-configuration",
     "//android/adt-testutils:adt-testutils_test_lib",
-  ]
+  ],
+  runtime_deps = [":android-kotlin-tests"]
 )
 ### auto-generated section `build intellij.android.kotlin.tests` end
 

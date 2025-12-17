@@ -21,7 +21,8 @@ jvm_library(
     "//android/android:core",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//android/as-driver/utils:utils_test_lib",
-  ]
+  ],
+  runtime_deps = [":projectSystem-integration-tests"]
 )
 ### auto-generated section `build intellij.android.projectSystem.integration.tests` end
 

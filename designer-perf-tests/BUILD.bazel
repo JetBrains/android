@@ -70,7 +70,8 @@ jvm_library(
     "//platform/projectModel-impl",
     "@lib//:truth",
     "//android/compose-designer:compose-designer-testFramework_test_lib",
-  ]
+  ],
+  runtime_deps = [":designer-perf-tests"]
 )
 ### auto-generated section `build intellij.android.designer-perf-tests` end
 

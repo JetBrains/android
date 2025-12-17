@@ -225,7 +225,8 @@ jps_test(
 jvm_library(
   name = "designer-integration",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -239,7 +240,8 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "//android/as-driver/utils:utils_test_lib",
-  ]
+  ],
+  runtime_deps = [":designer-integration"]
 )
 ### auto-generated section `build intellij.android.designer.integration` end
 
@@ -262,7 +264,12 @@ resourcegroup(
 jvm_library(
   name = "designer-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "//android/assistant",
+    "//platform/platform-impl/concurrency",
+  ],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_library(
@@ -369,6 +376,7 @@ jvm_library(
     "//android/visual-lint",
     "//platform/util/base",
   ],
+  runtime_deps = [":designer-tests"],
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.designer.tests` end

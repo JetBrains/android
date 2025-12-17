@@ -101,7 +101,8 @@ jvm_library(
 jvm_library(
   name = "lint-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = ["@lib//:kotlin-stdlib"]
 )
 
 jvm_library(
@@ -170,7 +171,8 @@ jvm_library(
     "//jvm/jvm-analysis-impl:analysis-impl",
     "//android/gradle-dsl-flags",
     "@lib//:mockito-kotlin",
-  ]
+  ],
+  runtime_deps = [":lint-tests"]
 )
 ### auto-generated section `build intellij.android.lint.tests` end
 

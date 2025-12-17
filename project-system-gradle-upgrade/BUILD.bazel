@@ -70,7 +70,15 @@ jvm_library(
 jvm_library(
   name = "projectSystem-gradle-upgrade-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "//android/gradle-dsl:gradle-dsl-testutils",
+    "//android/project-system-gradle-sync:projectSystem-gradle-sync",
+    "//android/project-system-gradle:projectSystem-gradle-tests",
+    "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade",
+    "//android/android-test-framework:testFramework",
+    "//android/gradle-dsl-kotlin",
+  ]
 )
 
 jvm_library(
@@ -141,7 +149,7 @@ jvm_library(
     "//plugins/kotlin/base/util",
     "//plugins/kotlin/base/util:util_test_lib",
   ],
-  runtime_deps = ["//android/gradle-dsl-kotlin"]
+  runtime_deps = [":projectSystem-gradle-upgrade-tests"]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.upgrade.tests` end
 

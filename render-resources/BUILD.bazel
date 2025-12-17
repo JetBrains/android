@@ -44,7 +44,11 @@ jvm_library(
 jvm_library(
   name = "render-resources-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//platform/util/trove",
+  ]
 )
 
 jvm_library(
@@ -68,7 +72,8 @@ jvm_library(
     "//platform/extensions",
     "//platform/util",
     "//platform/util/trove",
-  ]
+  ],
+  runtime_deps = [":render-resources-tests"]
 )
 ### auto-generated section `build intellij.android.render-resources.tests` end
 
