@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,5 +17,5 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 
-/** Simulates pressing the first button on an AI Glasses virtual device. */
+/** Simulates pressing the Camera button on an AI Glasses virtual device. */
 internal class EmulatorGlasses1ButtonAction : EmulatorPushButtonAction("Stem1", configFilter = { it.deviceType == DeviceType.AI_GLASSES })
