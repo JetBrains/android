@@ -241,8 +241,9 @@ def _studio_plugin_os(ctx, platform, plugin_jars, plugin_dir):
     return files
 
 def _depset_subtract(depset1, depset2):
-    dict1 = {e1: None for e1 in depset1.to_list()}
-    return [e2 for e2 in depset2.to_list() if e2 not in dict1]
+    # Use label here so that aliases are treated the same as their actuals.
+    dict1 = {e1.label: None for e1 in depset1.to_list()}
+    return [e2 for e2 in depset2.to_list() if e2.label not in dict1]
 
 def _label_str(label):
     if label.workspace_name:
