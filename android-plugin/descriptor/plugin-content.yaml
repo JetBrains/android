@@ -181,11 +181,6 @@
   files:
   - name: $MAVEN_REPOSITORY$/com/google/protobuf/protobuf-java-util/3/protobuf-java-util-3.jar
   reason: <- intellij.android.app-inspection.inspector.api
-- name: lib/hdrhistogram.jar
-  library: HdrHistogram
-  files:
-  - name: $MAVEN_REPOSITORY$/org/hdrhistogram/HdrHistogram/2/HdrHistogram-2.jar
-  reason: withProjectLibrary
 - name: lib/inspectors-common.jar
   modules:
   - name: intellij.android.inspectors-common.api
