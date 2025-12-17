@@ -115,8 +115,53 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
   fun gradleProjectPaths_inComposites() {
     val preparedProject = projectRule.prepareTestProject(TestProject.COMPOSITE_BUILD)
     preparedProject.open { project ->
-      assertThat(dumpModuleToGradlePathMapping(project, preparedProject.root)).isEqualTo(
-        """
+      if (phasedSync) {
+        assertThat(dumpModuleToGradlePathMapping(project, preparedProject.root)).isEqualTo(
+          """
+            ==> :
+            .app ==> :app
+            .app.androidTest ==> :app/ANDROID_TEST
+            .app.main ==> :app/MAIN
+            .app.unitTest ==> :app/UNIT_TEST
+            .lib ==> :lib
+            .lib.androidTest ==> :lib/ANDROID_TEST
+            .lib.main ==> :lib/MAIN
+            .lib.unitTest ==> :lib/UNIT_TEST
+            includedLib1 ==> [TestCompositeLib1]:
+            includedLib1.app ==> [TestCompositeLib1]:app
+            includedLib1.app.androidTest ==> [TestCompositeLib1]:app/ANDROID_TEST
+            includedLib1.app.main ==> [TestCompositeLib1]:app/MAIN
+            includedLib1.app.unitTest ==> [TestCompositeLib1]:app/UNIT_TEST
+            includedLib1.lib ==> [TestCompositeLib1]:lib
+            includedLib1.lib.androidTest ==> [TestCompositeLib1]:lib/ANDROID_TEST
+            includedLib1.lib.main ==> [TestCompositeLib1]:lib/MAIN
+            includedLib1.lib.unitTest ==> [TestCompositeLib1]:lib/UNIT_TEST
+            includedLib1.TestCompositeLibNested_1 ==> [TestCompositeLib1/TestCompositeLibNested_1]:
+            includedLib1.TestCompositeLibNested_1.main ==> [TestCompositeLib1/TestCompositeLibNested_1]:/MAIN
+            includedLib1.TestCompositeLibNested_1.test ==> [TestCompositeLib1/TestCompositeLibNested_1]:/test
+            TestCompositeLib2 ==> [TestCompositeLib2]:
+            TestCompositeLib2.main ==> [TestCompositeLib2]:/MAIN
+            TestCompositeLib2.test ==> [TestCompositeLib2]:/test
+            TestCompositeLib3 ==> [TestCompositeLib3]:
+            TestCompositeLib3.app ==> [TestCompositeLib3]:app
+            TestCompositeLib3.app.androidTest ==> [TestCompositeLib3]:app/ANDROID_TEST
+            TestCompositeLib3.app.main ==> [TestCompositeLib3]:app/MAIN
+            TestCompositeLib3.app.unitTest ==> [TestCompositeLib3]:app/UNIT_TEST
+            TestCompositeLib3.lib ==> [TestCompositeLib3]:lib
+            TestCompositeLib3.lib.androidTest ==> [TestCompositeLib3]:lib/ANDROID_TEST
+            TestCompositeLib3.lib.main ==> [TestCompositeLib3]:lib/MAIN
+            TestCompositeLib3.lib.unitTest ==> [TestCompositeLib3]:lib/UNIT_TEST
+            TestCompositeLib3.TestCompositeLibNested_3 ==> [TestCompositeLib3/TestCompositeLibNested_3]:
+            TestCompositeLib3.TestCompositeLibNested_3.main ==> [TestCompositeLib3/TestCompositeLibNested_3]:/MAIN
+            TestCompositeLib3.TestCompositeLibNested_3.test ==> [TestCompositeLib3/TestCompositeLibNested_3]:/test
+            TestCompositeLib4 ==> [TestCompositeLib4]:
+            TestCompositeLib4.main ==> [TestCompositeLib4]:/MAIN
+            TestCompositeLib4.test ==> [TestCompositeLib4]:/test
+        """.trimIndent()
+        )
+      } else {
+        assertThat(dumpModuleToGradlePathMapping(project, preparedProject.root)).isEqualTo(
+          """
             ==> :
             .app ==> :app
             .app.androidTest ==> :app/ANDROID_TEST
@@ -135,6 +180,12 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
             TestCompositeLib1.lib.androidTest ==> [TestCompositeLib1]:lib/ANDROID_TEST
             TestCompositeLib1.lib.main ==> [TestCompositeLib1]:lib/MAIN
             TestCompositeLib1.lib.unitTest ==> [TestCompositeLib1]:lib/UNIT_TEST
+            compositeNest ==> [TestCompositeLib1/TestCompositeLibNested_1]:
+            compositeNest.main ==> [TestCompositeLib1/TestCompositeLibNested_1]:/MAIN
+            compositeNest.test ==> [TestCompositeLib1/TestCompositeLibNested_1]:/test
+            composite2 ==> [TestCompositeLib2]:
+            composite2.main ==> [TestCompositeLib2]:/MAIN
+            composite2.test ==> [TestCompositeLib2]:/test
             TestCompositeLib3 ==> [TestCompositeLib3]:
             TestCompositeLib3.app ==> [TestCompositeLib3]:app
             TestCompositeLib3.app.androidTest ==> [TestCompositeLib3]:app/ANDROID_TEST
@@ -147,17 +198,14 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
             com.test.compositeNest3.compositeNest ==> [TestCompositeLib3/TestCompositeLibNested_3]:
             com.test.compositeNest3.compositeNest.main ==> [TestCompositeLib3/TestCompositeLibNested_3]:/MAIN
             com.test.compositeNest3.compositeNest.test ==> [TestCompositeLib3/TestCompositeLibNested_3]:/test
-            composite2 ==> [TestCompositeLib2]:
-            composite2.main ==> [TestCompositeLib2]:/MAIN
-            composite2.test ==> [TestCompositeLib2]:/test
             composite4 ==> [TestCompositeLib4]:
             composite4.main ==> [TestCompositeLib4]:/MAIN
             composite4.test ==> [TestCompositeLib4]:/test
-            compositeNest ==> [TestCompositeLib1/TestCompositeLibNested_1]:
-            compositeNest.main ==> [TestCompositeLib1/TestCompositeLibNested_1]:/MAIN
-            compositeNest.test ==> [TestCompositeLib1/TestCompositeLibNested_1]:/test
         """.trimIndent()
-      )
+        )
+
+      }
+
       assertThatProjectPathsCanBeResolved(project)
     }
   }
@@ -166,8 +214,53 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
   fun rootBuildRelativeGradleProjectPaths_inComposites() {
     val preparedProject = projectRule.prepareTestProject(TestProject.COMPOSITE_BUILD)
     preparedProject.open { project ->
-      assertThat(dumpModuleToRootBuildRelativeGradlePathMapping(project)).isEqualTo(
-        """
+      if (phasedSync) {
+        assertThat(dumpModuleToRootBuildRelativeGradlePathMapping(project)).isEqualTo(
+          """
+            ==> :
+            .app ==> :app
+            .app.androidTest ==> :app
+            .app.main ==> :app
+            .app.unitTest ==> :app
+            .lib ==> :lib
+            .lib.androidTest ==> :lib
+            .lib.main ==> :lib
+            .lib.unitTest ==> :lib
+            includedLib1 ==> :includedLib1
+            includedLib1.app ==> :includedLib1:app
+            includedLib1.app.androidTest ==> :includedLib1:app
+            includedLib1.app.main ==> :includedLib1:app
+            includedLib1.app.unitTest ==> :includedLib1:app
+            includedLib1.lib ==> :includedLib1:lib
+            includedLib1.lib.androidTest ==> :includedLib1:lib
+            includedLib1.lib.main ==> :includedLib1:lib
+            includedLib1.lib.unitTest ==> :includedLib1:lib
+            includedLib1.TestCompositeLibNested_1 ==> :includedLib1:TestCompositeLibNested_1
+            includedLib1.TestCompositeLibNested_1.main ==> :includedLib1:TestCompositeLibNested_1
+            includedLib1.TestCompositeLibNested_1.test ==> :includedLib1:TestCompositeLibNested_1
+            TestCompositeLib2 ==> :TestCompositeLib2
+            TestCompositeLib2.main ==> :TestCompositeLib2
+            TestCompositeLib2.test ==> :TestCompositeLib2
+            TestCompositeLib3 ==> :TestCompositeLib3
+            TestCompositeLib3.app ==> :TestCompositeLib3:app
+            TestCompositeLib3.app.androidTest ==> :TestCompositeLib3:app
+            TestCompositeLib3.app.main ==> :TestCompositeLib3:app
+            TestCompositeLib3.app.unitTest ==> :TestCompositeLib3:app
+            TestCompositeLib3.lib ==> :TestCompositeLib3:lib
+            TestCompositeLib3.lib.androidTest ==> :TestCompositeLib3:lib
+            TestCompositeLib3.lib.main ==> :TestCompositeLib3:lib
+            TestCompositeLib3.lib.unitTest ==> :TestCompositeLib3:lib
+            TestCompositeLib3.TestCompositeLibNested_3 ==> :TestCompositeLib3:TestCompositeLibNested_3
+            TestCompositeLib3.TestCompositeLibNested_3.main ==> :TestCompositeLib3:TestCompositeLibNested_3
+            TestCompositeLib3.TestCompositeLibNested_3.test ==> :TestCompositeLib3:TestCompositeLibNested_3
+            TestCompositeLib4 ==> :TestCompositeLib4
+            TestCompositeLib4.main ==> :TestCompositeLib4
+            TestCompositeLib4.test ==> :TestCompositeLib4
+        """.trimIndent()
+        )
+      } else {
+        assertThat(dumpModuleToRootBuildRelativeGradlePathMapping(project)).isEqualTo(
+          """
             ==> :
             .app ==> :app
             .app.androidTest ==> :app
@@ -186,6 +279,12 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
             TestCompositeLib1.lib.androidTest ==> :includedLib1:lib
             TestCompositeLib1.lib.main ==> :includedLib1:lib
             TestCompositeLib1.lib.unitTest ==> :includedLib1:lib
+            compositeNest ==> :includedLib1:TestCompositeLibNested_1
+            compositeNest.main ==> :includedLib1:TestCompositeLibNested_1
+            compositeNest.test ==> :includedLib1:TestCompositeLibNested_1
+            composite2 ==> :TestCompositeLib2
+            composite2.main ==> :TestCompositeLib2
+            composite2.test ==> :TestCompositeLib2
             TestCompositeLib3 ==> :TestCompositeLib3
             TestCompositeLib3.app ==> :TestCompositeLib3:app
             TestCompositeLib3.app.androidTest ==> :TestCompositeLib3:app
@@ -198,17 +297,13 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
             com.test.compositeNest3.compositeNest ==> :TestCompositeLib3:TestCompositeLibNested_3
             com.test.compositeNest3.compositeNest.main ==> :TestCompositeLib3:TestCompositeLibNested_3
             com.test.compositeNest3.compositeNest.test ==> :TestCompositeLib3:TestCompositeLibNested_3
-            composite2 ==> :TestCompositeLib2
-            composite2.main ==> :TestCompositeLib2
-            composite2.test ==> :TestCompositeLib2
             composite4 ==> :TestCompositeLib4
             composite4.main ==> :TestCompositeLib4
             composite4.test ==> :TestCompositeLib4
-            compositeNest ==> :includedLib1:TestCompositeLibNested_1
-            compositeNest.main ==> :includedLib1:TestCompositeLibNested_1
-            compositeNest.test ==> :includedLib1:TestCompositeLibNested_1
         """.trimIndent()
-      )
+        )
+
+      }
       assertThatProjectPathsCanBeResolved(project)
     }
   }
@@ -241,7 +336,8 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
 
   private fun dumpModuleToGradlePathMapping(project: Project, root: File): String {
     return ModuleManager.getInstance(project).modules.map { it to it.getGradleProjectPath() }
-      .map { (module, gradleProjectPath) ->
+      .sortedWith(compareBy({ it.second?.buildRoot }, { it.first.name }))
+      .joinToString("\n") { (module, gradleProjectPath) ->
         val moduleName = module.name.removePrefix(project.name)
         "$moduleName ==>${
           gradleProjectPath?.let {
@@ -252,21 +348,18 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
           } ?: ""
         }"
       }
-      .sorted()
-      .joinToString("\n")
       .trim()
   }
 
   private fun dumpModuleToRootBuildRelativeGradlePathMapping(project: Project): String {
     return ModuleManager.getInstance(project)
       .modules
-      .mapNotNull { it to (it.getGradleIdentityPath() ?: return@mapNotNull  null) }
-      .map { (module, gradleProjectPath) ->
+      .sortedWith(compareBy({ it.getGradleProjectPath()?.buildRoot }, { it.name }))
+      .mapNotNull { it to (it.getGradleIdentityPath() ?: return@mapNotNull null) }
+      .joinToString("\n") { (module, gradleProjectPath) ->
         val moduleName = module.name.removePrefix(project.name)
         "$moduleName ==> $gradleProjectPath"
       }
-      .sorted()
-      .joinToString("\n")
       .trim()
   }
 
