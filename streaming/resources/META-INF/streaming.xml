@@ -123,6 +123,12 @@
         <keyboard-shortcut first-keystroke="meta shift 1" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta shift 1" keymap="Mac OS X 10.5+"/>
       </action>
+      <action id="android.emulator.glasses2.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorGlasses2ButtonAction"
+          icon="StudioIcons.Emulator.Toolbar.POWER" text="Display" description="Press the Display button of the device">
+        <keyboard-shortcut first-keystroke="control shift 2" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift 2" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift 2" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.back.button" class="com.android.tools.idea.streaming.actions.StreamingBackButtonAction"
               icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button of the device">
         <keyboard-shortcut first-keystroke="control shift B" keymap="$default"/>
@@ -310,10 +316,12 @@
       </group>
       <separator/>
       <reference ref="android.device.power.button"/>
-      <reference ref="android.device.volume.up.button"/>
-      <reference ref="android.device.volume.down.button"/>
+      <reference ref="android.emulator.glasses2.button"/>
+      <reference ref="android.emulator.glasses1.button"/>
       <reference ref="android.device.wear1.button"/>
       <reference ref="android.device.wear2.button"/>
+      <reference ref="android.device.volume.up.button"/>
+      <reference ref="android.device.volume.down.button"/>
       <separator/>
       <reference ref="android.device.rotate.left"/>
       <reference ref="android.device.rotate.right"/>
@@ -321,7 +329,6 @@
       <separator/>
       <reference ref="android.device.sleep"/>
       <reference ref="android.emulator.tilt"/>
-      <reference ref="android.emulator.glasses1.button"/>
       <reference ref="android.device.back.button"/>
       <reference ref="android.device.home.button"/>
       <reference ref="android.device.overview.button"/>
