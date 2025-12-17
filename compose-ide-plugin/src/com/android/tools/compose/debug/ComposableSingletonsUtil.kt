@@ -16,6 +16,9 @@
 package com.android.tools.compose.debug
 
 import com.intellij.openapi.application.runReadAction
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
 import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil
 import org.jetbrains.kotlin.load.kotlin.PackagePartClassUtils
 import org.jetbrains.kotlin.psi.KtFile
@@ -31,7 +34,7 @@ import org.jetbrains.kotlin.psi.KtFile
  * `ComposerLambdaMemoization.getOrCreateComposableSingletonsClass`. The optimization was introduced
  * in I8c967b14c5d9bf67e5646e60f630f2e29e006366
  */
-internal fun computeComposableSingletonsClassName(file: KtFile): String {
+internal fun computeComposableSingletonsClassName(file: KtFile): String = CachedValuesManager.getCachedValue(file) {
   // The code in `ComposerLambdaMemoization` always uses the file short name and
   // ignores `JvmName` annotations, but (implicitly) respects `JvmPackageName`
   // annotations.
@@ -41,7 +44,7 @@ internal fun computeComposableSingletonsClassName(file: KtFile): String {
   val fileClassFqName =
     runReadAction { JvmFileClassUtil.getFileClassInfoNoResolve(file) }.facadeClassFqName
 
-  return buildString {
+  val className = buildString {
     val pgk = fileClassFqName.parent()
     if (!pgk.isRoot) {
       append(pgk.asString())
@@ -51,18 +54,6 @@ internal fun computeComposableSingletonsClassName(file: KtFile): String {
     append("\$")
     append(shortName)
   }
-}
 
-/**
- * Compute the class name for a given lambda
- *
- * @param composeSingletonsClassName: The 'ComposableSingletons' class: See
- *   [computeComposableSingletonsClassName]
- * @param lambdaIndex The index of the current lambda (first lambda has index 0)
- */
-internal fun computeComposableSingletonsLambdaClassName(
-  composeSingletonsClassName: String,
-  lambdaIndex: Int,
-): String {
-  return "$composeSingletonsClassName\$lambda-${lambdaIndex + 1}\$1"
+  CachedValueProvider.Result(className, PsiModificationTracker.MODIFICATION_COUNT)
 }

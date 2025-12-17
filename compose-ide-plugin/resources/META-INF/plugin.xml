@@ -180,8 +180,8 @@
     <typeResolutionInterceptorExtension implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposeTypeResolutionInterceptorExtension"/>
   </extensions>
 
-  <extensions defaultExtensionNs="org.jetbrains.kotlin.idea.debugger.base.util">
-    <classNameCalculator implementation="com.android.tools.compose.debug.ComposeClassNameCalculator"/>
+  <extensions defaultExtensionNs="org.jetbrains.kotlin.idea.debugger.core">
+    <classNameContributor implementation="com.android.tools.compose.debug.ComposeClassNameContributor"/>
   </extensions>
 
   <actions>
