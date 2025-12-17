@@ -201,6 +201,7 @@ void DisplayStreamer::Run() {
   VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = frame_number_};
   FrameStreamStopReason stop_reason = FrameStreamStopReason::CODEC_STOPPED;
   int error_count = 0;
+  int frame_before_timeout = 0;
 
   while (stop_reason != FrameStreamStopReason::END_OF_STREAM && !thread_handle_.IsStopping() && !Agent::IsShuttingDown()) {
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
@@ -213,11 +214,15 @@ void DisplayStreamer::Run() {
     }
     Log::D("Display %d: display_info: %s", display_id_, display_info.ToDebugString().c_str());
     if (stop_reason == FrameStreamStopReason::TIMEOUT) {
+      frame_before_timeout = frame_number_;
       frame_timeout_ = min<std::chrono::milliseconds>(frame_timeout_ * 2, MAX_FRAME_TIMEOUT);  // Exponential backoff.
     } else {
+      frame_before_timeout = 0;
       frame_timeout_ = INITIAL_FRAME_TIMEOUT;
       ReleaseVirtualDisplay(jni);
     }
+    Log::D("Display %d: stop_reason=%d, frame_number_=%d frame_before_timeout=%d frame_timeout_=%lld ms",
+           display_id_, stop_reason, frame_number_, frame_before_timeout, frame_timeout_.count());
     if (virtual_display_.IsNull() && display_token_.IsNull()) {
       string display_name = StringPrintf("studio.screen.sharing:%d", display_id_);
       if (Agent::feature_level() >= 34) {
@@ -298,16 +303,17 @@ void DisplayStreamer::Run() {
     } else {
       error_count = 0;
       if (stop_reason == FrameStreamStopReason::TIMEOUT) {
-        // Write an empty video packet.
-        int64_t timestamp = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
-        packet_header.origination_timestamp_us = timestamp;
-        packet_header.packet_size = 0;
-        if (Log::IsEnabled(Log::Level::VERBOSE)) {
-          Log::V("Display %d: writing an video packet", display_id_);
-        }
-        auto res = writer_->Write(&packet_header, VideoPacketHeader::SIZE);
-        if (res == SocketWriter::Result::DISCONNECTED) {
-          stop_reason = FrameStreamStopReason::END_OF_STREAM;
+        if (frame_number_ == frame_before_timeout) {
+          // Two consecutive timeouts. Sending an empty frame.
+          packet_header.frame_number = ++frame_number_;
+          int64_t timestamp = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
+          packet_header.origination_timestamp_us = timestamp;
+          packet_header.packet_size = 0;
+          Log::D("Display %d: sending an empty video frame #%d due to a timeout", display_id_, frame_number_);
+          auto res = writer_->Write(&packet_header, VideoPacketHeader::SIZE);
+          if (res == SocketWriter::Result::DISCONNECTED) {
+            stop_reason = FrameStreamStopReason::END_OF_STREAM;
+          }
         }
       }
     }
