@@ -980,7 +980,6 @@ maven_repository(
         "@maven//:com.android.tools.lint.lint-gradle_31.13.0",
         "@maven//:commons-io.commons-io_2.13.0",
         "@maven//:junit.junit_4.13.2",
-        "@maven//:org.jetbrains.compose.ui.ui-test-junit4-desktop_1.7.3",
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_2.2.10",
         "@maven//:org.jetbrains.kotlin.kotlin-build-tools-impl_2.2.10",
         "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.2.10",
