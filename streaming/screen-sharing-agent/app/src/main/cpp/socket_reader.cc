@@ -42,6 +42,7 @@ SocketReader::SocketReader(SocketReader&& other)
 }
 
 SocketReader::Result SocketReader::Read(void* buf, size_t size) {
+  auto start_time = steady_clock::now();
   auto remaining_time_millis = timeout_millis_;
   while (true) {
     ssize_t bytes_read = TEMP_FAILURE_RETRY(read(socket_fd_, buf, size));
@@ -54,7 +55,6 @@ SocketReader::Result SocketReader::Read(void* buf, size_t size) {
           return Result(Status::DISCONNECTED);
 
         case EAGAIN: {
-          auto poll_start = steady_clock::now();
           struct pollfd fds = {socket_fd_, POLLIN, 0};
           int ret = poll(&fds, 1, remaining_time_millis);
           if (ret == 0) {
@@ -63,7 +63,7 @@ SocketReader::Result SocketReader::Read(void* buf, size_t size) {
           if (ret < 0 && errno != EINTR) {
             return Result(Status::DISCONNECTED);
           }
-          remaining_time_millis -= duration_cast<milliseconds>(steady_clock::now() - poll_start).count();
+          remaining_time_millis -= duration_cast<milliseconds>(steady_clock::now() - start_time).count();
           if (remaining_time_millis <= 0) {
             return Result(Status::TIMEOUT);
           }
