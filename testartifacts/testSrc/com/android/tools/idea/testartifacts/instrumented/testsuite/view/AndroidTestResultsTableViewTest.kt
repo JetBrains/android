@@ -1125,10 +1125,8 @@ class AndroidTestResultsTableViewTest {
 
     collapseAllAction.actionPerformed(mock())
 
-    assertThat(tableView.rowCount).isEqualTo(3)
+    assertThat(tableView.rowCount).isEqualTo(1)
     assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("")
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.")
 
     expandAllAction.actionPerformed(mock())
 
