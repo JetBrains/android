@@ -48,9 +48,10 @@ public:
   ~Controller() override;
 
   void Run();
-  // Stops the controller asynchronously. The controller can't be restarted one stopped.
+  // Stops the controller asynchronously. The controller can't be restarted once stopped.
   // May be called on any thread.
   void Stop();
+  void StopReceivingEvents();
   // Requests to power the display OFF or reset it to a power state it supposed to have. Requires API 35+.
   // The state parameter is one of DisplayInfo::STATE_OFF (to turn display off), DisplayInfo::STATE_UNKNOWN
   // (to reset the display to its default state). Returns true if successful, false otherwise.
@@ -71,7 +72,6 @@ private:
 
   void Initialize();
   void InitializeVirtualKeyboard();
-  void RemoveListeners();
   [[nodiscard]] VirtualTablet& GetVirtualTablet(int32_t display_id, int32_t width, int32_t height);
   void ProcessMessage(const ControlMessage& message);
   void ProcessMotionEvent(const MotionEventMessage& message);
