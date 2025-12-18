@@ -87,6 +87,7 @@ public:
 
 private:
   static void Initialize(const std::vector<std::string>& args);
+  static void SighupHandler(int signal_number);
   // Restores the original environment that existed before GetSessionEnvironment was first called.
   // May be called on any thread. Safe to be called multiple times.
   static void RestoreEnvironment();
