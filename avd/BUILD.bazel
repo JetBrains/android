@@ -45,6 +45,7 @@ jvm_library(
     "//libraries/guava",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     "//libraries/protobuf",
+    "//libraries/kotlinx/datetime",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
@@ -91,9 +92,12 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "@lib//:truth",
     "//android/adt-testutils:adt-testutils_test_lib",
-    "//android/adt-ui-compose:adt-ui-compose-tests_test_lib",
     "//android/intellij.android.device.tests:device-tests_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
+    "//android/adt-ui-compose:adt-ui-compose-tests_test_lib",
+    "//libraries/kotlinx/coroutines/test",
+    "//libraries/kotlinx/datetime",
+    "//libraries/kotlin/reflect",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
