@@ -71,6 +71,7 @@ private:
 
   void Initialize();
   void InitializeVirtualKeyboard();
+  void RemoveListeners();
   [[nodiscard]] VirtualTablet& GetVirtualTablet(int32_t display_id, int32_t width, int32_t height);
   void ProcessMessage(const ControlMessage& message);
   void ProcessMotionEvent(const MotionEventMessage& message);

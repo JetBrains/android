@@ -382,9 +382,6 @@ void Agent::Shutdown() {
       if (audio_streamer_ != nullptr) {
         audio_streamer_->Stop();
       }
-      if (controller_ != nullptr) {
-        controller_->Stop();
-      }
       if (video_socket_writer_ != nullptr) {
         Log::D("Shutting down video socket");
         shutdown(video_socket_writer_->socket_fd(), SHUT_RDWR);
@@ -397,7 +394,10 @@ void Agent::Shutdown() {
       Jvm::Exit(exit_code_);
     }
   } else {
-    // Shutting down control socket makes Shutdown to be called again on the main thread.
+    // Stopping Controller and shutting down control socket makes Shutdown to be called again on the main thread.
+    if (controller_ != nullptr) {
+      controller_->Stop();
+    }
     Log::D("Shutting down control socket");
     if (shutdown(control_socket_fd_, SHUT_RDWR) != 0) {
       Log::E("Failed to shut down control socket - %s", strerror(errno));
