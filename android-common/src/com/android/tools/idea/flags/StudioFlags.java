@@ -2276,6 +2276,11 @@ public final class StudioFlags {
                     "Enable the new Lucene-backed IntelliJ index for RAG",
                     "When enabled, the RAG index will use the new Lucene-backed IntelliJ index pipeline. Otherwise, the original crawler-based pipeline will be used.");
 
+  public static final Flag<Boolean> STUDIOBOT_IS_G1_INTEGRATION_ENABLED =
+    new BooleanFlag(STUDIOBOT, "g1.integration.enabled",
+                    "Enable the integration with Google one.",
+                    "When enabled, the studio-bot will show UI and upgrade paths corresponding to the Google one subscription held by the user.");
+
   public static final Flag<Boolean> STUDIOBOT_USE_BM25_FOR_FIND_FILES =
     new BooleanFlag(STUDIOBOT, "use.bm25.find.files",
                     "Use BM25 for find_files tool",
