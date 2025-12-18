@@ -36,6 +36,11 @@
     <module name="intellij.platform.jewel.markdown.core"/>
     <module name="intellij.platform.jewel.markdown.ideLafBridgeStyling"/>
     <module name="intellij.platform.jewel.ui"/>
+    <module name="intellij.platform.jewel.markdown.extensions.gfmTables"/>
+<!--    <module name="intellij.libraries.skiko"/>-->
+<!--    <module name="intellij.libraries.compose.foundation.desktop"/>-->
+<!--    <module name="intellij.libraries.compose.runtime.desktop"/>-->
+
   </dependencies>
 
   <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
