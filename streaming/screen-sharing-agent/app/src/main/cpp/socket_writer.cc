@@ -47,8 +47,7 @@ SocketWriter::SocketWriter(SocketWriter&& other) noexcept
 
 SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const void* buf2, size_t size2) {
   unique_lock lock(mutex_);
-  auto start_time = steady_clock::now();
-  auto remaining_time_millis = timeout_millis_;
+  auto deadline = steady_clock::now() + milliseconds(timeout_millis_);
   bool was_blocked = false;
   while (true) {
     ssize_t written;
@@ -68,6 +67,10 @@ SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const v
         case EAGAIN: {
           Log::W("Writing to %s socket failed - %s", socket_name_.c_str(), strerror(errno));
           was_blocked = true;
+          auto remaining_time_millis = duration_cast<milliseconds>(deadline - steady_clock::now()).count();
+          if (remaining_time_millis <= 0) {
+            return Result(Result::TIMEOUT);
+          }
           struct pollfd fds = {socket_fd_, POLLOUT, 0};
           int ret = poll(&fds, 1, remaining_time_millis);
           if (ret < 0) {
@@ -78,8 +81,7 @@ SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const v
             Log::W("Writing to %s socket timed out", socket_name_.c_str());
             return Result::TIMEOUT;
           }
-          remaining_time_millis -= duration_cast<milliseconds>(steady_clock::now() - start_time).count();
-          if (remaining_time_millis <= 0) {
+          if (steady_clock::now() >= deadline) {
             Log::W("Writing to %s socket timed out", socket_name_.c_str());
             return Result::TIMEOUT;
           }
