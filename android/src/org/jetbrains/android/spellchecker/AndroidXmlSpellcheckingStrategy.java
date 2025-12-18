@@ -99,7 +99,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy im
   }
 
   @Override
-  public boolean useTextLevelSpellchecking() {
+  public boolean useTextLevelSpellchecking(PsiElement element) {
     return false;
   }
 
