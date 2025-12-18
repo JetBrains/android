@@ -73,8 +73,9 @@ data class IssuesChanged(
           .newBuilder()
           .apply { hasAppVcsInfo = issues.hasAppVcsInfo() }
 
+      val selectedConnection = state.connections.selected ?: return@let
       tracker.logCrashesFetched(
-        state.connections.selected!!.appId,
+        selectedConnection.appId,
         state.mode,
         AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.newBuilder()
           .apply {
@@ -90,7 +91,7 @@ data class IssuesChanged(
             numRetries = 0
             this.cache = false
             vcsIntegrationDetails = vcsIntegrationDetailsBuilder.build()
-            aiInsightsOptInStatus = getOptInStatus(state.connections.selected.projectId)
+            aiInsightsOptInStatus = getOptInStatus(selectedConnection.projectId)
           }
           .build(),
       )
