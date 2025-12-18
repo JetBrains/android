@@ -71,10 +71,6 @@ int CreateAndConnectSocket(const string& socket_name) {
   Log::Fatal(INVALID_COMMAND_LINE, "Invalid command line argument: \"%s\"", arg.c_str());
 }
 
-void sighup_handler(int signal_number) {
-  Agent::Shutdown();
-}
-
 CodecInfo* SelectVideoEncoder(const string& mime_type) {
   Jni jni = Jvm::GetJni();
   JClass clazz = jni.GetClass("com/android/tools/screensharing/CodecInfo");
@@ -236,12 +232,6 @@ void Agent::Run(const vector<string>& args) {
   main_thread_id_ = this_thread::get_id();
   Initialize(args);
 
-  struct sigaction action = { .sa_handler = sighup_handler };
-  int res = sigaction(SIGHUP, &action, nullptr);
-  if (res < 0) {
-    Log::E("Unable to set SIGHUP handler - sigaction returned %d", res);
-  }
-
   assert(display_streamers_.empty());
   int video_socket_fd = CreateAndConnectSocket(socket_name_);
   video_socket_writer_ = new SocketWriter(video_socket_fd, "video", duration_cast<milliseconds>(SOCKET_WRITE_TIMEOUT).count());
@@ -253,6 +243,13 @@ void Agent::Run(const vector<string>& args) {
   }
   control_socket_fd_ = CreateAndConnectSocket(socket_name_);
   controller_ = new Controller(control_socket_fd_);
+
+  struct sigaction action = { .sa_handler = SighupHandler };
+  int res = sigaction(SIGHUP, &action, nullptr);
+  if (res < 0) {
+    Log::E("Unable to set SIGHUP handler - sigaction returned %d", res);
+  }
+
   string mime_type = (codec_name_.compare(0, 2, "vp") == 0 ? "video/x-vnd.on2." : "video/") + codec_name_;
   codec_info_ = SelectVideoEncoder(mime_type);
   WriteVideoChannelHeader(codec_name_, video_socket_writer_);
@@ -356,6 +353,7 @@ DisplayInfo Agent::GetDisplayInfo(int32_t display_id) {
 }
 
 SessionEnvironment& Agent::GetSessionEnvironment() {
+  assert(!shutting_down_);
   unique_lock lock(environment_mutex_);
   if (session_environment_ == nullptr) {
     session_environment_ = new SessionEnvironment((flags_ & TURN_OFF_DISPLAY_WHILE_MIRRORING) != 0);
@@ -370,11 +368,18 @@ void Agent::RestoreEnvironment() {
   session_environment_ = nullptr;
 }
 
+void Agent::SighupHandler(int signal_number) {
+  controller_->Stop();  // Stopping controller triggers an orderly shutdown.
+}
+
 void Agent::Shutdown() {
-  shutting_down_ = true;
   if (this_thread::get_id() == main_thread_id_) {
     if (!shutting_down_.exchange(true)) {
       Log::D("Shutting down");
+      if (controller_ != nullptr) {
+        controller_->StopReceivingEvents();
+      }
+      RestoreEnvironment();
       DisplayManager::RemoveAllDisplayListeners();
       for (auto& it: display_streamers_) {
         it.second.Stop();
@@ -390,14 +395,11 @@ void Agent::Shutdown() {
         Log::D("Shutting down audio socket");
         shutdown(audio_socket_writer_->socket_fd(), SHUT_RDWR);
       }
-      RestoreEnvironment();
-      Jvm::Exit(exit_code_);
     }
+    Jvm::Exit(exit_code_);
   } else {
     // Stopping Controller and shutting down control socket makes Shutdown to be called again on the main thread.
-    if (controller_ != nullptr) {
-      controller_->Stop();
-    }
+    controller_->Stop();
     Log::D("Shutting down control socket");
     if (shutdown(control_socket_fd_, SHUT_RDWR) != 0) {
       Log::E("Failed to shut down control socket - %s", strerror(errno));

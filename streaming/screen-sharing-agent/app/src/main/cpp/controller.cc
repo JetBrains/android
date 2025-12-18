@@ -144,6 +144,15 @@ void Controller::Stop() {
   stopping_ = true;
 }
 
+void Controller::StopReceivingEvents() {
+  if (device_supports_multiple_states_) {
+    DeviceStateManager::RemoveDeviceStateListener(this);
+  }
+  if (Agent::device_type() == DeviceType::XR) {
+    XrSimulatedInputManager::RemoveEnvironmentListener(this);
+  }
+}
+
 void Controller::Initialize() {
   jni_ = Jvm::GetJni();
   pointer_helper_ = new PointerHelper(jni_);
@@ -195,14 +204,6 @@ void Controller::InitializeVirtualKeyboard() {
     if (!virtual_keyboard_->IsValid()) {
       Log::E("Failed to create a virtual keyboard");
     }
-  }
-}
-void Controller::RemoveListeners() {
-  if (device_supports_multiple_states_) {
-    DeviceStateManager::RemoveDeviceStateListener(this);
-  }
-  if (Agent::device_type() == DeviceType::XR) {
-    XrSimulatedInputManager::RemoveEnvironmentListener(this);
   }
 }
 
@@ -263,13 +264,11 @@ void Controller::Run() {
     Log::D("Controller::Run: End of command stream");
   } catch (IoException& e) {
     if (!stopping_) {
-      RemoveListeners();
       Log::Fatal(SOCKET_IO_ERROR, "Error reading from command socket channel - %s", e.GetMessage().c_str());
     }
   }
 
   Log::D("Stopping controller");
-  RemoveListeners();
 }
 
 void Controller::ProcessMessage(const ControlMessage& message) {
