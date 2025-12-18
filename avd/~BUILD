@@ -24,6 +24,7 @@ iml_module(
         "//tools/adt/idea/intellij.android.device.tests",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose.tests",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -49,5 +50,6 @@ iml_module(
         "//tools/adt/idea/wizard:intellij.android.wizard",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model",
         "//tools/adt/idea/glasses-pairing",
+        "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
     ],
 )
