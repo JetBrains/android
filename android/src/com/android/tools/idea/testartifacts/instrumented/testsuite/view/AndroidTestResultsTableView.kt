@@ -276,7 +276,7 @@ class AndroidTestResultsTableView(
       override fun canCollapse(): Boolean = true
       override fun canExpand(): Boolean = true
       override fun collapseAll(tree: JTree, keepSelectionLevel: Int) {
-        collapseAll(tree, false, keepSelectionLevel)
+        TreeUtil.collapseAll(tree, /*strict = */ true, keepSelectionLevel)
       }
     }
     return CommonActionsManager.getInstance().createCollapseAllAction(treeExpander, myTableView.tree)
