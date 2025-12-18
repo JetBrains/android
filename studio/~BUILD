@@ -840,6 +840,8 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/editor/prediction:aiplugin.editor.prediction",
             "//tools/vendor/google/ml/aiplugin/lang/kotlin:aiplugin.lang.kotlin",
             "//tools/vendor/google/ml/aiplugin/mcp/client:aiplugin.mcp.client.sdkcompat",
+            "//tools/vendor/google/ml/aiplugin/rag/indexer:aiplugin.rag.indexer",
+            "//tools/vendor/google/ml/aiplugin/rag/kb:aiplugin.rag.kb",
             "//tools/vendor/google/ml/aiplugin/rag/lucene/sdkcompat:aiplugin.rag.lucene.sdkcompat",
             "//tools/vendor/google/ml/aiplugin/sdkcompat:aiplugin.sdkcompat",
             "//tools/vendor/google/ml/aiplugin/cloudcode-core:aiplugin.cloudcode-core",
