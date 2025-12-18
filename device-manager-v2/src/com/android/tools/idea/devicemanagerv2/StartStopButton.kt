@@ -82,8 +82,7 @@ internal class StartStopButton(
         pairGlassesPresentation?.value?.icon -> {
           handle.scope.launch {
             runCatchingDeviceActionException(project, handle.state.properties.title) {
-              // TODO android merge
-              //pairGlassesAction?.pairGlasses(this@StartStopButton, handle)
+              pairGlassesAction?.pairGlasses(this@StartStopButton)
             }
           }
         }

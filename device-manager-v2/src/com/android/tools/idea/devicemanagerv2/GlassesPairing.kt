@@ -45,7 +45,6 @@ class PairGlassesAction() : DumbAwareAction("Pair Glasses") {
     val pairGlassesAction = deviceHandle?.pairGlassesAction ?: return
 
     deviceHandle.launchCatchingDeviceActionException(project = e.project) {
-      // TODO android merge : removed second arg deviceHandle
       pairGlassesAction.pairGlasses(e.componentToRestoreFocusTo())
     }
   }

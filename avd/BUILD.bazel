@@ -54,6 +54,7 @@ jvm_library(
         "//libraries/guava",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//libraries/protobuf",
+        "//libraries/kotlinx/datetime",
     ],
 )
 
@@ -136,12 +137,18 @@ jvm_library(
         "@lib//:truth",
         "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
-        "//android/adt-ui-compose:adt-ui-compose-tests",
-        "//android/adt-ui-compose:adt-ui-compose-tests_test_lib",
         "//android/intellij.android.device.tests:device-tests",
         "//android/intellij.android.device.tests:device-tests_test_lib",
         "//android/android-test-framework:testFramework",
         "//android/android-test-framework:testFramework_test_lib",
+        "//android/adt-ui-compose:adt-ui-compose-tests",
+        "//android/adt-ui-compose:adt-ui-compose-tests_test_lib",
+        "//libraries/kotlin/reflect",
+        "//libraries/kotlin/reflect:reflect_test_lib",
+        "//libraries/kotlinx/coroutines/test",
+        "//libraries/kotlinx/coroutines/test:test_test_lib",
+        "//libraries/kotlinx/datetime",
+        "//libraries/kotlinx/datetime:datetime_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.avd` end
