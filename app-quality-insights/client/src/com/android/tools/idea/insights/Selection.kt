@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights
 
-import com.intellij.openapi.diagnostic.Logger
+import java.util.logging.Logger
 
 /** Represents a selection within a list. */
 data class Selection<T>(val selected: T?, val items: List<T>) {
@@ -27,8 +27,8 @@ data class Selection<T>(val selected: T?, val items: List<T>) {
     if (item == null) return deselect()
 
     if (item !in items) {
-      Logger.getInstance(Selection::class.java)
-        .warn("Requested item $item is not among allowed selections $items.")
+      Logger.getLogger(Selection::class.qualifiedName)
+        .warning("Requested item $item is not among allowed selections $items.")
       return this
     }
     return Selection(item, items)

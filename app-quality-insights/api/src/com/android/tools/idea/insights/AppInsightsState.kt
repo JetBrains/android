@@ -146,17 +146,17 @@ data class AppInsightsState(
 }
 
 fun AppInsightsState.toIssueRequest(clock: Clock): IssueRequest? {
-  if (connections.selected == null || filters.timeInterval.selected == null) {
-    return null
-  }
+  val selectedConnection = connections.selected ?: return null
+  val selectedTimeInterval = filters.timeInterval.selected ?: return null
+
   return IssueRequest(
-    connection = connections.selected,
+    connection = selectedConnection,
     filters =
       QueryFilters(
         interval =
           clock.instant().let {
             Interval(
-              startTime = it.minus(Duration.ofDays(filters.timeInterval.selected.numDays)),
+              startTime = it.minus(Duration.ofDays(selectedTimeInterval.numDays)),
               endTime = it,
             )
           },

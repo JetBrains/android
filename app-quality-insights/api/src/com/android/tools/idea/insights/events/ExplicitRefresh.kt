@@ -35,7 +35,7 @@ object ExplicitRefresh : ChangeEvent {
     val selectedIssue = state.selectedIssue
     val selectedConnection = state.connections.selected
     if (selectedIssue != null && selectedConnection != null) {
-      cache.removeIssue(state.connections.selected, selectedIssue.id)
+      cache.removeIssue(selectedConnection, selectedIssue.id)
     }
     return StateTransition(
       state.copy(
