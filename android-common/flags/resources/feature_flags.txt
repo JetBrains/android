@@ -209,6 +209,7 @@ studiobot.editor.ai.multifile.transform.output.enabled=INTERNAL
 studiobot.editor.ai.transform.history.enabled=COMPLETE:2024
 studiobot.editor.ai.transform.session.diff.editor.viewer.enabled=PREVIEW
 studiobot.editor.ai.transforms.enabled=COMPLETE:2024
+studiobot.g1.integration.enabled=INTERNAL
 studiobot.gemini.show.sign.in.dialog=COMPLETE:2025
 studiobot.generate.test.scenarios=COMPLETE:2025
 studiobot.gradle.error.context.enabled=INTERNAL
