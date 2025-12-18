@@ -399,7 +399,9 @@ void Agent::Shutdown() {
   } else {
     // Shutting down control socket makes Shutdown to be called again on the main thread.
     Log::D("Shutting down control socket");
-    shutdown(control_socket_fd_, SHUT_RDWR);
+    if (shutdown(control_socket_fd_, SHUT_RDWR) != 0) {
+      Log::E("Failed to shut down control socket - %s", strerror(errno));
+    }
   }
 }
 
