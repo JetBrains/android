@@ -17,22 +17,18 @@ package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 
-import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity;
-import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntityKt;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntityModifications;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.platform.backend.workspace.WorkspaceModelKt;
 import com.intellij.platform.workspace.jps.entities.ModuleEntity;
-import com.intellij.platform.workspace.jps.entities.ModuleEntityAndExtensions;
+import com.intellij.platform.workspace.jps.entities.ModuleEntityModifications;
 import com.intellij.platform.workspace.jps.entities.ModuleId;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
@@ -68,29 +64,29 @@ public class GradleUtilIdeaTest extends HeavyPlatformTestCase {
     assertIsGradleBuildFile(buildFile);
   }
 
-  // TODO: fix
   public void testGetGradleBuildFileFromModuleWithGradleFacet() {
-    //String name = myModuleRootDir.getName();
-    //GradleProjectStub gradleProject = new GradleProjectStub(name, ":" + name, getBaseDirPath(getProject()), myBuildFile);
-    //
-    //GradleModuleModel gradleModuleModel =
-    //  new GradleModuleModel(myModule.getName(), gradleProject, myBuildFile, "2.2.1", null, false, false);
-    //
-    //
-    //ApplicationManager.getApplication()
-    //  .runWriteAction(() -> WorkspaceModelKt.getWorkspaceModel(myProject).updateProjectModel("Set GradleModuleModel", it -> {
-    //    ModuleEntity entity = it.resolve(new ModuleId(myModule.getName()));
-    //    Objects.requireNonNull(entity);
-    //    ModuleEntityAndExtensions.modifyModuleEntity(it, entity, builder -> {
-    //      GradleModuleModelEntityKt.setGradleModuleModel(builder,
-    //                                                     GradleModuleModelEntity.create(gradleModuleModel, entity.getEntitySource()));
-    //      return Unit.INSTANCE;
-    //    });
-    //    return Unit.INSTANCE;
-    //  }));
-    //
-    //VirtualFile buildFile = GradleProjectSystemUtil.getGradleBuildFile(myModule);
-    //assertIsGradleBuildFile(buildFile);
+    String name = myModuleRootDir.getName();
+    GradleProjectStub gradleProject = new GradleProjectStub(name, ":" + name, getBaseDirPath(getProject()), myBuildFile);
+
+    GradleModuleModel gradleModuleModel =
+      new GradleModuleModel(myModule.getName(), gradleProject, myBuildFile, "2.2.1", null, false, false);
+
+
+    ApplicationManager.getApplication()
+      .runWriteAction(() -> WorkspaceModelKt.getWorkspaceModel(myProject).updateProjectModel("Set GradleModuleModel", it -> {
+        ModuleEntity entity = it.resolve(new ModuleId(myModule.getName()));
+        Objects.requireNonNull(entity);
+        ModuleEntityModifications.modifyModuleEntity(it, entity, builder -> {
+          GradleModuleModelEntityModifications.setGradleModuleModel(builder,
+                                                                    GradleModuleModelEntityModifications.createGradleModuleModelEntity(
+                                                                      gradleModuleModel, entity.getEntitySource()));
+          return Unit.INSTANCE;
+        });
+        return Unit.INSTANCE;
+      }));
+
+    VirtualFile buildFile = GradleProjectSystemUtil.getGradleBuildFile(myModule);
+    assertIsGradleBuildFile(buildFile);
   }
 
   private static void assertIsGradleBuildFile(@Nullable VirtualFile buildFile) {
