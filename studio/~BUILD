@@ -608,14 +608,19 @@ studio_plugin(
     name = "com.google.services.firebase",
     directory = "firebase",
     libs = [
-        "//tools/vendor/google/firebase:libfirebase_java_proto",
+        "//tools/vendor/google/firebase/crashlytics-client:libfirebase_java_proto",
         "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
         "//prebuilts/tools/common/m2:protobuf-java-util-3.22.3",
     ],
     license_files = [
         "//tools/vendor/google/firebase:licenses",
     ],
-    modules = {"firebase.jar": ["//tools/vendor/google/firebase:firebase"]},
+    modules = {
+        "firebase.jar": [
+            "//tools/vendor/google/firebase:firebase",
+            "//tools/vendor/google/firebase/crashlytics-client",
+        ],
+    },
     visibility = ["//visibility:public"],
     deps = [
         ":com.android.tools.gradle.dsl",

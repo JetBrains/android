@@ -433,7 +433,7 @@ filegroup(
         "//tools/vendor/google/alt-lang/soong/parser:libblueprint-lexer-parser",
         "//tools/vendor/google/asfp/base:studio-intellijext",
         "//tools/vendor/google/directaccess-client:directaccess_client_proto",
-        "//tools/vendor/google/firebase:libfirebase_java_proto",
+        "//tools/vendor/google/firebase/crashlytics-client:libfirebase_java_proto",
         "//tools/vendor/google/game-tools/main:game-tools-protos",
         "//tools/vendor/google/game-tools/packaging:game-tools-protos",
         "//tools/vendor/google/marketing:chime_kt_proto",

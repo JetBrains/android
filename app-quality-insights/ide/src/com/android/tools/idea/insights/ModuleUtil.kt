@@ -37,3 +37,5 @@ val Module.androidAppId: String?
     }
     return appId
   }
+
+fun Module.toAqiModule() = AqiModule(name, androidAppId)

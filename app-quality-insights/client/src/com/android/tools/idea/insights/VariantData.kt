@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,6 @@
  */
 package com.android.tools.idea.insights
 
-import com.intellij.openapi.module.Module
+data class AqiModule(val name: String, val androidAppId: String?)
 
-data class VariantData(val module: Module, val variantName: String)
+data class VariantData(val module: AqiModule, val variantName: String)

@@ -166,11 +166,13 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/asfp/base/asfp.base.iml" filepath="$PROJECT_DIR$/../../vendor/google/asfp/base/asfp.base.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/asfp/base/asfp.base.tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/asfp/base/asfp.base.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/asfp/studio/asfp.studio.iml" filepath="$PROJECT_DIR$/../../vendor/google/asfp/studio/asfp.studio.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/cuttlefish-plugin/cuttlefish-plugin.iml" filepath="$PROJECT_DIR$/../../vendor/google/cuttlefish-plugin/cuttlefish-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/aswb/integration/aswb.integration.iml" filepath="$PROJECT_DIR$/../../vendor/google/aswb/integration/aswb.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/soong/parser/blueprint-parser.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/soong/parser/blueprint-parser.iml" />
       <module fileurl="file://$PROJECT_DIR$/codenavigation/codenavigation.iml" filepath="$PROJECT_DIR$/codenavigation/codenavigation.iml" />
       <module fileurl="file://$PROJECT_DIR$/connection-assistant/connection-assistant.iml" filepath="$PROJECT_DIR$/connection-assistant/connection-assistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/connection-assistant/connection-assistant-test.iml" filepath="$PROJECT_DIR$/connection-assistant/connection-assistant-test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/firebase/crashlytics-client/crashlytics-client.iml" filepath="$PROJECT_DIR$/../../vendor/google/firebase/crashlytics-client/crashlytics-client.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../data-binding/baseLibrary/db-baseLibrary.iml" filepath="$PROJECT_DIR$/../../data-binding/baseLibrary/db-baseLibrary.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../data-binding/baseLibrarySupport/db-baseLibrarySupport.iml" filepath="$PROJECT_DIR$/../../data-binding/baseLibrarySupport/db-baseLibrarySupport.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../data-binding/compilationTests/db-compilationTests.iml" filepath="$PROJECT_DIR$/../../data-binding/compilationTests/db-compilationTests.iml" />
@@ -499,7 +501,6 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/usb-devices/usb-devices.iml" filepath="$PROJECT_DIR$/../../base/usb-devices/usb-devices.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/cuttlefish-plugin/cuttlefish-plugin.iml" filepath="$PROJECT_DIR$/../../vendor/google/cuttlefish-plugin/cuttlefish-plugin.iml" />
     </modules>
   </component>
 </project>
