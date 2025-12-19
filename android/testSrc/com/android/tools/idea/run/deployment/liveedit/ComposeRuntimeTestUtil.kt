@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.extensions.ProjectExtensionDescriptor
+import org.jetbrains.kotlin.extensions.ExtensionPointDescriptor
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.fir.extensions.KotlinFirCompilerPluginConfigurationForIdeProvider
 
@@ -76,7 +76,7 @@ private val composeExtensionStorage by lazy {
 private val composeCompilerPluginProviderForTest by lazy {
   object : KotlinCompilerPluginsProvider {
     override fun <T : Any> getRegisteredExtensions(module: KaModule,
-                                                   extensionType: ProjectExtensionDescriptor<T>): List<T> {
+                                                   extensionType: ExtensionPointDescriptor<T>): List<T> {
       val registrars = composeExtensionStorage.registeredExtensions[extensionType] ?: return emptyList()
       @Suppress("UNCHECKED_CAST")
       return registrars as List<T>
