@@ -119,6 +119,7 @@ class SafeArgsResolveExtensionProviderTest : AbstractSafeArgsResolveExtensionTes
     }
   }
 
+  @OptIn(KaSpiExtensionPoint::class)
   private inline fun KaModule.useExtensions(block: List<KaResolveExtension>.() -> Unit) {
     val disposable = Disposer.newDisposable("SafeArgsResolveExtensions")
     try {
