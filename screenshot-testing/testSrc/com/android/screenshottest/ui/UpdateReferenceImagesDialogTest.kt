@@ -223,6 +223,37 @@ class UpdateReferenceImagesDialogTest {
     verify(mockLogger).warn(contains("Source image path missing"))
   }
 
+  @Test
+  fun testErrorDialogShowsFunctionName() = runInEdtAndWait {
+    dialog = createDialog()
+    val details = PreviewDetails(
+      testId = "id",
+      className = "com.example.TestClass",
+      methodName = "myMethod",
+      previewName = "myPreview",
+      testResult = AndroidTestCaseResult.PASSED,
+      srcImagePath = null // This causes load failure
+    )
+
+    dialog?.updateDialogWithTestResult(details, isChecked = true)
+    dialog?.onTestSuiteFinished()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    var checkedMessage = false
+    TestDialogManager.setTestDialog { message ->
+      if (message.contains("myMethod.myPreview")) {
+        checkedMessage = true
+      }
+      DialogWrapper.OK_EXIT_CODE
+    }
+
+    callDoOKAction(dialog!!)
+
+    assertTrue("Error dialog should contain 'myMethod.myPreview'", checkedMessage)
+
+    TestDialogManager.setTestDialog(TestDialog.DEFAULT)
+  }
+
   private fun findTree(dialog: UpdateReferenceImagesDialog): CheckboxTree {
     val field = UpdateReferenceImagesDialog::class.java.getDeclaredField("tree")
     field.isAccessible = true
@@ -231,6 +262,12 @@ class UpdateReferenceImagesDialogTest {
 
   private fun callUpdateOkButtonState(dialog: UpdateReferenceImagesDialog) {
     val method = UpdateReferenceImagesDialog::class.java.getDeclaredMethod("updateOkButtonState")
+    method.isAccessible = true
+    method.invoke(dialog)
+  }
+
+  private fun callDoOKAction(dialog: UpdateReferenceImagesDialog) {
+    val method = UpdateReferenceImagesDialog::class.java.getDeclaredMethod("doOKAction")
     method.isAccessible = true
     method.invoke(dialog)
   }
