@@ -168,6 +168,7 @@ maven_repository(
         "@maven//:androidx.compose.material.material_1.8.0-alpha06",
         "@maven//:androidx.compose.ui.ui-tooling_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-tooling_1.8.0-alpha06",
+        "@maven//:androidx.compose.ui.ui_1.8.0-alpha06",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
         "@maven//:androidx.core.core-ktx_1.10.0",
         "@maven//:androidx.core.core-ktx_1.13.1",  # Compose BOM 2024.09.00
@@ -183,11 +184,14 @@ maven_repository(
         "@maven//:androidx.lifecycle.lifecycle-livedata_2.8.7",
         "@maven//:androidx.lifecycle.lifecycle-process_2.6.2",
         "@maven//:androidx.lifecycle.lifecycle-process_2.8.7",
+        "@maven//:androidx.lifecycle.lifecycle-runtime-compose-jvmstubs_2.8.7",
         "@maven//:androidx.lifecycle.lifecycle-runtime-compose_2.8.3",  #Required by ComposeRenderTest after updating to Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-runtime-compose_2.8.7",
         "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.8.7",
         "@maven//:androidx.lifecycle.lifecycle-runtime_2.6.2",
         "@maven//:androidx.lifecycle.lifecycle-runtime_2.8.3",
         "@maven//:androidx.lifecycle.lifecycle-service_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-desktop_2.8.7",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.8.3",  # Required by ComposeRenderTest after updating to Compose BOM 2024.09.00
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.6.2",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.8.7",
