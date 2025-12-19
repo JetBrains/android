@@ -57,7 +57,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
           expect.that(events).hasSize(1)
           events.firstOrNull()?.let {
             expect.that(it).isInstanceOf(BuildIssueEvent::class.java)
-            expect.that(it.message).isEqualTo("Could not resolve androidx.databinding:databinding-common:$latestKnown")
+            expect.that(it.message).isEqualTo("Could Not Resolve androidx.databinding:databinding-common:$latestKnown")
             expect.that(it.description).isEqualTo("""
               |A problem occurred configuring root project 'project'.
               |> Could not resolve all artifacts for configuration 'classpath'.
@@ -118,7 +118,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
           expect.that(events).hasSize(1)
           events.firstOrNull()?.let {
             expect.that(it).isInstanceOf(BuildIssueEvent::class.java)
-            expect.that(it.message).isEqualTo("Could not resolve my.not.existing.dependency:gradle:1.2.3-dev")
+            expect.that(it.message).isEqualTo("Could Not Resolve my.not.existing.dependency:gradle:1.2.3-dev")
             expect.that(it.description).startsWith("""
               |A problem occurred configuring root project 'project'.
               |> Could not resolve all artifacts for configuration 'classpath'.
@@ -215,7 +215,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
         expect.that(events).hasSize(1)
         events.firstOrNull()?.let {
           expect.that(it).isInstanceOf(BuildIssueEvent::class.java)
-          expect.that(it.message).isEqualTo("Could not resolve my.not.existing.dependency:gradle:1.2.3-dev")
+          expect.that(it.message).isEqualTo("Could Not Resolve my.not.existing.dependency:gradle:1.2.3-dev")
           expect.that(it.description).isEqualTo("""
             |A problem occurred configuring project ':app'.
             |> Could not resolve all artifacts for configuration 'classpath'.
@@ -231,7 +231,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
           // In offline mode toggle offline mode quickfix is expected.
           expect.that((it as? BuildIssueEvent)?.issue?.quickFixes).hasSize(1)
           expect.that((it as? BuildIssueEvent)?.issue?.quickFixes?.firstOrNull()?.javaClass?.name)
-            .isEqualTo("org.jetbrains.plugins.gradle.issue.UnresolvedDependencyBuildIssue\$DisableOfflineAndRerun")
+            .isEqualTo("com.intellij.build.issue.ConfigurableBuildIssue\$QuickFix")
         }
       }
       // TODO (b/355417764): Currently we also generate issue from CachedDependencyNotFoundIssueChecker in this case.
