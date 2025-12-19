@@ -22,10 +22,6 @@ jvm_library(
     ),
     kotlinc_opts = ":custom_adt-ui-compose",
     module_name = "intellij.android.adt.ui.compose",
-    resource_strip_prefix = "resources",
-    resources = glob(
-        ["resources/**/*"],
-    ),
     visibility = ["//visibility:public"],
     exports = [
         # do not sort,
