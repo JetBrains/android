@@ -26,7 +26,10 @@ PROJECT                       : project
             EXCLUDE_FOLDER                : file://<PROJECT>/gradle_project/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/gradle_project/build
         JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
+        *isInherited                  : false
+            SdkType                       : JavaSDK
+            HomePath                      : <JDK_PATH>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
     MODULE                        : gradle_project.app
