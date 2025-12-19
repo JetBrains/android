@@ -18,7 +18,7 @@ package com.android.tools.idea.vitals.ui
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.insights.Selection
-import com.android.tools.idea.insights.ui.JListSimpleColoredComponent
+import com.android.tools.idea.insights.ui.ResizedSimpleColoredComponent
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.TEST_CONNECTION_2
 import com.android.tools.idea.vitals.TEST_CONNECTION_3
@@ -71,7 +71,7 @@ class VitalsConnectionSelectorPopupTest {
     assertThat(lists[1].model.getElementAt(0)).isEqualTo(TEST_CONNECTION_3)
 
     val labels =
-      fakeUi.findAllComponents<SimpleColoredComponent> { it !is JListSimpleColoredComponent<*> }
+      fakeUi.findAllComponents<SimpleColoredComponent> { it !is ResizedSimpleColoredComponent }
     assertThat(labels).hasSize(2)
     assertThat(labels.map { it.toString() })
       .containsExactly("Suggested apps for this project", "Other apps")
@@ -92,7 +92,7 @@ class VitalsConnectionSelectorPopupTest {
     assertThat(list.model.getElementAt(1)).isEqualTo(TEST_CONNECTION_2)
 
     val labels =
-      fakeUi.findAllComponents<SimpleColoredComponent> { it !is JListSimpleColoredComponent<*> }
+      fakeUi.findAllComponents<SimpleColoredComponent> { it !is ResizedSimpleColoredComponent }
     assertThat(labels).hasSize(3)
     assertThat(labels.map { it.toString() })
       .containsExactly("Suggested apps for this project", "Other apps", "No apps accessible to you")
@@ -112,7 +112,7 @@ class VitalsConnectionSelectorPopupTest {
       assertThat(list.model.getElementAt(0)).isEqualTo(TEST_CONNECTION_3)
 
       val labels =
-        fakeUi.findAllComponents<SimpleColoredComponent> { it !is JListSimpleColoredComponent<*> }
+        fakeUi.findAllComponents<SimpleColoredComponent> { it !is ResizedSimpleColoredComponent }
       assertThat(labels).hasSize(3)
       assertThat(labels.map { it.toString() })
         .containsExactly("Suggested apps for this project", "No suggested apps", "All apps")
