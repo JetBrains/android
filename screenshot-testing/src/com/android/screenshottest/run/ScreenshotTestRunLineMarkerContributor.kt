@@ -15,11 +15,14 @@
  */
 package com.android.screenshottest.run
 
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.isScreenshotTestFile
 import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.PsiElement
 import com.android.tools.idea.flags.StudioFlags
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
@@ -40,9 +43,15 @@ class ScreenshotTestRunLineMarkerContributor: RunLineMarkerContributor() {
     if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get() ||
         !isScreenshotTestFile(element.project, element.containingFile.virtualFile)) return null
 
+    val module = ModuleUtilCore.findModuleForPsiElement(element) ?: return null
+    val facet = AndroidFacet.getInstance(module) ?: return null
+    val model = AndroidModel.get(facet) ?: return null
+    if (!model.isDebuggable) return null
+
     val declaration = element.getStrictParentOfType<KtNamedDeclaration>()?.takeIf { it.nameIdentifier == element } ?: return null
     if (isValidKtMethodIdentifier(declaration) || isValidKtTestClassIdentifier(declaration)) {
-      val actions = arrayOf(*ExecutorAction.getActions(), ActionManager.getInstance().getAction("com.android.screenshottest.action.UpdateReferenceImagesAction"))
+      // Use listOfNotNull to handle the case where the action might not be registered or found, avoiding nulls in the array.
+      val actions = (ExecutorAction.getActions().toList() + listOfNotNull(ActionManager.getInstance().getAction("com.android.screenshottest.action.UpdateReferenceImagesAction"))).toTypedArray()
       return Info(AllIcons.RunConfigurations.TestState.Run, actions) { "Run screenshot tests" }
     }
     return null

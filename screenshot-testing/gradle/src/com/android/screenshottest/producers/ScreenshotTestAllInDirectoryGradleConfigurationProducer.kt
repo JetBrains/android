@@ -35,7 +35,8 @@ import org.jetbrains.plugins.gradle.util.TasksToRun
  */
 class ScreenshotTestAllInDirectoryGradleConfigurationProducer: AllInDirectoryGradleConfigurationProducer() {
   override fun suggestConfigurationName(context: ConfigurationContext, element: PsiElement, chosenElements: List<PsiElement>): String {
-    return "Screenshot Tests in ${context.module!!.name}"
+    // Handle potential null module to prevent NullPointerException.
+    return "Screenshot Tests in ${context.module?.name ?: "unknown module"}"
   }
 
   override fun doIsConfigurationFromContext(configuration: GradleRunConfiguration, context: ConfigurationContext): Boolean {
@@ -50,6 +51,8 @@ class ScreenshotTestAllInDirectoryGradleConfigurationProducer: AllInDirectoryGra
     if (!isScreenshotTestSourceSet(location, androidFacet)) return false
 
     val taskNames = getScreenshotTestTaskNames(context) ?: return false
+    if (taskNames.isEmpty()) return false
+
     val configurationTaskNames = configuration.settings.taskNames
     return  configurationTaskNames == taskNames
   }
@@ -88,9 +91,12 @@ class ScreenshotTestAllInDirectoryGradleConfigurationProducer: AllInDirectoryGra
     }
 
     val project = context.project ?: return false
+    val taskNames = getScreenshotTestTaskNames(context) ?: return false
+    if (taskNames.isEmpty()) return false
+
     configuration.settings.externalProjectPath = project.basePath
     sourceElementRef.set(location.psiElement)
-    configuration.settings.taskNames = getScreenshotTestTaskNames(context)!!
+    configuration.settings.taskNames = taskNames
     configuration.name = suggestConfigurationName(context, location.psiElement, emptyList())
     return true
   }

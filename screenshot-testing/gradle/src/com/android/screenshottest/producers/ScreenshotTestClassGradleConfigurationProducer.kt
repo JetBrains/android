@@ -87,6 +87,8 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
       expectedTasks = taskNamesWithFilter(context, listOfNotNull(psiClass.qualifiedName))
     }
 
+    if (expectedTasks.isEmpty()) return false
+
     return configuration.settings.taskNames == expectedTasks
   }
 
@@ -151,6 +153,9 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
         return false
       }
 
+      val tasks = taskNamesWithFilter(context, qualifiedNames.toList())
+      if (tasks.isEmpty()) return false
+
       // A representative PsiElement is required by the base producer.
       // We'll use the first class in the file, or the file itself if no classes exist.
       val representativeElement = ktFile.classes.firstOrNull() ?: ktFile
@@ -158,17 +163,20 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
 
       configuration.settings.externalProjectPath = project.basePath
       configuration.name = "Screenshot Tests in ${ktFile.name}"
-      configuration.settings.taskNames = taskNamesWithFilter(context, qualifiedNames.toList())
+      configuration.settings.taskNames = tasks
       return true
     }
     // Case 2: Context is inside the editor or on a class.
     else {
       val psiClass = getPsiParentsOfType(location.psiElement, PsiClass::class.java, false).firstOrNull()
       if (psiClass != null && isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) {
+        val tasks = taskNamesWithFilter(context, listOfNotNull(psiClass.qualifiedName))
+        if (tasks.isEmpty()) return false
+
         sourceElementRef.set(psiClass)
         configuration.settings.externalProjectPath = project.basePath
         configuration.name = suggestConfigurationName(context, psiClass, emptyList())
-        configuration.settings.taskNames = taskNamesWithFilter(context, listOfNotNull(psiClass.qualifiedName))
+        configuration.settings.taskNames = tasks
         return true
       }
     }

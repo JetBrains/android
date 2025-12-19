@@ -16,6 +16,7 @@
 package com.android.screenshottest.producers
 
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.SourceProviderManager
@@ -73,11 +74,13 @@ fun isScreenshotTestSourceSet(location: Location<PsiElement>, facet: AndroidFace
 fun getScreenshotTestTaskNames(context: ConfigurationContext): List<String>? {
   val myModule = AndroidUtils.getAndroidModule(context) ?: return null
   val facet = AndroidFacet.getInstance(myModule) ?: return null
-  val androidModel = GradleAndroidModel.get(facet) ?: return null
+  val androidModel = AndroidModel.get(facet) ?: return null
+  if (!androidModel.isDebuggable) return null
+  val gradleAndroidModel = GradleAndroidModel.get(facet) ?: return null
   val moduleData = GradleUtil.findGradleModuleData(myModule)?.data ?: return null
   return listOf(
     moduleData.gradleIdentityPath.trimEnd(':') + ":" +
-      androidModel.getGradleScreenshotTestTaskNameForSelectedVariant("validate")
+      gradleAndroidModel.getGradleScreenshotTestTaskNameForSelectedVariant("validate")
   )
 }
 
