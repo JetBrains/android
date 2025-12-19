@@ -38,7 +38,6 @@ import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuThreadsModel;
 import com.android.tools.profilers.cpu.CpuTraceInfo;
 import com.android.tools.profilers.cpu.DetailedCpuUsage;
-import com.android.tools.profilers.event.EventMonitor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -59,7 +58,6 @@ public class CpuDataProvider {
   private final DetailedCpuUsage myCpuUsage;
   private final CpuProfilerStage.CpuStageLegends myLegends;
   private final DurationDataModel<CpuTraceInfo> myTraceDurations;
-  private final EventMonitor myEventMonitor;
   private final RangeSelectionModel myRangeSelectionModel;
   private final EaseOutModel myInstructionsEaseOutModel;
 
@@ -91,8 +89,6 @@ public class CpuDataProvider {
     myTraceDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, myCpuTraceDataSeries));
 
     myThreadsStates = new CpuThreadsModel(viewRange, profilers, myProfilers.getSession());
-
-    myEventMonitor = new EventMonitor(profilers);
 
     myRangeSelectionModel = buildRangeSelectionModel(selectionRange, viewRange);
 
@@ -154,10 +150,6 @@ public class CpuDataProvider {
 
   public DurationDataModel<CpuTraceInfo> getTraceDurations() {
     return myTraceDurations;
-  }
-
-  public EventMonitor getEventMonitor() {
-    return myEventMonitor;
   }
 
   @NotNull

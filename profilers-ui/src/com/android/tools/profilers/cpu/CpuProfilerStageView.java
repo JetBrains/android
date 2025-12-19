@@ -34,6 +34,7 @@ import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.SupportLevel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.LifecycleTooltipView;
 import com.android.tools.profilers.event.UserEventTooltip;
@@ -86,11 +87,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     usageView.addMouseListener(listener);
 
     final JPanel details = myDetailedCpuChart.createCpuDetailsPanel(3, myTooltipComponent);
-    if (stage.getStudioProfilers().getSelectedSessionSupportLevel() == SupportLevel.DEBUGGABLE) {
-      final EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
+    EventMonitor eventMonitor = stage.getEventMonitor();
+    if (eventMonitor != null) {
+      final EventMonitorView eventsView = new EventMonitorView(profilersView, eventMonitor);
       eventsView.registerTooltip(myTooltipComponent, getStage());
       details.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
     }
+
     details.add(buildTimeAxis(myStage.getStudioProfilers()), new TabularLayout.Constraint(3, 0));
     details.add(new TimelineScrollbar(myStage.getTimeline(), details), new TabularLayout.Constraint(4, 0));
 

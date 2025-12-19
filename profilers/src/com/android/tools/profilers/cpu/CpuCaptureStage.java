@@ -468,8 +468,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
     myTrackGroupModels.clear();
 
     FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
+    boolean jvmtiEnabled = getStudioProfilers().getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled();
+
     // Interaction events, e.g. user interaction, app lifecycle. Recorded trace only.
-    if (getStudioProfilers().getSession().getPid() != 0) {
+    if (jvmtiEnabled) {
       myTrackGroupModels.add(createInteractionTrackGroup());
     }
 

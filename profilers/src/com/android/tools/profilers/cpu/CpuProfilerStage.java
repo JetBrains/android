@@ -150,6 +150,9 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
   @Nullable
   private final RecordingScreenModel<CpuProfilerStage> myRecordingScreenModel;
 
+  @Nullable
+  private EventMonitor myEventMonitor;
+
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, new CpuCaptureParser(profilers), CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, () -> {});
   }
@@ -255,8 +258,9 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
     return "CPU";
   }
 
+  @Nullable
   public EventMonitor getEventMonitor() {
-    return myCpuDataProvider.getEventMonitor();
+    return myEventMonitor;
   }
 
   public RecordingOptionsModel getRecordingModel() {
@@ -285,7 +289,10 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
   @Override
   public void enter() {
     logEnterStage();
-    getEventMonitor().enter();
+    myEventMonitor = getEventMonitorInstance();
+    if (myEventMonitor != null) {
+      myEventMonitor.enter();
+    }
     getStudioProfilers().getUpdater().register(getCpuUsage());
     getStudioProfilers().getUpdater().register(getTraceDurations());
     getStudioProfilers().getUpdater().register(myInProgressTraceHandler);
@@ -306,7 +313,9 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
 
   @Override
   public void exit() {
-    getEventMonitor().exit();
+    if (myEventMonitor != null) {
+      myEventMonitor.exit();
+    }
     getStudioProfilers().getUpdater().unregister(getCpuUsage());
     getStudioProfilers().getUpdater().unregister(getTraceDurations());
     getStudioProfilers().getUpdater().unregister(myInProgressTraceHandler);
@@ -321,6 +330,12 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
     myCaptureParser.abortParsing();
     getRangeSelectionModel().clearListeners();
     getUpdatableManager().releaseAll();
+  }
+
+  @Nullable
+  private EventMonitor getEventMonitorInstance() {
+    boolean jvmtiEnabled = getStudioProfilers().getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled();
+    return jvmtiEnabled ? new EventMonitor(getStudioProfilers()) : null;
   }
 
   @Override
