@@ -2399,11 +2399,14 @@ Android Studio Preview.app/Contents/plugins/android/lib/studio-grpc.jar
 Android Studio Preview.app/Contents/plugins/android/lib/studio-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
 Android Studio Preview.app/Contents/plugins/android/lib/traceprocessor_protos.jar
+Android Studio Preview.app/Contents/plugins/android/lib/tracing-desktop-2.0.0-SNAPSHOT.jar
 Android Studio Preview.app/Contents/plugins/android/lib/tracing-perfetto-handshake-1.0.0-beta02.jar
+Android Studio Preview.app/Contents/plugins/android/lib/tracing-wire-desktop-2.0.0-SNAPSHOT.jar
 Android Studio Preview.app/Contents/plugins/android/lib/transport_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/ui-animation-tooling-internal.jar
 Android Studio Preview.app/Contents/plugins/android/lib/utp-core-proto-jarjar.jar
 Android Studio Preview.app/Contents/plugins/android/lib/utp.jar
+Android Studio Preview.app/Contents/plugins/android/lib/wire-runtime-jvm-5.4.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/wizard-template.jar
 Android Studio Preview.app/Contents/plugins/android/lib/workmanager_inspector_proto.jar
 Android Studio Preview.app/Contents/plugins/android/resources/androidAnnotations.jar
