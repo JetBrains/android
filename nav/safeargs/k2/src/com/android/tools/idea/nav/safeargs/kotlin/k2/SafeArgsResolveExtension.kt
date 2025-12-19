@@ -33,6 +33,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.GlobalSearchScopesCore
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.KaSpiExtensionPoint
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtension
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtensionFile
 import org.jetbrains.kotlin.idea.base.util.parentsWithSelf
@@ -69,11 +70,14 @@ class SafeArgsResolveExtension(private val module: Module) : KaResolveExtension(
   private val allClasses: List<KaResolveExtensionFile>
     get() = args + directions
 
+  @KaSpiExtensionPoint
   override fun getKtFiles(): List<KaResolveExtensionFile> = allClasses
 
+  @KaSpiExtensionPoint
   override fun getContainedPackages(): Set<FqName> =
     allClasses.map { it.getFilePackageName() }.toSet()
 
+  @KaSpiExtensionPoint
   override fun getShadowedScope(): GlobalSearchScope {
     // Note: This function _cannot_ depend on any data from currentStatus!
     // Due to a kotlinc bug, getShadowedScope() is called on a copy of the SafeArgsResolveExtension
