@@ -50,6 +50,7 @@
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.execution.common" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
+    <orderEntry type="module" module-name="intellij.libraries.skiko" />
     <orderEntry type="module" module-name="intellij.android.jps.model" />
     <orderEntry type="module" module-name="intellij.android.lint.common" />
     <orderEntry type="module" module-name="intellij.android.observable" />

@@ -45,6 +45,7 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.test" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.observable" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
@@ -92,6 +93,7 @@
     <orderEntry type="module" module-name="intellij.kotlin.gradle.tooling.impl" />
     <orderEntry type="module" module-name="intellij.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.kotlin.gradle.codeInsight.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.libraries.compose.runtime.desktop" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose" />
     <orderEntry type="module" module-name="intellij.android.ml-api" />
   </component>
