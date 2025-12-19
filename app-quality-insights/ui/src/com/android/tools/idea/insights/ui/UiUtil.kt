@@ -134,20 +134,18 @@ open class ResizedSimpleColoredComponent : SimpleColoredComponent() {
   }
 }
 
-class JListSimpleColoredComponent<T>(icon: Icon?, list: JList<T>, hasFocus: Boolean) :
-  ResizedSimpleColoredComponent() {
-  init {
-    font = list.font
-    foreground =
-      if (hasFocus) {
-        list.selectionForeground
-      } else {
-        list.foreground
-      }
-    if (icon != null) {
-      this.icon = if (hasFocus) ColoredIconGenerator.generateColoredIcon(icon, foreground) else icon
+fun <T> SimpleColoredComponent.formatListRenderer(icon: Icon?, list: JList<T>, hasFocus: Boolean) {
+  font = list.font
+  foreground =
+    if (hasFocus) {
+      list.selectionForeground
+    } else {
+      list.foreground
     }
-  }
+  this.icon =
+    if (icon != null) {
+      if (hasFocus) ColoredIconGenerator.generateColoredIcon(icon, foreground) else icon
+    } else null
 }
 
 fun prettyRangeString(lower: Any, upper: Any = lower) =
