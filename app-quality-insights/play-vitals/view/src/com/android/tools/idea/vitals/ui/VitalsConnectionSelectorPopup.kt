@@ -17,7 +17,8 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.Selection
-import com.android.tools.idea.insights.ui.JListSimpleColoredComponent
+import com.android.tools.idea.insights.ui.ResizedSimpleColoredComponent
+import com.android.tools.idea.insights.ui.formatListRenderer
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -150,20 +151,23 @@ class VitalsConnectionSelectorPopup(
       }
     )
 
+    val renderer = JPanel(BorderLayout())
+    val rendererColoredComponent = ResizedSimpleColoredComponent()
+    renderer.add(rendererColoredComponent, BorderLayout.WEST)
+
     connectionsList.setCellRenderer { list, value, _, _, _ ->
       val hasFocus = list.selectedValue == value
-      val renderer = JPanel(BorderLayout())
       renderer.isOpaque = false
       renderer.border = VITALS_POPUP_ITEM_BORDER
-      val component =
-        JListSimpleColoredComponent(null, list, hasFocus).apply {
-          toolTipText = value.appId
-          append(value.displayName, SimpleTextAttributes.REGULAR_ATTRIBUTES)
-          append("  ")
-          append(value.appId, SimpleTextAttributes.GRAYED_ATTRIBUTES)
-        }
-      component.background = if (hasFocus) list.selectionBackground else list.background
-      renderer.add(component, BorderLayout.WEST)
+      rendererColoredComponent.apply {
+        clear()
+        formatListRenderer(null, list, hasFocus)
+        toolTipText = value.appId
+        append(value.displayName, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+        append("  ")
+        append(value.appId, SimpleTextAttributes.GRAYED_ATTRIBUTES)
+        background = if (hasFocus) list.selectionBackground else list.background
+      }
       renderer
     }
     connectionsList.addMouseListener(

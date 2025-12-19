@@ -19,8 +19,8 @@ import com.android.tools.adtui.common.ColoredIconGenerator.generateColoredIcon
 import com.android.tools.adtui.ui.DynamicRendererList
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.getIcon
-import com.android.tools.idea.insights.ui.JListSimpleColoredComponent
 import com.android.tools.idea.insights.ui.ResizedSimpleColoredComponent
+import com.android.tools.idea.insights.ui.formatListRenderer
 import com.android.tools.idea.insights.ui.formatNumberToPrettyString
 import com.android.tools.idea.insights.ui.getDisplayTitle
 import com.intellij.openapi.actionSystem.AnAction
@@ -197,6 +197,31 @@ data class HeaderInstruction(val name: String) : RenderInstruction()
 data class InsightInstruction(val insight: AppInsight) : RenderInstruction()
 
 private class AppInsightsGutterListCellRenderer : ListCellRenderer<RenderInstruction> {
+  private val headerRenderer = ResizedSimpleColoredComponent()
+  private val headerPanel =
+    JPanel(BorderLayout()).apply {
+      border = JBUI.Borders.emptyLeft(10)
+      add(headerRenderer, BorderLayout.WEST)
+    }
+  private val separator = JSeparator()
+  private val leftComponent = ResizedSimpleColoredComponent()
+  private val eventsComponent = ResizedSimpleColoredComponent()
+  private val usersComponent = ResizedSimpleColoredComponent()
+  private val insightPanel =
+    JPanel(BorderLayout()).apply {
+      border = JBUI.Borders.emptyLeft(5)
+      add(leftComponent, BorderLayout.WEST)
+      add(
+        JPanel().apply {
+          isOpaque = false
+          border = JBUI.Borders.emptyLeft(15)
+          add(eventsComponent)
+          add(usersComponent)
+        },
+        BorderLayout.EAST,
+      )
+    }
+
   override fun getListCellRendererComponent(
     list: JList<out RenderInstruction>,
     value: RenderInstruction,
@@ -206,67 +231,45 @@ private class AppInsightsGutterListCellRenderer : ListCellRenderer<RenderInstruc
   ): Component {
     return when (value) {
       is HeaderInstruction -> {
-        val renderer = JPanel(BorderLayout())
-        renderer.border = JBUI.Borders.emptyLeft(10)
-        renderer.add(
-          ResizedSimpleColoredComponent().apply {
-            append(value.name, SimpleTextAttributes.GRAYED_SMALL_ATTRIBUTES)
-          },
-          BorderLayout.WEST,
-        )
-        renderer
+        headerRenderer.clear()
+        headerRenderer.append(value.name, SimpleTextAttributes.GRAYED_SMALL_ATTRIBUTES)
+        headerPanel
       }
-      is SeparatorInstruction -> JSeparator()
+      is SeparatorInstruction -> separator
       is InsightInstruction -> {
-        val renderer = JPanel(BorderLayout())
         val hasFocus = list.selectedValue == value
-        renderer.border = JBUI.Borders.emptyLeft(5)
-
         val issueDetails = value.insight.issue.issueDetails
         val (className, methodName) = issueDetails.getDisplayTitle()
-        val leftComponent =
-          JListSimpleColoredComponent(issueDetails.fatality.getIcon(), list, hasFocus).apply {
-            toolTipText = issueDetails.subtitle
-            append(className, SimpleTextAttributes.REGULAR_ATTRIBUTES)
-            if (methodName.isNotEmpty()) {
-              append(".", SimpleTextAttributes.REGULAR_ATTRIBUTES)
-              append(methodName, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
-            }
+        leftComponent.apply {
+          clear()
+          formatListRenderer(issueDetails.fatality.getIcon(), list, hasFocus)
+          toolTipText = issueDetails.subtitle
+          append(className, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+          if (methodName.isNotEmpty()) {
+            append(".", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+            append(methodName, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
           }
-        renderer.add(leftComponent, BorderLayout.WEST)
+        }
+        eventsComponent.apply {
+          clear()
+          formatListRenderer(StudioIcons.GutterIcons.ISSUE, list, hasFocus)
+          append(
+            issueDetails.eventsCount.formatNumberToPrettyString(),
+            SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES,
+          )
+        }
+        usersComponent.apply {
+          clear()
+          formatListRenderer(StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE, list, hasFocus)
+          append(
+            issueDetails.impactedDevicesCount.formatNumberToPrettyString(),
+            SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES,
+          )
+        }
 
-        val eventsComponent =
-          JListSimpleColoredComponent(StudioIcons.GutterIcons.ISSUE, list, hasFocus).apply {
-            append(
-              issueDetails.eventsCount.formatNumberToPrettyString(),
-              SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES,
-            )
-          }
-
-        val usersComponent =
-          JListSimpleColoredComponent(
-              StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE,
-              list,
-              hasFocus,
-            )
-            .apply {
-              append(
-                issueDetails.impactedDevicesCount.formatNumberToPrettyString(),
-                SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES,
-              )
-            }
-
-        val countsPanel =
-          JPanel().apply {
-            isOpaque = false
-            border = JBUI.Borders.emptyLeft(15)
-            add(eventsComponent)
-            add(usersComponent)
-          }
-        renderer.add(countsPanel, BorderLayout.EAST)
-        renderer.foreground = if (hasFocus) list.selectionForeground else list.foreground
-        renderer.background = if (hasFocus) list.selectionBackground else list.background
-        renderer
+        insightPanel.foreground = if (hasFocus) list.selectionForeground else list.foreground
+        insightPanel.background = if (hasFocus) list.selectionBackground else list.background
+        insightPanel
       }
     }
   }
