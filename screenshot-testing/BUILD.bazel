@@ -38,6 +38,7 @@ jvm_library(
     "//platform/execution",
     "//platform/execution-impl",
     "//platform/lang-api:lang",
+    "//platform/lang-core",
     "//platform/platform-impl:ide-impl",
     "//uast/uast-common:uast",
     "//plugins/kotlin/base/util",

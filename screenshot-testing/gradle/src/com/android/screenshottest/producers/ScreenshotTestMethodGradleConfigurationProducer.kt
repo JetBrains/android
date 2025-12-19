@@ -55,8 +55,11 @@ class ScreenshotTestMethodGradleConfigurationProducer: TestMethodGradleConfigura
     if (!isScreenshotTestSourceSet(location, androidFacet)) return false
     if (!isMethodDeclarationPreviewTestAnnotated(psiMethod, visitedAnnotations)) return false
 
+    val expectedTasks = taskNamesWithFilter(context, psiMethod)
+    if (expectedTasks.isEmpty()) return false
+
     val configurationTaskNames = configuration.settings.taskNames
-    return configurationTaskNames == taskNamesWithFilter(context, psiMethod)
+    return configurationTaskNames == expectedTasks
   }
 
   override fun getAllTestsTaskToRun(context: ConfigurationContext,
@@ -94,10 +97,12 @@ class ScreenshotTestMethodGradleConfigurationProducer: TestMethodGradleConfigura
     val project = context.project ?: return false
     getPsiParentsOfType(location.psiElement, PsiMethod::class.java, false).forEach { elementMethod ->
       if (!isMethodDeclarationPreviewTestAnnotated(elementMethod, visitedAnnotations)) return false
+      val tasks = taskNamesWithFilter(context, elementMethod)
+      if (tasks.isEmpty()) return false
       sourceElementRef.set(elementMethod)
       configuration.settings.externalProjectPath = project.basePath
       configuration.name = suggestConfigurationName(context, elementMethod, emptyList())
-      configuration.settings.taskNames = taskNamesWithFilter(context, elementMethod)
+      configuration.settings.taskNames = tasks
       configuration.isDebugServerProcess = false
       configuration.isDebugAllEnabled = false
 
@@ -109,7 +114,8 @@ class ScreenshotTestMethodGradleConfigurationProducer: TestMethodGradleConfigura
   private fun taskNamesWithFilter(context: ConfigurationContext, psiMethod: PsiMethod): List<String> {
     val className = psiMethod.containingClass?.qualifiedName?: return emptyList()
     val methodName = psiMethod.name
-    return getScreenshotTestTaskNames(context)!! + "--tests" + "\"$className.$methodName\""
+    val tasks = getScreenshotTestTaskNames(context) ?: return emptyList()
+    return tasks + "--tests" + "\"$className.$methodName\""
   }
 
 }
