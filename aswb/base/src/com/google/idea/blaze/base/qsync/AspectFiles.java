@@ -55,14 +55,14 @@ public final class AspectFiles {
    * Gets a bundled aspect file as a {@link Path}.
    *
    * @param filename The simple filename of the aspect to load from the bundled resources.
+   * @param workspaceAbsolutePath The absolute path to the workspace root.
    */
-  public Path getBundledAspectPath(String filename) {
+  public static Path getBundledAspectPath(String filename, Path workspaceAbsolutePath) {
     String aspectPath = System.getProperty(String.format("qsync.aspect.%s.file", filename));
     if (aspectPath != null) {
       return Path.of(aspectPath);
     }
     if (Strings.isNotEmpty(aspectLocation.getValue())) {
-      Path workspaceAbsolutePath = workspaceRoot.absolutePathFor("");
       // NOTE: aspectLocation allows both relative and absolute paths.
       ImmutableList<Path> candidates =
           Splitter.on(":")
