@@ -32,6 +32,7 @@ import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.query.PackageSet
+import com.google.idea.blaze.qsync.java.AndroidResUtils
 import java.nio.file.Path
 import java.util.Collections
 import java.util.Comparator.comparingInt
@@ -349,21 +350,11 @@ class GraphToProjectConverter(
     @VisibleForTesting
     @JvmStatic
     fun computeAndroidResourceDirectories(sourceFiles: ImmutableSet<Label>): ImmutableSet<Path> {
-      val directories = hashSetOf<Path>()
-      for (sourceFile in sourceFiles) {
-        if (sourceFile.name.endsWith(".xml")) {
-          @SuppressWarnings("PathAsIterable") val pathParts = sourceFile.getNamePath().toList()
-          val resPos = pathParts.indexOf(Path.of("res"))
-          if (resPos >= 0) {
-            directories.add(
-              sourceFile
-                .getBuildPackagePath()
-                .resolve(sourceFile.getNamePath().subpath(0, resPos + 1))
-            )
-          }
-        }
-      }
-      return ImmutableSet.copyOf(directories)
+      return ImmutableSet.copyOf(
+        AndroidResUtils.computeAndroidResourceDirectories(
+          sourceFiles.map { it.getBuildPackagePath().resolve(it.getNamePath()) }
+        )
+      )
     }
   }
 
@@ -450,8 +441,7 @@ class GraphToProjectConverter(
     // This implies that we can safely take the grandparent of each resource file to find the
     // top level res dir:
     val resList = graph.getAndroidResourceFiles()
-    val androidResDirs =
-      resList.map(Path::getParent).distinct().map(Path::getParent).distinct().toSet()
+    val androidResDirs = AndroidResUtils.computeAndroidResourceDirectories(resList)
 
     context.output(PrintOutput.log("%-10d Android resource directories", androidResDirs.size))
 
