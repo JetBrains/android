@@ -442,7 +442,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
   @VisibleForTesting
   @Override
   public Path getBundledAspectPath(String filename) {
-    return aspectFiles.getBundledAspectPath(filename);
+    return AspectFiles.getBundledAspectPath(filename, workspaceRoot.absolutePathFor(""));
   }
 
   /**
