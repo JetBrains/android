@@ -283,7 +283,7 @@ public final class BlazeAndroidRunConfigurationRunner
               .push(new ExperimentScope())
               .push(
                   new ToolWindowScope.Builder(
-                          project, new Task(project, "Build apk", Task.Type.BEFORE_LAUNCH))
+                          project, new Task(project, "Build apk"))
                       .setPopupBehavior(settings.getShowBlazeConsoleOnRun())
                       .setIssueParsers(
                           BlazeIssueParser.defaultIssueParsers(

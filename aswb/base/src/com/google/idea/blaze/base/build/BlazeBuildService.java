@@ -16,7 +16,6 @@
 package com.google.idea.blaze.base.build;
 
 import com.android.annotations.concurrency.WorkerThread;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -48,7 +47,6 @@ import com.google.idea.blaze.base.sync.SyncProjectTargetsHelper;
 import com.google.idea.blaze.base.sync.SyncScope.SyncCanceledException;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.google.idea.blaze.base.sync.aspects.BlazeIdeInterface;
-import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy.OutputGroup;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.toolwindow.Task;
 import com.google.idea.blaze.base.util.SaveUtil;
@@ -168,7 +166,7 @@ public class BlazeBuildService {
                                                  FocusBehavior problemsViewFocus,
                                                  NotificationScope notificationScope,
                                                  Function<BlazeContext, Boolean> buildTask) {
-    Task task = new Task(project, taskName, Task.Type.MAKE);
+    Task task = new Task(project, taskName);
     context
       .push(
         new ToolWindowScope.Builder(project, task)
@@ -217,7 +215,6 @@ public class BlazeBuildService {
           projectView,
           targets,
           projectData.getWorkspaceLanguageSettings(),
-          ImmutableSet.of(OutputGroup.COMPILE),
           BlazeInvocationContext.OTHER_CONTEXT,
           false)
         .buildResult();

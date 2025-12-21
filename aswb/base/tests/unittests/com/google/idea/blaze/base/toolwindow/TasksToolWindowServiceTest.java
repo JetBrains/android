@@ -40,7 +40,7 @@ public class TasksToolWindowServiceTest {
 
   @Before
   public void before() {
-    task = new Task(intellij.getProject(), "Test task", Task.Type.SYNC);
+    task = new Task(intellij.getProject(), "Test task");
   }
 
   @Test
