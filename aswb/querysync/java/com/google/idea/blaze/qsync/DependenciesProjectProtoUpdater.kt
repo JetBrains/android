@@ -32,6 +32,7 @@ import com.google.idea.blaze.qsync.java.JavaSourcePackageExtractor
 import com.google.idea.blaze.qsync.java.PackageStatementParser
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder
 import com.google.idea.blaze.qsync.java.SrcJarPackageRootsExtractor
+import com.google.idea.blaze.qsync.java.AddProjectGenAndroidRes
 import com.google.idea.blaze.qsync.java.SrcJarPrefixedPackageRootsExtractor
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
@@ -60,6 +61,7 @@ class DependenciesProjectProtoUpdater(
         AddCompiledJavaDeps(emptyJarDigests),
         AddProjectGenSrcJars(projectDefinition, SrcJarPrefixedPackageRootsExtractor(srcJarInnerPathFinder)),
         AddProjectGenSrcs(projectDefinition, JavaSourcePackageExtractor(packageReader)),
+        AddProjectGenAndroidRes(),
         ConfigureCcCompilation(),
       ) +
       if (attachDepsSrcjarsExperiment.get())
