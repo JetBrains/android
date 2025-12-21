@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.sync.aspects;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
@@ -27,10 +26,8 @@ import com.google.idea.blaze.base.command.buildresult.BuildResult.Status;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.issueparser.BlazeIssueParser;
 import com.google.idea.blaze.base.model.BlazeVersionData;
-import com.google.idea.blaze.base.model.primitives.LanguageClass;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.projectview.section.sections.AutomaticallyDeriveTargetsSection;
 import com.google.idea.blaze.base.projectview.section.sections.SyncFlagsSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.Scope;
@@ -38,8 +35,6 @@ import com.google.idea.blaze.base.scope.output.SummaryOutput;
 import com.google.idea.blaze.base.scope.output.SummaryOutput.Prefix;
 import com.google.idea.blaze.base.scope.scopes.ToolWindowScope;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
-import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy;
-import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy.OutputGroup;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import com.google.idea.blaze.base.sync.sharding.ShardedBuildProgressTracker;
 import com.google.idea.blaze.base.toolwindow.Task;
@@ -47,7 +42,6 @@ import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.common.experiments.BoolExperiment;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.List;
@@ -55,7 +49,6 @@ import java.util.UUID;
 
 /** Implementation of BlazeIdeInterface based on aspects. */
 public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
-  private static final Logger logger = Logger.getInstance(BlazeIdeInterfaceAspectsImpl.class);
 
   private static final BoolExperiment noFakeStampExperiment =
       new BoolExperiment("blaze.sync.nofake.stamp.data", true);
@@ -70,10 +63,8 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
       ProjectViewSet projectViewSet,
       List<? extends String> targets,
       WorkspaceLanguageSettings workspaceLanguageSettings,
-      ImmutableSet<OutputGroup> outputGroups,
       BlazeInvocationContext blazeInvocationContext,
       boolean invokeParallel) {
-    AspectStrategy aspectStrategy = AspectStrategy.getInstance(blazeVersion);
 
     final ShardedBuildProgressTracker progressTracker =
         new ShardedBuildProgressTracker(1);
@@ -96,44 +87,38 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
     List<String> additionalBlazeFlags =
         BlazeFlags.blazeFlags(
             project, projectViewSet, BlazeCommandName.BUILD, context, blazeInvocationContext);
-    BlazeBuildOutputs result =
-            Scope.<BlazeBuildOutputs>push(
-                context,
-                (childContext) -> {
-                  Task task =
-                      createTask(
-                          project,
-                          context,
-                          "Build shard " + StringUtil.first(UUID.randomUUID().toString(), 8, true),
-                          false);
-                  // we use context (rather than childContext) here since the shard state relates to
-                  // the parent task (which encapsulates all the build shards).
+    return Scope.push(
+        context,
+        (childContext) -> {
+          Task task =
+              createTask(
+                  project,
+                  context,
+                  "Build shard " + StringUtil.first(UUID.randomUUID().toString(), 8, true)
+              );
+          // we use context (rather than childContext) here since the shard state relates to
+          // the parent task (which encapsulates all the build shards).
 
-                  setupToolWindow(project, childContext, workspaceRoot, task);
-                  progressTracker.onBuildStarted(context);
+          setupToolWindow(project, childContext, workspaceRoot, task);
+          progressTracker.onBuildStarted(context);
 
-                  try {
-                    BlazeBuildOutputs result1 =
-                        runBuildForTargets(
-                            invoker,
-                            childContext,
-                            projectViewSet,
-                            workspaceLanguageSettings.getActiveLanguages(),
-                            targets,
-                            aspectStrategy,
-                            outputGroups,
-                            additionalBlazeFlags,
-                            invokeParallel);
-                    printShardFinishedSummary(context, task.getName(), result1, invoker);
-                    return result1;
-                  } catch (BuildException e) {
-                    context.handleException("Failed to build targets", e);
-                    return BlazeBuildOutputs.noOutputs(BuildResult.FATAL_ERROR);
-                  } finally {
-                    progressTracker.onBuildCompleted(context);
-                  }
-                });
-    return result;
+          try {
+            BlazeBuildOutputs result1 =
+                runBuildForTargets(
+                    invoker,
+                    childContext,
+                    targets,
+                    additionalBlazeFlags,
+                    invokeParallel);
+            printShardFinishedSummary(context, task.getName(), result1, invoker);
+            return result1;
+          } catch (BuildException e) {
+            context.handleException("Failed to build targets", e);
+            return BlazeBuildOutputs.noOutputs(BuildResult.FATAL_ERROR);
+          } finally {
+            progressTracker.onBuildCompleted(context);
+          }
+        });
   }
 
   /* Prints summary only for failed shards */
@@ -160,17 +145,15 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
   }
 
   private static Task createTask(
-      Project project, BlazeContext parentContext, String taskName, boolean isSync) {
-    Task.Type taskType = isSync ? Task.Type.SYNC : Task.Type.MAKE;
+      Project project, BlazeContext parentContext, String taskName) {
     ToolWindowScope parentToolWindowScope = parentContext.getScope(ToolWindowScope.class);
     Task parentTask = parentToolWindowScope != null ? parentToolWindowScope.getTask() : null;
-    return new Task(project, taskName, taskType, parentTask);
+    return new Task(project, taskName, parentTask);
   }
 
   private static void setupToolWindow(
       Project project, BlazeContext childContext, WorkspaceRoot workspaceRoot, Task task) {
-    ContextType contextType =
-        task.getType().equals(Task.Type.SYNC) ? ContextType.Sync : ContextType.Other;
+    ContextType contextType = ContextType.Other;
     childContext.push(
         new ToolWindowScope.Builder(project, task)
             .setIssueParsers(
@@ -182,17 +165,10 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
   private static BlazeBuildOutputs runBuildForTargets(
       BuildInvoker invoker,
       BlazeContext context,
-      ProjectViewSet viewSet,
-      ImmutableSet<LanguageClass> activeLanguages,
       List<? extends String> targets,
-      AspectStrategy aspectStrategy,
-      ImmutableSet<OutputGroup> outputGroups,
       List<String> additionalBlazeFlags,
       boolean invokeParallel)
       throws BuildException {
-
-    boolean onlyDirectDeps =
-        viewSet.getScalarValue(AutomaticallyDeriveTargetsSection.KEY).orElse(false);
 
     BlazeCommand.Builder builder = BlazeCommand.builder(invoker, BlazeCommandName.BUILD);
     builder
@@ -208,7 +184,6 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
       builder.addBlazeFlags("--nofake_stamp_data");
     }
 
-    aspectStrategy.addAspectAndOutputGroups(builder, outputGroups, activeLanguages, onlyDirectDeps);
     return invoker.invoke(
         builder,
         context,

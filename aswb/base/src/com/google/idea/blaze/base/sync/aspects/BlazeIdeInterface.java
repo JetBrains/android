@@ -22,7 +22,6 @@ import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy.OutputGroup;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -37,8 +36,6 @@ public interface BlazeIdeInterface {
 
   /**
    * Invokes a blaze build for the given output groups.
-   *
-   * @param outputGroups Set of {@link OutputGroup} to be generated in the build.
    */
   BlazeBuildOutputs build(
       Project project,
@@ -49,7 +46,6 @@ public interface BlazeIdeInterface {
       ProjectViewSet projectViewSet,
       List<? extends String> targets,
       WorkspaceLanguageSettings workspaceLanguageSettings,
-      ImmutableSet<OutputGroup> outputGroups,
       BlazeInvocationContext blazeInvocationContext,
       boolean invokeParallel);
 }

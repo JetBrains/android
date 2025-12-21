@@ -232,27 +232,6 @@ public class BlazeIssueParserTest extends BlazeTestCase {
   }
 
   @Test
-  public void testParseSkylarkError() {
-    BlazeIssueParser blazeIssueParser = new BlazeIssueParser(parsers);
-    IssueOutput issue =
-        blazeIssueParser.parseIssue(
-            "ERROR: /root/third_party/bazel/tools/ide/intellij_info_impl.bzl:42:12: "
-                + "Variable artifact_location is read only");
-    assertThat(issue).isNotNull();
-    assertThat(issue.getFile().getPath())
-        .isEqualTo("/root/third_party/bazel/tools/ide/intellij_info_impl.bzl");
-    assertThat(issue.getLine()).isEqualTo(42);
-    assertThat(issue.getColumn()).isEqualTo(12);
-    assertThat(issue.getMessage()).isEqualTo("Variable artifact_location is read only");
-    assertThat(issue.getCategory()).isEqualTo(ERROR);
-    assertThat(issue.getConsoleHyperlinkRange())
-        .isEqualTo(
-            TextRange.create(
-                "ERROR: ".length(),
-                "ERROR: /root/third_party/bazel/tools/ide/intellij_info_impl.bzl:42:12".length()));
-  }
-
-  @Test
   public void testParseLinelessBuildError() {
     BlazeIssueParser blazeIssueParser = new BlazeIssueParser(parsers);
     IssueOutput issue =
@@ -267,35 +246,6 @@ public class BlazeIssueParserTest extends BlazeTestCase {
         .isEqualTo(
             TextRange.create(
                 "ERROR: ".length(), "ERROR: /path/to/root/java/package_path/BUILD".length()));
-  }
-
-  @Test
-  public void testParseFileNotFoundError() {
-    BlazeIssueParser blazeIssueParser = new BlazeIssueParser(parsers);
-    IssueOutput issue =
-        blazeIssueParser.parseIssue(
-            "ERROR: Extension file not found. Unable to load file '//third_party/bazel:tools/ide/"
-                + "intellij_info.bzl': file doesn't exist or isn't a file");
-    assertThat(issue).isNotNull();
-    assertThat(issue.getFile().getPath())
-        .isEqualTo("/root/third_party/bazel/tools/ide/intellij_info.bzl");
-    assertThat(issue.getMessage()).isEqualTo("file doesn't exist or isn't a file");
-    assertThat(issue.getCategory()).isEqualTo(ERROR);
-  }
-
-  @Test
-  public void testParseFileNotFoundErrorWithPackage() {
-    BlazeIssueParser blazeIssueParser = new BlazeIssueParser(parsers);
-    IssueOutput issue =
-        blazeIssueParser.parseIssue(
-            "ERROR: error loading package 'path/to/package': Extension file not found. Unable to"
-                + " load file '//third_party/bazel:tools/ide/intellij_info.bzl': file doesn't exist"
-                + " or isn't a file");
-    assertThat(issue).isNotNull();
-    assertThat(issue.getFile().getPath())
-        .isEqualTo("/root/third_party/bazel/tools/ide/intellij_info.bzl");
-    assertThat(issue.getMessage()).isEqualTo("file doesn't exist or isn't a file");
-    assertThat(issue.getCategory()).isEqualTo(ERROR);
   }
 
   @Test
