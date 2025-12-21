@@ -12,5 +12,6 @@ def android_info_factory(actual, *, meta):
             manifest = subjects_file_factory,
             idl_class_jar = subjects_file_factory,
             idl_generated_java_files = subjects_depset_factory,
+            generated_resource_files = subjects_depset_factory,
         ),
     )

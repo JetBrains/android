@@ -1,7 +1,7 @@
 """Rules for testing third_party/intellij/bazel/plugin/aspect/build_dependencies_blaze_deps.bzl with java target."""
 
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test", _test_suite = "test_suite")
-load("//bzl_tests:check_utils.bzl", "label_info_factory")
+load("//bzl_tests:check_utils.bzl", "label_info_factory", "subjects_depset_factory")
 load("//bzl_tests:test_fixture.bzl", "TargetInfo")
 load(":check_utils.bzl", "android_info_factory")
 
@@ -18,6 +18,7 @@ def _android_library_test_impl(env, target):
         attrs = dict(
             label = label_info_factory,
             android_info = android_info_factory,
+            gen_android_res = subjects_depset_factory,
         ),
     )
     actual.label().equals("//{}/java/com/basicapp:{}".format(TEST_TARGET_PACKAGE, ANDROID_LIBRARY_TARGET))
@@ -28,8 +29,10 @@ def _android_library_test_impl(env, target):
             manifest = "*.xml",
             idl_class_jar = "",
             idl_generated_java_files = [],
+            generated_resource_files = ["*.xml"],
         ),
     )
+    actual.gen_android_res().contains_exactly(["*.xml"])
 
 def _android_binary_test(name, **test_kwargs):
     analysis_test(name = name, impl = _android_binary_test_impl, target = ":android_binary_test_fixture", **test_kwargs)
@@ -50,6 +53,7 @@ def _android_binary_test_impl(env, target):
             manifest = "*.xml",
             idl_class_jar = "",
             idl_generated_java_files = [],
+            generated_resource_files = [],
         ),
     )
 

@@ -38,8 +38,10 @@ public class ArtifactDirectories {
    */
   public static final ProjectRelativeProjectPath JAVADEPS = ROOT.resolveChild(Path.of("javadeps"));
 
-  public static final ProjectRelativeProjectPath JAVA_GEN_SRC = ROOT.resolveChild(Path.of("gensrc/java"));
-  public static final ProjectRelativeProjectPath JAVA_GEN_TESTSRC = ROOT.resolveChild(Path.of("gensrc/javatests"));
+  public static final ProjectRelativeProjectPath GENSRC = ROOT.resolveChild(Path.of("gensrc"));
+  public static final ProjectRelativeProjectPath JAVA_GEN_SRC = GENSRC.resolveChild(Path.of("java"));
+  public static final ProjectRelativeProjectPath JAVA_GEN_TESTSRC = GENSRC.resolveChild(Path.of("javatests"));
+  public static final ProjectRelativeProjectPath ANDROID_GEN_RES = GENSRC.resolveChild(Path.of("android_res"));
 
   /** Generated CC headers go in the default directory. */
   public static final ProjectRelativeProjectPath GEN_CC_HEADERS = DEFAULT;
