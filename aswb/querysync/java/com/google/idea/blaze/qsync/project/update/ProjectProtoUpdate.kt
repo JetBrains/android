@@ -48,7 +48,7 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
     fun markAsAndroidModule()
     fun addAndroidResourceJavaPackage(pkg: String)
     fun addAndroidCustomPackage(customPackage: String)
-    fun addAndroidResourceDirectories(directories: Collection<ProjectPath.SourceCodeRepositoryRelativeProjectPath>)
+    fun addAndroidResourceDirectories(directories: Collection<ProjectPath>)
     fun addLanguages(languages: Collection<QuerySyncLanguage>)
     fun addExternalAndroidLibrary(externalAndroidLibrary: ProjectProto.ExternalAndroidLibrary)
     fun contentEntry(root: ProjectPath, updater: ContentEntryUpdater.() -> Unit)
@@ -137,7 +137,7 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
         workspaceModule.androidCustomPackages += customPackage
       }
 
-      override fun addAndroidResourceDirectories(directories: Collection<ProjectPath.SourceCodeRepositoryRelativeProjectPath>) {
+      override fun addAndroidResourceDirectories(directories: Collection<ProjectPath>) {
         workspaceModule.androidResourceDirectories += directories
       }
 

@@ -90,6 +90,7 @@ message JavaArtifacts {
   bool is_external_dependency = 9;
   optional Artifact ide_aar= 10;
   repeated Artifact proto_srcjars = 13;
+  repeated Artifact gen_android_res = 14;
 }
 
 message BuildContext {

@@ -73,6 +73,7 @@ class ArtifactTrackerStateSerializer {
     javaInfo.ideAar()?.let {artifactTrackerProtoBuilder.setIdeAar(toProto(it))}
     artifactTrackerProtoBuilder
       .addAllGenSrcs(toProtos(javaInfo.genSrcs()))
+      .addAllGenAndroidRes(toProtos(javaInfo.genAndroidRes()))
       .addAllProtoSrcjars(toProtos(javaInfo.protoSrcjars()))
       .addAllJars(toProtos(javaInfo.jars()))
       .addAllSources(javaInfo.sources().map { projectPathToProto(it) })

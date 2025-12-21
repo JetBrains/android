@@ -41,7 +41,7 @@ public class BasicActivity extends Activity {
             public void onClick(View v) {
               TextView tv = findViewById(R.id.text_hello);
               if (v.getId() == R.id.button_id_fizz) {
-                tv.setText("fizz");
+                tv.setText(getString(R.string.generated_string));
               } else if (v.getId() == R.id.button_id_buzz) {
                 tv.setText("buzz");
               }
