@@ -43,7 +43,6 @@ public final class Task {
 
   private final Project project;
   private final String name;
-  private final Type type;
   @Nullable private Task parent;
   private String state = "";
   @Nullable private Instant startTime;
@@ -54,10 +53,9 @@ public final class Task {
    * Creates a new top level task without a parent.
    *
    * @param name name of new task
-   * @param type type of new task
    */
-  public Task(Project project, String name, Type type) {
-    this(project, name, type, null);
+  public Task(Project project, String name) {
+    this(project, name, null);
   }
 
   /**
@@ -65,13 +63,11 @@ public final class Task {
    * children.
    *
    * @param name name of new task
-   * @param type type of new task
    * @param parent parent of the new task, null if the new task is a top level task.
    */
-  public Task(Project project, String name, Type type, @Nullable Task parent) {
+  public Task(Project project, String name, @Nullable Task parent) {
     this.project = project;
     this.name = name;
-    this.type = type;
     this.parent = parent;
   }
 
@@ -80,7 +76,7 @@ public final class Task {
   }
 
   public Type getType() {
-    return type;
+    return Type.MAKE;
   }
 
   void setStartTime(Instant startTime) {
@@ -156,16 +152,7 @@ public final class Task {
 
   /** Type of the task. */
   public enum Type {
-    FORMAT("Format"),
-    LINT("Lint"),
-    BUILD_CLEANER("Build Cleaner"),
-    FIX_DEPS("Fix Deps"),
-    SUGGESTED_FIXES("Suggested Fixes"),
-    DEPLOYABLE_JAR("DeployableJar"),
-    MAKE("Make"),
-    BEFORE_LAUNCH("Before Launch"),
-    SYNC("Sync"),
-    OTHER("Other");
+    MAKE("Make");
 
     private final String displayName;
 

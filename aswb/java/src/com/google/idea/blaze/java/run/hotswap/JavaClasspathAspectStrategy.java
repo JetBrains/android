@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.model.BazelVersionCompat;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.settings.BuildSystemName;
-import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy;
+import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
@@ -76,7 +76,7 @@ public interface JavaClasspathAspectStrategy {
     private static File findAspectDirectory() {
       IdeaPluginDescriptor plugin =
           PluginManager.getPlugin(
-              PluginManager.getPluginByClassName(AspectStrategy.class.getName()));
+              PluginManager.getPluginByClassName(BlazeBuildOutputs.class.getName()));
       return new File(plugin.getPath(), "aspect");
     }
   }

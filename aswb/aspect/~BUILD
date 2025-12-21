@@ -9,7 +9,6 @@ filegroup(
     name = "integration_test_files",
     srcs = [
         "artifacts.bzl",
-        "intellij_info_impl.bzl",
         "java_classpath.bzl",
         "make_variables.bzl",
         ":BUILD.bazel",
@@ -47,9 +46,6 @@ filegroup(
         "build_dependencies_java_deps.bzl",
         "build_dependencies_java_proto_deps.bzl",
         "build_dependencies_kotlin_deps.bzl",
-        "intellij_info.bzl",
-        "intellij_info_bundled.bzl",
-        "intellij_info_impl_bundled.bzl",
         "java_classpath.bzl",
         "make_variables.bzl",
         ":BUILD.bazel",
@@ -78,29 +74,3 @@ genrule(
 )
 
 _dev_aspect_path = package_name()
-
-# Aspect references have different label paths in development vs. when bundled with the plugin.
-# This genrule is required for the aspect to be valid in all three repositories in which it's used.
-# Changes:
-#   //.../aspect/tools:tool_name -> //:tool_name_bin
-#   //.../aspect:flag_hack -> //:flag_hack
-#   :intellij_info_impl.bzl -> :intellij_info_impl_bundled.bzl
-genrule(
-    name = "modify_tools_path",
-    srcs = ["intellij_info.bzl"],
-    outs = ["intellij_info_bundled.bzl"],
-    cmd = "cat $(SRCS) >$@ && " +
-          "sed -i -e 's,//%s/tools:\" + tool_name,//:\" + tool_name + \"_bin\",g' $@ && " % _dev_aspect_path +
-          "sed -i -e 's,//%s:flag_hack,//:flag_hack,g' $@  && " % _dev_aspect_path +
-          "sed -i -e 's,:intellij_info_impl.bzl,:intellij_info_impl_bundled.bzl,g' $@",
-)
-
-# Removes internal only content from bundled aspect files as they cannot access
-# by bazel no matter it's build from git repo or internal repo.
-genrule(
-    name = "create_intellij_info_impl_bundle",
-    srcs = ["intellij_info_impl.bzl"],
-    outs = ["intellij_info_impl_bundled.bzl"],
-    cmd = "cat $(SRCS) >$@ && " +
-          "sed -i -e '/BUNDLED-IGNORE-BEGIN/,/BUNDLED-IGNORE-END/d' $@",
-)

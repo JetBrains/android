@@ -39,7 +39,7 @@ final class TasksTreeProperty {
   private final Set<InvalidationListener> invalidationListeners = new HashSet<>();
 
   public TasksTreeProperty(Project project) {
-    root = new Task(project, "root", Task.Type.OTHER);
+    root = new Task(project, "root");
   }
 
   Task getRoot() {

@@ -24,7 +24,6 @@ import com.google.idea.blaze.base.scope.Scope;
 import com.google.idea.blaze.base.settings.BlazeUserSettings;
 import com.google.idea.blaze.base.toolwindow.Task;
 import com.google.idea.common.experiments.BoolExperiment;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 
 /**
@@ -42,7 +41,7 @@ public class ToolWindowScopeRunner {
                                               QuerySyncManager.ThrowingScopedOperation operation) {
     return Scope.root(
       context -> {
-        Task task = new Task(project, subTitle, Task.Type.SYNC);
+        Task task = new Task(project, subTitle);
         BlazeScope scope =
           new ToolWindowScope.Builder(project, task)
             .showSummaryOutput()
