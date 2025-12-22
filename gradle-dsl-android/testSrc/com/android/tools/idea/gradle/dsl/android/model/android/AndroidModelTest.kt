@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTes
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
+import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.android.ExternalNativeBuildModelImpl
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl
@@ -2059,6 +2060,22 @@ class AndroidModelTest : AndroidGradleFileModelTestCase() {
   }
 
   @Test
+  fun testSetCompileSdkVersionToLibsVersionReference() {
+    isIrrelevantForDeclarative("No deref in Declarative")
+    writeToVersionCatalogFile("compileSdk = \"36\"")
+    writeToBuildFile(TestFile.ADD_AND_APPLY_COMPILE_SDK_EXPECTED)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+    assertEquals("compileSdkVersion", 36, android.compileSdkVersion())
+
+    android.compileSdkVersion().setValue(RawText("libs.versions.compileSdk.get().toInt()", "libs.versions.compileSdk.get().toInt()"))
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.SET_COMPILE_SDK_FROM_LIBS_VERSION)
+    assertEquals("compileSdkVersion", "libs.versions.compileSdk.get().toInt()", android.compileSdkVersion())
+  }
+
+  @Test
   fun testSetCompileSdkVersionToAddOnString() {
     writeToBuildFile(TestFile.SET_COMPILE_SDK_VERSION_TO_ADD_ON_STRING)
     val buildModel = gradleBuildModel
@@ -2652,6 +2669,7 @@ class AndroidModelTest : AndroidGradleFileModelTestCase() {
     PARSE_NO_RESCONFIGS_PROPERTY("parseNoResConfigsProperty"),
     DEFAULT_CONFIG_BLOCK_AND_STATEMENT("defaultConfigBlockAndStatement"),
     DEFAULT_CONFIG_STATEMENT_AND_BLOCK("defaultConfigStatementAndBlock"),
+    SET_COMPILE_SDK_FROM_LIBS_VERSION("setCompileSdkFromLibsVersion"),
     SET_COMPILE_SDK_WITH_COMPILE_SDK_MINOR("setCompileSdkWithCompileSdkMinor"),
     SET_COMPILE_SDK_VERSION_TO_ADD_ON_STRING("setCompileSdkVersionToAddOnString"),
     SET_COMPILE_SDK_VERSION_TO_ADD_ON_STRING_EXPECTED("setCompileSdkVersionToAddOnStringExpected"),
