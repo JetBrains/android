@@ -216,7 +216,7 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
         if (minor != null || extension != null) {
           val minorSuffix = if (minor != null) ".$minor" else ""
           val extensionSuffix = if (extension != null) "-ext$extension" else ""
-          return "android-${internalModel.getValue(typeReference)}$minorSuffix$extensionSuffix" as T?
+          "android-${internalModel.getValue(typeReference)}$minorSuffix$extensionSuffix" as T?
         } else internalModel.getValue(typeReference)
       } else -> internalModel.getValue(typeReference)
     }
