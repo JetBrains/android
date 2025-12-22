@@ -26,11 +26,13 @@ import com.android.ddmlib.IShellOutputReceiver;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
+import com.android.ide.common.process.ProcessInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.io.grpc.ManagedChannel;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder;
 import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder;
 import com.android.tools.profiler.proto.Commands;
@@ -390,23 +392,47 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
          * Reconnect to the agents that were last known connected.
          */
         private void reconnectAgents() {
-          TransportClient client = new TransportClient(TransportService.getChannelName());
-          DeviceContext context = mySerialToDeviceContextMap.get(transportDevice.getSerial());
-          assert context != null;
-          for (Long pid : context.myConnectedAgents) {
-            Commands.Command attachCommand = Commands.Command.newBuilder()
-              .setStreamId(transportDevice.getDeviceId())
-              .setPid(pid.intValue())
-              .setType(Commands.Command.CommandType.ATTACH_AGENT)
-              .setAttachAgent(
-                Commands.AttachAgent.newBuilder()
-                  .setAgentLibFileName(String.format("libjvmtiagent_%s.so", context.myPidToProcessMap.get(pid).getAbiCpuArch()))
-                  .setAgentConfigPath(TransportFileManager.getAgentConfigFile())
-                  .setPackageName(context.myPidToProcessMap.get(pid).getPackageName()))
-              .build();
-            // TODO(b/150503095)
+          try (TransportClient client = new TransportClient(TransportService.getChannelName())) {
+            DeviceContext context = mySerialToDeviceContextMap.get(transportDevice.getSerial());
+
+            if (context == null) {
+              getLogger().warn("Cannot reconnect agents: DeviceContext is null for " + transportDevice.getSerial());
+              return;
+            }
+
+            for (Long pid : context.myConnectedAgents) {
+              sendAttachAgentCommand(client, context, pid);
+            }
+          } catch (Exception e) {
+            getLogger().error("Failed to initialize TransportClient", e);
+          }
+        }
+
+        private void sendAttachAgentCommand(TransportClient client, DeviceContext context, Long pid) {
+          Common.Process processInfo = context.myPidToProcessMap.get(pid);
+
+          if (processInfo == null) {
+            getLogger().warn("Skipping reconnect for PID " + pid + ": Process info not found.");
+            return;
+          }
+
+          Commands.Command attachCommand = Commands.Command.newBuilder()
+            .setStreamId(transportDevice.getDeviceId())
+            .setPid(pid.intValue())
+            .setType(Commands.Command.CommandType.ATTACH_AGENT)
+            .setAttachAgent(
+              Commands.AttachAgent.newBuilder()
+                .setAgentLibFileName(String.format("libjvmtiagent_%s.so", processInfo.getAbiCpuArch()))
+                .setAgentConfigPath(TransportFileManager.getAgentConfigFile())
+                .setPackageName(processInfo.getPackageName()))
+            .build();
+
+          try {
             Transport.ExecuteResponse response =
-                client.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
+              client.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
+          }
+          catch (Exception e) {
+            getLogger().warn("Failed to re-attach agent for PID " + pid, e);
           }
         }
 
