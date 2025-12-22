@@ -143,11 +143,19 @@ public class SdkOrPreviewTransform extends PropertyTransform {
           }
         }
       } else { // RawText, literal Strings not beginning "android-"
-        // TODO(xof): if and when the genericSetter is removed from AGP, we will need to have some magic at this point.
-        operatorName = genericSetter;
-        syntax = holder.getDslFile().getWriter().getKind() == DECLARATIVE
-                 ? ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
-                 : ExternalNameInfo.ExternalNameSyntax.METHOD;
+        // Handle RawText that refers to an integer
+        if (value.toString().endsWith(".toInt()")) {
+          operatorName = sdkSetter;
+          syntax = Objects.equals("gradle", holder.getDslFile().getFile().getExtension())
+                   ? ExternalNameInfo.ExternalNameSyntax.METHOD
+                   : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
+        } else {
+          // TODO(xof): if and when the genericSetter is removed from AGP, we will need to have some magic at this point.
+          operatorName = genericSetter;
+          syntax = holder.getDslFile().getWriter().getKind() == DECLARATIVE
+                   ? ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
+                   : ExternalNameInfo.ExternalNameSyntax.METHOD;
+        }
       }
     }
     else {
