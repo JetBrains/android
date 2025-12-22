@@ -123,6 +123,7 @@ import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressIndicator
@@ -719,10 +720,9 @@ class ComposePreviewRepresentation(
       )
       .apply { mainSurface.background = Colors.DEFAULT_BACKGROUND_COLOR }
       .also {
-        it.mainSurface.analyticsManager.setEditorFileTypeWithoutTracking(
-          psiFilePointer.virtualFile,
-          project,
-        )
+        psiFilePointer.virtualFile?.let { vFile ->
+          it.mainSurface.analyticsManager.setEditorFileTypeWithoutTracking(vFile, project)
+        }
       }
 
   val staticNavHandler =
@@ -994,8 +994,19 @@ class ComposePreviewRepresentation(
       (!hasRenderedAtLeastOnce.get() ||
         surface.sceneManagers.any { it.renderResult.isErrorResult(COMPOSE_VIEW_ADAPTER_FQN) })
 
-  private fun hasSyntaxErrors(): Boolean =
-    WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
+  private fun hasSyntaxErrors(): Boolean {
+    val vFile = psiFilePointer.virtualFile
+
+    if (vFile == null) {
+      thisLogger()
+        .warn(
+          "virtualFile is null for $psiFilePointer element=${psiFilePointer.element} file=${psiFilePointer.containingFile}"
+        )
+      return false
+    }
+
+    return WolfTheProblemSolver.getInstance(project).isProblemFile(vFile)
+  }
 
   override fun status(): ComposePreviewManager.Status {
     val projectBuildStatus = renderingBuildStatusManager.status

@@ -45,6 +45,7 @@ import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressIndicator
@@ -328,7 +329,15 @@ internal class ComposePreviewViewImpl(
       if (Disposer.isDisposed(workbench) || project.isDisposed || !parentEditor.isValid)
         return@invokeLaterIfNeeded
 
-      notificationPanel.updateNotifications(psiFilePointer.virtualFile, parentEditor, project)
+      val vFile = psiFilePointer.virtualFile
+      if (vFile == null) {
+        thisLogger()
+          .warn(
+            "virtualFile is null for $psiFilePointer element=${psiFilePointer.element} file=${psiFilePointer.containingFile}"
+          )
+      } else {
+        notificationPanel.updateNotifications(vFile, parentEditor, project)
+      }
     }
 
   /** Method called to ask all notifications to update. */
