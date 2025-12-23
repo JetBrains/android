@@ -94,6 +94,7 @@ object StudioIconsCompose {
     val Crop: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/crop.svg", "/studio/icons/common/crop.svg", StudioIconsCompose.javaClass) // 16x16
     val Delete: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/delete.svg", "/studio/icons/common/delete.svg", StudioIconsCompose.javaClass) // 16x16
     val Dislike: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/dislike.svg", "/studio/icons/common/dislike.svg", StudioIconsCompose.javaClass) // 16x16
+    val DownRightArrow: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/down-right-arrow.svg", "/studio/icons/common/down-right-arrow.svg", StudioIconsCompose.javaClass) // 16x16
     val Edit: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/edit.svg", "/studio/icons/common/edit.svg", StudioIconsCompose.javaClass) // 16x16
     val ErrorDecorator: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/error-decorator.svg", "/studio/icons/common/error-decorator.svg", StudioIconsCompose.javaClass) // 16x16
     val ErrorInline: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/error-inline.svg", "/studio/icons/common/error-inline.svg", StudioIconsCompose.javaClass) // 16x16
