@@ -21,30 +21,33 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
+import com.intellij.ide.IdeView
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.LangDataKeys
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import icons.StudioIcons
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.io.File
 import java.net.URL
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Action to invoke one of the Asset Studio wizards.
  *
- * This action is visible anywhere within a module that has an Android facet.
+ * This action will be visible for modules that have a resource directory as part of the
+ * [NamedModuleTemplate]. This will not be available for holder modules.
  */
-abstract class AndroidAssetStudioAction(
-  text: String?,
-  description: String?,
-) : AnAction(text, description, StudioIcons.Common.ANDROID_HEAD) {
+abstract class AndroidAssetStudioAction(text: String?, description: String?) :
+  AnAction(text, description, StudioIcons.Common.ANDROID_HEAD) {
 
   override fun update(event: AnActionEvent) {
     event.presentation.setVisible(isAvailable(event))
@@ -53,16 +56,20 @@ abstract class AndroidAssetStudioAction(
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun actionPerformed(event: AnActionEvent) {
-    if (event.getData(LangDataKeys.IDE_VIEW) == null) return
-    val module = event.getData(PlatformCoreDataKeys.MODULE) ?: return
-    val location = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
-    val facet = AndroidFacet.getInstance(module) ?: return
-    val template: NamedModuleTemplate = getModuleTemplate(module, location) ?: return
-    val resFolder: File = findClosestResFolder(template.paths, location) ?: return
+    val context = getAndroidAssetStudioContext(event) ?: return
+    val wizard =
+      createWizard(
+        context.facet,
+        context.template,
+        VfsUtilCore.virtualToIoFile(context.resVirtualFile),
+      )
+    showWizard(wizard, context.facet)
+  }
 
-    val wizard = createWizard(facet, template, resFolder)
+  protected open fun showWizard(wizard: ModelWizard, facet: AndroidFacet) {
     val dialogBuilder = StudioWizardDialogBuilder(wizard, "Asset Studio")
-    dialogBuilder.setProject(facet.module.project)
+    dialogBuilder
+      .setProject(facet.module.project)
       .setMinimumSize(wizardMinimumSize)
       .setPreferredSize(wizardPreferredSize)
       .setHelpUrl(helpUrl)
@@ -70,11 +77,15 @@ abstract class AndroidAssetStudioAction(
   }
 
   /**
-   * Creates a wizard to show or returns `null` if the showing of a wizard should be aborted.
-   * If a subclass class aborts showing the wizard, it should still give some visual indication,
-   * such as an error dialog.
+   * Creates a wizard to show or returns `null` if the showing of a wizard should be aborted. If a
+   * subclass class aborts showing the wizard, it should still give some visual indication, such as
+   * an error dialog.
    */
-  protected abstract fun createWizard(facet: AndroidFacet, template: NamedModuleTemplate, resFolder: File): ModelWizard
+  protected abstract fun createWizard(
+    facet: AndroidFacet,
+    template: NamedModuleTemplate,
+    resFolder: File,
+  ): ModelWizard
 
   protected abstract val wizardMinimumSize: Dimension
 
@@ -85,15 +96,13 @@ abstract class AndroidAssetStudioAction(
 }
 
 private fun isAvailable(event: AnActionEvent): Boolean {
-  val module = event.getData(PlatformCoreDataKeys.MODULE) ?: return false
-  val view = event.getData(LangDataKeys.IDE_VIEW) ?: return false
-  val location = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return false
-
-  return view.directories.size > 0 && AndroidFacet.getInstance(module) != null &&
-         module.project.getProjectSystem().allowsFileCreation() && getModuleTemplate(module, location) != null
+  val context = getAndroidAssetStudioContext(event) ?: return false
+  return context.ideView.directories.isNotEmpty() &&
+    context.project.getProjectSystem().allowsFileCreation()
 }
 
-private fun getModuleTemplate(module: Module, location: VirtualFile): NamedModuleTemplate? {
+private fun getModuleTemplate(project: Project, location: VirtualFile): NamedModuleTemplate? {
+  val module = ModuleUtilCore.findModuleForFile(location, project) ?: return null
   for (namedTemplate in module.getModuleSystem().getModuleTemplates(location)) {
     if (!namedTemplate.paths.resDirectories.isEmpty()) {
       return namedTemplate
@@ -102,7 +111,7 @@ private fun getModuleTemplate(module: Module, location: VirtualFile): NamedModul
   return null
 }
 
-private fun findClosestResFolder(paths: AndroidModulePaths, location: VirtualFile): File? {
+private fun findClosestResFolder(paths: AndroidModulePaths, location: VirtualFile): VirtualFile? {
   val toFind = location.path
   var bestMatch: File? = null
   var bestCommonPrefixLength = -1
@@ -113,5 +122,46 @@ private fun findClosestResFolder(paths: AndroidModulePaths, location: VirtualFil
       bestMatch = resDir
     }
   }
-  return bestMatch
+  val resFolder = bestMatch ?: return null
+
+  val local = VfsUtil.findFileByIoFile(resFolder, true)
+  if (local != null) return local
+
+  var candidate: VirtualFile? = location
+  val resFolderPath = resFolder.path.replace(File.separatorChar, '/')
+  while (candidate != null) {
+    if (candidate.path == resFolderPath) {
+      return candidate
+    }
+    candidate = candidate.parent
+  }
+  return null
+}
+
+/**
+ * Context required by the action to function. [getAndroidAssetStudioContext] will return the
+ * context or null if any of the parts are missing. In that case, the action will be disabled.
+ */
+private data class AndroidAssetStudioContext(
+  val project: Project,
+  val location: VirtualFile,
+  val module: Module,
+  val facet: AndroidFacet,
+  val template: NamedModuleTemplate,
+  val resVirtualFile: VirtualFile,
+  val ideView: IdeView,
+)
+
+private fun getAndroidAssetStudioContext(event: AnActionEvent): AndroidAssetStudioContext? {
+  val view = event.getData(LangDataKeys.IDE_VIEW) ?: return null
+  val project = event.getData(CommonDataKeys.PROJECT) ?: return null
+  val location = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return null
+
+  val template = getModuleTemplate(project, location) ?: return null
+  val resVirtualFile = findClosestResFolder(template.paths, location) ?: return null
+
+  val module = ModuleUtilCore.findModuleForFile(resVirtualFile, project) ?: return null
+  val facet = AndroidFacet.getInstance(module) ?: return null
+
+  return AndroidAssetStudioContext(project, location, module, facet, template, resVirtualFile, view)
 }
