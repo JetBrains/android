@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.core
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.util.scaled
+import com.intellij.ide.ActivityTracker
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
 import java.beans.PropertyChangeEvent
@@ -137,9 +138,13 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeList
   }
 
   override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
+    val sizeChanged = width != this.width || height != this.height
     super.setBounds(x, y, width, height)
     if (fractionalScaleRange != 0.0 && fractionalScaleRange != roundDownIfGreaterThanOne(computeScaleToFit(computeMaxImageSize()))) {
       fractionalScaleRange = 0.0
+    }
+    if (sizeChanged) {
+      ActivityTracker.getInstance().inc() // Trigger a toolbar update.
     }
   }
 
