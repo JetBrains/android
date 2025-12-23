@@ -88,6 +88,7 @@ internal class FloatingToolbarContainer(
   private val inactiveAlpha: Double = 1.0,
   private val collapsedStateSelector: ((ActionButton) -> Boolean)? = null,
   private val activateOnHover: Boolean = false,
+  initiallyActive: Boolean = false,
 ) : JPanel() {
 
   @Orientation
@@ -105,7 +106,7 @@ internal class FloatingToolbarContainer(
 
   /** Zero means inactive, one means active. */
   @VisibleForTesting
-  internal var activationFactor: Double = 0.0
+  internal var activationFactor: Double = if (initiallyActive) 1.0 else 0.0
     private set(value) {
       if (field != value) {
         field = value
