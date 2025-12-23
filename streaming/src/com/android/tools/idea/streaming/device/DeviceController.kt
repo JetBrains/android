@@ -30,6 +30,7 @@ import com.android.tools.idea.streaming.xr.AbstractXrInputController.Companion.U
 import com.android.tools.idea.streaming.xr.XrEnvironment
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
@@ -75,10 +76,11 @@ internal class DeviceController(
   private val deviceStateListeners: MutableList<DeviceStateListener> = ContainerUtil.createLockFreeCopyOnWriteList()
   private val displayListeners:  MutableList<DisplayListener> = ContainerUtil.createLockFreeCopyOnWriteList()
   private val xrEnvironmentListeners:  MutableList<XrEnvironmentListener> = ContainerUtil.createLockFreeCopyOnWriteList()
-  @Volatile internal var supportedFoldingStates: List<FoldingState> = emptyList()
+  @Volatile var supportedFoldingStates: List<FoldingState> = emptyList()
     private set
-  @Volatile internal var currentFoldingState: FoldingState? = null
+  @Volatile var currentFoldingState: FoldingState? = null
     private set
+  @Volatile var xrInputUnavailableReason: XrInputUnavailableNotification.Reason? = null
   @Volatile private var xrPassthroughCoefficient: Float = UNKNOWN_PASSTHROUGH_COEFFICIENT
   @Volatile private var xrEnvironment: XrEnvironment? = null
   private val responseCallbacks = ResponseCallbackMap()
@@ -272,6 +274,7 @@ internal class DeviceController(
       listener.onXrPassthroughCoefficientChanged(xrPassthroughCoefficient)
     }
     xrEnvironment?.let { listener.onXrEnvironmentChanged(it) }
+    xrInputUnavailableReason?.let { listener.onXrInputUnavailable(it) }
   }
 
   internal fun removeXrEnvironmentListener(listener: XrEnvironmentListener) {
@@ -294,6 +297,7 @@ internal class DeviceController(
             is DisplayRemovedNotification -> onDisplayRemoved(message)
             is XrPassthroughCoefficientChangedNotification -> setXrPassthroughCoefficient(message.passthroughCoefficient)
             is XrEnvironmentChangedNotification -> setXrEnvironment(message.environment)
+            is XrInputUnavailableNotification -> onXrInputUnavailable(message)
             else -> logger.error("Unexpected type of a received message: ${message.type}")
           }
         }
@@ -367,6 +371,13 @@ internal class DeviceController(
     }
   }
 
+  private fun onXrInputUnavailable(message: XrInputUnavailableNotification) {
+    xrInputUnavailableReason = message.reason
+    for (listener in xrEnvironmentListeners) {
+      listener.onXrInputUnavailable(message.reason)
+    }
+  }
+
   private fun setXrPassthroughCoefficient(passthroughCoefficient: Float) {
     if (xrPassthroughCoefficient != passthroughCoefficient) {
       xrPassthroughCoefficient = passthroughCoefficient
@@ -409,6 +420,8 @@ internal class DeviceController(
     fun onXrPassthroughCoefficientChanged(passthroughCoefficient: Float)
 
     fun onXrEnvironmentChanged(environment: XrEnvironment)
+
+    fun onXrInputUnavailable(reason: XrInputUnavailableNotification.Reason)
   }
 
   private class ResponseCallbackMap {

@@ -25,6 +25,7 @@
 
 #include "accessors/device_state_manager.h"
 #include "accessors/display_info.h"
+#include "accessors/xr_simulated_input_manager.h"
 #include "base128_input_stream.h"
 #include "base128_output_stream.h"
 #include "common.h"
@@ -658,7 +659,7 @@ private:
 };
 
 // Notification of clipboard content change.
-class ClipboardChangedNotification : ControlMessage {
+class ClipboardChangedNotification : public ControlMessage {
 public:
   explicit ClipboardChangedNotification(const std::string& text)
       : ControlMessage(TYPE),
@@ -685,7 +686,7 @@ private:
 };
 
 // Notification of supported device states.
-class SupportedDeviceStatesNotification : ControlMessage {
+class SupportedDeviceStatesNotification : public ControlMessage {
 public:
   explicit SupportedDeviceStatesNotification(const std::vector<DeviceState>& device_states, int32_t device_state_id)
       : ControlMessage(TYPE),
@@ -712,7 +713,7 @@ private:
 
 // Notification of a device state change. One such notification is always sent when the screen
 // sharing agent starts on a foldable device.
-class DeviceStateNotification : ControlMessage {
+class DeviceStateNotification : public ControlMessage {
 public:
   explicit DeviceStateNotification(int32_t device_state_id)
       : ControlMessage(TYPE),
@@ -735,7 +736,7 @@ private:
 };
 
 // Notification of an added or a changed display.
-class DisplayAddedOrChangedNotification : ControlMessage {
+class DisplayAddedOrChangedNotification : public ControlMessage {
 public:
   explicit DisplayAddedOrChangedNotification(int32_t display_id, Size logical_size, int32_t rotation, int32_t display_type)
       : ControlMessage(TYPE),
@@ -768,7 +769,7 @@ private:
 };
 
 // Notification of a removed display.
-class DisplayRemovedNotification : ControlMessage {
+class DisplayRemovedNotification : public ControlMessage {
 public:
   explicit DisplayRemovedNotification(int32_t display_id)
       : ControlMessage(TYPE),
@@ -791,7 +792,7 @@ private:
 };
 
 // Notification of a passthrough coefficient change on an XR device.
-class XrPassthroughCoefficientChangedNotification : ControlMessage {
+class XrPassthroughCoefficientChangedNotification : public ControlMessage {
 public:
   explicit XrPassthroughCoefficientChangedNotification(float passthrough_coefficient)
       : ControlMessage(TYPE),
@@ -814,7 +815,7 @@ private:
 };
 
 // Notification of a virtual environment change on an XR device.
-class XrEnvironmentChangedNotification : ControlMessage {
+class XrEnvironmentChangedNotification : public ControlMessage {
 public:
   explicit XrEnvironmentChangedNotification(int32_t environment)
       : ControlMessage(TYPE),
@@ -836,6 +837,36 @@ private:
   DISALLOW_COPY_AND_ASSIGN(XrEnvironmentChangedNotification);
 };
 
+// Notification that XR-specific input services are not available on the device.
+class XrInputUnavailableNotification : public ControlMessage {
+public:
+  enum class Reason { SERVICE_NOT_RUNNING, PROPERTY_NOT_SET };
+
+  explicit XrInputUnavailableNotification(Reason reason)
+      : ControlMessage(TYPE),
+        reason_(reason) {
+  }
+  explicit XrInputUnavailableNotification(XrSimulatedInputManager::Status status)
+      : ControlMessage(TYPE),
+        reason_(ReasonFromXrSimulatedInputManagerStatus(status)) {
+  }
+  ~XrInputUnavailableNotification() override = default;
+
+  [[nodiscard]] Reason reason() const { return reason_; }
+
+  void Serialize(Base128OutputStream& stream) const override;
+
+  static constexpr int TYPE = 30;
+
+private:
+  friend class ControlMessage;
+  static Reason ReasonFromXrSimulatedInputManagerStatus(XrSimulatedInputManager::Status status);
+
+  Reason reason_;
+
+  DISALLOW_COPY_AND_ASSIGN(XrInputUnavailableNotification);
+};
+
 // Queries the current UI settings from the device.
 class UiSettingsRequest : public CorrelatedMessage {
 public:
@@ -846,7 +877,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 30;
+  static constexpr int TYPE = 31;
 
 private:
   friend class ControlMessage;
@@ -987,7 +1018,7 @@ public:
     return gesture_overlay_installed_;
   }
 
-  static constexpr int TYPE = 31;
+  static constexpr int TYPE = 32;
 
 private:
   friend class ControlMessage;
@@ -1077,7 +1108,7 @@ public:
     return locale_;
   }
 
-  static constexpr int TYPE = 32;
+  static constexpr int TYPE = 33;
 
 private:
   friend class ControlMessage;
@@ -1122,7 +1153,7 @@ public:
   [[nodiscard]] bool original_values() const {
     return original_values_;
   }
-  static constexpr int TYPE = 33;
+  static constexpr int TYPE = 34;
 
 private:
   friend class ControlMessage;
@@ -1140,7 +1171,7 @@ public:
   }
   ~ResetUiSettingsRequest() override = default;
 
-  static constexpr int TYPE = 34;
+  static constexpr int TYPE = 35;
 
 private:
   friend class ControlMessage;

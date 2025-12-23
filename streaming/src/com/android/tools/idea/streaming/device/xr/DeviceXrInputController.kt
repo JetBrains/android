@@ -17,11 +17,12 @@ package com.android.tools.idea.streaming.device.xr
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
+import com.android.tools.idea.streaming.core.RUNNING_DEVICES_NOTIFICATION_GROUP
 import com.android.tools.idea.streaming.core.getNormalizedScrollAmount
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceController.XrEnvironmentListener
 import com.android.tools.idea.streaming.device.XrAngularVelocityMessage
+import com.android.tools.idea.streaming.device.XrInputUnavailableNotification
 import com.android.tools.idea.streaming.device.XrRotationMessage
 import com.android.tools.idea.streaming.device.XrSetPassthroughCoefficientMessage
 import com.android.tools.idea.streaming.device.XrTranslationMessage
@@ -29,6 +30,8 @@ import com.android.tools.idea.streaming.device.XrVelocityMessage
 import com.android.tools.idea.streaming.xr.AbstractXrInputController
 import com.android.tools.idea.streaming.xr.XrEnvironment
 import com.android.tools.idea.streaming.xr.XrInputMode
+import com.intellij.ide.ActivityTracker
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -46,12 +49,12 @@ import kotlin.math.min
  */
 internal class DeviceXrInputController(private val deviceClient: DeviceClient) : AbstractXrInputController(), XrEnvironmentListener {
 
+  override val isPassthroughSupported: Boolean
+    get() = StudioFlags.DEVICE_MIRRORING_XR_SIMULATED_PASSTHROUGH.get()
+
   init {
     Disposer.register(deviceClient, this)
   }
-
-  override val isPassthroughSupported: Boolean
-    get() = StudioFlags.DEVICE_MIRRORING_XR_SIMULATED_PASSTHROUGH.get()
 
   override suspend fun setPassthrough(passthroughCoefficient: Float) {
     deviceClient.deviceController?.sendControlMessage(XrSetPassthroughCoefficientMessage(passthroughCoefficient))
@@ -160,6 +163,24 @@ internal class DeviceXrInputController(private val deviceClient: DeviceClient) :
     this.environment = environment
   }
 
+  override fun onXrInputUnavailable(reason: XrInputUnavailableNotification.Reason) {
+    isXrInputAvailable = false
+    val message = "${reason.description()}. Mouse input won't be available. " +
+                  "Run the following commands to enable full mirroring functionality:<br>" +
+                  "<code>adb shell setprop persist.device_config.com_android_xr.com.android.xr.flags.enable_xr_simulated_env true<br>" +
+                  "adb shell reboot</code>"
+    RUNNING_DEVICES_NOTIFICATION_GROUP.createNotification(deviceClient.deviceName, message, NotificationType.WARNING).notify(null)
+  }
+
+  private fun XrInputUnavailableNotification.Reason.description(): String {
+    return when (this) {
+      XrInputUnavailableNotification.Reason.SERVICE_NOT_RUNNING ->
+        "The \"xrsimulatedinputmanager\" service is not running on the device"
+      XrInputUnavailableNotification.Reason.PROPERTY_NOT_SET ->
+          "The property persist.device_config.com_android_xr.com.android.xr.flags.enable_xr_simulated_env is not set to true"
+    }
+  }
+
   override fun dispose() {
   }
 
@@ -170,10 +191,9 @@ internal class DeviceXrInputController(private val deviceClient: DeviceClient) :
 }
 
 @Service(Service.Level.PROJECT)
-internal class DeviceXrInputControllerService(project: Project): Disposable {
+internal class DeviceXrInputControllerService: Disposable {
 
   private val xrControllers = ConcurrentHashMap<DeviceClient, DeviceXrInputController>()
-  private val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
 
   fun getXrInputController(deviceClient: DeviceClient): DeviceXrInputController {
     return xrControllers.computeIfAbsent(deviceClient) {

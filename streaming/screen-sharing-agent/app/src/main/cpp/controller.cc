@@ -180,13 +180,7 @@ void Controller::Initialize() {
     DeviceStateManager::AddDeviceStateListener(this);
     int32_t device_state_identifier = DeviceStateManager::GetDeviceStateIdentifier(jni_);
     Log::D("Controller::Initialize: device_state_identifier=%d", device_state_identifier);
-    SupportedDeviceStatesNotification supported_device_states_notification(device_states, device_state_identifier);
-    try {
-      supported_device_states_notification.Serialize(output_stream_);
-      output_stream_.Flush();
-    } catch (EndOfFile& e) {
-      // The socket has been closed - ignore.
-    }
+    SendControlMessage(SupportedDeviceStatesNotification(device_states, device_state_identifier));
     device_state_identifier_ = device_state_identifier;
   }
 
@@ -194,7 +188,13 @@ void Controller::Initialize() {
   current_displays_ = GetDisplays();
 
   if (Agent::device_type() == DeviceType::XR) {
-    XrSimulatedInputManager::AddEnvironmentListener(jni_, this);
+    auto status = XrSimulatedInputManager::Initialize(jni_);
+    xr_input_available_ = status == XrSimulatedInputManager::Status::OK;
+    if (xr_input_available_) {
+      XrSimulatedInputManager::AddEnvironmentListener(jni_, this);
+    } else {
+      SendControlMessage(XrInputUnavailableNotification(status));
+    }
   }
 }
 
@@ -219,11 +219,17 @@ VirtualTablet& Controller::GetVirtualTablet(int32_t display_id, int32_t width, i
   return *iter->second;
 }
 
+void Controller::SendControlMessage(const ControlMessage& message) {
+  message.Serialize(output_stream_);
+  output_stream_.Flush();
+}
+
 void Controller::Run() {
   Log::D("Controller::Run");
-  Initialize();
 
   try {
+    Initialize();
+
     while (!stopping_) {
       auto socket_timeout = SOCKET_RECEIVE_POLL_TIMEOUT;
       if (!stopping_) {
@@ -797,41 +803,53 @@ void Controller::SendClipboardChangedNotification() {
   }
   last_clipboard_text_ = text;
 
-  ClipboardChangedNotification message(std::move(text));
-  message.Serialize(output_stream_);
-  output_stream_.Flush();
+  SendControlMessage(ClipboardChangedNotification(std::move(text)));
 }
 
 void Controller::ProcessXrRotation(const XrRotationMessage& message) {
-  float data[3] = { message.x(), message.y(), 0 };
-  XrSimulatedInputManager::InjectHeadRotation(jni_, data);
+  if (xr_input_available_) {
+    float data[3] = {message.x(), message.y(), 0};
+    XrSimulatedInputManager::InjectHeadRotation(jni_, data);
+  }
 }
 
 void Controller::ProcessXrTranslation(const XrTranslationMessage& message) {
-  float data[3] = { message.x(), message.y(), message.z() };
-  XrSimulatedInputManager::InjectHeadMovement(jni_, data);
+  if (xr_input_available_) {
+    float data[3] = {message.x(), message.y(), message.z()};
+    XrSimulatedInputManager::InjectHeadMovement(jni_, data);
+  }
 }
 
 void Controller::ProcessXrAngularVelocity(const XrAngularVelocityMessage& message) {
-  float data[3] = { message.x(), message.y(), 0 };
-  XrSimulatedInputManager::InjectHeadAngularVelocity(jni_, data);
+  if (xr_input_available_) {
+    float data[3] = {message.x(), message.y(), 0};
+    XrSimulatedInputManager::InjectHeadAngularVelocity(jni_, data);
+  }
 }
 
 void Controller::ProcessXrVelocity(const XrVelocityMessage& message) {
-  float data[3] = { message.x(), message.y(), message.z() };
-  XrSimulatedInputManager::InjectHeadMovementVelocity(jni_, data);
+  if (xr_input_available_) {
+    float data[3] = {message.x(), message.y(), message.z()};
+    XrSimulatedInputManager::InjectHeadMovementVelocity(jni_, data);
+  }
 }
 
 void Controller::XrRecenter(const XrRecenterMessage& message) {  //nolint:unparam
-  XrSimulatedInputManager::Recenter(jni_);
+  if (xr_input_available_) {
+    XrSimulatedInputManager::Recenter(jni_);
+  }
 }
 
 void Controller::XrSetPassthroughCoefficient(const XrSetPassthroughCoefficientMessage& message) {
-  XrSimulatedInputManager::SetPassthroughCoefficient(jni_, message.passthrough_coefficient());
+  if (xr_input_available_) {
+    XrSimulatedInputManager::SetPassthroughCoefficient(jni_, message.passthrough_coefficient());
+  }
 }
 
 void Controller::XrSetEnvironment(const XrSetEnvironmentMessage& message) {
-  XrSimulatedInputManager::SetEnvironment(jni_, message.environment());
+  if (xr_input_available_) {
+    XrSimulatedInputManager::SetEnvironment(jni_, message.environment());
+  }
 }
 
 void Controller::OnPassthroughCoefficientChanged(float passthrough_coefficient) {
@@ -846,27 +864,25 @@ void Controller::SendXrEnvironmentNotification() {
   float passthrough_coefficient = xr_passthrough_coefficient_;
   if (passthrough_coefficient != sent_xr_passthrough_coefficient_) {
     Log::D("Sending XrPassthroughCoefficientChangedNotification(%.3g)", passthrough_coefficient);
-    XrPassthroughCoefficientChangedNotification notification(passthrough_coefficient);
-    notification.Serialize(output_stream_);
-    output_stream_.Flush();
+    SendControlMessage(XrPassthroughCoefficientChangedNotification(passthrough_coefficient));
     sent_xr_passthrough_coefficient_ = passthrough_coefficient;
   }
 
   int32_t environment = xr_environment_;
   if (environment != sent_xr_environment_) {
     Log::D("Sending XrEnvironmentChangedNotification(%d)", environment);
-    XrEnvironmentChangedNotification notification(environment);
-    notification.Serialize(output_stream_);
-    output_stream_.Flush();
+    SendControlMessage(XrEnvironmentChangedNotification(environment));
     sent_xr_environment_ = environment;
   }
 }
 
 void Controller::InjectXrMotionEvent(const JObject& motion_event) {
-  XrSimulatedInputEventManager::InjectMotionEvent(jni_, motion_event);
-  JThrowable exception = jni_.GetAndClearException();
-  if (exception.IsNotNull()) {
-    Log::E("Unable to inject an XR motion event - %s", exception.Describe().c_str());
+  if (xr_input_available_) {
+    XrSimulatedInputEventManager::InjectMotionEvent(jni_, motion_event);
+    JThrowable exception = jni_.GetAndClearException();
+    if (exception.IsNotNull()) {
+      Log::E("Unable to inject an XR motion event - %s", exception.Describe().c_str());
+    }
   }
 }
 
@@ -886,9 +902,7 @@ void Controller::SendDeviceStateNotification() {
   int32_t device_state = device_state_identifier_;
   if (device_state != sent_device_state_) {
     Log::D("Sending DeviceStateNotification(%d)", device_state);
-    DeviceStateNotification notification(device_state);
-    notification.Serialize(output_stream_);
-    output_stream_.Flush();
+    SendControlMessage(DeviceStateNotification(device_state));
     sent_device_state_ = device_state;
     // Many OEMs don't produce QPR releases, so their phones may be affected by b/303684492
     // that was fixed in Android 14 QPR1.
@@ -904,16 +918,13 @@ void Controller::SendDisplayConfigurations(const DisplayConfigurationRequest& re
   if (Log::IsEnabled(Log::Level::DEBUG)) {
     Log::D("Returning display configuration: %s", DisplayInfo::ToDebugString(displays).c_str());
   }
-  DisplayConfigurationResponse response(request.request_id(), std::move(displays));
-  response.Serialize(output_stream_);
-  output_stream_.Flush();
+  SendControlMessage(DisplayConfigurationResponse(request.request_id(), std::move(displays)));
 }
 
 void Controller::SendUiSettings(const UiSettingsRequest& message) {
   UiSettingsResponse response(message.request_id());
   ui_settings_.Get(&response);
-  response.Serialize(output_stream_);
-  output_stream_.Flush();
+  SendControlMessage(response);
 }
 
 void Controller::ChangeUiSetting(const UiSettingsChangeRequest& request) {
@@ -951,15 +962,13 @@ void Controller::ChangeUiSetting(const UiSettingsChangeRequest& request) {
       ui_settings_.SetAppLanguage(request.application_id(), request.locale(), &response);
       break;
   }
-  response.Serialize(output_stream_);
-  output_stream_.Flush();
+  SendControlMessage(response);
 }
 
 void Controller::ResetUiSettings(const ResetUiSettingsRequest& request) {
   UiSettingsResponse response(request.request_id());
   ui_settings_.Reset(&response);
-  response.Serialize(output_stream_);
-  output_stream_.Flush();
+  SendControlMessage(response);
 }
 
 void Controller::OnDisplayAdded(int32_t display_id) {
@@ -990,9 +999,7 @@ void Controller::SendPendingDisplayEvents() {
       auto it = current_displays_.find(display_id);
       if (it != current_displays_.end()) {
         current_displays_.erase(display_id);
-        DisplayRemovedNotification notification(display_id);
-        notification.Serialize(output_stream_);
-        output_stream_.Flush();
+        SendControlMessage(DisplayRemovedNotification(display_id));
         Log::D("Sent DisplayRemovedNotification(%d)", display_id);
       }
     } else {
@@ -1010,8 +1017,7 @@ void Controller::SendPendingDisplayEvents() {
         current_displays_.insert_or_assign(display_id, display_info);
         if (significant_change) {
           DisplayAddedOrChangedNotification notification(display_id, display_info.logical_size, display_info.rotation, display_info.type);
-          notification.Serialize(output_stream_);
-          output_stream_.Flush();
+          SendControlMessage(notification);
           if (Log::IsEnabled(Log::Level::DEBUG)) {
             Log::D("Sent %s", notification.ToDebugString().c_str());
           }
