@@ -123,6 +123,22 @@ class FloatingToolbarContainerTest {
     }
   }
 
+  @Test
+  fun testToolbarWithOnlyCollapserButton() {
+    val toolbar = FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.8, initiallyActive = true).apply {
+      addToolbar("FloatingToolbar", DefaultActionGroup(FloatingToolbarContainer.CollapserAction()))
+    }
+    panel.add(toolbar, BorderLayout.EAST)
+    fakeUi.updateToolbarsIfNecessary()
+    // A toolbar containing no other buttons other than collapser should not be visible.
+    val image = fakeUi.render()
+    for (y in 0 until image.height) {
+      for (x in 0 until image.width) {
+        assertThat(image.getRGB(x, y)).isEqualTo(panel.background.rgb)
+      }
+    }
+  }
+
   private fun createHostPanel(): BorderLayoutPanel {
     return BorderLayoutPanel().apply {
       setSize(200, 200)
