@@ -38,6 +38,7 @@ import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedU
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.ACTION_BAR_RECORDING
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.ACTION_BAR_STOP_RECORDING
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_ANALYSIS
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_FORCE_DUMP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_RETAINED_OBJECT
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_WAITING_HEAP_DUMP
 import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel
@@ -58,12 +59,22 @@ import org.jetbrains.jewel.ui.component.Text
 @Composable
 fun LeakCanaryActionBar(leakCanaryModel: LeakCanaryModel) {
   val isRecording by leakCanaryModel.isRecording.collectAsState()
+  val objectRetainedCount by leakCanaryModel.objectRetainedCount.collectAsState()
+  val analysisProgress by leakCanaryModel.analysisProgress.collectAsState()
+  val isForceDumpEnabled = objectRetainedCount != 0 && analysisProgress == 0
   if (isRecording) {
     Row(modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP),
         verticalAlignment = Alignment.CenterVertically) {
       RecordingTimer(leakCanaryModel)
       Spacer(modifier = Modifier.weight(1f))
       HeapDumpAndAnalysisStatus(leakCanaryModel)
+      Spacer(modifier = Modifier.width(8.dp))
+      if (leakCanaryModel.isLeakCanaryMilestone2Enabled) {
+        DefaultButton(onClick = { leakCanaryModel.forceHeapDump() }, enabled = isForceDumpEnabled) {
+          Text(LEAKCANARY_FORCE_DUMP)
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+      }
       DefaultButton(onClick = leakCanaryModel::stopListening) {
         Text(ACTION_BAR_STOP_RECORDING)
       }

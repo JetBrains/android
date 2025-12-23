@@ -16,6 +16,8 @@
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary.actionbars
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -29,10 +31,12 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.WithFakeTimer
 import com.android.tools.profilers.leakcanary.FakeLeakCanaryCommandHandler
+import com.android.tools.profilers.leakcanary.LeakCanaryHeapDumper
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.ACTION_BAR_RECORDING
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.ACTION_BAR_STOP_RECORDING
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_ANALYSIS
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_FORCE_DUMP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_RETAINED_OBJECT
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_WAITING_HEAP_DUMP
 import org.junit.Assert.assertFalse
@@ -40,6 +44,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 
 class LeakCanaryActionBarTest: WithFakeTimer {
   override val timer = FakeTimer()
@@ -158,5 +165,72 @@ class LeakCanaryActionBarTest: WithFakeTimer {
 
     composeTestRule.onNodeWithText(LEAKCANARY_ANALYSIS).assertDoesNotExist()
     composeTestRule.onNodeWithTag("AnalysisProgressBar").assertDoesNotExist()
+  }
+
+  @Test
+  fun `test force heap dump button not visible when flag is disabled`() {
+    ideProfilerServices.enableLeakCanaryMilestone2(false)
+    leakCanaryModel.setIsRecording(true)
+    composeTestRule.setContent {
+      LeakCanaryActionBar(leakCanaryModel = leakCanaryModel)
+    }
+    composeTestRule.onNodeWithText(LEAKCANARY_FORCE_DUMP).assertDoesNotExist()
+  }
+
+  @Test
+  fun `test force heap dump button visible and clickable when flag is enabled`() {
+    ideProfilerServices.enableLeakCanaryMilestone2(true)
+    val mockHeapDumper: LeakCanaryHeapDumper = mock()
+
+    leakCanaryModel = LeakCanaryModel(profilers, mockHeapDumper)
+    leakCanaryModel.setIsRecording(true)
+    // Button is enabled when at least one object is retained.
+    leakCanaryModel.setObjectRetainedCount(1)
+
+    composeTestRule.setContent {
+      LeakCanaryActionBar(leakCanaryModel = leakCanaryModel)
+    }
+    composeTestRule.onNodeWithText(LEAKCANARY_FORCE_DUMP).assertIsDisplayed()
+    composeTestRule.onNodeWithText(LEAKCANARY_FORCE_DUMP).assertIsEnabled()
+    composeTestRule.onNodeWithText(LEAKCANARY_FORCE_DUMP).performClick()
+
+    // Verify that the triggerAndAnalyze() method was called exactly once
+    verify(mockHeapDumper, times(1)).triggerAndAnalyze()
+  }
+
+  @Test
+  fun `test force heap dump button visible but disabled when flag is enabled and count is 0`() {
+    ideProfilerServices.enableLeakCanaryMilestone2(true)
+
+    val mockHeapDumper: LeakCanaryHeapDumper = mock()
+
+    leakCanaryModel = LeakCanaryModel(profilers, mockHeapDumper)
+    leakCanaryModel.setIsRecording(true)
+    // Button is disabled when 0 objects are retained.
+    leakCanaryModel.setObjectRetainedCount(0)
+
+    composeTestRule.setContent {
+      LeakCanaryActionBar(leakCanaryModel = leakCanaryModel)
+    }
+    composeTestRule.onNodeWithText(LEAKCANARY_FORCE_DUMP).assertIsDisplayed()
+    composeTestRule.onNodeWithText(LEAKCANARY_FORCE_DUMP).assertIsNotEnabled()
+  }
+
+  @Test
+  fun `test force heap dump button disabled when analysis is in progress`() {
+    ideProfilerServices.enableLeakCanaryMilestone2(true)
+    val mockHeapDumper: LeakCanaryHeapDumper = mock()
+
+    leakCanaryModel = LeakCanaryModel(profilers, mockHeapDumper)
+    leakCanaryModel.setIsRecording(true)
+    // Button is disabled when analysis is in progress, even if objects are retained.
+    leakCanaryModel.setObjectRetainedCount(1)
+    leakCanaryModel.setAnalysisProgress(50)
+
+    composeTestRule.setContent {
+      LeakCanaryActionBar(leakCanaryModel = leakCanaryModel)
+    }
+    composeTestRule.onNodeWithText(LEAKCANARY_FORCE_DUMP).assertIsDisplayed()
+    composeTestRule.onNodeWithText(LEAKCANARY_FORCE_DUMP).assertIsNotEnabled()
   }
 }
