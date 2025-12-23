@@ -133,6 +133,7 @@ object TaskBasedUxStrings {
   const val LEAKCANARY_ANALYSIS = "Analyzing results:"
   const val LEAKCANARY_WAITING_HEAP_DUMP = "Waiting to dump heap until"
   const val LEAKCANARY_RETAINED_OBJECT = "retained object"
+  const val LEAKCANARY_FORCE_DUMP = "Force dump"
 
   fun getTaskTooltip(taskType: ProfilerTaskType) = when (taskType) {
     ProfilerTaskType.SYSTEM_TRACE -> "Captures a trace that can help you understand how your app interacts with system resources"
