@@ -669,6 +669,9 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     FileUtils.copyDirectory(TestUtils.getBinPath(projectArtifactsPath.resolve("system").toString()).toFile(), getSystemDir().toFile());
   }
 
+  public void copyConfigDir(Path projectArtifactsPath) throws IOException {
+    FileUtils.copyDirectory(TestUtils.getBinPath(projectArtifactsPath.resolve("config").toString()).toFile(), getConfigDir().toFile());
+  }
 
   abstract public T attach() throws IOException, InterruptedException;
 
