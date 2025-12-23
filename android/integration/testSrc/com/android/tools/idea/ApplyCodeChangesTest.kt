@@ -22,11 +22,12 @@ import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.testlib.Emulator
 import org.junit.Rule
 import org.junit.Test
+import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 class ApplyCodeChangesTest {
   @JvmField
   @Rule
-  val system: AndroidSystem = AndroidSystem.standard()
+  val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
   @JvmField
   @Rule
@@ -44,9 +45,12 @@ class ApplyCodeChangesTest {
    */
   @Test
   fun applyChangesTest() {
-    val project = AndroidProject("tools/adt/idea/android/integration/testData/applychanges")
+    val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/applychanges_project_model")
+    val project = AndroidProject(projectArtifactsPath.resolve("applychanges").toString())
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
 
+    system.getInstallation().copySystemDir(projectArtifactsPath)
+    system.getInstallation().copyConfigDir(projectArtifactsPath)
     system.runAdb { adb ->
       system.runEmulator(Emulator.SystemImage.API_33) { emulator ->
         println("Waiting for boot")
@@ -56,8 +60,8 @@ class ApplyCodeChangesTest {
         adb.waitForDevice(emulator)
 
         system.runStudio(project, watcher.dashboardName) { studio ->
-          studio.waitForSync()
-          studio.waitForIndex()
+          studio.waitForSyncSkippedLog()
+          studio.waitForIndexingSkippedLog()
 
           println("Waiting for project init");
           studio.waitForProjectInit()

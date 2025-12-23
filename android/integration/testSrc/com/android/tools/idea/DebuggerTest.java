@@ -32,7 +32,7 @@ import org.junit.Test;
 
 public class DebuggerTest {
   @Rule
-  public AndroidSystem system = AndroidSystem.standard();
+  public AndroidSystem system = AndroidSystem.standardWithTmpDir();
 
   @Rule
   public MemoryDashboardNameProviderWatcher watcher = new MemoryDashboardNameProviderWatcher();
@@ -41,17 +41,20 @@ public class DebuggerTest {
 
   @Test
   public void runDebuggerTest() throws Exception {
-    AndroidProject project = new AndroidProject("tools/adt/idea/android/integration/testData/mindebugapp");
+    Path projectArtifactsPath = Path.of("tools/adt/idea/android/integration/mindebugapp_project_model");
+    AndroidProject project = new AndroidProject(projectArtifactsPath.resolve("mindebugapp").toString());
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(new MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"));
 
     long startTime = System.currentTimeMillis();
 
+    system.getInstallation().copySystemDir(projectArtifactsPath);
+    system.getInstallation().copyConfigDir(projectArtifactsPath);
     try (Adb adb = system.runAdb();
          Emulator emulator = system.runEmulator();
          AndroidStudio studio = system.runStudio(project)) {
-      studio.waitForSync();
-      studio.waitForIndex();
+      studio.waitForSyncSkippedLog();
+      studio.waitForIndexingSkippedLog();
       studio.executeAction("MakeGradleProject");
       studio.waitForBuild();
       metric.addSamples(new Benchmark.Builder("Debugger-before-boot").setProject("Android Studio E2E").build(),

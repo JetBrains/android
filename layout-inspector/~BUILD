@@ -1,4 +1,5 @@
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE")
+load("//tools/adt/idea/studio:studio.bzl", "studio_project_model")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
@@ -189,11 +190,11 @@ iml_module(
 )
 
 layout_inspector_view_data = [
+    ":emptyApplication_project_model",
     ":view_project_deps",
     "//prebuilts/studio/sdk:build-tools/34.0.0",
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
-    "//tools/adt/idea/layout-inspector/integration/testData:emptyApplication",
     INTEGRATION_TEST_GRADLE_VERSION,
     INTEGRATION_TEST_SYSTEM_IMAGE,
 ]
@@ -271,4 +272,16 @@ iml_module(
         "//tools/base/sdk-common/gradle:studio.android.sdktools.sdk-common.gradle",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
     ],
+)
+
+studio_project_model(
+    name = "emptyApplication_project_model",
+    srcs = [
+        ":view_project_deps",
+        "//tools/adt/idea/layout-inspector/integration/testData:emptyApplication",
+        "//tools/base/build-system:gradle-distrib-8.6",
+    ],
+    manifest_path = "tools/adt/idea/layout-inspector/view_project_deps.manifest",
+    out_dir_name = "emptyApplication_project_model",
+    project_path = "tools/adt/idea/layout-inspector/integration/testData/projects/emptyApplication",
 )
