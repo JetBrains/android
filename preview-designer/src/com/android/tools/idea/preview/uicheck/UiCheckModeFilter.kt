@@ -155,7 +155,7 @@ private fun <T : PreviewElementInstance<*>> wearDevicesPreviews(baseInstance: T)
   val baseDisplaySettings = baseInstance.displaySettings
   return wearSpecToName
     .map { (deviceSpec, name) ->
-      val config = baseConfig.copy(deviceSpec = deviceSpec)
+      val config = baseConfig.withDeviceSpec(deviceSpec)
       val displaySettings =
         baseDisplaySettings.copy(
           name = "$name - ${baseDisplaySettings.name}",
@@ -183,7 +183,7 @@ private fun <T : PreviewElementInstance<*>> deviceSizePreviews(baseInstance: T):
       )
   return effectiveDeviceIds.keys
     .map { device ->
-      val config = baseConfig.copy(deviceSpec = device)
+      val config = baseConfig.withDeviceSpec(device)
       val displaySettings =
         baseDisplaySettings.copy(
           name = "${idToName[effectiveDeviceIds[device]]} - ${baseDisplaySettings.name}",
@@ -210,7 +210,7 @@ private fun <T : PreviewElementInstance<*>> fontSizePreviews(
   val fontScales = if (isWearPreview) wearFontScales else fontScales
   return fontScales
     .map { (value, name) ->
-      val config = baseConfig.copy(fontScale = value)
+      val config = baseConfig.withFontScale(value)
       val displaySettings =
         baseDisplaySettings.copy(
           name = "$name - ${baseDisplaySettings.name}",
@@ -234,7 +234,7 @@ private fun <T : PreviewElementInstance<*>> lightDarkPreviews(baseInstance: T): 
   return lightDarkModes
     .map { (value, name) ->
       val config =
-        baseConfig.copy(uiMode = (baseConfig.uiMode and Configuration.UI_MODE_TYPE_MASK) or value)
+        baseConfig.withUiMode((baseConfig.uiMode and Configuration.UI_MODE_TYPE_MASK) or value)
       val displaySettings =
         baseDisplaySettings.copy(
           name = "$name - ${baseDisplaySettings.name}",
@@ -260,7 +260,7 @@ private fun <T : PreviewElementInstance<*>> colorBlindPreviews(
   return ColorBlindMode.values()
     .map { colorBlindMode ->
       val colorFilterBaseConfig =
-        baseConfig.copy(imageTransformation = colorBlindMode.imageTransform)
+        baseConfig.withImageTransformation(colorBlindMode.imageTransform)
       val displaySettings =
         baseDisplaySettings.copy(
           name = "${colorBlindMode.displayName} - ${baseDisplaySettings.name}",

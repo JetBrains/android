@@ -202,7 +202,7 @@ internal class WearHealthServicesStateManagerImpl(
   override fun getState(capability: WhsCapability): StateFlow<CapabilityUIState> =
     capabilityToState[capability]?.asStateFlow() ?: throw IllegalArgumentException()
 
-  override suspend fun setCapabilityEnabled(capability: WhsCapability, enabled: Boolean) =
+  override suspend fun setCapabilityEnabled(capability: WhsCapability, enabled: Boolean): Unit =
     capabilityUpdatesLock.withLock {
       val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
       val uiState = stateFlow.value
@@ -220,7 +220,7 @@ internal class WearHealthServicesStateManagerImpl(
           )
     }
 
-  override suspend fun setOverrideValue(capability: WhsCapability, value: Number) =
+  override suspend fun setOverrideValue(capability: WhsCapability, value: Number): Unit =
     capabilityUpdatesLock.withLock {
       val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
       val dataValue = capability.dataType.value(value)
@@ -239,7 +239,7 @@ internal class WearHealthServicesStateManagerImpl(
           )
     }
 
-  override suspend fun clearOverrideValue(capability: WhsCapability) =
+  override suspend fun clearOverrideValue(capability: WhsCapability): Unit =
     capabilityUpdatesLock.withLock {
       val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
       val uiState = stateFlow.value

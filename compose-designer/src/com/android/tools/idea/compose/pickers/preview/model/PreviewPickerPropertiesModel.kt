@@ -377,7 +377,7 @@ private class PreviewPropertiesProvider(
     project: Project,
     model: PsiCallPropertiesModel,
     properties: MutableCollection<PsiPropertyItem>,
-  ) = allowAnalysisOnEdt {
+  ): Unit = allowAnalysisOnEdt {
     analyze(annotationEntry) {
       val resolvedFunctionCall =
         annotationEntry.resolveToCall()?.singleFunctionCallOrNull() ?: return

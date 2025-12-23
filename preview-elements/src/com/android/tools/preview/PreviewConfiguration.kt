@@ -55,6 +55,7 @@ interface ConfigurablePreviewElement<T> : PreviewElement<T> {
 }
 
 /** Contains settings for rendering. */
+@ConsistentCopyVisibility
 data class PreviewConfiguration
 internal constructor(
   val apiLevel: Int,
@@ -103,6 +104,15 @@ internal constructor(
         imageTransformation = imageTransformation,
       )
   }
+
+  fun withDeviceSpec(deviceSpec: String): PreviewConfiguration = copy(deviceSpec = deviceSpec)
+
+  fun withFontScale(fontScale: Float): PreviewConfiguration = copy(fontScale = fontScale)
+
+  fun withUiMode(uiMode: Int): PreviewConfiguration = copy(uiMode = uiMode)
+
+  fun withImageTransformation(imageTransformation: Consumer<BufferedImage>?): PreviewConfiguration =
+    copy(imageTransformation = imageTransformation)
 }
 
 /** Applies the [ConfigurablePreviewElement] settings to the given [renderConfiguration]. */

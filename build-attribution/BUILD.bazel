@@ -20,6 +20,7 @@ jvm_library(
     "//libraries/gson",
     "@lib//:jetbrains-annotations",
     "@lib//:jna",
+    "@lib//:jspecify",
     "@lib//:kotlin-stdlib",
     "//platform/observable",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",

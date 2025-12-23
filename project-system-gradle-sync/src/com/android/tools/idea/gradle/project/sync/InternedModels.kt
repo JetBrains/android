@@ -46,6 +46,7 @@ internal data class ClasspathIdentifier(
   val classpathType: ClasspathType,
 )
 
+@ConsistentCopyVisibility
 data class LibraryIdentity private constructor(val key: Any) {
   companion object {
     @VisibleForTesting

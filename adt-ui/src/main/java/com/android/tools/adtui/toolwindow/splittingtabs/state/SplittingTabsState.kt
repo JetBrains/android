@@ -49,6 +49,7 @@ internal data class TabState(
  * The constructors enforce the validity of the data by accepting non-nullable where required.
  */
 @Suppress("DataClassPrivateConstructor") // Private ctor is exposed by the generated `copy` method but we don't care.
+@ConsistentCopyVisibility
 @Tag("panel")
 internal data class PanelState private constructor(
   @Text var clientState: String? = null,

@@ -111,7 +111,7 @@ private constructor(
   @GuardedBy("activationLock") private var isFirstActivation = true
 
   /** The user should call this to indicate that the parent was activated. */
-  fun activate() =
+  fun activate(): Unit =
     activationLock.withLock {
       if (isActive.get()) return
 
@@ -142,7 +142,7 @@ private constructor(
    * [deactivateImmediately] is false, part of the deactivation might run later, allowing for a
    * quicker re-activation.
    */
-  private fun deactivate(deactivateImmediately: Boolean = false) =
+  private fun deactivate(deactivateImmediately: Boolean = false): Unit =
     activationLock.withLock {
       if (!isActive.get()) return
 

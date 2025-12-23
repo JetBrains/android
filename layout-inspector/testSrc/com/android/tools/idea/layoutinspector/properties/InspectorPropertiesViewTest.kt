@@ -364,7 +364,7 @@ class InspectorPropertiesViewTest {
 
   private fun Table<String, String, InspectorPropertyItem>.addProperty(
     property: InspectorPropertyItem
-  ) = this.put(property.namespace, property.name, property)
+  ): InspectorPropertyItem? = this.put(property.namespace, property.name, property)
 
   private fun FakeTableLineModel.getComponentFor(property: InspectorPropertyItem): Component? {
     val table: PTable = mock()

@@ -624,6 +624,7 @@ internal data class XrSetEnvironmentMessage(val environment: XrEnvironment) : Co
 }
 
 /** Queries configuration of the device displays. The response message is [DisplayConfigurationResponse]. */
+@ConsistentCopyVisibility
 internal data class DisplayConfigurationRequest private constructor(override val requestId: Int) : CorrelatedMessage(TYPE) {
 
   constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
@@ -899,6 +900,7 @@ internal data class XrEnvironmentChangedNotification(val environment: XrEnvironm
 }
 
 /** Queries the current UI settings from a device. */
+@ConsistentCopyVisibility
 internal data class UiSettingsRequest private constructor(override val requestId: Int) : CorrelatedMessage(TYPE) {
 
   constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())

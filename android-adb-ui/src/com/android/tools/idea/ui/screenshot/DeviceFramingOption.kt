@@ -24,6 +24,7 @@ import java.nio.file.Path
  * is guaranteed to be not null.
  */
 @Suppress("DataClassPrivateConstructor")
+@ConsistentCopyVisibility
 data class DeviceFramingOption private constructor(
   override val displayName: String,
   val skinFolder: Path?,

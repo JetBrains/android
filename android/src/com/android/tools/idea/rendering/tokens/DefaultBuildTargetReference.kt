@@ -128,6 +128,7 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
   }
 }
 
+@ConsistentCopyVisibility
 data class DefaultBuildTargetReference internal constructor(private val moduleRef: Module) : BuildTargetReference {
   override val moduleIfNotDisposed: Module?
     get() = moduleRef.takeUnless { it.isDisposed }

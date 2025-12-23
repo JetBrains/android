@@ -31,6 +31,7 @@ internal class LiveEditCompiledClass(
   val type: LiveEditClassType
 )
 
+@ConsistentCopyVisibility
 data class LiveEditCompilerOutput internal constructor (internal val classes: List<LiveEditCompiledClass> = emptyList(),
                                                         val irClasses: List<IrClass> = emptyList(),
                                                         val groupIds: Set<Int> = emptySet(),

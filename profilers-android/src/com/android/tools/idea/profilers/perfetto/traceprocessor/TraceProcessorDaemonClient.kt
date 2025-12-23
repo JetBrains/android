@@ -124,6 +124,7 @@ class TraceProcessorDaemonClient(ticker: Ticker): Disposable {
  * Wrapper for the result of a query sent to TPD, that can contain the response received (if {@code completed} is true) or the reason
  * why it failed to contact TPD in {@code failure}.
  */
+@ConsistentCopyVisibility
 data class TraceProcessorDaemonQueryResult<A> private constructor(
   val response: A? = null,
   val failure: Exception? = null) {

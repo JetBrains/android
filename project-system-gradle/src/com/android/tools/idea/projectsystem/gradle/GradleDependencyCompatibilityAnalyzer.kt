@@ -503,7 +503,7 @@ private fun RepositoryModel.toArtifactRepository(): ArtifactRepository? {
 
 private fun Component.dependency() = Dependency(group, name, RichVersion.parse(version.toString()))
 private fun Dependency.externalModule() = group?.let { ExternalModule(it, name) }
-private fun Dependency.versionRange() = version?.let {
+private fun Dependency.versionRange(): VersionRange? = version?.let {
   when {
     hasExplicitDistinctUpperBound -> it.require ?: it.strictly
     else -> explicitSingletonVersion?.let { v ->

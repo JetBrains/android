@@ -14,6 +14,7 @@ jvm_library(
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   resources = [":gradle_resources"],
   deps = [
+    "@lib//:jetbrains-annotations",
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
     "//android/profilers-android",

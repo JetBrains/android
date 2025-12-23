@@ -29,6 +29,7 @@ import java.io.File
  */
 private const val NDK_MODULE_MODEL_SYNC_VERSION = "2020-06-30/4"
 
+@ConsistentCopyVisibility
 data class NdkModuleModel
 @PropertyMapping("moduleName", "rootDirPath", "selectedVariant", "selectedAbi", "ndkModel", "syncVersion") private constructor(
   private val moduleName: String,
@@ -69,6 +70,8 @@ data class NdkModuleModel
   }
 
   override fun getModuleName() = moduleName
+
+  internal fun withNdkModel(newNdkModel: NdkModel): NdkModuleModel = copy(ndkModel = newNdkModel)
 
   fun getDefaultVariantAbi(): VariantAbi? =
     allVariantAbis.firstOrNull { (variant, abi) -> variant == "debug" && (abi == "x86" || abi == "x86_64") } ?: allVariantAbis.firstOrNull()

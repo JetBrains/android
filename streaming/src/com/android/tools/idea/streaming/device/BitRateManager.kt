@@ -140,6 +140,7 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
   }
 
   /** Candidate bit rates are kept in descending order. */
+  @ConsistentCopyVisibility
   data class BitRateTracker private constructor(
     var bitRate: Int,
     @XCollection(propertyElementName = "candidates", valueAttributeName = Constants.LIST)

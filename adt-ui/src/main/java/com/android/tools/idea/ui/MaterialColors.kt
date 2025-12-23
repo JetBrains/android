@@ -350,7 +350,7 @@ object MaterialColors {
   }
 
   @JvmStatic
-  fun getColor(name: Color, category: Category) = table[name, category]
+  fun getColor(name: Color, category: Category): java.awt.Color? = table[name, category]
 
   /**
    * Get the series of [java.awt.Color] by the given [Color].

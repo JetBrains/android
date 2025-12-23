@@ -268,5 +268,6 @@
     </orderEntry>
     <orderEntry type="module" module-name="intellij.platform.debugger.impl.shared" />
     <orderEntry type="module" module-name="intellij.xml.emmet" />
+    <orderEntry type="library" name="jspecify" level="project" />
   </component>
 </module>
