@@ -47,20 +47,26 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.NotNull
 
-class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelStage(profilers), Updatable {
+class LeakCanaryModel(@NotNull private val profilers: StudioProfilers,
+                      heapDumper: LeakCanaryHeapDumper? = null) : ModelStage(profilers), Updatable {
 
   private lateinit var statusListener: TransportEventListener
   private lateinit var hostAnalysisTriggerListener: TransportEventListener
   private val logger: Logger = Logger.getInstance(LeakCanaryModel::class.java)
   private var sessionData = profilers.session
-  private val heapDumper = LeakCanaryHeapDumper(profilers).apply {
-    onHostAnalysisFinished = { analysis ->
-      handleLeakAnalysis(analysis)
-    }
-    onAnalysisProgress = { progress ->
-      setAnalysisProgress(progress)
+  private val heapDumper: LeakCanaryHeapDumper
+
+  init {
+    this.heapDumper = heapDumper ?: LeakCanaryHeapDumper(profilers).apply {
+      onHostAnalysisFinished = { analysis ->
+        handleLeakAnalysis(analysis)
+      }
+      onAnalysisProgress = { progress ->
+        setAnalysisProgress(progress)
+      }
     }
   }
+
   val requiredRetainedObjectCount = 5
   private val _leaks = MutableStateFlow(listOf<Leak>())
   val leaks = _leaks.asStateFlow()
@@ -76,6 +82,8 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
   val analysisProgress = _analysisProgress.asStateFlow()
   private val _isLeakCanaryPresent = MutableStateFlow(true)
   val isLeakCanaryPresent = _isLeakCanaryPresent.asStateFlow()
+  val isLeakCanaryMilestone2Enabled
+    get() = profilers.ideServices.featureConfig.isLeakCanaryMilestone2Enabled
 
   override fun onEnter() {
     sessionData = profilers.session
@@ -109,6 +117,12 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
 
     // Track the successful completion of the user-initiated leakCanary recording task.
     myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED)
+  }
+
+  fun forceHeapDump() {
+    profilers.ideServices.poolExecutor.execute {
+      heapDumper.triggerAndAnalyze()
+    }
   }
 
   fun setIsRecording(isRecording: Boolean) {

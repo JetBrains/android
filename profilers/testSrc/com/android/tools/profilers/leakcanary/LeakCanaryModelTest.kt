@@ -61,7 +61,7 @@ class LeakCanaryModelTest : WithFakeTimer {
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
-    stage = LeakCanaryModel(profilers)
+    stage = LeakCanaryModel(profilers, null)
   }
 
   @Test
