@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.device.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.streaming.actions.getXrInputController
 import com.android.tools.idea.streaming.device.XrRecenterMessage
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent

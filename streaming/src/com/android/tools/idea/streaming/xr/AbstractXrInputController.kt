@@ -48,6 +48,13 @@ internal const val TRANSLATION_STEP_SIZE: Float = 0.5F
  */
 internal abstract class AbstractXrInputController : Disposable {
 
+  @Volatile var isXrInputAvailable: Boolean = true
+    set(value) {
+      if (field != value) {
+        field = value
+        ActivityTracker.getInstance().inc()
+      }
+    }
   @Volatile var environment: XrEnvironment? = null
     set(value) {
       requireNotNull(value)

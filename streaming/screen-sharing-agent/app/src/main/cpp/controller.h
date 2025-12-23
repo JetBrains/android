@@ -73,6 +73,8 @@ private:
   void Initialize();
   void InitializeVirtualKeyboard();
   [[nodiscard]] VirtualTablet& GetVirtualTablet(int32_t display_id, int32_t width, int32_t height);
+
+  void SendControlMessage(const ControlMessage& message);
   void ProcessMessage(const ControlMessage& message);
   void ProcessMotionEvent(const MotionEventMessage& message);
   void ProcessKeyboardEvent(const KeyEventMessage& message) {
@@ -151,6 +153,7 @@ private:
   std::atomic_int32_t device_state_identifier_ = DeviceStateManager::INVALID_DEVICE_STATE_IDENTIFIER;
   int32_t sent_device_state_ = DeviceStateManager::INVALID_DEVICE_STATE_IDENTIFIER;
 
+  bool xr_input_available_ = false;
   std::atomic<float> xr_passthrough_coefficient_ = XrSimulatedInputManager::UNKNOWN_PASSTHROUGH_COEFFICIENT;
   float sent_xr_passthrough_coefficient_ = XrSimulatedInputManager::UNKNOWN_PASSTHROUGH_COEFFICIENT;
   std::atomic_int32_t xr_environment_ = XrSimulatedInputManager::UNKNOWN_ENVIRONMENT;
