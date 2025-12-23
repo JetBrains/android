@@ -100,6 +100,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon CROP = load("studio/icons/common/crop.svg", 1868859328, 2);
     /** 16x16 */ public static final @NotNull Icon DELETE = load("studio/icons/common/delete.svg", -2052248004, 2);
     /** 16x16 */ public static final @NotNull Icon DISLIKE = load("studio/icons/common/dislike.svg", -1062610438, 2);
+    /** 16x16 */ public static final @NotNull Icon DOWN_RIGHT_ARROW = load("studio/icons/common/down-right-arrow.svg", 605649798, 2);
     /** 16x16 */ public static final @NotNull Icon EDIT = load("studio/icons/common/edit.svg", -1523029447, 2);
     /** 16x16 */ public static final @NotNull Icon ERROR_DECORATOR = load("studio/icons/common/error-decorator.svg", 679206806, 2);
     /** 16x16 */ public static final @NotNull Icon ERROR_INLINE = load("studio/icons/common/error-inline.svg", 462246295, 2);
