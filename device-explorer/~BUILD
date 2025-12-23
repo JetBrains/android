@@ -95,7 +95,7 @@ iml_test(
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//tools/adt/idea/android/integration:buildproject_deps",
-        "//tools/adt/idea/android/integration:minapp",
+        "//tools/adt/idea/android/integration:minapp_project_model",
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",

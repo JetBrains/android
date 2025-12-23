@@ -24,13 +24,14 @@ import com.android.tools.idea.diagnostics.crash.LogBuffer
 import com.android.tools.testlib.Emulator
 import com.android.tools.testlib.LogFile
 import com.intellij.openapi.util.SystemInfo
+import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
 
 class BuildAndRunTest {
   @JvmField @Rule
-  val system = AndroidSystem.standard()
+  val system = AndroidSystem.standardWithTmpDir()
 
   @JvmField
   @Rule
@@ -55,9 +56,12 @@ class BuildAndRunTest {
    */
   @Test
   fun deploymentTest() {
-    val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
+    val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/minapp_project_model")
+    val project = AndroidProject(projectArtifactsPath.resolve("minapp").toString())
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
 
+    system.getInstallation().copySystemDir(projectArtifactsPath)
+    system.getInstallation().copyConfigDir(projectArtifactsPath)
     system.runAdb { adb ->
       system.runStudio(project, watcher.dashboardName) { studio ->
         var logCat: LogFile
@@ -68,8 +72,8 @@ class BuildAndRunTest {
           emulator = system.runEmulator()
         }
 
-        studio.waitForSync()
-        studio.waitForIndex()
+        studio.waitForSyncSkippedLog()
+        studio.waitForIndexingSkippedLog()
 
         if(!SystemInfo.isWindows) {
           emulator?.waitForBoot()

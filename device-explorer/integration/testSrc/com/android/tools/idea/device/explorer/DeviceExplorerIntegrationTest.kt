@@ -20,13 +20,14 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.google.common.truth.Truth.assertThat
+import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class DeviceExplorerIntegrationTest {
   @JvmField @Rule
-  val system: AndroidSystem = AndroidSystem.standard()
+  val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
   @JvmField
   @Rule
@@ -34,18 +35,21 @@ class DeviceExplorerIntegrationTest {
 
   @Test
   fun viewDeviceExplorerToolWindow() {
-    val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
+    val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/minapp_project_model")
+    val project = AndroidProject(projectArtifactsPath.resolve("minapp").toString())
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
     system.installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.idea.device.explorer.files.DeviceFileExplorerControllerImpl,com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel")
 
+    system.getInstallation().copySystemDir(projectArtifactsPath)
+    system.getInstallation().copyConfigDir(projectArtifactsPath)
     system.runAdb { adb ->
       system.runEmulator { emulator ->
         emulator.waitForBoot()
         adb.waitForDevice(emulator)
 
         system.runStudio(project, watcher.dashboardName) { studio ->
-          studio.waitForSync()
-          studio.waitForIndex()
+          studio.waitForSyncSkippedLog()
+          studio.waitForIndexingSkippedLog()
 
           assertThat(studio.showToolWindow("Device Explorer")).isTrue()
 

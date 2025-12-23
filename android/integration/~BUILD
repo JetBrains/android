@@ -269,7 +269,7 @@ iml_test(
     timeout = "long",
     data = [
         ":buildproject_deps",
-        ":mindebugapp",
+        ":mindebugapp_project_model",
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
@@ -462,7 +462,7 @@ iml_test(
 iml_test(
     name = "ApplyCodeChangesTest",
     timeout = "long",
-    data = apply_changes_data,
+    data = apply_changes_data + [":applychanges_project_model"],
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -477,8 +477,8 @@ iml_test(
 )
 
 build_and_run_test_data = [
+    ":minapp_project_model",
     ":buildproject_deps",
-    ":minapp",
     "//prebuilts/studio/sdk:build-tools/33.0.1",
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
@@ -706,7 +706,7 @@ iml_test(
     name = "BuildAndRunInstrumentedTest",
     timeout = "long",
     data = [
-        ":instrumenttestapp",
+        ":instrumenttestapp_project_model",
         ":run_instrumented_test_project_deps",
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         "//prebuilts/studio/sdk:emulator",
@@ -733,7 +733,7 @@ iml_test(
     name = "MultipleDevicesInstrumentedTest",
     timeout = "long",
     data = [
-        ":instrumenttestapp",
+        ":instrumenttestapp_project_model",
         ":run_instrumented_test_project_deps",
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         "//prebuilts/studio/sdk:emulator",
@@ -780,7 +780,7 @@ iml_test(
     timeout = "long",
     data = [
         ":buildkmpproject_deps",
-        ":kmpapp",
+        ":kmpapp_project_model",
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
@@ -1183,6 +1183,7 @@ studio_project_model(
     manifest_path = "tools/adt/idea/android/integration/buildproject_deps.manifest",
     out_dir_name = "minapp_project_model",
     project_path = "tools/adt/idea/android/integration/testData/minapp",
+    visibility = ["//visibility:public"],
 )
 
 studio_project_model(
@@ -1219,4 +1220,52 @@ studio_project_model(
     manifest_path = "tools/adt/idea/android/integration/languagehighlighting_deps.manifest",
     out_dir_name = "languagehighlighting_project_model",
     project_path = "tools/adt/idea/android/integration/testData/languagehighlighting",
+)
+
+studio_project_model(
+    name = "applychanges_project_model",
+    srcs = [
+        ":applychangesproject",
+        ":buildproject_deps",
+        "//tools/base/build-system:gradle-distrib-8.6",
+    ],
+    manifest_path = "tools/adt/idea/android/integration/buildproject_deps.manifest",
+    out_dir_name = "applychanges_project_model",
+    project_path = "tools/adt/idea/android/integration/testData/applychanges",
+)
+
+studio_project_model(
+    name = "instrumenttestapp_project_model",
+    srcs = [
+        ":instrumenttestapp",
+        ":run_instrumented_test_project_deps",
+        "//tools/base/build-system:gradle-distrib-8.6",
+    ],
+    manifest_path = "tools/adt/idea/android/integration/run_instrumented_test_project_deps.manifest",
+    out_dir_name = "instrumenttestapp_project_model",
+    project_path = "tools/adt/idea/android/integration/testData/InstrumentedTestApp",
+)
+
+studio_project_model(
+    name = "mindebugapp_project_model",
+    srcs = [
+        ":buildproject_deps",
+        ":mindebugapp",
+        "//tools/base/build-system:gradle-distrib-8.6",
+    ],
+    manifest_path = "tools/adt/idea/android/integration/buildproject_deps.manifest",
+    out_dir_name = "mindebugapp_project_model",
+    project_path = "tools/adt/idea/android/integration/testData/mindebugapp",
+)
+
+studio_project_model(
+    name = "kmpapp_project_model",
+    srcs = [
+        ":buildkmpproject_deps",
+        ":kmpapp",
+        "//tools/base/build-system:gradle-distrib-8.6",
+    ],
+    manifest_path = "tools/adt/idea/android/integration/buildkmpproject_deps.manifest",
+    out_dir_name = "kmpapp_project_model",
+    project_path = "tools/adt/idea/android/integration/testData/kmpapp",
 )
