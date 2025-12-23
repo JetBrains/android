@@ -32,17 +32,17 @@ static mutex static_initialization_mutex; // Protects initialization of static f
 void XrSimulatedInputManager::InitializeStatics(Jni jni) {
   unique_lock lock(static_initialization_mutex);
 
-  if (xr_simulated_input_manager_.IsNull()) {
+  if (status_ == Status::OK && xr_simulated_input_manager_.IsNull()) {
     xr_simulated_input_manager_ = ServiceManager::GetServiceAsInterface(
         jni, "xrsimulatedinputmanager", "android/services/xr/simulatedinputmanager/IXrSimulatedInputManager", false, true);
     if (xr_simulated_input_manager_.IsNull()) {
+      Log::E("The \"xrsimulatedinputmanager\" service is not running");
       string value =
           RTrim(ExecuteShellCommand("getprop persist.device_config.com_android_xr.com.android.xr.flags.enable_xr_simulated_env"));
-      const char* message = value != "true" && value != "1" ?
-          "The property persist.device_config.com_android_xr.com.android.xr.flags.enable_xr_simulated_env is not set to true" :
-          "The \"xrsimulatedinputmanager\" service is not running. Run 'adb shell reboot' to start it.";
-      Log::Fatal(XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING, "%s", message);
+      status_ = value != "true" && value != "1" ? Status::PROPERTY_NOT_SET : Status::SERVICE_NOT_RUNNING;
+      return;
     }
+
     JClass clazz = xr_simulated_input_manager_.GetClass();
     inject_head_rotation_method_ = clazz.GetMethod("injectHeadRotation", "([F)V");
     inject_head_movement_method_ = clazz.GetMethod("injectHeadMovement", "([F)V");
@@ -62,6 +62,11 @@ void XrSimulatedInputManager::InitializeStatics(Jni jni) {
     Log::D("XrSimulatedInputManager::InitializeStatics: passthrough_coefficient_=%.3g environment=%d", passthrough_coefficient_, environment_);
     xr_simulated_input_manager_.MakeGlobal();
   }
+}
+
+XrSimulatedInputManager::Status XrSimulatedInputManager::Initialize(Jni jni) {
+  InitializeStatics(jni);
+  return status_;
 }
 
 void XrSimulatedInputManager::InjectHeadRotation(Jni jni, const float data[3]) {
@@ -144,6 +149,7 @@ void XrSimulatedInputManager::OnEnvironmentChanged(int32_t environment) {
   }
 }
 
+XrSimulatedInputManager::Status XrSimulatedInputManager::status_ = XrSimulatedInputManager::Status::OK;
 JObject XrSimulatedInputManager::xr_simulated_input_manager_;
 jmethodID XrSimulatedInputManager::inject_head_rotation_method_ = nullptr;
 jmethodID XrSimulatedInputManager::inject_head_movement_method_ = nullptr;

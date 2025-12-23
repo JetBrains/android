@@ -32,11 +32,16 @@ public:
   static constexpr float UNKNOWN_PASSTHROUGH_COEFFICIENT = -1;
   static constexpr int32_t UNKNOWN_ENVIRONMENT = -1;
 
+  enum class Status { OK, SERVICE_NOT_RUNNING, PROPERTY_NOT_SET };
+
   struct EnvironmentListener {
     virtual ~EnvironmentListener() = default;
     virtual void OnPassthroughCoefficientChanged(float passthrough_coefficient) = 0;
     virtual void OnEnvironmentChanged(int32_t environment) = 0;
   };
+
+  // Initializes XrSimulatedInputManager. Returns Status::OK if the initialization succeeded or an error code if not.
+  static Status Initialize(Jni jni);
 
   static void InjectHeadRotation(Jni jni, const float data[3]);
   static void InjectHeadMovement(Jni jni, const float data[3]);
@@ -55,6 +60,7 @@ public:
 private:
   static void InitializeStatics(Jni jni);
 
+  static Status status_;
   static JObject xr_simulated_input_manager_;
   static jmethodID inject_head_rotation_method_;
   static jmethodID inject_head_movement_method_;

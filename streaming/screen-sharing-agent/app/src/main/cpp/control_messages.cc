@@ -359,6 +359,23 @@ void XrEnvironmentChangedNotification::Serialize(Base128OutputStream& stream) co
   stream.WriteInt32(static_cast<int32_t>(environment_));
 }
 
+void XrInputUnavailableNotification::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteInt32(static_cast<int32_t>(reason_));
+}
+
+XrInputUnavailableNotification::Reason XrInputUnavailableNotification::ReasonFromXrSimulatedInputManagerStatus(
+    XrSimulatedInputManager::Status status) {
+  switch (status) {
+    case XrSimulatedInputManager::Status::SERVICE_NOT_RUNNING:
+      return Reason::SERVICE_NOT_RUNNING;
+    case XrSimulatedInputManager::Status::PROPERTY_NOT_SET:
+      return Reason::PROPERTY_NOT_SET;
+    default:
+      Log::Fatal(GENERIC_FAILURE, "Unexpected XrSimulatedInputManager::Status %d", status);
+  }
+}
+
 void UiSettingsRequest::Serialize(Base128OutputStream& stream) const {
   CorrelatedMessage::Serialize(stream);
 }
