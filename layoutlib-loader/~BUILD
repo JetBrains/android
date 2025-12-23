@@ -24,6 +24,7 @@ java_library(
     srcs = glob(
         ["src/**/*.java"],
     ),
+    javacopts = ["--release 17"],  # AGP supports up to Java 17. Targets Java 17 bytecode.
     resource_strip_prefix = "tools/adt/idea/layoutlib-loader/resources",
     resources = glob(["resources/**"]),
     visibility = ["//visibility:public"],
