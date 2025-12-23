@@ -153,12 +153,6 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
     floatingToolbarLayerPane.removeAll()
     when (deviceType) {
       DeviceType.XR_HEADSET -> createXrNavigationToolbar()
-      DeviceType.AI_GLASSES -> {
-        if (StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.get()) {
-          createZoomToolbar()
-        }
-        createXrNavigationToolbar()
-      }
       else -> createZoomToolbar()
     }
   }
@@ -196,7 +190,8 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
 
   private fun createXrNavigationToolbar() {
     if (StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.get()) {
-      val toolbar = FloatingToolbarContainer(horizontal = true, inactiveAlpha = 0.8, collapsedStateSelector = { it.isSelected }).apply {
+      val toolbar = FloatingToolbarContainer(horizontal = true, inactiveAlpha = 0.8, collapsedStateSelector = { it.isSelected },
+                                             initiallyActive = true).apply {
         val group = DefaultActionGroup()
         val actionManager = ActionManager.getInstance()
         val inputModeGroup = actionManager.getAction("android.streaming.xr.input.mode.group") as? ActionGroup
