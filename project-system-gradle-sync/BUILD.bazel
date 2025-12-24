@@ -15,7 +15,6 @@ jvm_library(
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   kotlinc_opts = ":custom_projectSystem-gradle-sync",
   deps = [
-    "@lib//:jspecify",
     "@lib//:studio-platform-provided",
     "//libraries/guava",
     "@lib//:jetbrains-annotations",
@@ -30,6 +29,7 @@ jvm_library(
     "//platform/util",
     "//plugins/kotlin/gradle/gradle-tooling/impl",
     "//plugins/gradle/tooling-extension-impl:toolingExtension-impl",
+    "//libraries/jspecify",
   ]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.sync` end

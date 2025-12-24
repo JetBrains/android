@@ -20,7 +20,6 @@ jvm_library(
     "//libraries/gson",
     "@lib//:jetbrains-annotations",
     "@lib//:jna",
-    "@lib//:jspecify",
     "@lib//:kotlin-stdlib",
     "//platform/observable",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
@@ -58,6 +57,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util:util-ui",
     "//plugins/properties/properties-psi-api:psi",
+    "//libraries/jspecify",
   ]
 )
 ### auto-generated section `build intellij.android.build-attribution` end

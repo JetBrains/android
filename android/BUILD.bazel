@@ -254,7 +254,7 @@ jvm_library(
     "@lib//:android-core-kotlin-metadata-jvm",
     "//platform/xdebugger-impl/shared",
     "//xml/emmet",
-    "@lib//:jspecify",
+    "//libraries/jspecify",
     ":plugins_maven_artifactResolver-m31_provided",
   ],
   exports = ["//android/build-common"]
