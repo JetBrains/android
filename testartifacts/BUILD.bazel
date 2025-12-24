@@ -135,6 +135,8 @@ jvm_library(
     "//android/project-system-gradle-sync:projectSystem-gradle-sync",
     "//platform/testFramework/junit5",
     "//platform/testFramework/junit5:junit5_test_lib",
+    "//plugins/kotlin/gradle/gradle-java",
+    "//plugins/kotlin/gradle/gradle-java:gradle-java_test_lib",
   ],
   runtime_deps = [":testartifacts-tests"],
   plugins = ["@lib//:compose-plugin"]

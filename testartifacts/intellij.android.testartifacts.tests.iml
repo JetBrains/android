@@ -82,5 +82,6 @@
     <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework.junit5" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.gradle.gradle-java" scope="TEST" />
   </component>
 </module>
