@@ -6,6 +6,5 @@ android_binary(
     manifest = "AndroidManifest.xml",
     deps = [
         "//simple_android_kotlin/project/main/java/com/basicapp:basic_lib",
-        "//simple_android_kotlin/external:external_lib",
     ],
 )
