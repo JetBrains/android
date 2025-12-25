@@ -1,5 +1,5 @@
 directories:
-  simple_android_kotlin/main
+  simple_android_kotlin/project/main
 
 derive_targets_from_directories: true
 workspace_type: android
