@@ -718,7 +718,7 @@ def _collect_own_and_dependency_java_artifacts(
         srcs = own_files.src_file_paths,
         srcjars = own_files.srcjar_file_paths,
         android_resources_package = own_files.android_resources_package,
-        kotlin_compiler_flags = own_files.kotlin_compiler_flags,
+        kotlin_compiler_flags = own_files.kotlin_compiler_flags if not own_files.is_external_dependency else [],
     ))
 
     own_and_transitive_compile_jdeps_depsets = [own_files.compile_jdeps_depset]

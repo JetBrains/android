@@ -34,5 +34,6 @@ kt_android_library(
     visibility = ["//visibility:public"],
     deps = [
         "@maven//:com_google_guava_guava",
+        "//simple_android_kotlin/external:external_lib",
     ],
 )
