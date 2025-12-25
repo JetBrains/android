@@ -4,5 +4,8 @@ android_binary(
     name = "basic_app",
     custom_package = "com.basicapp",
     manifest = "AndroidManifest.xml",
-    deps = ["//simple_android_kotlin/main/java/com/basicapp:basic_lib"],
+    deps = [
+        "//simple_android_kotlin/project/main/java/com/basicapp:basic_lib",
+        "//simple_android_kotlin/external:external_lib",
+    ],
 )
