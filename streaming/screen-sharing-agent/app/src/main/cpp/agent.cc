@@ -369,7 +369,7 @@ void Agent::RestoreEnvironment() {
 }
 
 void Agent::SighupHandler(int signal_number) {
-  controller_->Stop();  // Stopping controller triggers an orderly shutdown.
+  controller_->StopReceivingCommands();  // Stopping controller triggers an orderly shutdown.
 }
 
 void Agent::Shutdown() {
@@ -377,7 +377,7 @@ void Agent::Shutdown() {
     if (!shutting_down_.exchange(true)) {
       Log::D("Shutting down");
       if (controller_ != nullptr) {
-        controller_->StopReceivingEvents();
+        controller_->Shutdown();
       }
       RestoreEnvironment();
       DisplayManager::RemoveAllDisplayListeners();
@@ -399,7 +399,7 @@ void Agent::Shutdown() {
     Jvm::Exit(exit_code_);
   } else {
     // Stopping Controller and shutting down control socket makes Shutdown to be called again on the main thread.
-    controller_->Stop();
+    controller_->StopReceivingCommands();
     Log::D("Shutting down control socket");
     if (shutdown(control_socket_fd_, SHUT_RDWR) != 0) {
       Log::E("Failed to shut down control socket - %s", strerror(errno));

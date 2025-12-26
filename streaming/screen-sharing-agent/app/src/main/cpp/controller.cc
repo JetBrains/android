@@ -132,7 +132,8 @@ Controller::Controller(int socket_fd)
 }
 
 Controller::~Controller() {
-  Stop();
+  StopReceivingCommands();
+  Shutdown();
   input_stream_.Close();
   output_stream_.Close();
   delete pointer_helper_;
@@ -140,17 +141,19 @@ Controller::~Controller() {
   delete virtual_keyboard_;
 }
 
-void Controller::Stop() {
+void Controller::StopReceivingCommands() {
   stopping_ = true;
 }
 
-void Controller::StopReceivingEvents() {
+void Controller::Shutdown() {
   if (device_supports_multiple_states_) {
     DeviceStateManager::RemoveDeviceStateListener(this);
   }
   if (Agent::device_type() == DeviceType::XR) {
     XrSimulatedInputManager::RemoveEnvironmentListener(this);
   }
+  // Reset the UI settings back to the state they were before any changes were made by UI settings commands.
+  ui_settings_.Reset(nullptr);
 }
 
 void Controller::Initialize() {

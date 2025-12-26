@@ -48,10 +48,11 @@ public:
   ~Controller() override;
 
   void Run();
-  // Stops the controller asynchronously. The controller can't be restarted once stopped.
+  // Terminates the main controller loop asynchronously. The controller can't be restarted once stopped.
   // May be called on any thread.
-  void Stop();
-  void StopReceivingEvents();
+  void StopReceivingCommands();
+  // Shuts down the controller. Must be called on the main thread after termination of the controller loop.
+  void Shutdown();
   // Requests to power the display OFF or reset it to a power state it supposed to have. Requires API 35+.
   // The state parameter is one of DisplayInfo::STATE_OFF (to turn display off), DisplayInfo::STATE_UNKNOWN
   // (to reset the display to its default state). Returns true if successful, false otherwise.
