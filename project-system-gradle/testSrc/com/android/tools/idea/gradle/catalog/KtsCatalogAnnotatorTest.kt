@@ -15,16 +15,22 @@
  */
 package com.android.tools.idea.gradle.catalog
 
+import com.android.tools.idea.gradle.dsl.model.EP_NAME
+import com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.highlightedAs
 import com.intellij.codeInsight.daemon.ProblemHighlightFilter
 import com.intellij.codeInsight.daemon.impl.analysis.DefaultHighlightingSettingProvider
 import com.intellij.lang.ExternalLanguageAnnotators
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.registerExtension
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Before
 import org.junit.Rule
@@ -39,6 +45,14 @@ class KtsCatalogAnnotatorTest {
   val projectRule = AndroidProjectRule.onDisk()
 
   private lateinit var fixture: CodeInsightTestFixture
+
+  private val service = object: VersionCatalogFilesModel {
+    val map = mapOf("libs" to "gradle/libs.versions.toml")
+    override fun getCatalogNameToFileMapping(project: Project): Map<String, String> =
+      map.mapValues { project.basePath + "/" + it.value }
+    override fun getCatalogNameToFileMapping(module: Module): Map<String, String>  =
+      map.mapValues { module.project.basePath + "/" + it.value }
+  }
 
   @get:Rule
   val disposableRule = DisposableRule()
@@ -69,6 +83,9 @@ class KtsCatalogAnnotatorTest {
       some_bundle = ["some_library"]
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(catalog.virtualFile)
+    ApplicationManager.getApplication().registerExtension(
+      EP_NAME, service, projectRule.fixture.testRootDisposable
+    )
   }
 
   @Test

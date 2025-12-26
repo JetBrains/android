@@ -33,7 +33,7 @@ class KtsAndroidReferenceProviderContributor : KotlinPsiReferenceProviderContrib
     get() = ReferenceProvider { element: KtDotQualifiedExpression ->
       if (!element.containingFile.name.endsWith(".gradle.kts")) return@ReferenceProvider emptyList()
       if (element.isEndOfDotExpression()) {
-        val file = findVersionCatalog(element.text, element.project) ?: return@ReferenceProvider emptyList()
+        val file = findVersionCatalog(element.text, element) ?: return@ReferenceProvider emptyList()
         return@ReferenceProvider listOf(KtsDotExpressionVersionCatalogReference(element, file))
       }
 
