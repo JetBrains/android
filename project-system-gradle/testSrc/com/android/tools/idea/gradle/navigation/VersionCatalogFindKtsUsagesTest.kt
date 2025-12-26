@@ -15,22 +15,29 @@
  */
 package com.android.tools.idea.gradle.navigation
 
+import com.android.tools.idea.gradle.dsl.model.EP_NAME
+import com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModel
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
+import com.intellij.testFramework.registerExtension
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import org.junit.Before
 
 @RunsInEdt
 class VersionCatalogFindKtsUsagesTest {
@@ -39,6 +46,22 @@ class VersionCatalogFindKtsUsagesTest {
   val projectRule = AndroidProjectRule.onDisk().onEdt()
   private val project get() = projectRule.project
   private val fixture get() = projectRule.fixture
+
+  private val service = object: VersionCatalogFilesModel {
+    val map = mapOf("libs" to "gradle/libs.versions.toml")
+    override fun getCatalogNameToFileMapping(project: Project): Map<String, String> =
+      map.mapValues { project.basePath + "/" + it.value }
+    override fun getCatalogNameToFileMapping(module: Module): Map<String, String>  =
+      map.mapValues { module.project.basePath + "/" + it.value }
+  }
+
+  @Before
+  fun setUp() {
+    ApplicationManager.getApplication().registerExtension(
+      EP_NAME, service, projectRule.fixture.testRootDisposable
+    )
+  }
+
   @Test
   fun testHasUsages(){
     testVersionCatalogFindUsages("""

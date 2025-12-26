@@ -17,9 +17,12 @@ package com.android.tools.idea.gradle.util
 
 import com.android.ide.common.repository.keysMatch
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
+import org.jetbrains.kotlin.idea.util.projectStructure.module
+import org.jetbrains.plugins.gradle.service.resolve.getVersionCatalogFiles
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlHeaderOwner
 import org.toml.lang.psi.TomlInlineTable
@@ -83,12 +86,13 @@ private fun findAlias(valueOwner: TomlKeyValueOwner, target:String):PsiElement?{
   return null
 }
 
-fun findVersionCatalog(gradleDeclarationReference: String, project: Project): TomlFile? {
+fun findVersionCatalog(gradleDeclarationReference: String, psiElement: PsiElement): TomlFile? {
   val reference = gradleDeclarationReference.substringBefore(".")
-  val view = GradleModelProvider.getInstance().getVersionCatalogView(project);
-  val file = view.catalogToFileMap[reference] ?: return null
+  val module = ModuleUtilCore.findModuleForPsiElement(psiElement) ?: return null
+  val catalogMap = getVersionCatalogFiles(module)
+  val file = catalogMap[reference] ?: return null
 
-  val psiFile = PsiManager.getInstance(project).findFile(file)
+  val psiFile = PsiManager.getInstance(psiElement.project).findFile(file)
   if (psiFile is TomlFile) {
     return psiFile
   }
