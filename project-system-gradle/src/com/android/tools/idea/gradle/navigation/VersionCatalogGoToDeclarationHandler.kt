@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.util.findVersionCatalog
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandlerBase
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
@@ -54,7 +55,7 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
     // Reference from build.gradle.kts to dependency?
     if (grandParent is KtDotQualifiedExpression) {
       val key = grandParent.text
-      val catalog = findVersionCatalog(key, sourceElement.project)
+      val catalog = findVersionCatalog(key, sourceElement)
       if (catalog != null && grandParent.containingFile.name.endsWith(SdkConstants.DOT_KTS)) {
         // If you have dashes in the library name, Gradle will convert this into dotted notation, and will actually
         // create a "group" DSL object for the libraries sharing the same prefix. But we typically don't have a
@@ -75,7 +76,7 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
     // That means current handler will not be called. System works with multiple handlers cover same cases -
     // first in line wins.
     if (parent is GrReferenceExpression) {
-      val catalog = findVersionCatalog(parent.text, parent.project)
+      val catalog = findVersionCatalog(parent.text, parent)
       if (catalog != null && grandParent.containingFile.name.endsWith(SdkConstants.DOT_GRADLE)) {
         val key = parent.text
         if (key != null) {
