@@ -33,7 +33,8 @@ class ProjectProtoUpdateTest {
           androidResourceDirectories = emptyList(),
           androidSourcePackages = emptyList(),
           androidCustomPackages = emptyList(),
-          androidExternalLibraries = emptyList()
+          androidExternalLibraries = emptyList(),
+          kotlinCompilerFlags = emptyList(),
         )
       ),
       libraries = mapOf(
@@ -83,7 +84,8 @@ class ProjectProtoUpdateTest {
           androidResourceDirectories = emptyList(),
           androidSourcePackages = emptyList(),
           androidCustomPackages = emptyList(),
-          androidExternalLibraries = emptyList()
+          androidExternalLibraries = emptyList(),
+          kotlinCompilerFlags = emptyList(),
         )
       ),
       libraries = emptyMap(),
@@ -113,7 +115,8 @@ class ProjectProtoUpdateTest {
           androidResourceDirectories = listOf(workspaceRelative("foo/res")),
           androidSourcePackages = emptyList(),
           androidCustomPackages = listOf("com.example.custom"),
-          androidExternalLibraries = emptyList()
+          androidExternalLibraries = emptyList(),
+          kotlinCompilerFlags = emptyList(),
         )
       ),
       libraries = emptyMap(),

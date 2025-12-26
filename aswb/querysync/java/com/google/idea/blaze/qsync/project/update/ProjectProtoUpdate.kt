@@ -51,6 +51,7 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
     fun addAndroidResourceDirectories(directories: Collection<ProjectPath>)
     fun addLanguages(languages: Collection<QuerySyncLanguage>)
     fun addExternalAndroidLibrary(externalAndroidLibrary: ProjectProto.ExternalAndroidLibrary)
+    fun addKotlinCompilerFlags(flags: Collection<String>)
     fun contentEntry(root: ProjectPath, updater: ContentEntryUpdater.() -> Unit)
   }
 
@@ -147,6 +148,10 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
 
       override fun addExternalAndroidLibrary(externalAndroidLibrary: ProjectProto.ExternalAndroidLibrary) {
         workspaceModule.androidExternalLibraries += externalAndroidLibrary
+      }
+
+      override fun addKotlinCompilerFlags(flags: Collection<String>) {
+        workspaceModule.kotlinCompilerFlags += flags
       }
 
       override fun contentEntry(root: ProjectPath, updater: ContentEntryUpdater.() -> Unit) {

@@ -73,6 +73,8 @@ import org.jetbrains.kotlin.idea.facet.KotlinFacetType
 import org.jetbrains.kotlin.idea.fir.extensions.KotlinK2BundledCompilerPlugins
 import org.jetbrains.kotlin.idea.serialization.KotlinFacetSettingsWorkspaceModel
 import org.jetbrains.kotlin.idea.workspaceModel.KotlinSettingsEntity
+import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 
 /** An object that monitors the build graph and applies the changes to the project structure by using WorkspaceEntity. */
 class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
@@ -134,6 +136,7 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
     val dependencies: List<LibraryName>,
     val contentRoots: List<ContentRootData>,
     val isAndroidModule: Boolean,
+    val kotlinCompilerFlags: List<String>,
   ) {
     companion object
   }
@@ -204,7 +207,13 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
       dependencies: List<LibraryName>,
       contentRoots: List<ContentRootData>,
     ): ModuleData {
-      return ModuleData(name = module.name, dependencies = dependencies, contentRoots = contentRoots, isAndroidModule = module.isAndroidModule)
+      return ModuleData(
+        name = module.name,
+        dependencies = dependencies,
+        contentRoots = contentRoots,
+        isAndroidModule = module.isAndroidModule,
+        kotlinCompilerFlags = module.kotlinCompilerFlags
+      )
     }
 
     fun LibraryData.Companion.from(library: ProjectProto.Library): LibraryData {
@@ -428,7 +437,7 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
                     entitySource = BazelEntitySource
                     ) {
                     module = this@ModuleEntity
-                    updatePluginOptions(KotlinFacetSettingsWorkspaceModel(this), listOf())
+                    updatePluginOptions(KotlinFacetSettingsWorkspaceModel(this), listOf(), moduleData.kotlinCompilerFlags)
                   }
                 )
               }
@@ -478,11 +487,16 @@ private val qsyncDisableCompose = BoolExperiment("qsync.disable.compose", false)
 
 private fun updatePluginOptions(
   facetSettings: IKotlinFacetSettings,
-  newPluginOptions: List<String>
+  newPluginOptions: List<String>,
+  kotlinCompilerFlags: List<String> = emptyList(),
 ) {
   var commonArguments = facetSettings.compilerArguments
   if (commonArguments == null) {
     commonArguments = K2JVMCompilerArguments()
+  }
+
+  if (kotlinCompilerFlags.isNotEmpty()) {
+    parseCommandLineArguments(kotlinCompilerFlags, commonArguments)
   }
 
   if (isK2Mode() && !qsyncDisableCompose.value) {
