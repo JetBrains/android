@@ -827,7 +827,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
   }
 
-  private void updateProcessState(@NotNull  Common.Process process) {
+  private void updateProcessState(@Nullable Common.Process process) {
     myProcess = process;
     changed(ProfilerAspect.PROCESSES);
     myIdeServices.getFeatureTracker().trackChangeProcess(myProcess);
