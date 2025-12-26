@@ -476,8 +476,14 @@ public class WorkBenchTest extends WorkBenchTestCase {
 
   public void testMultipleInit() {
     myWorkBench.init(myContent, "CONTEXT", myDefinitions, false);
+    assertThat(myModel.getAllTools()).hasSize(3);
+    assertThat(myModel.getAllTools().stream().noneMatch(AttachedToolWindow::isMinimized)).isTrue();
     myWorkBench.init(myContent, "CONTEXT", myDefinitions, false);
+    assertThat(myModel.getAllTools()).hasSize(3);
+    assertThat(myModel.getAllTools().stream().noneMatch(AttachedToolWindow::isMinimized)).isTrue();
     myWorkBench.init(myContent, "CONTEXT", myDefinitions, false);
+    assertThat(myModel.getAllTools()).hasSize(3);
+    assertThat(myModel.getAllTools().stream().noneMatch(AttachedToolWindow::isMinimized)).isTrue();
     verifyNoInteractions(myWorkBenchManager);
   }
 
