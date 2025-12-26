@@ -56,6 +56,7 @@ import com.google.idea.blaze.qsync.ProjectRefresher;
 import com.google.idea.blaze.qsync.VcsStateDiffer;
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
+import com.google.idea.blaze.qsync.java.AddProjectKotlinCompilerFlags;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.NewArtifactTracker;
@@ -270,6 +271,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
             projectPathResolver,
             buildSystem.getEmptyJarDigests(),
             QuerySync.ATTACH_DEP_SRCJARS::getValue));
+    projectTransformRegistry.add(new AddProjectKotlinCompilerFlags());
     NewArtifactTracker<BlazeContext> tracker =
         new NewArtifactTracker<>(
             workspaceRoot.directory().toPath(),
