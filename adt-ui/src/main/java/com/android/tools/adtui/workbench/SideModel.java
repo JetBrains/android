@@ -126,6 +126,8 @@ public class SideModel<T> {
 
   public void setTools(@NotNull List<AttachedToolWindow<T>> tools) {
     myAllTools.clear();
+    myLeftVisibleTools.removeBoth();
+    myRightVisibleTools.removeBoth();
     tools.forEach(this::add);
     updateLocally();
   }
