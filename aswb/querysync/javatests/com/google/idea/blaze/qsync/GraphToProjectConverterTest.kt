@@ -683,6 +683,7 @@ class GraphToProjectConverterTest {
               androidSourcePackages = emptyList(),
               androidCustomPackages = emptyList(),
               androidExternalLibraries = emptyList(),
+              kotlinCompilerFlags = emptyList(),
             )
           ),
         libraries = emptyMap(),
@@ -746,6 +747,7 @@ class GraphToProjectConverterTest {
               // packages
               androidCustomPackages = emptyList(),
               androidExternalLibraries = emptyList(),
+              kotlinCompilerFlags = emptyList(),
             )
           ),
         libraries = emptyMap(),
