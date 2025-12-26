@@ -2671,6 +2671,11 @@ public final class StudioFlags {
                     "Enable new permission model",
                     "Enables the permission model which offers granular permission grants and denials");
 
+  public static final Flag<Boolean> STUDIOBOT_REMOVE_REDUNDANT_TOOL_CALLS =
+    new BooleanFlag(STUDIOBOT, "context.compression.prunecalls",
+                    "Remove obsolete tool calls from the context",
+                    "Enables removing redundant tool calls from the context");
+
   public static final Flag<Boolean> STUDIOBOT_CONTEXT_COMPRESSION =
     new BooleanFlag(STUDIOBOT, "context.compression",
                     "Enable context compression",
