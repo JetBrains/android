@@ -38,4 +38,5 @@ message JavaArtifacts {
   optional OutputArtifact ide_aar = 13;
   repeated OutputArtifact proto_srcjars = 14;
   repeated OutputArtifact gen_android_res = 15;
+  repeated string kotlin_compiler_flags = 16;
 }
