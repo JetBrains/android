@@ -43,6 +43,9 @@ public abstract class JavaArtifactInfo {
   /** Whether the target is in project view. */
   public abstract boolean isExternalDependency();
 
+  /** Whether the target is a Kotlin toolchain. */
+  public abstract boolean isKotlinToolchain();
+
   /**
    * The jar artifacts relative path (blaze-out/xxx) that can be used to retrieve local copy in the
    * cache.
@@ -121,6 +124,7 @@ public abstract class JavaArtifactInfo {
               .collect(toImmutableSet()))
         .setAndroidResourcesPackage(proto.getAndroidResourcesPackage())
         .setKotlinCompilerFlags(ImmutableList.copyOf(proto.getKotlinCompilerFlagsList()))
+        .setIsKotlinToolchain(proto.getIsKotlinToolchain())
         .build();
   }
 
@@ -137,6 +141,7 @@ public abstract class JavaArtifactInfo {
         .setSrcJars(ImmutableSet.of())
         .setAndroidResourcesPackage("")
         .setKotlinCompilerFlags(ImmutableList.of())
+        .setIsKotlinToolchain(false)
         .build();
   }
 
@@ -147,6 +152,8 @@ public abstract class JavaArtifactInfo {
     public abstract Builder setLabel(Label value);
 
     public abstract Builder setIsExternalDependency(boolean value);
+
+    public abstract Builder setIsKotlinToolchain(boolean value);
 
     public abstract Builder setJars(List<BuildArtifact> value);
 

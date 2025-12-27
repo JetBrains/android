@@ -21,11 +21,19 @@ def _kt_library_test_impl(env, target):
             label = label_info_factory,
             java_info = java_info_factory,
             kotlin_info = kotlin_info_factory,
+            kotlin_toolchain_info = kotlin_info_factory,
+        ),
+    )
+    actual.kotlin_toolchain_info().contains_exactly(
+        struct(
+            flags = ["*contains*", "-language-version", "-jvm-target"],
+            is_kotlin_toolchain = True,
         ),
     )
     actual.kotlin_info().contains_exactly(
         struct(
             flags = ["*contains*", "-language-version", "-jvm-target"],
+            is_kotlin_toolchain = False,
         ),
     )
     actual.java_info().contains_exactly(
@@ -63,8 +71,10 @@ def _kt_binary_test_impl(env, target):
         struct(
             # aswb:bazel-only-begin(kt_jvm_binary is available in bazel)
             flags = ["*contains*", "-api-version", "-language-version", "-jvm-target"],
+            is_kotlin_toolchain = False,
             # aswb:bazel-only-end-and-replace-begin
             # flags = [], # This is not a real Kotlin target. Kotlin code is libraries.
+            # is_kotlin_toolchain = False,
             # aswb:replace-end
         ),
     )

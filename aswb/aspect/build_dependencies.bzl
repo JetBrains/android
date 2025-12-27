@@ -321,6 +321,7 @@ def _encode_target_info_proto(target_info):
         srcjars = target_info.srcjars,
         android_resources_package = target_info.android_resources_package,
         kotlin_compiler_flags = target_info.kotlin_compiler_flags,
+        is_kotlin_toolchain = target_info.is_kotlin_toolchain,
     )
     return proto.encode_text(contents)
 
@@ -633,6 +634,7 @@ def _collect_own_java_artifacts(
         android_resources_package = resource_package,
         transitive_runtime_jars = java_info.transitive_runtime_jars_depset if java_info else depset(),
         kotlin_compiler_flags = kotlin_flags,
+        is_kotlin_toolchain = kotlin_info.is_kotlin_toolchain if kotlin_info else False,
     )
 
 def _target_to_artifact_entry(
@@ -649,7 +651,8 @@ def _target_to_artifact_entry(
         srcs = [],
         srcjars = [],
         android_resources_package = "",
-        kotlin_compiler_flags = []):
+        kotlin_compiler_flags = [],
+        is_kotlin_toolchain = None):
     return struct(
         target = label,
         is_external_dependency = is_external_dependency,
@@ -665,6 +668,7 @@ def _target_to_artifact_entry(
         srcjars = srcjars,
         android_resources_package = android_resources_package,
         kotlin_compiler_flags = kotlin_compiler_flags,
+        is_kotlin_toolchain = is_kotlin_toolchain if is_kotlin_toolchain else None,
     )
 
 # Collects artifacts exposed by this java-like (i.e. java, android or proto-for-java) target and its dependencies if it is such a target.
@@ -704,6 +708,7 @@ def _collect_own_and_dependency_java_artifacts(
     gen_srcs = own_files.gensrc_depset.to_list()  # Flattening is fine here (these are files from one target)
     gen_android_res = own_files.gen_android_res_depset.to_list()  # Flattening is fine here (these are files from one target)
     proto_srcjars = own_files.proto_srcjars_depset.to_list()
+    kotlin_compiler_flags = own_files.kotlin_compiler_flags if not own_files.is_external_dependency or own_files.is_kotlin_toolchain else []
     java_info_file = _write_java_target_info(ctx, target.label, _target_to_artifact_entry(
         label = str(target.label),
         is_external_dependency = own_files.is_external_dependency,
@@ -718,7 +723,8 @@ def _collect_own_and_dependency_java_artifacts(
         srcs = own_files.src_file_paths,
         srcjars = own_files.srcjar_file_paths,
         android_resources_package = own_files.android_resources_package,
-        kotlin_compiler_flags = own_files.kotlin_compiler_flags if not own_files.is_external_dependency else [],
+        kotlin_compiler_flags = kotlin_compiler_flags,
+        is_kotlin_toolchain = own_files.is_kotlin_toolchain,
     ))
 
     own_and_transitive_compile_jdeps_depsets = [own_files.compile_jdeps_depset]

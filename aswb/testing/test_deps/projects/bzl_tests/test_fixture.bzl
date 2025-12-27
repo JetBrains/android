@@ -9,6 +9,10 @@ load(
     "IDE_KOTLIN",
 )
 
+# The Kotlin toolchain type.
+# We expect IDE_KOTLIN.toolchains_aspects to have exactly one element representing the Kotlin toolchain type.
+_TOOLCHAIN_TYPE = IDE_KOTLIN.toolchains_aspects[0]
+
 # an aspect that will return the all the information that aswb needed of a target. If the information is not applied to that that target, it will return None.
 def _aspect_impl(target, ctx):
     java_info = IDE_JAVA.get_java_info(target, ctx.rule)
@@ -30,6 +34,7 @@ def _aspect_impl(target, ctx):
         android_info = android_info,
         gen_android_res = depset(gen_android_res),
         kotlin_compiler_flags = kotlin_info.flags if kotlin_info else [],
+        kotlin_toolchain_info = ctx.rule.toolchains[_TOOLCHAIN_TYPE][TargetInfo].kotlin_info if _TOOLCHAIN_TYPE in ctx.rule.toolchains and TargetInfo in ctx.rule.toolchains[_TOOLCHAIN_TYPE] else None,
     )
 
 build_dependencies_deps_aspect = aspect(
@@ -53,6 +58,7 @@ TargetInfo = provider(
         "cc_toolchain_info",
         "android_info",
         "gen_android_res",
+        "kotlin_toolchain_info",
     ],
 )
 
