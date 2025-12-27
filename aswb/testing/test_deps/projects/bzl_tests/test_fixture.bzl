@@ -12,7 +12,7 @@ load(
 # an aspect that will return the all the information that aswb needed of a target. If the information is not applied to that that target, it will return None.
 def _aspect_impl(target, ctx):
     java_info = IDE_JAVA.get_java_info(target, ctx.rule)
-    kotlin_info = IDE_KOTLIN.get_kotlin_info(target, ctx.rule)
+    kotlin_info = IDE_KOTLIN.get_kotlin_info_v2(target, ctx.rule, TargetInfo)
     java_proto_info = IDE_JAVA_PROTO.get_java_proto_info(target, ctx.rule)
     toolchain_target = IDE_CC.toolchain_target(ctx.rule)
     compilation_context = IDE_CC.compilation_context(target, ctx.rule)
@@ -29,15 +29,32 @@ def _aspect_impl(target, ctx):
         cc_toolchain_info = cc_toolchain_info,
         android_info = android_info,
         gen_android_res = depset(gen_android_res),
+        kotlin_compiler_flags = kotlin_info.flags if kotlin_info else [],
     )
 
 build_dependencies_deps_aspect = aspect(
     implementation = _aspect_impl,
     attr_aspects = ["deps"],
     fragments = ["cpp"],
+    toolchains_aspects = IDE_KOTLIN.toolchains_aspects,
 )
 
-TargetInfo = provider("The language sepecific information for a target. When that lang_info is not applied to the target, it will be None.", fields = ["label", "deps", "java_info", "kotlin_info", "java_proto_info", "toolchain_target", "compilation_context", "cc_toolchain_info", "android_info", "gen_android_res"])
+TargetInfo = provider(
+    "The language sepecific information for a target. When that lang_info is not applied to the target, it will be None.",
+    fields = [
+        "label",
+        "deps",
+        "java_info",
+        "kotlin_compiler_flags",
+        "kotlin_info",
+        "java_proto_info",
+        "toolchain_target",
+        "compilation_context",
+        "cc_toolchain_info",
+        "android_info",
+        "gen_android_res",
+    ],
+)
 
 TargetsInfo = provider("A list of TargetInfo for all the targets in the dependency tree.", fields = ["target_infos"])
 
