@@ -4,6 +4,7 @@ load("@rules_testing//lib:analysis_test.bzl", "analysis_test", _test_suite = "te
 load("//bzl_tests:check_utils.bzl", "label_info_factory")
 load("//bzl_tests:test_fixture.bzl", "TargetInfo")
 load("//bzl_tests/java/com/example:check_utils.bzl", "java_info_factory")
+load("//bzl_tests/kotlin/com/example:check_utils.bzl", "kotlin_info_factory")
 
 KT_LIBRARY_TARGET = "foolib"
 KT_BINARY_TARGET = "foo"
@@ -19,9 +20,14 @@ def _kt_library_test_impl(env, target):
         attrs = dict(
             label = label_info_factory,
             java_info = java_info_factory,
+            kotlin_info = kotlin_info_factory,
         ),
     )
-    actual.label().equals("//{}:{}".format(TEST_TARGET_PACKAGE, KT_LIBRARY_TARGET))
+    actual.kotlin_info().contains_exactly(
+        struct(
+            flags = ["*contains*", "-language-version", "-jvm-target"],
+        ),
+    )
     actual.java_info().contains_exactly(
         struct(
             compile_jars_depset = ["*.jar"],
@@ -49,9 +55,19 @@ def _kt_binary_test_impl(env, target):
         attrs = dict(
             label = label_info_factory,
             java_info = java_info_factory,
+            kotlin_info = kotlin_info_factory,
         ),
     )
     actual.label().equals("//{}:{}".format(TEST_TARGET_PACKAGE, KT_BINARY_TARGET))
+    actual.kotlin_info().contains_exactly(
+        struct(
+            # aswb:bazel-only-begin(kt_jvm_binary is available in bazel)
+            flags = ["*contains*", "-api-version", "-language-version", "-jvm-target"],
+            # aswb:bazel-only-end-and-replace-begin
+            # flags = [], # This is not a real Kotlin target. Kotlin code is libraries.
+            # aswb:replace-end
+        ),
+    )
     actual.java_info().contains_exactly(
         struct(
             compile_jars_depset = ["*.jar"],

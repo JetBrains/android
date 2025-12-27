@@ -21,6 +21,13 @@ def _target_rule_function(
         rule):  # @unused
     return []
 
+def _target_rule_info_function(
+        target,  # @unused
+        rule,  # @unused
+        toolchains,  # @unused
+        dependencies_info_constructor):  # @unused
+    return []
+
 def _unique(values):
     return {k: None for k in values}.keys()
 
@@ -56,7 +63,7 @@ IDE_KOTLIN = _validate_ide(
         follow_additional_attributes = [],  # Additional attributes for the aspect to follow without requesting DependenciesInfo provider.
         followed_dependencies = _rule_function,  # A function that takes a rule and returns a list of dependencies (targets or toolchain containers).
         toolchains_aspects = [],  # Toolchain types for the aspect to follow.
-        get_kotlin_info = _target_rule_function,  # A function that takes a rule and returns a marker struct if the target
+        get_kotlin_info_v2 = _target_rule_info_function,  # A function that returns a struct that marks and describes the target, if it is a Kotlin target.
         # was recognised as a Kotlin related target and `followed_dependenices` must be called.
     ),
 )
@@ -155,6 +162,7 @@ DependenciesInfo = provider(
         "cc_compilation_info": "a structure containing info required to compile cc sources",
         "cc_gen_headers": "a depset of generated headers required to compile cc sources",
         "cc_toolchain_info": "struct containing cc toolchain info, with keys file (the output file) and id (unique ID for the toolchain info, referred to from elsewhere)",
+        "kotlin_compiler_flags": "A list of Kotlin compiler flags for the current target.",
     },
 )
 
@@ -172,7 +180,8 @@ def create_dependencies_info(
         cc_info_files = depset(),
         cc_compilation_info = None,
         cc_gen_headers = depset(),
-        cc_toolchain_info = None):
+        cc_toolchain_info = None,
+        kotlin_compiler_flags = []):
     """A helper function to create a DependenciesInfo provider instance."""
     return DependenciesInfo(
         label = label,
@@ -189,6 +198,7 @@ def create_dependencies_info(
         cc_compilation_info = cc_compilation_info,
         cc_gen_headers = cc_gen_headers,
         cc_toolchain_info = cc_toolchain_info,
+        kotlin_compiler_flags = kotlin_compiler_flags,
     )
 
 def create_java_dependencies_info(
@@ -200,7 +210,8 @@ def create_java_dependencies_info(
         aars,
         gensrcs,
         gen_android_res,
-        expand_sources):
+        expand_sources,
+        kotlin_compiler_flags):
     """A helper function to create a DependenciesInfo provider instance."""
     return struct(
         info_file = info_file,
@@ -212,6 +223,7 @@ def create_java_dependencies_info(
         gensrcs = gensrcs,
         gen_android_res = gen_android_res,
         expand_sources = expand_sources,
+        kotlin_compiler_flags = kotlin_compiler_flags,
     )
 
 def create_cc_dependencies_info(
@@ -273,6 +285,7 @@ def merge_dependencies_info(
         cc_compilation_info = cc_dep_info.cc_compilation_info if cc_dep_info else None,
         cc_gen_headers = cc_dep_info.cc_gen_headers if cc_dep_info else None,
         cc_toolchain_info = cc_toolchain_dep_info.cc_toolchain_info if cc_toolchain_dep_info else None,
+        kotlin_compiler_flags = java_dep_info.kotlin_compiler_flags if java_dep_info else [],
     )
     return merged
 
@@ -307,6 +320,7 @@ def _encode_target_info_proto(target_info):
         srcs = target_info.srcs,
         srcjars = target_info.srcjars,
         android_resources_package = target_info.android_resources_package,
+        kotlin_compiler_flags = target_info.kotlin_compiler_flags,
     )
     return proto.encode_text(contents)
 
@@ -485,7 +499,8 @@ def _collect_own_java_artifacts(
     resource_package = ""
 
     java_info = IDE_JAVA.get_java_info(target, ctx.rule)
-    kotlin_info = IDE_KOTLIN.get_kotlin_info(target, ctx.rule)
+    kotlin_info = IDE_KOTLIN.get_kotlin_info_v2(target, ctx.rule, DependenciesInfo)
+    kotlin_flags = kotlin_info.flags if kotlin_info else []
 
     # Targets recognised as java_proto_info can have java_info dependencies.
     java_proto_info = IDE_JAVA_PROTO.get_java_proto_info(target, ctx.rule)
@@ -617,6 +632,7 @@ def _collect_own_java_artifacts(
         srcjar_file_paths = own_srcjar_file_paths,
         android_resources_package = resource_package,
         transitive_runtime_jars = java_info.transitive_runtime_jars_depset if java_info else depset(),
+        kotlin_compiler_flags = kotlin_flags,
     )
 
 def _target_to_artifact_entry(
@@ -632,7 +648,8 @@ def _target_to_artifact_entry(
         proto_srcjars = [],
         srcs = [],
         srcjars = [],
-        android_resources_package = ""):
+        android_resources_package = "",
+        kotlin_compiler_flags = []):
     return struct(
         target = label,
         is_external_dependency = is_external_dependency,
@@ -647,6 +664,7 @@ def _target_to_artifact_entry(
         srcs = srcs,
         srcjars = srcjars,
         android_resources_package = android_resources_package,
+        kotlin_compiler_flags = kotlin_compiler_flags,
     )
 
 # Collects artifacts exposed by this java-like (i.e. java, android or proto-for-java) target and its dependencies if it is such a target.
@@ -700,6 +718,7 @@ def _collect_own_and_dependency_java_artifacts(
         srcs = own_files.src_file_paths,
         srcjars = own_files.srcjar_file_paths,
         android_resources_package = own_files.android_resources_package,
+        kotlin_compiler_flags = own_files.kotlin_compiler_flags,
     ))
 
     own_and_transitive_compile_jdeps_depsets = [own_files.compile_jdeps_depset]
@@ -727,6 +746,7 @@ def _collect_own_and_dependency_java_artifacts(
             own_files.transitive_runtime_jars,
             dependency_infos,
         ),
+        kotlin_compiler_flags = own_files.kotlin_compiler_flags,
     )
 
 def _get_external_transitive_runtime_jars(is_external, transitive_runtime_jars, dependency_infos):
@@ -838,6 +858,7 @@ def _collect_java_dependencies_core_impl(
         gensrcs = gensrcs,
         gen_android_res = gen_android_res,
         expand_sources = expand_sources,
+        kotlin_compiler_flags = own_and_dependencies.kotlin_compiler_flags,
     )
 
 def _collect_cc_dependencies_core_impl(target, ctx):

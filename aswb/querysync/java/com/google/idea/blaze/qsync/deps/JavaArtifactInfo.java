@@ -72,6 +72,7 @@ public abstract class JavaArtifactInfo {
   public abstract ImmutableSet<ProjectPath> srcJars();
 
   public abstract String androidResourcesPackage();
+  public abstract ImmutableList<String> kotlinCompilerFlags();
 
   public abstract Builder toBuilder();
 
@@ -119,6 +120,7 @@ public abstract class JavaArtifactInfo {
               .map(it -> ProjectPath.workspaceRelative(Interners.pathOf(it), externalRepositoryFinder))
               .collect(toImmutableSet()))
         .setAndroidResourcesPackage(proto.getAndroidResourcesPackage())
+        .setKotlinCompilerFlags(ImmutableList.copyOf(proto.getKotlinCompilerFlagsList()))
         .build();
   }
 
@@ -134,6 +136,7 @@ public abstract class JavaArtifactInfo {
         .setSources(ImmutableSet.of())
         .setSrcJars(ImmutableSet.of())
         .setAndroidResourcesPackage("")
+        .setKotlinCompilerFlags(ImmutableList.of())
         .build();
   }
 
@@ -168,6 +171,8 @@ public abstract class JavaArtifactInfo {
     public abstract Builder setSrcJars(Set<ProjectPath> value);
 
     public abstract Builder setAndroidResourcesPackage(String value);
+
+    public abstract Builder setKotlinCompilerFlags(ImmutableList<String> value);
 
     public abstract JavaArtifactInfo build();
   }
