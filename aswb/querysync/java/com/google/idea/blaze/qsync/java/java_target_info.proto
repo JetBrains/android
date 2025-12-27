@@ -39,4 +39,5 @@ message JavaArtifacts {
   repeated OutputArtifact proto_srcjars = 14;
   repeated OutputArtifact gen_android_res = 15;
   repeated string kotlin_compiler_flags = 16;
+  bool is_kotlin_toolchain = 17;
 }
