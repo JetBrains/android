@@ -24,12 +24,10 @@ import java.awt.Dimension
 import java.beans.PropertyChangeEvent
 import java.beans.PropertyChangeListener
 import kotlin.math.floor
-import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sqrt
+import kotlin.math.roundToInt
 
 private val ZOOM_LEVELS = doubleArrayOf(0.0625, 0.125, 0.25, 0.5, 1.0, 2.0, 4.0)
-private val SQRT2 = sqrt(2.0)
 
 /**
  * A [BorderLayoutPanel] with zoom support.
@@ -177,29 +175,32 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeList
   private fun computeZoomedSize(zoomType: ZoomType): Dimension? {
     val newScale = when (zoomType) {
       ZoomType.IN -> {
-        val nextScale = nearestZoomLevel(scale * (2 * SQRT2))
-        val fitScale = roundDownIfGreaterThanOne(computeScaleToFitInParent())
-        if (nextScale >= fitScale) {
-          if (fitScale >= ZOOM_LEVELS.last()) {
-            return null
-          }
+        val scale = scale
+        val lastZoomLevelIndex = ZOOM_LEVELS.size - 1
+        var index = (findZoomLevelsPosition(scale) + 1).coerceAtMost(lastZoomLevelIndex)
+        if (index < lastZoomLevelIndex && areSamePercentages(scale, ZOOM_LEVELS[index])) {
+          ++index
         }
-        nextScale
+        ZOOM_LEVELS[index]
       }
 
       ZoomType.OUT -> {
         val scale = scale
-        var nextScale = nearestZoomLevel(scale / SQRT2)
-        val fitScale = roundDownIfGreaterThanOne(computeScaleToFitInParent())
-        if (fitScale > 1) {
-          if (nextScale < 1) {
-            nextScale = 1.0
+        if (scale > ZOOM_LEVELS[0]) {
+          var index = findZoomLevelsPosition(scale)
+          if (index > 0 && scale == ZOOM_LEVELS[index]) {
+            --index
           }
+          val nextScale = ZOOM_LEVELS[index]
+          val fitScale = roundDownIfGreaterThanOne(computeScaleToFitInParent())
+          if (areSamePercentages(nextScale, fitScale) || (nextScale < fitScale && fitScale <= 1)) {
+            return null
+          }
+          if (fitScale <= 1 || nextScale >= 1) nextScale else scale
         }
-        else if (nextScale <= fitScale || nextScale >= scale) {
-          return null
+        else {
+          scale
         }
-        nextScale
       }
 
       ZoomType.ACTUAL -> {
@@ -208,32 +209,27 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeList
         }
         1.0
       }
+
       ZoomType.FIT -> return null
     }
     val newScaledSize = computeActualSize().scaled(newScale)
     return newScaledSize.scaled(1 / screenScale)
   }
 
-  /** Returns the highest zoom level not exceeding [scale]. */
-  private fun nearestZoomLevel(scale: Double): Double {
-    // Binary search.
-    var low = 0
-    var high = ZOOM_LEVELS.size
-
-    while (low < high) {
-      val mid = low + high ushr 1
-      val level = ZOOM_LEVELS[mid]
-      val cmp = level - scale
-      if (cmp < 0) {
-        low = mid + 1
-      } else if (cmp > 0) {
-        high = mid
-      } else {
-        return level // Found.
+  /** Returns the index of the highest zoom level not exceeding [scale], or -1 if there is no such level. */
+  private fun findZoomLevelsPosition(scale: Double): Int {
+    val n = ZOOM_LEVELS.size
+    for (i in 0 until n) {
+      if (scale < ZOOM_LEVELS[i]) {
+        return i - 1
       }
     }
-    return ZOOM_LEVELS[max(low - 1, 0)]
+    return n - 1
   }
+
+  /** Checks is the two given numbers would look the same when expressed as integer percentages. */
+  private fun areSamePercentages(d1: Double, d2: Double) =
+      (d1 * 100).roundToInt() == (d2 * 100).roundToInt()
 
   private fun computeScaleToFitInParent() =
       computeScaleToFit(computeAvailableSize())
@@ -254,6 +250,7 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeList
   private fun isFractionalGreaterThanOne(scale: Double): Boolean =
       scale > 1.0 && floor(scale) != scale
 
+  /** Returns the size of the containing scroll pane without insets. */
   private fun computeAvailableSize(): Dimension =
-      parent?.sizeWithoutInsets?.scaled(screenScale) ?: Dimension(0, 0)
+      parent?.parent?.sizeWithoutInsets?.scaled(screenScale) ?: Dimension(0, 0)
 }
