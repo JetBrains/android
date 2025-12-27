@@ -203,20 +203,13 @@ class EmulatorViewTest {
     assertThat(call.completion.isCancelled).isFalse() // The call has not been cancelled.
     assertThat(call.completion.isDone).isFalse() // The call is still ongoing.
 
-    // Check resizing.
-    val previousCall = call
-    fakeUi.root.size = Dimension(250, 200)
+    // Check zoom.
+    fakeUi.root.size = Dimension(250, 405)
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
-    assertAppearance("EmulatorView2")
-    assertThat(previousCall.completion.isCancelled).isTrue() // The previous call is cancelled.
-    assertThat(call.completion.isCancelled).isFalse() // The latest call has not been cancelled.
-    assertThat(call.completion.isDone).isFalse() // The latest call is still ongoing.
-
-    // Check zoom.
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 738")
     val skinHeight = 3245
-    assertThat(view.scale).isWithin(1e-4).of(200 * fakeUi.screenScale / skinHeight)
+    assertThat(view.scale).isWithin(1e-4).of(fakeUi.root.height * fakeUi.screenScale / skinHeight)
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isFalse()
     assertThat(view.canZoomToActual()).isTrue()
@@ -225,7 +218,7 @@ class EmulatorViewTest {
     view.zoom(ZoomType.IN)
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 436 height: 740")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 720 height: 1481")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isTrue()
@@ -252,11 +245,22 @@ class EmulatorViewTest {
     view.zoom(ZoomType.FIT)
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 738")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isFalse()
     assertThat(view.canZoomToActual()).isTrue()
     assertThat(view.canZoomToFit()).isFalse()
+
+    // Check resizing.
+    val previousCall = call
+    fakeUi.root.size = Dimension(250, 200)
+    fakeUi.layoutAndDispatchEvents()
+    call = getStreamScreenshotCallAndWaitForFrame()
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
+    assertAppearance("EmulatorView2")
+    assertThat(previousCall.completion.isCancelled).isTrue() // The previous call is cancelled.
+    assertThat(call.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call.completion.isDone).isFalse() // The latest call is still ongoing.
 
     // Check rotation.
     emulatorViewRule.executeAction("android.device.rotate.left", view)
