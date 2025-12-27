@@ -18,8 +18,10 @@ def _get_followed_kotlin_dependencies(rule):
     deps = []
     if rule.kind in ["kt_jvm_library_helper", "kt_jvm_library", "kt_android_library", "android_library"]:
         deps.extend(_get_dependency_attribute(rule, "_toolchain"))
-    if rule.kind in ["kt_jvm_toolchain"]:
-        deps.extend(_get_dependency_attribute(rule, "kotlin_libs"))
+    if rule.kind in ["_jvm_toolchain"]:
+        deps.extend(_get_dependency_attribute(rule, "jvm_stdlibs"))
+    if _TOOLCHAIN_TYPE in rule.toolchains:
+        deps.extend([rule.toolchains[_TOOLCHAIN_TYPE]])
     return deps
 
 def _get_kotlin_info_v2(target, rule, info):
@@ -43,7 +45,7 @@ def _get_kotlin_info_v2(target, rule, info):
             if hasattr(toolchain_info, "jvm_target") and toolchain_info.jvm_target:
                 flags.append("-jvm-target")
                 flags.append(toolchain_info.jvm_target)
-        return struct(flags = flags)
+        return struct(flags = flags, is_kotlin_toolchain = True)
 
     kt_info = target[KtJvmInfo] if KtJvmInfo in target else None
 
@@ -68,9 +70,9 @@ def _get_kotlin_info_v2(target, rule, info):
             flags.extend(toolchain_target[info].kotlin_compiler_flags)
 
     if flags:
-        return struct(flags = flags)
+        return struct(flags = flags, is_kotlin_toolchain = False)
 
-    return struct(flags = [])
+    return struct(flags = [], is_kotlin_toolchain = False)
 
 IDE_KOTLIN = struct(
     srcs_attributes = [

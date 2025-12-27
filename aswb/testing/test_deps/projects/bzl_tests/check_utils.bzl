@@ -352,3 +352,20 @@ def _str_subject_equals(self, other):
         "expected: {}".format(other),
         "actual: {}".format(self.actual),
     )
+
+def subjects_bool_factory(actual, *, meta):
+    """Creates a new subject for asserting boolean objects."""
+    self = struct(actual = actual, meta = meta)
+    return struct(
+        actual = actual,
+        contains_exactly = lambda *a, **k: _bool_subject_equals(self, *a, **k),
+    )
+
+def _bool_subject_equals(self, other):
+    """Asserts that the subject boolean equals the other boolean."""
+    if self.actual == other:
+        return
+    self.meta.add_failure(
+        "expected: {}".format(other),
+        "actual: {}".format(self.actual),
+    )

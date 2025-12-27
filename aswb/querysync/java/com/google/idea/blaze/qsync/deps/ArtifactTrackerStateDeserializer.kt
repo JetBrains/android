@@ -110,6 +110,7 @@ class ArtifactTrackerStateDeserializer(private val metadataFactory: ArtifactMeta
       .setSrcJars(proto.srcJarsList.map { projectPathFrom(it) }.toSet())
       .setAndroidResourcesPackage(proto.getAndroidResourcesPackage())
       .setKotlinCompilerFlags(ImmutableList.copyOf(proto.kotlinCompilerFlagsList))
+      .setIsKotlinToolchain(proto.isKotlinToolchain)
       .build()
   }
 
