@@ -22,8 +22,8 @@ import java.nio.file.Path
 
 internal class BazelRenderingServices private constructor(
   override val classFileFinder: ClassFileFinder?,
-  override val externalLibraries: Iterable<Path>,
+  override val externalLibraries: Collection<Path>,
 ) : RenderingServices {
   internal constructor() : this(null, emptyList())
-  internal constructor(jars: Collection<Path>, externalJars: Iterable<Path>) : this(BazelClassFileFinder(jars), externalJars)
+  internal constructor(jars: Collection<Path>, externalJars: Collection<Path>) : this(BazelClassFileFinder(jars), externalJars)
 }
