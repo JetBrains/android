@@ -2676,6 +2676,11 @@ public final class StudioFlags {
                     "Remove obsolete tool calls from the context",
                     "Enables removing redundant tool calls from the context");
 
+  public static final Flag<Boolean> STUDIOBOT_DISPLAY_TOKEN_USAGE =
+    new BooleanFlag(STUDIOBOT, "context.display.usage",
+                    "Display context usage",
+                    "Enables displaying the token usage in the context");
+
   public static final Flag<Boolean> STUDIOBOT_CONTEXT_COMPRESSION =
     new BooleanFlag(STUDIOBOT, "context.compression",
                     "Enable context compression",
