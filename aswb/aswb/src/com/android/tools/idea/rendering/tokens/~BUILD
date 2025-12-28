@@ -3,15 +3,7 @@ load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library", "combine
 
 aswb_library(
     name = "tokens",
-    srcs = [
-        "BazelBuildServices.java",
-        "BazelBuildSystemFilePreviewServices.java",
-        "BazelBuildTargetReference.kt",
-        "BazelBuildTargets.java",
-        "BazelClassFileFinder.java",
-        "BazelRenderingServices.kt",
-        "Key.java",
-    ],
+    srcs = glob(["*.kt"]),
     visibility = combine_visibilities(
         ASWB_SUBPACKAGES_VISIBILITY,
         TEST_ASWB_SUBPACKAGES_VISIBILITY,
