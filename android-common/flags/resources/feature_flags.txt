@@ -202,6 +202,7 @@ studiobot.commit.message.suggestion=COMPLETE:2024
 studiobot.compiler.error.context.enabled=INTERNAL
 studiobot.context.compression.prunecalls=INTERNAL
 studiobot.context.compression=INTERNAL
+studiobot.context.display.usage=INTERNAL
 studiobot.current.file.context=COMPLETE:2025
 studiobot.delete.chat.request.button.enabled=INTERNAL
 studiobot.edit.chat.request.button.enabled=INTERNAL
