@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.tokens;
+package com.android.tools.idea.rendering.tokens
 
-import com.android.tools.idea.rendering.BuildTargetReference;
-import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildTargets;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.rendering.BuildTargetReference
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.vfs.VirtualFile
 
-final class BazelBuildTargets implements BuildTargets {
-  @Override
-  public @NotNull BuildTargetReference from(@NotNull Module module, @NotNull VirtualFile file) {
-    return new BazelBuildTargetReference(module, file);
+internal class BazelBuildTargets : BuildSystemFilePreviewServices.BuildTargets {
+  override fun from(module: Module, file: VirtualFile): BuildTargetReference {
+    return BazelBuildTargetReference(module, file)
   }
 }
