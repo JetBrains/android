@@ -282,9 +282,19 @@ class AddLocaleActionTest {
     verify(panel).reloadData()
   }
 
+  @Test
+  fun usedBcp47LocaleIsExcludedFromPopup() {
+    whenever(data.localeSet).thenReturn(USED_LOCALES)
+
+    addLocaleAction.actionPerformed(event)
+
+    val popup = popupRule.fakePopupFactory.getPopup<Locale>(0)
+    assertThat(popup.items.map { it.toString() }).doesNotContain("ace")
+  }
+
   companion object {
     private const val DEFAULT_VALUE_AS_STRING = "I am a great default value!"
-    private val USED_LOCALES = listOf("en", "fr", "de").toLocales().toSet()
+    private val USED_LOCALES = listOf("ace", "en", "fr", "de").toLocales().toSet()
     /**
      * This isn't all the Locales we should see, but a good sample. We want to avoid just
      * duplicating the code under test here in the test.

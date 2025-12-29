@@ -74,13 +74,11 @@ internal constructor(private val stringResourceWriter: StringResourceWriter) :
 
     /** Returns the list of [Locale]s for the given language. */
     private fun languageToLocales(language: String): List<Locale> {
-      val full = if (language.length == 2) language else LocaleQualifier.BCP_47_PREFIX + language
-      val regionlessLocale =
-          Locale.create(LocaleQualifier(full, language, /* region= */ null, /* script= */ null))
+      val regionlessLocale = Locale.create(LocaleQualifier(/* full= */ null, language, /* region= */ null, /* script= */ null))
       return listOf(regionlessLocale) +
-          LocaleManager.getRelevantRegions(language).map { region ->
-            Locale.create(LocaleQualifier(/* full= */ null, language, region, /* script= */ null))
-          }
+             LocaleManager.getRelevantRegions(language).map { region ->
+               Locale.create(LocaleQualifier(/* full= */ null, language, region, /* script= */ null))
+             }
     }
 
     /**
