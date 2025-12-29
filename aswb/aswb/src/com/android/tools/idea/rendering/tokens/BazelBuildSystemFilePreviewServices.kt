@@ -37,7 +37,7 @@ internal class BazelBuildSystemFilePreviewServices
   }
 
   override fun getApplicationLiveEditServices(buildTargetReference: BazelBuildTargetReference): ApplicationLiveEditServices {
-    throw UnsupportedOperationException()
+    return BazelApplicationLiveEditServices(buildTargetReference, buildServices)
   }
 
   override fun subscribeBuildListener(
