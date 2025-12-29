@@ -20,10 +20,18 @@ import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.RenderingServices
 import java.nio.file.Path
 
-internal class BazelRenderingServices private constructor(
-  override val classFileFinder: ClassFileFinder?,
-  override val externalLibraries: Collection<Path>,
+internal class BazelRenderingServices(
+  private val buildServices: BazelBuildServices,
+  private val target: BazelBuildTargetReference
 ) : RenderingServices {
-  internal constructor() : this(null, emptyList())
-  internal constructor(jars: Collection<Path>, externalJars: Collection<Path>) : this(BazelClassFileFinder(jars), externalJars)
+  override val classFileFinder: ClassFileFinder?
+    get() = getBuildOutcome()?.classFileFinder
+
+  override val externalLibraries: Collection<Path>
+    get() = getBuildOutcome()?.externalJars ?: emptyList()
+
+  private fun getBuildOutcome(): BazelBuildServices.BuildOutcome? {
+    val label = target.toPreferredLabel() ?: return null
+    return buildServices.getBuildOutcome(label)
+  }
 }

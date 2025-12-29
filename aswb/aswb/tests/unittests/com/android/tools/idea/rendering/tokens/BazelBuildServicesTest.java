@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.rendering.tokens;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus;
@@ -29,6 +31,9 @@ import com.google.idea.blaze.android.google3.qsync.testrules.BazelTestProjectCon
 import com.google.idea.blaze.android.google3.qsync.testrules.BazelTestProjectContextKt;
 import com.google.idea.blaze.android.google3.qsync.testrules.QuerySyncIntegrationTestRule;
 import com.google.idea.blaze.android.google3.qsync.testrules.QuerySyncProjectFixtures;
+import com.google.idea.blaze.android.google3.qsync.testrules.BuildDependencyAndHighlightingChecker;
+import com.google.idea.blaze.android.google3.qsync.testrules.SourceAmbiguityResolution;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.deps.OutputGroup;
 import com.intellij.psi.search.GlobalSearchScope;
 import java.util.EnumSet;
@@ -104,6 +109,55 @@ public final class BazelBuildServicesTest {
       // Assert
       assertEquals(BuildMode.COMPILE, listener.mode);
       assertEquals(new BuildResult(BuildStatus.SUCCESS, GlobalSearchScope.projectScope(context.getIdeProject())), listener.getResult());
+    });
+  }
+
+  @Test
+  public void getLastCompileStatus_returnsSuccessAfterBuild() {
+    // Arrange
+    rule.runTest(rule.prepareTestProject(InBazelTestProjects.SIMPLE_COMPOSE), context -> {
+      final var reference = getBuildTargetReference(context);
+      context.getFixtures().getSyncCompletedListener().invokeAndWaitFor(() -> {
+        // Act
+        var deferred = services.buildArtifactsAsync(List.of(reference));
+        return ListenableFutureKt.asListenableFuture(deferred);
+      });
+      // Assert
+      assertEquals(BuildStatus.SUCCESS, services.getLastCompileStatus(reference));
+    });
+  }
+
+  @Test
+  public void getLastCompileStatus_returnsUnknownForNewReference() {
+    // Arrange
+    rule.runTest(rule.prepareTestProject(InBazelTestProjects.SIMPLE_COMPOSE), context -> {
+      var reference = getBuildTargetReference(context);
+
+      // Assert
+      assertEquals(BuildStatus.UNKNOWN, services.getLastCompileStatus(reference));
+    });
+  }
+
+  @Test
+  public void toPreferredLabel_disambiguatesBasedOnArtifactIndex() {
+    // Arrange
+    rule.runTest(rule.prepareTestProject(InBazelTestProjects.SIMPLE_ANDROID_KOTLIN), context -> {
+      var file = BazelTestProjectContextKt.virtualFile(context, "project/main/java/com/basicapp/Custom.kt");
+      var reference = BuildSystemFilePreviewServicesKt.getBuildTargetReferences(context.getIdeProject(), List.of(file)).stream()
+          .map(it -> (BazelBuildTargetReference) it)
+          .collect(MoreCollectors.onlyElement());
+
+      // Act & Assert
+      // Initially ambiguous (two targets own the file, none built)
+      assertNull(BazelBuildTargetReferenceKt.toPreferredLabel(reference));
+
+      // Build one of the targets via highlighting enabling
+      var targetToBuild = Label.of("//simple_android_kotlin/project/main/java/com/basicapp:basic_lib_custom_kt");
+      var checker = new BuildDependencyAndHighlightingChecker(context);
+      assertThat(checker.enableHighlighting(file, SourceAmbiguityResolution.chooseTargetWithName("basic_lib_custom_kt"))).isTrue();
+
+      // Now it should be unambiguous because one target is in the ArtifactIndex
+      assertEquals(targetToBuild, BazelBuildTargetReferenceKt.toPreferredLabel(reference));
     });
   }
 
