@@ -20,6 +20,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.RenderingServices
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Function
+import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -39,7 +40,6 @@ import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.deps.OutputInfo
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
-import com.google.idea.common.experiments.FeatureRolloutExperiment
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import java.io.IOException
@@ -51,7 +51,7 @@ import kotlinx.coroutines.guava.asDeferred
 // TODO: b/418844903 - Update the artifact manager
 internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices<BazelBuildTargetReference> {
   private val listeners: MutableCollection<BuildSystemFilePreviewServices.BuildListener> = CopyOnWriteArrayList()
-  private val keyToRenderingServicesMap: MutableMap<Key, BazelRenderingServices> = ConcurrentHashMap()
+  private val keyToRenderingServicesMap: MutableMap<Label, BazelRenderingServices> = ConcurrentHashMap()
 
   /**
    * Executed by an application pool thread and the EDT
@@ -69,10 +69,8 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
   }
 
   fun getRenderingServices(target: BazelBuildTargetReference): RenderingServices {
-    return if (aswbComposablePreviews.isEnabled())
-      keyToRenderingServicesMap.computeIfAbsent(Key(target)) { BazelRenderingServices() }
-    else
-      BazelRenderingServices()
+    val label: Label = target.toPreferredLabel() ?: return BazelRenderingServices()
+    return keyToRenderingServicesMap.computeIfAbsent(label) { BazelRenderingServices() }
   }
 
   override fun getLastCompileStatus(buildTarget: BazelBuildTargetReference): ProjectSystemBuildManager.BuildStatus {
@@ -83,26 +81,27 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
   /**
    * Executed by an application pool thread
    */
-  override fun buildArtifacts(buildTargets: Collection<BazelBuildTargetReference>) {
-    val unused = buildArtifactsAsync(buildTargets.single())
+  override fun buildArtifacts(targets: Collection<BazelBuildTargetReference>) {
+    val unused = buildArtifactsAsync(targets)
   }
 
   /**
    * Executed by an application pool thread
    */
   @VisibleForTesting
-  fun buildArtifactsAsync(target: BazelBuildTargetReference): Deferred<Boolean> {
-    val project = target.project
-    val file = target.file
-    val scope = QuerySyncActionStatsScope.createForFile(project, BazelBuildServices::class.java, null, file)
+  fun buildArtifactsAsync(targets: Collection<BazelBuildTargetReference>): Deferred<Boolean> {
+    val project = targets.project
+    val files = targets.map { it.file }
+    val scope =
+      QuerySyncActionStatsScope.createForFiles(project, BazelBuildServices::class.java, null, ImmutableList.copyOf(files))
 
     return BuildDependenciesHelper(project).determineTargetsAndRun(
-      WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, listOf(file)),
+      WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, files),
       BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt { it.showCenteredInCurrentWindow(project) },
       TargetDisambiguationAnchors.NONE,
       scope
     ) { labels ->
-      buildAndRefresh(target, labels.single(), scope)
+      buildAndRefresh(targets, labels.single(), scope)
     }
   }
 
@@ -111,18 +110,18 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
    */
   @UiThread
   private fun buildAndRefresh(
-    target: BazelBuildTargetReference,
+    targets: Collection<BazelBuildTargetReference>,
     label: Label,
     scope: QuerySyncActionStatsScope
   ): @UiThread Deferred<Boolean> {
-    val project = target.project
+    val project = targets.project
 
     val buildAndRefresh = createOperation(
       "Build & Refresh",
       "Building and refreshing",
       QuerySyncManager.OperationType.BUILD_DEPS
     ) { context ->
-      buildAndRefresh(target, context, label)
+      buildAndRefresh(project, context, label)
     }
 
     val buildAndRefreshFuture: ListenableFuture<Boolean> =
@@ -153,33 +152,37 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
    */
   @Throws(BuildException::class)
   private fun buildAndRefresh(
-    target: BazelBuildTargetReference,
+    project: Project,
     context: BlazeContext,
     label: Label
   ) {
     val tracker: DependencyTracker =
-      QuerySyncManager.getInstance(target.project).getDependencyTracker()!!
+      QuerySyncManager.getInstance(project).getDependencyTracker()!!
     val builder = tracker.getBuilder()
     val groups = DependencyTracker.DependencyBuildRequest.getOutputGroups(listOf(QuerySyncLanguage.JVM), RequestType.FILE_PREVIEWS)
 
+    val toolingLabel = BazelComposeToolingProjectLabelProvider.getComposeToolingLabel(project)
+    val targets = setOfNotNull(label, toolingLabel)
+
     try {
-      cacheOutput(target, builder.build(context, setOf(label), groups), context)
+      cacheOutput(
+        project,
+        label,
+        builder.build(context, targets, groups),
+        context
+      )
     } catch (exception: IOException) {
       throw BuildException(exception)
     }
   }
 
   private fun cacheOutput(
-    target: BazelBuildTargetReference,
+    project: Project,
+    label: Label,
     output: OutputInfo,
     context: BlazeContext
   ) {
-    val project = target.project
-    val path = target.getFileWorkspaceRelativePath()
-
     val cache = RuntimeArtifactCache.getInstance(project)
-    val label = QuerySyncManager.getInstance(project).currentSnapshot.orElseThrow().graph.sourceFileToLabel(path)
-
     val jars =
       cache.fetchArtifacts(
         label,
@@ -195,7 +198,7 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
       RuntimeArtifactKind.EXTERNAL_TRANSITIVE_RUNTIME_JAR
     )
 
-    keyToRenderingServicesMap[Key(target)] = BazelRenderingServices(jars, externalJars)
+    keyToRenderingServicesMap[label] = BazelRenderingServices(jars, externalJars)
   }
 
   /**
@@ -210,8 +213,11 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
       GlobalSearchScope.projectScope(project)
     )
   }
+}
 
-  companion object {
-    private val aswbComposablePreviews = FeatureRolloutExperiment("aswb.composable.previews")
-  }
+private val Collection<BazelBuildTargetReference>.project: Project get() = map { it.project }.single()
+
+private fun BazelBuildTargetReference.toPreferredLabel(): Label? {
+  return QuerySyncManager.getInstance(project).getTargetsToBuildByPaths(
+    listOf(getFileWorkspaceRelativePath())).mapNotNull { it.targets.singleOrNull() }.singleOrNull()
 }

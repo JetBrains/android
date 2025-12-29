@@ -26,7 +26,7 @@ import com.intellij.openapi.util.Disposer
 
 internal class BazelBuildSystemFilePreviewServices
   : BuildSystemFilePreviewServices<BazelProjectSystem, BazelBuildTargetReference>, BazelToken {
-  override val buildServices = BazelBuildServices()
+  override val buildServices: BazelBuildServices = BazelBuildServices()
 
   override fun isApplicable(buildTargetReference: BuildTargetReference): Boolean {
     return buildTargetReference is BazelBuildTargetReference
@@ -49,6 +49,5 @@ internal class BazelBuildSystemFilePreviewServices
     Disposer.register(parentDisposable) { buildServices.remove(listener) }
   }
 
-  override val buildTargets: BuildSystemFilePreviewServices.BuildTargets
-    get() = BazelBuildTargets()
+  override val buildTargets: BuildSystemFilePreviewServices.BuildTargets = BazelBuildTargets()
 }
