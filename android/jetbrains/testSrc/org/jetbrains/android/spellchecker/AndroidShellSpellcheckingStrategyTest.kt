@@ -34,13 +34,16 @@ class AndroidShellSpellcheckingStrategyTest : AndroidTestCase() {
 
   fun testIgnoredGradlewScript() {
     val gradlewScript = myFixture.copyFileToProject("spellchecker/gradlew", "gradlew")
+    assertThat(gradlewScript.fileType.name).isEqualTo("Shell Script")
     myFixture.configureFromExistingVirtualFile(gradlewScript)
     myFixture.checkHighlighting(true, false, false)
   }
 
   fun testNotIgnoredShellScript() {
     val typosScript = myFixture.copyFileToProject("spellchecker/gradlew", "typos")
+    assertThat(typosScript.fileType.name).isEqualTo("Shell Script")
     myFixture.configureFromExistingVirtualFile(typosScript)
+    assertThat(myFixture.file.text).isNotEmpty()
     val highlightingResults = myFixture.doHighlighting()
 
     if(SystemInfo.isWindows)
