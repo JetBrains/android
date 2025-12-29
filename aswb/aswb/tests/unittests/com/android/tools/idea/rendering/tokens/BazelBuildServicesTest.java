@@ -62,7 +62,7 @@ public final class BazelBuildServicesTest {
         var reference = getBuildTargetReference(context);
 
         // Act
-        var deferred = services.buildArtifactsAsync(reference);
+        var deferred = services.buildArtifactsAsync(List.of(reference));
 
         return ListenableFutureKt.asListenableFuture(deferred);
       });
@@ -96,7 +96,7 @@ public final class BazelBuildServicesTest {
         var reference = getBuildTargetReference(context);
 
         // Act
-        var deferred = services.buildArtifactsAsync(reference);
+        var deferred = services.buildArtifactsAsync(List.of(reference));
 
         return ListenableFutureKt.asListenableFuture(deferred);
       });

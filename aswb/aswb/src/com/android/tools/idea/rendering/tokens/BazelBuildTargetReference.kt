@@ -22,11 +22,11 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.serviceContainer.AlreadyDisposedException
 
-internal class BazelBuildTargetReference internal constructor(module: Module, val file: VirtualFile) : BuildTargetReference {
+internal data class BazelBuildTargetReference internal constructor(val module_: Module, val file: VirtualFile) : BuildTargetReference {
   fun getFileWorkspaceRelativePath() = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, listOf(file)).single()
 
-  override val module = module
-    get() = if (field.isDisposed) throw AlreadyDisposedException("Already disposed: $field") else field
+  override val module
+    get() = if (module_.isDisposed) throw AlreadyDisposedException("Already disposed: $module_") else module_
 
-  override val moduleIfNotDisposed = if (module.isDisposed) null else module
+  override val moduleIfNotDisposed = if (module_.isDisposed) null else module_
 }

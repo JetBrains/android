@@ -84,7 +84,8 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.ComposeStatusProvider" interface="com.google.idea.blaze.android.compose.ComposeStatusProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.android.ApkBuildStepProvider" interface="com.google.idea.blaze.android.run.ApkBuildStepProvider" />
     <extensionPoint qualifiedName="com.google.idea.blaze.NativeSymbolFinder" interface="com.google.idea.blaze.android.run.NativeSymbolFinder" />
-    <extensionPoint qualifiedName="com.google.idea.blaze.projectInitializerForTesting" interface="com.google.idea.blaze.android.project.BazelProjectOpenProcessor$BazelProjectInitializerForTesting" />.
+    <extensionPoint qualifiedName="com.google.idea.blaze.projectInitializerForTesting" interface="com.google.idea.blaze.android.project.BazelProjectOpenProcessor$BazelProjectInitializerForTesting" />
+    <extensionPoint qualifiedName="com.android.tools.idea.rendering.tokens.bazelComposeToolingProjectLabelProvider" interface="com.android.tools.idea.rendering.tokens.BazelComposeToolingProjectLabelProvider" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.google.idea.blaze">
@@ -130,6 +131,7 @@
 
   <extensions defaultExtensionNs="com.android.tools.idea">
     <rendering.tokens.buildSystemFilePreviewServices implementation="com.android.tools.idea.rendering.tokens.BazelBuildSystemFilePreviewServices"/>
+    <rendering.tokens.bazelComposeToolingProjectLabelProvider implementation="com.android.tools.idea.rendering.tokens.DefaultBazelComposeToolingProjectLabelProvider"/>
     <liveedit.tokens.buildSystemLiveEditServices implementation="com.google.idea.blaze.base.deployment.liveedit.tokens.BazelBuildSystemLiveEditServices"/>
   </extensions>
 
