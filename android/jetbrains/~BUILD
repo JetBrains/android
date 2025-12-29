@@ -48,6 +48,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "@intellij//:intellij.spellchecker",
         "@intellij//:tanvd.grazi",
+        "@intellij//:com.jetbrains.sh",
     ],
     test_friends = ["//tools/adt/idea/android:intellij.android.core"],
     test_jvm_flags = [
