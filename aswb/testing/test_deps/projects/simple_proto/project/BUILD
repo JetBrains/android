@@ -9,7 +9,18 @@ package(
 
 proto_library(
     name = "lib_proto",
-    srcs = ["lib.proto"],
+    srcs = [
+        "lib.proto",
+    ],
+    deps = ["//simple_proto/external:external_proto"],
+)
+
+proto_library(
+    name = "lib_proto_2024",
+    srcs = [
+        "lib_edition_2024.proto",
+    ],
+    option_deps = ["@protobuf//:java_features_proto"],
     deps = ["//simple_proto/external:external_proto"],
 )
 
@@ -17,6 +28,7 @@ java_proto_library(
     name = "lib_java_proto",
     deps = [
         ":lib_proto",
+        ":lib_proto_2024",
     ],
 )
 
@@ -24,6 +36,7 @@ java_lite_proto_library(
     name = "lib_java_proto_lite",
     deps = [
         ":lib_proto",
+        ":lib_proto_2024",
     ],
 )
 
