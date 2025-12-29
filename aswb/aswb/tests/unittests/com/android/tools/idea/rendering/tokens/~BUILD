@@ -36,6 +36,10 @@ intellij_integration_test_suite(
         "@aswb_test_deps//:projects.zip",
     ],
     env = {"BAZEL_HTTP_RULES_URLS_AS_DEFAULT_CANONICAL_ID": "0"},
+    required_plugins = "idea.plugin.protoeditor,com.google.idea.g3plugins",  # TODO: solodkyy - Does not seem to work.
+    tags = [
+        "studio-e2e-test",
+    ],
     test_package_root = "com.android.tools.idea.rendering.tokens",
     deps = [
         "//tools/adt/idea/android:intellij.android.core",
@@ -48,7 +52,8 @@ intellij_integration_test_suite(
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:query_sync_integration_test_rules",
         "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:query_sync_test_projects",
-        "@intellij//:intellij-sdk",
+        "//tools/vendor/google/aswb/plugin_api",
+        "//tools/vendor/google/aswb/plugin_api:truth",
     ],
 )
 
