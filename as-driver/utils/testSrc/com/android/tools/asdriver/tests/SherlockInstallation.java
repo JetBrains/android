@@ -60,23 +60,25 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> implements T
 
     String platform = "linux";
     if (SystemInfo.isMac) {
-      if (SystemInfo.OS_ARCH.equals("aarch64")) {
-        platform = "mac_arm";
-      } else {
-        platform = "mac";
-      }
+      platform = "darwin";
     } else if (SystemInfo.isWindows) {
-      platform = "win";
+      platform = "windows";
     }
 
-    String zipPath = String.format("prebuilts/studio/intellij-sdk/sherlock-sdk.%s.zip", platform);
+    // Extract the bundled Sherlock artifact.
+    String zipPath =  String.format("tools/profiler/sherlock-plugin/sherlock_%s.zip", platform);
     Path sherlockZip = TestUtils.getBinPath(zipPath);
     unzip(sherlockZip, getUnzipDir(workDir));
-
     String sherlockDir = getSherlockDirectory();
+
+    // Delete the plugin-classpath.txt file. Otherwise, the plugins injected by the e2e framework
+    // do not work (e.g., the as-driver plugin does not run).
+    workDir.resolve(sherlockDir).resolve("plugins/plugin-classpath.txt").toFile().delete();
+
     return new SherlockInstallation(testFileSystem, workDir, workDir.resolve(sherlockDir), disableFirstRun, display, sdk);
   }
 
+  // TODO: Delete this method. It's not used anywhere and may be using incorrect directories.
   static public SherlockInstallation fromDir(TestFileSystem testFileSystem, Path sherlockDir) throws IOException {
     Path workDir = Files.createTempDirectory(testFileSystem.getRoot(), "sherlock");
     return new SherlockInstallation(testFileSystem, workDir, sherlockDir, true, null, null);
@@ -99,18 +101,22 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> implements T
       this.addVmOption("-Ddisable.android.first.run=true");
     }
 
-    bundlePlugin(TestUtils.getBinPath("prebuilts/studio/intellij-sdk/sherlock_performanceTesting.zip"));
     bundlePlugin(TestUtils.getBinPath("tools/adt/idea/as-driver/asdriver.plugin-sherlock-sdk.zip"));
   }
 
   @Override
   protected String getExecutable() {
-    String sherlockExecutable = "sherlock/bin/sherlock.sh";
+    String dir = getSherlockDirectory();
+    String sherlockExecutable;
     if (SystemInfo.isMac) {
-      sherlockExecutable = "Sherlock.app/Contents/MacOS/sherlock";
+      sherlockExecutable = dir + "/MacOS/sherlock";
     }
     else if (SystemInfo.isWindows) {
-      sherlockExecutable = "sherlock/bin/sherlock64.exe";
+      sherlockExecutable = dir + "/bin/sherlock64.exe";
+    }
+    else {
+      assert SystemInfo.isLinux;
+      sherlockExecutable = dir + "/bin/sherlock.sh";
     }
     return workDir.resolve(sherlockExecutable).toString();
   }
@@ -142,22 +148,28 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> implements T
     }
   }
 
+  /**
+   * While Android Studio bundled zips for all three platforms have `android-studio` as the outer
+   * directory, the Sherlock bundle zip have a per-platform directory, such as sherlock_linux,
+   * sherlock_windows, sherlock_darwin.
+   */
   private static String getSherlockDirectory() {
     if (SystemInfo.isMac) {
-      return "Sherlock.app/Contents";
+      return "sherlock/sherlock-darwin/Sherlock.app/Contents";
+    } else if (SystemInfo.isWindows) {
+      return "sherlock/sherlock-windows";
     } else {
-      return "sherlock";
+      assert SystemInfo.isLinux;
+      return "sherlock/sherlock-linux";
     }
   }
 
   private static Path getUnzipDir(Path workDir) {
+    // TODO: Since we moved to the bundled zip, we shouldn't be needing this additional outer
+    //  directory any more. Remove it.
     // We create a directory and then unzip into it.
     // See https://b.corp.google.com/issues/442762985#comment13
     String unzipDirectory = "sherlock";
-    if (SystemInfo.isMac) {
-      unzipDirectory = "Sherlock.app";
-    }
-
     Path unzipDir = workDir.resolve(unzipDirectory);
     unzipDir.toFile().mkdirs();
     return unzipDir;
