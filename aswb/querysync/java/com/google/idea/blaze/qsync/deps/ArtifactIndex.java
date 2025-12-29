@@ -38,7 +38,7 @@ import java.util.Optional;
 @AutoValue
 public abstract class ArtifactIndex {
 
-  abstract ImmutableMap<Label, TargetBuildInfo> builtDepsMap();
+  public abstract ImmutableMap<Label, TargetBuildInfo> builtDepsMap();
 
   public static ArtifactIndex create(
       ArtifactTracker.State artifactState) {

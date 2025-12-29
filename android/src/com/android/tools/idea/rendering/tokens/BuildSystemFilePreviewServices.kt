@@ -187,7 +187,7 @@ fun Project.requestBuildArtifactsForRendering(file: VirtualFile) = requestBuildA
  * This method does not wait for build completion.
  */
 fun Project.requestBuildArtifactsForRendering(files: Collection<VirtualFile>) {
-  val buildTargetReferences = getBuildTargetReferences(files)
+  val buildTargetReferences = getBuildTargetReferences(files.distinct()).distinct()
 
   buildTargetReferences.map { it to it.getBuildSystemFilePreviewServices() }
     .groupBy { it.second.buildServices }
