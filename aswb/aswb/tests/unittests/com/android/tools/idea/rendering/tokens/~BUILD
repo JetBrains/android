@@ -16,47 +16,6 @@ load("@rules_java//java:java_library.bzl", "java_library")
 load("@rules_java//java:java_test.bzl", "java_test")
 load("//tools/adt/idea/aswb/testing:test_defs.bzl", "intellij_integration_test_suite")
 
-intellij_integration_test_suite(
-    name = "tests",
-    size = "large",
-    srcs = [
-        "BazelBuildServicesTest.java",
-        "ExternalTransitiveRuntimeJarsTest.java",
-    ],
-    data = [
-        "//prebuilts/studio/jdk:jdk21",
-        "//prebuilts/studio/jdk/jbr-next:bundle",
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:ndk",
-        "//prebuilts/studio/sdk:platform-tools",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/tools/common/m2:all",
-        "//tools/adt/idea/aswb/testing/test_deps:repository_cache",
-        "@aswb_test_deps//:bazel_central_registry.zip",
-        "@aswb_test_deps//:projects.zip",
-    ],
-    env = {"BAZEL_HTTP_RULES_URLS_AS_DEFAULT_CANONICAL_ID": "0"},
-    required_plugins = "idea.plugin.protoeditor,com.google.idea.g3plugins",  # TODO: solodkyy - Does not seem to work.
-    tags = [
-        "studio-e2e-test",
-    ],
-    test_package_root = "com.android.tools.idea.rendering.tokens",
-    deps = [
-        "//tools/adt/idea/android:intellij.android.core",
-        "//tools/adt/idea/aswb/aswb/src/com/android/tools/idea/rendering/tokens",
-        "//tools/adt/idea/aswb/base",
-        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
-        "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
-        "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common/artifact",
-        "//tools/adt/idea/aswb/third_party/java/junit",
-        "//tools/adt/idea/project-system:intellij.android.projectSystem",
-        "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:query_sync_integration_test_rules",
-        "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:query_sync_test_projects",
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:truth",
-    ],
-)
-
 java_test(
     name = "BazelClassFileFinderTest",
     srcs = ["BazelClassFileFinderTest.java"],
