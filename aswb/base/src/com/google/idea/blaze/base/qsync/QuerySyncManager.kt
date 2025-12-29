@@ -189,11 +189,14 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   fun reloadProject(
     querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    return runOperation(
-      querySyncActionStats,
-      taskOrigin,
-      reloadProjectOperation()
-    )
+    return coroutineScope.async {
+      runOperationWithToolWindow(
+        this,
+        querySyncActionStats,
+        taskOrigin,
+        reloadProjectOperation()
+      )
+    }.asListenableFuture()
   }
 
   private fun reloadProjectOperation(): QuerySyncOperation =
@@ -242,11 +245,14 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
 
   @CanIgnoreReturnValue
   fun onStartup(querySyncActionStats: QuerySyncActionStatsScope): ListenableFuture<Boolean> {
-    return runOperation(
-      querySyncActionStats,
-      TaskOrigin.STARTUP,
-      startupOperation()
-    )
+    return coroutineScope.async {
+      runOperationWithToolWindow(
+        this,
+        querySyncActionStats,
+        TaskOrigin.STARTUP,
+        startupOperation()
+      )
+    }.asListenableFuture()
   }
 
   private fun startupOperation(): QuerySyncOperation =
@@ -273,11 +279,14 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   fun reapplyProjectStructure(
     querySyncActionStats: QuerySyncActionStatsScope,
   ): ListenableFuture<Boolean> {
-    return runOperation(
-      querySyncActionStats,
-      TaskOrigin.USER_ACTION,
-      reapplyProjectStructureOperation()
-    )
+    return coroutineScope.async {
+      runOperationWithToolWindow(
+        this,
+        querySyncActionStats,
+        TaskOrigin.USER_ACTION,
+        reapplyProjectStructureOperation()
+      )
+    }.asListenableFuture()
   }
 
   private fun reapplyProjectStructureOperation(): QuerySyncOperation =
@@ -297,11 +306,14 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   fun fullSync(
     querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    return runOperation(
-      querySyncActionStats,
-      taskOrigin,
-      fullSyncOperation()
-    )
+    return coroutineScope.async {
+      runOperationWithToolWindow(
+        this,
+        querySyncActionStats,
+        taskOrigin,
+        fullSyncOperation()
+      )
+    }.asListenableFuture()
   }
 
   private fun fullSyncOperation(): QuerySyncOperation =
@@ -321,11 +333,14 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   fun deltaSync(
     querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    return runOperation(
-      querySyncActionStats,
-      taskOrigin,
-      deltaSyncOperation()
-    )
+    return coroutineScope.async {
+      runOperationWithToolWindow(
+        this,
+        querySyncActionStats,
+        taskOrigin,
+        deltaSyncOperation()
+      )
+    }.asListenableFuture()
   }
 
   private fun deltaSyncOperation(): QuerySyncOperation =
@@ -346,10 +361,13 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     querySyncActionStats: QuerySyncActionStatsScope,
     taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    return runOperation(
-      querySyncActionStats, taskOrigin,
-      syncQueryDataIfNeededOperation(workspaceRelativePaths)
-    )
+    return coroutineScope.async {
+      runOperationWithToolWindow(
+        this, querySyncActionStats,
+        taskOrigin,
+        syncQueryDataIfNeededOperation(workspaceRelativePaths)
+      )
+    }.asListenableFuture()
   }
 
   private fun syncQueryDataIfNeededOperation(workspaceRelativePaths: Collection<Path>): QuerySyncOperation =
@@ -384,7 +402,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     }
   }
 
-  suspend fun CoroutineScope.bazelOutputToolWindowScope(
+  suspend fun bazelOutputToolWindowScope(
+    coroutineScope: CoroutineScope,
     title: String,
     subTitle: String,
     taskOrigin: TaskOrigin,
@@ -407,7 +426,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
         }
     }
 
-    return runCatching { resultFuture.await() }
+    return coroutineScope.runCatching { resultFuture.await() }
       .fold(
         onSuccess = { operationSucceeded ->
           if (operationSucceeded) {
@@ -431,18 +450,15 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       )
   }
 
-  fun runOperation(
+  suspend fun runOperationWithToolWindow(
+    coroutineScope: CoroutineScope,
     statsScope: QuerySyncActionStatsScope?,
     taskOrigin: TaskOrigin,
     operation: QuerySyncOperation,
-  ): ListenableFuture<Boolean> {
-    return coroutineScope.async {
-      runOperation(statsScope, taskOrigin, operation) { op ->
-        bazelOutputToolWindowScope(operation.title, operation.subTitle, taskOrigin) { context ->
-          op(context)
-        }
-      }
-    }.asListenableFuture()
+  ): Boolean = runOperation(statsScope, taskOrigin, operation) { op ->
+    bazelOutputToolWindowScope(coroutineScope, operation.title, operation.subTitle, taskOrigin) { context ->
+      op(context)
+    }
   }
 
   private fun <T> withSyncEventsPublished(context: BlazeContext, block: () -> T): T {
@@ -620,11 +636,14 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     if (targets.isEmpty()) {
       return Futures.immediateFuture(true)
     }
-    return runOperation(
-      querySyncActionStats,
-      taskOrigin,
-      enableAnalysisOperation(targets)
-    )
+    return coroutineScope.async {
+      runOperationWithToolWindow(
+        this,
+        querySyncActionStats,
+        taskOrigin,
+        enableAnalysisOperation(targets)
+      )
+    }.asListenableFuture()
   }
 
   fun enableAnalysisOperation(targets: Set<Label>): QuerySyncOperation =
@@ -649,11 +668,14 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     if (targets.isEmpty()) {
       return Futures.immediateFuture(true)
     }
-    return runOperation(
-      querySyncActionStats,
-      taskOrigin,
-      enableAnalysisForReverseDependenciesOperation(targets)
-    )
+    return coroutineScope.async {
+      runOperationWithToolWindow(
+        this,
+        querySyncActionStats,
+        taskOrigin,
+        enableAnalysisForReverseDependenciesOperation(targets)
+      )
+    }.asListenableFuture()
   }
 
   private fun enableAnalysisForReverseDependenciesOperation(targets: Set<Label>): QuerySyncOperation =
@@ -677,11 +699,14 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   fun enableAnalysisForWholeProject(
     querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    return runOperation(
-      querySyncActionStats,
-      taskOrigin,
-      enableAnalysisForWholeProjectOperation()
-    )
+    return coroutineScope.async {
+      runOperationWithToolWindow(
+        this,
+        querySyncActionStats,
+        taskOrigin,
+        enableAnalysisForWholeProjectOperation()
+      )
+    }.asListenableFuture()
   }
 
   private fun enableAnalysisForWholeProjectOperation(): QuerySyncOperation =
@@ -698,11 +723,14 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   fun clearAllDependencies(
     querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    return runOperation(
-      querySyncActionStats,
-      taskOrigin,
-      clearAllDependenciesOperation()
-    )
+    return coroutineScope.async {
+      runOperationWithToolWindow(
+        this,
+        querySyncActionStats,
+        taskOrigin,
+        clearAllDependenciesOperation()
+      )
+    }.asListenableFuture()
   }
 
   private fun clearAllDependenciesOperation(): QuerySyncOperation =
@@ -720,11 +748,14 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   fun resetQuerySyncState(
     querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    return runOperation(
-      querySyncActionStats,
-      taskOrigin,
-      resetQuerySyncOperation()
-    )
+    return coroutineScope.async {
+      runOperationWithToolWindow(
+        this,
+        querySyncActionStats,
+        taskOrigin,
+        resetQuerySyncOperation()
+      )
+    }.asListenableFuture()
   }
 
   private fun resetQuerySyncOperation(): QuerySyncOperation =
@@ -819,11 +850,14 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   fun cleanCacheNow() = cacheCleaner.cleanNow()
 
   fun purgeBuildCache(actionScope: QuerySyncActionStatsScope) {
-    runOperation(
-      actionScope,
-      TaskOrigin.USER_ACTION,
-      purgeBuildCacheOperation()
-    )
+    coroutineScope.async {
+      runOperationWithToolWindow(
+        this,
+        actionScope,
+        TaskOrigin.USER_ACTION,
+        purgeBuildCacheOperation()
+      )
+    }.asListenableFuture()
   }
 
   private fun purgeBuildCacheOperation(): QuerySyncOperation =

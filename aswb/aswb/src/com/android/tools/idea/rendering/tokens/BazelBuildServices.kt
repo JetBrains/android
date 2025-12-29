@@ -40,19 +40,26 @@ import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.deps.OutputInfo
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.guava.asDeferred
+import kotlinx.coroutines.guava.asListenableFuture
 
 // TODO: b/418844903 - Update the artifact manager
 internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices<BazelBuildTargetReference> {
   private val listeners: MutableCollection<BuildSystemFilePreviewServices.BuildListener> = CopyOnWriteArrayList()
   private val keyToRenderingServicesMap: MutableMap<Label, BazelRenderingServices> = ConcurrentHashMap()
 
+  @Service(Service.Level.PROJECT)
+  internal class ScopeProvider(val scope: CoroutineScope)
   /**
    * Executed by an application pool thread and the EDT
    */
@@ -125,11 +132,15 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
     }
 
     val buildAndRefreshFuture: ListenableFuture<Boolean> =
-      QuerySyncManager.getInstance(project).runOperation(
-        scope,
-        QuerySyncManager.TaskOrigin.USER_ACTION,
-        buildAndRefresh
-      )
+      project.service<ScopeProvider>().scope.async {
+        QuerySyncManager.getInstance(project).runOperationWithToolWindow(
+          this@async,
+          scope,
+          QuerySyncManager.TaskOrigin.USER_ACTION,
+          buildAndRefresh
+        )
+        true
+      }.asListenableFuture()
 
     val newBuildResultFuture =
       Futures.transform<Boolean, BuildSystemFilePreviewServices.BuildListener.BuildResult>(
