@@ -29,7 +29,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.module.JavaModuleType.JAVA_MODULE_ENTITY_TYPE_ID_NAME
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ex.ProjectManagerEx
@@ -41,6 +40,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
+import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_MODULE_ENTITY_TYPE_ID_NAME
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
