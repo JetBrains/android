@@ -116,8 +116,8 @@ maven.install(
         "jakarta.inject:jakarta.inject-api:2.0.1",
         "junit:junit:4.13.2",
         "com.beust:jcommander:1.82",
-        "com.google.protobuf:protobuf-java:4.29.3",
-        "com.google.protobuf:protobuf-java-util:4.29.3",
+        "com.google.protobuf:protobuf-java:4.33.2",
+        "com.google.protobuf:protobuf-java-util:4.33.2",
         "com.google.code.findbugs:jsr305:3.0.2",
         "androidx.databinding:databinding-compiler:8.7.0",
         "org.ow2.asm:asm:9.6",
@@ -240,7 +240,7 @@ go_deps.archive_override(
 
 bazel_dep(
     name = "protobuf",
-    version = "29.3",
+    version = "33.2",
 )
 bazel_dep(
     name = "apple_support",
@@ -249,7 +249,7 @@ bazel_dep(
 )
 bazel_dep(
     name = "bazel_skylib",
-    version = "1.7.1",
+    version = "1.8.1",
 )
 bazel_dep(
     name = "rules_testing",
