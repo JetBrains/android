@@ -16,6 +16,8 @@
 package com.example.lib;
 
 import com.example.external.ExternalMessage;
+import com.example.lib.LibEdition2024Proto.LibMessageEdition2024DisableMultiFile;
+import com.example.lib.LibMessageEdition2024EnableMultiFile;
 
 /** An example proto consumer. */
 public class ProtoConsumer {
@@ -26,7 +28,17 @@ public class ProtoConsumer {
             .setMessage("abc")
             .setExternalMessage(ExternalMessage.newBuilder().setMessage("xyz").build())
             .build();
+    LibMessageEdition2024DisableMultiFile messageEdition2024DisableMultiFile =
+      LibMessageEdition2024DisableMultiFile.newBuilder()
+        .setMessage("abc")
+        .build();
+    LibMessageEdition2024EnableMultiFile messageEdition2024EnableMultiFile =
+      LibMessageEdition2024EnableMultiFile.newBuilder()
+        .setMessage("abc")
+        .build();
     System.out.println(message.getMessage());
     System.out.println(message.getExternalMessage().getMessage());
+    System.out.println(messageEdition2024DisableMultiFile.getMessage());
+    System.out.println(messageEdition2024EnableMultiFile.getMessage());
   }
 }

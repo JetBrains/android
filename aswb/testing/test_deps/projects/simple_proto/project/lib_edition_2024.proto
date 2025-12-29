@@ -1,0 +1,16 @@
+edition = "2024";
+
+import option "google/protobuf/java_features.proto";
+
+package proto1_project;
+
+option java_package = "com.example.lib";
+
+message LibMessageEdition2024DisableMultiFile {
+  option features.(pb.java).nest_in_file_class = YES;
+  string message = 1;
+}
+
+message LibMessageEdition2024EnableMultiFile {
+  string message = 1;
+}
