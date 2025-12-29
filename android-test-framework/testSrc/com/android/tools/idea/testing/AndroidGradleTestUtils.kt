@@ -189,7 +189,6 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -233,6 +232,7 @@ import com.intellij.util.messages.MessageBusConnection
 import com.intellij.workspaceModel.core.fileIndex.WorkspaceFileIndexContributor
 import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
 import com.intellij.workspaceModel.ide.impl.jps.serialization.DelayedProjectSynchronizer
+import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_MODULE_ENTITY_TYPE_ID_NAME
 import java.io.File
 import java.io.IOException
 import java.nio.file.Paths
@@ -1822,7 +1822,7 @@ fun setupTestProjectFromAndroidModel(
               .resolve("modules")
               .resolve("${project.name}.iml")
               .path,
-            JAVA.id,
+            JAVA_MODULE_ENTITY_TYPE_ID_NAME,
           )
         } else {
           moduleManager.modules[0]
@@ -1837,7 +1837,7 @@ fun setupTestProjectFromAndroidModel(
           ModuleData(
             ":",
             GRADLE_SYSTEM_ID,
-            JAVA.id,
+            JAVA_MODULE_ENTITY_TYPE_ID_NAME,
             project.name,
             rootProjectBasePath.resolve(".idea").resolve("modules").systemIndependentPath,
             rootProjectBasePath.systemIndependentPath,

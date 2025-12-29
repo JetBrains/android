@@ -21,11 +21,11 @@ import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
 import static com.android.tools.idea.testing.TestProjectPaths.APK_SAN_ANGELES;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.module.JavaModuleType.JAVA_MODULE_ENTITY_TYPE_ID_NAME;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.workspaceModel.ide.legacyBridge.impl.java.JavaModuleTypeUtils.JAVA_MODULE_ENTITY_TYPE_ID_NAME;
 import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
 import static org.mockito.Mockito.mock;
 
