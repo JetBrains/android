@@ -23,9 +23,9 @@ import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.module.JavaModuleType.JAVA_MODULE_ENTITY_TYPE_ID_NAME
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleWithNameAlreadyExists
-import com.intellij.openapi.module.StdModuleTypes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VfsUtil
@@ -82,7 +82,7 @@ class TopLevelModuleFactory() {
     val module = projectModifieableModel
       .modules
       .singleOrNull { ModuleRootManager.getInstance(it).contentEntries.singleOrNull()?.url == gradleRootUrl }
-      ?: projectModifieableModel.newModule(moduleFile.path, StdModuleTypes.JAVA.id)
+      ?: projectModifieableModel.newModule(moduleFile.path, JAVA_MODULE_ENTITY_TYPE_ID_NAME)
     try {
       // A top level module name is usually the same as the name of the project it is contained in. If the caller of this method sets
       // up the project name correctly, we can prevent the root mdule from being disposed by sync if we configure its name correctly.
@@ -104,7 +104,7 @@ class TopLevelModuleFactory() {
         ModuleData(
           ":",
           GradleProjectSystemUtil.GRADLE_SYSTEM_ID,
-          StdModuleTypes.JAVA.id, gradleRoot.name,
+          JAVA_MODULE_ENTITY_TYPE_ID_NAME, gradleRoot.name,
           projectRootDirPath!!,
           projectRootDirPath
         ),

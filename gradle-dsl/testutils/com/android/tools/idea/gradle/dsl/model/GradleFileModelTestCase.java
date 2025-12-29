@@ -36,6 +36,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.module.JavaModuleType.JAVA_MODULE_ENTITY_TYPE_ID_NAME;
 import static com.intellij.openapi.util.io.FileUtil.loadFile;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -71,7 +72,6 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.ThrowableComputable;
@@ -268,7 +268,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
         .getInstance(myModule)
         .setExternalOptions(
           GradleConstants.SYSTEM_ID,
-          new ModuleData(":", GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProjectBasePath.getName(),
+          new ModuleData(":", GradleConstants.SYSTEM_ID, JAVA_MODULE_ENTITY_TYPE_ID_NAME, myProjectBasePath.getName(),
                          myProjectBasePath.getPath(), myProjectBasePath.getPath()),
           new ProjectData(GradleConstants.SYSTEM_ID, myProject.getName(), myProject.getBasePath(), myProject.getBasePath()));
 

@@ -19,6 +19,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
 import static com.android.tools.idea.testing.TestProjectPaths.APK_SAN_ANGELES;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.intellij.openapi.module.JavaModuleType.JAVA_MODULE_ENTITY_TYPE_ID_NAME;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -34,7 +35,6 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -125,7 +125,7 @@ public class SmaliFileNotificationProviderTest extends HeavyPlatformTestCase {
   @NotNull
   private Module createRootModule(@NotNull File projectRootPath) {
     ModifiableModuleModel modifiableModel = ModuleManager.getInstance(getProject()).getModifiableModel();
-    Module rootModule = modifiableModel.newModule(projectRootPath.getPath(), StdModuleTypes.JAVA.getId());
+    Module rootModule = modifiableModel.newModule(projectRootPath.getPath(), JAVA_MODULE_ENTITY_TYPE_ID_NAME);
     ApplicationManager.getApplication().runWriteAction(modifiableModel::commit);
     return rootModule;
   }

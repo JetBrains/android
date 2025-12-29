@@ -182,9 +182,9 @@ import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjec
 import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjectsManagerImpl
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.JavaModuleType
+import com.intellij.openapi.module.JavaModuleType.JAVA_MODULE_ENTITY_TYPE_ID_NAME
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
@@ -1447,7 +1447,7 @@ fun setupTestProjectFromAndroidModel(
     runWriteAction {
       val modifiableModel = moduleManager.getModifiableModel()
       val module = if (modifiableModel.modules.isEmpty()) {
-        modifiableModel.newModule(rootProjectBasePath.resolve(".idea").resolve("modules").resolve("${project.name}.iml").path, JAVA.id)
+        modifiableModel.newModule(rootProjectBasePath.resolve(".idea").resolve("modules").resolve("${project.name}.iml").path, JAVA_MODULE_ENTITY_TYPE_ID_NAME)
       }
       else {
         moduleManager.modules[0]
@@ -1463,7 +1463,7 @@ fun setupTestProjectFromAndroidModel(
           ModuleData(
             ":",
             GRADLE_SYSTEM_ID,
-            JAVA.id,
+            JAVA_MODULE_ENTITY_TYPE_ID_NAME,
             project.name,
             rootProjectBasePath.resolve(".idea").resolve("modules").systemIndependentPath,
             rootProjectBasePath.systemIndependentPath

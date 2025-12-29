@@ -30,9 +30,9 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
+import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import javax.swing.event.HyperlinkEvent;
@@ -66,7 +66,7 @@ public class SupportedModuleCheckerTest extends HeavyPlatformTestCase {
     AndroidNotification androidNotification = mock(AndroidNotification.class);
     new IdeComponents(project).replaceProjectService(AndroidNotification.class, androidNotification);
 
-    Module supportedModule = doCreateRealModuleIn("gradleModule", myProject, StdModuleTypes.JAVA);
+    Module supportedModule = doCreateRealModuleIn("gradleModule", myProject, JavaModuleType.getModuleType());
     ExternalSystemModulePropertyManager.getInstance(supportedModule).setExternalId(GRADLE_SYSTEM_ID);
 
     myModuleChecker.checkForSupportedModules(project);
@@ -81,10 +81,10 @@ public class SupportedModuleCheckerTest extends HeavyPlatformTestCase {
     new IdeComponents(project).replaceProjectService(AndroidNotification.class, androidNotification);
 
     // These will be the "unsupported" modules, since they are not marked as "Gradle" modules.
-    Module lib1 = doCreateRealModuleIn("lib1", myProject, StdModuleTypes.JAVA);
-    Module lib2 = doCreateRealModuleIn("lib2", myProject, StdModuleTypes.JAVA);
+    Module lib1 = doCreateRealModuleIn("lib1", myProject, JavaModuleType.getModuleType());
+    Module lib2 = doCreateRealModuleIn("lib2", myProject, JavaModuleType.getModuleType());
 
-    Module supportedModule = doCreateRealModuleIn("gradleModule", myProject, StdModuleTypes.JAVA);
+    Module supportedModule = doCreateRealModuleIn("gradleModule", myProject, JavaModuleType.getModuleType());
     ExternalSystemModulePropertyManager.getInstance(supportedModule).setExternalId(GRADLE_SYSTEM_ID);
 
     myModuleChecker.checkForSupportedModules(project);
