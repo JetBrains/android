@@ -24,4 +24,8 @@ java_import(
   jars = ["instantapps-api-1.8.jar"],
   visibility = ["//visibility:public"]
 )
+
+exports_files([
+  "instantapps-api-1.8.jar",
+], visibility = ["//visibility:public"])
 ### auto-generated section `local-libs` end

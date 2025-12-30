@@ -12,4 +12,8 @@ java_import(
   jars = ["ui-animation-tooling-internal.jar"],
   visibility = ["//visibility:public"]
 )
+
+exports_files([
+  "ui-animation-tooling-internal.jar",
+], visibility = ["//visibility:public"])
 ### auto-generated section `local-libs` end
