@@ -522,6 +522,40 @@ class TraceProcessorModelTest {
     verify(100, 110, scheduling, 0)
   }
 
+  @Test
+  fun `addSchedulingEvents - negative gap does not create event`() {
+    val schedProtoBuilder = TraceProcessor.SchedulingEventsResult.newBuilder().setNumCores(2)
+    // Event 1: 1000us to 2000us
+    schedProtoBuilder.addSchedulingEvent(1, 1, 1, 1000000, 1000000,
+                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
+    // Event 2: 1500us to 2500us.
+    // Starts before Event 1 ends (1500 < 2000), resulting in a negative gap (-500us).
+    schedProtoBuilder.addSchedulingEvent(1, 1, 1, 1500000, 1000000,
+                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
+
+    val modelBuilder = TraceProcessorModel.Builder()
+    modelBuilder.addSchedulingEvents(schedProtoBuilder.build())
+    val model = modelBuilder.build()
+
+    val cpu = model.getCpuCores()[1]
+
+    // We expect exactly 2 events.
+    // Explanation:
+    // 1. First event is processed: Adds RUNNING_CAPTURED event (1000-2000).
+    // 2. Gap check: Next start (1500) < Current end (2000). Gap is negative.
+    //    The 'if (gapDurationUs > 0)' check prevents adding the SLEEPING event.
+    // 3. Second event is processed: Adds RUNNING_CAPTURED event (1500-2500).
+    assertThat(cpu.schedulingEvents).hasSize(2)
+
+    // Verify they are the running events
+    assertThat(cpu.schedulingEvents[0].state).isEqualTo(ThreadState.RUNNING_CAPTURED)
+    assertThat(cpu.schedulingEvents[0].startTimestampUs).isEqualTo(1000)
+    assertThat(cpu.schedulingEvents[0].endTimestampUs).isEqualTo(1500)
+
+    assertThat(cpu.schedulingEvents[1].state).isEqualTo(ThreadState.RUNNING_CAPTURED)
+    assertThat(cpu.schedulingEvents[1].startTimestampUs).isEqualTo(1500)
+  }
+
   private fun TraceProcessor.ProcessMetadataResult.Builder.addProcess(id: Long, name: String)
     : TraceProcessor.ProcessMetadataResult.ProcessMetadata.Builder {
     return this.addProcessBuilder().setId(id).setName(name)
