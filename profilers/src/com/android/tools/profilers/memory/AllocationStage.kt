@@ -142,6 +142,7 @@ class AllocationStage private constructor(profilers: StudioProfilers,
           allocationTrackStatus = TrackStatus.newBuilder().setStatus(TrackStatus.Status.AGENT_UNATTACHABLE).build()))
     }
     aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS)
+    cleanupFailedCapture()
   }
 
   fun startTracking() {
@@ -220,6 +221,8 @@ class AllocationStage private constructor(profilers: StudioProfilers,
             }
             logger.info("PROFILER: Java/Kotlin Allocations capture stop failed")
           }
+
+          cleanupFailedCapture();
         }
       }
     }
@@ -233,6 +236,13 @@ class AllocationStage private constructor(profilers: StudioProfilers,
       maxTrackingTimeUs = timeline.dataRange.max
     }
     trackAllocations(false, true)
+  }
+
+  private fun cleanupFailedCapture() {
+    if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled &&
+        studioProfilers.sessionsManager.isSessionAlive) {
+        studioProfilers.sessionsManager.endCurrentSession()
+    }
   }
 
   private fun onNewData() = with(timeline) {
