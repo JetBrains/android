@@ -17,6 +17,7 @@ package org.jetbrains.android.spellchecker
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.grazie.spellcheck.GrazieSpellCheckingInspection
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.spellchecker.SpellCheckerSeveritiesProvider
 import org.jetbrains.android.AndroidTestCase
 
@@ -41,6 +42,10 @@ class AndroidShellSpellcheckingStrategyTest : AndroidTestCase() {
     val typosScript = myFixture.copyFileToProject("spellchecker/gradlew", "typos")
     myFixture.configureFromExistingVirtualFile(typosScript)
     val highlightingResults = myFixture.doHighlighting()
+
+    if(SystemInfo.isWindows)
+      Thread.sleep(2000);
+
     assertThat(highlightingResults.filter { it.severity == SpellCheckerSeveritiesProvider.TYPO }).isNotEmpty()
   }
 }
