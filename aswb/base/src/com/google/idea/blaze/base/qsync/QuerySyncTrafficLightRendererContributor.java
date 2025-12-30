@@ -47,7 +47,7 @@ public class QuerySyncTrafficLightRendererContributor implements TrafficLightRen
     if (Blaze.getProjectType(psiFile.getProject()) != ProjectType.QUERY_SYNC) {
       return null;
     }
-    return new TrafficLightRenderer(psiFile.getProject(), editor.getDocument()) {
+    return new TrafficLightRenderer(psiFile.getProject(), editor) {
       @Override
       @NotNull
       public AnalyzerStatus getStatus() {
