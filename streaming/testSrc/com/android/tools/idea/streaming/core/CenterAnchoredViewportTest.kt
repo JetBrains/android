@@ -44,7 +44,7 @@ class CenterAnchoredViewportTest {
     background = JBColor.cyan
     border = BorderFactory.createLineBorder(JBColor.blue)
   }
-  private val viewport = CenterAnchoredViewport().apply { view = this@CenterAnchoredViewportTest.view }
+  private val viewport = CenterAnchoredViewport().also { it.view = view }
   private val scrollPane = TestScrollPane().apply { setBounds(0, 0, 100, 160) }
   private val ui = FakeUi(scrollPane)
 
@@ -85,6 +85,37 @@ class CenterAnchoredViewportTest {
     view.preferredSize = null
     ui.layoutAndDispatchEvents()
     assertThat(view.size).isEqualTo(Dimension(120, 140))
+    assertThat(viewport.viewPosition).isEqualTo(Point(0, 0))
+  }
+
+  @Test
+  fun testZoomInZoomOut() {
+    scrollPane.size = Dimension(503, 1792)
+    ui.layoutAndDispatchEvents()
+    assertThat(viewport.viewPosition).isEqualTo(Point(0, 0))
+
+    // Zoom level 50%.
+    view.preferredSize = Dimension(704, 1487)
+    ui.layoutAndDispatchEvents()
+    assertThat(view.size).isEqualTo(Dimension(704, 1782))
+    assertThat(viewport.viewPosition).isEqualTo(Point(101, 0))
+
+    // Zoom level 100%.
+    view.preferredSize = Dimension(1408, 2974)
+    ui.layoutAndDispatchEvents()
+    assertThat(view.size).isEqualTo(Dimension(1408, 2974))
+    assertThat(viewport.viewPosition).isEqualTo(Point(459, 596))
+
+    // Zoom level 50%.
+    view.preferredSize = Dimension(704, 1487)
+    ui.layoutAndDispatchEvents()
+    assertThat(view.size).isEqualTo(Dimension(704, 1782))
+    assertThat(viewport.viewPosition).isEqualTo(Point(101, 0))
+
+    // Zoom to fit.
+    view.preferredSize = null
+    ui.layoutAndDispatchEvents()
+    assertThat(view.size).isEqualTo(Dimension(503, 1792))
     assertThat(viewport.viewPosition).isEqualTo(Point(0, 0))
   }
 
