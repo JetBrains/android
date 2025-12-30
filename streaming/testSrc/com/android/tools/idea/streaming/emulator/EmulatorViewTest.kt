@@ -646,9 +646,7 @@ class EmulatorViewTest {
 
   @Test
   fun testMouseMoveNotSendWhenCameraOperating() {
-    view = emulatorViewRule.newEmulatorView()
-    val panel = NotificationHolderPanel(view)
-    val container = HeadlessRootPaneContainer(panel)
+    val container = createRootContainer()
     container.rootPane.size = Dimension(200, 300)
     fakeUi = FakeUi(container.rootPane)
 
@@ -865,7 +863,7 @@ class EmulatorViewTest {
 
   @Test
   fun testHideCameraNotificationDuringHardwareInput() {
-    val container = HeadlessRootPaneContainer(NotificationHolderPanel(createEmulatorDisplayPanel()))
+    val container = createRootContainer()
     container.rootPane.size = Dimension(200, 300)
     fakeUi = FakeUi(container.rootPane, 1.0)
 
@@ -895,7 +893,7 @@ class EmulatorViewTest {
 
   @Test
   fun testCameraNotificationHasOperatingMessageWhenHardwareInputDisabledWithShift() {
-    val container = HeadlessRootPaneContainer(NotificationHolderPanel(createEmulatorDisplayPanel()))
+    val container = createRootContainer()
     container.rootPane.size = Dimension(200, 300)
     fakeUi = FakeUi(container.rootPane, 1.0)
 
@@ -1132,9 +1130,11 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("xr_head_movement_event { delta_z: $TRANSLATION_STEP_SIZE }")
   }
 
-  private fun createEmulatorDisplayPanel(avdCreator: ((Path) -> Path)? = null): EmulatorDisplayPanel {
-    return emulatorViewRule.newEmulatorDisplayPanel(avdCreator).apply { view = displayView }
-  }
+  private fun createRootContainer(): HeadlessRootPaneContainer =
+      HeadlessRootPaneContainer(NotificationHolderPanel(createEmulatorDisplayPanel()))
+
+  private fun createEmulatorDisplayPanel(avdCreator: ((Path) -> Path)? = null): EmulatorDisplayPanel =
+      emulatorViewRule.newEmulatorDisplayPanel(avdCreator).apply { view = displayView }
 
   @Throws(TimeoutException::class)
   private fun getStreamScreenshotCallAndWaitForFrame(): GrpcCallRecord {
