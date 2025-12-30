@@ -30,7 +30,6 @@ import com.android.tools.idea.streaming.device.XrVelocityMessage
 import com.android.tools.idea.streaming.xr.AbstractXrInputController
 import com.android.tools.idea.streaming.xr.XrEnvironment
 import com.android.tools.idea.streaming.xr.XrInputMode
-import com.intellij.ide.ActivityTracker
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -175,7 +174,7 @@ internal class DeviceXrInputController(private val deviceClient: DeviceClient) :
   private fun XrInputUnavailableNotification.Reason.description(): String {
     return when (this) {
       XrInputUnavailableNotification.Reason.SERVICE_NOT_RUNNING ->
-        "The \"xrsimulatedinputmanager\" service is not running on the device"
+          "The \"xrsimulatedinputmanager\" service is not running on the device"
       XrInputUnavailableNotification.Reason.PROPERTY_NOT_SET ->
           "The property persist.device_config.com_android_xr.com.android.xr.flags.enable_xr_simulated_env is not set to true"
     }
