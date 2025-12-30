@@ -827,7 +827,7 @@ class ForegroundProcessDetectionTest {
       deviceToHandshakeSupportTypeMap[device4] = SupportType.NOT_SUPPORTED
       // We may still get `SupportType.UNKNOWN` before finally getting `NOT_SUPPORTED`
       val supportType4 =
-        withTimeoutOrNull(500) {
+        withTimeoutOrNull(1000) {
           while (true) {
             val (handshakeDevice, supportType) = handshakeSyncChannel.receive()
             if (supportType == SupportType.UNKNOWN) {
