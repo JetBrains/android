@@ -42,7 +42,7 @@ import com.android.adblib.tools.aiglasses.ShellCommandException
 import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceState
-import com.android.sdklib.deviceprovisioner.LocalEmulatorDeviceHandle
+import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.deviceprovisioner.awaitReady
 import com.android.sdklib.deviceprovisioner.mapChangedState
 import com.android.sdklib.deviceprovisioner.pairWithNestedState
@@ -382,7 +382,7 @@ internal fun Project.userInvolvementRequired(deviceHandle: DeviceHandle) {
 }
 
 private fun isAiGlassesCompatible(handle: DeviceHandle) =
-  handle is LocalEmulatorDeviceHandle && handle.avdInfo.isAiGlassesCompatibleDevice
+  (handle.state.properties as? LocalEmulatorProperties)?.isAiGlassesCompatible == true
 
 internal suspend fun FlowCollector<PairingState>.launchGlassesAndPhone(
   glasses: DeviceHandle,
