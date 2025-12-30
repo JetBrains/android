@@ -1308,6 +1308,14 @@ iml_test(
 )
 
 iml_test(
+    name = "DuplicateClassesTest",
+    module = ":intellij.android.studio.integration",
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.DuplicateClassesTest",
+)
+
+iml_test(
     name = "EssentialPluginsTest",
     module = ":intellij.android.studio.integration",
     tags_linux = ["block-network"],
