@@ -92,6 +92,7 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
   protected val mainToolbar: ActionToolbar
   protected val secondaryToolbar: ActionToolbar
   protected val centerPanel = BorderLayoutPanel()
+  protected val notificationHolderPanel = NotificationHolderPanel(centerPanel)
   private val displayPanelsMap = Int2ObjectRBTreeMap<T>()
   protected val displayPanels: Collection<T>
     get() = displayPanelsMap.values
@@ -123,7 +124,7 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
     secondaryToolbar = createToolbar(secondaryToolbarId, ToolbarLayoutStrategy.NOWRAP_STRATEGY, IS_TOOLBAR_HORIZONTAL)
     secondaryToolbar.isReservePlaceAutoPopupIcon = false
 
-    addToCenter(centerPanel)
+    addToCenter(notificationHolderPanel)
 
     val toolbarPanel = BorderLayoutPanel()
     if (IS_TOOLBAR_HORIZONTAL) {
@@ -144,7 +145,7 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
   protected fun addTopPanel(topPanel: JComponent) {
     val panel = BorderLayoutPanel()
     panel.addToTop(topPanel)
-    panel.addToCenter(centerPanel)
+    panel.addToCenter(notificationHolderPanel)
     addToCenter(panel)
   }
 
