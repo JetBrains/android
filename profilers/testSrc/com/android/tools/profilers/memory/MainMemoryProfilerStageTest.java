@@ -36,7 +36,9 @@ import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
@@ -984,6 +986,12 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   public void testStartJavaKotlinAllocationCapturePreO() {
     assumePreO(true);
     assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+
+    // Mock successful start tracking
+    MemoryAllocTracking allocTrackingHandler =
+      (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
+    allocTrackingHandler.setTrackStatus(Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).build());
+
     myStage.startJavaKotlinAllocationCapture();
     assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(
       myStage.lazyJavaKotlinAllocationsRecordingOption.getValue());
@@ -994,6 +1002,12 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   public void testStopJavaKotlinAllocationCapturePreO() {
     assumePreO(true);
     assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+
+    // Mock successful start tracking
+    MemoryAllocTracking allocTrackingHandler =
+      (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
+    allocTrackingHandler.setTrackStatus(Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).build());
+
     myStage.startJavaKotlinAllocationCapture();
     assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(
       myStage.lazyJavaKotlinAllocationsRecordingOption.getValue());
@@ -1001,6 +1015,12 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
     // Force the tracking allocations boolean flag to be true to simulate successful start.
     myStage.setTrackingAllocations(true);
+
+    // Mock successful stop tracking
+    MemoryAllocTracking stopAllocTrackingHandler =
+      (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING);
+    stopAllocTrackingHandler.setTrackStatus(Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).build());
+
     myStage.stopMemoryRecording();
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     // Because setFinished() (which sets isRecording to false) is only called when the TraceStopStatus event
@@ -1016,6 +1036,12 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   public void testStartJavaKotlinAllocationCaptureOAndAbove() {
     assumePreO(false);
     assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+
+    // Mock successful start tracking
+    MemoryAllocTracking allocTrackingHandler =
+      (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
+    allocTrackingHandler.setTrackStatus(Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).build());
+
     myStage.startJavaKotlinAllocationCapture();
     assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(
       myStage.lazyJavaKotlinAllocationsRecordingOption.getValue());
@@ -1026,6 +1052,12 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   public void testStopJavaKotlinAllocationCaptureOAndAbove() {
     assumePreO(false);
     assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+
+    // Mock successful start tracking
+    MemoryAllocTracking allocTrackingHandler =
+      (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
+    allocTrackingHandler.setTrackStatus(Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).build());
+
     myStage.startJavaKotlinAllocationCapture();
     assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(
       myStage.lazyJavaKotlinAllocationsRecordingOption.getValue());
@@ -1033,6 +1065,12 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
     // Force the tracking allocations boolean flag to be true to simulate successful start.
     myStage.setTrackingAllocations(true);
+
+    // Mock successful stop tracking
+    MemoryAllocTracking stopAllocTrackingHandler =
+      (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING);
+    stopAllocTrackingHandler.setTrackStatus(Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).build());
+
     myStage.stopMemoryRecording();
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     // Because setFinished() (which sets isRecording to false) is only called when the TraceStopStatus event

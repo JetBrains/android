@@ -437,6 +437,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
       // When the stopping is done, a CPU_TRACE event will be generated, and it will be tracked via the InProgressTraceHandler.
     }
     else if (!status.getStatus().equals(Trace.TraceStopStatus.Status.SUCCESS)) {
+      cleanupFailedCapture();
       CpuCaptureMetadata captureMetadata = trackAndLogTraceStopFailures(status);
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
@@ -726,6 +727,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
             myCaptureParser.trackCaptureMetadata(trace.getTraceId(), captureMetadata);
           }
           else {
+            cleanupFailedCapture();
             trackAndLogTraceStopFailures(trace.getStopStatus());
           }
         }
