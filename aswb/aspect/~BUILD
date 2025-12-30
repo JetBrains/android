@@ -46,6 +46,7 @@ filegroup(
         "build_dependencies_java_deps.bzl",
         "build_dependencies_java_proto_deps.bzl",
         "build_dependencies_kotlin_deps.bzl",
+        "build_dependencies_kotlin_stub_deps.bzl",
         "java_classpath.bzl",
         "make_variables.bzl",
         ":BUILD.bazel",
