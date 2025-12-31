@@ -38,8 +38,12 @@ val implicitAttributeDefaults = mapOf(
   "resource-id" to "",
   "scrollable" to "false",
   "selected" to "false",
-  "text" to ""
+  "text" to "",
+  "hint" to "",
+  "index" to "0"
 )
+
+val omitAttributes = setOf("package")
 
 fun createLlmInstruction(): String {
   val instruction = StringBuilder()
@@ -97,7 +101,9 @@ private fun printNode(node: Node, writer: StringWriter, currentIndent: String, i
     val attributes = node.attributes
     for (i in 0 until attributes.length) {
       val attr = attributes.item(i)
-      if (implicitAttributeDefaults[attr.nodeName] != attr.nodeValue) {
+      val attrName = attr.nodeName
+      if (implicitAttributeDefaults[attrName] != attr.nodeValue &&
+        attrName !in omitAttributes) {
         writer.write(" ${attr.nodeName}=\"${attr.nodeValue}\"")
       }
     }
