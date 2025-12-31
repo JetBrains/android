@@ -20,7 +20,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.base.Joiner;
 import com.google.idea.blaze.base.MockProjectViewManager;
 import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
@@ -84,8 +83,8 @@ public class AllInBuildFileTestContextProviderTest extends BlazeRunConfiguration
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
-    assertThat(config.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//java/com/google/test:all"));
+    assertThat(config.getTargetPatterns())
+        .containsExactly("//java/com/google/test:all");
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST);
   }
 

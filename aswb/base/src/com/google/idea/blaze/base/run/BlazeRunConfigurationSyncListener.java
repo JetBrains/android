@@ -79,10 +79,10 @@ public class BlazeRunConfigurationSyncListener implements SyncListener {
               Sets.newLinkedHashSet(projectViewSet.listItems(TargetSection.KEY));
           // We only auto-generate configurations for rules listed in the project view.
           for (TargetExpression target : targetExpressions) {
-            if (!(target instanceof Label) || labelsWithConfigs.contains(target)) {
+            Label label = Label.createIfValid(target.toString());
+            if (label == null || labelsWithConfigs.contains(label)) {
               continue;
             }
-            Label label = (Label) target;
             labelsWithConfigs.add(label);
             maybeAddRunConfiguration(project, blazeProjectData, label);
           }
@@ -161,9 +161,9 @@ public class BlazeRunConfigurationSyncListener implements SyncListener {
     for (RunConfiguration configuration : configurations) {
       if (configuration instanceof BlazeRunConfiguration) {
         BlazeRunConfiguration config = (BlazeRunConfiguration) configuration;
-        config.getTargets().stream()
-            .filter(t -> t instanceof Label)
-            .map(t -> (Label) t)
+        config.getTargetPatterns().stream()
+            .map(Label::createIfValid)
+            .filter(java.util.Objects::nonNull)
             .forEach(labelsWithConfigs::add);
       }
     }

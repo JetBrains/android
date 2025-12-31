@@ -60,7 +60,7 @@ public final class BlazeCommandGenericRunConfigurationHandler
   @Override
   @Nullable
   public String suggestedName(BlazeCommandRunConfiguration configuration) {
-    if (configuration.getTargets().isEmpty()) {
+    if (configuration.getTargetPatterns().isEmpty()) {
       return null;
     }
     return new BlazeConfigurationNameBuilder(configuration).build();

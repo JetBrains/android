@@ -80,7 +80,7 @@ public interface RunConfigurationContext {
 
       @Override
       public boolean setupRunConfiguration(BlazeCommandRunConfiguration config) {
-        config.setTarget(target);
+        config.setTargetPattern(target.toString());
         BlazeCommandRunConfigurationCommonState handlerState =
             config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState.class);
         if (handlerState == null) {
@@ -99,7 +99,8 @@ public interface RunConfigurationContext {
           return false;
         }
         return Objects.equals(handlerState.getCommandState().getCommand(), command)
-            && Objects.equals(config.getTargets(), ImmutableList.of(target))
+            && Objects.equals(
+                config.getTargetPatterns(), ImmutableList.of(target.toString()))
             && handlerState.getTestFilterFlag() == null;
       }
     };

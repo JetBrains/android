@@ -138,7 +138,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler
                 project,
                 AndroidBinaryLaunchMethodsUtils.useMobileInstall(configState.getLaunchMethod()),
                 configState.getCommonState().isNativeDebuggingEnabled(),
-                Label.create(configuration.getSingleTarget().toString()),
+                Label.create(configuration.getSingleTargetPattern()),
                 blazeFlags,
                 exeFlags,
                 launchId);
@@ -168,7 +168,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler
         launchId,
         configState.getLaunchMethod().name(),
         env.getExecutor().getId(),
-        configuration.getSingleTarget().toString(),
+        configuration.getSingleTargetPattern(),
         configState.getCommonState().isNativeDebuggingEnabled());
     return new BlazeAndroidRunConfigurationRunner(module, runContext, configuration);
   }
@@ -194,12 +194,12 @@ public class BlazeAndroidBinaryRunConfigurationHandler
   @Override
   @Nullable
   public String suggestedName(BlazeCommandRunConfiguration configuration) {
-    TargetExpression target = configuration.getSingleTarget();
+    String target = configuration.getSingleTargetPattern();
     if (target == null) {
       return null;
     }
     // buildSystemName and commandName are intentionally omitted.
-    return new BlazeConfigurationNameBuilder().setTargetString(target.toString()).build();
+    return new BlazeConfigurationNameBuilder().setTargetString(target).build();
   }
 
   @Override
@@ -240,7 +240,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler
     LOG.info(
         "Showing mobile install opt-in dialog.\n"
             + "Run target: "
-            + configuration.getSingleTarget()
+            + configuration.getSingleTargetPattern()
             + "\n"
             + "Time since last prompt: "
             + (System.currentTimeMillis() - lastPrompt));

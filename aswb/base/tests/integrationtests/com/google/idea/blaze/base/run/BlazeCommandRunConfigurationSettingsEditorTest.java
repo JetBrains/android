@@ -52,14 +52,14 @@ public class BlazeCommandRunConfigurationSettingsEditorTest extends BlazeIntegra
     BlazeCommandRunConfigurationSettingsEditor editor =
         new BlazeCommandRunConfigurationSettingsEditor(configuration);
     Label label = Label.create("//package:rule");
-    configuration.setTarget(label);
+    configuration.setTargetPattern(label.toString());
 
     editor.resetFrom(configuration);
     BlazeCommandRunConfiguration readConfiguration =
         type.getFactory().createTemplateConfiguration(getProject());
     editor.applyEditorTo(readConfiguration);
 
-    assertThat(readConfiguration.getTargets()).containsExactly(label);
+    assertThat(readConfiguration.getTargetPatterns()).containsExactly(label.toString());
 
     Disposer.dispose(editor);
   }
@@ -74,7 +74,7 @@ public class BlazeCommandRunConfigurationSettingsEditorTest extends BlazeIntegra
         type.getFactory().createTemplateConfiguration(getProject());
     editor.applyEditorTo(readConfiguration);
 
-    assertThat(readConfiguration.getTargets()).isEqualTo(configuration.getTargets());
+    assertThat(readConfiguration.getTargetPatterns()).isEqualTo(configuration.getTargetPatterns());
 
     Disposer.dispose(editor);
   }
