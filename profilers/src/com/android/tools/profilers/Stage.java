@@ -62,7 +62,7 @@ public abstract class Stage<T extends Timeline> extends AspectObserver {
   public final void enter() {
     logEnterStage();
     if (myProfilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
-      myTaskTracker = TaskTracker.createTaskTracker(myProfilers, myProfilers.getSessionsManager().isSessionAlive());
+      myTaskTracker = TaskTracker.createTaskTracker(myProfilers);
     }
 
     onEnter();

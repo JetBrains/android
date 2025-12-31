@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.tasks.analytics
 
-import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.Session
 import com.android.tools.profiler.proto.Common.Process.ExposureLevel
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuProfilerStage
@@ -25,6 +25,7 @@ import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel
 import com.android.tools.profilers.cpu.config.PerfettoNativeAllocationsConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
+import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
 
@@ -130,12 +131,10 @@ open class TaskTracker(
      * calling it outside the standard task-entry lifecycle can lead to inaccurate telemetry metadata.
      *
      * @param profilers The [StudioProfilers] instance used to retrieve state and services.
-     * @param isNewlyRecordedTask True if the task involves a new recording,
-     * false if it is from a past recording/imported file.
      */
     @JvmStatic
-    fun createTaskTracker(profilers: StudioProfilers, isNewlyRecordedTask: Boolean): TaskTracker {
-      val taskMetadata = buildTaskMetadata(profilers, isNewlyRecordedTask)
+    fun createTaskTracker(profilers: StudioProfilers): TaskTracker {
+      val taskMetadata = buildTaskMetadata(profilers)
       return TaskTracker(profilers, taskMetadata)
     }
 
@@ -153,15 +152,15 @@ open class TaskTracker(
       return NullTaskTracker(profilers)
     }
 
-    private fun buildTaskMetadata(profilers: StudioProfilers, isNewlyRecordedTask: Boolean): TaskMetadata {
+    private fun buildTaskMetadata(profilers: StudioProfilers): TaskMetadata {
       val sessionsManager = profilers.sessionsManager
       return TaskMetadata(
         taskType = sessionsManager.currentTaskType,
         taskId = sessionsManager.selectedSession.sessionId,
-        taskDataOrigin = resolveDataOrigin(isNewlyRecordedTask, sessionsManager.selectedSessionMetaData.type),
-        taskAttachmentPoint = resolveAttachmentPoint(sessionsManager.isCurrentTaskStartup, isNewlyRecordedTask),
+        taskDataOrigin = resolveDataOrigin(sessionsManager),
+        taskAttachmentPoint = resolveAttachmentPoint(sessionsManager),
         exposureLevel = sessionsManager.selectedSessionMetaData.exposureLevel,
-        taskConfig = if (isNewlyRecordedTask) {
+        taskConfig = if (sessionsManager.isSessionAlive) {
           resolveTaskConfig(profilers, sessionsManager.currentTaskType)
         } else {
           null
@@ -171,31 +170,20 @@ open class TaskTracker(
 
     /**
      * Derive data origin based on whether this is a new recording or a previously recorded session.
-     * TODO (b/472493920)
      */
-    private fun resolveDataOrigin(
-      isNewlyRecordedTask: Boolean,
-      sessionType: Common.SessionMetaData.SessionType
-    ): TaskDataOrigin {
-      if (isNewlyRecordedTask) {
-        return TaskDataOrigin.NEW
-      }
-
-      return when (sessionType) {
-        Common.SessionMetaData.SessionType.FULL -> TaskDataOrigin.PAST_RECORDING
-        Common.SessionMetaData.SessionType.CPU_CAPTURE,
-        Common.SessionMetaData.SessionType.MEMORY_CAPTURE -> TaskDataOrigin.IMPORTED
+    private fun resolveDataOrigin(sessionsManager: SessionsManager): TaskDataOrigin {
+      return when {
+        sessionsManager.isSessionAlive -> TaskDataOrigin.NEW
+        SessionsManager.isSessionImported(sessionsManager.selectedSession) -> TaskDataOrigin.IMPORTED
+        sessionsManager.selectedSession != Session.getDefaultInstance() -> TaskDataOrigin.PAST_RECORDING
         else -> TaskDataOrigin.UNSPECIFIED
       }
     }
 
-    private fun resolveAttachmentPoint(
-      isStartupTask: Boolean,
-      isNewlyRecordedTask: Boolean
-    ): TaskAttachmentPoint {
+    private fun resolveAttachmentPoint(sessionsManager: SessionsManager): TaskAttachmentPoint {
       return when {
-        !isNewlyRecordedTask -> TaskAttachmentPoint.UNSPECIFIED
-        isStartupTask -> TaskAttachmentPoint.NEW_PROCESS
+        !sessionsManager.isSessionAlive -> TaskAttachmentPoint.UNSPECIFIED
+        sessionsManager.isCurrentTaskStartup -> TaskAttachmentPoint.NEW_PROCESS
         else -> TaskAttachmentPoint.EXISTING_PROCESS
       }
     }
