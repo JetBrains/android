@@ -25,8 +25,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.lang.buildfile.references.LabelUtils;
-import com.google.idea.blaze.base.logging.EventLoggingService;
-import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
@@ -208,9 +206,9 @@ public class BlazeCommandRunConfiguration
   }
 
   public void setTargetInfo(TargetInfo target) {
-    String pattern = target.label.toString().trim();
+    String pattern = target.label().toString().trim();
     targetPatterns = pattern.isEmpty() ? ImmutableList.of() : ImmutableList.of(pattern);
-    updateTargetKind(target.kindString);
+    updateTargetKind(target.kindString());
   }
 
   public void setTargets(ImmutableList<TargetExpression> targets) {
@@ -332,7 +330,7 @@ public class BlazeCommandRunConfiguration
     else {
       if (!Objects.equals(getTargetKind(), targetInfo.getKind())) {
         logger.info(
-          String.format("Run configuration %s target %s kind updated to %s", this, targetInfo.getLabel(), targetInfo.getKind()));
+          String.format("Run configuration %s target %s kind updated to %s", this, targetInfo.label(), targetInfo.getKind()));
       }
     }
     if (updateTargetKindFromSingleTarget(targetInfo)) {
@@ -353,7 +351,7 @@ public class BlazeCommandRunConfiguration
   }
 
   private boolean updateTargetKindFromSingleTarget(@Nullable TargetInfo target) {
-    return updateTargetKind(target == null ? null : target.kindString);
+    return updateTargetKind(target == null ? null : target.kindString());
   }
 
   private boolean updateTargetKind(@Nullable String kind) {

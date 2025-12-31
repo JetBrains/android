@@ -55,7 +55,7 @@ public interface SourceToTargetFilteringStrategy {
 
     @Override
     public Stream<TargetInfo> filter(Stream<TargetInfo> targets) {
-      return targets.filter(info -> !IGNORED_RULE_KINDS.contains(info.kindString));
+      return targets.filter(info -> !IGNORED_RULE_KINDS.contains(info.kindString()));
     }
   }
 

@@ -130,6 +130,6 @@ public class BinaryContextRunConfigurationProducer
       return false;
     }
     ImmutableList<? extends TargetExpression> targets = configuration.getTargets();
-    return targets.size() == 1 && runContext.getTarget().label.equals(targets.get(0));
+    return targets.size() == 1 && runContext.getTarget().label().equals(targets.get(0));
   }
 }

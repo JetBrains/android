@@ -48,11 +48,9 @@ public class QueryResultLineProcessorTest extends BlazeTestCase {
     ImmutableList<TargetInfo> targets = processor.getTargets();
     assertThat(targets)
         .containsExactly(
-            TargetInfo.builder(Label.create("//java/com/google/foo/styles:global"), "css_library")
-                .build(),
-            TargetInfo.builder(
-                    Label.create("//java/com/google/bar/console:runtime_deps"), "java_library")
-                .build());
+            new TargetInfo(Label.create("//java/com/google/foo/styles:global"), "css_library"),
+            new TargetInfo(
+                    Label.create("//java/com/google/bar/console:runtime_deps"), "java_library"));
   }
 
   @Test
@@ -84,13 +82,10 @@ public class QueryResultLineProcessorTest extends BlazeTestCase {
     ImmutableList<TargetInfo> targets = processor.getTargets();
     assertThat(targets)
         .containsExactly(
-            TargetInfo.builder(
-                    Label.create("//java/com/google/bar/console:runtime_deps"), "java_library")
-                .build(),
-            TargetInfo.builder(Label.create("//java/com/google/bar/console:custom"), "custom_type")
-                .build(),
-            TargetInfo.builder(Label.create("//java/com/google/bar/console:sh_test"), "sh_test")
-                .build());
+            new TargetInfo(
+                    Label.create("//java/com/google/bar/console:runtime_deps"), "java_library"),
+            new TargetInfo(Label.create("//java/com/google/bar/console:custom"), "custom_type"),
+            new TargetInfo(Label.create("//java/com/google/bar/console:sh_test"), "sh_test"));
   }
 
   @Test
@@ -113,14 +108,10 @@ public class QueryResultLineProcessorTest extends BlazeTestCase {
     ImmutableList<TargetInfo> targets = processor.getTargets();
     assertThat(targets)
         .containsExactly(
-            TargetInfo.builder(Label.create("//java/com/google/foo/styles:global"), "css_library")
-                .build(),
-            TargetInfo.builder(
-                    Label.create("//java/com/google/bar/console:runtime_deps"), "java_library")
-                .build(),
-            TargetInfo.builder(Label.create("//java/com/google/bar/console:custom"), "custom_type")
-                .build(),
-            TargetInfo.builder(Label.create("//java/com/google/bar/console:sh_test"), "sh_test")
-                .build());
+            new TargetInfo(Label.create("//java/com/google/foo/styles:global"), "css_library"),
+            new TargetInfo(
+                    Label.create("//java/com/google/bar/console:runtime_deps"), "java_library"),
+            new TargetInfo(Label.create("//java/com/google/bar/console:custom"), "custom_type"),
+            new TargetInfo(Label.create("//java/com/google/bar/console:sh_test"), "sh_test"));
   }
 }

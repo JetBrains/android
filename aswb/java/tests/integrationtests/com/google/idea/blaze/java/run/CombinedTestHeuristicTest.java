@@ -96,12 +96,12 @@ public class CombinedTestHeuristicTest extends BlazeIntegrationTestCase {
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(
             getProject(), psiFile, source, targets, TestSize.LARGE);
-    assertThat(match.label).isEqualTo(Label.create("//foo:LargeJUnit4Tests"));
+    assertThat(match.label()).isEqualTo(Label.create("//foo:LargeJUnit4Tests"));
 
     match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(
             getProject(), psiFile, source, targets, TestSize.MEDIUM);
-    assertThat(match.label).isEqualTo(Label.create("//foo:MediumJUnit4Tests"));
+    assertThat(match.label()).isEqualTo(Label.create("//foo:MediumJUnit4Tests"));
   }
 
   private static TargetInfo createTarget(String label, TestSize size) {

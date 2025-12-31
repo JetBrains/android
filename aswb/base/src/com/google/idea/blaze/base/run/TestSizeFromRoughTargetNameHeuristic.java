@@ -42,7 +42,7 @@ public class TestSizeFromRoughTargetNameHeuristic implements TestTargetHeuristic
   /** Looks for an substring match between the rule name and the test size annotation class name. */
   @Nullable
   private static TestSize guessTargetTestSize(TargetInfo target) {
-    String ruleName = target.label.targetName().toString().toLowerCase(Locale.ROOT);
+    String ruleName = target.label().targetName().toString().toLowerCase(Locale.ROOT);
     return TARGET_NAME_TO_TEST_SIZE.entrySet().stream()
         .filter(entry -> ruleName.contains(entry.getKey()))
         .map(Map.Entry::getValue)
@@ -57,7 +57,7 @@ public class TestSizeFromRoughTargetNameHeuristic implements TestTargetHeuristic
       @Nullable PsiFile sourcePsiFile,
       File sourceFile,
       @Nullable TestSize testSize) {
-    if (target.testSize != null) {
+    if (target.testSize() != null) {
       return false; // no need to guess, we already know the target's size attribute
     }
     // if no size annotation is present, treat as small tests (b/33503928).

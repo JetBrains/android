@@ -61,7 +61,7 @@ public class BlazeBuildFileRunConfigurationProducer
         return null;
       }
       Kind kind = Kind.fromRuleName(ruleName);
-      return kind != null ? TargetInfo.builder(label, kind.getKindString()).build() : null;
+      return kind != null ? new TargetInfo(label, kind.getKindString()) : null;
     }
   }
 

@@ -119,7 +119,7 @@ public class RuleNameHeuristicTest extends BlazeTestCase {
                 .toTargetInfo());
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(project, null, source, targets, null);
-    assertThat(match.label).isEqualTo(Label.create("//foo:FirstTest"));
+    assertThat(match.label()).isEqualTo(Label.create("//foo:FirstTest"));
   }
 
   @Test
@@ -139,7 +139,7 @@ public class RuleNameHeuristicTest extends BlazeTestCase {
                 .toTargetInfo());
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(project, null, source, targets, null);
-    assertThat(match.label).isEqualTo(Label.create("//foo:FooTest"));
+    assertThat(match.label()).isEqualTo(Label.create("//foo:FooTest"));
   }
 
   @Test
@@ -164,6 +164,6 @@ public class RuleNameHeuristicTest extends BlazeTestCase {
                 .toTargetInfo());
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(project, null, source, targets, null);
-    assertThat(match.label).isEqualTo(Label.create("//foo:FooTest"));
+    assertThat(match.label()).isEqualTo(Label.create("//foo:FooTest"));
   }
 }
