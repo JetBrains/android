@@ -24,7 +24,6 @@ import com.google.idea.blaze.base.lang.buildfile.psi.FuncallExpression;
 import com.google.idea.blaze.base.lang.buildfile.psi.StringLiteral;
 import com.google.idea.blaze.base.lang.buildfile.psi.util.PsiUtils;
 import com.google.idea.blaze.base.model.primitives.Label;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
@@ -61,8 +60,8 @@ public class BlazeBuildFileRunConfigurationProducerTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
-    assertThat(config.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//java/com/google/test:unit_tests"));
+    assertThat(config.getTargetPatterns())
+        .containsExactly("//java/com/google/test:unit_tests");
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST);
   }
 
@@ -85,8 +84,8 @@ public class BlazeBuildFileRunConfigurationProducerTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
-    assertThat(config.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//java/com/google/test:gen_tests"));
+    assertThat(config.getTargetPatterns())
+        .containsExactly("//java/com/google/test:gen_tests");
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST);
   }
 
@@ -110,8 +109,8 @@ public class BlazeBuildFileRunConfigurationProducerTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
-    assertThat(config.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//java/com/google/test:unit_tests"));
+    assertThat(config.getTargetPatterns())
+        .containsExactly("//java/com/google/test:unit_tests");
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST);
   }
 
@@ -146,7 +145,7 @@ public class BlazeBuildFileRunConfigurationProducerTest
         (BlazeCommandRunConfiguration) context.getConfiguration().getConfiguration();
 
     // modify the label, and check that is enough for the producer to class it as different.
-    config.setTarget(Label.create("//java/com/google/test:integration_tests"));
+    config.setTargetPattern("//java/com/google/test:integration_tests");
 
     assertThat(
             new BlazeBuildFileRunConfigurationProducer()

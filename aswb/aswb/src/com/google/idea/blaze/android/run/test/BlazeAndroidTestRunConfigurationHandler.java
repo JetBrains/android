@@ -31,7 +31,6 @@ import com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProvi
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.model.primitives.Label;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
@@ -109,7 +108,11 @@ public class BlazeAndroidTestRunConfigurationHandler
     // We collect metrics from a few different locations. In order to tie them all
     // together, we create a unique launch id.
     String launchId = LaunchMetrics.newLaunchId();
-    Label label = Label.create(configuration.getSingleTarget().toString());
+    String labelString = configuration.getSingleTargetPattern();
+    if (labelString == null) {
+      throw new ExecutionException("No target pattern specified for configuration.");
+    }
+    Label label = Label.create(labelString);
 
     ApkBuildStep buildStep =
         getTestBuildStep(
@@ -167,7 +170,7 @@ public class BlazeAndroidTestRunConfigurationHandler
   @Override
   @Nullable
   public String suggestedName(BlazeCommandRunConfiguration configuration) {
-    TargetExpression target = configuration.getSingleTarget();
+    String target = configuration.getSingleTargetPattern();
     if (target == null) {
       return null;
     }

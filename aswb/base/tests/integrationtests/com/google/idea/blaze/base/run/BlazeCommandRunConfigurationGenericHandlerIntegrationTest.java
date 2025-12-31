@@ -67,22 +67,22 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
 
   @Test
   public void testSetTargetNullMakesPendingHandler() {
-    configuration.setTarget(null);
+    configuration.setTargetPattern(null);
     assertThat(configuration.getHandler())
         .isInstanceOf(PendingTargetRunConfigurationHandler.class);
   }
 
   @Test
   public void testTargetExpressionMakesPendingHandler() {
-    configuration.setTarget(TargetExpression.fromStringSafe("//..."));
+    configuration.setTargetPattern("//...");
     assertThat(configuration.getHandler())
         .isInstanceOf(PendingTargetRunConfigurationHandler.class);
   }
 
   @Test
   public void testReadAndWriteMatches() throws Exception {
-    TargetExpression targetExpression = TargetExpression.fromStringSafe("//...");
-    configuration.setTarget(targetExpression);
+    String targetExpression = "//...";
+    configuration.setTargetPattern(targetExpression);
 
     BlazeCommandRunConfigurationCommonState state =
         (BlazeCommandRunConfigurationCommonState) configuration.getHandler().getState();
@@ -97,7 +97,7 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
         type.getFactory().createTemplateConfiguration(getProject());
     readConfiguration.readExternal(element);
 
-    assertThat(readConfiguration.getTargets()).containsExactly(targetExpression);
+    assertThat(readConfiguration.getTargetPatterns()).containsExactly(targetExpression.toString());
     assertThat(readConfiguration.getHandler())
         .isInstanceOf(PendingTargetRunConfigurationHandler.class);
 
@@ -119,7 +119,7 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
         type.getFactory().createTemplateConfiguration(getProject());
     readConfiguration.readExternal(element);
 
-    assertThat(readConfiguration.getTargets()).isEqualTo(configuration.getTargets());
+    assertThat(readConfiguration.getTargetPatterns()).isEqualTo(configuration.getTargetPatterns());
     assertThat(readConfiguration.getHandler())
         .isInstanceOf(PendingTargetRunConfigurationHandler.class);
   }
@@ -128,8 +128,8 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
   public void testEditorApplyToAndResetFromMatches() throws ConfigurationException {
     BlazeCommandRunConfigurationSettingsEditor editor =
         new BlazeCommandRunConfigurationSettingsEditor(configuration);
-    TargetExpression targetExpression = TargetExpression.fromStringSafe("//...");
-    configuration.setTarget(targetExpression);
+    String targetExpression = "//...";
+    configuration.setTargetPattern(targetExpression);
 
     BlazeCommandRunConfigurationCommonState state =
         (BlazeCommandRunConfigurationCommonState) configuration.getHandler().getState();
@@ -143,7 +143,7 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
         type.getFactory().createTemplateConfiguration(getProject());
     editor.applyEditorTo(readConfiguration);
 
-    assertThat(readConfiguration.getTargets()).containsExactly(targetExpression);
+    assertThat(readConfiguration.getTargetPatterns()).containsExactly(targetExpression.toString());
     assertThat(readConfiguration.getHandler())
         .isInstanceOf(PendingTargetRunConfigurationHandler.class);
 
@@ -167,8 +167,8 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
         new BlazeCommandRunConfigurationSettingsEditor(configuration);
 
     // Call setTarget to initialize a generic handler, or this won't apply anything.
-    configuration.setTarget(null);
-    assertThat(configuration.getTargets()).isEmpty();
+    configuration.setTargetPattern(null);
+    assertThat(configuration.getTargetPatterns()).isEmpty();
     assertThat(configuration.getHandler())
         .isInstanceOf(PendingTargetRunConfigurationHandler.class);
     BlazeCommandRunConfigurationCommonState state =
@@ -178,8 +178,8 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
 
     BlazeCommandRunConfiguration readConfiguration =
         type.getFactory().createTemplateConfiguration(getProject());
-    TargetExpression targetExpression = TargetExpression.fromStringSafe("//...");
-    readConfiguration.setTarget(targetExpression);
+    String targetExpression = "//...";
+    readConfiguration.setTargetPattern(targetExpression);
 
     BlazeCommandRunConfigurationCommonState readState =
         (BlazeCommandRunConfigurationCommonState) readConfiguration.getHandler().getState();
@@ -190,7 +190,7 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
 
     editor.applyEditorTo(readConfiguration);
 
-    assertThat(readConfiguration.getTargets()).isEmpty();
+    assertThat(readConfiguration.getTargetPatterns()).isEmpty();
     assertThat(configuration.getHandler())
         .isInstanceOf(PendingTargetRunConfigurationHandler.class);
 

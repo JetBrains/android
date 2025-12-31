@@ -276,11 +276,15 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
 
   private static Label getSingleTarget(BlazeCommandRunConfiguration config)
       throws ExecutionException {
-    ImmutableList<? extends TargetExpression> targets = config.getTargets();
-    if (targets.size() != 1 || !(targets.get(0) instanceof Label)) {
+    String target = config.getSingleTargetPattern();
+    if (target == null) {
       throw new ExecutionException("Invalid configuration: doesn't have a single target label");
     }
-    return (Label) targets.get(0);
+    Label label = Label.createIfValid(target);
+    if (label == null) {
+      throw new ExecutionException("Invalid configuration: doesn't have a single target label");
+    }
+    return label;
   }
 
   /**

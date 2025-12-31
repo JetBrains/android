@@ -105,7 +105,7 @@ public class TestRecorderBlazeCommandRunConfigurationTest extends BlazeIntegrati
         BlazeCommandRunConfigurationType.getInstance()
             .getFactory()
             .createTemplateConfiguration(getProject());
-    blazeConfiguration.setTarget(Label.create("//label:android_binary_rule"));
+    blazeConfiguration.setTargetPattern("//label:android_binary_rule");
     BlazeAndroidBinaryRunConfigurationState configurationState =
         ((BlazeAndroidBinaryRunConfigurationHandler) blazeConfiguration.getHandler()).getState();
     configurationState.setMode(BlazeAndroidBinaryRunConfigurationState.LAUNCH_SPECIFIC_ACTIVITY);
@@ -137,12 +137,12 @@ public class TestRecorderBlazeCommandRunConfigurationTest extends BlazeIntegrati
     BlazeCommandRunConfiguration blazeAndroidBinaryConfiguration =
         configurationFactory.createTemplateConfiguration(getProject());
     blazeAndroidBinaryConfiguration.setName("AndroidBinaryConfiguration");
-    blazeAndroidBinaryConfiguration.setTarget(Label.create("//label:android_binary_rule"));
+    blazeAndroidBinaryConfiguration.setTargetPattern("//label:android_binary_rule");
 
     BlazeCommandRunConfiguration blazeAndroidTestConfiguration =
         configurationFactory.createTemplateConfiguration(getProject());
     blazeAndroidTestConfiguration.setName("AndroidTestConfiguration");
-    blazeAndroidTestConfiguration.setTarget(Label.create("//label:android_test_rule"));
+    blazeAndroidTestConfiguration.setTargetPattern("//label:android_test_rule");
 
     runManager.addConfiguration(
         runManager.createConfiguration(blazeAndroidBinaryConfiguration, configurationFactory),

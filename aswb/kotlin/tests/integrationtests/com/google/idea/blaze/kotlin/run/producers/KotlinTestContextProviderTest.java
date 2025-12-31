@@ -28,7 +28,6 @@ import com.google.idea.blaze.base.dependencies.TestSize;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.ideinfo.TestIdeInfo;
 import com.google.idea.blaze.base.lang.buildfile.psi.util.PsiUtils;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.producers.BlazeRunConfigurationProducerTestCase;
@@ -58,9 +57,8 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
       transforming(BlazeCommandRunConfiguration.class::isInstance, "is a Blaze run configuration");
   private static final Correspondence<BlazeCommandRunConfiguration, TestBlazeCall> HAS_BLAZE_CALL =
       transforming(TestBlazeCall::fromRunConfig, "has a Blaze invocation using");
-  private static final Correspondence<BlazeCommandRunConfiguration, TargetExpression>
-      HAS_ONLY_TARGET =
-          transforming(BlazeCommandRunConfiguration::getSingleTarget, "has the only target");
+  private static final Correspondence<BlazeCommandRunConfiguration, String> HAS_ONLY_TARGET =
+      transforming(BlazeCommandRunConfiguration::getSingleTargetPattern, "has the only target");
 
   @Before
   public final void setup() {
@@ -146,7 +144,7 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
         .containsExactly(
             TestBlazeCall.create(
                 BlazeCommandName.TEST,
-                TargetExpression.fromStringSafe("//com/google/test:TestClass"),
+                "//com/google/test:TestClass",
                 "--test_filter=com.google.test.TestClass"));
   }
 
@@ -213,7 +211,7 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
         .containsExactly(
             TestBlazeCall.create(
                 BlazeCommandName.TEST,
-                TargetExpression.fromStringSafe("//com/google/test:TestClass"),
+                "//com/google/test:TestClass",
                 "--test_filter=com.google.test.TestClass.testMethod1"));
   }
 
@@ -261,7 +259,7 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
 
     assertThat(runConfigurations)
         .comparingElementsUsing(HAS_ONLY_TARGET)
-        .containsExactly(TargetExpression.fromStringSafe("//com/google/test:medium_tests"));
+        .containsExactly("//com/google/test:medium_tests");
   }
 
   //private void registerTargets(TargetIdeInfo target, TargetIdeInfo... additionalTargets) {
@@ -342,19 +340,19 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
 
     abstract BlazeCommandName commandName();
 
-    abstract TargetExpression target();
+    abstract String target();
 
     abstract String testFilter();
 
     public static TestBlazeCall fromRunConfig(BlazeCommandRunConfiguration runConfiguration) {
       return create(
           getCommandType(runConfiguration),
-          runConfiguration.getSingleTarget(),
+          runConfiguration.getSingleTargetPattern(),
           getTestFilterContents(runConfiguration));
     }
 
     public static TestBlazeCall create(
-        BlazeCommandName commandName, TargetExpression target, String testFilter) {
+        BlazeCommandName commandName, String target, String testFilter) {
       return new AutoValue_KotlinTestContextProviderTest_TestBlazeCall(
           commandName, target, testFilter);
     }

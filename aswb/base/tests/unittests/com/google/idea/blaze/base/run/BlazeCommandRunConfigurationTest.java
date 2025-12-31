@@ -75,7 +75,7 @@ public class BlazeCommandRunConfigurationTest extends BlazeTestCase {
   @Test
   public void readAndWriteShouldMatch() throws Exception {
     Label label = Label.create("//package:rule");
-    configuration.setTarget(label);
+    configuration.setTargetPattern(label.toString());
 
     Element element = new Element("test");
     configuration.writeExternal(element);
@@ -83,7 +83,7 @@ public class BlazeCommandRunConfigurationTest extends BlazeTestCase {
         type.getFactory().createTemplateConfiguration(project);
     readConfiguration.readExternal(element);
 
-    assertThat(readConfiguration.getTargets()).containsExactly(label);
+    assertThat(readConfiguration.getTargetPatterns()).containsExactly(label.toString());
   }
 
   @Test
@@ -94,7 +94,7 @@ public class BlazeCommandRunConfigurationTest extends BlazeTestCase {
         type.getFactory().createTemplateConfiguration(project);
     readConfiguration.readExternal(element);
 
-    assertThat(readConfiguration.getTargets()).isEqualTo(configuration.getTargets());
+    assertThat(readConfiguration.getTargetPatterns()).isEqualTo(configuration.getTargetPatterns());
   }
 
   private static class MockTargetFinder implements TargetFinder {

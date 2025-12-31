@@ -191,22 +191,17 @@ public class BlazeCommandRunConfiguration
   }
 
   @Override
-  public ImmutableList<TargetExpression> getTargets() {
-    return parseTargets(targetPatterns);
-  }
-
   public ImmutableList<String> getTargetPatterns() {
     return targetPatterns;
   }
 
   /**
-   * Returns the single target expression represented by this configuration, or null if there isn't
+   * Returns the single target pattern represented by this configuration, or null if there isn't
    * exactly one.
    */
   @Nullable
-  public TargetExpression getSingleTarget() {
-    ImmutableList<TargetExpression> targets = getTargets();
-    return targets.size() == 1 ? targets.get(0) : null;
+  public String getSingleTargetPattern() {
+    return targetPatterns.size() == 1 ? targetPatterns.get(0) : null;
   }
 
   public void setTargetInfo(TargetInfo target) {
@@ -215,15 +210,10 @@ public class BlazeCommandRunConfiguration
     updateTargetKind(target.kindString());
   }
 
-  public void setTargets(ImmutableList<TargetExpression> targets) {
-    targetPatterns = targets.stream().map(TargetExpression::toString).collect(toImmutableList());
-    updateTargetKindAsync(null);
-  }
-
-  /** Sets the target expression and asynchronously kicks off a target kind update. */
-  public void setTarget(@Nullable TargetExpression target) {
+  /** Sets the target pattern and asynchronously kicks off a target kind update. */
+  public void setTargetPattern(@Nullable String targetPattern) {
     targetPatterns =
-        target != null ? ImmutableList.of(target.toString().trim()) : ImmutableList.of();
+        targetPattern != null ? ImmutableList.of(targetPattern.trim()) : ImmutableList.of();
     updateTargetKindAsync(null);
   }
 

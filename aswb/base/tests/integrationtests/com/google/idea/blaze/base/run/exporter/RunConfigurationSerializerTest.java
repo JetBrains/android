@@ -136,7 +136,7 @@ public class RunConfigurationSerializerTest extends BlazeIntegrationTestCase {
 
   @Test
   public void testRunConfigurationUnalteredBySerializationRoundTrip() throws InvalidDataException {
-    configuration.setTarget(Label.create("//package:rule"));
+    configuration.setTargetPattern("//package:rule");
     configuration.setKeepInSync(true);
 
     Element initialElement = runManager.getState();
@@ -155,7 +155,7 @@ public class RunConfigurationSerializerTest extends BlazeIntegrationTestCase {
 
   @Test
   public void testSetKeepInSyncWhenImporting() throws InvalidDataException {
-    configuration.setTarget(Label.create("//package:rule"));
+    configuration.setTargetPattern("//package:rule");
     configuration.setKeepInSync(false);
 
     Element element = RunConfigurationSerializer.writeToXml(configuration);

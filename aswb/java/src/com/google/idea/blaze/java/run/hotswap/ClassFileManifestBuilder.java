@@ -128,7 +128,7 @@ public class ClassFileManifestBuilder {
 
       ImmutableList<File> jars =
           LocalFileArtifact.getLocalFiles(
-                  Label.of(Objects.requireNonNull(configuration.getSingleTarget().toString())),
+                  Label.of(Objects.requireNonNull(configuration.getSingleTargetPattern())),
                   BlazeBuildOutputs.fromParsedBepOutput(parsedBepOutput)
                       .getOutputGroupArtifacts(JavaClasspathAspectStrategy.OUTPUT_GROUP),
                   BlazeContext.create(),

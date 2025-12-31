@@ -18,7 +18,6 @@ package com.google.idea.blaze.base.run.producers;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfigurationType;
 import com.google.idea.blaze.base.run.smrunner.BlazeTestEventsHandler;
@@ -99,9 +98,8 @@ public class BlazeFilterExistingRunConfigurationProducer
     if (!(base instanceof BlazeCommandRunConfiguration)) {
       return Optional.empty();
     }
-    ImmutableList<? extends TargetExpression> targets =
-        ((BlazeCommandRunConfiguration) base).getTargets();
-    if (targets.isEmpty()) {
+    ImmutableList<? extends String> patterns = ((BlazeCommandRunConfiguration) base).getTargetPatterns();
+    if (patterns.isEmpty()) {
       return Optional.empty();
     }
     List<Location<?>> selectedElements = SmRunnerUtils.getSelectedSmRunnerTreeElements(context);
@@ -109,7 +107,7 @@ public class BlazeFilterExistingRunConfigurationProducer
       return Optional.empty();
     }
     Optional<BlazeTestEventsHandler> testEventsHandler =
-        BlazeTestEventsHandler.getHandlerForTargets(context.getProject(), targets);
+        BlazeTestEventsHandler.getHandlerForTargets(context.getProject(), patterns);
     return testEventsHandler.map(
         handler -> handler.getTestFilter(context.getProject(), selectedElements));
   }

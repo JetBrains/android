@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.idea.blaze.base.model.MockBlazeProjectDataBuilder;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataManager;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.run.BlazeRunConfiguration;
 import com.google.idea.blaze.base.run.producers.BlazeRunConfigurationProducerTestCase;
@@ -64,8 +63,8 @@ public class JavaBinaryContextProviderTest extends BlazeRunConfigurationProducer
 
     assertThat(config).isInstanceOf(BlazeRunConfiguration.class);
     BlazeRunConfiguration blazeConfig = (BlazeRunConfiguration) config;
-    assertThat(blazeConfig.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//com/google/binary:UnrelatedName"));
+    assertThat(blazeConfig.getTargetPatterns())
+        .containsExactly("//com/google/binary:UnrelatedName");
   }
 
   @Test
@@ -154,8 +153,8 @@ public class JavaBinaryContextProviderTest extends BlazeRunConfigurationProducer
     RunConfiguration config = createConfigurationFromLocation(javaClass);
     assertThat(config).isInstanceOf(BlazeRunConfiguration.class);
     BlazeRunConfiguration blazeConfig = (BlazeRunConfiguration) config;
-    assertThat(blazeConfig.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//com/google/binary:MainClass"));
+    assertThat(blazeConfig.getTargetPatterns())
+        .containsExactly("//com/google/binary:MainClass");
   }
 
   @Test
@@ -193,7 +192,7 @@ public class JavaBinaryContextProviderTest extends BlazeRunConfigurationProducer
 
     assertThat(config).isInstanceOf(BlazeRunConfiguration.class);
     BlazeRunConfiguration blazeConfig = (BlazeRunConfiguration) config;
-    assertThat(blazeConfig.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//com/google/binary:OtherName"));
+    assertThat(blazeConfig.getTargetPatterns())
+        .containsExactly("//com/google/binary:OtherName");
   }
 }
