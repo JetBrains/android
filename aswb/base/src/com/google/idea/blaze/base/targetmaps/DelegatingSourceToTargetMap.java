@@ -15,9 +15,7 @@
  */
 package com.google.idea.blaze.base.targetmaps;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.intellij.openapi.project.Project;
@@ -35,10 +33,5 @@ public class DelegatingSourceToTargetMap implements SourceToTargetMap {
   @Override
   public ImmutableList<Label> getTargetsToBuildForSourceFile(File sourceFile) {
     return delegateSupplier.get().getTargetsToBuildForSourceFile(sourceFile);
-  }
-
-  @Override
-  public ImmutableCollection<TargetKey> getRulesForSourceFile(File sourceFile) {
-    return delegateSupplier.get().getRulesForSourceFile(sourceFile);
   }
 }

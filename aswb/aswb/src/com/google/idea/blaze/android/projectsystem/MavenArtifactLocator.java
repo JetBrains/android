@@ -17,8 +17,8 @@ package com.google.idea.blaze.android.projectsystem;
 
 import com.android.ide.common.repository.WellKnownMavenArtifactId;
 import com.google.common.collect.ImmutableList;
-import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.settings.BuildSystemName;
+import com.google.idea.blaze.common.Label;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import java.util.Arrays;
 import java.util.List;

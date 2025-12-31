@@ -15,18 +15,8 @@
  */
 package com.google.idea.blaze.base.sync.autosync;
 
-import com.google.idea.blaze.base.model.primitives.Label;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
-import com.intellij.openapi.project.Project;
-import java.io.File;
-import javax.annotation.Nullable;
-
 /** Tracks and manages project target sync status for the purposes of automatic syncing. */
 public interface ProjectTargetManager {
-
-  static ProjectTargetManager getInstance(Project project) {
-    return ProjectTargetManagerImpl.getImpl(project);
-  }
 
   /** A per-target / per-source sync status. */
   enum SyncStatus {
@@ -36,17 +26,4 @@ public interface ProjectTargetManager {
     STALE, // previously synced, but stale
     SYNCED,
   }
-
-  /**
-   * Returns the {@link SyncStatus} of a given source file, or null if it can't be synced (e.g.
-   * doesn't have a parent BUILD package in the workspace).
-   */
-  @Nullable
-  SyncStatus getSyncStatus(File sourceFile);
-
-  /**
-   * Returns true if the targets represented by the given {@link TargetExpression} are currently
-   * being synced.
-   */
-  boolean syncInProgress(TargetExpression expr);
 }

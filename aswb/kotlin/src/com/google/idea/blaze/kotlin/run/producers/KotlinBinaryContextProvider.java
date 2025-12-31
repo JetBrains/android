@@ -67,33 +67,34 @@ class KotlinBinaryContextProvider implements BinaryContextProvider {
     if (startClassFqName == null) {
       return null;
     }
-    Collection<TargetIdeInfo> kotlinBinaryTargets = Collections.emptyList(); // TODO: b/466357478 - support query sync.
-
-    // first look for a matching main_class
-    TargetIdeInfo match =
-        kotlinBinaryTargets.stream()
-            .filter(
-                target ->
-                    target.getJavaIdeInfo() != null
-                        && startClassFqName.equals(
-                            target.getJavaIdeInfo().getJavaBinaryMainClass()))
-            .findFirst()
-            .orElse(null);
-    if (match != null) {
-      return match;
-    }
-
-    match =
-        kotlinBinaryTargets.stream()
-            .filter(
-                target ->
-                    startClassFqName.equals(target.getKey().getLabel().targetName().toString()))
-            .findFirst()
-            .orElse(null);
-    if (match != null) {
-      return match;
-    }
-
-    return Iterables.getFirst(kotlinBinaryTargets, null);
+    return null; // TODO: b/466357478 - support query sync.
+    //Collection<TargetIdeInfo> kotlinBinaryTargets = Collections.emptyList();
+    //
+    //// first look for a matching main_class
+    //TargetIdeInfo match =
+    //    kotlinBinaryTargets.stream()
+    //        .filter(
+    //            target ->
+    //                target.getJavaIdeInfo() != null
+    //                    && startClassFqName.equals(
+    //                        target.getJavaIdeInfo().getJavaBinaryMainClass()))
+    //        .findFirst()
+    //        .orElse(null);
+    //if (match != null) {
+    //  return match;
+    //}
+    //
+    //match =
+    //    kotlinBinaryTargets.stream()
+    //        .filter(
+    //            target ->
+    //                startClassFqName.equals(target.getKey().getLabel().targetName().toString()))
+    //        .findFirst()
+    //        .orElse(null);
+    //if (match != null) {
+    //  return match;
+    //}
+    //
+    //return Iterables.getFirst(kotlinBinaryTargets, null);
   }
 }

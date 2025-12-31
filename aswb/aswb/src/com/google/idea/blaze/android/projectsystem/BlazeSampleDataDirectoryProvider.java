@@ -15,20 +15,15 @@
  */
 package com.google.idea.blaze.android.projectsystem;
 
-import static com.android.SdkConstants.FD_SAMPLE_DATA;
-import static com.android.tools.idea.util.FileExtensions.toPathString;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing;
 
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider;
-import com.google.idea.blaze.android.sync.model.AndroidResourceModuleRegistry;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -44,13 +39,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class BlazeSampleDataDirectoryProvider implements SampleDataDirectoryProvider {
   private Module module;
-  private boolean isResourceModule;
 
   public BlazeSampleDataDirectoryProvider(Module module) {
     this.module = module;
-    AndroidResourceModuleRegistry resourceModuleRegistry =
-        AndroidResourceModuleRegistry.getInstance(module.getProject());
-    isResourceModule = resourceModuleRegistry.get(module) != null;
   }
 
   @Override
@@ -59,25 +50,7 @@ public final class BlazeSampleDataDirectoryProvider implements SampleDataDirecto
     // If this isn't a resource module then it doesn't have any layouts
     // that we could open in the layout editor anyway, so there's no
     // reason for a sample data directory.
-    if (!isResourceModule) {
-      return null;
-    }
-
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    VirtualFile mainContentRoot = facet != null ? AndroidRootUtil.getMainContentRoot(facet) : null;
-    if (mainContentRoot == null) {
-      return null;
-    }
-
-    // The main content root of a resource module is its res folder.
-    // Instead, we'll use the res folder's parent directory so that the
-    // sample data directory and the res folder sit parallel to one another.
-    VirtualFile parentDir = getSampleDataDirectoryHomeForResFolder(mainContentRoot);
-    if (parentDir == null) {
-      return null;
-    }
-
-    return toPathString(parentDir).resolve(FD_SAMPLE_DATA);
+    return null;
   }
 
   @Override
@@ -101,29 +74,5 @@ public final class BlazeSampleDataDirectoryProvider implements SampleDataDirecto
     // folder.
     ModuleRootModificationUtil.addContentRoot(module, sampleDataDirectory.getPortablePath());
     return sampleDataDirectory;
-  }
-
-  @Nullable
-  private static VirtualFile getSampleDataDirectoryHomeForResFolder(VirtualFile resourceFolder) {
-    return resourceFolder.getParent();
-  }
-
-  /**
-   * Given a module's resource folder, returns the sample data directory of the module. This method
-   * is used during Blaze sync to determine if a module's sample data directory exists (in which
-   * case sync will need to add it as one of the module's content roots).
-   *
-   * @param resourceFolder the module's resource folder
-   * @return the sample data directory of the module to which the resource folder belongs, or null
-   *     if it can't be found.
-   */
-  @Nullable
-  public static VirtualFile getSampleDataDirectoryForResFolder(VirtualFile resourceFolder) {
-    VirtualFile parentDir = getSampleDataDirectoryHomeForResFolder(resourceFolder);
-    if (parentDir == null) {
-      return null;
-    }
-
-    return parentDir.findChild(FD_SAMPLE_DATA);
   }
 }
