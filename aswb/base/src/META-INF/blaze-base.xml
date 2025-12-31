@@ -283,7 +283,6 @@
     <projectService serviceImplementation="com.google.idea.blaze.base.ui.problems.ProblemsViewConfiguration"/>
     <projectService serviceImplementation="com.google.idea.blaze.base.query.MacroLineMarkerProvider$FileDataProvider"/>
     <projectService serviceImplementation="com.google.idea.blaze.base.query.BlazeQueryOutputBaseProvider"/>
-    <projectService serviceImplementation="com.google.idea.blaze.base.sync.autosync.ProjectTargetManagerImpl"/>
     <projectTaskRunner implementation="com.google.idea.blaze.base.project.BazelProjectTaskRunner"
         id="aswb" order="first"/>
     <configurationType implementation="com.google.idea.blaze.base.run.BlazeCommandRunConfigurationType"/>
@@ -471,7 +470,6 @@
     <SyncListener implementation="com.google.idea.blaze.base.sync.SyncCache$ClearSyncCache"/>
     <SyncListener implementation="com.google.idea.blaze.base.run.BlazeRunConfigurationSyncListener"/>
     <SyncListener implementation="com.google.idea.blaze.base.dependencies.ExternalFileProjectManagementHelper$UpdateNotificationsAfterSync"/>
-    <SyncListener implementation="com.google.idea.blaze.base.sync.autosync.ProjectTargetManagerImpl$TargetSyncListener"/>
     <SyncListener implementation="com.google.idea.blaze.base.lang.buildfile.language.semantics.BuildLanguageSpecProviderImpl$Listener"/>
     <SyncListener implementation="com.google.idea.blaze.base.syncstatus.QuerySyncNodeDecorator$Listener"/>
     <BuildFlagsProvider implementation="com.google.idea.blaze.base.command.BuildFlagsProviderImpl"/>

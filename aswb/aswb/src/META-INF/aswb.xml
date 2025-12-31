@@ -36,7 +36,6 @@
     <programRunner implementation="com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryProgramRunner" order="first"/>
     <programRunner implementation="com.google.idea.blaze.android.run.test.BlazeAndroidTestProgramRunner" order="first"/>
     <projectService serviceImplementation="com.google.idea.blaze.android.manifest.ParsedManifestService"/>
-    <projectService serviceImplementation="com.google.idea.blaze.android.sync.model.AndroidResourceModuleRegistry"/>
     <projectService serviceImplementation="com.google.idea.blaze.android.projectsystem.ExternalLibraryInterner"/>
     <projectService serviceImplementation="com.google.idea.blaze.android.resources.BlazeLightResourceClassService"/>
     <projectService serviceImplementation="com.google.idea.blaze.android.projectsystem.BlazeProjectSystemSyncManager$LastSyncResultCache"/>

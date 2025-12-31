@@ -15,8 +15,6 @@
  */
 package com.google.idea.blaze.android.targetmapbuilder;
 
-import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
-import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 
 /** Static utility methods to help with target map builder construction. */
@@ -33,24 +31,5 @@ public class NbTargetMapUtils {
       return label.substring(2);
     }
     return blazePackage + "/" + label;
-  }
-
-  /** Computes the blaze package of a target defined at the given label. */
-  public static WorkspacePath blazePackageForLabel(String label) {
-    return Label.create(label).blazePackage();
-  }
-
-  /** Returns a reference to a source artifact in the form of an {@link ArtifactLocation}. */
-  public static ArtifactLocation makeSourceArtifact(String workspacePath) {
-    return ArtifactLocation.builder().setRelativePath(workspacePath).setIsSource(true).build();
-  }
-
-  /** Create a label out of a relative path to the target or a string representing a label. */
-  public static Label normalizeRelativePathOrLabel(
-      String pathOrLabelString, WorkspacePath blazePackage) {
-    if (pathOrLabelString.startsWith("//")) {
-      return Label.create(pathOrLabelString);
-    }
-    return Label.create("//" + blazePackage + pathOrLabelString);
   }
 }

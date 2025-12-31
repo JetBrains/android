@@ -19,29 +19,21 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.DependencyType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.idea.blaze.android.projectsystem.BazelModuleSystem.BlazeRegisteredDependencyId;
 import com.google.idea.blaze.android.projectsystem.BazelModuleSystem.BlazeRegisteredDependencyQueryId;
-import com.google.idea.blaze.android.projectsystem.BazelModuleSystem.BlazeTargetRegisteredDependencyId;
 import com.google.idea.blaze.android.projectsystem.BazelModuleSystem.BlazeUnknownRegisteredDependencyId;
 import com.google.idea.blaze.android.resources.BlazeLightResourceClassService;
-import com.google.idea.blaze.android.sync.model.AndroidResourceModule;
-import com.google.idea.blaze.android.sync.model.AndroidResourceModuleRegistry;
 import com.google.idea.blaze.base.BlazeTestCase;
-import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.io.VirtualFileSystemProvider;
 import com.google.idea.blaze.base.lang.buildfile.references.BuildReferenceManager;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataBuilder;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataManager;
 import com.google.idea.blaze.base.model.primitives.Kind;
-import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
@@ -57,23 +49,18 @@ import com.intellij.openapi.editor.LazyRangeMarkerFactory;
 import com.intellij.openapi.editor.impl.LazyRangeMarkerFactoryImpl;
 import com.intellij.openapi.extensions.impl.ExtensionPointImpl;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.ex.temp.TempFileSystem;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.ArgumentCaptor;
 
 /** Test cases for {@link BazelModuleSystem}. */
 @RunWith(JUnit4.class)
@@ -100,102 +87,6 @@ public class BazelModuleSystemTest extends BlazeTestCase {
 
     project.setBaseDir(new MockVirtualFile("/"));
     service = new BazelProjectSystem(project);
-  }
-
-  @Test
-  @Ignore("b/466755859")
-  public void testAddDependencyWithBuildTargetPsi() throws Exception {
-    PsiElement buildTargetPsi = mock(PsiElement.class);
-    PsiFile psiFile = mock(PsiFile.class);
-
-    BuildReferenceManager buildReferenceManager = BuildReferenceManager.getInstance(project);
-    when(buildReferenceManager.resolveLabel(Label.create("//foo:bar"))).thenReturn(buildTargetPsi);
-    when(buildTargetPsi.getContainingFile()).thenReturn(psiFile);
-    when(buildTargetPsi.getTextOffset()).thenReturn(1337);
-
-    VirtualFile buildFile =
-        VirtualFileSystemProvider.getInstance().getSystem().findFileByPath("/foo/BUILD");
-    assertThat(buildFile).isNotNull();
-    when(psiFile.getVirtualFile()).thenReturn(buildFile);
-
-    BlazeRegisteredDependencyId id = new BlazeTargetRegisteredDependencyId(TargetKey.forPlainTarget(Label.create("//third_party/java/androidx/appcompat:appcompat")));
-    BazelModuleSystem.create(module).registerDependency(id, DependencyType.IMPLEMENTATION);
-
-    ArgumentCaptor<OpenFileDescriptor> descriptorCaptor =
-        ArgumentCaptor.forClass(OpenFileDescriptor.class);
-    verify(FileEditorManager.getInstance(project))
-        .openTextEditor(descriptorCaptor.capture(), eq(true));
-    OpenFileDescriptor descriptor = descriptorCaptor.getValue();
-    assertThat(descriptor.getProject()).isEqualTo(project);
-    assertThat(descriptor.getFile()).isEqualTo(buildFile);
-    assertThat(descriptor.getOffset()).isEqualTo(1337);
-    verifyNoMoreInteractions(FileEditorManager.getInstance(project));
-  }
-
-  @Test
-  @Ignore("b/466755859")
-  public void testAddWellKnownMavenArtifactIdDependencyWithBuildTargetPsi() throws Exception {
-    registerExtensionPoint(MavenArtifactLocator.EP_NAME, MavenArtifactLocator.class);
-    PsiElement buildTargetPsi = mock(PsiElement.class);
-    PsiFile psiFile = mock(PsiFile.class);
-
-    BuildReferenceManager buildReferenceManager = BuildReferenceManager.getInstance(project);
-    when(buildReferenceManager.resolveLabel(Label.create("//foo:bar"))).thenReturn(buildTargetPsi);
-    when(buildTargetPsi.getContainingFile()).thenReturn(psiFile);
-    when(buildTargetPsi.getTextOffset()).thenReturn(1337);
-
-    VirtualFile buildFile =
-        VirtualFileSystemProvider.getInstance().getSystem().findFileByPath("/foo/BUILD");
-    assertThat(buildFile).isNotNull();
-    when(psiFile.getVirtualFile()).thenReturn(buildFile);
-
-    BazelModuleSystem.create(module).registerDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, DependencyType.IMPLEMENTATION);
-
-    ArgumentCaptor<OpenFileDescriptor> descriptorCaptor =
-        ArgumentCaptor.forClass(OpenFileDescriptor.class);
-    verify(FileEditorManager.getInstance(project))
-        .openTextEditor(descriptorCaptor.capture(), eq(true));
-    OpenFileDescriptor descriptor = descriptorCaptor.getValue();
-    assertThat(descriptor.getProject()).isEqualTo(project);
-    assertThat(descriptor.getFile()).isEqualTo(buildFile);
-    assertThat(descriptor.getOffset()).isEqualTo(1337);
-    verifyNoMoreInteractions(FileEditorManager.getInstance(project));
-  }
-
-  @Test
-  @Ignore("b/466755859")
-  public void testAddDependencyWithoutBuildTargetPsi() throws Exception {
-    // Can't find PSI for the target.
-    when(BuildReferenceManager.getInstance(project).resolveLabel(Label.create("//foo:bar")))
-        .thenReturn(null);
-
-    VirtualFile buildFile =
-        VirtualFileSystemProvider.getInstance().getSystem().findFileByPath("/foo/BUILD");
-    assertThat(buildFile).isNotNull();
-
-    BlazeRegisteredDependencyId id = new BlazeTargetRegisteredDependencyId(TargetKey.forPlainTarget(Label.create("//third_party/java/androidx/appcompat:appcompat")));
-    BazelModuleSystem.create(module).registerDependency(id, DependencyType.IMPLEMENTATION);
-
-    verify(FileEditorManager.getInstance(project)).openFile(buildFile, true);
-    verifyNoMoreInteractions(FileEditorManager.getInstance(project));
-  }
-
-  @Test
-  @Ignore("b/466755859")
-  public void testAddWellKnownArtifactIdDependencyWithoutBuildTargetPsi() throws Exception {
-    registerExtensionPoint(MavenArtifactLocator.EP_NAME, MavenArtifactLocator.class);
-    // Can't find PSI for the target.
-    when(BuildReferenceManager.getInstance(project).resolveLabel(Label.create("//foo:bar")))
-        .thenReturn(null);
-
-    VirtualFile buildFile =
-        VirtualFileSystemProvider.getInstance().getSystem().findFileByPath("/foo/BUILD");
-    assertThat(buildFile).isNotNull();
-
-    BazelModuleSystem.create(module).registerDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, DependencyType.IMPLEMENTATION);
-
-    verify(FileEditorManager.getInstance(project)).openFile(buildFile, true);
-    verifyNoMoreInteractions(FileEditorManager.getInstance(project));
   }
 
   @Test
@@ -287,12 +178,6 @@ public class BazelModuleSystemTest extends BlazeTestCase {
 
     applicationServices.register(
         VirtualFileSystemProvider.class, new MockVirtualFileSystemProvider("/foo/BUILD"));
-
-    AndroidResourceModuleRegistry moduleRegistry = new AndroidResourceModuleRegistry();
-    moduleRegistry.put(
-        module,
-        AndroidResourceModule.builder(TargetKey.forPlainTarget(Label.create("//foo:bar"))).build());
-    projectServices.register(AndroidResourceModuleRegistry.class, moduleRegistry);
   }
 
   private BlazeProjectData createMockBlazeProjectData() {

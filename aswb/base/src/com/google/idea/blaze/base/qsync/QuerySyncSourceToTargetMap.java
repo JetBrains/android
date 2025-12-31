@@ -15,10 +15,7 @@
  */
 package com.google.idea.blaze.base.qsync;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
@@ -59,10 +56,5 @@ public class QuerySyncSourceToTargetMap implements SourceToTargetMap {
       logger.warn(String.format("No target owners found for file %s", rel));
     }
     return ImmutableList.copyOf(buildTargets);
-  }
-
-  @Override
-  public ImmutableCollection<TargetKey> getRulesForSourceFile(File file) {
-    throw new NotSupportedWithQuerySyncException("getRulesForSourceFile");
   }
 }
