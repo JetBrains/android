@@ -46,7 +46,6 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
     mapOf(
       "org.jetbrains.android" to
         setOf(
-          "com.google.devrel.gmscore.tools.apk.arsc", // b/476427677
           "com.android.annotations.concurrency",
           "com.android.annotations",
           "com.android.tools.instrumentation.threading.agent.callback",
@@ -67,7 +66,6 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "org.objectweb.asm.tree",
           "org.objectweb.asm",
           "org.xmlpull.v1",
-          "com.google.errorprone.annotations",
         ),
       "com.android.tools.design" to setOf("org.json", "com.google.errorprone.annotations", "android.annotation"),
       "com.google.tools.ij.aiplugin" to

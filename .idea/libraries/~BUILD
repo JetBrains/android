@@ -351,3 +351,10 @@ jvm_import(
     jars = ["//tools/adt/idea/android:libandroid-core-proto.jar"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "libbinary-resources",
+    jars = ["//tools/base/apkparser:libbinary-resources.jar"],
+    visibility = ["//visibility:public"],
+)

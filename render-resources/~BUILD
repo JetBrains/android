@@ -18,10 +18,10 @@ iml_module(
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository",
         "//tools/base/zipflinger:studio.android.sdktools.zipflinger",
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer",
-        "//tools/base/apkparser:studio.android.sdktools.binary-resources",
-        "//tools/base/environment-services:studio.intellij.android.environment-services",
+        "//tools/adt/idea/.idea/libraries:libbinary-resources",
         "//tools/adt/idea/.idea/libraries:asm-tools",
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
+        "//tools/base/environment-services:studio.intellij.android.environment-services",
     ],
 )
 
