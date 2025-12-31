@@ -163,7 +163,13 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     mySessionViewRangeMap = new HashMap<>();
 
     myArtifactsFetchers = new ArrayList<>();
-    myArtifactsFetchers.add(HprofSessionArtifact::getSessionArtifacts);
+    // LeakCanary tasks generate their own artifacts, so we skip the standard Hprof artifact to avoid duplicates.
+    myArtifactsFetchers.add((studioProfilers, session, sessionMetaData) -> {
+      if (sessionMetaData.getTaskType() == Common.ProfilerTaskType.LEAKCANARY) {
+        return Collections.emptyList();
+      }
+      return HprofSessionArtifact.getSessionArtifacts(studioProfilers, session, sessionMetaData);
+    });
     myArtifactsFetchers.add(CpuCaptureSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(HeapProfdSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(AllocationSessionArtifact::getSessionArtifacts);
