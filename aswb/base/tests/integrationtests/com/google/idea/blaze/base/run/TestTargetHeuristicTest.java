@@ -74,30 +74,6 @@ public class TestTargetHeuristicTest extends BlazeIntegrationTestCase {
   }
 
   @Test
-  @Ignore("b/466755859")
-  public void testTargetSourcesMatched() {
-    File source = workspaceRoot.fileForPath(new WorkspacePath("java/com/foo/FooTest.java"));
-    Collection<TargetInfo> targets =
-        ImmutableList.of(
-            TargetIdeInfo.builder()
-                .setLabel("//foo:test1")
-                .setKind("sh_test")
-                .addSource(sourceRoot("java/com/bar/OtherTest.java"))
-                .build()
-                .toTargetInfo(),
-            TargetIdeInfo.builder()
-                .setLabel("//foo:test2")
-                .setKind("sh_test")
-                .addSource(sourceRoot("java/com/foo/FooTest.java"))
-                .build()
-                .toTargetInfo());
-    TargetInfo match =
-        TestTargetHeuristic.chooseTestTargetForSourceFile(
-            getProject(), null, source, targets, null);
-    assertThat(match.label).isEqualTo(Label.create("//foo:test2"));
-  }
-
-  @Test
   public void testTargetNameMatched() {
     File source = workspaceRoot.fileForPath(new WorkspacePath("java/com/foo/FooTest.java"));
     Collection<TargetInfo> targets =
@@ -174,14 +150,12 @@ public class TestTargetHeuristicTest extends BlazeIntegrationTestCase {
                 .setLabel("//foo:test1")
                 .setKind("sh_test")
                 .setTestInfo(TestIdeInfo.builder().setTestSize(TestSize.SMALL))
-                .addSource(sourceRoot("java/com/bar/OtherTest.java"))
                 .build()
                 .toTargetInfo(),
             TargetIdeInfo.builder()
                 .setLabel("//foo:test2")
                 .setKind("sh_test")
                 .setTestInfo(TestIdeInfo.builder().setTestSize(TestSize.MEDIUM))
-                .addSource(sourceRoot("java/com/foo/FooTest.java"))
                 .build()
                 .toTargetInfo());
     TargetInfo match =

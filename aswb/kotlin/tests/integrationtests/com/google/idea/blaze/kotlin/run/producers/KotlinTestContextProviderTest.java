@@ -105,7 +105,6 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
         TargetIdeInfo.builder()
             .setKind("kt_jvm_test")
             .setLabel("//com/google/test:TestClass")
-            .addSource(sourceRoot(testFilePath))
             .build();
 // query sync:    registerTargets(testTarget);
 
@@ -136,7 +135,6 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
         TargetIdeInfo.builder()
             .setKind("kt_jvm_test")
             .setLabel("//com/google/test:TestClass")
-            .addSource(sourceRoot(testFilePath))
             .build();
     // query sync: registerTargets(testTarget);
 
@@ -172,7 +170,6 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
         TargetIdeInfo.builder()
             .setKind("kt_jvm_test")
             .setLabel("//com/google/test:TestClass")
-            .addSource(sourceRoot(testFilePath))
             .build();
     // query sync: registerTargets(testTarget);
 
@@ -205,7 +202,6 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
         TargetIdeInfo.builder()
             .setKind("kt_jvm_test")
             .setLabel("//com/google/test:TestClass")
-            .addSource(sourceRoot(testFilePath))
             .build();
     // query sync: registerTargets(testTarget);
 
@@ -244,7 +240,6 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
         TargetIdeInfo.builder()
             .setKind("kt_jvm_library")
             .setLabel(testLibraryTargetLabel)
-            .addSource(sourceRoot(testFilePath))
             .build();
     TargetIdeInfo mediumTestsTarget =
         TargetIdeInfo.builder()
