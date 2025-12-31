@@ -81,7 +81,7 @@ public class BlazeCommandRunConfigurationRunManagerImplTest extends BlazeIntegra
   @Test
   public void loadStateAndGetStateShouldMatch() {
     final Label label = Label.create("//package:rule");
-    configuration.setTarget(label);
+    configuration.setTargetPattern(label.toString());
 
     final Element element = runManager.getState();
     runManager.loadState(element);
@@ -91,13 +91,13 @@ public class BlazeCommandRunConfigurationRunManagerImplTest extends BlazeIntegra
     final BlazeCommandRunConfiguration readConfiguration =
         (BlazeCommandRunConfiguration) configurations.get(0);
 
-    assertThat(readConfiguration.getTargets()).containsExactly(label);
+    assertThat(readConfiguration.getTargetPatterns()).containsExactly(label.toString());
   }
 
   @Test
   public void loadStateAndGetStateElementShouldMatch() {
     final XMLOutputter xmlOutputter = new XMLOutputter(Format.getCompactFormat());
-    configuration.setTarget(Label.create("//package:rule"));
+    configuration.setTargetPattern("//package:rule");
 
     final Element initialElement = runManager.getState();
     runManager.loadState(initialElement);
@@ -111,13 +111,13 @@ public class BlazeCommandRunConfigurationRunManagerImplTest extends BlazeIntegra
   public void loadStateAndGetStateElementShouldMatchAfterChangeAndRevert() {
     final XMLOutputter xmlOutputter = new XMLOutputter(Format.getCompactFormat());
     final Label label = Label.create("//package:rule");
-    configuration.setTarget(label);
+    configuration.setTargetPattern(label.toString());
 
     final Element initialElement = runManager.getState();
     runManager.loadState(initialElement);
     final BlazeCommandRunConfiguration modifiedConfiguration =
         (BlazeCommandRunConfiguration) runManager.getAllConfigurationsList().get(0);
-    modifiedConfiguration.setTarget(Label.create("//new:label"));
+    modifiedConfiguration.setTargetPattern("//new:label");
 
     final Element modifiedElement = runManager.getState();
     assertThat(xmlOutputter.outputString(modifiedElement))
@@ -125,7 +125,7 @@ public class BlazeCommandRunConfigurationRunManagerImplTest extends BlazeIntegra
     runManager.loadState(modifiedElement);
     final BlazeCommandRunConfiguration revertedConfiguration =
         (BlazeCommandRunConfiguration) runManager.getAllConfigurationsList().get(0);
-    revertedConfiguration.setTarget(label);
+    revertedConfiguration.setTargetPattern(label.toString());
 
     final Element revertedElement = runManager.getState();
     assertThat(xmlOutputter.outputString(revertedElement))
@@ -138,7 +138,7 @@ public class BlazeCommandRunConfigurationRunManagerImplTest extends BlazeIntegra
     final BlazeCommandRunConfigurationSettingsEditor editor =
         new BlazeCommandRunConfigurationSettingsEditor(configuration);
     configuration.setKeepInSync(false); // Except keep in sync: null is translated to false;
-    configuration.setTarget(Label.create("//package:rule"));
+    configuration.setTargetPattern("//package:rule");
 
     final Element initialElement = runManager.getState();
     editor.resetFrom(configuration);

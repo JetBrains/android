@@ -20,7 +20,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataBuilder;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataManager;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.producers.BlazeRunConfigurationProducerTestCase;
@@ -139,8 +138,8 @@ public class MultipleJavaClassesTestContextProviderTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
-    assertThat(config.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//java/com/google/test:TestClass"));
+    assertThat(config.getTargetPatterns())
+        .containsExactly("//java/com/google/test:TestClass");
     assertThat(getTestFilterContents(config)).isEqualTo("--test_filter=com.google.test");
     assertThat(config.getName()).isEqualTo("Bazel test all in directory 'test'");
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST);
@@ -182,8 +181,8 @@ public class MultipleJavaClassesTestContextProviderTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
-    assertThat(config.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//java/com/google/test/sub:TestClass"));
+    assertThat(config.getTargetPatterns())
+        .containsExactly("//java/com/google/test/sub:TestClass");
     assertThat(getTestFilterContents(config)).isEqualTo("--test_filter=com.google.test");
     assertThat(config.getName()).isEqualTo("Bazel test all in directory 'test'");
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST);
@@ -222,8 +221,8 @@ public class MultipleJavaClassesTestContextProviderTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
-    assertThat(config.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//java/...:all"));
+    assertThat(config.getTargetPatterns())
+        .containsExactly("//java/...:all");
     assertThat(getTestFilterContents(config)).isNull();
   }
 
@@ -252,8 +251,8 @@ public class MultipleJavaClassesTestContextProviderTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
-    assertThat(config.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//java/com/other/...:all"));
+    assertThat(config.getTargetPatterns())
+        .containsExactly("//java/com/other/...:all");
     assertThat(getTestFilterContents(config)).isNull();
   }
 
@@ -306,8 +305,8 @@ public class MultipleJavaClassesTestContextProviderTest
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
 
     // THEN expect config to be correct
-    assertThat(config.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//java/com/google/test:allTests"));
+    assertThat(config.getTargetPatterns())
+        .containsExactly("//java/com/google/test:allTests");
     assertThat(getTestFilterContents(config))
         .isEqualTo("--test_filter=\"com.google.test.TestClass1#|com.google.test.TestClass2#\"");
     assertThat(config.getName()).isEqualTo("Bazel test TestClass1 and 1 others");

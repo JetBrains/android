@@ -23,7 +23,6 @@ import com.google.idea.blaze.base.lang.buildfile.psi.util.PsiUtils;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataBuilder;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataManager;
 import com.google.idea.blaze.base.model.primitives.Label;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.producers.BlazeRunConfigurationProducerTestCase;
@@ -106,8 +105,8 @@ public class BlazeJavaTestMethodConfigurationProducerTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
-    assertThat(config.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//java/com/google/test:TestClass"));
+    assertThat(config.getTargetPatterns())
+        .containsExactly("//java/com/google/test:TestClass");
     assertThat(getTestFilterContents(config))
         .isEqualTo("--test_filter=com.google.test.TestClass#testMethod1$");
     assertThat(config.getName()).isEqualTo("Bazel test TestClass.testMethod1");
@@ -139,7 +138,7 @@ public class BlazeJavaTestMethodConfigurationProducerTest
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) context.getConfiguration().getConfiguration();
     // modify the label, and check that is enough for the producer to class it as different.
-    config.setTarget(Label.create("//java/com/google/test:DifferentTestTarget"));
+    config.setTargetPattern("//java/com/google/test:DifferentTestTarget");
 
     // Act
     boolean isConfigFromContext =

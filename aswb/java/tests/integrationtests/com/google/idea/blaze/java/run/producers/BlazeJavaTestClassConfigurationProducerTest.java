@@ -22,7 +22,6 @@ import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataBuilder;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataManager;
 import com.google.idea.blaze.base.model.primitives.Label;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.producers.BlazeRunConfigurationProducerTestCase;
@@ -105,8 +104,8 @@ public class BlazeJavaTestClassConfigurationProducerTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
-    assertThat(config.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//java/com/google/test:TestClass"));
+    assertThat(config.getTargetPatterns())
+        .containsExactly("//java/com/google/test:TestClass");
     assertThat(getTestFilterContents(config)).isEqualTo("--test_filter=com.google.test.TestClass#");
     assertThat(config.getName()).isEqualTo("Bazel test TestClass");
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST);
@@ -153,8 +152,8 @@ public class BlazeJavaTestClassConfigurationProducerTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
-    assertThat(config.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//java/com/google/test:TestClass"));
+    assertThat(config.getTargetPatterns())
+        .containsExactly("//java/com/google/test:TestClass");
     assertThat(getTestFilterContents(config)).isEqualTo("--test_filter=com.google.test.TestClass#");
     assertThat(config.getName()).isEqualTo("Bazel test TestClass");
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST);
@@ -205,8 +204,8 @@ public class BlazeJavaTestClassConfigurationProducerTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
-    assertThat(config.getTargets())
-        .containsExactly(TargetExpression.fromStringSafe("//java/com/google/test:OuterClass"));
+    assertThat(config.getTargetPatterns())
+        .containsExactly("//java/com/google/test:OuterClass");
     assertThat(getTestFilterContents(config))
         .isEqualTo(
             "--test_filter=\"com.google.test.OuterClass#|com.google.test.OuterClass.InnerClass#\"");
@@ -279,7 +278,7 @@ public class BlazeJavaTestClassConfigurationProducerTest
     assertThat(config).isNotNull();
 
     // modify the label, and check that is enough for the producer to class it as different.
-    config.setTarget(Label.create("//java/com/google/test:TestClass2"));
+    config.setTargetPattern("//java/com/google/test:TestClass2");
 
     assertThat(new TestContextRunConfigurationProducer().doIsConfigFromContext(config, context))
         .isFalse();

@@ -121,7 +121,7 @@ public abstract class TestContext implements RunConfigurationContext {
 
     @Override
     boolean matchesTarget(BlazeCommandRunConfiguration config) {
-      return target.label().equals(config.getSingleTarget());
+      return target.label().toString().equals(config.getSingleTargetPattern());
     }
   }
 

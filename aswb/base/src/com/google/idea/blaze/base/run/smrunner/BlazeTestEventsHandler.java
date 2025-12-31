@@ -49,7 +49,7 @@ public interface BlazeTestEventsHandler {
    * or multi-target Blaze invocation, where we don't know up front the languages involved.
    */
   static boolean targetsSupported(
-      Project project, ImmutableList<? extends TargetExpression> targets) {
+      Project project, List<? extends String> targets) {
     Kind kind = getKindForTargets(project, targets);
     return Arrays.stream(EP_NAME.getExtensions()).anyMatch(handler -> handler.handlesKind(kind));
   }
@@ -66,20 +66,11 @@ public interface BlazeTestEventsHandler {
   }
 
   /**
-   * Returns a {@link BlazeTestEventsHandler} applicable to the given target or {@link
-   * Optional#empty()} if no such handler can be found.
-   */
-  static Optional<BlazeTestEventsHandler> getHandlerForTarget(
-      Project project, TargetExpression target) {
-    return getHandlerForTargetKind(getKindForTarget(project, target));
-  }
-
-  /**
    * Returns a {@link BlazeTestEventsHandler} applicable to the given targets or {@link
    * Optional#empty()} if no such handler can be found.
    */
   static Optional<BlazeTestEventsHandler> getHandlerForTargets(
-      Project project, ImmutableList<? extends TargetExpression> targets) {
+      Project project, List<? extends String> targets) {
     return getHandlerForTargetKind(getKindForTargets(project, targets));
   }
 
@@ -95,11 +86,11 @@ public interface BlazeTestEventsHandler {
 
   /** Returns the single Kind shared by all targets or null if they have different kinds. */
   @Nullable
-  static Kind getKindForTargets(Project project, List<? extends TargetExpression> targets) {
+  static Kind getKindForTargets(Project project, List<? extends String> targets) {
     // TODO(brendandouglas): extend BlazeTestEventsHandler API to handle multiple targets with
     // *known* kinds
     Kind singleKind = null;
-    for (TargetExpression target : targets) {
+    for (String target : targets) {
       Kind kind = getKindForTarget(project, target);
       if (kind == null || (singleKind != null && !kind.equals(singleKind))) {
         return null;
@@ -110,11 +101,12 @@ public interface BlazeTestEventsHandler {
   }
 
   @Nullable
-  static Kind getKindForTarget(Project project, TargetExpression target) {
-    if (!(target instanceof Label)) {
+  static Kind getKindForTarget(Project project, String target) {
+    Label label = Label.createIfValid(target);
+    if (label == null) {
       return null;
     }
-    TargetInfo targetInfo = TargetFinder.findTargetInfo(project, (Label) target);
+    TargetInfo targetInfo = TargetFinder.findTargetInfo(project, label);
     return targetInfo != null ? targetInfo.getKind() : null;
   }
 

@@ -47,10 +47,11 @@ public class BlazeConfigurationNameBuilder {
     BlazeCommandName commandName = configuration.getHandler().getCommandName();
     setCommandName(commandName == null ? "command" : commandName.toString());
 
-    ImmutableList<? extends TargetExpression> targets = configuration.getTargets();
+    ImmutableList<? extends String> targets = configuration.getTargetPatterns();
     if (!targets.isEmpty()) {
-      TargetExpression first = targets.get(0);
-      String text = first instanceof Label ? getTextForLabel((Label) first) : first.toString();
+      String first = targets.get(0);
+      Label label = Label.createIfValid(first);
+      String text = label != null ? getTextForLabel(label) : first;
       setTargetString(text);
     }
   }
