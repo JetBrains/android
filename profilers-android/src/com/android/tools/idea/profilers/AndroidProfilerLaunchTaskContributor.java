@@ -101,32 +101,29 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     TransportService transportService = TransportService.getInstance();
     ProfilerClient client = new ProfilerClient(TransportService.getChannelName());
-    Common.Device profilerDevice;
     try {
-      profilerDevice = waitForDaemon(device, client);
-    }
-    catch (InterruptedException | TimeoutException e) {
-      client.shutdownChannel();
+      Common.Device profilerDevice = waitForDaemon(device, client);
+      TransportFileManager fileManager = new TransportFileManager(device);
+      pushStartupAgentConfig(fileManager, project);
+      String agentArgs = fileManager.configureStartupAgent(applicationId, STARTUP_AGENT_CONFIG_NAME, executor.getId());
+      String startupProfilingResult = startStartupProfiling(profilerState, applicationId, project, client, device, profilerDevice);
+
+      // In the Task-Based UX, a startup configuration should only be used once after explicitly starting a task via the profiler UI. Thus,
+      // after consumption of the startup configuration, the config is reset to avoid re-use. If not reset and the user sets a startup
+      // configuration by starting a startup task then invokes one of the Profile with low overhead/complete data actions from the main
+      // toolbar, a startup task will begin again.
+      if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
+        profilerState.disableStartupProfiling();
+      }
+
+      return String.format("%s %s", agentArgs, startupProfilingResult);
+    } catch (InterruptedException | TimeoutException e) {
       getLogger().debug(e);
-      // Don't attach JVMTI agent for now, there is a chance that it will be attached during runtime.
+      // Don't attach JVMTI agent for now, there is a chance it will be attached during runtime.
       return "";
+    } finally {
+      client.shutdownChannel();
     }
-
-    TransportFileManager fileManager = new TransportFileManager(device);
-    pushStartupAgentConfig(fileManager, project);
-    String agentArgs = fileManager.configureStartupAgent(applicationId, STARTUP_AGENT_CONFIG_NAME, executor.getId());
-    String startupProfilingResult = startStartupProfiling(profilerState, applicationId, project, client, device, profilerDevice);
-
-    // In the Task-Based UX, a startup configuration should only be used once after explicitly starting a task via the profiler UI. Thus,
-    // after consumption of the startup configuration, the config is reset to avoid re-use. If not reset and the user sets a startup
-    // configuration by starting a startup task then invokes one of the Profile with low overhead/complete data actions from the main
-    // toolbar, a startup task will begin again.
-    if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
-      profilerState.disableStartupProfiling();
-    }
-
-    client.shutdownChannel();
-    return String.format("%s %s", agentArgs, startupProfilingResult);
   }
 
   private static void pushStartupAgentConfig(@NotNull TransportFileManager fileManager, @NotNull Project project) {

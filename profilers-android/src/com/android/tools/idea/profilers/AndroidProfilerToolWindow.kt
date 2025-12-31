@@ -91,65 +91,70 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     TransportService.getInstance()
 
     val client = ProfilerClient(TransportService.channelName)
-    profilers = StudioProfilers(client, ideProfilerServices, taskHandlers,
-                                { taskType, args -> ProfilerTaskTabs.create(project, taskType, args) }, { ProfilerTaskTabs.open(project) },
-                                { getToolbarDeviceSelections(project) }, { getPreferredProcessName(project) }, ::getCurrentTaskHandler)
+    try {
+      profilers = StudioProfilers(client, ideProfilerServices, taskHandlers,
+                                  { taskType, args -> ProfilerTaskTabs.create(project, taskType, args) }, { ProfilerTaskTabs.open(project) },
+                                  { getToolbarDeviceSelections(project) }, { getPreferredProcessName(project) }, ::getCurrentTaskHandler)
 
-    val navigator = ideProfilerServices.codeNavigator
-    // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
-    navigator.cpuArchSource = Supplier { profilers.sessionsManager.selectedSessionMetaData.processAbi }
+      val navigator = ideProfilerServices.codeNavigator
+      // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
+      navigator.cpuArchSource = Supplier { profilers.sessionsManager.selectedSessionMetaData.processAbi }
 
-    profilers.addDependency(this).onChange(ProfilerAspect.STAGE) { stageChanged() }
+      profilers.addDependency(this).onChange(ProfilerAspect.STAGE) { stageChanged() }
 
-    // Attempt to find the last-run process and start profiling it. This covers the case where the user presses "Run" (without profiling),
-    // but then opens the profiling window manually.
-    val processInfo = project.getUserData(LAST_RUN_APP_INFO)
-    if (processInfo != null) {
-      profilers.setPreferredProcess(processInfo.deviceName,
-                                    processInfo.processName) { p: Common.Process? -> processInfo.processFilter.invoke(p!!) }
-      project.putUserData(LAST_RUN_APP_INFO, null)
-    }
-    else if (!IdeInfo.getInstance().isGameTools){
-      StartupManager.getInstance(project).runWhenProjectIsInitialized { profilers.preferredProcessName = getPreferredProcessName(project) }
-    }
-
-    if (IdeInfo.getInstance().isGameTools && ideProfilerServices.featureConfig.isTaskBasedUxEnabled) {
-      invokeLater {
-        AndroidNotification.getInstance(project).showBalloon(
-          "Unsupported feature detected",
-          "Standalone Profiler cannot be used in Task-Based UX mode. Please set the profiler.task.based.ux flag in Android Studio to off" +
-          " (or reset it to its default value) and restart the profiler.",
-          NotificationType.ERROR)
+      // Attempt to find the last-run process and start profiling it. This covers the case where the user presses "Run" (without profiling),
+      // but then opens the profiling window manually.
+      val processInfo = project.getUserData(LAST_RUN_APP_INFO)
+      if (processInfo != null) {
+        profilers.setPreferredProcess(processInfo.deviceName,
+                                      processInfo.processName) { p: Common.Process? -> processInfo.processFilter.invoke(p!!) }
+        project.putUserData(LAST_RUN_APP_INFO, null)
       }
+      else if (!IdeInfo.getInstance().isGameTools){
+        StartupManager.getInstance(project).runWhenProjectIsInitialized { profilers.preferredProcessName = getPreferredProcessName(project) }
+      }
+
+      if (IdeInfo.getInstance().isGameTools && ideProfilerServices.featureConfig.isTaskBasedUxEnabled) {
+        invokeLater {
+          AndroidNotification.getInstance(project).showBalloon(
+            "Unsupported feature detected",
+            "Standalone Profiler cannot be used in Task-Based UX mode. Please set the profiler.task.based.ux flag in Android Studio to off" +
+            " (or reset it to its default value) and restart the profiler.",
+            NotificationType.ERROR)
+        }
+      }
+
+      ideProfilerComponents = IntellijProfilerComponents(project, this, ideProfilerServices.featureTracker)
+
+      // Create and store the task handlers in a map.
+      initializeTaskHandlers()
+
+      if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) {
+        // Initialize the two static/un-closable tabs: home and past recordings tabs.
+        homeTab = StudioProfilersHomeTab(profilers, ideProfilerComponents)
+        homePanel = JPanel(BorderLayout())
+        homePanel.removeAll()
+        homePanel.add(homeTab.view.panel)
+        homePanel.revalidate()
+        homePanel.repaint()
+        pastRecordingsTab = StudioProfilersPastRecordingsTab(profilers, ideProfilerComponents)
+        pastRecordingsPanel = JPanel(BorderLayout())
+        pastRecordingsPanel.removeAll()
+        pastRecordingsPanel.add(pastRecordingsTab.view.panel)
+        pastRecordingsPanel.revalidate()
+        pastRecordingsPanel.repaint()
+      }
+      // The Profiler tab is initialized here with the home tab so that the view bindings will be ready in the case the user imports a file
+      // from a fresh/un-opened Profiler tool window state. While entering a stage from an uninitialized Profiler state after importing is
+      // not a possible flow in the Task-Based UX, the initialization of the Profiler tab logic is used for both the Sessions-based Profiler
+      // tab and the Task-Based UX Profiler tab, so it must be called in a place that accommodates both tabs.
+      initializeProfilerTab()
+
+      ideProfilerServices.featureTracker.trackProfilerToolWindowCreated()
+    } catch(t: Throwable) {
+      client.shutdownChannel()
+      throw t
     }
-
-    ideProfilerComponents = IntellijProfilerComponents(project, this, ideProfilerServices.featureTracker)
-
-    // Create and store the task handlers in a map.
-    initializeTaskHandlers()
-
-    if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) {
-      // Initialize the two static/un-closable tabs: home and past recordings tabs.
-      homeTab = StudioProfilersHomeTab(profilers, ideProfilerComponents)
-      homePanel = JPanel(BorderLayout())
-      homePanel.removeAll()
-      homePanel.add(homeTab.view.panel)
-      homePanel.revalidate()
-      homePanel.repaint()
-      pastRecordingsTab = StudioProfilersPastRecordingsTab(profilers, ideProfilerComponents)
-      pastRecordingsPanel = JPanel(BorderLayout())
-      pastRecordingsPanel.removeAll()
-      pastRecordingsPanel.add(pastRecordingsTab.view.panel)
-      pastRecordingsPanel.revalidate()
-      pastRecordingsPanel.repaint()
-    }
-    // The Profiler tab is initialized here with the home tab so that the view bindings will be ready in the case the user imports a file
-    // from a fresh/un-opened Profiler tool window state. While entering a stage from an uninitialized Profiler state after importing is
-    // not a possible flow in the Task-Based UX, the initialization of the Profiler tab logic is used for both the Sessions-based Profiler
-    // tab and the Task-Based UX Profiler tab, so it must be called in a place that accommodates both tabs.
-    initializeProfilerTab()
-
-    ideProfilerServices.featureTracker.trackProfilerToolWindowCreated()
   }
 
   private fun getToolbarDeviceSelections(project: Project): List<ToolbarDeviceSelection> {
