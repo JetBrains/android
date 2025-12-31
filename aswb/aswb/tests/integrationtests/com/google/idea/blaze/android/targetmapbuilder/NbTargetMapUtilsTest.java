@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.android.targetmapbuilder;
 
-import static com.google.idea.blaze.android.targetmapbuilder.NbTargetMapUtils.blazePackageForLabel;
 import static com.google.idea.blaze.android.targetmapbuilder.NbTargetMapUtils.workspacePathForLabel;
 
 import com.google.common.truth.Truth;
@@ -32,13 +31,5 @@ public class NbTargetMapUtilsTest {
     WorkspacePath blazePackage = WorkspacePath.createIfValid("com/google/foo");
     Truth.assertThat(workspacePathForLabel(blazePackage, "Foo.java"))
         .isEqualTo(workspacePathForLabel(blazePackage, "//com/google/foo/Foo.java"));
-  }
-
-  @Test
-  public void testBlazePackageForlabel() {
-    String label = "//com/google/foo:foobar";
-    WorkspacePath blazePackageForLabel = WorkspacePath.createIfValid("com/google/foo");
-
-    Truth.assertThat(blazePackageForLabel(label)).isEqualTo(blazePackageForLabel);
   }
 }
