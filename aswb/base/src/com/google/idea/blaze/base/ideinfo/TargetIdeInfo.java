@@ -37,7 +37,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
   @Nullable private final ArtifactLocation buildFile;
   private final ImmutableList<Dependency> dependencies;
   private final ImmutableList<String> tags;
-  private final ImmutableSet<ArtifactLocation> sources;
   @Nullable private final JavaIdeInfo javaIdeInfo;
   @Nullable private final AndroidInstrumentationInfo androidInstrumentationInfo;
   @Nullable private final TestIdeInfo testIdeInfo;
@@ -49,7 +48,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
       @Nullable ArtifactLocation buildFile,
       ImmutableList<Dependency> dependencies,
       ImmutableList<String> tags,
-      ImmutableSet<ArtifactLocation> sources,
       @Nullable JavaIdeInfo javaIdeInfo,
       @Nullable AndroidInstrumentationInfo androidInstrumentationInfo,
       @Nullable TestIdeInfo testIdeInfo,
@@ -59,7 +57,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
     this.buildFile = buildFile;
     this.dependencies = dependencies;
     this.tags = tags;
-    this.sources = sources;
     this.javaIdeInfo = javaIdeInfo;
     this.androidInstrumentationInfo = androidInstrumentationInfo;
     this.testIdeInfo = testIdeInfo;
@@ -99,10 +96,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
     return tags;
   }
 
-  public ImmutableSet<ArtifactLocation> getSources() {
-    return sources;
-  }
-
   @Nullable
   public JavaIdeInfo getJavaIdeInfo() {
     return javaIdeInfo;
@@ -128,7 +121,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
         .setTestSize(getTestIdeInfo() != null ? getTestIdeInfo().getTestSize() : null)
         .setTestClass(getJavaIdeInfo() != null ? getJavaIdeInfo().getTestClass() : null)
         .setSyncTime(getSyncTime())
-        .setSources(ImmutableList.copyOf(getSources()))
         .build();
   }
 
@@ -152,7 +144,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
     private ArtifactLocation buildFile;
     private final ImmutableList.Builder<Dependency> dependencies = ImmutableList.builder();
     private final ImmutableList.Builder<String> tags = ImmutableList.builder();
-    private final ImmutableSet.Builder<ArtifactLocation> sources = ImmutableSet.builder();
     private JavaIdeInfo javaIdeInfo;
     private TestIdeInfo testIdeInfo;
     private Long syncTime;
@@ -185,17 +176,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
     public Builder setKind(Kind kind) {
       this.kind = kind;
       return this;
-    }
-
-    @CanIgnoreReturnValue
-    public Builder addSource(ArtifactLocation source) {
-      this.sources.add(source);
-      return this;
-    }
-
-    @CanIgnoreReturnValue
-    public Builder addSource(ArtifactLocation.Builder source) {
-      return addSource(source.build());
     }
 
     @CanIgnoreReturnValue
@@ -241,7 +221,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
           buildFile,
           dependencies.build(),
           tags.build(),
-          sources.build(),
           javaIdeInfo,
           null,
           testIdeInfo,
@@ -263,7 +242,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
         && Objects.equals(buildFile, that.buildFile)
         && Objects.equals(dependencies, that.dependencies)
         && Objects.equals(tags, that.tags)
-        && Objects.equals(sources, that.sources)
         && Objects.equals(javaIdeInfo, that.javaIdeInfo)
         && Objects.equals(androidInstrumentationInfo, that.androidInstrumentationInfo)
         && Objects.equals(testIdeInfo, that.testIdeInfo)
@@ -278,7 +256,6 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
         buildFile,
         dependencies,
         tags,
-        sources,
         javaIdeInfo,
         androidInstrumentationInfo,
         testIdeInfo,

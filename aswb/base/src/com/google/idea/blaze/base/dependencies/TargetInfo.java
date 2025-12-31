@@ -15,16 +15,13 @@
  */
 package com.google.idea.blaze.base.dependencies;
 
-import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.RuleType;
 import com.google.idea.blaze.common.BuildTarget;
 import java.time.Instant;
 import java.util.Objects;
-import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**
@@ -37,21 +34,18 @@ public class TargetInfo {
   @Nullable public final TestSize testSize;
   @Nullable public final String testClass;
   @Nullable public final Instant syncTime;
-  @Nullable private final ImmutableList<ArtifactLocation> sources;
 
   private TargetInfo(
       Label label,
       String kindString,
       @Nullable TestSize testSize,
       @Nullable String testClass,
-      @Nullable Instant syncTime,
-      @Nullable ImmutableList<ArtifactLocation> sources) {
+      @Nullable Instant syncTime) {
     this.label = label;
     this.kindString = kindString;
     this.testSize = testSize;
     this.testClass = testClass;
     this.syncTime = syncTime;
-    this.sources = sources;
   }
 
   @Nullable
@@ -61,11 +55,6 @@ public class TargetInfo {
 
   public Label getLabel() {
     return label;
-  }
-
-  /** Returns this targets sources, or Optional#empty if they're not known. */
-  public Optional<ImmutableList<ArtifactLocation>> getSources() {
-    return Optional.ofNullable(sources);
   }
 
   public RuleType getRuleType() {
@@ -130,7 +119,6 @@ public class TargetInfo {
     @Nullable private TestSize testSize;
     @Nullable private String testClass;
     @Nullable private Instant syncTime;
-    @Nullable private ImmutableList<ArtifactLocation> sources;
 
     private Builder(Label label, String kindString) {
       this.label = label;
@@ -155,14 +143,8 @@ public class TargetInfo {
       return this;
     }
 
-    @CanIgnoreReturnValue
-    public Builder setSources(ImmutableList<ArtifactLocation> sources) {
-      this.sources = sources;
-      return this;
-    }
-
     public TargetInfo build() {
-      return new TargetInfo(label, kindString, testSize, testClass, syncTime, sources);
+      return new TargetInfo(label, kindString, testSize, testClass, syncTime);
     }
   }
 
