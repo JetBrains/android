@@ -20,6 +20,7 @@ import com.android.tools.leakcanarylib.LeakCanaryParser
 import com.android.tools.leakcanarylib.data.Analysis
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Commands.SendLeakCanaryAnalysisData
 import java.util.concurrent.TimeUnit
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Transport
@@ -160,13 +161,10 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
     logger.info("Hprof file downloaded to: ${hprofFile.path}. Starting analysis.")
     val analysisResult = SharkHostAnalyzer().analyze(hprofFile)
     if (analysisResult is HeapAnalysisSuccess) {
-      profilers.ideServices.mainExecutor.execute {
-        // TODO: Create and use an adapter from [shark.HeapAnalysisSuccess] to [Analysis] instead.
-        // This will be more efficient and robust than parsing the string output. An adapter
-        // will allow us to extract all leaks of the same signature, which we aren't getting
-        // from parsing `analysisResult.toString()` which only outputs one leak per signature.
-        val analysis = LeakCanaryParser().parseLogcatMessage(analysisResult.toString())
-        if (analysis != null) {
+      val analysis = LeakCanaryParser().parseLogcatMessage(analysisResult.toString())
+      if (analysis != null) {
+        sendAnalysisResultCommand(analysis)
+        profilers.ideServices.mainExecutor.execute {
           onHostAnalysisFinished(analysis)
         }
       }
@@ -174,6 +172,25 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
     else {
       throw RuntimeException("Heap analysis failed for ${hprofFile.path}")
     }
+  }
+
+  /**
+   * Sends the LeakCanary analysis result to the transport pipeline.
+   */
+  private fun sendAnalysisResultCommand(analysis: Analysis) {
+    val analysisData = SendLeakCanaryAnalysisData.newBuilder()
+      .setData(analysis.toString())
+      .build()
+
+    val command = Commands.Command.newBuilder()
+      .setStreamId(profilers.session.streamId)
+      .setPid(profilers.session.pid)
+      .setType(Commands.Command.CommandType.SEND_LEAKCANARY_ANALYSIS)
+      .setSendLeakcanaryAnalysis(analysisData)
+      .build()
+
+    profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
+    logger.info("Sent SEND_LEAKCANARY_ANALYSIS command to transport.")
   }
 
   /**
