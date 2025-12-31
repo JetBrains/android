@@ -52,10 +52,7 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
    * successful, it does not tell us if the startTask or loadTask functionality was successful.
    */
   open fun enter(args: TaskArgs) : Boolean {
-    myTaskTracker = TaskTracker.createTaskTracker(
-      sessionsManager.studioProfilers,
-      sessionsManager.isSessionAlive
-    )
+    myTaskTracker = TaskTracker.createTaskTracker(sessionsManager.studioProfilers)
 
     myTaskTracker.trackTaskEntered()
 
