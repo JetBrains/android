@@ -34,7 +34,7 @@ class ProjectTargetFinder implements TargetFinder {
     TargetInfo ret = null;
     if (projectData != null) {
       BuildTarget buildTarget = projectData.getBuildTarget(label);
-      ret = buildTarget != null ? TargetInfo.builder(label, buildTarget.kind()).build() : null;
+      ret = buildTarget != null ? new TargetInfo(label, buildTarget.kind()) : null;
     }
     return Futures.immediateFuture(ret);
   }

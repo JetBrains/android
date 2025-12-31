@@ -85,6 +85,6 @@ class PyBinaryContextProvider implements BinaryContextProvider {
       return false;
     }
     // The 'main' attribute isn't exposed, so only suggest a binary if the name matches
-    return target.label.targetName().toString().equals(fileName);
+    return target.label().targetName().toString().equals(fileName);
   }
 }

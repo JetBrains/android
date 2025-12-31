@@ -35,6 +35,6 @@ public class TestSizeHeuristic implements TestTargetHeuristic {
     // If testSize == null then prefer small
     // Some test runners will assume no size annotation == small and filter on that, others will not
     TestSize size = testSize != null ? testSize : TestSize.DEFAULT_NON_ANNOTATED_TEST_SIZE;
-    return target.testSize == size;
+    return target.testSize() == size;
   }
 }

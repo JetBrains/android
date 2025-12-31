@@ -46,10 +46,9 @@ public class BlazeAndroidNativeDebuggingTest extends BlazeIntegrationTestCase {
     // Use an android_binary target for the run config so that it uses
     // BlazeAndroidRunConfigurationHandler.
     runProfile.setTargetInfo(
-        TargetInfo.builder(
+        new TargetInfo(
                 Label.create("//test:test"),
-                AndroidBlazeRules.RuleTypes.ANDROID_BINARY.getKind().getKindString())
-            .build());
+                AndroidBlazeRules.RuleTypes.ANDROID_BINARY.getKind().getKindString()));
 
     // Enable native debugging.
     BlazeAndroidBinaryRunConfigurationState state =

@@ -132,7 +132,7 @@ public interface TestTargetHeuristic {
     // finally order by syncTime (if available), returning the most recently synced
     return filteredTargets.stream()
         .max(
-            Comparator.comparing(t -> t.syncTime, Comparator.nullsFirst(Comparator.naturalOrder())))
+            Comparator.comparing(t -> t.syncTime(), Comparator.nullsFirst(Comparator.naturalOrder())))
         .orElse(null);
   }
 

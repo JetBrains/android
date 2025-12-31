@@ -44,7 +44,7 @@ public class ClassPackagePathHeuristic implements TestTargetHeuristic {
     if (!(sourcePsiFile instanceof PsiClassOwner)) {
       return false;
     }
-    String targetName = target.label.targetName().toString();
+    String targetName = target.label().targetName().toString();
     if (!targetName.contains("/")) {
       return false;
     }
