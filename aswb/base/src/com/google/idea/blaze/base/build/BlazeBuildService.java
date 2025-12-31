@@ -237,4 +237,3 @@ public class BlazeBuildService {
       .forEach(ep -> ep.buildCompleted(project, buildResult));
   }
 }
-

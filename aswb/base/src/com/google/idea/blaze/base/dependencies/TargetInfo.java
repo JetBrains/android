@@ -15,46 +15,33 @@
  */
 package com.google.idea.blaze.base.dependencies;
 
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.RuleType;
 import com.google.idea.blaze.common.BuildTarget;
 import java.time.Instant;
-import java.util.Objects;
 import javax.annotation.Nullable;
 
 /**
  * Some minimal data about a blaze target. This is intended to contain the data common to our aspect
  * output, and the per-target data provided by a global dependency index.
  */
-public class TargetInfo {
-  public final Label label;
-  public final String kindString;
-  @Nullable public final TestSize testSize;
-  @Nullable public final String testClass;
-  @Nullable public final Instant syncTime;
+public record TargetInfo(
+    Label label,
+    String kindString,
+    @Nullable TestSize testSize,
+    @Nullable String testClass,
+    @Nullable Instant syncTime) {
 
-  private TargetInfo(
-      Label label,
-      String kindString,
-      @Nullable TestSize testSize,
-      @Nullable String testClass,
-      @Nullable Instant syncTime) {
-    this.label = label;
-    this.kindString = kindString;
-    this.testSize = testSize;
-    this.testClass = testClass;
-    this.syncTime = syncTime;
+  // Compact constructor to provide defaults for the optional fields, matching the old two-argument
+  // constructor.
+  public TargetInfo(Label label, String kindString) {
+    this(label, kindString, null, null, null);
   }
 
   @Nullable
   public Kind getKind() {
     return Kind.fromRuleName(kindString);
-  }
-
-  public Label getLabel() {
-    return label;
   }
 
   public RuleType getRuleType() {
@@ -86,70 +73,7 @@ public class TargetInfo {
     return "test_suite".equals(ruleType);
   }
 
-  @Override
-  public String toString() {
-    return String.format("%s (%s)", label, kindString);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof TargetInfo)) {
-      return false;
-    }
-    TargetInfo other = (TargetInfo) o;
-    return label.equals(other.label) && kindString.equals(other.kindString);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(label, kindString);
-  }
-
-  public static Builder builder(Label label, String kindString) {
-    return new Builder(label, kindString);
-  }
-
-  /** Builder class for {@link TargetInfo}. */
-  public static class Builder {
-    private final Label label;
-    private final String kindString;
-    @Nullable private TestSize testSize;
-    @Nullable private String testClass;
-    @Nullable private Instant syncTime;
-
-    private Builder(Label label, String kindString) {
-      this.label = label;
-      this.kindString = kindString;
-    }
-
-    @CanIgnoreReturnValue
-    public Builder setTestSize(@Nullable TestSize testSize) {
-      this.testSize = testSize;
-      return this;
-    }
-
-    @CanIgnoreReturnValue
-    public Builder setTestClass(@Nullable String testClass) {
-      this.testClass = testClass;
-      return this;
-    }
-
-    @CanIgnoreReturnValue
-    public Builder setSyncTime(@Nullable Instant syncTime) {
-      this.syncTime = syncTime;
-      return this;
-    }
-
-    public TargetInfo build() {
-      return new TargetInfo(label, kindString, testSize, testClass, syncTime);
-    }
-  }
-
   public static TargetInfo fromBuildTarget(BuildTarget buildTarget) {
-    return TargetInfo.builder(Label.create(buildTarget.label().toString()), buildTarget.kind())
-        .build();
+    return new TargetInfo(Label.create(buildTarget.label().toString()), buildTarget.kind());
   }
 }

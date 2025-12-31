@@ -70,7 +70,7 @@ public class TestTargetHeuristicTest extends BlazeIntegrationTestCase {
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(
             getProject(), null, source, targets, TestSize.SMALL);
-    assertThat(match.label).isEqualTo(Label.create("//foo:test2"));
+    assertThat(match.label()).isEqualTo(Label.create("//foo:test2"));
   }
 
   @Test
@@ -91,7 +91,7 @@ public class TestTargetHeuristicTest extends BlazeIntegrationTestCase {
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(
             getProject(), null, source, targets, null);
-    assertThat(match.label).isEqualTo(Label.create("//foo:FooTest"));
+    assertThat(match.label()).isEqualTo(Label.create("//foo:FooTest"));
   }
 
   @Test
@@ -114,7 +114,7 @@ public class TestTargetHeuristicTest extends BlazeIntegrationTestCase {
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(
             getProject(), null, source, targets, TestSize.LARGE);
-    assertThat(match.label).isEqualTo(Label.create("//bar:BarTest"));
+    assertThat(match.label()).isEqualTo(Label.create("//bar:BarTest"));
   }
 
   @Test
@@ -137,7 +137,7 @@ public class TestTargetHeuristicTest extends BlazeIntegrationTestCase {
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(
             getProject(), null, source, targets, TestSize.SMALL);
-    assertThat(match.label).isEqualTo(Label.create("//foo:FooTest"));
+    assertThat(match.label()).isEqualTo(Label.create("//foo:FooTest"));
   }
 
   @Test
@@ -161,7 +161,7 @@ public class TestTargetHeuristicTest extends BlazeIntegrationTestCase {
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(
             getProject(), null, source, targets, TestSize.SMALL);
-    assertThat(match.label).isEqualTo(Label.create("//foo:test2"));
+    assertThat(match.label()).isEqualTo(Label.create("//foo:test2"));
   }
 
   @Test
@@ -190,7 +190,7 @@ public class TestTargetHeuristicTest extends BlazeIntegrationTestCase {
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(
             getProject(), null, source, targets, TestSize.SMALL);
-    assertThat(match.label).isEqualTo(Label.create("//foo:b"));
+    assertThat(match.label()).isEqualTo(Label.create("//foo:b"));
   }
 
   private static ArtifactLocation sourceRoot(String relativePath) {

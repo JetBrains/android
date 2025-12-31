@@ -120,9 +120,8 @@ public class DebuggerInfoProviderTest extends BlazeAndroidIntegrationTestCase {
     BlazeCommandRunConfiguration runConfig =
         (BlazeCommandRunConfiguration) runnerAndConfigurationSettings.getConfiguration();
     TargetInfo target =
-        TargetInfo.builder(
-                Label.create("//java/com/foo/app:app"), ANDROID_BINARY.getKind().getKindString())
-            .build();
+        new TargetInfo(
+                Label.create("//java/com/foo/app:app"), ANDROID_BINARY.getKind().getKindString());
     runConfig.setTargetInfo(target);
     BlazeAndroidBinaryRunConfigurationState androidBinaryConfig =
         (BlazeAndroidBinaryRunConfigurationState) runConfig.getHandler().getState();
@@ -143,10 +142,9 @@ public class DebuggerInfoProviderTest extends BlazeAndroidIntegrationTestCase {
     BlazeCommandRunConfiguration runConfig =
         (BlazeCommandRunConfiguration) runnerAndConfigurationSettings.getConfiguration();
     TargetInfo target =
-        TargetInfo.builder(
+        new TargetInfo(
                 Label.create("//javatests/com/foo/app:test"),
-                ANDROID_INSTRUMENTATION_TEST.getKind().getKindString())
-            .build();
+                ANDROID_INSTRUMENTATION_TEST.getKind().getKindString());
     runConfig.setTargetInfo(target);
     BlazeAndroidTestRunConfigurationState androidTestConfig =
         (BlazeAndroidTestRunConfigurationState) runConfig.getHandler().getState();

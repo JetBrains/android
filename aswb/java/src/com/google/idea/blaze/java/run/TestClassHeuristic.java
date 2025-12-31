@@ -39,11 +39,11 @@ public class TestClassHeuristic implements TestTargetHeuristic {
     if (!(sourcePsiFile instanceof PsiClassOwner)) {
       return false;
     }
-    if (target.testClass == null) {
+    if (target.testClass() == null) {
       return false;
     }
     return ReadAction.compute(
-        () -> doMatchesSource((PsiClassOwner) sourcePsiFile, target.testClass));
+        () -> doMatchesSource((PsiClassOwner) sourcePsiFile, target.testClass()));
   }
 
   private static boolean doMatchesSource(PsiClassOwner source, String testClass) {

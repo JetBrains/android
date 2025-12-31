@@ -46,7 +46,7 @@ class BlazePackageHeuristic implements TestTargetHeuristic {
     if (sourcePackage == null) {
       return false;
     }
-    WorkspacePath targetPackage = target.label.blazePackage();
+    WorkspacePath targetPackage = target.label().blazePackage();
     return sourcePackage.equals(targetPackage);
   }
 

@@ -65,7 +65,7 @@ public class BlazeQueryLabelKindParser implements LineProcessingOutputStream.Lin
     if (targetFilter.test(new RuleTypeAndLabel(ruleType, labelString))) {
       Label label = Label.createIfValid(labelString);
       if (label != null) {
-        outputList.add(TargetInfo.builder(label, ruleType).build());
+        outputList.add(new TargetInfo(label, ruleType));
       }
     }
     return true;
@@ -77,6 +77,6 @@ public class BlazeQueryLabelKindParser implements LineProcessingOutputStream.Lin
   }
 
   public ImmutableList<TargetExpression> getTargetLabels() {
-    return outputList.build().stream().map(info -> info.label).collect(toImmutableList());
+    return outputList.build().stream().map(info -> info.label()).collect(toImmutableList());
   }
 }

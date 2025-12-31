@@ -117,11 +117,12 @@ public final class TargetIdeInfo implements ProtoWrapper<IntellijIdeInfo.TargetI
   }
 
   public TargetInfo toTargetInfo() {
-    return TargetInfo.builder(getKey().getLabel(), getKind().getKindString())
-        .setTestSize(getTestIdeInfo() != null ? getTestIdeInfo().getTestSize() : null)
-        .setTestClass(getJavaIdeInfo() != null ? getJavaIdeInfo().getTestClass() : null)
-        .setSyncTime(getSyncTime())
-        .build();
+    return new TargetInfo(
+        getKey().getLabel(),
+        getKind().getKindString(),
+        getTestIdeInfo() != null ? getTestIdeInfo().getTestSize() : null,
+        getJavaIdeInfo() != null ? getJavaIdeInfo().getTestClass() : null,
+        getSyncTime());
   }
 
   @Override

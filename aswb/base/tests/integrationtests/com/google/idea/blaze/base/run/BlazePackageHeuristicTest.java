@@ -82,6 +82,6 @@ public class BlazePackageHeuristicTest extends BlazeIntegrationTestCase {
         TestTargetHeuristic.chooseTestTargetForSourceFile(
             getProject(), null, new File(testSource.getPath()), targets, TestSize.SMALL);
 
-    assertThat(match.label).isEqualTo(Label.create("//foo:test"));
+    assertThat(match.label()).isEqualTo(Label.create("//foo:test"));
   }
 }

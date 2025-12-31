@@ -137,7 +137,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
   @Test
   public void flagsShouldBeAppendedIfPresent() {
     configuration.setTargetInfo(
-        TargetInfo.builder(Label.create("//label:rule"), "java_test").build());
+        new TargetInfo(Label.create("//label:rule"), "java_test"));
     BlazeCommandRunConfigurationCommonState handlerState =
         (BlazeCommandRunConfigurationCommonState) configuration.getHandler().getState();
     handlerState.getCommandState().setCommand(BlazeCommandName.fromString("command"));
@@ -166,7 +166,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
   @Test
   public void debugFlagShouldBeIncludedForJavaTest() {
     configuration.setTargetInfo(
-        TargetInfo.builder(Label.create("//label:rule"), "java_test").build());
+        new TargetInfo(Label.create("//label:rule"), "java_test"));
     BlazeCommandRunConfigurationCommonState handlerState =
         (BlazeCommandRunConfigurationCommonState) configuration.getHandler().getState();
     handlerState.getCommandState().setCommand(BlazeCommandName.fromString("command"));
@@ -194,7 +194,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
   @Test
   public void debugFlagShouldBeIncludedForJavaBinary() {
     configuration.setTargetInfo(
-        TargetInfo.builder(Label.create("//label:java_binary_rule"), "java_binary").build());
+        new TargetInfo(Label.create("//label:java_binary_rule"), "java_binary"));
     BlazeCommandRunConfigurationCommonState handlerState =
         (BlazeCommandRunConfigurationCommonState) configuration.getHandler().getState();
     handlerState.getCommandState().setCommand(BlazeCommandName.fromString("command"));
@@ -221,7 +221,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
   @Test
   public void kotlinxCoroutinesJavaAgentShouldBeAddedAsJavaAgent() {
     configuration.setTargetInfo(
-        TargetInfo.builder(Label.create("//label:main"), "java_binary").build());
+        new TargetInfo(Label.create("//label:main"), "java_binary"));
     BlazeCommandRunConfigurationCommonState handlerState =
         (BlazeCommandRunConfigurationCommonState) configuration.getHandler().getState();
     handlerState.getCommandState().setCommand(BlazeCommandName.fromString("command"));
@@ -255,7 +255,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
         .setExperiment(
           BlazeCommandRunnerExperiments.BAZEL_DEBUG_USE_WRAPPER_SCRIPT_FLAG_FOR_JAVA_AGENT, true);
     configuration.setTargetInfo(
-        TargetInfo.builder(Label.create("//label:main"), "java_binary").build());
+        new TargetInfo(Label.create("//label:main"), "java_binary"));
     BlazeCommandRunConfigurationCommonState handlerState =
         (BlazeCommandRunConfigurationCommonState) configuration.getHandler().getState();
     handlerState.getCommandState().setCommand(BlazeCommandName.fromString("command"));
@@ -273,7 +273,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
         .contains("--wrapper_script_flag=--jvm_flag=-javaagent:/path/to/kotlinx-coroutines-lib.jar");
 
     configuration.setTargetInfo(
-        TargetInfo.builder(Label.create("//label:test"), "java_test").build());
+        new TargetInfo(Label.create("//label:test"), "java_test"));
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,

@@ -96,7 +96,7 @@ public class TestMapTest extends BlazeTestCase {
         SourceToTargetFinder.findTargetsForSourceFile(
             project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
 
-    assertThat(targets.stream().map(t -> t.label).collect(Collectors.toList()))
+    assertThat(targets.stream().map(t -> t.label()).collect(Collectors.toList()))
         .containsExactly(Label.create("//test:test"));
   }
 
@@ -122,7 +122,7 @@ public class TestMapTest extends BlazeTestCase {
         SourceToTargetFinder.findTargetsForSourceFile(
             project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
 
-    assertThat(targets.stream().map(t -> t.label).collect(Collectors.toList()))
+    assertThat(targets.stream().map(t -> t.label()).collect(Collectors.toList()))
         .containsExactly(Label.create("//test:test"));
   }
 
@@ -154,7 +154,7 @@ public class TestMapTest extends BlazeTestCase {
         SourceToTargetFinder.findTargetsForSourceFile(
             project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
 
-    assertThat(targets.stream().map(t -> t.label).collect(Collectors.toList()))
+    assertThat(targets.stream().map(t -> t.label()).collect(Collectors.toList()))
         .containsExactly(Label.create("//test:test"), Label.create("//test:test2"));
   }
 
@@ -192,7 +192,7 @@ public class TestMapTest extends BlazeTestCase {
         SourceToTargetFinder.findTargetsForSourceFile(
             project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
 
-    assertThat(targets.stream().map(t -> t.label).collect(Collectors.toList()))
+    assertThat(targets.stream().map(t -> t.label()).collect(Collectors.toList()))
         .containsExactly(Label.create("//test:test"), Label.create("//test:test2"))
         .inOrder();
   }
@@ -231,7 +231,7 @@ public class TestMapTest extends BlazeTestCase {
         SourceToTargetFinder.findTargetsForSourceFile(
             project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
 
-    assertThat(targets.stream().map(t -> t.label).collect(Collectors.toList()))
+    assertThat(targets.stream().map(t -> t.label()).collect(Collectors.toList()))
         .containsExactly(Label.create("//test:test"), Label.create("//test:test2"));
   }
 
@@ -264,7 +264,7 @@ public class TestMapTest extends BlazeTestCase {
         SourceToTargetFinder.findTargetsForSourceFile(
             project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
 
-    assertThat(targets.stream().map(t -> t.label).collect(Collectors.toList()))
+    assertThat(targets.stream().map(t -> t.label()).collect(Collectors.toList()))
         .containsExactly(Label.create("//test:test"));
   }
 
