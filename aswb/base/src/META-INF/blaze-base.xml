@@ -483,7 +483,6 @@
     <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.base.run.confighandler.PendingTargetRunConfigurationHandlerProvider"/>
     <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.base.run.confighandler.BlazeCommandGenericRunConfigurationHandlerProvider" order="last"/>
     <TestTargetHeuristic implementation="com.google.idea.blaze.base.run.TargetNameHeuristic" id="TargetNameHeuristic"/>
-    <TestTargetHeuristic implementation="com.google.idea.blaze.base.run.TestTargetSourcesHeuristic" order="after TargetNameHeuristic"/>
     <TestTargetHeuristic implementation="com.google.idea.blaze.base.run.BlazePackageHeuristic" order="last, before TestSizeHeuristic"/>
     <TestTargetHeuristic implementation="com.google.idea.blaze.base.run.TestSizeHeuristic" order="last" id="TestSizeHeuristic"/>
     <TestTargetHeuristic implementation="com.google.idea.blaze.base.run.TestSizeFromRoughTargetNameHeuristic" order="last, after TestSizeHeuristic"/>
