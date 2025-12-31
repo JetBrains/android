@@ -54,7 +54,7 @@ class TaskTrackerTest {
     // We need to set some state in sessions manager to test buildTaskMetadata logic effectively
     // For now, testing that it returns a TaskTracker (not null tracker behavior)
 
-    val taskTracker = TaskTracker.createTaskTracker(myProfilers, true)
+    val taskTracker = TaskTracker.createTaskTracker(myProfilers)
     taskTracker.trackTaskEntered()
     assertThat(myFeatureTracker.lastTaskMetadata).isNotNull()
   }
@@ -62,7 +62,7 @@ class TaskTrackerTest {
   @Test
   fun testCreateTaskTrackerWithUxDisabled() {
     myServices.enableTaskBasedUx(false)
-    val taskTracker = TaskTracker.createTaskTracker(myProfilers, true)
+    val taskTracker = TaskTracker.createTaskTracker(myProfilers)
 
     taskTracker.trackTaskEntered()
     // Should be a NullTaskTracker, so nothing tracked
@@ -72,7 +72,7 @@ class TaskTrackerTest {
   @Test
   fun testTrackTaskEntered() {
     myServices.enableTaskBasedUx(true)
-    val taskTracker = TaskTracker.createTaskTracker(myProfilers, true)
+    val taskTracker = TaskTracker.createTaskTracker(myProfilers)
 
     taskTracker.trackTaskEntered()
 
@@ -82,7 +82,7 @@ class TaskTrackerTest {
   @Test
   fun testTrackTaskFinished() {
     myServices.enableTaskBasedUx(true)
-    val taskTracker = TaskTracker.createTaskTracker(myProfilers, true)
+    val taskTracker = TaskTracker.createTaskTracker(myProfilers)
 
     val finishedState = TaskFinishedState.COMPLETED
     taskTracker.trackTaskFinished(finishedState)
@@ -94,7 +94,7 @@ class TaskTrackerTest {
   @Test
   fun testTrackStartTaskFailed() {
     myServices.enableTaskBasedUx(true)
-    val taskTracker = TaskTracker.createTaskTracker(myProfilers, true)
+    val taskTracker = TaskTracker.createTaskTracker(myProfilers)
 
     val failedMetadata = TaskStartFailedMetadata(traceStartStatus = null)
     taskTracker.trackStartTaskFailed(failedMetadata)
@@ -106,7 +106,7 @@ class TaskTrackerTest {
   @Test
   fun testTrackStopTaskFailed() {
     myServices.enableTaskBasedUx(true)
-    val taskTracker = TaskTracker.createTaskTracker(myProfilers, true)
+    val taskTracker = TaskTracker.createTaskTracker(myProfilers)
 
     val failedMetadata = TaskStopFailedMetadata(traceStopStatus = null)
     taskTracker.trackStopTaskFailed(failedMetadata)
@@ -118,7 +118,7 @@ class TaskTrackerTest {
   @Test
   fun testTrackProcessingTaskFailed() {
     myServices.enableTaskBasedUx(true)
-    val taskTracker = TaskTracker.createTaskTracker(myProfilers, true)
+    val taskTracker = TaskTracker.createTaskTracker(myProfilers)
 
     val failedMetadata = TaskProcessingFailedMetadata(cpuCaptureMetadata = null)
     taskTracker.trackProcessingTaskFailed(failedMetadata)
