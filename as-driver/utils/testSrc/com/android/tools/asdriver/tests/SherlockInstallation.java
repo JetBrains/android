@@ -68,20 +68,14 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> implements T
     // Extract the bundled Sherlock artifact.
     String zipPath =  String.format("tools/profiler/sherlock-plugin/sherlock_%s.zip", platform);
     Path sherlockZip = TestUtils.getBinPath(zipPath);
-    unzip(sherlockZip, getUnzipDir(workDir));
-    String sherlockDir = getSherlockDirectory();
+    unzip(sherlockZip, workDir);
+    Path sherlockDir = workDir.resolve(getSherlockDirectory());
 
     // Delete the plugin-classpath.txt file. Otherwise, the plugins injected by the e2e framework
     // do not work (e.g., the as-driver plugin does not run).
-    workDir.resolve(sherlockDir).resolve("plugins/plugin-classpath.txt").toFile().delete();
+    sherlockDir.resolve("plugins/plugin-classpath.txt").toFile().delete();
 
-    return new SherlockInstallation(testFileSystem, workDir, workDir.resolve(sherlockDir), disableFirstRun, display, sdk);
-  }
-
-  // TODO: Delete this method. It's not used anywhere and may be using incorrect directories.
-  static public SherlockInstallation fromDir(TestFileSystem testFileSystem, Path sherlockDir) throws IOException {
-    Path workDir = Files.createTempDirectory(testFileSystem.getRoot(), "sherlock");
-    return new SherlockInstallation(testFileSystem, workDir, sherlockDir, true, null, null);
+    return new SherlockInstallation(testFileSystem, workDir, sherlockDir, disableFirstRun, display, sdk);
   }
 
   private SherlockInstallation(TestFileSystem testFileSystem,
@@ -155,24 +149,13 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> implements T
    */
   private static String getSherlockDirectory() {
     if (SystemInfo.isMac) {
-      return "sherlock/sherlock-darwin/Sherlock.app/Contents";
+      return "sherlock-darwin/Sherlock.app/Contents";
     } else if (SystemInfo.isWindows) {
-      return "sherlock/sherlock-windows";
+      return "sherlock-windows";
     } else {
       assert SystemInfo.isLinux;
-      return "sherlock/sherlock-linux";
+      return "sherlock-linux";
     }
-  }
-
-  private static Path getUnzipDir(Path workDir) {
-    // TODO: Since we moved to the bundled zip, we shouldn't be needing this additional outer
-    //  directory any more. Remove it.
-    // We create a directory and then unzip into it.
-    // See https://b.corp.google.com/issues/442762985#comment13
-    String unzipDirectory = "sherlock";
-    Path unzipDir = workDir.resolve(unzipDirectory);
-    unzipDir.toFile().mkdirs();
-    return unzipDir;
   }
 
   public static SherlockInstallation standard() {
