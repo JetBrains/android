@@ -16,11 +16,8 @@
 package com.google.idea.blaze.base.sync.workspace;
 
 import com.google.common.collect.ImmutableList;
-import com.google.devtools.intellij.model.ProjectData;
-import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.intellij.openapi.extensions.ExtensionPointName;
 import java.io.File;
 import javax.annotation.Nullable;
 
@@ -28,7 +25,7 @@ import javax.annotation.Nullable;
  * Converts workspace-relative paths to absolute files with a minimum of file system calls
  * (typically none).
  */
-public interface WorkspacePathResolver extends ProtoWrapper<ProjectData.WorkspacePathResolver> {
+public interface WorkspacePathResolver {
   /** Resolves a workspace path to an absolute file. */
   default File resolveToFile(WorkspacePath workspacepath) {
     return resolveToFile(workspacepath.relativePath());
@@ -62,15 +59,4 @@ public interface WorkspacePathResolver extends ProtoWrapper<ProjectData.Workspac
    */
   @Nullable
   WorkspacePath getWorkspacePath(File absoluteFile);
-
-  /**
-   * Deserialize a {@link WorkspacePathResolver} from a proto message.
-   */
-  interface Extractor {
-    ExtensionPointName<Extractor> EP_NAME =
-        ExtensionPointName.create("com.google.idea.blaze.WorkspacePathResolverExtractor");
-
-    @Nullable
-    WorkspacePathResolver extract(ProjectData.WorkspacePathResolver proto);
-  }
 }

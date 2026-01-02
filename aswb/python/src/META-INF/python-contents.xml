@@ -22,15 +22,12 @@
     <BlazeIssueParserProvider implementation="com.google.idea.blaze.python.issueparser.PyIssueParserProvider"/>
     <TestContextProvider implementation="com.google.idea.blaze.python.run.producers.PyTestContextProvider"/>
     <BinaryContextProvider implementation="com.google.idea.blaze.python.run.producers.PyBinaryContextProvider"/>
-
-    <PySdkSuggester implementation="com.google.idea.blaze.python.sdk.FallbackPythonSdkSuggester" order="last"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
     <useScopeEnlarger implementation="com.google.idea.blaze.python.search.BlazePyUseScopeEnlarger"/>
     <programRunner implementation="com.google.idea.blaze.python.run.BlazePyDebugRunner"/>
     <consoleFilterProvider implementation="com.google.idea.blaze.python.run.filter.BlazePyTracebackFilter$BlazePyTracebackFilterProvider"/>
-    <postStartupActivity implementation="com.google.idea.blaze.python.sdk.FallbackPythonSdkSuggester$SdkInitializer"/>
     <postStartupActivity implementation="com.google.idea.blaze.python.run.producers.NonBlazeProducerSuppressor"/>
   </extensions>
 
@@ -47,8 +44,6 @@
       interface="com.google.idea.blaze.python.run.smrunner.PyParameterizedNameConverter"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.PyImportResolverStrategy"
         interface="com.google.idea.blaze.python.resolve.provider.PyImportResolverStrategy"/>
-    <extensionPoint qualifiedName="com.google.idea.blaze.PySdkSuggester"
-        interface="com.google.idea.blaze.python.sync.PySdkSuggester"/>
   </extensionPoints>
 
   <application-components>

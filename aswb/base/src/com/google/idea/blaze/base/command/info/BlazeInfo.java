@@ -18,16 +18,14 @@ package com.google.idea.blaze.base.command.info;
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import com.google.devtools.intellij.model.ProjectData;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import com.google.idea.blaze.base.model.primitives.ExecutionRootPath;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import java.io.File;
 
 /** The data output by blaze info. */
 @AutoValue
-public abstract class BlazeInfo implements ProtoWrapper<ProjectData.BlazeInfo> {
+public abstract class BlazeInfo {
   public static final String EXECUTION_ROOT_KEY = "execution_root";
   public static final String PACKAGE_PATH_KEY = "package_path";
   public static final String BUILD_LANGUAGE = "build-language";
@@ -91,15 +89,6 @@ public abstract class BlazeInfo implements ProtoWrapper<ProjectData.BlazeInfo> {
         .setBlazeTestlogs(blazeTestlogs)
         .setOutputBase(outputBase)
         .autoBuild();
-  }
-
-  public static BlazeInfo fromProto(BuildSystemName buildSystemName, ProjectData.BlazeInfo proto) {
-    return create(buildSystemName, ImmutableMap.copyOf(proto.getBlazeInfoMap()));
-  }
-
-  @Override
-  public ProjectData.BlazeInfo toProto() {
-    return ProjectData.BlazeInfo.newBuilder().putAllBlazeInfo(getBlazeInfoMap()).build();
   }
 
   private static String getOrThrow(ImmutableMap<String, String> map, String key) {

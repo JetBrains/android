@@ -15,30 +15,5 @@
  */
 package com.google.idea.blaze.android.sync.model;
 
-import com.google.devtools.intellij.model.ProjectData;
-import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
-import javax.annotation.concurrent.Immutable;
-
 /** Information about the android platform selected at sync time. */
-@Immutable
-public class AndroidSdkPlatform implements ProtoWrapper<ProjectData.AndroidSdkPlatform> {
-  public final String androidSdk;
-  public final int androidMinSdkLevel;
-
-  public AndroidSdkPlatform(String androidSdk, int androidMinSdkLevel) {
-    this.androidSdk = androidSdk;
-    this.androidMinSdkLevel = androidMinSdkLevel;
-  }
-
-  static AndroidSdkPlatform fromProto(ProjectData.AndroidSdkPlatform proto) {
-    return new AndroidSdkPlatform(proto.getAndroidSdk(), proto.getAndroidMinSdkLevel());
-  }
-
-  @Override
-  public ProjectData.AndroidSdkPlatform toProto() {
-    return ProjectData.AndroidSdkPlatform.newBuilder()
-        .setAndroidSdk(androidSdk)
-        .setAndroidMinSdkLevel(androidMinSdkLevel)
-        .build();
-  }
-}
+public record AndroidSdkPlatform(String androidSdk, int androidMinSdkLevel){}
