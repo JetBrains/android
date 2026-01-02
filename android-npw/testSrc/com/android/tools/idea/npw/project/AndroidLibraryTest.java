@@ -98,7 +98,7 @@ public class AndroidLibraryTest {
       NamedModuleTemplate template = GradleAndroidModuleTemplate.createDefaultModuleTemplate(project, "");
       RenderTemplateModel render = RenderTemplateModel.fromFacet(
         libAndroidFacet, "com.example", template, "command", new ProjectSyncInvoker.DefaultProjectSyncInvoker(), true,
-        NEW_MODULE, null
+        NEW_MODULE
       );
       List<Template> templates = TemplateResolver.Companion.getAllTemplates();
       @SuppressWarnings("OptionalGetWithoutIsPresent")
@@ -110,7 +110,7 @@ public class AndroidLibraryTest {
       assertThat(moduleTemplates).isNotEmpty();
 
       ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-      wizardBuilder.addStep(new ConfigureTemplateParametersStep(render, "Add new Activity Test", moduleTemplates, true));
+      wizardBuilder.addStep(new ConfigureTemplateParametersStep(render, "Add new Activity Test", moduleTemplates));
       ModelWizard modelWizard = wizardBuilder.build();
       Disposer.register(project, modelWizard);
       myInvokeStrategy.updateAllSteps();

@@ -63,12 +63,9 @@ private class ExistingNewModuleModelData(
   facet: AndroidFacet,
   template: NamedModuleTemplate,
   override val wizardContext: WizardUiContext,
-  testSuiteNameSuggestion: String? = null,
 ) : ModuleModelData, ProjectModelData by existingProjectModelData {
   override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(template)
   override val moduleName: StringValueProperty = StringValueProperty(facet.module.name)
-  override val testSuiteName: StringValueProperty =
-    StringValueProperty(testSuiteNameSuggestion ?: "")
   override val moduleTemplateDataBuilder =
     ModuleTemplateDataBuilder(
       projectTemplateDataBuilder = ProjectTemplateDataBuilder(false),
@@ -303,7 +300,6 @@ private constructor(
       projectSyncInvoker: ProjectSyncInvoker,
       shouldOpenFiles: Boolean,
       wizardContext: WizardUiContext,
-      testSuiteNameSuggestion: String? = null,
     ) =
       RenderTemplateModel(
         moduleModelData =
@@ -314,7 +310,6 @@ private constructor(
             facet,
             template,
             wizardContext,
-            testSuiteNameSuggestion,
           ),
         androidFacet = facet,
         commandName = commandName,
