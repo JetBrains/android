@@ -20,8 +20,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.BlazeTestCase;
 import com.google.idea.blaze.base.bazel.FakeBuildInvoker;
-import com.google.idea.blaze.base.model.primitives.Label;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.settings.BlazeUserSettings;
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;
@@ -50,7 +48,7 @@ public class BlazeCommandTest extends BlazeTestCase {
         BlazeCommand.builder(
           FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
           BlazeCommandName.RUN)
-            .addTargets(Label.create("//a:b"))
+            .addTargetStrings("//a:b")
             .addBlazeFlags("--flag1", "--flag2")
             .addExeFlags("--exeFlag1", "--exeFlag2")
             .build()
@@ -65,7 +63,7 @@ public class BlazeCommandTest extends BlazeTestCase {
         BlazeCommand.builder(
           FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
           BlazeCommandName.RUN)
-            .addTargets(Label.create("//a:b"), Label.create("//c:d"))
+            .addTargetStrings("//a:b", "//c:d")
             .addBlazeFlags("--flag1", "--flag2")
             .addExeFlags("--exeFlag1", "--exeFlag2")
             .build()
@@ -83,7 +81,7 @@ public class BlazeCommandTest extends BlazeTestCase {
           FakeBuildInvoker.builder().invokeCommand(
             ImmutableList.of("/usr/bin/blaze")).build(),
           BlazeCommandName.RUN)
-            .addTargets(Label.create("//a:b"), Label.create("//c:d"))
+            .addTargetStrings("//a:b", "//c:d")
             .addBlazeFlags("--flag1", "--flag2")
             .addExeFlags("--exeFlag1", "--exeFlag2")
             .build()
@@ -99,10 +97,10 @@ public class BlazeCommandTest extends BlazeTestCase {
           FakeBuildInvoker.builder().invokeCommand(
             ImmutableList.of("/usr/bin/blaze")).build(),
           BlazeCommandName.RUN)
-            .addTargets(
-                Label.create("//a:b"),
-                TargetExpression.fromStringSafe("-//e:f"),
-                Label.create("//c:d"))
+            .addTargetStrings(
+                "//a:b",
+                "-//e:f",
+                "//c:d")
             .addBlazeFlags("--flag1", "--flag2")
             .addExeFlags("--exeFlag1", "--exeFlag2")
             .build()

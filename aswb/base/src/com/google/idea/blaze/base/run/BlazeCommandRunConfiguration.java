@@ -195,6 +195,10 @@ public class BlazeCommandRunConfiguration
     return parseTargets(targetPatterns);
   }
 
+  public ImmutableList<String> getTargetPatterns() {
+    return targetPatterns;
+  }
+
   /**
    * Returns the single target expression represented by this configuration, or null if there isn't
    * exactly one.
