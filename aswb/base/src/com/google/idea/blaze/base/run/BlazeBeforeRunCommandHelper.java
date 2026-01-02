@@ -27,7 +27,6 @@ import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.base.io.TempDirectoryProvider;
 import com.google.idea.blaze.base.issueparser.BlazeIssueParser;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
@@ -78,7 +77,7 @@ public final class BlazeBeforeRunCommandHelper {
         overridableExtraBlazeFlags,
         invocationContext,
         progressMessage,
-        configuration.getTargets(),
+        configuration.getTargetPatterns(),
         consumer);
   }
 
@@ -93,7 +92,7 @@ public final class BlazeBeforeRunCommandHelper {
       List<String> overridableExtraBlazeFlags,
       BlazeInvocationContext invocationContext,
       String progressMessage,
-      ImmutableList<TargetExpression> targets,
+      ImmutableList<String> targets,
       BuildEventStreamConsumer<T> consumer) {
 
     Project project = configuration.getProject();
@@ -130,7 +129,7 @@ public final class BlazeBeforeRunCommandHelper {
 
                 BlazeCommand.Builder command =
                     BlazeCommand.builder(invoker, commandName)
-                        .addTargets(targets)
+                        .addTargetStrings(targets)
                         .addBlazeFlags(overridableExtraBlazeFlags)
                         .addBlazeFlags(
                             BlazeFlags.blazeFlags(

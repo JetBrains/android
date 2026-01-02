@@ -19,7 +19,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import java.util.Arrays;
 import java.util.List;
 import javax.annotation.concurrent.Immutable;
@@ -131,14 +130,10 @@ public final class BlazeCommand {
       return this;
     }
 
-    @CanIgnoreReturnValue
-    public Builder addTargets(TargetExpression... targets) {
-      return this.addTargets(Arrays.asList(targets));
-    }
 
     @CanIgnoreReturnValue
-    public Builder addTargets(List<? extends TargetExpression> targets) {
-      return addTargetStrings(targets.stream().map(TargetExpression::toString).toList());
+    public Builder addTargetStrings(String... targets) {
+      return addTargetStrings(Arrays.asList(targets));
     }
 
     @CanIgnoreReturnValue

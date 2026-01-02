@@ -263,7 +263,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
     BlazeCommand.Builder command = handlerState.getBlazeBinaryState().getBlazeBinary() != null
         ? BlazeCommand.builder(invoker, blazeCommand, handlerState.getBlazeBinaryState().getBlazeBinary())
         : BlazeCommand.builder(invoker, blazeCommand);
-    command.addTargets(configuration.getTargets())
+    command.addTargetStrings(configuration.getTargetPatterns())
         .addBlazeFlags(
           BlazeFlags.blazeFlags(
             project,

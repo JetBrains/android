@@ -101,7 +101,7 @@ public class BlazeApkBuildStep implements ApkBuildStep {
         useMobileInstall ? BlazeCommandName.MOBILE_INSTALL : BlazeCommandName.BUILD;
     BlazeCommand.Builder command =
         BlazeCommand.builder(buildInvoker, commandName)
-            .addTargets(targets)
+            .addTargetStrings(targets.stream().map(Object::toString).toList())
             .addBlazeFlags(blazeFlags)
             .addExeFlags(exeFlags);
     if (useMobileInstall) {
