@@ -294,7 +294,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
           FakeBuildInvoker.builder().invokeCommand(
             ImmutableList.of("/usr/bin/blaze")).build(),
           BlazeCommandName.BUILD)
-          .addTargets(Label.create("//label:java_binary_rule"));
+          .addTargetStrings("//label:java_binary_rule");
     List<String> command =
         HotSwapCommandBuilder.getBashCommandsToRunScript(getProject(), commandBuilder);
     Path tempDirectory = TempDirectoryProvider.getInstance().getTempDirectory();

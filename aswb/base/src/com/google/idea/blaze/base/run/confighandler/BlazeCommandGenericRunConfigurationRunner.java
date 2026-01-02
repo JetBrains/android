@@ -335,7 +335,7 @@ public final class BlazeCommandGenericRunConfigurationRunner
       }
 
       return BlazeCommand.builder(invoker, command)
-          .addTargets(configuration.getTargets())
+          .addTargetStrings(configuration.getTargetPatterns())
           .addBlazeFlags(
               BlazeFlags.blazeFlags(
                   project,
