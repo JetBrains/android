@@ -129,7 +129,6 @@ class ConfigureTemplateParametersStep(
   model: RenderTemplateModel,
   @NlsContexts.Label title: String,
   private val templates: List<NamedModuleTemplate>,
-  private val showTargetSourceSetPicker: Boolean = true,
 ) : ModelWizardStep<RenderTemplateModel>(model, title) {
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
@@ -232,7 +231,7 @@ class ConfigureTemplateParametersStep(
       }
     }
 
-    if (showTargetSourceSetPicker && templates.size > 1) {
+    if (templates.size > 1) {
       val row =
         RowEntry(
             message("android.wizard.target.source.set.header"),
@@ -379,7 +378,6 @@ class ConfigureTemplateParametersStep(
         model.module,
         sourceProvider,
         model.packageName.get(),
-        model.testSuiteName.get(),
         property.get(),
         getRelatedValues(parameter),
       )
@@ -564,7 +562,6 @@ class ConfigureTemplateParametersStep(
         model.module,
         sourceProvider,
         model.packageName.get(),
-        model.testSuiteName.get(),
         suggested,
         relatedValues,
       )

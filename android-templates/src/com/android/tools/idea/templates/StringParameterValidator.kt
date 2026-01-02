@@ -80,12 +80,11 @@ fun StringParameter.validate(
   module: Module?,
   provider: SourceProvider?,
   packageName: String?,
-  testSuiteName: String?,
   value: Any?,
   relatedValues: Set<Any>
 ): String? {
   val v = value?.toString().orEmpty()
-  val violations = validateStringType(project, module, provider, packageName, testSuiteName, v, relatedValues)
+  val violations = validateStringType(project, module, provider, packageName, v, relatedValues)
   return violations.mapNotNull { getErrorMessageForViolatedConstraint(it, v) }.firstOrNull()
 }
 
@@ -124,7 +123,6 @@ fun StringParameter.validateStringType(
   module: Module?,
   provider: SourceProvider?,
   packageName: String?,
-  testSuiteName: String?,
   value: String?,
   relatedValues: Set<Any> = setOf()
 ): Collection<Constraint> {
@@ -231,10 +229,9 @@ fun StringParameter.uniquenessSatisfied(
   module: Module?,
   provider: SourceProvider?,
   packageName: String?,
-  testSuiteName: String?,
   value: String?,
   relatedValues: Set<Any>
-): Boolean = !validateStringType(project, module, provider, packageName, testSuiteName, value, relatedValues).contains(UNIQUE)
+): Boolean = !validateStringType(project, module, provider, packageName, value, relatedValues).contains(UNIQUE)
 
 private const val URI_AUTHORITY_REGEX = "[a-zA-Z][a-zA-Z0-9-_.]*(:\\d+)?"
 
