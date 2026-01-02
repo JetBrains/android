@@ -17,16 +17,13 @@ package com.google.idea.blaze.base.sync.projectview;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
-import com.google.devtools.intellij.model.ProjectData;
-import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import com.google.idea.blaze.base.model.primitives.LanguageClass;
 import com.google.idea.blaze.base.model.primitives.WorkspaceType;
 import javax.annotation.concurrent.Immutable;
 
 /** Contains the user's language preferences from the project view. */
 @Immutable
-public final class WorkspaceLanguageSettings
-    implements ProtoWrapper<ProjectData.WorkspaceLanguageSettings> {
+public final class WorkspaceLanguageSettings {
   private final WorkspaceType workspaceType;
   private final ImmutableSet<LanguageClass> activeLanguages;
 
@@ -34,23 +31,6 @@ public final class WorkspaceLanguageSettings
       WorkspaceType workspaceType, ImmutableSet<LanguageClass> activeLanguages) {
     this.workspaceType = workspaceType;
     this.activeLanguages = activeLanguages;
-  }
-
-  public static WorkspaceLanguageSettings fromProto(ProjectData.WorkspaceLanguageSettings proto) {
-    return new WorkspaceLanguageSettings(
-        WorkspaceType.fromString(proto.getWorkspaceType()),
-        ProtoWrapper.map(
-            proto.getActiveLanguagesList(),
-            LanguageClass::fromString,
-            ImmutableSet.toImmutableSet()));
-  }
-
-  @Override
-  public ProjectData.WorkspaceLanguageSettings toProto() {
-    return ProjectData.WorkspaceLanguageSettings.newBuilder()
-        .setWorkspaceType(workspaceType.toProto())
-        .addAllActiveLanguages(ProtoWrapper.mapToProtos(activeLanguages))
-        .build();
   }
 
   public WorkspaceType getWorkspaceType() {

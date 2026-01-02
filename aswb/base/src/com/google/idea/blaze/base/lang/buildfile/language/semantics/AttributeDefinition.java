@@ -18,12 +18,11 @@ package com.google.idea.blaze.base.lang.buildfile.language.semantics;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.devtools.build.lib.query2.proto.proto2api.Build;
-import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import javax.annotation.Nullable;
 
 /** Simple implementation of AttributeDefinition, from build.proto */
 public class AttributeDefinition
-    implements ProtoWrapper<Build.AttributeDefinition>, Comparable<AttributeDefinition> {
+    implements Comparable<AttributeDefinition> {
 
   private final String name;
   private final Build.Attribute.Discriminator type;
@@ -51,26 +50,11 @@ public class AttributeDefinition
     return new AttributeDefinition(
         proto.getName(),
         proto.getType(),
-        proto.getMandatory(),
+        proto.getMandatory() || proto.getName().equals("name"),
         proto.hasDocumentation() ? proto.getDocumentation() : null,
         proto.hasAllowedRuleClasses()
             ? ImmutableList.copyOf(proto.getAllowedRuleClasses().getAllowedRuleClassList())
             : null);
-  }
-
-  @Override
-  public Build.AttributeDefinition toProto() {
-    Build.AttributeDefinition.Builder builder =
-        Build.AttributeDefinition.newBuilder().setName(name).setType(type).setMandatory(mandatory);
-    ProtoWrapper.setIfNotNull(builder::setDocumentation, documentation);
-    if (allowedRuleClasses != null) {
-      builder.setAllowedRuleClasses(
-          Build.AllowedRuleClassInfo.newBuilder()
-              .addAllAllowedRuleClass(allowedRuleClasses)
-              .setPolicy(
-                  Build.AllowedRuleClassInfo.AllowedRuleClasses.ANY)); // unnecessary, but mandatory
-    }
-    return builder.build();
   }
 
   public String getName() {
@@ -88,14 +72,6 @@ public class AttributeDefinition
   @Nullable
   public String getDocumentation() {
     return documentation;
-  }
-
-  /**
-   * Only relevant for attributes of type LABEL and LABEL_LIST. Some such attributes can only
-   * contain certain rule types.
-   */
-  public boolean isRuleTypeAllowed(RuleDefinition rule) {
-    return allowedRuleClasses == null || allowedRuleClasses.contains(rule.getName());
   }
 
   @Override

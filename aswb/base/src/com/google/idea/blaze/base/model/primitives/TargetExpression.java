@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.model.primitives;
 
-import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import java.io.Serializable;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
@@ -28,7 +27,7 @@ import javax.annotation.Nullable;
  * packages beneath some root, and/or all targets within a package.
  */
 public class TargetExpression
-    implements ProtoWrapper<String>, Comparable<TargetExpression>, Serializable {
+    implements Comparable<TargetExpression>, Serializable {
   // still Serializable as part of ProjectViewSet
   public static final long serialVersionUID = 1L;
 
@@ -153,10 +152,5 @@ public class TargetExpression
     return colonIndex >= 0
         ? targetPattern.substring(prefixLength, colonIndex)
         : targetPattern.substring(prefixLength);
-  }
-
-  @Override
-  public String toProto() {
-    return expression;
   }
 }

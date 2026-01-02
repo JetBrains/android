@@ -72,7 +72,6 @@ java_library(
     name = "proto_wrapper",
     srcs = [
         "src/com/google/idea/blaze/base/ideinfo/ProjectDataInterner.java",
-        "src/com/google/idea/blaze/base/ideinfo/ProtoWrapper.java",
     ],
     neverlink = 1,
     visibility = ["//visibility:private"],
@@ -113,7 +112,6 @@ java_library(
 java_library(
     name = "label_api",
     srcs = [
-        "src/com/google/idea/blaze/base/ideinfo/ArtifactLocation.java",
         "src/com/google/idea/blaze/base/model/primitives/InvalidTargetException.java",
         "src/com/google/idea/blaze/base/model/primitives/Kind.java",
         "src/com/google/idea/blaze/base/model/primitives/Label.java",
@@ -262,22 +260,6 @@ java_library(
         "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
-    ],
-)
-
-# neverlink library exposed so other plugins can optionally depend on it
-java_library(
-    name = "library_to_target_api",
-    srcs = [
-        "src/com/google/idea/blaze/base/model/LibraryKey.java",
-    ],
-    neverlink = 1,
-    visibility = G3PLUGINS_VISIBILITY,
-    deps = [
-        ":label_api",
-        ":proto_wrapper",
-        "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api:jsr305",  # unuseddeps: keep for @Immutable
     ],
 )
 

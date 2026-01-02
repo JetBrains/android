@@ -15,9 +15,6 @@
  */
 package com.google.idea.blaze.base.model.primitives;
 
-import com.google.common.base.Objects;
-import com.google.idea.blaze.base.ideinfo.ProjectDataInterner;
-import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import javax.annotation.Nullable;
@@ -26,17 +23,11 @@ import javax.annotation.Nullable;
  * An absolute or relative path returned from Blaze. If it is a relative path, it is relative to the
  * execution root.
  */
-public final class ExecutionRootPath implements ProtoWrapper<String> {
-  private final File path;
+public record ExecutionRootPath(File path) {
 
   public ExecutionRootPath(String path) {
-    this.path = new File(path);
+    this(new File(path));
   }
-
-  public ExecutionRootPath(File path) {
-    this.path = path;
-  }
-
   public File getAbsoluteOrRelativeFile() {
     return path;
   }
@@ -50,23 +41,6 @@ public final class ExecutionRootPath implements ProtoWrapper<String> {
       return path;
     }
     return new File(absoluteRoot, path.getPath());
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ExecutionRootPath that = (ExecutionRootPath) o;
-    return Objects.equal(path, that.path);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(path);
   }
 
   @Override
@@ -95,7 +69,7 @@ public final class ExecutionRootPath implements ProtoWrapper<String> {
     if (relativePath == null) {
       return null;
     }
-    return ProjectDataInterner.intern(new ExecutionRootPath(new File(relativePath)));
+    return new ExecutionRootPath(new File(relativePath));
   }
 
   /**
@@ -145,14 +119,5 @@ public final class ExecutionRootPath implements ProtoWrapper<String> {
   public static boolean isAncestor(
       String possibleParentPath, String possibleChildPath, boolean strict) {
     return FileUtil.isAncestor(possibleParentPath, possibleChildPath, strict);
-  }
-
-  public static ExecutionRootPath fromProto(String proto) {
-    return ProjectDataInterner.intern(new ExecutionRootPath(proto));
-  }
-
-  @Override
-  public String toProto() {
-    return path.getPath();
   }
 }

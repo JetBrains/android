@@ -50,7 +50,6 @@ import com.google.idea.blaze.android.npw.project.BlazeAndroidModuleTemplate;
 import com.google.idea.blaze.android.projectsystem.BazelModuleSystem.BlazeRegisteredDependencyId;
 import com.google.idea.blaze.android.projectsystem.BazelModuleSystem.BlazeRegisteredDependencyQueryId;
 import com.google.idea.blaze.android.sync.model.idea.BlazeAndroidModel;
-import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
@@ -276,7 +275,7 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
   }
 
   @Nullable
-  private TargetKey getResolvedTarget(WellKnownMavenArtifactId id) {
+  private Object getResolvedTarget(WellKnownMavenArtifactId id) {
     // TODO (b/262289199): While there is a way of mapping a gradle coordinate to a target,
     //  that is a very tricky practice that while it could be supported with Query Sync, we
     //  should try to avoid it.  (Maybe we should revisit this now that we do not need to

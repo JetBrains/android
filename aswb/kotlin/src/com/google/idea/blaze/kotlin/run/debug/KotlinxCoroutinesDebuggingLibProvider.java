@@ -16,7 +16,6 @@
 package com.google.idea.blaze.kotlin.run.debug;
 
 import com.google.errorprone.annotations.FormatMethod;
-import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
@@ -35,7 +34,7 @@ public interface KotlinxCoroutinesDebuggingLibProvider {
       ExtensionPointName.create("com.google.idea.blaze.kotlinxCoroutinesDebuggingLibProvider");
 
   Optional<String> getKotlinxCoroutinesDebuggingLib(
-      ArtifactLocation coroutinesLibArtifact, BlazeCommandRunConfiguration config);
+      BlazeCommandRunConfiguration config);
 
   boolean isApplicable(Project project);
 

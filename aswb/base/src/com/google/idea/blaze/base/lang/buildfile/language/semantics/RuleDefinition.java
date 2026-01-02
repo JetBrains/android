@@ -20,14 +20,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.devtools.build.lib.query2.proto.proto2api.Build;
-import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import javax.annotation.Nullable;
 
 /** Simple implementation of RuleDefinition, from build.proto */
-public class RuleDefinition implements ProtoWrapper<Build.RuleDefinition> {
+public class RuleDefinition {
 
   private final String name;
   private final ImmutableMap<String, AttributeDefinition> attributes;
@@ -51,13 +50,6 @@ public class RuleDefinition implements ProtoWrapper<Build.RuleDefinition> {
     for (Build.AttributeDefinition attr : proto.getAttributeList()) {
       attributes.put(attr.getName(), AttributeDefinition.fromProto(attr));
     }
-    AttributeDefinition nameDef = attributes.get("name");
-    if (nameDef != null && !nameDef.isMandatory()) {
-      // blaze isn't correctly marking the 'name' attribute as mandatory
-      attributes.put(
-          "name",
-          AttributeDefinition.fromProto(nameDef.toProto().toBuilder().setMandatory(true).build()));
-    }
     attributes =
         attributes.entrySet().stream()
             .sorted(Entry.comparingByValue())
@@ -66,16 +58,6 @@ public class RuleDefinition implements ProtoWrapper<Build.RuleDefinition> {
         proto.getName(),
         ImmutableMap.copyOf(attributes),
         proto.hasDocumentation() ? proto.getDocumentation() : null);
-  }
-
-  @Override
-  public Build.RuleDefinition toProto() {
-    Build.RuleDefinition.Builder builder =
-        Build.RuleDefinition.newBuilder()
-            .setName(name)
-            .addAllAttribute(ProtoWrapper.mapToProtos(attributes.values()));
-    ProtoWrapper.setIfNotNull(builder::setDocumentation, documentation);
-    return builder.build();
   }
 
   public String getName() {

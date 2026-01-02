@@ -29,7 +29,6 @@ import com.google.idea.blaze.base.MockProjectViewManager;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.command.info.BlazeInfoRunner;
-import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
 import com.google.idea.blaze.base.logging.SyncStats;
 import com.google.idea.blaze.base.model.primitives.WorkspaceType;
 import com.google.idea.blaze.base.projectview.ProjectView;
@@ -166,14 +165,6 @@ public abstract class BlazeSyncIntegrationTestCase extends BlazeIntegrationTestC
       }
     }
     return null;
-  }
-
-  protected String getExecRoot() {
-    return execRoot;
-  }
-
-  protected static ArtifactLocation sourceRoot(String relativePath) {
-    return ArtifactLocation.builder().setRelativePath(relativePath).setIsSource(true).build();
   }
 
   protected void setProjectView(String... contents) {

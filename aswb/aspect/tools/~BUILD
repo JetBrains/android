@@ -76,29 +76,10 @@ java_test(
 )
 
 java_test(
-    name = "PackageParserTest",
-    size = "small",
-    srcs = ["tests/unittests/com/google/idea/blaze/aspect/PackageParserTest.java"],
-    test_class = "com.google.idea.blaze.aspect.PackageParserTest",
-    deps = [
-        ":test_lib",
-        "//tools/vendor/google/aswb/plugin_api",
-    ],
-)
-
-java_test(
     name = "OptionParserTest",
     size = "small",
     srcs = ["tests/unittests/com/google/idea/blaze/aspect/OptionParserTest.java"],
     test_class = "com.google.idea.blaze.aspect.OptionParserTest",
-    deps = [":test_lib"],
-)
-
-java_test(
-    name = "ArtifactLocationParserTest",
-    size = "small",
-    srcs = ["tests/unittests/com/google/idea/blaze/aspect/ArtifactLocationParserTest.java"],
-    test_class = "com.google.idea.blaze.aspect.ArtifactLocationParserTest",
     deps = [":test_lib"],
 )
 
