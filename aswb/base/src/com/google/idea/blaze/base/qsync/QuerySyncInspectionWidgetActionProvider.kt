@@ -24,6 +24,7 @@ import com.google.idea.blaze.base.qsync.action.PopupPositioner
 import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors
 import com.google.idea.blaze.base.qsync.action.getVirtualFiles
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings
+import com.google.idea.blaze.base.settings.Bazel.isBazelProject
 import com.google.idea.blaze.base.settings.Blaze
 import com.google.idea.blaze.base.settings.BlazeImportSettings
 import com.google.idea.blaze.qsync.project.TargetsToBuild
@@ -52,7 +53,7 @@ class QuerySyncInspectionWidgetActionProvider : InspectionWidgetActionProvider {
   override fun createAction(editor: Editor): AnAction? {
     val project = editor.project ?: return null
     return when {
-      Blaze.getProjectType(project) != BlazeImportSettings.ProjectType.QUERY_SYNC -> null
+      !project.isBazelProject() -> null
       editor.editorKind != EditorKind.MAIN_EDITOR -> null
       else -> BuildDependenciesAction(project, editor)
     }

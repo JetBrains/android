@@ -21,7 +21,6 @@ import javax.annotation.Nullable;
 public final class BlazeImportSettings {
   /** Type of the project based on the IDE configuration when it was created. */
   public enum ProjectType {
-    ASPECT_SYNC,
     QUERY_SYNC,
     /**
      * UNKNOWN is used when BlazeImportSettings is not available for current project. In most of the

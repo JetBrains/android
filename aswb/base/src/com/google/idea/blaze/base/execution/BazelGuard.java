@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.base.execution;
 
+import com.google.idea.blaze.base.settings.Bazel;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
@@ -30,8 +31,7 @@ public interface BazelGuard {
   void checkIsExecutionAllowed(Project project) throws ExecutionDeniedException;
 
   static void checkExtensionsIsExecutionAllowed(Project project) throws ExecutionDeniedException {
-    if (Blaze.getProjectType(project) != ProjectType.UNKNOWN
-        && Blaze.getBuildSystemName(project) == BuildSystemName.Blaze) {
+    if (Bazel.isBazelProject(project) && Blaze.getBuildSystemName(project) == BuildSystemName.Blaze) {
       return; // Tools for Blaze projects are always trusted
     }
     for (var extension : EP_NAME.getExtensionList()) {
