@@ -27,9 +27,6 @@
   </extensions>
 
   <extensions defaultExtensionNs="cidr.lang">
-    <languageKindHelper implementation="com.google.idea.blaze.cpp.BlazeLanguageKindCalculatorHelper"/>
-    <autoImportHelper implementation="com.google.idea.blaze.cpp.BlazeCppAutoImportHelper"/>
-    <customHeaderProvider implementation="com.google.idea.blaze.cpp.BlazeCustomHeaderProvider"/>
     <includeHelper implementation="com.google.idea.blaze.cpp.BlazeIncludeHelper"/>
     <ownModuleDetector implementation="com.google.idea.blaze.cpp.BlazeOwnModuleDetector"/>
   </extensions>

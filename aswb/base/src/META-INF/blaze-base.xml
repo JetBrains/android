@@ -200,7 +200,7 @@
 
     <projectService serviceImplementation="com.google.idea.blaze.base.build.BlazeBuildService"/>
     <projectService serviceInterface="com.google.idea.blaze.base.sync.data.BlazeProjectDataManager"
-                    serviceImplementation="com.google.idea.blaze.base.sync.data.DelegatingBlazeProjectDataManager"/>
+                    serviceImplementation="com.google.idea.blaze.base.qsync.QuerySyncProjectDataManager"/>
     <projectService serviceImplementation="com.google.idea.blaze.base.sync.BlazeSyncManager"/>
 
     <applicationConfigurable displayName="Query Sync" id="query.sync" parentId="com.google.idea.blaze.AswbSettings"
@@ -494,7 +494,6 @@
     <ProjectViewDefaultValueProvider implementation="com.google.idea.blaze.base.projectview.section.sections.AutomaticallyDeriveTargetsSection$DefaultValueProvider"/>
     <ProjectViewDefaultValueProvider implementation="com.google.idea.blaze.base.projectview.section.sections.TargetSection$TargetsProjectViewDefaultValueProvider"/>
     <ProjectViewDefaultValueProvider implementation="com.google.idea.blaze.base.projectview.section.sections.AdditionalLanguagesSection$AdditionalLanguagesDefaultValueProvider"/>
-    <BuildSystemVersionChecker implementation="com.google.idea.blaze.base.plugin.BazelVersionChecker"/>
     <BuildSystemVersionChecker implementation="com.google.idea.blaze.base.plugin.QuerySyncBazelVersionChecker"/>
     <BlazeConsoleLineProcessorProvider implementation="com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider$GeneralProvider"/>
     <TargetFinder implementation="com.google.idea.blaze.base.run.targetfinder.ProjectTargetFinder"/>

@@ -26,6 +26,7 @@ import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt
 import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors
 import com.google.idea.blaze.base.qsync.entity.BazelEntitySource
+import com.google.idea.blaze.base.settings.Bazel.isBazelProject
 import com.google.idea.blaze.base.settings.Blaze
 import com.google.idea.blaze.base.settings.BlazeImportSettings
 import com.intellij.openapi.module.Module
@@ -56,7 +57,7 @@ class BazelProjectTaskRunner: ProjectTaskRunner() {
     projectTask: ProjectTask,
     context: ProjectTaskContext?,
   ): Boolean {
-    if (Blaze.getProjectType(project) != BlazeImportSettings.ProjectType.QUERY_SYNC) return false
+    if (!project.isBazelProject()) return false
     fun Module.isOutModule() = findModuleEntity()?.entitySource == BazelEntitySource
     return when(projectTask) {
       is ModuleFilesBuildTask -> projectTask.module.isOutModule()

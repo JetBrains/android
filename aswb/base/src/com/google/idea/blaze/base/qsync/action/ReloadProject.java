@@ -18,8 +18,7 @@ package com.google.idea.blaze.base.qsync.action;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin;
-import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
+import com.google.idea.blaze.base.settings.Bazel;
 import com.google.idea.blaze.base.sync.status.BlazeSyncStatus;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -38,7 +37,7 @@ public class ReloadProject extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     Presentation p = e.getPresentation();
-    if (Blaze.getProjectType(e.getProject()) != ProjectType.QUERY_SYNC) {
+    if (!Bazel.isBazelProject(e.getProject())) {
       p.setVisible(false);
       return;
     }

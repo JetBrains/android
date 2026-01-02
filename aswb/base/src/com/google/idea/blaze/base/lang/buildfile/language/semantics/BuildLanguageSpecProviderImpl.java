@@ -26,13 +26,10 @@ import com.google.idea.blaze.base.async.executor.BlazeExecutor;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.command.info.BlazeInfoRunner;
-import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.sync.SyncListener;
-import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.protobuf.ExtensionRegistry;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -61,16 +58,8 @@ public class BuildLanguageSpecProviderImpl implements BuildLanguageSpecProvider 
 
   @Override
   public BuildLanguageSpec getLanguageSpec() {
-    if (Blaze.getProjectType(project) != ProjectType.ASPECT_SYNC) {
-      return getLanguageSpecInternal();
-    }
+    return getLanguageSpecInternal();
 
-    BlazeProjectData blazeProjectData =
-        BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
-    if (blazeProjectData == null) {
-      return null;
-    }
-    return null;
     // query sync:
     //LanguageSpecResult spec = blazeProjectData.getSyncState().get(LanguageSpecResult.class);
     //if (spec == null) {
