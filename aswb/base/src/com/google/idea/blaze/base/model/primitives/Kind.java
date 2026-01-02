@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
-import com.google.devtools.intellij.ideinfo.IntellijIdeInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import java.util.Arrays;
@@ -30,8 +29,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 import javax.annotation.Nullable;
 
 /**
@@ -56,15 +53,6 @@ public abstract class Kind {
 
     /** A set of rule names known at compile time. */
     ImmutableSet<Kind> getTargetKinds();
-
-    /**
-     * A heuristic to identify additional target kinds at runtime which aren't known up-front. For
-     * example, any rule name starting with 'kt_jvm_' might be parsed as a kotlin rule of unknown
-     * {@link RuleType}.
-     */
-    default Function<IntellijIdeInfo.TargetIdeInfo, Kind> getTargetKindHeuristics() {
-      return t -> null;
-    }
 
     static Kind create(String ruleName, LanguageClass languageClass, RuleType ruleType) {
       return create(ruleName, languageClass, ruleType, 1);
@@ -118,25 +106,6 @@ public abstract class Kind {
       kind.getLanguageClasses().forEach(languageClass -> perLanguageKinds.put(languageClass, kind));
       return kind;
     }
-  }
-
-  @Nullable
-  public static Kind fromProto(IntellijIdeInfo.TargetIdeInfo proto) {
-    Kind existing = fromRuleName(proto.getKindString());
-    if (existing != null) {
-      return existing;
-    }
-    // check provided heuristics
-    Kind derived =
-        Arrays.stream(Provider.EP_NAME.getExtensions())
-            .map(p -> p.getTargetKindHeuristics().apply(proto))
-            .filter(Objects::nonNull)
-            .findFirst()
-            .orElse(null);
-    if (derived != null) {
-      derived = ApplicationState.getService().cacheIfNecessary(derived);
-    }
-    return derived;
   }
 
   @Nullable

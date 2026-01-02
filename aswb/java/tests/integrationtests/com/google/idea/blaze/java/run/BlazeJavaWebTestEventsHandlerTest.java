@@ -19,9 +19,8 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.Iterables;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
-import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
-import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.java.JavaBlazeRules.RuleTypes;
 import com.intellij.execution.Location;
 import com.intellij.execution.testframework.sm.runner.SMTestLocator;
@@ -149,9 +148,5 @@ public class BlazeJavaWebTestEventsHandlerTest extends BlazeIntegrationTestCase 
     return Iterables.getFirst(
         locator.getLocation(protocol, path, getProject(), GlobalSearchScope.allScope(getProject())),
         null);
-  }
-
-  private static ArtifactLocation src(String relativePath) {
-    return ArtifactLocation.builder().setRelativePath(relativePath).setIsSource(true).build();
   }
 }

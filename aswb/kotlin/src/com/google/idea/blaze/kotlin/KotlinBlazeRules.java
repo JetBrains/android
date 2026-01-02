@@ -19,12 +19,10 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-import com.google.devtools.intellij.ideinfo.IntellijIdeInfo.TargetIdeInfo;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.LanguageClass;
 import com.google.idea.blaze.base.model.primitives.RuleType;
 import java.util.Arrays;
-import java.util.function.Function;
 
 /** Contributes kotlin rules to {@link Kind}. */
 public final class KotlinBlazeRules implements Kind.Provider {
@@ -63,15 +61,5 @@ public final class KotlinBlazeRules implements Kind.Provider {
     return Arrays.stream(RuleTypes.values())
         .map(e -> Kind.Provider.create(e.name, e.languageClass, e.ruleType))
         .collect(toImmutableSet());
-  }
-
-  @Override
-  public Function<TargetIdeInfo, Kind> getTargetKindHeuristics() {
-    return proto ->
-        proto.getKindString().startsWith("kt_jvm_")
-                || proto.getKindString().startsWith("kt_android_")
-                || proto.getKindString().startsWith("kt_native_")
-            ? Kind.Provider.create(proto.getKindString(), LanguageClass.KOTLIN, RuleType.UNKNOWN)
-            : null;
   }
 }

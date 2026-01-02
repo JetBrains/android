@@ -15,11 +15,8 @@
  */
 package com.google.idea.blaze.kotlin.run.debug;
 
-import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationRunner;
-import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.java.run.BlazeJavaDebuggingSetupHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.util.Key;
@@ -43,7 +40,7 @@ public class BlazeKotlinDebuggingSetupHandler implements BlazeJavaDebuggingSetup
       BlazeCommandRunConfiguration config =
           BlazeCommandRunConfigurationRunner.getConfiguration(env);
     if (KotlinProjectTraversingService.getInstance().dependsOnKotlinxCoroutinesLib(config)) {
-      getCoroutinesDebuggingLib(null, config)
+      getCoroutinesDebuggingLib(config)
         .ifPresent(path -> env.getCopyableUserData(COROUTINES_LIB_PATH).set(path));
     }
     return true;
@@ -55,10 +52,10 @@ public class BlazeKotlinDebuggingSetupHandler implements BlazeJavaDebuggingSetup
   }
 
   private static Optional<String> getCoroutinesDebuggingLib(
-      ArtifactLocation artifact, BlazeCommandRunConfiguration config) {
+      BlazeCommandRunConfiguration config) {
     return KotlinxCoroutinesDebuggingLibProvider.EP_NAME.getExtensionList().stream()
         .filter(p -> p.isApplicable(config.getProject()))
         .findFirst()
-        .flatMap(p -> p.getKotlinxCoroutinesDebuggingLib(artifact, config));
+        .flatMap(p -> p.getKotlinxCoroutinesDebuggingLib(config));
   }
 }

@@ -19,9 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.devtools.build.lib.query2.proto.proto2api.Build;
 import com.google.devtools.build.lib.query2.proto.proto2api.Build.BuildLanguage;
-import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import javax.annotation.Nullable;
 
 /**
@@ -34,7 +32,7 @@ import javax.annotation.Nullable;
  * <p>This rule list is not exhaustive; it's intended to give information about known rules, not
  * enumerate all possibilities.
  */
-public class BuildLanguageSpec implements ProtoWrapper<Build.BuildLanguage> {
+public class BuildLanguageSpec {
   private final ImmutableMap<String, RuleDefinition> rules;
 
   @VisibleForTesting
@@ -47,13 +45,6 @@ public class BuildLanguageSpec implements ProtoWrapper<Build.BuildLanguage> {
         proto.getRuleList().stream()
             .map(RuleDefinition::fromProto)
             .collect(ImmutableMap.toImmutableMap(RuleDefinition::getName, Functions.identity())));
-  }
-
-  @Override
-  public BuildLanguage toProto() {
-    return Build.BuildLanguage.newBuilder()
-        .addAllRule(ProtoWrapper.mapToProtos(rules.values()))
-        .build();
   }
 
   public ImmutableMap<String, RuleDefinition> getRules() {

@@ -19,12 +19,10 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-import com.google.devtools.intellij.ideinfo.IntellijIdeInfo.TargetIdeInfo;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.LanguageClass;
 import com.google.idea.blaze.base.model.primitives.RuleType;
 import java.util.Arrays;
-import java.util.function.Function;
 
 /** Contributes java rules to {@link Kind}. */
 public final class JavaBlazeRules implements Kind.Provider {
@@ -76,11 +74,4 @@ public final class JavaBlazeRules implements Kind.Provider {
         .collect(toImmutableSet());
   }
 
-  @Override
-  public Function<TargetIdeInfo, Kind> getTargetKindHeuristics() {
-    return proto ->
-        proto.hasJavaIdeInfo() || proto.hasJavaToolchainIdeInfo()
-            ? Kind.Provider.create(proto.getKindString(), LanguageClass.JAVA, RuleType.UNKNOWN)
-            : null;
-  }
 }

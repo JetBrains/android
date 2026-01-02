@@ -17,11 +17,10 @@ package com.google.idea.blaze.base.model.primitives;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import javax.annotation.Nullable;
 
 /** Language classes. */
-public enum LanguageClass implements ProtoWrapper<String> {
+public enum LanguageClass {
   GENERIC("generic", ImmutableSet.of()),
   C("c", ImmutableSet.of("c", "cc", "cpp", "h", "hh", "hpp")),
   JAVA("java", ImmutableSet.of("java")),
@@ -78,10 +77,5 @@ public enum LanguageClass implements ProtoWrapper<String> {
   @Nullable
   public static LanguageClass fromExtension(String filenameExtension) {
     return RECOGNIZED_EXTENSIONS.get(filenameExtension);
-  }
-
-  @Override
-  public String toProto() {
-    return name;
   }
 }

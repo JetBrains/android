@@ -15,12 +15,10 @@
  */
 package com.google.idea.blaze.base.model;
 
-import com.google.devtools.intellij.model.ProjectData;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.base.bazel.BazelVersion;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
-import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import java.util.Objects;
@@ -30,34 +28,7 @@ import javax.annotation.Nullable;
  * Version data about the user's blaze/bazel and other info needed for switching behaviour
  * dynamically.
  */
-public final class BlazeVersionData implements ProtoWrapper<ProjectData.BlazeVersionData> {
-  @Nullable private final Long blazeCl;
-  @Nullable public final Long clientCl;
-  @Nullable private final BazelVersion bazelVersion;
-
-  private BlazeVersionData(
-      @Nullable Long blazeCl, @Nullable Long clientCl, @Nullable BazelVersion bazelVersion) {
-    this.blazeCl = blazeCl;
-    this.clientCl = clientCl;
-    this.bazelVersion = bazelVersion;
-  }
-
-  static BlazeVersionData fromProto(ProjectData.BlazeVersionData proto) {
-    return new BlazeVersionData(
-        proto.getBlazeCl() != 0 ? proto.getBlazeCl() : null,
-        proto.getClientCl() != 0 ? proto.getClientCl() : null,
-        proto.hasBazelVersion() ? BazelVersion.fromProto(proto.getBazelVersion()) : null);
-  }
-
-  @Override
-  public ProjectData.BlazeVersionData toProto() {
-    ProjectData.BlazeVersionData.Builder builder = ProjectData.BlazeVersionData.newBuilder();
-    ProtoWrapper.setIfNotNull(builder::setBlazeCl, blazeCl);
-    ProtoWrapper.setIfNotNull(builder::setClientCl, clientCl);
-    ProtoWrapper.unwrapAndSetIfNotNull(builder::setBazelVersion, bazelVersion);
-    return builder.build();
-  }
-
+public record BlazeVersionData(@Nullable Long blazeCl, @Nullable Long clientCl, @Nullable BazelVersion bazelVersion) {
   public boolean blazeVersionIsKnown() {
     return blazeCl != null;
   }

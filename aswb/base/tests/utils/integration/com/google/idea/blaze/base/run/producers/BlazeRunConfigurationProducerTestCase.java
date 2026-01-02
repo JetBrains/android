@@ -18,7 +18,6 @@ package com.google.idea.blaze.base.run.producers;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.EditorTestHelper;
 import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataBuilder;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataManager;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
@@ -134,9 +133,5 @@ public class BlazeRunConfigurationProducerTestCase extends BlazeIntegrationTestC
                     .build())
             .getConfiguration();
     return settings != null ? settings.getConfiguration() : null;
-  }
-
-  protected static ArtifactLocation sourceRoot(String relativePath) {
-    return ArtifactLocation.builder().setRelativePath(relativePath).setIsSource(true).build();
   }
 }

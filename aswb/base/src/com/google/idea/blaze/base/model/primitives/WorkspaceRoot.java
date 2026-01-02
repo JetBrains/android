@@ -18,7 +18,6 @@ package com.google.idea.blaze.base.model.primitives;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.intellij.openapi.project.Project;
@@ -33,7 +32,7 @@ import org.jetbrains.annotations.TestOnly;
 
 /** Represents a workspace root */
 @SuppressWarnings("FileComparisons")
-public class WorkspaceRoot implements ProtoWrapper<String> {
+public class WorkspaceRoot {
   private final File directory;
 
   public WorkspaceRoot(File directory) {
@@ -213,10 +212,5 @@ public class WorkspaceRoot implements ProtoWrapper<String> {
 
   public static WorkspaceRoot fromProto(String proto) {
     return new WorkspaceRoot(new File(proto));
-  }
-
-  @Override
-  public String toProto() {
-    return directory.getPath();
   }
 }
