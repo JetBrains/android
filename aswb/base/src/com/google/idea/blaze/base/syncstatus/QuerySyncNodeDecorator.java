@@ -18,8 +18,6 @@ package com.google.idea.blaze.base.syncstatus;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.sync.SyncListener;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
@@ -29,9 +27,6 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ProjectViewNodeDecorator;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
-import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.projectView.ProjectViewNode;
-import com.intellij.ide.projectView.ProjectViewNodeDecorator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -52,7 +47,7 @@ public class QuerySyncNodeDecorator implements ProjectViewNodeDecorator {
   @Override
   public void decorate(ProjectViewNode<?> node, PresentationData data) {
     Project project = node.getProject();
-    if (project == null || Blaze.getProjectType(project) != ProjectType.QUERY_SYNC) {
+    if (project == null) {
       return;
     }
     QuerySyncManager manager = QuerySyncManager.getInstance(project);

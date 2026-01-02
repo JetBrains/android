@@ -91,15 +91,6 @@ public abstract class BlazeProjectAction extends AnAction {
             break;
         }
         break;
-      case ASPECT_SYNC:
-        switch (querySyncSupport()) {
-          case REQUIRED:
-            e.getPresentation().setEnabledAndVisible(false);
-            return;
-          default:
-            e.getPresentation().setEnabledAndVisible(true);
-        }
-        break;
     }
 
     if (!compatibleBuildSystem(project)) {

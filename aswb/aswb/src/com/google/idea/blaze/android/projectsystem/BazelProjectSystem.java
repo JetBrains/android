@@ -23,7 +23,6 @@ import static org.jetbrains.android.facet.SourceProviderUtil.createSourceProvide
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.CommonTestType;
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder;
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -36,12 +35,8 @@ import com.android.tools.idea.res.AndroidInnerClassFinder;
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.android.resources.BlazeLightResourceClassService;
-import com.google.idea.blaze.android.sync.model.idea.BlazeAndroidModel;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
-import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.module.Module;
@@ -123,68 +118,38 @@ public class BazelProjectSystem implements AndroidProjectSystem {
     return new SourceProvidersFactory() {
       @Override
       public SourceProviders createSourceProvidersFor(AndroidFacet facet) {
-        if (Blaze.getProjectType(project).equals(ProjectType.QUERY_SYNC)) {
-          QuerySyncManager querySyncManager = QuerySyncManager.getInstance(facet.getModule().getProject());
-          final var querySyncProject = querySyncManager.getLoadedProject();
-          if (querySyncProject.isEmpty()) return createSourceProvidersForLegacyModule(facet);
-          final var data = querySyncManager.getCurrentSnapshot();
-          if (data.isEmpty()) return createSourceProvidersForLegacyModule(facet);
-          final var androidResourceDirectories = data.get().getProject().getModules().stream().flatMap(it -> it.getAndroidResourceDirectories().stream())
-            .toList();
-          var androidResourceDirectoryFiles =
-            androidResourceDirectories
-              .stream()
-              .flatMap (it -> querySyncProject.map(p -> p.getProjectPathResolver().resolve(it).toFile()).stream())
-              .collect(toImmutableSet());
-          var mainSourceProvider =
-            NamedIdeaSourceProviderBuilder.create(BlazeProjectDataStorage.WORKSPACE_MODULE_NAME, VfsUtilCore.fileToUrl(new File("MissingManifest.xml")))
-              .withScopeType(ScopeType.MAIN)
-              .withResDirectoryUrls(androidResourceDirectoryFiles.stream().map (VfsUtilCore::fileToUrl).toList())
-        .build();
-          return new SourceProvidersImpl(
-            mainSourceProvider,
-            ImmutableList.of(mainSourceProvider),
-            ImmutableMap.of(CommonTestType.UNIT_TEST, ImmutableList.of()),
-            ImmutableMap.of(CommonTestType.ANDROID_TEST, ImmutableList.of()),
-            ImmutableList.of(),
-            ImmutableMap.of(),
-              ImmutableList.of(mainSourceProvider),
-              ImmutableList.of(mainSourceProvider),
-              ImmutableList.of(mainSourceProvider),
-              emptySourceProvider(ScopeType.MAIN),
-              ImmutableMap.of(CommonTestType.UNIT_TEST, emptySourceProvider(ScopeType.UNIT_TEST)),
-              ImmutableMap.of(
-                  CommonTestType.ANDROID_TEST, emptySourceProvider(ScopeType.ANDROID_TEST)),
-              emptySourceProvider(ScopeType.TEST_FIXTURES));
-        } else {
-          BlazeAndroidModel model = ((BlazeAndroidModel)AndroidModel.get(facet));
-          if (model != null) {
-            return createForModel(model);
-          }
-          else {
-            return createSourceProvidersForLegacyModule(facet);
-          }
-        }
-      }
-
-      private SourceProviders createForModel(BlazeAndroidModel model) {
-        NamedIdeaSourceProvider mainSourceProvider = model.getDefaultSourceProviderLegacySyncOnly();
+        QuerySyncManager querySyncManager = QuerySyncManager.getInstance(facet.getModule().getProject());
+        final var querySyncProject = querySyncManager.getLoadedProject();
+        if (querySyncProject.isEmpty()) return createSourceProvidersForLegacyModule(facet);
+        final var data = querySyncManager.getCurrentSnapshot();
+        if (data.isEmpty()) return createSourceProvidersForLegacyModule(facet);
+        final var androidResourceDirectories = data.get().getProject().getModules().stream().flatMap(it -> it.getAndroidResourceDirectories().stream())
+          .toList();
+        var androidResourceDirectoryFiles =
+          androidResourceDirectories
+            .stream()
+            .flatMap (it -> querySyncProject.map(p -> p.getProjectPathResolver().resolve(it).toFile()).stream())
+            .collect(toImmutableSet());
+        var mainSourceProvider =
+          NamedIdeaSourceProviderBuilder.create(BlazeProjectDataStorage.WORKSPACE_MODULE_NAME, VfsUtilCore.fileToUrl(new File("MissingManifest.xml")))
+            .withScopeType(ScopeType.MAIN)
+            .withResDirectoryUrls(androidResourceDirectoryFiles.stream().map (VfsUtilCore::fileToUrl).toList())
+      .build();
         return new SourceProvidersImpl(
-            mainSourceProvider,
+          mainSourceProvider,
+          ImmutableList.of(mainSourceProvider),
+          ImmutableMap.of(CommonTestType.UNIT_TEST, ImmutableList.of()),
+          ImmutableMap.of(CommonTestType.ANDROID_TEST, ImmutableList.of()),
+          ImmutableList.of(),
+          ImmutableMap.of(),
             ImmutableList.of(mainSourceProvider),
-            ImmutableMap.of(CommonTestType.UNIT_TEST, ImmutableList.of(mainSourceProvider)),
-            ImmutableMap.of(CommonTestType.ANDROID_TEST, ImmutableList.of(mainSourceProvider)),
             ImmutableList.of(mainSourceProvider),
-            ImmutableMap.of(),
-              ImmutableList.of(mainSourceProvider),
-              ImmutableList.of(mainSourceProvider),
-              ImmutableList.of(mainSourceProvider),
-              emptySourceProvider(ScopeType.MAIN),
-              ImmutableMap.of(CommonTestType.UNIT_TEST, emptySourceProvider(ScopeType.UNIT_TEST)),
-              ImmutableMap.of(
-                  CommonTestType.ANDROID_TEST, emptySourceProvider(ScopeType.ANDROID_TEST)),
-              emptySourceProvider(ScopeType.TEST_FIXTURES));
-
+            ImmutableList.of(mainSourceProvider),
+            emptySourceProvider(ScopeType.MAIN),
+            ImmutableMap.of(CommonTestType.UNIT_TEST, emptySourceProvider(ScopeType.UNIT_TEST)),
+            ImmutableMap.of(
+                CommonTestType.ANDROID_TEST, emptySourceProvider(ScopeType.ANDROID_TEST)),
+            emptySourceProvider(ScopeType.TEST_FIXTURES));
       }
     };
   }
@@ -257,24 +222,13 @@ public class BazelProjectSystem implements AndroidProjectSystem {
   @NotNull
   @Override
   public Collection<Module> findModulesWithApplicationId(@NotNull String applicationId) {
-    if (Blaze.getProjectType(project).equals(ProjectType.QUERY_SYNC)) {
-      Module workspaceModule =
-          ModuleManager.getInstance(project).findModuleByName(WORKSPACE_MODULE_NAME);
-      if (workspaceModule != null) {
-        return ImmutableList.of(workspaceModule);
-      } else {
-        return ImmutableList.of();
-      }
+    Module workspaceModule =
+      ModuleManager.getInstance(project).findModuleByName(WORKSPACE_MODULE_NAME);
+    if (workspaceModule != null) {
+      return ImmutableList.of(workspaceModule);
+    } else {
+      return ImmutableList.of();
     }
-    List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
-    ImmutableSet.Builder<Module> resultBuilder = ImmutableSet.builder();
-    for (AndroidFacet facet : facets) {
-      AndroidModel model = AndroidModel.get(facet);
-      if (model != null && model.getApplicationId().equals(applicationId)) {
-        resultBuilder.add(facet.getModule());
-      }
-    }
-    return resultBuilder.build();
   }
 
   @Override
@@ -284,11 +238,8 @@ public class BazelProjectSystem implements AndroidProjectSystem {
 
   @Override
   public boolean isAndroidProject() {
-    if (Blaze.getProjectType(project).equals(ProjectType.QUERY_SYNC)) {
-      return QuerySyncManager.getInstance(project).getLoadedProject().map(it -> it.getProjectDefinition().isAndroidWorkspace())
-        .orElse(false);
-    }
-    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
+    return QuerySyncManager.getInstance(project).getLoadedProject().map(it -> it.getProjectDefinition().isAndroidWorkspace())
+      .orElse(false);
   }
 
   private static boolean hasPackageName(AndroidFacet facet, String packageName) {

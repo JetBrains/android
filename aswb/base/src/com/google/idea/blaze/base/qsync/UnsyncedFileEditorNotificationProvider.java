@@ -16,9 +16,7 @@
 package com.google.idea.blaze.base.qsync;
 
 import com.google.idea.blaze.base.qsync.settings.QuerySyncConfigurableProvider;
-import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
-import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
+import com.google.idea.blaze.base.settings.Bazel;
 import com.google.idea.blaze.base.sync.actions.IncrementalSyncProjectAction;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.notification.Notification;
@@ -59,7 +57,7 @@ public class UnsyncedFileEditorNotificationProvider implements EditorNotificatio
   @Nullable
   public Function<? super FileEditor, ? extends JComponent> collectNotificationData(
       Project project, VirtualFile virtualFile) {
-    if (!Blaze.getProjectType(project).equals(ProjectType.QUERY_SYNC)) {
+    if (!Bazel.isBazelProject(project)) {
       return null;
     }
     if (!ENABLED.getValue()) {

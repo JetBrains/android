@@ -1,11 +1,11 @@
 /*
- * Copyright 2025 The Bazel Authors. All rights reserved.
+ * Copyright 2026 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.java.qsync
+package com.google.idea.blaze.base.settings
 
-import com.google.idea.blaze.base.settings.Bazel.isBazelProject
-import com.google.idea.blaze.base.settings.Blaze
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType
 import com.intellij.openapi.project.Project
 
-fun Project.isQuerySyncProject(): Boolean {
-  return this.isBazelProject()
+object Bazel {
+  /**
+   * Returns whether the [Project] is an ASwB project.
+   *
+   * This is a safe to run in the EDT thread check.
+   */
+  @JvmStatic
+  fun Project.isBazelProject(): Boolean {
+    @Suppress("DEPRECATION")
+    return Blaze.isBlazeProject(this)
+  }
 }

@@ -34,7 +34,6 @@ public class BlazeSyncStatusImpl implements BlazeSyncStatus {
     return (BlazeSyncStatusImpl) BlazeSyncStatus.getInstance(project);
   }
 
-  private final AtomicBoolean syncInProgress = new AtomicBoolean(false);
   private final BlazeSyncStatusStateManager stateManager;
 
   public BlazeSyncStatusImpl(Project project) {
@@ -52,20 +51,14 @@ public class BlazeSyncStatusImpl implements BlazeSyncStatus {
 
   @Override
   public boolean syncInProgress() {
-    if (Blaze.getProjectType(project).equals(ProjectType.QUERY_SYNC)) {
-      return QuerySyncManager.getInstance(project).operationInProgress();
-    }
-    return syncInProgress.get();
+    return QuerySyncManager.getInstance(project).operationInProgress();
   }
 
   @Override
-  public void syncStarted() {
-    syncInProgress.set(true);
-  }
+  public void syncStarted() {}
 
   @Override
   public void syncEnded(SyncMode syncMode, SyncResult syncResult) {
-    syncInProgress.set(false);
     stateManager.setLastSyncFailed(syncResult == SyncResult.FAILURE);
     if (allTargetsBuild(syncMode) && syncResult == SyncResult.SUCCESS) {
       stateManager.setDirty(false);
