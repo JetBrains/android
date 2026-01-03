@@ -43,7 +43,7 @@ import com.google.idea.blaze.base.command.buildresult.bepparser.OutputArtifactPa
 import com.google.idea.blaze.base.model.primitives.GenericBlazeRules;
 import com.google.idea.blaze.base.model.primitives.GenericBlazeRules.RuleTypes;
 import com.google.idea.blaze.base.model.primitives.Kind;
-import com.google.idea.blaze.base.model.primitives.Label;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.run.RuntimeArtifactCache;
 import com.google.idea.blaze.base.run.RuntimeArtifactKind;
@@ -140,7 +140,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
     List<OutputArtifact> parsedFilenames =
       BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null).getAllOutputArtifactsForTesting();
 
-    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject(),
+    assertThat(LocalFileArtifact.getLocalFiles(Label.of(label), parsedFilenames, context, getProject(),
                                                RuntimeArtifactKind.JAR))
       .containsExactlyElementsIn(filePaths.stream().map(File::new).toArray())
       .inOrder();
@@ -183,7 +183,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
     List<OutputArtifact> parsedFilenames =
       BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null).getAllOutputArtifactsForTesting();
 
-    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject(),
+    assertThat(LocalFileArtifact.getLocalFiles(Label.of(label), parsedFilenames, context, getProject(),
                                                RuntimeArtifactKind.JAR))
       .containsExactlyElementsIn(filePaths.stream().map(File::new).toArray())
       .inOrder();
@@ -229,7 +229,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
       BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null)
         .getAllOutputArtifactsForTesting();
 
-    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject(),
+    assertThat(LocalFileArtifact.getLocalFiles(Label.of(label), parsedFilenames, context, getProject(),
                                                RuntimeArtifactKind.JAR))
       .containsExactlyElementsIn(allFiles)
       .inOrder();
@@ -268,7 +268,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
       BepParser.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)), null)
         .getAllOutputArtifactsForTesting();
 
-    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject(),
+    assertThat(LocalFileArtifact.getLocalFiles(Label.of(label), parsedFilenames, context, getProject(),
                                                RuntimeArtifactKind.JAR))
       .containsExactlyElementsIn(allFiles)
       .inOrder();
@@ -302,7 +302,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
         .getOutputGroupTargetArtifacts(
         "group-name", "//some:target");
 
-    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject(),
+    assertThat(LocalFileArtifact.getLocalFiles(Label.of(label), parsedFilenames, context, getProject(),
                                                RuntimeArtifactKind.JAR))
       .containsExactlyElementsIn(allFiles)
       .inOrder();
@@ -345,7 +345,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
         .getOutputGroupTargetArtifacts(
         "group-name", "//some:target");
 
-    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject(),
+    assertThat(LocalFileArtifact.getLocalFiles(Label.of(label), parsedFilenames, context, getProject(),
                                                RuntimeArtifactKind.JAR))
       .containsExactlyElementsIn(allFiles)
       .inOrder();
@@ -393,7 +393,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
         .getOutputGroupArtifacts(
         "group-name");
 
-    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject(),
+    assertThat(LocalFileArtifact.getLocalFiles(Label.of(label), parsedFilenames, context, getProject(),
                                                RuntimeArtifactKind.JAR))
       .containsExactlyElementsIn(allFiles)
       .inOrder();
@@ -436,7 +436,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
         .getOutputGroupArtifacts(
         "group-1");
 
-    assertThat(LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label), parsedFilenames, context, getProject(),
+    assertThat(LocalFileArtifact.getLocalFiles(Label.of(label), parsedFilenames, context, getProject(),
                                                RuntimeArtifactKind.JAR))
       .containsExactlyElementsIn(allFiles)
       .inOrder();
@@ -457,7 +457,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
 
   @Test
   public void parseTestResults_singleEvent_returnsTestResults() throws Exception {
-    Label label = Label.create("//java/com/google:unit_tests");
+    Label label = Label.of("//java/com/google:unit_tests");
     BuildEventStreamProtos.TestStatus status = BuildEventStreamProtos.TestStatus.FAILED;
     ImmutableList<String> filePaths = ImmutableList.of("/usr/local/tmp/_cache/test_result.xml");
     BuildEvent.Builder event = testResultEvent(label.toString(), status, filePaths);
@@ -476,7 +476,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
   @Test
   public void parseTestResults_singleTestEventWithTargetConfigured_resultsIncludeTargetKind()
     throws Exception {
-    Label label = Label.create("//java/com/google:unit_tests");
+    Label label = Label.of("//java/com/google:unit_tests");
     BuildEventStreamProtos.TestStatus status = BuildEventStreamProtos.TestStatus.FAILED;
     ImmutableList<String> filePaths = ImmutableList.of("/usr/local/tmp/_cache/test_result.xml");
     InputStream events =
@@ -498,7 +498,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
   @Test
   public void parseTestResults_singleTestEventWithTargetCompleted_resultsIncludeTargetKind()
     throws Exception {
-    Label label = Label.create("//java/com/google:unit_tests");
+    Label label = Label.of("//java/com/google:unit_tests");
     BuildEventStreamProtos.TestStatus status = BuildEventStreamProtos.TestStatus.FAILED;
     ImmutableList<String> filePaths = ImmutableList.of("/usr/local/tmp/_cache/test_result.xml");
     InputStream events =
@@ -520,7 +520,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
   @Test
   public void parseTestResults_multipleTargetKindSources_resultsIncludeCorrectTargetKind()
     throws Exception {
-    Label label = Label.create("//java/com/google:unit_tests");
+    Label label = Label.of("//java/com/google:unit_tests");
     BuildEventStreamProtos.TestStatus status = BuildEventStreamProtos.TestStatus.FAILED;
     ImmutableList<String> filePaths = ImmutableList.of("/usr/local/tmp/_cache/test_result.xml");
     InputStream events =
@@ -542,7 +542,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
 
   @Test
   public void parseTestResults_singleEvent_ignoresNonXmlOutputFiles() throws Exception {
-    Label label = Label.create("//java/com/google:unit_tests");
+    Label label = Label.of("//java/com/google:unit_tests");
     BuildEventStreamProtos.TestStatus status = BuildEventStreamProtos.TestStatus.FAILED;
     ImmutableList<String> filePaths =
       ImmutableList.of(
@@ -562,7 +562,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
   @Test
   public void parseTestResults_singleTargetWithMultipleEvents_returnsTestResults()
     throws Exception {
-    Label label = Label.create("//java/com/google:unit_tests");
+    Label label = Label.of("//java/com/google:unit_tests");
 
     ImmutableList<BuildEvent.Builder> events =
       ImmutableList.of(
@@ -614,22 +614,22 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
       BuildEventProtocolOutputReader.parseTestResults(BuildEventStreamProvider.fromInputStream(asInputStream(test1, test2)));
 
     assertThat(results.perTargetResults).hasSize(2);
-    assertThat(results.perTargetResults.get(Label.create("//java/com/google:Test1"))).hasSize(1);
-    assertThat(results.perTargetResults.get(Label.create("//java/com/google:Test2"))).hasSize(1);
+    assertThat(results.perTargetResults.get(Label.of("//java/com/google:Test1"))).hasSize(1);
+    assertThat(results.perTargetResults.get(Label.of("//java/com/google:Test2"))).hasSize(1);
     BlazeTestResult result1 =
-      results.perTargetResults.get(Label.create("//java/com/google:Test1")).iterator().next();
+      results.perTargetResults.get(Label.of("//java/com/google:Test1")).iterator().next();
     assertThat(result1.getTestStatus()).isEqualTo(TestStatus.PASSED);
-    assertThat(getOutputXmlFiles(Label.create(label1), result1, context, getProject()))
+    assertThat(getOutputXmlFiles(Label.of(label1), result1, context, getProject()))
       .containsExactly(new File("/usr/local/tmp/_cache/test_result.xml"));
     BlazeTestResult result2 =
-      results.perTargetResults.get(Label.create("//java/com/google:Test2")).iterator().next();
+      results.perTargetResults.get(Label.of("//java/com/google:Test2")).iterator().next();
     assertThat(result2.getTestStatus()).isEqualTo(TestStatus.INCOMPLETE);
-    assertThat(getOutputXmlFiles(Label.create(label2), result2, context, getProject()))
+    assertThat(getOutputXmlFiles(Label.of(label2), result2, context, getProject()))
       .containsExactly(new File("/usr/local/tmp/_cache/second_result.xml"));
   }
 
   private static ImmutableList<File> getOutputXmlFiles(Label label, BlazeTestResult result, BlazeContext context, Project project) {
-    return LocalFileArtifact.getLocalFiles(com.google.idea.blaze.common.Label.of(label.toString()), result.getOutputXmlFiles(), context,
+    return LocalFileArtifact.getLocalFiles(label, result.getOutputXmlFiles(), context,
                                            project, RuntimeArtifactKind.JAR);
   }
 

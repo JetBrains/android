@@ -21,7 +21,7 @@ import com.google.common.collect.Iterables;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.lang.buildfile.psi.util.PsiUtils;
 import com.google.idea.blaze.base.model.primitives.Kind;
-import com.google.idea.blaze.base.model.primitives.Label;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.intellij.execution.Location;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -51,7 +51,7 @@ public class BlazePythonTestEventsHandlerTest extends BlazeIntegrationTestCase {
     PyClass pyClass = PsiUtils.findFirstChildOfClassRecursive(file, PyClass.class);
     assertThat(pyClass).isNotNull();
 
-    String url = handler.suiteLocationUrl(Label.create("//lib:app_unittest"), null, "AppUnitTest");
+    String url = handler.suiteLocationUrl(Label.of("//lib:app_unittest"), null, "AppUnitTest");
     Location<?> location = getLocation(url);
     assertThat(location.getPsiElement()).isEqualTo(pyClass);
   }
@@ -70,7 +70,7 @@ public class BlazePythonTestEventsHandlerTest extends BlazeIntegrationTestCase {
 
     String url =
         handler.testLocationUrl(
-            Label.create("//lib:app_unittest"), null, null, "__main__.AppUnitTest.testApp", null);
+            Label.of("//lib:app_unittest"), null, null, "__main__.AppUnitTest.testApp", null);
     Location<?> location = getLocation(url);
     assertThat(location.getPsiElement()).isEqualTo(function);
   }
@@ -89,7 +89,7 @@ public class BlazePythonTestEventsHandlerTest extends BlazeIntegrationTestCase {
 
     String url =
         handler.testLocationUrl(
-            Label.create("//lib:app_unittest"), null, null, "__main__.AppUnitTest::testApp", null);
+            Label.of("//lib:app_unittest"), null, null, "__main__.AppUnitTest::testApp", null);
     Location<?> location = getLocation(url);
     assertThat(location.getPsiElement()).isEqualTo(function);
   }
@@ -108,7 +108,7 @@ public class BlazePythonTestEventsHandlerTest extends BlazeIntegrationTestCase {
 
     String url =
         handler.testLocationUrl(
-            Label.create("//lib/app:app_unittest"),
+            Label.of("//lib/app:app_unittest"),
             null,
             null,
             "lib.app.AppUnitTest.testApp",
@@ -135,7 +135,7 @@ public class BlazePythonTestEventsHandlerTest extends BlazeIntegrationTestCase {
   public void testDisplayNameClassTest() {
     String testName =
         handler.testDisplayName(
-            Label.create("//lib:app_unittest"),
+            Label.of("//lib:app_unittest"),
             Kind.fromRuleName("py_test"),
             "__main__.PythonModule.testDisplayName");
     assertThat(testName).isEqualTo("testDisplayName");
@@ -145,7 +145,7 @@ public class BlazePythonTestEventsHandlerTest extends BlazeIntegrationTestCase {
   public void testDisplayNameParameterizedTest() {
     String testName =
         handler.testDisplayName(
-            Label.create("//lib:app_unittest"),
+            Label.of("//lib:app_unittest"),
             Kind.fromRuleName("py_test"),
             "testParameterized(1, 2, 3)");
     assertThat(testName).isEqualTo("testParameterized(1, 2, 3)");
@@ -155,7 +155,7 @@ public class BlazePythonTestEventsHandlerTest extends BlazeIntegrationTestCase {
   public void testDisplayNameParameterizedTestWithDot() {
     String testName =
         handler.testDisplayName(
-            Label.create("//lib:app_unittest"),
+            Label.of("//lib:app_unittest"),
             Kind.fromRuleName("py_test"),
             "testParameterized('file.txt')");
     assertThat(testName).isEqualTo("testParameterized('file.txt')");
@@ -165,7 +165,7 @@ public class BlazePythonTestEventsHandlerTest extends BlazeIntegrationTestCase {
   public void testDisplayNameFallback() {
     String testName =
         handler.testDisplayName(
-            Label.create("//lib:app_unittest"),
+            Label.of("//lib:app_unittest"),
             Kind.fromRuleName("py_test"),
             "testWithNoDotOrBracket");
     assertThat(testName).isEqualTo("testWithNoDotOrBracket");

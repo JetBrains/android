@@ -25,7 +25,7 @@ import com.google.idea.blaze.base.qsync.cache.ArtifactFetchers;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Kind;
-import com.google.idea.blaze.base.model.primitives.Label;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.base.prefetch.FetchExecutor;
 import com.google.idea.blaze.base.run.smrunner.BlazeXmlSchema.ErrorOrFailureOrSkipped;
 import com.google.idea.blaze.base.run.smrunner.BlazeXmlSchema.TestCase;
@@ -225,7 +225,7 @@ public class BlazeXmlToTestEventsConverter extends OutputToGeneralTestEventsConv
     GeneralTestEventsProcessor processor = getProcessor();
     TestSuiteStarted suiteStarted = new TestSuiteStarted(label.toString());
     processor.onSuiteStarted(new TestSuiteStartedEvent(suiteStarted, /*locationUrl=*/ null));
-    String targetName = label.targetName().toString();
+    String targetName = label.getName();
     processor.onTestStarted(new TestStartedEvent(targetName, /*locationUrl=*/ null));
     processor.onTestFailure(
         getTestFailedEvent(

@@ -20,7 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.Iterables;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
-import com.google.idea.blaze.base.model.primitives.Label;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.java.JavaBlazeRules.RuleTypes;
 import com.intellij.execution.Location;
@@ -67,7 +67,7 @@ public class BlazeJavaWebTestEventsHandlerTest extends BlazeIntegrationTestCase 
 
     String url =
         handler.suiteLocationUrl(
-            Label.create("//java/com/google/lib:JavaClass_chrome-linux"),
+            Label.of("//java/com/google/lib:JavaClass_chrome-linux"),
             RuleTypes.JAVA_WEB_TEST.getKind(),
             "com.google.lib.JavaClass");
     Location<?> location = getLocation(url);
@@ -96,7 +96,7 @@ public class BlazeJavaWebTestEventsHandlerTest extends BlazeIntegrationTestCase 
 
     String url =
         handler.testLocationUrl(
-            Label.create("//java/com/google/lib:JavaClass_chrome-linux"),
+            Label.of("//java/com/google/lib:JavaClass_chrome-linux"),
             RuleTypes.JAVA_WEB_TEST.getKind(),
             null,
             "testMethod",
@@ -127,7 +127,7 @@ public class BlazeJavaWebTestEventsHandlerTest extends BlazeIntegrationTestCase 
 
     String url =
         handler.testLocationUrl(
-            Label.create("//java/com/google/lib:JavaClass_chrome-linux"),
+            Label.of("//java/com/google/lib:JavaClass_chrome-linux"),
             RuleTypes.JAVA_WEB_TEST.getKind(),
             "testMethod",
             "[0] true (testMethod)",
