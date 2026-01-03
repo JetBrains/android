@@ -66,11 +66,11 @@ sealed interface ProjectPath: ProjectProtoModel {
   class Resolver(val workspaceRoot: Path, val projectRoot: Path, val projectExternalRepositoriesRoot: Path) {
     fun resolve(projectPath: ProjectPath): Path {
       return when(projectPath) {
-        is WorkspaceRelativeProjectPath -> workspaceRoot.resolve(projectPath.relativePath)
+        is WorkspaceRelativeProjectPath -> workspaceRoot.resolve(projectPath.relativePath).normalize()
         is ExternalRepositoryRelativeProjectPath ->
-          projectExternalRepositoriesRoot.resolve(projectPath.externalRepositoryName).resolve(projectPath.relativePath)
-        is ProjectRelativeProjectPath -> projectRoot.resolve(projectPath.relativePath)
-        is AbsoluteProjectPath -> projectPath.absolutePath
+          projectExternalRepositoriesRoot.resolve(projectPath.externalRepositoryName).resolve(projectPath.relativePath).normalize()
+        is ProjectRelativeProjectPath -> projectRoot.resolve(projectPath.relativePath).normalize()
+        is AbsoluteProjectPath -> projectPath.absolutePath.normalize()
       }
     }
 
