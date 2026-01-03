@@ -17,13 +17,11 @@ package com.google.idea.blaze.base.run.smrunner;
 
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.model.primitives.Kind;
-import com.google.idea.blaze.base.model.primitives.Label;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.run.smrunner.BlazeXmlSchema.TestSuite;
 import com.google.idea.blaze.base.run.targetfinder.TargetFinder;
+import com.google.idea.blaze.common.Label;
 import com.intellij.execution.Location;
 import com.intellij.execution.testframework.actions.AbstractRerunFailedTestsAction;
 import com.intellij.execution.testframework.sm.runner.SMTestLocator;
@@ -102,7 +100,8 @@ public interface BlazeTestEventsHandler {
 
   @Nullable
   static Kind getKindForTarget(Project project, String target) {
-    Label label = Label.createIfValid(target);
+    com.google.idea.blaze.base.model.primitives.Label label =
+        com.google.idea.blaze.base.model.primitives.Label.createIfValid(target);
     if (label == null) {
       return null;
     }

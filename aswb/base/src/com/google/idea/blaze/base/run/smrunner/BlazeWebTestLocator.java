@@ -94,32 +94,33 @@ class BlazeWebTestLocator implements SMTestLocator {
     //return builder.build();
   }
 
-  @Nullable
-  private static String recreateUrl(
-      BlazeTestEventsHandler handler, Label label, Kind kind, List<String> components) {
-    switch (components.size()) {
-      case 2: // test suite
-        return handler.suiteLocationUrl(label, kind, /* name = */ components.get(1));
-      case 4: // test case
-        return handler.testLocationUrl(
-            label,
-            kind,
-            /* parentSuite = */ components.get(1),
-            /* name = */ components.get(2),
-            /* className = */ Strings.emptyToNull(components.get(3)));
-      default:
-        return null;
-    }
-  }
-
-  @SuppressWarnings("rawtypes")
-  private static List<Location> locate(
-      SMTestLocator locator, String url, Project project, GlobalSearchScope scope) {
-    List<String> components = Splitter.on(URLUtil.SCHEME_SEPARATOR).limit(2).splitToList(url);
-    if (components.size() != 2) {
-      return ImmutableList.of();
-    }
-    return locator.getLocation(
-        /* protocol = */ components.get(0), /* path = */ components.get(1), project, scope);
-  }
+  // query sync: re-implement using new classes when re-implementing the feature.
+  //@Nullable
+  //private static String recreateUrl(
+  //    BlazeTestEventsHandler handler, Label label, Kind kind, List<String> components) {
+  //  switch (components.size()) {
+  //    case 2: // test suite
+  //      return handler.suiteLocationUrl(label, kind, /* name = */ components.get(1));
+  //    case 4: // test case
+  //      return handler.testLocationUrl(
+  //          label,
+  //          kind,
+  //          /* parentSuite = */ components.get(1),
+  //          /* name = */ components.get(2),
+  //          /* className = */ Strings.emptyToNull(components.get(3)));
+  //    default:
+  //      return null;
+  //  }
+  //}
+  //
+  //@SuppressWarnings("rawtypes")
+  //private static List<Location> locate(
+  //    SMTestLocator locator, String url, Project project, GlobalSearchScope scope) {
+  //  List<String> components = Splitter.on(URLUtil.SCHEME_SEPARATOR).limit(2).splitToList(url);
+  //  if (components.size() != 2) {
+  //    return ImmutableList.of();
+  //  }
+  //  return locator.getLocation(
+  //      /* protocol = */ components.get(0), /* path = */ components.get(1), project, scope);
+  //}
 }
