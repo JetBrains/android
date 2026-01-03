@@ -108,10 +108,20 @@ private object Dumpers {
   fun dumper(clazz: KClass<*>): ValueFormatter<*> {
     return registered.getOrPut(clazz) {
       when {
+        clazz.isSealed -> SealedValueFormatter
         clazz.isSubclassOf(FormattableModel::class) -> AutoValueFormatter(clazz as KClass<FormattableModel>)
         clazz.isSubclassOf(Enum::class) -> SimpleValueFormatter
         else -> error("unsupported type: $clazz")
       }
+    }
+  }
+
+  object SealedValueFormatter : ValueFormatter<Any> {
+    override fun formatTo(v: Any?, printer: ValuePrinter) {
+      if (v == null) return
+      @Suppress("UNCHECKED_CAST")
+      val dumper = dumper(v::class) as ValueFormatter<Any>
+      dumper.formatTo(v, printer)
     }
   }
 

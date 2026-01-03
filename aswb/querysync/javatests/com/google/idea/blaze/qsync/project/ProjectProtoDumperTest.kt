@@ -35,6 +35,19 @@ internal data class ChildModel(
 
 internal data class SmallModel(val name: String, val b: Boolean): FormattableModel
 
+internal sealed interface SealedInterface : FormattableModel
+internal data class SealedInterfaceImplA(val name: String, val a: String) : SealedInterface
+internal data class SealedInterfaceImplB(val name: String, val b: String) : SealedInterface
+
+internal sealed class SealedClass(val typeName: String) : FormattableModel
+internal data class SealedClassImpl(val name: String, val value: String) : SealedClass(name)
+
+internal data class SealedListModel(
+  val name: String,
+  val interfaceItems: List<SealedInterface>,
+  val classItems: List<SealedClass>,
+) : FormattableModel
+
 @RunWith(JUnit4::class)
 class ProjectProtoDumperTest {
   @Test
@@ -96,5 +109,32 @@ class ProjectProtoDumperTest {
                 b: true
             - bb:
 """.trimIndent())
+  }
+
+  @Test
+  fun sealedClasses() {
+    compareFormattedStrings(
+      SealedListModel(
+        name = "sealed examples",
+        interfaceItems = listOf(
+          SealedInterfaceImplA("a1", "valA"),
+          SealedInterfaceImplB("b1", "valB"),
+        ),
+        classItems = listOf(
+          SealedClassImpl("c1", "valC"),
+        )
+      ).format(),
+      """
+      sealed examples:
+          interfaceItems:
+              - a1:
+                  a: valA
+              - b1:
+                  b: valB
+          classItems:
+              - c1:
+                  value: valC
+      """.trimIndent()
+    )
   }
 }
