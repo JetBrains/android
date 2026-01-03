@@ -11,6 +11,7 @@ cc_library(
         "//cc1/project/gen:generated_header",
     ],
     linkopts = ["-llog"],
+    deps = ["//cc1/external:external_cc"],
 )
 
 android_binary(
