@@ -19,11 +19,10 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
+import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.intellij.psi.PsiFile;
 import java.io.File;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -42,11 +41,7 @@ public class ClassPackagePathHeuristicTest extends BlazeIntegrationTestCase {
     File file = new File(psiFile.getVirtualFile().getPath());
 
     TargetInfo target =
-        TargetIdeInfo.builder()
-            .setLabel("//foo:com/google/lib/JavaClass")
-            .setKind("java_test")
-            .build()
-            .toTargetInfo();
+        new TargetInfo(Label.create("//foo:com/google/lib/JavaClass"), "java_test");
     assertThat(
             new ClassPackagePathHeuristic()
                 .matchesSource(getProject(), target, psiFile, file, null))
@@ -63,11 +58,7 @@ public class ClassPackagePathHeuristicTest extends BlazeIntegrationTestCase {
     File file = new File(psiFile.getVirtualFile().getPath());
 
     TargetInfo target =
-        TargetIdeInfo.builder()
-            .setLabel("//foo:some_prefix_com/google/lib/JavaClass")
-            .setKind("java_test")
-            .build()
-            .toTargetInfo();
+        new TargetInfo(Label.create("//foo:some_prefix_com/google/lib/JavaClass"), "java_test");
     assertThat(
             new ClassPackagePathHeuristic()
                 .matchesSource(getProject(), target, psiFile, file, null))
@@ -84,11 +75,7 @@ public class ClassPackagePathHeuristicTest extends BlazeIntegrationTestCase {
     File file = new File(psiFile.getVirtualFile().getPath());
 
     TargetInfo target =
-        TargetIdeInfo.builder()
-            .setLabel("//foo:com/google/lib/JavaClass_some_suffix")
-            .setKind("java_test")
-            .build()
-            .toTargetInfo();
+        new TargetInfo(Label.create("//foo:com/google/lib/JavaClass_some_suffix"), "java_test");
     assertThat(
             new ClassPackagePathHeuristic()
                 .matchesSource(getProject(), target, psiFile, file, null))
@@ -105,11 +92,7 @@ public class ClassPackagePathHeuristicTest extends BlazeIntegrationTestCase {
     File file = new File(psiFile.getVirtualFile().getPath());
 
     TargetInfo target =
-        TargetIdeInfo.builder()
-            .setLabel("//foo:some_prefix_com/google/lib/JavaClass_some_suffix")
-            .setKind("java_test")
-            .build()
-            .toTargetInfo();
+        new TargetInfo(Label.create("//foo:some_prefix_com/google/lib/JavaClass_some_suffix"), "java_test");
     assertThat(
             new ClassPackagePathHeuristic()
                 .matchesSource(getProject(), target, psiFile, file, null))
@@ -126,22 +109,14 @@ public class ClassPackagePathHeuristicTest extends BlazeIntegrationTestCase {
     File file = new File(psiFile.getVirtualFile().getPath());
 
     TargetInfo target =
-        TargetIdeInfo.builder()
-            .setLabel("//foo:JavaClass")
-            .setKind("java_test")
-            .build()
-            .toTargetInfo();
+        new TargetInfo(Label.create("//foo:JavaClass"), "java_test");
     assertThat(
             new ClassPackagePathHeuristic()
                 .matchesSource(getProject(), target, psiFile, file, null))
         .isFalse();
 
     target =
-        TargetIdeInfo.builder()
-            .setLabel("//foo:lib/JavaClass")
-            .setKind("java_test")
-            .build()
-            .toTargetInfo();
+        new TargetInfo(Label.create("//foo:lib/JavaClass"), "java_test");
     assertThat(
             new ClassPackagePathHeuristic()
                 .matchesSource(getProject(), target, psiFile, file, null))

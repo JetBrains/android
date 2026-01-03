@@ -24,8 +24,7 @@ import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
-import com.google.idea.blaze.base.ideinfo.AndroidInstrumentationInfo;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
+import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
@@ -114,7 +113,8 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
                         return false;
                       }
 
-                      TargetIdeInfo targetInfo = null;
+                      // TODO: b/473068803 - Review and fix for the query sync mode.
+                      TargetInfo targetInfo = null;
                           // query sync: projectData.getTargetMap().get(TargetKey.forPlainTarget(target));
                       if (targetInfo == null
                           || targetInfo.getKind()
@@ -127,17 +127,18 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
                             .submit(context);
                         return null;
                       }
-                      AndroidInstrumentationInfo testInstrumentationInfo =
-                          targetInfo.getAndroidInstrumentationInfo();
-                      if (testInstrumentationInfo == null) {
-                        IssueOutput.error(
-                                "Required target data missing for \""
-                                    + target
-                                    + "\".  Has the target definition changed recently? Please"
-                                    + " sync the project and try again.")
-                            .submit(context);
-                        return null;
-                      }
+                      // query sync: Fix in the query ysnc mode.
+                      //AndroidInstrumentationInfo testInstrumentationInfo =
+                      //    targetInfo.getAndroidInstrumentationInfo();
+                      //if (testInstrumentationInfo == null) {
+                      //  IssueOutput.error(
+                      //          "Required target data missing for \""
+                      //              + target
+                      //              + "\".  Has the target definition changed recently? Please"
+                      //              + " sync the project and try again.")
+                      //      .submit(context);
+                      //  return null;
+                      //}
 
                       BlazeCommand.Builder commandBuilder =
                           BlazeCommand.builder(
@@ -151,7 +152,7 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
 
                       // Run the test on the selected local device/emulator if no target device is
                       // specified.
-                      Label targetDevice = testInstrumentationInfo.getTargetDevice();
+                      Label targetDevice = null; // query sync: testInstrumentationInfo.getTargetDevice();
                       if (targetDevice == null) {
                         commandBuilder
                             .addBlazeFlags(TEST_LOCAL_DEVICE, BlazeFlags.TEST_OUTPUT_STREAMED)

@@ -21,8 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.dependencies.TestSize;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
-import com.google.idea.blaze.base.ideinfo.TestIdeInfo;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataBuilder;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataManager;
@@ -34,7 +32,6 @@ import com.intellij.psi.PsiFile;
 import java.io.File;
 import java.util.Collection;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -105,11 +102,6 @@ public class CombinedTestHeuristicTest extends BlazeIntegrationTestCase {
   }
 
   private static TargetInfo createTarget(String label, TestSize size) {
-    return TargetIdeInfo.builder()
-        .setLabel(label)
-        .setKind("java_test")
-        .setTestInfo(TestIdeInfo.builder().setTestSize(size))
-        .build()
-        .toTargetInfo();
+    return new TargetInfo(Label.create(label), "java_test", size, null, null);
   }
 }

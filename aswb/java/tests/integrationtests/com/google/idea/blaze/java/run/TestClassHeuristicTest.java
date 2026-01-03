@@ -19,12 +19,10 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
-import com.google.idea.blaze.base.ideinfo.JavaIdeInfo;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
+import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.intellij.psi.PsiFile;
 import java.io.File;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -43,12 +41,12 @@ public class TestClassHeuristicTest extends BlazeIntegrationTestCase {
     File file = new File(psiFile.getVirtualFile().getPath());
 
     TargetInfo target =
-        TargetIdeInfo.builder()
-            .setLabel("//foo:test")
-            .setKind("java_test")
-            .setJavaInfo(JavaIdeInfo.builder().setTestClass("com.google.lib.JavaClass"))
-            .build()
-            .toTargetInfo();
+        new TargetInfo(
+            Label.create("//foo:test"),
+            "java_test",
+            /* testSize= */ null,
+            /* testClass= */ "com.google.lib.JavaClass",
+            /* syncTime= */ null);
     assertThat(new TestClassHeuristic().matchesSource(getProject(), target, psiFile, file, null))
         .isTrue();
   }
@@ -63,12 +61,12 @@ public class TestClassHeuristicTest extends BlazeIntegrationTestCase {
     File file = new File(psiFile.getVirtualFile().getPath());
 
     TargetInfo target =
-        TargetIdeInfo.builder()
-            .setLabel("//foo:test")
-            .setKind("java_test")
-            .setJavaInfo(JavaIdeInfo.builder().setTestClass("com.google.lib.OtherClass"))
-            .build()
-            .toTargetInfo();
+        new TargetInfo(
+            Label.create("//foo:test"),
+            "java_test",
+            /* testSize= */ null,
+            /* testClass= */ "com.google.lib.OtherClass",
+            /* syncTime= */ null);
     assertThat(new TestClassHeuristic().matchesSource(getProject(), target, psiFile, file, null))
         .isFalse();
   }
