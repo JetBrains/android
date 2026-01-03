@@ -17,11 +17,12 @@
 #include "TestClass.h"
 #include <iostream>
 #include <android/log.h>
+#include "cc1/external/external.h"
 
 #define LOG_TAG "TestClass"
 
 TestClass::TestClass() {
   testString = "test";
   std::cout << "coutn is here" << std::endl;
-  __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "Hello from JNI");
+  __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "Hello from JNI: %d", external_function());
 }
