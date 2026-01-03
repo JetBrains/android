@@ -60,6 +60,10 @@ import java.util.Arrays
 import java.util.Locale
 import javax.swing.BoxLayout
 import javax.swing.JPanel
+import com.intellij.ui.components.JBScrollPane
+import javax.swing.ScrollPaneConstants
+import java.awt.FlowLayout
+
 
 /**
  * Shows detailed tests results for a selected device.
@@ -193,12 +197,28 @@ class DetailsViewContentView(
         )
 
         // The labels are placed in a sub-panel in the center.
-        // This allows them to take up the remaining space and truncate if necessary.
+        // Use BorderLayout to allow the error label (CENTER) to scroll
+        // while keeping the device label (WEST) fixed.
         add(NonOpaquePanel().apply {
-          layout = BoxLayout(this, BoxLayout.LINE_AXIS)
-          add(myDeviceTestResultLabel)
-          add(AndroidTestSuiteView.MyItemSeparator())
-          add(myTestResultLabel)
+          layout = BorderLayout()
+
+          // Container for the left-aligned items (Device Name + Separator)
+          val westPanel = NonOpaquePanel(FlowLayout(FlowLayout.LEFT, 0, 0))
+          westPanel.add(myDeviceTestResultLabel)
+          westPanel.add(AndroidTestSuiteView.MyItemSeparator())
+          add(westPanel, BorderLayout.WEST)
+
+          // Wrap the error label in a scroll pane
+          val scrollPane = JBScrollPane(
+            myTestResultLabel,
+            ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+          )
+          scrollPane.border = JBUI.Borders.empty()
+          scrollPane.viewport.isOpaque = false
+          scrollPane.isOpaque = false
+
+          add(scrollPane, BorderLayout.CENTER)
         }, BorderLayout.CENTER)
 
         // The button is placed on the east side. It's wrapped in a NonOpaquePanel
