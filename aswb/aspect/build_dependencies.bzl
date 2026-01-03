@@ -159,7 +159,6 @@ DependenciesInfo = provider(
         "gen_android_res": "a list of generated Android resource files",
         "expand_sources": "boolean, true if the sources for this target should be expanded when it appears inside another rules srcs list",
         "cc_info_files": "a list of cc info files",
-        "cc_compilation_info": "a structure containing info required to compile cc sources",
         "cc_gen_headers": "a depset of generated headers required to compile cc sources",
         "cc_toolchain_info": "struct containing cc toolchain info, with keys file (the output file) and id (unique ID for the toolchain info, referred to from elsewhere)",
         "kotlin_compiler_flags": "A list of Kotlin compiler flags for the current target.",
@@ -178,7 +177,6 @@ def create_dependencies_info(
         gen_android_res = depset(),
         expand_sources = False,
         cc_info_files = depset(),
-        cc_compilation_info = None,
         cc_gen_headers = depset(),
         cc_toolchain_info = None,
         kotlin_compiler_flags = []):
@@ -195,7 +193,6 @@ def create_dependencies_info(
         gen_android_res = gen_android_res,
         expand_sources = expand_sources,
         cc_info_files = cc_info_files,
-        cc_compilation_info = cc_compilation_info,
         cc_gen_headers = cc_gen_headers,
         cc_toolchain_info = cc_toolchain_info,
         kotlin_compiler_flags = kotlin_compiler_flags,
@@ -228,13 +225,11 @@ def create_java_dependencies_info(
 
 def create_cc_dependencies_info(
         cc_info_files = depset(),
-        cc_compilation_info = None,
         cc_gen_headers = depset(),
         cc_toolchain_info = None):
     """A helper function to create a DependenciesInfo provider instance."""
     return struct(
         cc_info_files = cc_info_files,
-        cc_compilation_info = cc_compilation_info,
         cc_gen_headers = cc_gen_headers,
         cc_toolchain_info = cc_toolchain_info,
     )
@@ -253,9 +248,6 @@ def merge_dependencies_info(
         cc_dep_info,
         cc_toolchain_dep_info):
     """Merge multiple DependenciesInfo providers into one.
-
-    Depsets and dicts are merged. For members such as `cc_compilation_info`, we require that at most one of the
-    DependenciesInfo's defines this which should always be the case.
 
     Args:
       target: the target.
@@ -282,7 +274,6 @@ def merge_dependencies_info(
         gen_android_res = java_dep_info.gen_android_res if java_dep_info else None,
         expand_sources = java_dep_info.expand_sources if java_dep_info else None,
         cc_info_files = cc_dep_info.cc_info_files if cc_dep_info else None,
-        cc_compilation_info = cc_dep_info.cc_compilation_info if cc_dep_info else None,
         cc_gen_headers = cc_dep_info.cc_gen_headers if cc_dep_info else None,
         cc_toolchain_info = cc_toolchain_dep_info.cc_toolchain_info if cc_toolchain_dep_info else None,
         kotlin_compiler_flags = java_dep_info.kotlin_compiler_flags if java_dep_info else [],
@@ -777,11 +768,11 @@ def _collect_own_and_toolchain_cc_info(target, rule):
 
     compilation_context = IDE_CC.compilation_context(target, rule)
     cc_gen_headers = []
-    compilation_info = None
+    cc_compilation_info = None
     if compilation_context:
         cc_gen_headers = [f for f in compilation_context.headers.to_list() if not f.is_source]
 
-        compilation_info = struct(
+        cc_compilation_info = struct(
             copts = compilation_context.copts,
             transitive_defines = compilation_context.defines.to_list(),
             transitive_include_directory = compilation_context.includes.to_list(),
@@ -796,10 +787,10 @@ def _collect_own_and_toolchain_cc_info(target, rule):
             cc_gen_headers = cc_gen_headers,
             toolchain_id = cc_toolchain_info.id,
         )
-    if not compilation_info:
+    if not cc_compilation_info:
         return None
     return struct(
-        compilation_info = compilation_info,
+        cc_compilation_info = cc_compilation_info,
         cc_gen_headers = cc_gen_headers,
         cc_toolchain_info = cc_toolchain_info,
     )
@@ -877,12 +868,11 @@ def _collect_cc_dependencies_core_impl(target, ctx):
     cc_info_files = []
     cc_gen_headers = cc_info.cc_gen_headers if cc_info else []
     if cc_info:
-        cc_info_files = ([_write_cc_target_info(target.label, cc_info.compilation_info, ctx)] if cc_info.compilation_info else []) + \
+        cc_info_files = ([_write_cc_target_info(target.label, cc_info.cc_compilation_info, ctx)] if cc_info.cc_compilation_info else []) + \
                         ([cc_info.cc_toolchain_info.file] if cc_info.cc_toolchain_info else [])
 
     return create_cc_dependencies_info(
         cc_info_files = depset(cc_info_files, transitive = dep_cc_info_files),
-        cc_compilation_info = cc_info.compilation_info if cc_info else None,
         cc_gen_headers = depset(cc_gen_headers, transitive = dep_cc_gen_headers),
         cc_toolchain_info = cc_info.cc_toolchain_info if cc_info else None,
     )
