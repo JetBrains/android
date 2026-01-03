@@ -758,10 +758,10 @@ def _get_cc_toolchain_dependency_info(rule):
     return None
 
 def _collect_own_and_toolchain_cc_info(target, rule):
-    dependency_info = _get_cc_toolchain_dependency_info(rule)
+    toolchain_dependency_info = _get_cc_toolchain_dependency_info(rule)
     cc_toolchain_info = None
-    if dependency_info and dependency_info.cc_toolchain_info:
-        cc_toolchain_info = dependency_info.cc_toolchain_info
+    if toolchain_dependency_info and toolchain_dependency_info.cc_toolchain_info:
+        cc_toolchain_info = toolchain_dependency_info.cc_toolchain_info
     if not cc_toolchain_info:
         # The IDE cannot analyze targets without a toolchain (normally _untransitioned, cc_proto etc.).
         return None
@@ -802,21 +802,22 @@ def _collect_dependencies_core_impl(
     if hasattr(ctx.rule.attr, "tags"):
         if "no-ide" in ctx.rule.attr.tags:
             return create_dependencies_info(label = target.label)
-
+    target_is_within_project_scope = _target_within_project_scope(target.label, params.include, params.exclude)
     java_dep_info = _collect_java_dependencies_core_impl(
         target,
         ctx,
         params,
+        target_is_within_project_scope,
     )
-    cc_dep_info = _collect_cc_dependencies_core_impl(target, ctx)
+    cc_dep_info = _collect_cc_dependencies_core_impl(target, ctx, target_is_within_project_scope)
     cc_toolchain_dep_info = _collect_cc_toolchain_info(target, ctx)
     return merge_dependencies_info(target, ctx, java_dep_info, cc_dep_info, cc_toolchain_dep_info)
 
 def _collect_java_dependencies_core_impl(
         target,
         ctx,
-        params):
-    target_is_within_project_scope = _target_within_project_scope(target.label, params.include, params.exclude)
+        params,
+        target_is_within_project_scope):
     dependency_infos = _get_followed_java_dependency_infos(target.label, ctx.rule)
 
     own_and_dependencies = _collect_own_and_dependency_java_artifacts(
@@ -858,7 +859,9 @@ def _collect_java_dependencies_core_impl(
         kotlin_compiler_flags = own_and_dependencies.kotlin_compiler_flags,
     )
 
-def _collect_cc_dependencies_core_impl(target, ctx):
+def _collect_cc_dependencies_core_impl(target, ctx, target_is_within_project_scope):
+    if not target_is_within_project_scope:
+        return None
     cc_info = _collect_own_and_toolchain_cc_info(target, ctx.rule)
     dependency_infos = _get_followed_cc_dependency_infos(target.label, ctx.rule)
     dep_cc_info_files = [info.cc_info_files for info in dependency_infos.values() if info.cc_info_files]
