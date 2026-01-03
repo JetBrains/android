@@ -20,7 +20,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.BlazeTestCase;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.model.primitives.GenericBlazeRules;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.Label;
@@ -52,8 +51,7 @@ public class RuleNameHeuristicTest extends BlazeTestCase {
   @Test
   public void testPredicateMatchingName() throws Exception {
     File source = new File("java/com/foo/FooTest.java");
-    TargetInfo target =
-        TargetIdeInfo.builder().setLabel("//foo:FooTest").setKind("sh_test").build().toTargetInfo();
+    TargetInfo target = new TargetInfo(Label.create("//foo:FooTest"), "sh_test");
     assertThat(new TargetNameHeuristic().matchesSource(project, target, null, source, null))
         .isTrue();
   }
@@ -61,12 +59,7 @@ public class RuleNameHeuristicTest extends BlazeTestCase {
   @Test
   public void testPredicateMatchingNameAndPath() throws Exception {
     File source = new File("java/com/foo/FooTest.java");
-    TargetInfo target =
-        TargetIdeInfo.builder()
-            .setLabel("//foo:foo/FooTest")
-            .setKind("sh_test")
-            .build()
-            .toTargetInfo();
+    TargetInfo target = new TargetInfo(Label.create("//foo:foo/FooTest"), "sh_test");
     assertThat(new TargetNameHeuristic().matchesSource(project, target, null, source, null))
         .isTrue();
   }
@@ -74,8 +67,7 @@ public class RuleNameHeuristicTest extends BlazeTestCase {
   @Test
   public void testPredicateNotMatchingForPartialOverlap() throws Exception {
     File source = new File("java/com/foo/BarFooTest.java");
-    TargetInfo target =
-        TargetIdeInfo.builder().setLabel("//foo:FooTest").setKind("sh_test").build().toTargetInfo();
+    TargetInfo target = new TargetInfo(Label.create("//foo:FooTest"), "sh_test");
     assertThat(new TargetNameHeuristic().matchesSource(project, target, null, source, null))
         .isFalse();
   }
@@ -83,12 +75,7 @@ public class RuleNameHeuristicTest extends BlazeTestCase {
   @Test
   public void testPredicateNotMatchingIncorrectPath() throws Exception {
     File source = new File("java/com/foo/FooTest.java");
-    TargetInfo target =
-        TargetIdeInfo.builder()
-            .setLabel("//foo:bar/FooTest")
-            .setKind("sh_test")
-            .build()
-            .toTargetInfo();
+    TargetInfo target = new TargetInfo(Label.create("//foo:bar/FooTest"), "sh_test");
     assertThat(new TargetNameHeuristic().matchesSource(project, target, null, source, null))
         .isFalse();
   }
@@ -96,8 +83,7 @@ public class RuleNameHeuristicTest extends BlazeTestCase {
   @Test
   public void testPredicateDifferentName() throws Exception {
     File source = new File("java/com/foo/FooTest.java");
-    TargetInfo target =
-        TargetIdeInfo.builder().setLabel("//foo:ForTest").setKind("sh_test").build().toTargetInfo();
+    TargetInfo target = new TargetInfo(Label.create("//foo:ForTest"), "sh_test");
     assertThat(new TargetNameHeuristic().matchesSource(project, target, null, source, null))
         .isFalse();
   }
@@ -107,16 +93,8 @@ public class RuleNameHeuristicTest extends BlazeTestCase {
     File source = new File("java/com/foo/FooTest.java");
     Collection<TargetInfo> targets =
         ImmutableList.of(
-            TargetIdeInfo.builder()
-                .setLabel("//foo:FirstTest")
-                .setKind("sh_test")
-                .build()
-                .toTargetInfo(),
-            TargetIdeInfo.builder()
-                .setLabel("//bar:OtherTest")
-                .setKind("sh_test")
-                .build()
-                .toTargetInfo());
+            new TargetInfo(Label.create("//foo:FirstTest"), "sh_test"),
+            new TargetInfo(Label.create("//bar:OtherTest"), "sh_test"));
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(project, null, source, targets, null);
     assertThat(match.label()).isEqualTo(Label.create("//foo:FirstTest"));
@@ -127,16 +105,8 @@ public class RuleNameHeuristicTest extends BlazeTestCase {
     File source = new File("java/com/foo/FooTest.java");
     Collection<TargetInfo> targets =
         ImmutableList.of(
-            TargetIdeInfo.builder()
-                .setLabel("//bar:FirstTest")
-                .setKind("sh_test")
-                .build()
-                .toTargetInfo(),
-            TargetIdeInfo.builder()
-                .setLabel("//foo:FooTest")
-                .setKind("sh_test")
-                .build()
-                .toTargetInfo());
+            new TargetInfo(Label.create("//bar:FirstTest"), "sh_test"),
+            new TargetInfo(Label.create("//foo:FooTest"), "sh_test"));
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(project, null, source, targets, null);
     assertThat(match.label()).isEqualTo(Label.create("//foo:FooTest"));
@@ -147,21 +117,9 @@ public class RuleNameHeuristicTest extends BlazeTestCase {
     File source = new File("java/com/foo/FooTest.java");
     Collection<TargetInfo> targets =
         ImmutableList.of(
-            TargetIdeInfo.builder()
-                .setLabel("//bar:OtherTest")
-                .setKind("sh_test")
-                .build()
-                .toTargetInfo(),
-            TargetIdeInfo.builder()
-                .setLabel("//foo:FooTest")
-                .setKind("sh_test")
-                .build()
-                .toTargetInfo(),
-            TargetIdeInfo.builder()
-                .setLabel("//bar/foo:FooTest")
-                .setKind("sh_test")
-                .build()
-                .toTargetInfo());
+            new TargetInfo(Label.create("//bar:OtherTest"), "sh_test"),
+            new TargetInfo(Label.create("//foo:FooTest"), "sh_test"),
+            new TargetInfo(Label.create("//bar/foo:FooTest"), "sh_test"));
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(project, null, source, targets, null);
     assertThat(match.label()).isEqualTo(Label.create("//foo:FooTest"));

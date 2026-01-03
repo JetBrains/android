@@ -21,8 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.BlazeTestCase;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.dependencies.TestSize;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
-import com.google.idea.blaze.base.ideinfo.TestIdeInfo;
 import com.google.idea.blaze.base.model.primitives.GenericBlazeRules;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.Label;
@@ -54,12 +52,7 @@ public class TestSizeHeuristicTest extends BlazeTestCase {
   public void testPredicateMatchingSize() throws Exception {
     File source = new File("java/com/foo/FooTest.java");
     TargetInfo target =
-        TargetIdeInfo.builder()
-            .setLabel("//foo:test")
-            .setKind("sh_test")
-            .setTestInfo(TestIdeInfo.builder().setTestSize(TestSize.MEDIUM))
-            .build()
-            .toTargetInfo();
+        new TargetInfo(Label.create("//foo:test"), "sh_test", TestSize.MEDIUM, null, null);
     assertThat(
             new TestSizeHeuristic().matchesSource(project, target, null, source, TestSize.MEDIUM))
         .isTrue();
@@ -69,12 +62,7 @@ public class TestSizeHeuristicTest extends BlazeTestCase {
   public void testPredicateDifferentSize() throws Exception {
     File source = new File("java/com/foo/FooTest.java");
     TargetInfo target =
-        TargetIdeInfo.builder()
-            .setLabel("//foo:test")
-            .setKind("sh_test")
-            .setTestInfo(TestIdeInfo.builder().setTestSize(TestSize.MEDIUM))
-            .build()
-            .toTargetInfo();
+        new TargetInfo(Label.create("//foo:test"), "sh_test", TestSize.MEDIUM, null, null);
     assertThat(new TestSizeHeuristic().matchesSource(project, target, null, source, TestSize.SMALL))
         .isFalse();
   }
@@ -83,21 +71,10 @@ public class TestSizeHeuristicTest extends BlazeTestCase {
   public void testPredicateDefaultToSmallSize() throws Exception {
     File source = new File("java/com/foo/FooTest.java");
     TargetInfo target =
-        TargetIdeInfo.builder()
-            .setLabel("//foo:test")
-            .setKind("sh_test")
-            .setTestInfo(TestIdeInfo.builder().setTestSize(TestSize.SMALL))
-            .build()
-            .toTargetInfo();
+        new TargetInfo(Label.create("//foo:test"), "sh_test", TestSize.SMALL, null, null);
     assertThat(new TestSizeHeuristic().matchesSource(project, target, null, source, null)).isTrue();
 
-    target =
-        TargetIdeInfo.builder()
-            .setLabel("//foo:test")
-            .setKind("sh_test")
-            .setTestInfo(TestIdeInfo.builder().setTestSize(TestSize.MEDIUM))
-            .build()
-            .toTargetInfo();
+    target = new TargetInfo(Label.create("//foo:test"), "sh_test", TestSize.MEDIUM, null, null);
     assertThat(new TestSizeHeuristic().matchesSource(project, target, null, source, null))
         .isFalse();
   }
@@ -107,24 +84,9 @@ public class TestSizeHeuristicTest extends BlazeTestCase {
     File source = new File("java/com/foo/FooTest.java");
     ImmutableList<TargetInfo> rules =
         ImmutableList.of(
-            TargetIdeInfo.builder()
-                .setLabel("//foo:test1")
-                .setKind("sh_test")
-                .setTestInfo(TestIdeInfo.builder().setTestSize(TestSize.MEDIUM))
-                .build()
-                .toTargetInfo(),
-            TargetIdeInfo.builder()
-                .setLabel("//foo:test2")
-                .setKind("sh_test")
-                .setTestInfo(TestIdeInfo.builder().setTestSize(TestSize.LARGE))
-                .build()
-                .toTargetInfo(),
-            TargetIdeInfo.builder()
-                .setLabel("//foo:test3")
-                .setKind("sh_test")
-                .setTestInfo(TestIdeInfo.builder().setTestSize(TestSize.ENORMOUS))
-                .build()
-                .toTargetInfo());
+            new TargetInfo(Label.create("//foo:test1"), "sh_test", TestSize.MEDIUM, null, null),
+            new TargetInfo(Label.create("//foo:test2"), "sh_test", TestSize.LARGE, null, null),
+            new TargetInfo(Label.create("//foo:test3"), "sh_test", TestSize.ENORMOUS, null, null));
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(
             project, null, source, rules, TestSize.SMALL);
@@ -136,18 +98,8 @@ public class TestSizeHeuristicTest extends BlazeTestCase {
     File source = new File("java/com/foo/FooTest.java");
     ImmutableList<TargetInfo> rules =
         ImmutableList.of(
-            TargetIdeInfo.builder()
-                .setLabel("//foo:test1")
-                .setKind("sh_test")
-                .setTestInfo(TestIdeInfo.builder().setTestSize(TestSize.MEDIUM))
-                .build()
-                .toTargetInfo(),
-            TargetIdeInfo.builder()
-                .setLabel("//foo:test2")
-                .setKind("sh_test")
-                .setTestInfo(TestIdeInfo.builder().setTestSize(TestSize.SMALL))
-                .build()
-                .toTargetInfo());
+            new TargetInfo(Label.create("//foo:test1"), "sh_test", TestSize.MEDIUM, null, null),
+            new TargetInfo(Label.create("//foo:test2"), "sh_test", TestSize.SMALL, null, null));
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(
             project, null, source, rules, TestSize.SMALL);
@@ -159,24 +111,9 @@ public class TestSizeHeuristicTest extends BlazeTestCase {
     File source = new File("java/com/foo/FooTest.java");
     ImmutableList<TargetInfo> rules =
         ImmutableList.of(
-            TargetIdeInfo.builder()
-                .setLabel("//foo:test1")
-                .setKind("sh_test")
-                .setTestInfo(TestIdeInfo.builder().setTestSize(TestSize.MEDIUM))
-                .build()
-                .toTargetInfo(),
-            TargetIdeInfo.builder()
-                .setLabel("//foo:test2")
-                .setKind("sh_test")
-                .setTestInfo(TestIdeInfo.builder().setTestSize(TestSize.SMALL))
-                .build()
-                .toTargetInfo(),
-            TargetIdeInfo.builder()
-                .setLabel("//foo:test3")
-                .setKind("sh_test")
-                .setTestInfo(TestIdeInfo.builder().setTestSize(TestSize.SMALL))
-                .build()
-                .toTargetInfo());
+            new TargetInfo(Label.create("//foo:test1"), "sh_test", TestSize.MEDIUM, null, null),
+            new TargetInfo(Label.create("//foo:test2"), "sh_test", TestSize.SMALL, null, null),
+            new TargetInfo(Label.create("//foo:test3"), "sh_test", TestSize.SMALL, null, null));
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(
             project, null, source, rules, TestSize.SMALL);

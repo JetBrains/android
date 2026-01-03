@@ -15,14 +15,11 @@
  */
 package com.google.idea.blaze.kotlin.run.producers;
 
-import com.google.common.collect.Iterables;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
+import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.run.producers.BinaryContextProvider;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.Collection;
-import java.util.Collections;
 import javax.annotation.Nullable;
 import org.jetbrains.kotlin.idea.base.codeInsight.KotlinMainFunctionDetectorKt;
 import org.jetbrains.kotlin.idea.base.codeInsight.KotlinMainFunctionDetector;
@@ -39,15 +36,15 @@ class KotlinBinaryContextProvider implements BinaryContextProvider {
     if (location == null) {
       return null;
     }
-    TargetIdeInfo target = getTargetIdeInfo(context);
+    TargetInfo  target = getTargetInfo(context);
     if (target == null) {
       return null;
     }
-    return BinaryRunContext.create(location.getPsiElement(), target.toTargetInfo());
+    return BinaryRunContext.create(location.getPsiElement(), target);
   }
 
   @Nullable
-  private static TargetIdeInfo getTargetIdeInfo(ConfigurationContext context) {
+  private static TargetInfo getTargetInfo(ConfigurationContext context) {
     Location<?> location = context.getLocation();
     if (location == null) {
       return null;

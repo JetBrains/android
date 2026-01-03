@@ -20,7 +20,6 @@ import com.google.devtools.intellij.ideinfo.IntellijIdeInfo.TestInfo;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.base.dependencies.TestSize;
 import java.util.Objects;
-import javax.annotation.Nullable;
 
 /** Test info. */
 public final class TestIdeInfo implements ProtoWrapper<TestInfo> {
@@ -37,15 +36,6 @@ public final class TestIdeInfo implements ProtoWrapper<TestInfo> {
 
   public TestSize getTestSize() {
     return testSize;
-  }
-
-  @Nullable
-  public static TestSize getTestSize(TargetIdeInfo target) {
-    TestIdeInfo testIdeInfo = target.getTestIdeInfo();
-    if (testIdeInfo == null) {
-      return null;
-    }
-    return testIdeInfo.getTestSize();
   }
 
   public static Builder builder() {

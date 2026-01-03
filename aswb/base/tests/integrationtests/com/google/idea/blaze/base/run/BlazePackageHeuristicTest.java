@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.dependencies.TestSize;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -39,8 +38,7 @@ public class BlazePackageHeuristicTest extends BlazeIntegrationTestCase {
   public void testPredicateMatchesSamePackage() {
     workspace.createFile(new WorkspacePath("foo/BUILD"));
     VirtualFile testSource = workspace.createFile(new WorkspacePath("foo/com/foo/test.sh"));
-    TargetInfo target =
-        TargetIdeInfo.builder().setLabel("//foo:test").setKind("sh_test").build().toTargetInfo();
+    TargetInfo target = new TargetInfo(Label.create("//foo:test"), "sh_test");
 
     assertThat(
             new BlazePackageHeuristic()
@@ -52,8 +50,7 @@ public class BlazePackageHeuristicTest extends BlazeIntegrationTestCase {
   public void testPredicateDoesNotMatchDifferentPackage() {
     workspace.createFile(new WorkspacePath("foo/BUILD"));
     VirtualFile testSource = workspace.createFile(new WorkspacePath("foo/com/foo/test.sh"));
-    TargetInfo target =
-        TargetIdeInfo.builder().setLabel("//bar:test").setKind("sh_test").build().toTargetInfo();
+    TargetInfo target = new TargetInfo(Label.create("//bar:test"), "sh_test");
 
     assertThat(
             new BlazePackageHeuristic()
@@ -67,16 +64,8 @@ public class BlazePackageHeuristicTest extends BlazeIntegrationTestCase {
     VirtualFile testSource = workspace.createFile(new WorkspacePath("foo/com/foo/test.sh"));
     Collection<TargetInfo> targets =
         ImmutableList.of(
-            TargetIdeInfo.builder()
-                .setLabel("//bar:test")
-                .setKind("sh_test")
-                .build()
-                .toTargetInfo(),
-            TargetIdeInfo.builder()
-                .setLabel("//foo:test")
-                .setKind("sh_test")
-                .build()
-                .toTargetInfo());
+            new TargetInfo(Label.create("//bar:test"), "sh_test"),
+            new TargetInfo(Label.create("//foo:test"), "sh_test"));
 
     TargetInfo match =
         TestTargetHeuristic.chooseTestTargetForSourceFile(
