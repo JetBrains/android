@@ -21,7 +21,7 @@ jvm_library(
     "//android/android-test-framework:testFramework_test_lib",
     "//android/execution/common",
     "//libraries/mockito",
-    "//android/android/lib:instantapps-api-1-8",
+    "//android/android/lib:android-core-instantapp-instantapps-api",
     "@lib//:kotlin-stdlib",
     "//libraries/guava",
     "@lib//:junit4",

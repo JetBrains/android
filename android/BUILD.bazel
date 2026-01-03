@@ -44,7 +44,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
-    "//android/android/lib:instantapps-api-1-8",
+    "//android/android/lib:android-core-instantapps-api",
     "//libraries/asm",
     "@lib//:gradle",
     "//libraries/guava",
@@ -372,7 +372,7 @@ jvm_library(
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
   runtime_deps = [
-    "//android/android/lib:instantapps-api-1-8",
+    "//android/android/lib:android-core-tests-instantapps-api",
     "@lib//:kotlin-stdlib",
     "//android/analytics",
     "//android/app-inspection/inspectors/database",
@@ -422,7 +422,7 @@ jvm_library(
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-lang:lang",
-    "//android/android/lib:instantapps-api-1-8",
+    "//android/android/lib:android-core-tests-instantapps-api",
     "@lib//:kotlin-stdlib",
     "//libraries/asm",
     "//libraries/guava",

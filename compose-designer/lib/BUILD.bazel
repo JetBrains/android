@@ -2,7 +2,13 @@
 load("@rules_java//java:defs.bzl", "java_import")
 
 java_import(
-  name = "ui-animation-tooling-internal",
+  name = "android-compose-designer-tests-ui-animation-tooling",
+  jars = ["ui-animation-tooling-internal.jar"],
+  visibility = ["//visibility:public"]
+)
+
+java_import(
+  name = "android-compose-designer-ui-animation-tooling-internal",
   jars = ["ui-animation-tooling-internal.jar"],
   visibility = ["//visibility:public"]
 )

@@ -16,7 +16,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "//android/android/lib:instantapps-api-1-8",
+    "//android/android/lib:android-core-run-instantapps-api-1-8",
     "@lib//:kotlin-stdlib",
     "//libraries/asm",
     "//libraries/guava",
