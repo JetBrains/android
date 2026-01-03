@@ -30,7 +30,6 @@ import com.google.idea.blaze.base.command.BlazeCommandRunnerExperiments;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BuildFlagsProvider;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.base.io.TempDirectoryProvider;
 import com.google.idea.blaze.base.io.TempDirectoryProviderImpl;
@@ -49,7 +48,6 @@ import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonSt
 import com.google.idea.blaze.base.run.targetfinder.TargetFinder;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BlazeUserSettings;
 import com.google.idea.blaze.base.settings.BuildSystemName;
@@ -314,13 +312,13 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
   private static class MockTargetFinder implements TargetFinder {
     @Override
     public Future<TargetInfo> findTarget(Project project, Label label) {
-      TargetIdeInfo.Builder builder = TargetIdeInfo.builder().setLabel(label);
+      String kind;
       if (label.targetName().toString().equals("java_binary_rule")) {
-        builder.setKind("java_binary");
+        kind = "java_binary";
       } else {
-        builder.setKind("java_test");
+        kind = "java_test";
       }
-      return Futures.immediateFuture(builder.build().toTargetInfo());
+      return Futures.immediateFuture(new TargetInfo(label, kind));
     }
   }
 

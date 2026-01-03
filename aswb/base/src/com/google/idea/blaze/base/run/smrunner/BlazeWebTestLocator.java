@@ -16,24 +16,16 @@
 package com.google.idea.blaze.base.run.smrunner;
 
 import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.idea.blaze.base.ideinfo.Dependency;
-import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
-import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.model.BlazeProjectData;
-import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.intellij.execution.Location;
 import com.intellij.execution.testframework.sm.runner.SMTestLocator;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.util.io.URLUtil;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
-import javax.annotation.Nullable;
 
 /**
  * Finds the corresponding wrapped test for a web_test and recreates the test URL with the correct
