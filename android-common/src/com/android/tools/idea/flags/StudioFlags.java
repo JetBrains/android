@@ -2315,6 +2315,11 @@ public final class StudioFlags {
                     "Show Saved Prompts in chat lookup",
                     "When enabled, add Rules section to lookup popup.");
 
+  public static final Flag<Boolean> STUDIOBOT_AGENT_NOTIFICATIONS =
+    new BooleanFlag(STUDIOBOT, "agent.notifications",
+                    "Enable agent notifications",
+                    "Shows notifications when agent is blocked or finishes long tasks");
+
   public static final Flag<Boolean> STUDIOBOT_MCP_HOST_ENABLED =
     new BooleanFlag(STUDIOBOT, "mcp.host.enabled",
                     "Enable Model Context Protocol (MCP) support",
