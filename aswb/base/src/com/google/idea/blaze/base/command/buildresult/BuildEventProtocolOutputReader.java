@@ -24,7 +24,7 @@ import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStream
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider.BuildEventStreamException;
 import com.google.idea.blaze.base.command.buildresult.bepparser.OutputArtifactParser;
 import com.google.idea.blaze.base.model.primitives.Kind;
-import com.google.idea.blaze.base.model.primitives.Label;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResult;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResult.TestStatus;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
@@ -119,7 +119,7 @@ public final class BuildEventProtocolOutputReader {
             .filter(Objects::nonNull)
             .collect(toImmutableSet());
     return BlazeTestResult.create(
-        Label.create(label), kind, convertTestStatus(testResult.getStatus()), files);
+        Label.of(label), kind, convertTestStatus(testResult.getStatus()), files);
   }
 
   private static TestStatus convertTestStatus(BuildEventStreamProtos.TestStatus protoStatus) {

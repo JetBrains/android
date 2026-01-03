@@ -19,7 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.Iterables;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
-import com.google.idea.blaze.base.model.primitives.Label;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.intellij.execution.Location;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -59,7 +59,7 @@ public class BlazeJavaTestEventsHandlerTest extends BlazeIntegrationTestCase {
 
     String url =
         handler.suiteLocationUrl(
-            Label.create("//java/com/google/lib:JavaClass"), null, "com.google.lib.JavaClass");
+            Label.of("//java/com/google/lib:JavaClass"), null, "com.google.lib.JavaClass");
     Location<?> location = getLocation(url);
     assertThat(location.getPsiElement()).isEqualTo(javaClass);
   }
@@ -79,7 +79,7 @@ public class BlazeJavaTestEventsHandlerTest extends BlazeIntegrationTestCase {
 
     String url =
         handler.testLocationUrl(
-            Label.create("//java/com/google/lib:JavaClass"),
+            Label.of("//java/com/google/lib:JavaClass"),
             null,
             null,
             "testMethod",
@@ -103,7 +103,7 @@ public class BlazeJavaTestEventsHandlerTest extends BlazeIntegrationTestCase {
 
     String url =
         handler.testLocationUrl(
-            Label.create("//java/com/google/lib:JavaClass"),
+            Label.of("//java/com/google/lib:JavaClass"),
             null,
             "testMethod",
             "[0] true (testMethod)",

@@ -52,11 +52,44 @@ data class Label(val workspace: String, val buildPackage: String, val name: Stri
      * When parsing the resulting label is not validated fully. This is to avoid performance penalty when processing BEP output.
      */
     fun parseLabel(label: String, allowRelativeLabels: Boolean = false): Label {
-      require(!label.isBlank()) { "Empty label" }
+      return when (val result = parseLabelSafe(label, allowRelativeLabels)) {
+        is Parsed -> result.label
+        is Error -> throw IllegalArgumentException(result.message)
+      }
+    }
+
+    /**
+     * Parse a string as a Bazel label.
+     *
+     * When parsing the resulting label is not validated fully. This is to avoid performance penalty when processing BEP output.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun parseLabelIfValid(label: String, allowRelativeLabels: Boolean = false): Label? {
+      return when (val result = parseLabelSafe(label, allowRelativeLabels)) {
+        is Parsed -> result.label
+        is Error -> null
+      }
+    }
+
+    sealed interface ParsingResult
+    @JvmInline
+    value class Parsed(val label: Label): ParsingResult
+    class Error(val message: String): ParsingResult
+
+    fun parseLabelSafe(
+      label: String,
+      allowRelativeLabels: Boolean,
+    ): ParsingResult {
+      if (label.isBlank()) {
+        return Error("Empty label")
+      }
       val workspacePosition = if (label.startsWith("@")) (if (label.startsWith("@@")) 2 else 1) else 0
       val (workspaceEnd, buildPackagePosition) = label.indexOf("//", workspacePosition)
         .let { if (it < 0 && allowRelativeLabels) 0 to 0 else it to it + 2 }
-      require(workspaceEnd >= workspacePosition) { "Invalid label: $label" }
+      if (workspaceEnd < workspacePosition) {
+        return Error("Invalid label: $label")
+      }
       val (buildPackageEnd, namePosition) = label.indexOf(":", buildPackagePosition)
         .let {
           if (it >= 0) it to it + 1 else label.length to label.lastIndexOf('/') + 1
@@ -65,15 +98,19 @@ data class Label(val workspace: String, val buildPackage: String, val name: Stri
       val workspace = label.substring(workspacePosition, workspaceEnd)
       // Bazel 8 states that repo names may contain only A-Z, a-z, 0-9, '-', '_', '.' and '+', but this is not a stable specification
       // as just a version ago it allowed ~ as well. Make sure the name does not include any dangerous characters.
-      require(!workspace.contains('/') && !workspace.contains(':')) { "Invalid workspace: $workspace" }
+      if (workspace.contains('/') || workspace.contains(':')) {
+        return Error("Invalid workspace: $workspace")
+      }
 
       val buildPackage = label.substring(buildPackagePosition, buildPackageEnd)
       val name = label.substring(namePosition)
 
-      return Label(
-        workspace = Interners.STRING.intern(workspace),
-        buildPackage = Interners.STRING.intern(buildPackage),
-        name = Interners.STRING.intern(name)
+      return Parsed(
+        Label(
+          workspace = Interners.STRING.intern(workspace),
+          buildPackage = Interners.STRING.intern(buildPackage),
+          name = Interners.STRING.intern(name)
+        )
       )
     }
 

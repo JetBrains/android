@@ -16,7 +16,7 @@
 package com.google.idea.blaze.base.run.testlogs;
 
 import com.google.common.collect.ImmutableMultimap;
-import com.google.idea.blaze.base.model.primitives.Label;
+import com.google.idea.blaze.common.Label;
 import java.util.Collection;
 
 /** Results from a 'blaze test' invocation. */
