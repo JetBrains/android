@@ -45,13 +45,6 @@ abstract class UpdateReferenceImagesBaseAction(
 
   private val LOG = Logger.getInstance(this.javaClass)
 
-  override fun update(e: AnActionEvent) {
-    val context = ConfigurationContext.getFromEvent(e)
-    val configurations = context.createConfigurationsFromContext()
-    val isVisible = configurations?.any { it.configurationSettings.name.startsWith("Screenshot Tests") } == true
-    e.presentation.isEnabledAndVisible = isVisible
-  }
-
   override fun actionPerformed(e: AnActionEvent) {
     LOG.debug("UpdateReferenceImagesBaseAction triggered for event: $e")
     val context = ConfigurationContext.getFromEvent(e)

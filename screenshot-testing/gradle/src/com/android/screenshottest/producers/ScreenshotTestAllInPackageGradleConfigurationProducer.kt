@@ -49,11 +49,8 @@ class ScreenshotTestAllInPackageGradleConfigurationProducer: AllInPackageGradleC
     val androidFacet = AndroidFacet.getInstance(androidModule) ?: return false
     if (!isScreenshotTestSourceSet(location, androidFacet)) return false
 
-    val expectedTasks = taskNamesWithFilter(context, psiPackage)
-    if (expectedTasks.isEmpty()) return false
-
     val configurationTaskNames = configuration.settings.taskNames
-    return  configurationTaskNames == expectedTasks
+    return  configurationTaskNames == taskNamesWithFilter(context, psiPackage)
   }
 
   override fun getAllTestsTaskToRun(context: ConfigurationContext,
@@ -93,17 +90,14 @@ class ScreenshotTestAllInPackageGradleConfigurationProducer: AllInPackageGradleC
     val project = context.project ?: return false
     val packageName = psiPackage.qualifiedName
     if (packageName.isEmpty()) return false
-    val tasks = taskNamesWithFilter(context, psiPackage)
-    if (tasks.isEmpty()) return false
     sourceElementRef.set(psiPackage)
     configuration.settings.externalProjectPath = project.basePath
-    configuration.settings.taskNames = tasks
+    configuration.settings.taskNames = taskNamesWithFilter(context, psiPackage)
     configuration.name = suggestConfigurationName(context, psiPackage, emptyList())
     return true
   }
 
   private fun taskNamesWithFilter(context: ConfigurationContext, psiPackage: PsiPackage): List<String> {
-    val tasks = getScreenshotTestTaskNames(context) ?: return emptyList()
-    return tasks + "--tests" + "\"${psiPackage.qualifiedName}.*\""
+    return getScreenshotTestTaskNames(context)!! + "--tests" + "\"${psiPackage.qualifiedName}.*\""
   }
 }
