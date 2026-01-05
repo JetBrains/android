@@ -127,8 +127,8 @@ class WiFiPairingServiceImpl(
 
   override suspend fun generateQrCode(backgroundColor: Color, foregroundColor: Color): QrCodeImage {
     return withContext(AndroidDispatchers.workerThread) {
-      val serviceName = studioServiceNamePrefix + randomProvider.createRandomString(10)
-      val password = randomProvider.createRandomString(12)
+      val serviceName = studioServiceNamePrefix + randomProvider.createRandomInstanceName()
+      val password = randomProvider.createRandomPassword()
       val pairingString = createPairingString(serviceName, password)
       val image =
         QrCodeGenerator.encodeQrCodeToImage(pairingString, backgroundColor, foregroundColor)
@@ -254,9 +254,21 @@ private fun createPairingString(service: String, password: String): String {
   return "WIFI:T:ADB;S:${service};P:${password};;"
 }
 
-private fun RandomProvider.createRandomString(charCount: Int): String {
+private fun RandomProvider.createRandomInstanceName(): String {
+  @Suppress("SpellCheckingInspection")
+  // From RFC-9521. A "name" string is made of characters from the alphabet (A-Z), digits (0-9),
+  // and minus sign (-).
+  val charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"
+  return createRandomString(10, charSet)
+}
+
+private fun RandomProvider.createRandomPassword(): String {
   @Suppress("SpellCheckingInspection")
   val charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-+*/<>{}"
+  return createRandomString(12, charSet)
+}
+
+private fun RandomProvider.createRandomString(charCount: Int, charSet: String): String {
   val sb = StringBuilder()
   for (i in 1..charCount) {
     val char = charSet[nextInt(charSet.length)]
