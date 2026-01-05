@@ -45,6 +45,7 @@ dependencies {
     bundledModule("intellij.platform.jewel.foundation")
     bundledModule("intellij.platform.jewel.ideLafBridge")
     bundledModule("intellij.platform.jewel.markdown.core")
+    bundledModule("intellij.platform.jewel.markdown.extensions.gfmTables")
     bundledModule("intellij.platform.jewel.markdown.ideLafBridgeStyling")
     bundledModule("intellij.platform.jewel.ui")
     bundledModule("intellij.libraries.compose.foundation.desktop")
