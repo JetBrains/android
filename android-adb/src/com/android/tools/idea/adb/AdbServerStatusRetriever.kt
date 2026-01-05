@@ -17,7 +17,7 @@ package com.android.tools.idea.adb
 
 import com.android.adblib.AdbFeatures
 import com.android.adblib.ServerStatus
-import com.android.ddmlib.AndroidDebugBridge
+import com.android.adblib.connectionStatusTracker
 import com.android.tools.idea.adblib.AdbLibService
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -25,14 +25,13 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 @Service(Service.Level.PROJECT)
-class AdbServerStatusRetriever(private val project: Project, private val scope: CoroutineScope) {
+class AdbServerStatusRetriever(project: Project) {
 
   private val _serverStatus = MutableStateFlow<ServerStatus?>(null)
   val serverStatus: StateFlow<ServerStatus?> = _serverStatus.asStateFlow()
@@ -40,17 +39,14 @@ class AdbServerStatusRetriever(private val project: Project, private val scope: 
   private val logger = thisLogger()
 
   init {
-    AndroidDebugBridge.addDebugBridgeChangeListener(AdbChangeListener())
-  }
-
-  private inner class AdbChangeListener : AndroidDebugBridge.IDebugBridgeChangeListener {
-    override fun bridgeChanged(bridge: AndroidDebugBridge?) {
-      if (bridge == null) {
-        return
-      }
-      scope.launch {
+    val adbSession = AdbLibService.getInstance(project).session
+    adbSession.scope.launch {
+      adbSession.connectionStatusTracker.connectionStatus.collect { connectionStatus ->
+        if (!connectionStatus.isConnected) {
+          return@collect
+        }
         runCatching {
-            val hostServices = AdbLibService.getInstance(project).session.hostServices
+            val hostServices = adbSession.hostServices
             if (hostServices.hostFeatures().contains(AdbFeatures.SERVER_STATUS)) {
               hostServices.serverStatus().let { serverStatus ->
                 _serverStatus.value = serverStatus

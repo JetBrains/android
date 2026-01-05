@@ -130,8 +130,7 @@ public class AdbServiceTest extends LightPlatformTestCase {
     AndroidDebugBridge bridge = getUninterruptibly(future);
 
     // Assert
-    // AdbService and AdbServerStatusRetriever adb listeners.
-    assertThat(AndroidDebugBridge.getDebugBridgeChangeListenerCount()).isEqualTo(2);
+    assertThat(AndroidDebugBridge.getDebugBridgeChangeListenerCount()).isEqualTo(1);
   }
 
   public void testDeviceChangeListener_AddedSuccessfully() throws Exception {
