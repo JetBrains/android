@@ -1152,9 +1152,7 @@ public class AndroidValueResourcesTest {
     List<IntentionAction> fixes = highlightAndFindQuickFixes(null);
     assertThat(fixes.size()).isEqualTo(2);
 
-    // TODO(b/463392037): After 2025.3 merge, remove unwrapping of first fix.
-    LocalQuickFix unwrapped = QuickFixWrapper.unwrap(fixes.get(0));
-    assertThat(unwrapped == null ? fixes.get(0) : unwrapped).isInstanceOf(RenameTo.class);
+    assertThat(fixes.get(0)).isInstanceOf(RenameTo.class);
     assertThat(QuickFixWrapper.unwrap(fixes.get(1))).isInstanceOf(SaveTo.class);
   }
 

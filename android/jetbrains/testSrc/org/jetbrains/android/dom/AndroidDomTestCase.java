@@ -268,9 +268,7 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
     List<IntentionAction> fixes = highlightAndFindQuickFixes(null);
     assertEquals(2, fixes.size());
 
-    // TODO(b/463392037): After 2025.3 merge, remove unwrapping of first fix.
-    LocalQuickFix unwrapped = QuickFixWrapper.unwrap(fixes.get(0));
-    assertInstanceOf(unwrapped == null ? fixes.get(0) : unwrapped, RenameTo.class);
+    assertInstanceOf(fixes.get(0), RenameTo.class);
     assertInstanceOf(QuickFixWrapper.unwrap(fixes.get(1)), SaveTo.class);
   }
 
