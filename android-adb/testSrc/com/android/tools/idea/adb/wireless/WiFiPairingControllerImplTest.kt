@@ -73,7 +73,12 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
   @get:Rule val ensureAndroidProjectRule = EnsureAndroidProjectRule()
 
-  private val randomProvider by lazy { MockRandomProvider() }
+  private val randomProvider by lazy {
+    val random = MockRandomProvider()
+    random.seed = 10
+    random
+  }
+  private val generatedServiceName = "studio-jpZ2X33FEb" // Depends on seed above
 
   private val adbService = mockOrActual<AdbServiceWrapper> { AdbServiceWrapperAdbLibImpl(project) }
   private val mDNSConfigurationRetriever = mockOrActual {}
@@ -389,7 +394,6 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   fun controllerShouldPairDeviceUsingQrCodeOnceItShowsUp() = runBlocking {
     // Prepare
     randomProvider.seed = 10 // some arbitrary number
-    val generatedServiceName = "studio-+8nkUqLWv2" // Depends on seed above
     val generatedPassword = "R7)i3aUHnMnX" // Depends on seed above
     val generatedPairingString = "WIFI:T:ADB;S:${generatedServiceName};P:${generatedPassword};;"
     val phoneIpAddress = "192.168.1.86"
@@ -491,7 +495,6 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   fun tracksUsageWhenPairDeviceUsingQrCodeFails() = runBlocking {
     // Prepare
     randomProvider.seed = 10 // some arbitrary number
-    val generatedServiceName = "studio-+8nkUqLWv2" // Depends on seed above
     val generatedPassword = "R7)i3aUHnMnX" // Depends on seed above
     val phoneIpAddress = "192.168.1.86"
     val phonePairingPort = 37313
