@@ -226,15 +226,6 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
     if (this instanceof GradleSettingsFile) {
       return getFile();
     }
-
-    VirtualFile buildFileParent = getFile().getParent();
-    while (buildFileParent != null) {
-      VirtualFile maybeSettingsFile = myBuildModelContext.getGradleSettingsFile(virtualToIoFile(buildFileParent));
-      if (maybeSettingsFile != null) {
-        return maybeSettingsFile;
-      }
-      buildFileParent = buildFileParent.getParent();
-    }
-    return null;
+    return BuildModelContext.tryToFindSettingsFile(getFile().getParent());
   }
 }

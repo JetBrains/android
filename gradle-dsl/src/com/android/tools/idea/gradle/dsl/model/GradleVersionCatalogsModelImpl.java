@@ -36,7 +36,7 @@ public class GradleVersionCatalogsModelImpl implements GradleVersionCatalogsMode
   private Map<String, GradleVersionCatalogFile> versionCatalogFiles;
   private BuildModelContext buildModelContext;
 
-  GradleVersionCatalogsModelImpl(@NotNull Collection<GradleVersionCatalogFile> versionCatalogFile, BuildModelContext buildModelContext) {
+  public GradleVersionCatalogsModelImpl(@NotNull Collection<GradleVersionCatalogFile> versionCatalogFile, BuildModelContext buildModelContext) {
     this.versionCatalogFiles = versionCatalogFile.stream().collect(Collectors.toMap(
       GradleVersionCatalogFile::getCatalogName,
       identity()));

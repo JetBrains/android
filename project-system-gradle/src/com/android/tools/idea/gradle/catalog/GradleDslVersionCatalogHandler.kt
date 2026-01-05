@@ -1,7 +1,7 @@
 // Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.gradle.catalog
 
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME
 import com.android.tools.idea.gradle.dsl.model.getGradleVersionCatalogFiles
 import com.android.utils.mapValuesNotNull
@@ -39,15 +39,16 @@ class GradleDslVersionCatalogHandler : GradleVersionCatalogHandler {
     val project = context.project
     val scope = context.resolveScope
     val module = ModuleUtilCore.findModuleForPsiElement(context) ?: return null
-    val buildModel = getBuildModel(module) ?: return null
-    val versionCatalogsModel = buildModel.versionCatalogsModel
+    val versionCatalogsModel =
+      GradleModelSource.getInstance().getCachedVersionCatalogsModel(module)
     val versionCatalogModel = versionCatalogsModel.getVersionCatalogModel(catalogName)
+    // TODO add support for removing catalog from settings - now it switches to sync information
     if (versionCatalogModel != null) {
       return SyntheticVersionCatalogAccessor.create(project, scope, versionCatalogModel, catalogName)
     }
     // fall back to sync data
     val syncCatalogFile = getVersionCatalogFiles(module)[catalogName] ?: return null
-    val syncCatalogModel = versionCatalogsModel.getVersionCatalogModel(syncCatalogFile, catalogName)
+    val syncCatalogModel = versionCatalogsModel.getVersionCatalogModel(syncCatalogFile, catalogName) ?: return null
     return SyntheticVersionCatalogAccessor.create(project, scope, syncCatalogModel, catalogName)
   }
 
@@ -60,11 +61,5 @@ class GradleDslVersionCatalogHandler : GradleVersionCatalogHandler {
       val settingsModel = GradleModelSource.getInstance().getSettingsModel(project)
       settingsModel?.dependencyResolutionManagement()?.catalogDefaultName() ?: DEFAULT_CATALOG_NAME
     }
-  }
-
-  private fun getBuildModel(module: Module): ProjectBuildModel? {
-    val buildPath = ExternalSystemModulePropertyManager.getInstance(module)
-                      .getLinkedProjectPath() ?: return null
-    return ProjectBuildModel.getForCompositeBuild(module.project, buildPath)
   }
 }

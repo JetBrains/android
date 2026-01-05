@@ -20,8 +20,10 @@ import static com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModelKt
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
 import static com.android.tools.idea.gradle.dsl.parser.settings.DefaultsDslElement.DEFAULTS_DSL_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -55,6 +57,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.StandardFileSystems;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
@@ -242,6 +245,25 @@ public final class BuildModelContext {
     return buildDslFile;
   }
 
+  @NotNull
+  public Set<GradleVersionCatalogFile> initializeCatalogs(
+    @Nullable GradleSettingsModel settings,
+    @NotNull Project project // fallback mechanism
+  ) {
+    if (settings != null) {
+      populateVersionCatalogFiles(settings);
+    }
+    else {
+      // fallback if settings file is missed
+      String basePath = project.getBasePath();
+      if (basePath != null) {
+        VirtualFile virtualFile = VfsUtil.findFileByIoFile(new File(basePath), true);
+        if (virtualFile != null) addDefaultVersionCatalogIfExists(virtualFile);
+      }
+    }
+    return myVersionCatalogFiles;
+  }
+
   @Nullable
   public GradleBuildFile initializeContext(@NotNull Project project, @Nullable VirtualFile file) {
     // First parse the main project build file.
@@ -310,6 +332,10 @@ public final class BuildModelContext {
   private void addDefaultVersionCatalogIfExists() {
     if (myRootProjectFile == null) return;
     VirtualFile buildDirectory = myRootProjectFile.getFile().getParent();
+    addDefaultVersionCatalogIfExists(buildDirectory);
+  }
+
+  private void addDefaultVersionCatalogIfExists(VirtualFile buildDirectory) {
     VirtualFile tomlFile = buildDirectory.findFileByRelativePath(VersionCatalogModel.DEFAULT_CATALOG_FILE);
     checkVersionCatalog(tomlFile, VersionCatalogModel.DEFAULT_CATALOG_NAME)
       .ifPresent(myVersionCatalogFiles::add);
@@ -512,11 +538,31 @@ public final class BuildModelContext {
    * @return the VirtualFile representing the Gradle settings file or null if it was unable to be found or the file is invalid.
    */
   @Nullable
-  public VirtualFile getGradleSettingsFile(@NotNull File dirPath) {
+  public static VirtualFile getGradleSettingsFile(@NotNull File dirPath) {
     File gradleSettingsFilePath = BuildScriptUtil.findGradleSettingsFile(dirPath);
     VirtualFile result = findFileByIoFile(gradleSettingsFilePath, false);
     return (result != null && result.isValid()) ? result : null;
   }
+
+  /**
+   * Iterate recursively to parents to find settings file
+   * @param folder that method search first
+   * @return null if no file was found
+   */
+  @Nullable
+  public static VirtualFile tryToFindSettingsFile(@Nullable VirtualFile folder) {
+    VirtualFile buildFileParent = folder;
+    while (buildFileParent != null) {
+      VirtualFile maybeSettingsFile = getGradleSettingsFile(virtualToIoFile(buildFileParent));
+      if (maybeSettingsFile != null) {
+        return maybeSettingsFile;
+      }
+      buildFileParent = buildFileParent.getParent();
+    }
+    return null;
+  }
+
+
 
   @Nullable
   public VirtualFile getProjectSettingsFile() {
