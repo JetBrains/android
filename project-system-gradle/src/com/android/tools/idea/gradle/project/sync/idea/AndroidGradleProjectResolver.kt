@@ -150,7 +150,8 @@ import java.util.IdentityHashMap
 import java.util.function.Function
 import java.util.zip.ZipException
 import kotlin.io.path.Path
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
+import kotlinx.coroutines.future.asCompletableFuture
 
 private val LOG = Logger.getInstance(AndroidGradleProjectResolver::class.java)
 
@@ -311,7 +312,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     // Remove platform ProjectSdkDataService data node overwritten by our ProjectJdkUpdateService
     ExternalSystemApiUtil.find(projectDataNode, ProjectSdkData.KEY)?.clear(true)
 
-    project.coroutineScope.launch {
+    project.coroutineScope.async {
       if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(linkedExternalProjectPath, gradleVersion)) {
         gradleProject.javaLanguageSettings.jdk.javaHome.absolutePath
       } else {
@@ -319,7 +320,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       } ?.let { gradleJdkPath ->
         projectDataNode.createChild(AndroidProjectKeys.PROJECT_JDK_UPDATE, ProjectJdkUpdateData(gradleJdkPath))
       }
-    }
+    }.asCompletableFuture().join()
   }
 
   override fun populateModuleCompileOutputSettings(
