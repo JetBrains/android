@@ -3420,7 +3420,8 @@ fun disableKtsIndexing(project: Project, disposable: Disposable) {
   val ep = WorkspaceFileIndexImpl.EP_NAME
   val contributorPredicate: (WorkspaceFileIndexContributor<*>) -> Boolean = {
     if (KotlinPluginModeProvider.isK1Mode()) {
-      it is org.jetbrains.kotlin.idea.core.script.k1.dependencies.KotlinScriptWorkspaceFileIndexContributor
+      it is
+        org.jetbrains.kotlin.idea.core.script.k1.dependencies.KotlinScriptWorkspaceFileIndexContributor
     } else {
       it is org.jetbrains.kotlin.idea.core.script.k2.KotlinScriptWorkspaceFileIndexContributor
     }
