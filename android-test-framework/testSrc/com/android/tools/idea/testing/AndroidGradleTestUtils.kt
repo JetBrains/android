@@ -2932,7 +2932,7 @@ private fun <T> openPreparedProject(
             disableKtsIndexing(project, disposable)
           }
           if (options.disableForcedAgpUpgradeDialog) {
-            disableForcedAgpUpgradeDialog(project, disposable)
+            disableForcedAgpUpgradeDialog(project, projectScopedDisposable)
           }
           // After create is invoked via three different execution paths:
           //   (1) when we import a new Android Gradle project that does not yet have a `.idea`
@@ -3020,7 +3020,12 @@ private fun <T> openPreparedProject(
           awaitGradleStartupActivity.asCompletableFuture(),
           TimeUnit.MINUTES.toMillis(timeoutMinutes),
         )
-        runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+        runInEdtAndWait {
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+          if (!project.isDisposed) {
+            Disposer.register(project, projectScopedDisposable)
+          }
+        }
         project.maybeOutputDiagnostics()
         project
       }
@@ -3036,6 +3041,7 @@ private fun <T> openPreparedProject(
           if (!project.isDisposed) {
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
             PlatformTestUtil.saveProject(project, true)
+            Disposer.dispose(projectScopedDisposable)
             ProjectManager.getInstance().closeAndDispose(project)
           }
         }

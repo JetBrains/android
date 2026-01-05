@@ -46,9 +46,6 @@ class AndroidShellSpellcheckingStrategyTest : AndroidTestCase() {
     assertThat(myFixture.file.text).isNotEmpty()
     val highlightingResults = myFixture.doHighlighting()
 
-    if(SystemInfo.isWindows)
-      Thread.sleep(2000);
-
     assertThat(highlightingResults.filter { it.severity == SpellCheckerSeveritiesProvider.TYPO }).isNotEmpty()
   }
 }
