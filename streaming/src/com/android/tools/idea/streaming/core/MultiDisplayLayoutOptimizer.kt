@@ -155,16 +155,13 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
   }
 
   private fun populateLevelParameters(numLevels: Int): Array<LevelParams> {
-    val levelParams = arrayOfNulls<LevelParams>(numLevels)
-    var params = LevelParams(0, 1, numLevels)
-    levelParams[0] = params
-    for (level in 1 until numLevels) {
-      val maxChildren = if (params.maxChildren > 2) params.maxChildren - 1 else 0
-      params = LevelParams(params.offset + params.size, params.size * params.maxChildren, maxChildren)
-      levelParams[level] = params
+    var upperLevel: LevelParams? = null
+    return Array(numLevels) {
+      upperLevel?.let { level ->
+        val maxChildren = if (level.maxChildren > 2) level.maxChildren - 1 else 0
+        LevelParams(level.offset + level.size, level.size * level.maxChildren, maxChildren).also { upperLevel = it }
+      } ?: LevelParams(0, 1, numLevels).also { upperLevel = it }
     }
-    @Suppress("UNCHECKED_CAST")
-    return levelParams as Array<LevelParams>
   }
 
   private fun buildLayoutTree(optimizationNode: Node, optimizationNodes: Array<Node?>): LayoutNode {
