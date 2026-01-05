@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.compose.preview.util.findComposeViewAdapter
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 
 interface SourceLocation {
@@ -62,12 +61,12 @@ fun parseViewInfo(rootViewInfo: ViewInfo, logger: Logger): List<ComposeViewInfo>
     val composeViewInfos = viewInfoField.invoke(viewObj) as List<*>
     val viewInfos = parseBounds(composeViewInfos, logger)
 
-    // False positive: assert uses this lambda's result as a lazy error message on failure.
-    @Suppress("Noop")
-    if (!(viewInfos.size == 1 || ApplicationManager.getApplication().isUnitTestMode)) {
-      // Skipping tests as they might have incomplete set up that results in viewInfos size being 0
-      // if they are not directly testing related functionality
-      // TODO(b/419541055): this should probably be an assertion.
+    // The viewInfos list may be empty (size 0) during tests or when copy-pasting Previews
+    // due to incomplete setup. However, we want to track if we ever receive multiple
+    // entries (size > 1).
+    if (viewInfos.size > 1) {
+      // TODO(b/419541055): This warning should ideally be an assertion that the size is never 2 or
+      // more.
       logger.warn(
         "Expected one ComposeViewInfo. Received multiple entries. This indicates a failure in the " +
           "stitchTree function's merging logic. While a list is accepted to prevent immediate " +
