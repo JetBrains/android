@@ -22,17 +22,24 @@
     <postStartupActivity implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestAnalyticsProjectActivity"/>
   </extensions>
   <actions>
+    <action
+        id="com.android.screenshottest.action.UpdateReferenceImagesAction"
+        class="com.android.screenshottest.action.UpdateReferenceImagesAction"
+        text="Add/Update Reference Images"
+        description="Add/Update reference images from gutter icon">
+    </action>
     <group id="Android.UpdateScreenshotReferenceImagesGroup">
-      <!--
-           This generic action delegates to the registered RunConfigurationProducers to determine
-           the context (Method, Class, Directory), ensuring a single menu item covers all scopes
-           without duplication.
-      -->
       <action
-          id="com.android.screenshottest.action.UpdateReferenceImagesAction"
-          class="com.android.screenshottest.action.UpdateReferenceImagesAction"
+          id="com.android.screenshottest.action.UpdateReferenceImagesInClassAction"
+          class="com.android.screenshottest.action.UpdateReferenceImagesInClassAction"
           text="Add/Update Reference Images"
-          description="Add/Update reference images">
+          description="Add/Update reference images for all screenshot tests in class">
+      </action>
+      <action
+          id="com.android.screenshottest.action.UpdateReferenceImagesInDirectoryAction"
+          class="com.android.screenshottest.action.UpdateReferenceImagesInDirectoryAction"
+          text="Add/Update Reference Images"
+          description="Add/Update reference images for all screenshot tests in directory">
       </action>
       <separator/>
       <add-to-group group-id="RunContextGroup" anchor="last"/>
