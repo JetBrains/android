@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.snapshots
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.concurrency.createCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
@@ -156,13 +155,6 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
           treeSettings = treeSettings,
         )
 
-      rootPanel =
-        if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_STANDALONE_V2.get()) {
-          createNewLayoutInspectorUi(this, project, layoutInspector)
-        } else {
-          createOldLayoutInspectorUi(this, project, layoutInspector)
-        }
-
       val hasBitmapImage =
         when (model.pictureType) {
           AndroidWindow.ImageType.BITMAP_AS_REQUESTED -> true
@@ -171,13 +163,21 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
           AndroidWindow.ImageType.SKP -> false
         }
 
-      if (!hasBitmapImage && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_STANDALONE_V2.get()) {
-        notificationModel.addNotification(
-          id = SNAPSHOT_OUTDATED_ID,
-          text = LayoutInspectorBundle.message(SNAPSHOT_OUTDATED_ID),
-          sticky = true,
-        )
-      }
+      rootPanel =
+        if (hasBitmapImage) {
+          createNewLayoutInspectorUi(this, project, layoutInspector)
+        } else {
+          // TODO(b/459411932): remove this else statement once we fully remove the old inspector
+          // Notify the user that skia images are not going to be supported going forward
+          notificationModel.addNotification(
+            id = SNAPSHOT_OUTDATED_ID,
+            text = LayoutInspectorBundle.message(SNAPSHOT_OUTDATED_ID),
+            sticky = true,
+          )
+
+          // If the snapshot file contains a skia image fallback to old layout inspector
+          createOldLayoutInspectorUi(this, project, layoutInspector)
+        }
 
       metadata.loadDuration = System.currentTimeMillis() - startTime
       model.updateConnection(client)
