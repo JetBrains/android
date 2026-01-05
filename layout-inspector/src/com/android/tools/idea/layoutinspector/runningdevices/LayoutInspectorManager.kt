@@ -34,6 +34,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.concurrency.ThreadingAssertions
+import javax.swing.JComponent
 
 const val SPLITTER_KEY =
   "com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager.Splitter"
@@ -221,8 +222,8 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     val tabComponents =
       TabComponents(
         disposable = selectedTabContent,
-        tabContentPanel = streamingContentPanel,
-        tabContentPanelContainer = streamingContentPanel.parent,
+        tabContentPanel = streamingContentPanel.components.single() as JComponent,
+        tabContentPanelContainer = streamingContentPanel,
         displayOwner = streamingDevicePanel as DisplayOwner,
       )
 
