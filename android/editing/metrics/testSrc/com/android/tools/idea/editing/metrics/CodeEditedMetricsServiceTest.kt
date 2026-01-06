@@ -63,7 +63,7 @@ class CodeEditedMetricsServiceTest {
 
   @Test
   fun noFragmentsNoEvents() {
-    service.recordCodeEdited(FakeDocumentEvent("" to ""))
+    application.invokeAndWait { service.recordCodeEdited(FakeDocumentEvent("" to "")) }
 
     testScope.runCurrent()
 
@@ -97,7 +97,7 @@ class CodeEditedMetricsServiceTest {
   fun noLocalFileNoEvents() {
     fixture.configureFromExistingVirtualFile(LightVirtualFile("NotLocal.txt"))
 
-    service.recordCodeEdited(FakeDocumentEvent("foo" to "bar"))
+    application.invokeAndWait { service.recordCodeEdited(FakeDocumentEvent("foo" to "bar")) }
 
     testScope.runCurrent()
 
@@ -106,8 +106,10 @@ class CodeEditedMetricsServiceTest {
 
   @Test
   fun allEventsSent() {
-    service.setCodeEditingAction(CodeEditingAction.NewLine)
-    service.recordCodeEdited(FakeDocumentEvent("" to "\n12345"))
+    application.invokeAndWait {
+      service.setCodeEditingAction(CodeEditingAction.NewLine)
+      service.recordCodeEdited(FakeDocumentEvent("" to "\n12345"))
+    }
 
     testScope.runCurrent()
 
@@ -118,11 +120,13 @@ class CodeEditedMetricsServiceTest {
 
   @Test
   fun setAndClearCodeEditingAction() {
-    service.recordCodeEdited(FakeDocumentEvent("foo" to "bar"))
-    service.setCodeEditingAction(CodeEditingAction.Typing)
-    service.recordCodeEdited(FakeDocumentEvent("bar" to "bazquux"))
-    service.clearCodeEditingAction()
-    service.recordCodeEdited(FakeDocumentEvent("bazquux" to ""))
+    application.invokeAndWait {
+      service.recordCodeEdited(FakeDocumentEvent("foo" to "bar"))
+      service.setCodeEditingAction(CodeEditingAction.Typing)
+      service.recordCodeEdited(FakeDocumentEvent("bar" to "bazquux"))
+      service.clearCodeEditingAction()
+      service.recordCodeEdited(FakeDocumentEvent("bazquux" to ""))
+    }
 
     testScope.runCurrent()
 
