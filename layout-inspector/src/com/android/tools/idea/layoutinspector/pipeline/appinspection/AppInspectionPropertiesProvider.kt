@@ -167,7 +167,7 @@ class AppInspectionPropertiesProvider(
         item.source,
         item.viewId,
         item.lookup,
-        emptyList(),
+        mutableListOf(),
       )
       .apply {
         sourceLocations.addAll(item.sourceLocations)
