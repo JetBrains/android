@@ -36,6 +36,7 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.contextOfType
@@ -186,6 +187,9 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       return
     }
 
+    // If the element is within a comment, don't complete.
+    if (element.parentOfType<PsiComment>(withSelf = true) != null) return
+
     // It says "on imported" because only in that case we are able to resolve that it called on
     // Modifier.
     val isMethodCalledOnImportedModifier = element.isMethodCalledOnModifier()
@@ -301,7 +305,8 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     val elementToAnalyze = this.containingClassOrObject ?: this
     analyze(elementToAnalyze) {
-      val visibilityChecker = createUseSiteVisibilityChecker(useSiteFile = ktFile.symbol, position = completionPosition)
+      val visibilityChecker =
+        createUseSiteVisibilityChecker(useSiteFile = ktFile.symbol, position = completionPosition)
       return visibilityChecker.isVisible(elementToAnalyze.symbol)
     }
   }
@@ -429,7 +434,8 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     val file = nameExpression.containingFile as KtFile
     val fileSymbol = file.symbol
-    val visibilityChecker = createUseSiteVisibilityChecker(fileSymbol, receiverExpression, originalPosition)
+    val visibilityChecker =
+      createUseSiteVisibilityChecker(fileSymbol, receiverExpression, originalPosition)
 
     return KtSymbolFromIndexProvider(file)
       .getExtensionCallableSymbolsByNameFilter(
