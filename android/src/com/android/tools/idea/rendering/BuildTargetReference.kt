@@ -75,7 +75,7 @@ interface BuildTargetReference {
      */
     @JvmStatic
     fun from(targetFile: PsiFile): BuildTargetReference? {
-      val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(targetFile) } ?: return null
+      val module = runReadAction { ModuleUtilCore.findModuleForFile(targetFile) } ?: return null
       return targetFile.project.buildTargets.from(module, targetFile.originalFile.virtualFile)
     }
 
