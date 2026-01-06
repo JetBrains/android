@@ -53,10 +53,10 @@ class TargetPatternTest {
     // Wildcard paths imply wildcard targets.
     expect.that(TargetPattern.parse("//some/path/...:all").inScope(Label.of("//some/path"))).isEqualTo(INCLUDED)
     expect.that(TargetPattern.parse("-//some/path/...:all").inScope(Label.of("//some/path"))).isEqualTo(EXCLUDED)
-    expect.that(TargetPattern.parse("//some/path/...:all-target").inScope(Label.of("//some/path:target"))).isEqualTo(INCLUDED)
+    expect.that(TargetPattern.parse("//some/path/...:all-targets").inScope(Label.of("//some/path:target"))).isEqualTo(INCLUDED)
     expect.that(TargetPattern.parse("//some/path/...:*").inScope(Label.of("//some/path/subpackage"))).isEqualTo(INCLUDED)
     expect.that(TargetPattern.parse("//some/path/...:all").inScope(Label.of("//some/path/subpackage:target"))).isEqualTo(INCLUDED)
-    expect.that(TargetPattern.parse("//some/path/...:all-target").inScope(Label.of("//some/path1"))).isEqualTo(NOT_IN_SCOPE)
+    expect.that(TargetPattern.parse("//some/path/...:all-targets").inScope(Label.of("//some/path1"))).isEqualTo(NOT_IN_SCOPE)
     expect.that(TargetPattern.parse("//some/path/...:*").inScope(Label.of("//some1/path"))).isEqualTo(NOT_IN_SCOPE)
     // Although, our target pattern parsing does not validate or enforce it.
     expect.that(TargetPattern.parse("//some/path/...:target-names-not-allowed-here").inScope(Label.of("//some1/path"))).isEqualTo(
@@ -78,15 +78,65 @@ class TargetPatternTest {
   fun matchesToString() {
     expect.that(TargetPattern.parse("//some/path").toString()).isEqualTo("//some/path:path")
     expect.that(TargetPattern.parse("-//some/path").toString()).isEqualTo("-//some/path:path")
-    expect.that(TargetPattern.parse("//some/path/...").toString()).isEqualTo("//some/path/...")
-    expect.that(TargetPattern.parse("-//some/path/...").toString()).isEqualTo("-//some/path/...")
+    expect.that(TargetPattern.parse("//some/path/...").toString()).isEqualTo("//some/path/...:all")
+    expect.that(TargetPattern.parse("-//some/path/...").toString()).isEqualTo("-//some/path/...:all")
     expect.that(TargetPattern.parse("//some/path:target").toString()).isEqualTo("//some/path:target")
     // Note, repo names are normalized even though it might not be correct to do when in the context of of a dependency repo.
     expect.that(TargetPattern.parse("@repo//some/path:target").toString()).isEqualTo("@@repo//some/path:target")
     // Note, for now we do not distinguish different wildcard kinds since we only deal with rules anyway.
-    expect.that(TargetPattern.parse("//some/path:all").toString()).isEqualTo("//some/path:*")
-    expect.that(TargetPattern.parse("//some/path:all-targets").toString()).isEqualTo("//some/path:*")
-    expect.that(TargetPattern.parse("//some/path:*").toString()).isEqualTo("//some/path:*")
+    expect.that(TargetPattern.parse("//some/path:all").toString()).isEqualTo("//some/path:all")
+    expect.that(TargetPattern.parse("//some/path:all-targets").toString()).isEqualTo("//some/path:all-targets")
+    expect.that(TargetPattern.parse("//some/path:*").toString()).isEqualTo("//some/path:all")
+  }
+
+  @Test
+  fun toStringBehavior() {
+    fun exp(input: String, expected: String) {
+      expect.withMessage("For pattern: $input")
+        .that(TargetPattern.parse(input).toString())
+        .isEqualTo(expected)
+    }
+
+    // Idempotent (Canonical) Patterns
+    exp("//some/path:target", "//some/path:target")
+    exp("//some/path/...:all", "//some/path/...:all")
+    exp("-//some/path:target", "-//some/path:target")
+    exp("-//some/path/...:all", "-//some/path/...:all")
+    exp("@@repo//some/path:target", "@@repo//some/path:target")
+    exp("//...:all", "//...:all")
+    exp("//some/path:all", "//some/path:all")
+    exp("-//some/path:all", "-//some/path:all")
+    exp("//some/path:all-targets", "//some/path:all-targets")
+    exp("-//some/path:all-targets", "-//some/path:all-targets")
+    exp("//some/path:all-something-else", "//some/path:all-something-else")
+    exp("-//some/path:all-something-else", "-//some/path:all-something-else")
+    exp("//some/deeper:but-this-one", "//some/deeper:but-this-one")
+    exp("//some/path/subpackage:target", "//some/path/subpackage:target")
+
+    // Normalized Patterns
+    exp("//some/path", "//some/path:path")
+    exp("//some/path1", "//some/path1:path1")
+    exp("//some1/path", "//some1/path:path")
+    exp("-//some/path", "-//some/path:path")
+    exp("//some/path/...", "//some/path/...:all")
+    exp("-//some/path/...", "-//some/path/...:all")
+    exp("//some/path/...:all", "//some/path/...:all")
+    exp("-//some/path/...:all", "-//some/path/...:all")
+    exp("//some/path/...:all-targets", "//some/path/...:all-targets")
+    exp("//some/path/...:*", "//some/path/...:all")
+    // Recursive patterns don't support specific target names. We normalize them to :all.
+    exp("//some/path/...:target-names-not-allowed-here", "//some/path/...:all")
+    exp("//some/path:all", "//some/path:all")
+    exp("//some/path:all-targets", "//some/path:all-targets")
+    exp("//some/path:*", "//some/path:all")
+    exp("@repo//some/path:target", "@@repo//some/path:target")
+    exp("-//some", "-//some:some")
+    exp("@@repo//some", "@@repo//some:some")
+    exp("//some/deeper/path", "//some/deeper/path:path")
+    exp("-//some/deeper/...", "-//some/deeper/...:all")
+    exp("//some/deeper/other/path", "//some/deeper/other/path:path")
+    exp("//some/deeper:all", "//some/deeper:all")
+    exp("//some/path/subpackage", "//some/path/subpackage:subpackage")
   }
 
   @Test
