@@ -15,10 +15,7 @@
  */
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact
 
-import com.android.tools.profilers.InterimStage
-import com.android.tools.profilers.ModelStage
 import com.android.tools.profilers.TaskStage
-import com.android.tools.profilers.leakcanary.LeakCanaryModel
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.args.TaskArgs
@@ -88,23 +85,13 @@ abstract class SingleArtifactTaskHandler<T : TaskStage>(sessionsManager: Session
 
   /**
    * For a single artifact task handler, stopping the task functionally is equivalent to stopping the capture of the artifact.
-   * This method is expected to be idempotent across multiple calls for the same task instance.
    */
   override fun stopTask() {
     if (stage == null) {
-      handleError("Cannot stop the task as the stage was null")
+      handleError("Cannot stop the task as the InterimStage was null")
       return
     }
-
     TaskHandlerUtils.executeTaskAction(action = { stopCapture(stage!!) }, errorHandler = ::handleError)
-  }
-
-  override fun canStop(): Boolean {
-    return when (val currentStage = stage) {
-      is InterimStage -> currentStage.recordingScreenModel?.canRecordingStop?.value ?: false
-      is LeakCanaryModel -> currentStage.isRecording.value ?: false
-      else -> false
-    }
   }
 
   /**
