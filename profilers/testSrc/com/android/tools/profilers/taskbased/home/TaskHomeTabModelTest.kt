@@ -326,7 +326,7 @@ class TaskHomeTabModelTest {
     }
     // Make sure that it attempted to stop the current/ongoing task (Callstack Sample)
     assertThat(e.message).isEqualTo(
-      "There was an error with the Callstack Sample task. Error message: Cannot stop the task as the stage was null.")
+      "There was an error with the Callstack Sample task. Error message: Cannot stop the task as the InterimStage was null.")
   }
 
   @Test
