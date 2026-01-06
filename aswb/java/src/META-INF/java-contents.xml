@@ -90,8 +90,6 @@
                     interface="com.google.idea.blaze.java.run.producers.JUnitParameterizedClassHeuristic"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.JavaClasspathAspectStrategy"
                     interface="com.google.idea.blaze.java.run.hotswap.JavaClasspathAspectStrategy"/>
-    <extensionPoint qualifiedName="com.google.idea.blaze.HotSwapCommandBuilder"
-                    interface="com.google.idea.blaze.java.run.hotswap.HotSwapCommandBuilder"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.blazeJavaDebuggingSetupHandler"
                     interface="com.google.idea.blaze.java.run.BlazeJavaDebuggingSetupHandler"/>
   </extensionPoints>
