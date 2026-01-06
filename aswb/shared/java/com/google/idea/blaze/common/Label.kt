@@ -159,15 +159,44 @@ data class Label(val workspace: String, val buildPackage: String, val name: Stri
   }
 }
 
+sealed class TargetName: Serializable {
+  sealed class Wildcard : TargetName()
+  data object AllRules : Wildcard() { override fun toString() = "all" }
+  data object AllTargets : Wildcard() { override fun toString() = "all-targets" }
+  data class Specific(val name: String) : TargetName() { override fun toString() = name }
+
+  companion object {
+    fun parse(name: String): TargetName = when (name) {
+      "all", "*" -> AllRules
+      "all-targets" -> AllTargets
+      else -> Specific(name)
+    }
+  }
+}
+
 private val rootPath = Path.of("/")
 
 data class TargetPattern(
   internal val workspace: String,
   internal val buildPackageAbsolutePath: Path,
   internal val includesSubpackages: Boolean,
-  internal val targetName: String?,
+  internal val targetName: TargetName,
   private val negative: Boolean,
 ) {
+  constructor(
+    workspace: String,
+    buildPackageAbsolutePath: Path,
+    includesSubpackages: Boolean,
+    targetName: String?,
+    negative: Boolean
+  ) : this(
+    workspace,
+    buildPackageAbsolutePath,
+    includesSubpackages,
+    targetName?.let { TargetName.parse(it) } ?: TargetName.AllRules,
+    negative
+  )
+
   enum class ScopeStatus { NOT_IN_SCOPE, INCLUDED, EXCLUDED }
 
   fun inScope(target: Label): ScopeStatus {
@@ -176,14 +205,14 @@ data class TargetPattern(
     if (buildPackageAbsolutePath != targetBuildPackagePath && !(includesSubpackages && targetBuildPackagePath.startsWith(buildPackageAbsolutePath))) {
       return NOT_IN_SCOPE
     }
-    return when (targetName == null || targetName == target.name) {
+    return when (targetName is TargetName.Wildcard || (targetName as? TargetName.Specific)?.name == target.name) {
       true -> if (negative) EXCLUDED else INCLUDED
       false -> NOT_IN_SCOPE
     }
   }
 
   override fun toString(): String {
-    return buildString(capacity = 9 + workspace.length + buildPackageAbsolutePath.toString().length + (targetName?.length ?: 0)) {
+    return buildString(capacity = 9 + workspace.length + buildPackageAbsolutePath.toString().length + targetName.toString().length) {
       if (negative) {
         append("-")
       }
@@ -193,17 +222,14 @@ data class TargetPattern(
       }
       append("/")
       append(buildPackageAbsolutePath)
-      if (targetName != null) {
-        append(":")
-        append(targetName)
-      } else {
-        if (includesSubpackages) {
-          append("/...")
+      if (includesSubpackages) {
+        if (buildPackageAbsolutePath.nameCount > 0) {
+          append("/")
         }
-        else {
-          append(":*")
-        }
+        append("...")
       }
+      append(":")
+      append(targetName)
     }
   }
 
@@ -221,15 +247,37 @@ data class TargetPattern(
           parsedAsLabel.workspace,
           parsedBuildPackagePath.parent,
           includesSubpackages = true,
-          targetName = null,
+          targetName = TargetName.parse(parsedAsLabel.name).takeUnless { it is TargetName.Specific } ?: TargetName.AllRules,
           negative = negative,
         )
       else TargetPattern(
         parsedAsLabel.workspace,
         parsedBuildPackagePath,
         includesSubpackages = false,
-        targetName = parsedAsLabel.name.takeUnless { it in wildcardTargets },
+        targetName = TargetName.parse(parsedAsLabel.name),
         negative = negative,
+      )
+    }
+
+    @JvmStatic
+    fun allFromPackageRecursive(packagePath: Path): TargetPattern {
+      return TargetPattern(
+        workspace = "",
+        buildPackageAbsolutePath = rootPath.resolve(packagePath),
+        includesSubpackages = true,
+        targetName = TargetName.AllRules,
+        negative = false
+      )
+    }
+
+    @JvmStatic
+    fun allFromPackageNonRecursive(packagePath: Path): TargetPattern {
+      return TargetPattern(
+        workspace = "",
+        buildPackageAbsolutePath = rootPath.resolve(packagePath),
+        includesSubpackages = false,
+        targetName = TargetName.AllRules,
+        negative = false
       )
     }
   }
@@ -281,8 +329,8 @@ private fun TargetPattern.structuralKeys(): List<String> = buildList(3 + buildPa
   addAll(buildPackageAbsolutePath.map { it.toString() })
   if (!includesSubpackages) {
     add("*") // A dedicated key for all targets under the package.
-    if (targetName != null) {
-      add(targetName)
+    if (targetName is TargetName.Specific) {
+      add(targetName.name)
     }
   }
 }
