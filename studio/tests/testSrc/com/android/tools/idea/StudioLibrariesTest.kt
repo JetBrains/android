@@ -16,6 +16,7 @@
 package com.android.tools.idea
 
 
+import com.android.tools.idea.com.google.rpc.ErrorInfo
 import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusException
 import com.android.tools.idea.io.grpc.protobuf.StatusProto
@@ -34,5 +35,13 @@ class StudioLibrariesTest {
     // in attempting to use a com.google.protobuf.Message as a com.android.tools.idea.Message.
     StatusProto.fromThrowable(
       StatusProto.toStatusRuntimeException(StatusProto.fromThrowable(StatusException(Status.ABORTED))))
+  }
+
+  @Test
+  fun testErrorInfo() {
+    // If ErrorInfo is built with protoc that is newer than the platform's, it will reference
+    // MapFieldReflectionAccessor, which doesn't exist in our protobuf library, and throw an
+    // exception during <clinit>.
+    ErrorInfo.getDefaultInstance()
   }
 }
