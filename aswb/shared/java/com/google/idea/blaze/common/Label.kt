@@ -31,9 +31,6 @@ import java.nio.file.Path
  *
  * <p>It can be considered equivalent to <a href="https://bazel.build/rules/lib/Label>Label</a> in
  * bazel.
- *
- * <p>Note that this class only supports labels in the current workspace, i.e. not labels of the
- * form {@code @repo//pkg/foo:abc}.
  */
 data class Label(val workspace: String, val buildPackage: String, val name: String): Serializable {
 

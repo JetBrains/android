@@ -16,10 +16,10 @@
 package com.google.idea.blaze.base.run.producers;
 
 import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.settings.Blaze;
+import com.google.idea.blaze.common.TargetPattern;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
@@ -57,7 +57,7 @@ class AllInBuildFileTestContextProvider implements TestContextProvider {
       return null;
     }
     return RunConfigurationContext.fromKnownTarget(
-        TargetExpression.allFromPackageNonRecursive(packagePath), BlazeCommandName.TEST, dir);
+      TargetPattern.allFromPackageNonRecursive(packagePath.asPath()).toString(), BlazeCommandName.TEST, dir);
   }
 
   @Nullable

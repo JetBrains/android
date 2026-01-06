@@ -20,8 +20,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.BlazeSyncIntegrationTestCase;
-import com.google.idea.blaze.base.sync.BlazeSyncParams;
-import com.google.idea.blaze.base.sync.SyncMode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import java.util.Set;
@@ -50,26 +48,6 @@ public class BlazeAndroidIntegrationTestCase extends BlazeSyncIntegrationTestCas
   @After
   public void cleanUpAndroidSdkHandler() {
     AndroidSdkHandler.reset();
-  }
-
-  protected void runFullBlazeSyncWithNoIssues() {
-    runFullBlazeSync();
-    errorCollector.assertNoIssues();
-  }
-
-  protected void runFullBlazeSyncWithExpectedIssues(String... issueMessages) {
-    runFullBlazeSync();
-    errorCollector.assertIssues(issueMessages);
-  }
-
-  protected void runFullBlazeSync() {
-    runBlazeSync(
-        BlazeSyncParams.builder()
-            .setTitle("full sync")
-            .setSyncMode(SyncMode.FULL)
-            .setSyncOrigin("test")
-            .setAddProjectViewTargets(true)
-            .build());
   }
 
   protected Module getModule(String moduleName) {
