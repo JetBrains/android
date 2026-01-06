@@ -130,7 +130,7 @@ class ResolutionStackEditorProviderTest {
   @Test
   fun createResolutionStackEditor() {
     val children =
-      listOf(
+      mutableListOf(
         InspectorPropertyItem(
           "",
           "",
