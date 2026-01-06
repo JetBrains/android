@@ -101,7 +101,7 @@ class FilePreviewElementProvider<P : PreviewElement<*>>(
   private val filePreviewElementFinder: FilePreviewElementFinder<P>,
 ) : PreviewElementProvider<P> {
   override suspend fun previewElements() =
-    filePreviewElementFinder
-      .findPreviewElements(psiFilePointer.project, psiFilePointer.virtualFile)
-      .asSequence()
+    psiFilePointer.virtualFile?.let {
+      filePreviewElementFinder.findPreviewElements(psiFilePointer.project, it).asSequence()
+    } ?: emptySequence()
 }

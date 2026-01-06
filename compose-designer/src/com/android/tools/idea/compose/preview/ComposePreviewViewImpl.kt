@@ -346,7 +346,9 @@ internal class ComposePreviewViewImpl(
       actionsToolbar.updateActions()
       // Make sure all notifications are cleared-up
       if (!project.isDisposed) {
-        EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile)
+        psiFilePointer.virtualFile?.let {
+          EditorNotifications.getInstance(project).updateNotifications(it)
+        }
       }
     }
 
