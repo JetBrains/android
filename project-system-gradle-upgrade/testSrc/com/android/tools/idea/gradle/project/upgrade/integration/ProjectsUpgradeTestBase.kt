@@ -247,9 +247,16 @@ abstract class ProjectsUpgradeTestBase {
 
         path.endsWith(SdkConstants.DOT_PROPERTIES) ->
         { relativePath: String?, actualContent: String, goldenContent: String ->
-          val expectedContainsSuppression = goldenContent.contains("android.suppressUnsupportedCompileSdk=")
-          expect.withMessage(relativePath).that(actualContent.lines().filter { !it.startsWith("#") && (expectedContainsSuppression || !it.startsWith("android.suppressUnsupportedCompileSdk=")) }.joinToString("\n"))
-            .isEqualTo(goldenContent.lines().filter { !it.startsWith("#") }.joinToString("\n")) }
+          fun List<String>.additionalFilter(): List<String> = when (relativePath) {
+            "gradle.properties" -> let {
+              val expectedContainsSuppression = goldenContent.contains("android.suppressUnsupportedCompileSdk=")
+              return@let filter { line -> expectedContainsSuppression || !line.startsWith("android.suppressUnsupportedCompileSdk=") }
+            }
+            else -> this
+          }
+          fun String.filteredLines() = lines().filter { !it.startsWith("#") }.additionalFilter().joinToString("\n")
+          expect.withMessage(relativePath).that(actualContent.filteredLines()).isEqualTo(goldenContent.filteredLines())
+        }
 
         else -> null
       }
