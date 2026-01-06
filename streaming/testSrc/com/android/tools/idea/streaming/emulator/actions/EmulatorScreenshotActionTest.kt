@@ -21,6 +21,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.DataManagerRule
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
@@ -52,6 +53,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.IOException
@@ -224,6 +226,8 @@ class EmulatorScreenshotActionTest {
     waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     panel.size = Dimension(400, 600)
     panel.createContent(true)
+    TreeWalker(panel).descendantStream().forEach(Component::doLayout)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Allow resizing events to propagate.
     return panel
   }
 
