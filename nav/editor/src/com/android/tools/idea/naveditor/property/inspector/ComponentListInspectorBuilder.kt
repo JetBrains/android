@@ -87,7 +87,7 @@ abstract class ComponentListInspectorBuilder(
         override fun mouseClicked(e: MouseEvent) {
           if (e.clickCount == 2 && list.selectedValuesList.size == 1) {
             onEdit(list.selectedValue)
-            titleModel.refresh()
+            titleModel.refresh(childElementChanges = false)
           }
         }
       }
@@ -104,7 +104,7 @@ abstract class ComponentListInspectorBuilder(
 
           if (list.selectedValuesList.size == 1) {
             onEdit(list.selectedValue)
-            titleModel.refresh()
+            titleModel.refresh(childElementChanges = false)
           }
         }
       }
@@ -205,7 +205,7 @@ abstract class ComponentListInspectorBuilder(
     override fun actionPerformed(e: AnActionEvent) {
       builder.onAdd(component)
       builder.refresh(component, listModel)
-      model?.refresh()
+      model?.refresh(childElementChanges = false)
       model?.expanded = listModel.size > 0
     }
   }
@@ -222,7 +222,7 @@ abstract class ComponentListInspectorBuilder(
     override fun actionPerformed(e: AnActionEvent) {
       component.model.treeWriter.delete(list.selectedValuesList)
       builder.refresh(component, listModel)
-      model?.refresh()
+      model?.refresh(childElementChanges = false)
       model?.expanded = listModel.size > 0
     }
   }

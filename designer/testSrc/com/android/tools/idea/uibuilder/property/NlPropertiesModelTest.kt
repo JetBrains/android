@@ -426,7 +426,10 @@ class NlPropertiesModelTest {
       called++
     }
 
-    override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+    override fun propertyValuesChanged(
+      model: PropertiesModel<NlPropertyItem>,
+      childElementChanges: Boolean,
+    ) {
       model.addListener(RecursiveValueChangedListener())
       called++
     }
@@ -442,7 +445,10 @@ class NlPropertiesModelTest {
       }
     }
 
-    override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+    override fun propertyValuesChanged(
+      model: PropertiesModel<NlPropertyItem>,
+      childElementChanges: Boolean,
+    ) {
       if (valuesChangedCalled == 0L) {
         valuesChangedCalled = System.currentTimeMillis()
       }

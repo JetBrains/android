@@ -253,7 +253,10 @@ class NlPropertyItemTest {
 
       property.model.addListener(
         object : PropertiesModelListener<NlPropertyItem> {
-          override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+          override fun propertyValuesChanged(
+            model: PropertiesModel<NlPropertyItem>,
+            childElementChanges: Boolean,
+          ) {
             updatedPropertiesDeferrable.complete(Unit)
           }
         }

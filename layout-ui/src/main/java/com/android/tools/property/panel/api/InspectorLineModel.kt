@@ -96,7 +96,7 @@ interface InspectorLineModel {
   fun isMatch(matcher: Matcher): Boolean = false
 
   /** Refresh the content after a potential property value change. */
-  fun refresh() {}
+  fun refresh(childElementChanges: Boolean = false) {}
 
   /**
    * Make this line expandable.

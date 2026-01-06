@@ -58,7 +58,10 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
           cachedEnumSupport.clear()
         }
 
-        override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+        override fun propertyValuesChanged(
+          model: PropertiesModel<NlPropertyItem>,
+          childElementChanges: Boolean,
+        ) {
           cachedEnumSupport.clear()
         }
       }

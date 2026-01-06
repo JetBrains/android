@@ -47,7 +47,7 @@ class FakeTableLineModel(
     pendingEditingAction = {}
   }
 
-  override fun refresh() {
+  override fun refresh(childElementChanges: Boolean) {
     tableModel.refresh()
   }
 

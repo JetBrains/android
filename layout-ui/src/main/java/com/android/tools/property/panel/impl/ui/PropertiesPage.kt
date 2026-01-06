@@ -112,9 +112,9 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     lastFocusedEditorOffset = null
   }
 
-  fun propertyValuesChanged() {
+  fun propertyValuesChanged(childElementChanges: Boolean = false) {
     storeFocusOffset()
-    inspectorModel.propertyValuesChanged()
+    inspectorModel.propertyValuesChanged(childElementChanges)
   }
 
   fun repaint() {

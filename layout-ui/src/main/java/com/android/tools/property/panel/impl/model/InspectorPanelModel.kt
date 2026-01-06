@@ -72,8 +72,8 @@ class InspectorPanelModel {
     return null
   }
 
-  fun propertyValuesChanged() {
-    lines.forEach { it.refresh() }
+  fun propertyValuesChanged(childElementChanges: Boolean) {
+    lines.forEach { it.refresh(childElementChanges) }
   }
 
   fun add(line: InspectorLineModel) {
