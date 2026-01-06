@@ -42,7 +42,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.CheckedDisposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.application
-import java.util.concurrent.Callable
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.getInstance
 import java.util.concurrent.ExecutionException
@@ -63,33 +62,28 @@ class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetR
   )
     private set
   override val manifest: RenderModelManifest?
-    get() {
-      try {
-        val getManifestSnapshot = Callable {
-          MergedManifestManager.getMergedManifest(facet.module).get(1, TimeUnit.SECONDS)
-        }
+    get() =
+      if (application.isReadAccessAllowed) getRenderModelManifest()
+      else ReadAction.nonBlocking(::getRenderModelManifest).executeSynchronously()
 
-        val mergedManifestSnapshot = if (application.isReadAccessAllowed) {
-          getManifestSnapshot.call()
-        } else {
-          ReadAction.nonBlocking(getManifestSnapshot).executeSynchronously()
-        }
-
-        return RenderMergedManifest(mergedManifestSnapshot)
-      } catch (e: InterruptedException) {
-        throw ProcessCanceledException(e)
-      } catch (e: TimeoutException) {
-        LOG.warn(e);
-      } catch (e: ExecutionException) {
-        when (val cause = e.cause) {
-          is ProcessCanceledException -> throw cause
-          is MergedManifestException -> LOG.warn(e)
-          else -> LOG.error(e)
-        }
+  private fun getRenderModelManifest(): RenderModelManifest? {
+    try {
+      return RenderMergedManifest(MergedManifestManager.getMergedManifest(facet.module).get(1, TimeUnit.SECONDS))
+    } catch (e: InterruptedException) {
+      throw ProcessCanceledException(e)
+    } catch (e: TimeoutException) {
+      LOG.warn(e);
+    } catch (e: ExecutionException) {
+      when (val cause = e.cause) {
+        is ProcessCanceledException -> throw cause
+        is MergedManifestException -> LOG.warn(e)
+        else -> LOG.error(e)
       }
-
-      return null
     }
+
+    return null
+  }
+
   override val resourceRepositoryManager: StudioResourceRepositoryManager
     get() = StudioResourceRepositoryManager.getInstance(facet)
   override val info: AndroidModuleInfo?
