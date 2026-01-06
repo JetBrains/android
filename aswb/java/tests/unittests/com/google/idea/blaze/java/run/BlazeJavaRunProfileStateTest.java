@@ -24,7 +24,6 @@ import com.google.idea.blaze.base.bazel.BuildSystemProvider;
 import com.google.idea.blaze.base.bazel.FakeBuildInvoker;
 import com.google.idea.blaze.base.bazel.FakeBuildSystem;
 import com.google.idea.blaze.base.bazel.FakeBuildSystemProvider;
-import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeCommandRunnerExperiments;
 import com.google.idea.blaze.base.command.BlazeFlags;
@@ -52,7 +51,6 @@ import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BlazeUserSettings;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.java.JavaBlazeRules;
-import com.google.idea.blaze.java.run.hotswap.HotSwapCommandBuilder;
 import com.google.idea.blaze.java.sync.source.JavaLikeLanguage;
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;
@@ -60,7 +58,6 @@ import com.intellij.openapi.extensions.impl.ExtensionPointImpl;
 import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
-import java.util.List;
 import java.util.concurrent.Future;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -115,8 +112,6 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
         new BlazeJavaRunConfigurationHandlerProvider(), testDisposable);
     handlerProviderEp.registerExtension(
         new BlazeCommandGenericRunConfigurationHandlerProvider(), testDisposable);
-
-    registerExtensionPoint(HotSwapCommandBuilder.EP_NAME, HotSwapCommandBuilder.class);
 
     configuration =
         new BlazeCommandRunConfigurationType().getFactory().createTemplateConfiguration(project);
@@ -283,30 +278,6 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
                 .build()
                 .toList())
         .contains("--test_arg=--wrapper_script_flag=--jvm_flag=-javaagent:/path/to/kotlinx-coroutines-lib.jar");
-  }
-
-  @Test
-  public void getBashCommandsToRunScript() throws Exception {
-    BlazeCommand.Builder commandBuilder =
-        BlazeCommand.builder(
-          FakeBuildInvoker.builder().invokeCommand(
-            ImmutableList.of("/usr/bin/blaze")).build(),
-          BlazeCommandName.BUILD)
-          .addTargetStrings("//label:java_binary_rule");
-    List<String> command =
-        HotSwapCommandBuilder.getBashCommandsToRunScript(getProject(), commandBuilder);
-    Path tempDirectory = TempDirectoryProvider.getInstance().getTempDirectory();
-    assertThat(command)
-        .containsExactly(
-            "/bin/bash",
-            "-c",
-            String.format(
-                "/usr/bin/blaze build %s "
-                    + "--script_path=%s/blaze-script-1337 "
-                    + "-- //label:java_binary_rule "
-                    + "&& %s/blaze-script-1337",
-                BlazeFlags.getToolTagFlag(), tempDirectory, tempDirectory))
-        .inOrder();
   }
 
   private static class MockTargetFinder implements TargetFinder {
