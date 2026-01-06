@@ -916,7 +916,8 @@ class FakeScreenSharingAgent(
 
     private fun computeDisplayImageSize(): Dimension {
       // The same logic as in ComputeVideoSize in display_streamer.cc except for rounding of height.
-      val rotatedDisplaySize = getFoldedDisplaySize().rotatedByQuadrants(deviceOrientation)
+      val size = getFoldedDisplaySize()
+      val rotatedDisplaySize = if (displays[displayId].type == DisplayType.INTERNAL) size.rotatedByQuadrants(deviceOrientation) else size
       val displayWidth = rotatedDisplaySize.width.toDouble()
       val displayHeight = rotatedDisplaySize.height.toDouble()
       val maxResolutionWidth = min(max(maxVideoResolution.width, rotatedDisplaySize.width / 2), maxVideoEncoderResolution)
@@ -929,9 +930,13 @@ class FakeScreenSharingAgent(
     }
 
     private fun getFoldedDisplaySize(): Dimension {
-      return when (deviceState?.name) {
-        "CLOSE", "TENT" -> foldedSize ?: displaySize
-        else -> displaySize
+      val display = displays[displayId]
+      return when (displayId) {
+        PRIMARY_DISPLAY_ID -> when (deviceState?.name) {
+          "CLOSE", "TENT" -> foldedSize ?: displaySize
+          else -> displaySize
+        }
+        else -> display.size
       }
     }
 

@@ -588,7 +588,8 @@ class DeviceToolWindowPanelTest {
     agent.clearCommandLog()
     // Rotating the device. Only the internal display should rotate.
     executeAction("android.device.rotate.left", panel.primaryDisplayView!!, project)
-    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage(orientation=1))
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage(orientation = 1))
+    waitForFrame(displayId = PRIMARY_DISPLAY_ID)
     waitForFrame(displayId = secondaryDisplayId)
     assertAppearance("MultipleDisplays2", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
 

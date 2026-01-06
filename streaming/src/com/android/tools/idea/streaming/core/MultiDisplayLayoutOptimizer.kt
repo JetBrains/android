@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.android.tools.adtui.util.scaled
 import java.awt.Dimension
 import java.util.Locale
 import kotlin.math.max
@@ -32,6 +33,8 @@ import kotlin.math.min
  *     before scaling. The size of this array may not exceed 4.
  */
 internal fun computeBestLayout(availableSpace: Dimension, rectangleSizes: List<Dimension>): LayoutNode {
+  require(availableSpace.width > 0)
+  require(availableSpace.height > 0)
   require(rectangleSizes.isNotEmpty())
   if (rectangleSizes.size < 2) {
     return LeafNode(0, availableSpace)
@@ -43,20 +46,26 @@ internal fun computeBestLayout(availableSpace: Dimension, rectangleSizes: List<D
 /**
  * Represents a panel.
  *
- * @param size dimensions of the panel contents before scaling
+ * @param contentSize dimensions of the panel contents before scaling
  */
-internal sealed class LayoutNode(val size: Dimension)
+internal sealed class LayoutNode(val contentSize: Dimension) {
+
+  val allocatedSize: Dimension = Dimension()
+
+  fun isSpaceAllocated(): Boolean =
+      allocatedSize.width != 0 || allocatedSize.height != 0
+}
 
 /**
  * Represents a content panel.
  *
  * @param rectangleIndex the index in the `rectangleSizes` array corresponding to the content of the panel
- * @param size dimensions of the panel contents before scaling
+ * @param contentSize dimensions of the panel contents before scaling
  */
-internal class LeafNode(val rectangleIndex: Int, size: Dimension) : LayoutNode(size) {
-  override fun toString(): String {
-    return "#$rectangleIndex"
-  }
+internal class LeafNode(val rectangleIndex: Int, contentSize: Dimension) : LayoutNode(contentSize) {
+
+  override fun toString(): String =
+      "#$rectangleIndex"
 }
 
 /**
@@ -70,31 +79,36 @@ internal class SplitNode(
   val splitType: SplitType,
   val firstChild: LayoutNode,
   val secondChild: LayoutNode)
-: LayoutNode(computeSize(splitType, firstChild, secondChild)) {
+: LayoutNode(computeContentSize(splitType, firstChild, secondChild)) {
 
   /** The ratio of the size of the first child to the total size along the split direction. */
-  val splitRatio: Double = when (splitType) {
-    SplitType.HORIZONTAL -> firstChild.size.width.toDouble() / (firstChild.size.width + secondChild.size.width)
-    SplitType.VERTICAL -> firstChild.size.height.toDouble() / (firstChild.size.height + secondChild.size.height)
-  }
+  val splitRatio: Double
+    get() = when (splitType) {
+      SplitType.HORIZONTAL -> firstChild.allocatedSize.width.toDouble() / allocatedSize.width
+      SplitType.VERTICAL -> firstChild.allocatedSize.height.toDouble() / allocatedSize.height
+    }
 
   override fun toString(): String {
     val splitChar = when (splitType) {
       SplitType.HORIZONTAL -> '|'
       SplitType.VERTICAL -> EM_DASH
     }
-    val ratio = String.format(Locale.ROOT, "%.2g", splitRatio)
-    return "[$firstChild] $splitChar [$secondChild] $ratio"
+    return when {
+      isSpaceAllocated() -> "[$firstChild] $splitChar [$secondChild] ${String.format(Locale.ROOT, "%.2g", splitRatio)}"
+      else -> "[$firstChild] $splitChar [$secondChild]"
+    }
   }
 }
 
-private fun computeSize(splitType: SplitType, firstChild: LayoutNode, secondChild: LayoutNode): Dimension {
+private fun computeContentSize(splitType: SplitType, firstChild: LayoutNode, secondChild: LayoutNode): Dimension {
   return when (splitType) {
     SplitType.HORIZONTAL -> {
-      Dimension(firstChild.size.width + secondChild.size.width, max(firstChild.size.height, secondChild.size.height))
+      Dimension(firstChild.contentSize.width + secondChild.contentSize.width,
+                max(firstChild.contentSize.height, secondChild.contentSize.height))
     }
     SplitType.VERTICAL -> {
-      Dimension(max(firstChild.size.width, secondChild.size.width), firstChild.size.height + secondChild.size.height)
+      Dimension(max(firstChild.contentSize.width, secondChild.contentSize.width),
+                firstChild.contentSize.height + secondChild.contentSize.height)
     }
   }
 }
@@ -104,7 +118,6 @@ private const val EM_DASH = '\u2014'
 private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
 
   private val levels = populateLevelParameters(rectangleSizes.size)
-
   private val nodesArraySize = levels.last().offset + levels.last().size
 
   /** Offset of the first child node indexed by the offset of the parent node. */
@@ -151,7 +164,9 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
         currentLayout.copyInto(bestLayout)
       }
     }
-    return buildLayoutTree(bestLayout[0]!!, bestLayout)
+    val layout = buildLayoutTree(bestLayout[0]!!, bestLayout)
+    allocateSpace(layout, availableSpace.width, availableSpace.height)
+    return layout
   }
 
   private fun populateLevelParameters(numLevels: Int): Array<LevelParams> {
@@ -179,9 +194,92 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
     return node
   }
 
+  private fun allocateSpace(node: LayoutNode, width: Int, height: Int) {
+    val allocatedSize = node.allocatedSize
+    allocatedSize.setSize(width, height)
+    if (node !is SplitNode || node.firstChild.isSpaceAllocated() && node.secondChild.isSpaceAllocated()) {
+      return
+    }
+
+    val splitType = node.splitType
+    var available = allocatedSize.longitudinalComponent(splitType)
+    val transverse = allocatedSize.transverseComponent(splitType)
+    var contentSize = node.contentSize.longitudinalComponent(splitType)
+    val splitParticipants = getSplitParticipants(node)
+    var maxUsable = 0
+    for (n in splitParticipants) {
+      maxUsable += n.contentSize.maxUsableSize(splitType, allocatedSize)
+    }
+    if (maxUsable <= available) {
+      val scale = available.toDouble() / maxUsable
+      for (n in splitParticipants) {
+        val size = if (n === splitParticipants.last()) available else n.contentSize.maxUsableSize(splitType, allocatedSize).scaled(scale)
+        available -= size
+        allocateSpace(n, splitType, size, transverse)
+      }
+    }
+    else {
+      var count = splitParticipants.size
+      var previousProgress = true
+      while (count > 0) {
+        val scale = available.toDouble() / contentSize
+        var progress = false
+        for (n in splitParticipants) {
+          if (!n.isSpaceAllocated()) {
+            val fitScale = n.contentSize.fitScale(allocatedSize)
+            val s = if (previousProgress) fitScale else scale
+            if (s <= scale) {
+              val size = if (--count == 0) available else n.contentSize.longitudinalComponent(splitType).scaled(s)
+              available -= size
+              contentSize -= n.contentSize.longitudinalComponent(splitType)
+              allocateSpace(n, splitType, size, transverse)
+              progress = true
+            }
+          }
+        }
+        previousProgress = progress
+      }
+    }
+
+    if (splitParticipants.size > 2) {
+      node.firstChild.allocateSpaceFromChildren()
+      assert(node.secondChild.isSpaceAllocated())
+    }
+  }
+
+  private fun allocateSpace(node: LayoutNode, splitType: SplitType, longitudinal: Int, transverse: Int) {
+    when (splitType) {
+      SplitType.HORIZONTAL -> allocateSpace(node, longitudinal, transverse)
+      SplitType.VERTICAL -> allocateSpace(node, transverse, longitudinal)
+    }
+  }
+
+  private fun LayoutNode.allocateSpaceFromChildren() {
+    if (isSpaceAllocated() || this !is SplitNode) {
+      return
+    }
+    firstChild.allocateSpaceFromChildren()
+    secondChild.allocateSpaceFromChildren()
+    val l = firstChild.allocatedSize.longitudinalComponent(splitType) + secondChild.allocatedSize.longitudinalComponent(splitType)
+    val t = max(firstChild.allocatedSize.transverseComponent(splitType), secondChild.allocatedSize.transverseComponent(splitType))
+    allocateSpace(this, splitType, l, t)
+  }
+
+  private fun getSplitParticipants(splitNode: SplitNode): MutableList<LayoutNode> {
+    val participants = mutableListOf<LayoutNode>()
+    var node: LayoutNode = splitNode
+    while (node is SplitNode && node.splitType == splitNode.splitType) {
+      participants.add(node.secondChild)
+      node = node.firstChild
+    }
+    participants.add(node)
+    participants.reverse()
+    return participants
+  }
+
   private fun calculateScale(availableSpace: Dimension, layoutNodes: Array<Node?>): Double {
     val size = calculateSize(layoutNodes[0]!!, layoutNodes)
-    return min(availableSpace.getWidth() / size.width, availableSpace.getHeight() / size.height)
+    return min(availableSpace.width.toDouble() / size.width, availableSpace.height.toDouble() / size.height)
   }
 
   private fun calculateSize(node: Node, layoutNodes: Array<Node?>): Dimension {
@@ -351,3 +449,28 @@ private class PartitionGenerator(val array: IntArray) : Iterator<Pair<IntArray, 
     }
   }
 }
+
+private fun Dimension.longitudinalComponent(splitType: SplitType): Int {
+  return when (splitType) {
+    SplitType.HORIZONTAL -> width
+    SplitType.VERTICAL -> height
+  }
+}
+
+private fun Dimension.transverseComponent(splitType: SplitType): Int {
+  return when (splitType) {
+    SplitType.HORIZONTAL -> height
+    SplitType.VERTICAL -> width
+  }
+}
+
+private fun Dimension.maxUsableSize(splitType: SplitType, maxSize: Dimension): Int =
+    longitudinalComponent(splitType).scaled(fitScale(maxSize))
+
+/**
+ * Returns the maximum scale factor such that a rectangle with [this] dimensions would fit in
+ * a rectangle with [maxSize] dimensions.
+ */
+private fun Dimension.fitScale(maxSize: Dimension): Double =
+    min(maxSize.width.toDouble() / width, maxSize.height.toDouble() / height)
+
