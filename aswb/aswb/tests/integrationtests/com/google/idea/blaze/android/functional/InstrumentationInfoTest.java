@@ -67,7 +67,7 @@ public class InstrumentationInfoTest extends BlazeAndroidIntegrationTestCase {
     //        .test_app("//java/com/foo/app:test_app"),
     //    android_instrumentation_test("//java/com/foo/app:self_instrumenting_test")
     //        .test_app("//java/com/foo/app:test_app_self_instrumenting"));
-    runFullBlazeSyncWithNoIssues();
+    // query sync: runFullBlazeSyncWithNoIssues();
   }
 
   @Test
@@ -129,7 +129,7 @@ public class InstrumentationInfoTest extends BlazeAndroidIntegrationTestCase {
     //        .src("Test.java")
     //        .instruments("//java/com/foo/app:app"),
     //    android_instrumentation_test("//java/com/foo/app:instrumentation_test"));
-    runFullBlazeSyncWithNoIssues();
+    // query sync: runFullBlazeSyncWithNoIssues();
 
     Label instrumentationTestLabel = Label.create("//java/com/foo/app:instrumentation_test");
     try {
