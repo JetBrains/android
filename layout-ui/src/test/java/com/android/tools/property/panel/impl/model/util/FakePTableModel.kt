@@ -53,7 +53,7 @@ class FakePTableModel(
 
   override fun isCellEditable(item: PTableItem, column: PTableColumn) = column == PTableColumn.VALUE
 
-  override fun refresh() {
+  override fun refresh(childElementChanges: Boolean) {
     refreshCalled = true
   }
 }

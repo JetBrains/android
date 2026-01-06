@@ -52,7 +52,7 @@ open class GenericInspectorLineModel : InspectorLineModel {
     error(ERROR_NOT_FOCUSABLE)
   }
 
-  override fun refresh() {
+  override fun refresh(childElementChanges: Boolean) {
     fireValueChanged()
   }
 

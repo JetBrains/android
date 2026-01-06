@@ -87,7 +87,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
         newItems.add(index, item)
       }
     }
-    updateItems(newItems, lastItem(items))
+    updateItems(childElementChanges = false, newItems, lastItem(items))
     return item
   }
 
@@ -108,7 +108,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
       return
     }
     @Suppress("UNCHECKED_CAST") delete(item as P)
-    updateItems(newItems, null)
+    updateItems(childElementChanges = false, newItems, null)
   }
 
   @Suppress("UNCHECKED_CAST")
@@ -140,7 +140,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
    *
    * There is special logic in this method for handling a [NewPropertyItem] at the end of the table.
    */
-  override fun refresh() {
+  override fun refresh(childElementChanges: Boolean) {
     val last = lastItem(items)
     val newItems = mutableListOf<PTableItem>()
     groupAndSort(findParticipatingItems(), newItems)
@@ -153,7 +153,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
         newItems.add(last)
       }
     }
-    updateItems(newItems, last)
+    updateItems(childElementChanges, newItems, last)
   }
 
   /**
@@ -165,15 +165,23 @@ class FilteredPTableModelImpl<P : PropertyItem>(
    * If [newItem] is specified then a [NewPropertyItem] was found at the end of the table before
    * this change. Use this for computing which item the table should be editing after this
    * operation.
+   *
+   * Propagate the change to the TableModel. Notify the model of data changes in the items if the
+   * items were changed here or if there are childElementChanges.
    */
-  private fun updateItems(newItems: List<PTableItem>, newItem: PTableItem?): PTableItem? {
+  private fun updateItems(
+    childElementChanges: Boolean,
+    newItems: List<PTableItem>,
+    newItem: PTableItem?,
+  ): PTableItem? {
     var nextItemToEdit = editedItem
-    val modelChanged = items != newItems
-    if (modelChanged) {
+    val itemsChanged = items != newItems
+    if (itemsChanged) {
       nextItemToEdit = findNextItemToEdit(newItems, newItem)
       items.clear()
       items.addAll(newItems)
     }
+    val modelChanged = itemsChanged || childElementChanges
     listeners.toTypedArray().forEach { it.itemsUpdated(modelChanged, nextItemToEdit) }
     return nextItemToEdit
   }

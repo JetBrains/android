@@ -726,7 +726,10 @@ class PreviewPickerTests {
     var expectedModificationsCountdown = 3
     model.addListener(
       object : PropertiesModelListener<PsiPropertyItem> {
-        override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>) {
+        override fun propertyValuesChanged(
+          model: PropertiesModel<PsiPropertyItem>,
+          childElementChanges: Boolean,
+        ) {
           expectedModificationsCountdown--
         }
       }
@@ -820,7 +823,10 @@ private class TestTracker : ComposePickerTracker {
  */
 private class FakePropertiesRefreshListener : PropertiesModelListener<PsiPropertyItem> {
 
-  override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>) {
+  override fun propertyValuesChanged(
+    model: PropertiesModel<PsiPropertyItem>,
+    childElementChanges: Boolean,
+  ) {
     // We simulate a refresh of all the properties, getting their values to trigger analyze()
     model.properties.values.forEach { it.value }
   }
