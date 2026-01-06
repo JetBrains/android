@@ -1,0 +1,25 @@
+syntax = "proto2";
+
+option java_package = "com.android.tools.idea.serverflags.protos";
+option java_multiple_files = true;
+
+// A map of user tiers to their information for displaying in the UI. Refer to
+// go/g1-integration-in-as for more details.
+message StudioUserTiers {
+  // Information about a specific user tier. The information is used to display
+  // the user tier in the UI -
+  // https://www.figma.com/proto/EXnu9cypiNRwV5TjeaQmpY/Gemini-Upgrade-Lifecycle?node-id=17935-59928&t=jxEbzeBuL4YVBB9l-1&scaling=scale-down&content-scaling=fixed&page-id=2%3A144&starting-point-node-id=17935%3A59928
+  message TierMetadata {
+    // The display name of the tier (e.g., "Enterprise").
+    optional string display_name = 1;
+
+    // The upgrade message to the next tier in markdown format. The markdown
+    // should contain a hyperlink to a page with more information about how can
+    // user upgrade to the next tier.
+    optional string upgrade_message = 2;
+  }
+  // A map from Tier Id to its corresponding display and upgrade metadata. The
+  // tier id comes from the GCA backend when we hit the `loadCodeAssist` RPC.
+  // The contract can be found here - go/code-assist-tiers-differentiation.
+  map<string, TierMetadata> tiers = 1;
+}
