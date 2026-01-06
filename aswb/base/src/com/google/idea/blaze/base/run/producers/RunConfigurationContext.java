@@ -17,7 +17,6 @@ package com.google.idea.blaze.base.run.producers;
 
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
 import com.intellij.openapi.application.ApplicationManager;
@@ -71,7 +70,7 @@ public interface RunConfigurationContext {
   boolean matchesRunConfiguration(BlazeCommandRunConfiguration config);
 
   static RunConfigurationContext fromKnownTarget(
-      TargetExpression target, BlazeCommandName command, PsiElement sourceElement) {
+      String targetPattern, BlazeCommandName command, PsiElement sourceElement) {
     return new RunConfigurationContext() {
       @Override
       public PsiElement getSourceElement() {
@@ -80,7 +79,7 @@ public interface RunConfigurationContext {
 
       @Override
       public boolean setupRunConfiguration(BlazeCommandRunConfiguration config) {
-        config.setTargetPattern(target.toString());
+        config.setTargetPattern(targetPattern);
         BlazeCommandRunConfigurationCommonState handlerState =
             config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState.class);
         if (handlerState == null) {
@@ -100,7 +99,7 @@ public interface RunConfigurationContext {
         }
         return Objects.equals(handlerState.getCommandState().getCommand(), command)
             && Objects.equals(
-                config.getTargetPatterns(), ImmutableList.of(target.toString()))
+                config.getTargetPatterns(), ImmutableList.of(targetPattern))
             && handlerState.getTestFilterFlag() == null;
       }
     };

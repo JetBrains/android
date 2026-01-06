@@ -38,7 +38,7 @@ public class AvailableDebuggersTest extends BlazeAndroidIntegrationTestCase {
   public void getDebuggers_noCLanguageSupport_returnsJavaAndAutoDebuggers() {
     setProjectView("targets:", "  //java/com/foo/app:app", "android_sdk_platform: android-27");
     MockSdkUtil.registerSdk(workspace, "27");
-    runFullBlazeSyncWithNoIssues();
+    // query sync: runFullBlazeSyncWithNoIssues();
 
     assertThat(
         AndroidDebugger.EP_NAME.getExtensionList().stream()
@@ -58,7 +58,7 @@ public class AvailableDebuggersTest extends BlazeAndroidIntegrationTestCase {
         "  c",
         "android_sdk_platform: android-27");
     MockSdkUtil.registerSdk(workspace, "27");
-    runFullBlazeSyncWithNoIssues();
+    // query sync: runFullBlazeSyncWithNoIssues();
 
     assertThat(
             AndroidDebugger.EP_NAME.getExtensionList().stream()

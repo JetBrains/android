@@ -15,8 +15,6 @@
  */
 package com.google.idea.blaze.base.logging;
 
-import com.google.idea.blaze.base.logging.utils.BuildPhaseSyncStats;
-
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -67,8 +65,6 @@ public abstract class SyncStats implements LoggedEvent {
   public abstract ImmutableList<LanguageClass> languagesActive();
 
   public abstract ImmutableList<WorkspacePath> blazeProjectFiles();
-
-  public abstract ImmutableList<BuildPhaseSyncStats> buildPhaseStats();
 
   public abstract long targetMapSize();
 
@@ -133,20 +129,6 @@ public abstract class SyncStats implements LoggedEvent {
     public abstract Builder setBlazeProjectFiles(List<WorkspacePath> blazeProjectFiles);
 
     public abstract Builder setTargetMapSize(long targetMapSize);
-
-    abstract ImmutableList.Builder<BuildPhaseSyncStats> buildPhaseStatsBuilder();
-
-    @CanIgnoreReturnValue
-    public Builder addBuildPhaseStats(BuildPhaseSyncStats buildPhaseStats) {
-      buildPhaseStatsBuilder().add(buildPhaseStats);
-      return this;
-    }
-
-    @CanIgnoreReturnValue
-    public Builder addAllBuildPhaseStats(Iterable<BuildPhaseSyncStats> buildPhaseStats) {
-      buildPhaseStatsBuilder().addAll(buildPhaseStats);
-      return this;
-    }
 
     public abstract Builder setLibraryCount(int librariesCount);
 

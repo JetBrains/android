@@ -71,7 +71,7 @@ public class InstrumentationTestTargetIntegrationTest extends BlazeAndroidIntegr
     //    android_instrumentation_test("//java/com/foo/app:instrumentation_test")
     //        .test_app("//java/com/foo/app:test_app")
     //        .target_device("//tools/android/emulated_devices/generic_phone:android_17_x86"));
-    runFullBlazeSyncWithNoIssues();
+    // query sync: runFullBlazeSyncWithNoIssues();
   }
 
   @Test

@@ -15,13 +15,10 @@
  */
 package com.google.idea.blaze.base.query;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.model.primitives.Label;
-import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -74,9 +71,5 @@ public class BlazeQueryLabelKindParser implements LineProcessingOutputStream.Lin
   /** Returns all targets parsed to this point. */
   public ImmutableList<TargetInfo> getTargets() {
     return outputList.build();
-  }
-
-  public ImmutableList<TargetExpression> getTargetLabels() {
-    return outputList.build().stream().map(info -> info.label()).collect(toImmutableList());
   }
 }

@@ -59,7 +59,7 @@ public class DebuggerInfoProviderTest extends BlazeAndroidIntegrationTestCase {
         "additional_languages:",
         "  c");
     MockSdkUtil.registerSdk(workspace, "27");
-    runFullBlazeSyncWithNoIssues();
+    // query sync: runFullBlazeSyncWithNoIssues();
     debuggerInfoProvider =
         AndroidDebuggerInfoProvider.EP_NAME.getExtensionList().stream()
             .filter(provider -> provider.supportsProject(getProject()))
