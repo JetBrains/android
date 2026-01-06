@@ -102,7 +102,7 @@ class InspectorPropertiesViewTest {
         null,
         id,
         context,
-        listOf(),
+        mutableListOf(),
       )
     val inspector = createInspector(listOf(text, prop))
     assertThat(inspector.lines).hasSize(5)
