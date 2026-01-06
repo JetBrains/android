@@ -39,6 +39,7 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
   private val logger = Logger.getInstance(LeakCanaryHeapDumper::class.java)
   private val isHeapDumpInProgress = AtomicBoolean(false)
   lateinit var onHostAnalysisFinished: (Analysis) -> Unit
+  lateinit var onAnalysisProgress: (Int) -> Unit
 
   /**
    * This function orchestrates the entire host-side analysis workflow.
@@ -159,7 +160,11 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
    */
   private fun analyzeAndHandleResult(hprofFile: File) {
     logger.info("Hprof file downloaded to: ${hprofFile.path}. Starting analysis.")
-    val analysisResult = SharkHostAnalyzer().analyze(hprofFile)
+    val analysisResult = SharkHostAnalyzer().analyze(hprofFile) { progress ->
+      profilers.ideServices.mainExecutor.execute {
+        onAnalysisProgress(progress)
+      }
+    }
     if (analysisResult is HeapAnalysisSuccess) {
       val analysis = LeakCanaryParser().parseLogcatMessage(analysisResult.toString())
       if (analysis != null) {
