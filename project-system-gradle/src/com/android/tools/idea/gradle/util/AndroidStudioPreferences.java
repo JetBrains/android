@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.util;
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTrackerSettings;
 import com.intellij.openapi.options.Configurable;
@@ -27,11 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.EditorNotificationProvider;
 import java.util.Arrays;
 import java.util.List;
-import kotlin.sequences.SequencesKt;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.core.script.v1.settings.KotlinScriptingSettings;
-import org.jetbrains.kotlin.scripting.definitions.ScriptDefinitionProvider;
-import org.jetbrains.kotlin.scripting.definitions.ScriptDefinitionProvider;
 
 public final class AndroidStudioPreferences {
   private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = Arrays.asList(
@@ -63,22 +58,6 @@ public final class AndroidStudioPreferences {
 
     // Set ExternalSystemProjectTrackerSettings.autoReloadType to none, re-syncing project only if cached data is corrupted, invalid or missing
     ExternalSystemProjectTrackerSettings.getInstance(project).setAutoReloadType(ExternalSystemProjectTrackerSettings.AutoReloadType.NONE);
-
-    // Tests do not rely on this but it causes test flakiness as it can be executed after test finish during project disposal.
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      // Disable KotlinScriptingSettings.autoReloadConfigurations flag, avoiding unexpected re-sync project with kotlin scripts
-      var scriptDefinitionProvider = ScriptDefinitionProvider.Companion.getInstance(project);
-      if (scriptDefinitionProvider != null) {
-        SequencesKt.asIterable(scriptDefinitionProvider.getCurrentDefinitions()).forEach(
-          scriptDefinitions -> {
-            var settings = KotlinScriptingSettings.Companion.getInstance(project);
-            if (settings.isScriptDefinitionEnabled(scriptDefinitions) && settings.autoReloadConfigurations(scriptDefinitions)) {
-              settings.setAutoReloadConfigurations(scriptDefinitions, false);
-            }
-          }
-        );
-      }
-    }
 
     // Note: This unregisters the extensions when the predicate returns False.
     projectConfigurable.unregisterExtensions((s, adapter) -> {
