@@ -57,6 +57,9 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
     onHostAnalysisFinished = { analysis ->
       handleLeakAnalysis(analysis)
     }
+    onAnalysisProgress = { progress ->
+      setAnalysisProgress(progress)
+    }
   }
   val requiredRetainedObjectCount = 5
   private val _leaks = MutableStateFlow(listOf<Leak>())
