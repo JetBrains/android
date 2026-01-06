@@ -1289,8 +1289,9 @@ class ComposePreviewRepresentation(
     if (isDisposed.get()) return CompletableDeferred<Unit>().also { it.completeAlreadyDisposed() }
 
     val requestLogger = LoggerWithFixedInfo(log, mapOf("requestId" to refreshRequest.requestId))
+    val containingFileName = runReadAction { psiFilePointer.containingFile?.name }
     requestLogger.debug(
-      "Refresh triggered editor=${psiFilePointer.containingFile?.name}. Refresh type: ${refreshRequest.refreshType}"
+      "Refresh triggered editor=$containingFileName. Refresh type: ${refreshRequest.refreshType}"
     )
     val refreshTriggers: List<Throwable> = refreshRequest.requestSources
 
@@ -1303,9 +1304,7 @@ class ComposePreviewRepresentation(
         !(refreshRequest.refreshType == ComposePreviewRefreshType.QUALITY &&
           allowQualityChangeIfInactive.getAndSet(false))
     ) {
-      requestLogger.debug(
-        "Inactive representation (${psiFilePointer.containingFile?.name}), no work being done"
-      )
+      requestLogger.debug("Inactive representation ($containingFileName), no work being done")
       return CompletableDeferred(Unit)
     }
 
@@ -1328,10 +1327,7 @@ class ComposePreviewRepresentation(
     val refreshProgressIndicator =
       BackgroundableProcessIndicator(
         project,
-        message(
-          "refresh.progress.indicator.title",
-          psiFilePointer.containingFile?.let { " (${it.name})" } ?: "",
-        ),
+        message("refresh.progress.indicator.title", containingFileName?.let { " ($it)" } ?: ""),
         "",
         "",
         true,
