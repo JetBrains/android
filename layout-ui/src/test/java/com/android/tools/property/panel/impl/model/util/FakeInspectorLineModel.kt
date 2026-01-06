@@ -61,7 +61,7 @@ open class FakeInspectorLineModel(val type: FakeLineType) : InspectorLineModel {
     expanded = initiallyExpanded
   }
 
-  override fun refresh() {
+  override fun refresh(childElementChanges: Boolean) {
     fireValueChanged()
   }
 

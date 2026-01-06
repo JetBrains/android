@@ -175,9 +175,11 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
     }
   }
 
-  private fun firePropertyValuesChanged() {
+  private fun firePropertyValuesChanged(childElementChanges: Boolean = false) {
     modelListeners.forEach {
-      ApplicationManager.getApplication().invokeLater { it.propertyValuesChanged(this) }
+      ApplicationManager.getApplication().invokeLater {
+        it.propertyValuesChanged(this, childElementChanges)
+      }
     }
   }
 }

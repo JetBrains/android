@@ -165,7 +165,10 @@ private constructor(
           updates++
         }
 
-        override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+        override fun propertyValuesChanged(
+          model: PropertiesModel<NlPropertyItem>,
+          childElementChanges: Boolean,
+        ) {
           updates++
         }
       }

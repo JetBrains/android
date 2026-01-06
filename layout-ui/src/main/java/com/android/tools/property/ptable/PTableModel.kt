@@ -75,7 +75,7 @@ interface PTableModel {
   fun removeItem(item: PTableItem)
 
   /** Refresh the table contents after a property value change. */
-  fun refresh() {}
+  fun refresh(childElementChanges: Boolean = false) {}
 }
 
 /** Listener interface for model changes. */

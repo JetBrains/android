@@ -48,7 +48,10 @@ class EasingCurvePanel(
 
   private val modelListener =
     object : PropertiesModelListener<NlPropertyItem> {
-      override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+      override fun propertyValuesChanged(
+        model: PropertiesModel<NlPropertyItem>,
+        childElementChanges: Boolean,
+      ) {
         updateFromValues()
       }
     }

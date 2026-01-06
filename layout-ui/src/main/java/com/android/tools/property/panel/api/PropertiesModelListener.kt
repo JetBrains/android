@@ -30,5 +30,5 @@ interface PropertiesModelListener<P : PropertyItem> {
    *
    * The property items in the [PropertiesModel] are still the same.
    */
-  fun propertyValuesChanged(model: PropertiesModel<P>) {}
+  fun propertyValuesChanged(model: PropertiesModel<P>, childElementChanges: Boolean = false) {}
 }

@@ -70,7 +70,10 @@ class SelectedComponentBuilder(private val model: NlPropertiesModel) :
         private var currentListener: ValueChangedListener? = null
         val modelListener =
           object : PropertiesModelListener<NlPropertyItem> {
-            override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+            override fun propertyValuesChanged(
+              model: PropertiesModel<NlPropertyItem>,
+              childElementChanges: Boolean,
+            ) {
               val newId = id
               if (newId != lastId) {
                 lastId = newId

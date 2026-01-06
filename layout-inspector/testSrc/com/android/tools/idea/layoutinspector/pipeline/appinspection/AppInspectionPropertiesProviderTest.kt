@@ -736,7 +736,10 @@ class AppInspectionPropertiesProviderTest {
           generatedCount++
         }
 
-        override fun propertyValuesChanged(model: PropertiesModel<InspectorPropertyItem>) {
+        override fun propertyValuesChanged(
+          model: PropertiesModel<InspectorPropertyItem>,
+          childElementChanges: Boolean,
+        ) {
           valuesChanged++
         }
       }
@@ -785,7 +788,10 @@ class AppInspectionPropertiesProviderTest {
           generatedCount++
         }
 
-        override fun propertyValuesChanged(model: PropertiesModel<InspectorPropertyItem>) {
+        override fun propertyValuesChanged(
+          model: PropertiesModel<InspectorPropertyItem>,
+          childElementChanges: Boolean,
+        ) {
           valuesChanged++
         }
       }
