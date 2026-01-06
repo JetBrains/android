@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.loadNewFile
+import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.completion.CompletionResult
@@ -32,6 +33,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlin.test.assertNotNull
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
@@ -396,6 +398,38 @@ class ComposeModifierCompletionContributorTest {
     assertThat(lookupStrings.indexOf("extensionFunction")).isEqualTo(0)
 
     checkNamedArgumentCompletion()
+  }
+
+  @RunsInEdt
+  @Test
+  fun validateNoCompletionInComment() {
+    // Regression test for b/468406455
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun myWidget() {
+          myWidgetWithModifier(modifier =
+              // Some comment
+              Modifier.
+      }
+      """
+        .trimIndent(),
+    )
+
+    myFixture.moveCaret("Modifier.|")
+    myFixture.completeBasic()
+
+    assertThat(assertNotNull(myFixture.lookupElementStrings)).contains("extensionFunction")
+
+    myFixture.moveCaret("// Some comment|")
+    myFixture.completeBasic()
+
+    assertThat(assertNotNull(myFixture.lookupElementStrings)).isEmpty()
   }
 
   @RunsInEdt
