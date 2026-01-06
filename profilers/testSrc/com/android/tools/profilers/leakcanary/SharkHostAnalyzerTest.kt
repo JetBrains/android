@@ -53,7 +53,7 @@ class SharkHostAnalyzerTest {
   fun `analyze returns success and leaks for valid hprof file`() {
 
     val validHprofFile = getTestFile("tools/adt/idea/profilers/testData/hprofs/valid_leak_test.hprof")
-    val result = analyzer.analyze(validHprofFile)
+    val result = analyzer.analyze(validHprofFile) { }
 
     Truth.assertThat(result).isInstanceOf(HeapAnalysisSuccess::class.java)
     val successResult = result as HeapAnalysisSuccess
@@ -67,7 +67,7 @@ class SharkHostAnalyzerTest {
     val corruptFile = tempFolder.newFile("corrupt.hprof")
     corruptFile.writeText("This is not a real heap dump.")
 
-    val result = analyzer.analyze(corruptFile)
+    val result = analyzer.analyze(corruptFile) { }
 
     // The analyzer should catch the error and return a failure object.
     Truth.assertThat(result).isInstanceOf(HeapAnalysisFailure::class.java)
@@ -78,7 +78,7 @@ class SharkHostAnalyzerTest {
   fun `analyze returns failure for missing hprof file`() {
     val missingFile = File(tempFolder.root, "non_existent_file.hprof")
 
-    val result = analyzer.analyze(missingFile)
+    val result = analyzer.analyze(missingFile) { }
 
     // The analyzer should catch the file-not-found error and return a failure object.
     Truth.assertThat(result).isInstanceOf(HeapAnalysisFailure::class.java)
@@ -90,10 +90,25 @@ class SharkHostAnalyzerTest {
     val textFile = tempFolder.newFile("test.txt")
     textFile.writeText("This is a simple text file.")
 
-    val result = analyzer.analyze(textFile)
+    val result = analyzer.analyze(textFile) { }
 
     // The analyzer should gracefully fail when it tries to parse a non-HPROF file.
     Truth.assertThat(result).isInstanceOf(HeapAnalysisFailure::class.java)
     textFile.delete()
+  }
+
+  @Test
+  fun `analysis progress is reported`() {
+    val validHprofFile = getTestFile("tools/adt/idea/profilers/testData/hprofs/valid_leak_test.hprof")
+    val progressUpdates = mutableListOf<Int>()
+
+    analyzer.analyze(validHprofFile) { progress ->
+      progressUpdates.add(progress)
+    }
+
+    Truth.assertThat(progressUpdates).isNotEmpty()
+    Truth.assertThat(progressUpdates).isOrdered()
+    Truth.assertThat(progressUpdates.first()).isAtLeast(0)
+    Truth.assertThat(progressUpdates.last()).isEqualTo(90)
   }
 }
