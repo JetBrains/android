@@ -354,15 +354,20 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
       .setPerfettoOptions(PerfettoConfig.TraceConfig.getDefaultInstance())
       .build();
 
-    Commands.Command dumpCommand = Commands.Command.newBuilder()
+    Commands.Command.Builder dumpCommandBuilder = Commands.Command.newBuilder()
       .setStreamId(getSessionData().getStreamId())
       .setPid(getSessionData().getPid())
       .setSessionId(getSessionData().getSessionId())
       .setType(Commands.Command.CommandType.STOP_TRACE)
       .setStopTrace(Trace.StopTrace.newBuilder()
                       .setProfilerType(Trace.ProfilerType.MEMORY)
-                      .setConfiguration(configuration))
-      .build();
+                      .setConfiguration(configuration));
+
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      dumpCommandBuilder.setShouldEndSession(true);
+    }
+
+    Commands.Command dumpCommand = dumpCommandBuilder.build();
 
     getStudioProfilers().getClient().executeAsync(dumpCommand, getStudioProfilers().getIdeServices().getPoolExecutor())
       .thenAcceptAsync(response -> {
@@ -472,12 +477,17 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
 
   public void requestHeapDump() {
     assert getStudioProfilers().getProcess() != null;
-    Commands.Command dumpCommand = Commands.Command.newBuilder()
+    Commands.Command.Builder dumpCommandBuilder = Commands.Command.newBuilder()
       .setStreamId(getSessionData().getStreamId())
       .setPid(getSessionData().getPid())
       .setSessionId(getSessionData().getSessionId())
-      .setType(Commands.Command.CommandType.HEAP_DUMP)
-      .build();
+      .setType(Commands.Command.CommandType.HEAP_DUMP);
+
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      dumpCommandBuilder.setShouldEndSession(true);
+    }
+
+    Commands.Command dumpCommand = dumpCommandBuilder.build();
     CompletableFuture.runAsync(() -> {
       Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
         Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build());
