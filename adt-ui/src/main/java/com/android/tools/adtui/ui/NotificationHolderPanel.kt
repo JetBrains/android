@@ -57,7 +57,6 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
 
   init {
     border = JBUI.Borders.empty()
-    setLayer(contentPanel, DEFAULT_LAYER)
     add(contentPanel)
   }
 
