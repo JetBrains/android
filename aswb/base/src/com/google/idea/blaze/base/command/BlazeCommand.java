@@ -88,7 +88,6 @@ public final class BlazeCommand {
   public static class Builder {
     private final List<String> invokeCommand;
     private final BlazeCommandName name;
-    private boolean invokeParallel;
     private final ImmutableList.Builder<String> blazeStartupFlags = ImmutableList.builder();
     private final ImmutableList.Builder<String> targets = ImmutableList.builder();
     private final ImmutableList.Builder<String> blazeCmdlineFlags = ImmutableList.builder();
@@ -97,7 +96,6 @@ public final class BlazeCommand {
     public Builder(List<String> invokeCommand, BlazeCommandName name) {
       this.invokeCommand = invokeCommand;
       this.name = name;
-      this.invokeParallel = false;
       // Tell forge what tool we used to call blaze so we can track usage.
       addBlazeFlags(BlazeFlags.getToolTagFlag());
     }
@@ -119,17 +117,6 @@ public final class BlazeCommand {
     public BlazeCommand build() {
       return new BlazeCommand(invokeCommand, name, blazeStartupFlags.build(), getArguments());
     }
-
-    public boolean isInvokeParallel() {
-      return invokeParallel;
-    }
-
-    @CanIgnoreReturnValue
-    public Builder setInvokeParallel(boolean invokeParallel) {
-      this.invokeParallel = invokeParallel;
-      return this;
-    }
-
 
     @CanIgnoreReturnValue
     public Builder addTargetStrings(String... targets) {
