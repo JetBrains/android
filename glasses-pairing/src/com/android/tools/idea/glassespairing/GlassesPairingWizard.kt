@@ -159,6 +159,7 @@ internal constructor(
     pairingTrigger
       .flatMapLatest {
         pair(it.glasses, it.phone).catch { cause ->
+          GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.UNSPECIFIED)
           emit(PairingState.Error("Unexpected error: $cause"))
         }
       }
@@ -345,7 +346,7 @@ internal sealed class PairingState {
   ) : PairingState() {
     constructor(detailText: String) : this("Pairing failed.", detailText)
 
-    fun toLogMessage() = "$heading: $detailText${logDetail?.let { " [$it]" } ?: ""}"
+    fun toLogMessage() = "$heading: $detailText${logDetail?.let { " [$it]" } ?: "" }"
   }
 
   data object Complete : PairingState() {
@@ -490,6 +491,9 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
         // If phoneBluetoothAddress is null, we may not have access to it; we just have to proceed
         // and hope for the best.
         if (phoneBluetoothAddress == glassesBluetoothAddress) {
+          GlassesPairingUsageTracker.log(
+            GlassesPairingEvent.EventKind.PAIRING_ERROR_BLUETOOTH_ADDRESS
+          )
           emit(
             PairingState.Error(
               heading = "Network simulation error",
@@ -526,7 +530,13 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
                           )
                           "Failed to connect to device."
                         }
-                        "WORKER_CANCELLED" -> "Pairing was cancelled."
+                        "WORKER_CANCELLED" -> {
+                          GlassesPairingUsageTracker.log(
+                            GlassesPairingEvent.EventKind
+                              .UNSPECIFIED // TODO: Add a new event kind for this
+                          )
+                          "Pairing was cancelled."
+                        }
                         else -> "Error pairing device."
                       },
                     logDetail = pairingState,
@@ -536,7 +546,22 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
             }
           }
           .catch { cause ->
-            if (cause is java.io.IOException) {
+            if (cause is ShellCommandException) {
+              GlassesPairingUsageTracker.log(
+                GlassesPairingEvent.EventKind.PAIRING_ERROR_LAUNCH_FAILED
+              )
+              emit(
+                PairingState.Error(
+                  heading = "Pairing failed",
+                  detailText =
+                    "An error occurred while communicating with the device. Please check the device state.",
+                  logDetail = cause.message,
+                )
+              )
+            } else if (cause is java.io.IOException) {
+              GlassesPairingUsageTracker.log(
+                GlassesPairingEvent.EventKind.PAIRING_ERROR_CONNECTION_FAILED
+              )
               emit(
                 PairingState.Error(
                   heading = "Connection lost",
