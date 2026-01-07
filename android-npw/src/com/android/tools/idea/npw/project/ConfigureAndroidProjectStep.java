@@ -27,7 +27,6 @@ import static com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
 import static java.lang.String.format;
 import static org.jetbrains.android.util.AndroidBundle.message;
-
 import com.android.ide.common.repository.AgpVersion;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.UpdatablePackage;
@@ -85,15 +84,19 @@ import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.UIUtil;
+import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -101,6 +104,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -132,6 +136,11 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JPanel myPanel;
   private TextFieldWithBrowseButton myProjectLocation;
   private JTextField myAppName;
+  private JButton generateAppName;
+  // Create a panel to hold the text field and the button
+  private JPanel appNamePanel;
+  private JBLoadingPanel loadingPanel;
+
   private JTextField myPackageName;
   private JComboBox<Language> myProjectLanguage;
   private JBLabel myProjectLanguageLabel;
@@ -151,6 +160,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JComboBox<AgpVersions.NewProjectWizardAgpVersion> myAndroidGradlePluginCombo;
   private FormFactorSdkControls myFormFactorSdkControls;
 
+  private static final String AI_STARTER_TEMPLATE_NAME="AI Starter";
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
     super(newProjectModuleModel, message("android.wizard.project.new.configure"));
 
@@ -318,6 +328,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     if (isWatchFace) {
       myProjectModel.getApplicationName().set("My Watch Face");
     }
+    generateAppName.setVisible(StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && newTemplate.getName().equals(AI_STARTER_TEMPLATE_NAME));
   }
 
   @Override
@@ -380,7 +391,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       .addVerticalGap(10)
       .addComponent(createDocumentationLinkPanel())
       .addVerticalGap(10)
-      .addLabeledComponent("&Name", myAppName)
+      .addLabeledComponent("&Name",   StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() ? appNamePanel : myAppName )
       .addLabeledComponent("&Package name", myPackageName)
       .addLabeledComponent("&Save location", myProjectLocation)
       .addLabeledComponent(myProjectLanguageLabel, myProjectLanguage)
@@ -470,6 +481,28 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myAppName = new JTextField();
     myAppName.setToolTipText("The name that will be shown in the Android launcher for this application");
+    if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get()  ) {
+      generateAppName = new JButton("✨");
+      generateAppName.setVisible(false);
+      loadingPanel = new JBLoadingPanel(new BorderLayout(), this);
+
+      generateAppName.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          Runnable onStart = loadingPanel::startLoading;
+
+          Runnable onFinish = loadingPanel::stopLoading;
+          myProjectModel.generateAppNameAsync(onStart, onFinish);
+        }
+      });
+      loadingPanel.add(generateAppName);
+      // Create a panel to hold the text field and the button
+      appNamePanel = new JPanel(new BorderLayout(5, 0)); // 5px horizontal gap
+
+      appNamePanel.add(myAppName, BorderLayout.CENTER);
+      appNamePanel.add(loadingPanel, BorderLayout.LINE_END);
+    }
+
     myPackageName = new JTextField();
     myProjectLocation = new TextFieldWithBrowseButton();
     myProjectLanguage = new LanguageComboProvider().createComponent();
