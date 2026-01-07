@@ -46,14 +46,15 @@ import org.jetbrains.android.facet.AndroidFacet;
 public class BlazeAndroidBinaryNormalBuildRunContext
     extends BlazeAndroidBinaryNormalBuildRunContextBase {
   BlazeAndroidBinaryNormalBuildRunContext(
-      Project project,
-      AndroidFacet facet,
-      RunConfiguration runConfiguration,
-      ExecutionEnvironment env,
-      BlazeAndroidBinaryRunConfigurationState configState,
-      ApkBuildStep buildStep,
-      String launchId) {
-    super(project, facet, runConfiguration, env, configState, buildStep, launchId);
+    Project project,
+    AndroidFacet facet,
+    RunConfiguration runConfiguration,
+    ExecutionEnvironment env,
+    BlazeAndroidBinaryRunConfigurationState configState,
+    ApkBuildStep buildStep,
+    String launchId,
+    BlazeAndroidBinaryApplicationIdProvider applicationIdProvider) {
+    super(project, facet, runConfiguration, env, configState, buildStep, launchId, applicationIdProvider);
   }
 
   @Override

@@ -64,13 +64,14 @@ public abstract class BlazeAndroidBinaryNormalBuildRunContextBase
   private final String launchId;
 
   BlazeAndroidBinaryNormalBuildRunContextBase(
-      Project project,
-      AndroidFacet facet,
-      RunConfiguration runConfiguration,
-      ExecutionEnvironment env,
-      BlazeAndroidBinaryRunConfigurationState configState,
-      ApkBuildStep buildStep,
-      String launchId) {
+    Project project,
+    AndroidFacet facet,
+    RunConfiguration runConfiguration,
+    ExecutionEnvironment env,
+    BlazeAndroidBinaryRunConfigurationState configState,
+    ApkBuildStep buildStep,
+    String launchId,
+    BlazeAndroidBinaryApplicationIdProvider applicationIdProvider) {
     this.project = project;
     this.facet = facet;
     this.runConfiguration = runConfiguration;
@@ -79,7 +80,7 @@ public abstract class BlazeAndroidBinaryNormalBuildRunContextBase
     this.consoleProvider = new BlazeAndroidBinaryConsoleProvider(project);
     this.buildStep = buildStep;
     this.apkProvider = BlazeApkProviderService.getInstance().getApkProvider(project, buildStep);
-    this.applicationIdProvider = new BlazeAndroidBinaryApplicationIdProvider(buildStep);
+    this.applicationIdProvider = applicationIdProvider;
     this.launchId = launchId;
   }
 
