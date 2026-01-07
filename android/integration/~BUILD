@@ -157,23 +157,6 @@ maven_repository(
 )
 
 iml_test(
-    name = "EditorPerformanceTest",
-    timeout = "long",
-    data = editor_performance_test_data,
-    module = ":intellij.android.core.integration",
-    tags = [
-        "ci:perfgate-linux",
-        "ci:perfgate-win",
-        "noci:studio-linux",
-        "noci:studio-win",
-        "studio-e2e-test",
-    ],
-    tags_linux = ["block-network"],
-    tags_windows = ["block-network"],
-    test_class = "com.android.tools.idea.EditorPerformanceTest",
-)
-
-iml_test(
     name = "HighlightingAfterTypingTest",
     timeout = "long",
     data = editor_performance_test_data + [":architectureSamples_project_model"],
