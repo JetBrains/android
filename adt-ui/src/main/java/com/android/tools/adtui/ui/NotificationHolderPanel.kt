@@ -48,9 +48,10 @@ private const val FADEOUT_TIME_MILLIS = 5000
 private const val TOTAL_FRAMES = 150
 
 /** A panel that can display notifications at the top. */
-class NotificationHolderPanel(private val contentPanel: Component) :
-  JBLayeredPane(), UiDataProvider {
+class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvider {
 
+  // Wrap content in a panel to avoid dependency on the content's identity in the doLayout method.
+  private val contentPanel = BorderLayoutPanel().apply { addToCenter(content) }
   private var fadeOutNotificationPopup: NotificationPopup? = null
   private var animator: Animator? = null
 
