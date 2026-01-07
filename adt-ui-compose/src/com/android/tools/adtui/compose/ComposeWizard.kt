@@ -49,6 +49,9 @@ import java.nio.file.FileSystems
 import javax.swing.Action
 import javax.swing.JComponent
 import kotlin.coroutines.resume
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
@@ -71,6 +74,8 @@ class ComposeWizard(
   private val preferredSize: Dimension = DEFAULT_PREFERRED_SIZE,
   initialPage: @Composable WizardPageScope.() -> Unit,
 ) : DialogWrapper(project, parent, true, IdeModalityType.IDE) {
+
+  private val coroutineScope = CoroutineScope(SupervisorJob())
 
   private val pageStack = mutableStateListOf<@Composable WizardPageScope.() -> Unit>(initialPage)
   private val currentPage
@@ -98,6 +103,8 @@ class ComposeWizard(
       override fun cancel() {
         close(CANCEL_EXIT_CODE)
       }
+
+      override val coroutineScope by this@ComposeWizard::coroutineScope
     }
 
   private val prevButton = WizardButton("Previous")
@@ -108,9 +115,11 @@ class ComposeWizard(
     object : WizardPageScope() {
       override var nextAction by nextButton::action
       override var finishAction by finishButton::action
+      override val coroutineScope by this@ComposeWizard::coroutineScope
     }
 
   init {
+    Disposer.register(myDisposable) { coroutineScope.cancel() }
     this.title = title
     init()
   }
@@ -203,6 +212,9 @@ interface WizardDialogScope {
 
   /** Causes the wizard to exit, returning [DialogWrapper.CANCEL_EXIT_CODE]. */
   fun cancel()
+
+  /** A CoroutineScope tied to the lifecycle of this dialog. */
+  val coroutineScope: CoroutineScope
 }
 
 internal interface InternalWizardDialogScope : WizardDialogScope {
@@ -253,6 +265,9 @@ abstract class WizardPageScope {
 
   /** Retrieves wizard-scoped state of the given type, or creates it if it has not yet been created in this wizard. */
   inline fun <reified T : Any> getOrCreateState(noinline defaultState: () -> T): T = getOrCreateState(T::class.java, defaultState)
+
+  /** A CoroutineScope tied to the lifecycle of this dialog. */
+  abstract val coroutineScope: CoroutineScope
 }
 
 val LocalFileSystem = staticCompositionLocalOf<FileSystem> { FileSystems.getDefault() }
