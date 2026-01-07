@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.preview.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.util.EnableUnderConditionWrapper
@@ -29,7 +30,9 @@ import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
+import com.android.tools.rendering.imagepool.ImagePool
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -44,7 +47,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 
 /**
- * Helper method that navigates back to the previous [PreviewMode] for all [PreviewModeManager]s in
+ * Helper method that navigates back to the pre`vious [PreviewMode] for all [PreviewModeManager]s in
  * the given [AnActionEvent]'s [DataContext].
  *
  * @param e the [AnActionEvent] holding the context of the action
@@ -110,6 +113,13 @@ fun List<AnAction>.hideIfRenderErrors(): List<AnAction> = map {
   ShowUnderConditionWrapper(it) { context -> !hasSceneViewErrors(context) }
 }
 
+/** Disables the given actions if the rendered image in the [SceneView] is missing or empty. */
+fun List<AnAction>.disabledIfRenderedImageMissing(): List<AnAction> =
+  disabledIf(
+    { context -> !hasRenderedImage(context) },
+    { message("action.disabled.rendered.image.empty") },
+  )
+
 /**
  * The given disables the actions if any of the following conditions are met:
  * * the surface is refreshing
@@ -173,6 +183,19 @@ private fun previewHasSyntaxErrors(dataContext: DataContext) =
 
 fun hasSceneViewErrors(dataContext: DataContext) =
   dataContext.getData(SCENE_VIEW)?.hasRenderErrors() == true
+
+/**
+ * Returns true if the [SceneView] in the given [DataContext] has a rendered image that is not
+ * missing or empty.
+ */
+private fun hasRenderedImage(dataContext: DataContext): Boolean {
+  val sceneView =
+    dataContext.getData(SCENE_VIEW) ?: dataContext.getData(DESIGN_SURFACE)?.focusedSceneView
+  val sceneManager = sceneView?.sceneManager as? LayoutlibSceneManager
+  return sceneManager?.renderResult?.renderedImage?.let { image ->
+    image != ImagePool.NULL_POOLED_IMAGE
+  } == true
+}
 
 // TODO(b/292057010) Enable group filtering for Gallery mode.
 private class PreviewDefaultWrapper(actions: List<AnAction>) : DefaultActionGroup(actions) {
