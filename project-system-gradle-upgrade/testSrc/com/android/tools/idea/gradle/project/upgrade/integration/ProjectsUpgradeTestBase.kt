@@ -252,6 +252,11 @@ abstract class ProjectsUpgradeTestBase {
               val expectedContainsSuppression = goldenContent.contains("android.suppressUnsupportedCompileSdk=")
               return@let filter { line -> expectedContainsSuppression || !line.startsWith("android.suppressUnsupportedCompileSdk=") }
             }
+            ".gradle/config.properties" -> map { line ->
+              Regex("^java.home=.*/prebuilts/studio/jdk/([^/]*)/.*$").matchEntire(line)?.let { match ->
+                "java.home=${match.groupValues[1]}"
+              } ?: line
+            }
             else -> this
           }
           fun String.filteredLines() = lines().filter { !it.startsWith("#") }.additionalFilter().joinToString("\n")
