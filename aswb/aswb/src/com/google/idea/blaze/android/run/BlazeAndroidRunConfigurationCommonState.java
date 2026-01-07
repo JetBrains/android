@@ -26,7 +26,6 @@ import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.run.state.RunConfigurationFlagsState;
 import com.google.idea.blaze.base.run.state.RunConfigurationState;
 import com.google.idea.blaze.base.run.state.RunConfigurationStateEditor;
-import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.ui.UiUtil;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.project.Project;
@@ -102,7 +101,7 @@ public class BlazeAndroidRunConfigurationCommonState implements RunConfiguration
         // configurations.
         .addAll(getNativeDebuggerFlags())
         .addAll(
-            BlazeFlags.blazeFlags(project, projectViewSet, command, BlazeContext.create(), context))
+            BlazeFlags.blazeFlags(project, projectViewSet, command, context))
         .addAll(getBlazeFlagsState().getFlagsForExternalProcesses())
         .build();
   }

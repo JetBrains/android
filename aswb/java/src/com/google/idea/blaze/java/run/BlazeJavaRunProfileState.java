@@ -262,7 +262,6 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
             project,
             projectViewSet,
             blazeCommand,
-            BlazeContext.create(),
             BlazeInvocationContext.runConfigContext(
               executorType, configuration.getType(), false)))
         .addBlazeFlags(blazeFlags)
