@@ -66,6 +66,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ApplicationRunParameters<T extends AndroidRunConfiguration> implements ConfigurationSpecificEditor<T>, ActionListener {
+  // TODO(b/474499463): Remove this.
+  private static final boolean SUPPORT_INSTANT_APP = false;
+
   private JPanel myPanel;
 
   // Deploy options
@@ -154,7 +157,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
 
     myLaunchOptionCombo.setSelectedItem(DefaultActivityLaunch.INSTANCE);
 
-    myInstantAppDeployCheckBox.setVisible(StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get());
+    myInstantAppDeployCheckBox.setVisible(SUPPORT_INSTANT_APP);
     myAlwaysInstallWithPmCheckbox.setVisible(
       StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get() != StudioFlags.OptimisticInstallSupportLevel.DISABLED);
     myAssumeVerified.setVisible(StudioFlags.INSTALL_WITH_ASSUME_VERIFIED.get());
