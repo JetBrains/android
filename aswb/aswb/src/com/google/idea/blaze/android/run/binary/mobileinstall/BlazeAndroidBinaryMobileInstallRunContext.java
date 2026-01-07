@@ -26,6 +26,7 @@ import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.blaze.BlazeLaunchTask;
 import com.google.idea.blaze.android.run.BazelApplicationProjectContext;
+import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryApplicationIdProvider;
 import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryApplicationLaunchTaskProvider;
 import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryRunConfigurationState;
 import com.google.idea.blaze.android.run.binary.UserIdHelper;
@@ -50,14 +51,15 @@ import org.jetbrains.android.facet.AndroidFacet;
 public class BlazeAndroidBinaryMobileInstallRunContext
     extends BlazeAndroidBinaryMobileInstallRunContextBase {
   public BlazeAndroidBinaryMobileInstallRunContext(
-      Project project,
-      AndroidFacet facet,
-      RunConfiguration runConfiguration,
-      ExecutionEnvironment env,
-      BlazeAndroidBinaryRunConfigurationState configState,
-      ApkBuildStep buildStep,
-      String launchId) {
-    super(project, facet, runConfiguration, env, configState, buildStep, launchId);
+    Project project,
+    AndroidFacet facet,
+    RunConfiguration runConfiguration,
+    ExecutionEnvironment env,
+    BlazeAndroidBinaryRunConfigurationState configState,
+    ApkBuildStep buildStep,
+    String launchId,
+    BlazeAndroidBinaryApplicationIdProvider applicationIdProvider) {
+    super(project, facet, runConfiguration, env, configState, buildStep, launchId, applicationIdProvider);
   }
 
   @Override

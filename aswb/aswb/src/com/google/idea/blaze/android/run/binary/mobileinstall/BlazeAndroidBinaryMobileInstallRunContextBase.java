@@ -61,13 +61,14 @@ abstract class BlazeAndroidBinaryMobileInstallRunContextBase implements BlazeAnd
   private final String launchId;
 
   public BlazeAndroidBinaryMobileInstallRunContextBase(
-      Project project,
-      AndroidFacet facet,
-      RunConfiguration runConfiguration,
-      ExecutionEnvironment env,
-      BlazeAndroidBinaryRunConfigurationState configState,
-      ApkBuildStep buildStep,
-      String launchId) {
+    Project project,
+    AndroidFacet facet,
+    RunConfiguration runConfiguration,
+    ExecutionEnvironment env,
+    BlazeAndroidBinaryRunConfigurationState configState,
+    ApkBuildStep buildStep,
+    String launchId,
+    BlazeAndroidBinaryApplicationIdProvider applicationIdProvider) {
     this.project = project;
     this.facet = facet;
     this.runConfiguration = runConfiguration;
@@ -75,7 +76,7 @@ abstract class BlazeAndroidBinaryMobileInstallRunContextBase implements BlazeAnd
     this.configState = configState;
     this.consoleProvider = new BlazeAndroidBinaryConsoleProvider(project);
     this.buildStep = buildStep;
-    this.applicationIdProvider = new BlazeAndroidBinaryApplicationIdProvider(buildStep);
+    this.applicationIdProvider = applicationIdProvider;
     this.launchId = launchId;
   }
 

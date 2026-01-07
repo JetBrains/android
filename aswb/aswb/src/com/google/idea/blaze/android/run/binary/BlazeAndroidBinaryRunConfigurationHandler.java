@@ -141,14 +141,15 @@ public class BlazeAndroidBinaryRunConfigurationHandler
                 blazeFlags,
                 exeFlags,
                 launchId);
+    var applicationIdProvider = new BlazeAndroidBinaryApplicationIdProvider(buildStep);
 
     // Create run context for matching launch method.
-    BlazeAndroidRunContext runContext = null;
+    BlazeAndroidRunContext runContext;
     switch (configState.getLaunchMethod()) {
       case NON_BLAZE:
         runContext =
             new BlazeAndroidBinaryNormalBuildRunContext(
-                project, facet, configuration, env, configState, buildStep, launchId);
+              project, facet, configuration, env, configState, buildStep, launchId, applicationIdProvider);
         break;
       case MOBILE_INSTALL_V2:
         // Standardize on a single mobile-install launch method
@@ -157,7 +158,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler
       case MOBILE_INSTALL:
         runContext =
             new BlazeAndroidBinaryMobileInstallRunContext(
-                project, facet, configuration, env, configState, buildStep, launchId);
+              project, facet, configuration, env, configState, buildStep, launchId, applicationIdProvider);
         break;
       default:
         throw new ExecutionException("No compatible launch methods.");

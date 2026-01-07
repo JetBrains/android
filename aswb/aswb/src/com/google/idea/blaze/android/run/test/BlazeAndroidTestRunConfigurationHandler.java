@@ -118,9 +118,11 @@ public class BlazeAndroidTestRunConfigurationHandler
         getTestBuildStep(
             project, configState, configuration, blazeFlags, exeFlags, launchId, label);
 
+    var applicationIdProvider = new BlazeAndroidTestApplicationIdProvider(buildStep);
     BlazeAndroidRunContext runContext =
         new BlazeAndroidTestRunContext(
-            project, facet, configuration, env, configState, label, blazeFlags, buildStep);
+          project, facet, configuration, env, configState, label, blazeFlags, buildStep,
+          applicationIdProvider);
 
     LaunchMetrics.logTestLaunch(
         launchId, configState.getLaunchMethod().name(), env.getExecutor().getId());
