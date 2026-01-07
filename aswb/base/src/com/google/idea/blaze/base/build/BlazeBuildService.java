@@ -215,8 +215,8 @@ public class BlazeBuildService {
           projectView,
           targets,
           projectData.getWorkspaceLanguageSettings(),
-          BlazeInvocationContext.OTHER_CONTEXT,
-          false)
+          BlazeInvocationContext.OTHER_CONTEXT
+        )
         .buildResult();
 
     notifyListeners(project, buildResult);
