@@ -21,15 +21,15 @@ import java.awt.Container
 import javax.swing.JComponent
 
 /**
- * Class used to wrap and unwrap [component] inside another component. When unwrapped, [container]
- * is the parent of [component]. When wrapped, [container] is the parent of the wrapper and the
- * wrapper contains [component].
+ * Class used to wrap and unwrap [content] inside another component. When unwrapped, [container] is
+ * the parent of [content]. When wrapped, [container] is the parent of the wrapper and the wrapper
+ * contains [content].
  *
- * If wrapped, [component] is unwrapped on disposal.
+ * If wrapped, [content] is unwrapped on disposal.
  */
 class WrapLogic(
   parentDisposable: Disposable,
-  private val component: JComponent,
+  private val content: JComponent,
   private val container: Container,
 ) : Disposable {
   private var newContainer: JComponent? = null
@@ -39,33 +39,33 @@ class WrapLogic(
   }
 
   /**
-   * Wraps [component] into a new container.
+   * Wraps [content] into a new container.
    *
-   * @param wrap A function that takes [component] and wraps it into a new container. Returns a new
-   *   [JComponent] that contains [component].
+   * @param wrap A function that takes [content] and wraps it into a new container. Returns a new
+   *   [JComponent] that contains [content].
    */
-  fun wrapComponent(wrap: (Disposable, JComponent) -> JComponent) {
-    check(newContainer == null) { "Can't wrap, component is already wrapped" }
+  fun wrapContent(wrap: (Disposable, JComponent) -> JComponent) {
+    check(newContainer == null) { "Can't wrap, content is already wrapped" }
 
-    container.remove(component)
-    newContainer = wrap(this, component)
+    container.remove(content)
+    newContainer = wrap(this, content)
     container.add(newContainer)
   }
 
   override fun dispose() {
     try {
-      unwrapComponent()
+      unwrapContent()
     } catch (_: IllegalStateException) {}
   }
 
-  private fun unwrapComponent() {
-    val newContainer = checkNotNull(newContainer) { "Can't unwrap, component is not wrapped" }
+  private fun unwrapContent() {
+    val newContainer = checkNotNull(newContainer) { "Can't unwrap, content is not wrapped" }
 
-    newContainer.remove(component)
+    newContainer.remove(content)
     container.remove(newContainer)
     this.newContainer = null
 
-    container.add(component)
+    container.add(content)
 
     container.invalidate()
     container.repaint()

@@ -167,11 +167,11 @@ data class SelectedTabState(
     wrapLogic =
       WrapLogic(
         parentDisposable = this,
-        component = tabComponents.tabContentPanel,
+        content = tabComponents.tabContentPanel,
         container = tabComponents.tabContentPanelContainer,
       )
 
-    wrapLogic?.wrapComponent { disposable, component ->
+    wrapLogic?.wrapContent { disposable, component ->
       val processPicker =
         TargetSelectionActionFactory.getSingleDeviceProcessPicker(
           layoutInspector,
