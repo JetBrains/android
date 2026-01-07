@@ -176,7 +176,7 @@ public final class BlazeAndroidRunConfigurationRunner
           runContext.getApplicationProjectContext(),
           env,
           deviceFutures,
-          runContext.getLaunchTasksProvider(launchOptions),
+          new BlazeAndroidLaunchTasksProvider(project, runContext, runContext.getApplicationIdProvider(), launchOptions),
           launchOptions,
           apkProvider,
           LiveEditService.getInstance(env.getProject()));

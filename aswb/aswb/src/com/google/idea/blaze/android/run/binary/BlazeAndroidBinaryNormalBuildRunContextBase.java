@@ -27,7 +27,6 @@ import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.blaze.BlazeLaunchTask;
-import com.android.tools.idea.run.blaze.BlazeLaunchTasksProvider;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.util.DynamicAppUtils;
 import com.google.common.collect.ImmutableList;
@@ -35,7 +34,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector;
-import com.google.idea.blaze.android.run.runner.BlazeAndroidLaunchTasksProvider;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunContext;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
@@ -121,12 +119,6 @@ public abstract class BlazeAndroidBinaryNormalBuildRunContextBase
   @Override
   public Integer getUserId(IDevice device) throws ExecutionException {
     return UserIdHelper.getUserIdFromConfigurationState(project, device, configState);
-  }
-
-  @Override
-  public BlazeLaunchTasksProvider getLaunchTasksProvider(LaunchOptions launchOptions)
-      throws ExecutionException {
-    return new BlazeAndroidLaunchTasksProvider(project, this, applicationIdProvider, launchOptions);
   }
 
   @Override
