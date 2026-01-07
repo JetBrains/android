@@ -24,7 +24,6 @@ import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.blaze.BlazeLaunchTask;
-import com.android.tools.idea.run.blaze.BlazeLaunchTasksProvider;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
@@ -50,9 +49,6 @@ public interface BlazeAndroidRunContext {
   ApplicationIdProvider getApplicationIdProvider();
 
   ApplicationProjectContext getApplicationProjectContext();
-
-  BlazeLaunchTasksProvider getLaunchTasksProvider(LaunchOptions launchOptions)
-      throws ExecutionException;
 
   /** Returns the tasks to deploy the application. */
   ImmutableList<BlazeLaunchTask> getDeployTasks(IDevice device, DeployOptions deployOptions)
