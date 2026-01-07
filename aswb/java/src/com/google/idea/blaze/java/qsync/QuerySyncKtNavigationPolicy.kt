@@ -16,6 +16,8 @@
 package com.google.idea.blaze.java.qsync
 
 import com.google.idea.blaze.base.qsync.QuerySyncManager
+import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.Companion.ENABLED_NAVIGATION_POLICY
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.CachedValueProvider.Result
@@ -36,10 +38,12 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
   private val localCache = ThreadLocal.withInitial { mutableMapOf<ClassId, KtClsFile>() }
 
   override fun getNavigationElement(ktDeclaration: KtDeclaration): KtElement {
+    if (!ENABLED_NAVIGATION_POLICY.value) return super.getNavigationElement(ktDeclaration)
+
     val classIdToKtClsFile = localCache.get()
     var classId: ClassId? = null
     val project = ktDeclaration.project
-    if (!project.isQuerySyncProject()) {
+    if (!project.isQuerySyncProject() || DaemonCodeAnalyzer.getInstance(project).isRunning) {
       return super.getNavigationElement(ktDeclaration)
     }
 
