@@ -180,7 +180,9 @@ class AndroidRunConfigurationExecutor(
   }
 
   private fun shouldDeployAsInstant(): Boolean {
-    return facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP || configuration.DEPLOY_AS_INSTANT
+    // InstantApp is no longer supported.
+    // TODO(b/474499463): Remove this.
+    return false;
   }
 
   private fun notifyLiveEditService(
