@@ -2821,7 +2821,7 @@ constructor(
   val syncViewEventHandler: (BuildEvent) -> Unit = {},
   val subscribe: (MessageBusConnection) -> Unit = {},
   val disableKtsRelatedIndexing: Boolean = false,
-  val disableForcedAgpUpgradeDialog: Boolean = false,
+  val disableForcedAgpUpgradeDialog: Boolean = true,
   val reportProjectSizeUsage: Boolean = false,
   val overrideProjectGradleJdkPath: File? = null,
   val onProjectCreated: Project.() -> Unit = {},
@@ -2831,6 +2831,9 @@ constructor(
 
 fun OpenPreparedProjectOptions.withoutKtsRelatedIndexing(): OpenPreparedProjectOptions =
   copy(disableKtsRelatedIndexing = true)
+
+fun OpenPreparedProjectOptions.withForcedAgpUpgradeDialog(): OpenPreparedProjectOptions =
+  copy(disableForcedAgpUpgradeDialog = false)
 
 /**
  * Opens a test project previously prepared under the given [name], verifies the state of the
