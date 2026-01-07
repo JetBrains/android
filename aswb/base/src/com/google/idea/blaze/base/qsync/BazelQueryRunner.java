@@ -70,7 +70,7 @@ public class BazelQueryRunner implements QueryRunner {
         String.format(
             "Running `%.250s` using invoker %s", query, invoker.getClass().getSimpleName()));
 
-    BlazeCommand.Builder commandBuilder = BlazeCommand.builder(invoker, BlazeCommandName.QUERY);
+    BlazeCommand.Builder commandBuilder = BlazeCommand.builder(BlazeCommandName.QUERY);
     commandBuilder.addBlazeFlags(query.getQueryFlags());
     commandBuilder.addBlazeFlags("--keep_going");
     Path tempDirectoryPath = Path.of(project.getBasePath(), "tmp");

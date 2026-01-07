@@ -124,7 +124,7 @@ public final class BlazeBeforeRunCommandHelper {
                     .getBuildInvoker(project);
 
                 BlazeCommand.Builder command =
-                    BlazeCommand.builder(invoker, commandName)
+                    BlazeCommand.builder(commandName)
                         .addTargetStrings(targets)
                         .addBlazeFlags(overridableExtraBlazeFlags)
                         .addBlazeFlags(

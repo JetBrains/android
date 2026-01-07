@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.bazel;
 
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Closer;
 import com.google.idea.blaze.base.async.process.ExternalTask;
 import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
@@ -120,7 +121,11 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
     try {
       final var environment = new HashMap<String, String>();
       maybeAddAndroidHome(environment::put);
-      return LocalInvokerHelper.getScopedProcessHandler(project, blazeCommandBuilder.build().toList(), WorkspaceRoot.fromProject(project),
+      final var command = ImmutableList.<String>builder()
+        .addAll(getInvokeCommand())
+        .addAll(blazeCommandBuilder.build().toArgumentList())
+        .build();
+      return LocalInvokerHelper.getScopedProcessHandler(project, command, WorkspaceRoot.fromProject(project),
                                                         environment, () -> {
           try {
             final BuildEventStreamProvider buildEventStreamProvider;
@@ -160,7 +165,9 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
       WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
       boolean isUnitTestMode = ApplicationManager.getApplication().isUnitTestMode();
       ExternalTask.Builder builder = ExternalTask.builder(workspaceRoot)
-        .addBlazeCommand(blazeCommand)
+        .args(getInvokeCommand())
+        .args(blazeCommand.toArgumentList());
+      builder
         .context(blazeContext)
         .stdout(out)
         .stderr(
@@ -213,7 +220,9 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
           closer.register(
               LineProcessingOutputStream.of(new PrintOutputLineProcessor(blazeContext)));
       ExternalTask.Builder builder = ExternalTask.builder(WorkspaceRoot.fromProject(project))
-        .addBlazeCommand(blazeCommand)
+        .args(getInvokeCommand())
+        .args(blazeCommand.toArgumentList());
+      builder
         .context(blazeContext)
         .stdout(out)
         .stderr(stderr)
@@ -236,8 +245,11 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
       BlazeCommand.Builder blazeCommandBuilder,
       WorkspaceRoot workspaceRoot,
       BlazeContext context) {
+    BlazeCommand blazeCommand = blazeCommandBuilder.build();
     ExternalTask.Builder builder = ExternalTask.builder(workspaceRoot)
-      .addBlazeCommand(blazeCommandBuilder.build())
+      .args(getInvokeCommand())
+      .args(blazeCommand.toArgumentList());
+    builder
       .context(context)
       .stdout(LineProcessingOutputStream.of(new PrintOutputLineProcessor(context)))
       .stderr(

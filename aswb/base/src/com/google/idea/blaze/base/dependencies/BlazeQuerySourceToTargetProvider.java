@@ -246,7 +246,7 @@ public class BlazeQuerySourceToTargetProvider implements SourceToTargetProvider 
             : BlazeQueryOutputBaseProvider.getInstance(project).getOutputBaseFlag();
     BuildInvoker buildInvoker =
         Blaze.getBuildSystemProvider(project).getBuildSystem().getBuildInvoker(project);
-    return BlazeCommand.builder(buildInvoker, BlazeCommandName.QUERY)
+    return BlazeCommand.builder(BlazeCommandName.QUERY)
         .addBlazeFlags(additionalBlazeFlags)
         .addBlazeFlags("--keep_going")
         .addBlazeFlags(query)
