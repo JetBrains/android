@@ -60,7 +60,7 @@ public class BazelAppInspectorBuilder implements AppInspectorBuilder {
             BlazeInvocationContext.OTHER_CONTEXT);
 
     BlazeCommand.Builder builder =
-        BlazeCommand.builder(invoker, BlazeCommandName.BUILD)
+        BlazeCommand.builder(BlazeCommandName.BUILD)
             .addBlazeFlags(buildTarget.toString())
             .addBlazeFlags(additionalBlazeFlags);
     return invoker.invoke(

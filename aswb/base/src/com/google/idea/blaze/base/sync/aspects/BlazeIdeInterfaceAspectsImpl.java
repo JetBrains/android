@@ -168,7 +168,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
       List<String> additionalBlazeFlags)
       throws BuildException {
 
-    BlazeCommand.Builder builder = BlazeCommand.builder(invoker, BlazeCommandName.BUILD);
+    BlazeCommand.Builder builder = BlazeCommand.builder(BlazeCommandName.BUILD);
     builder
         .addTargetStrings(targets)
         .addBlazeFlags(BlazeFlags.KEEP_GOING)

@@ -45,47 +45,40 @@ public class BlazeCommandTest extends BlazeTestCase {
   @Test
   public void addedFlagsShouldGoAtStart() {
     List<String> flagsCommand =
-        BlazeCommand.builder(
-          FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
-          BlazeCommandName.RUN)
+        BlazeCommand.builder(BlazeCommandName.RUN)
             .addTargetStrings("//a:b")
             .addBlazeFlags("--flag1", "--flag2")
             .addExeFlags("--exeFlag1", "--exeFlag2")
             .build()
-            .toList();
-    // First three strings are always 'blaze run --tool_tag=ijwb:IDEA:ultimate'
-    assertThat(flagsCommand.subList(3, 5)).isEqualTo(ImmutableList.of("--flag1", "--flag2"));
+            .toArgumentList();
+    // First two strings are always 'run --tool_tag=ijwb:IDEA:ultimate'
+    assertThat(flagsCommand.subList(2, 4)).isEqualTo(ImmutableList.of("--flag1", "--flag2"));
   }
 
   @Test
   public void targetsShouldGoAfterBlazeFlagsAndDoubleHyphen() {
     List<String> command =
-        BlazeCommand.builder(
-          FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
-          BlazeCommandName.RUN)
+        BlazeCommand.builder(BlazeCommandName.RUN)
             .addTargetStrings("//a:b", "//c:d")
             .addBlazeFlags("--flag1", "--flag2")
             .addExeFlags("--exeFlag1", "--exeFlag2")
             .build()
-            .toList();
-    // First six strings should be 'blaze run --tool_tag=ijwb:IDEA:ultimate --flag1 --flag2 --'
-    assertThat(command.indexOf("--")).isEqualTo(5);
+            .toArgumentList();
+    // First five strings should be 'run --tool_tag=ijwb:IDEA:ultimate --flag1 --flag2 --'
+    assertThat(command.indexOf("--")).isEqualTo(4);
     assertThat(Collections.indexOfSubList(command, ImmutableList.of("//a:b", "//c:d")))
-        .isEqualTo(6);
+        .isEqualTo(5);
   }
 
   @Test
   public void exeFlagsShouldGoLast() {
     List<String> command =
-        BlazeCommand.builder(
-          FakeBuildInvoker.builder().invokeCommand(
-            ImmutableList.of("/usr/bin/blaze")).build(),
-          BlazeCommandName.RUN)
+        BlazeCommand.builder(BlazeCommandName.RUN)
             .addTargetStrings("//a:b", "//c:d")
             .addBlazeFlags("--flag1", "--flag2")
             .addExeFlags("--exeFlag1", "--exeFlag2")
             .build()
-            .toList();
+            .toArgumentList();
     List<String> finalTwoFlags = command.subList(command.size() - 2, command.size());
     assertThat(finalTwoFlags).containsExactly("--exeFlag1", "--exeFlag2");
   }
@@ -93,10 +86,7 @@ public class BlazeCommandTest extends BlazeTestCase {
   @Test
   public void maintainUserOrderingOfTargets() {
     List<String> command =
-        BlazeCommand.builder(
-          FakeBuildInvoker.builder().invokeCommand(
-            ImmutableList.of("/usr/bin/blaze")).build(),
-          BlazeCommandName.RUN)
+        BlazeCommand.builder(BlazeCommandName.RUN)
             .addTargetStrings(
                 "//a:b",
                 "-//e:f",
@@ -104,11 +94,10 @@ public class BlazeCommandTest extends BlazeTestCase {
             .addBlazeFlags("--flag1", "--flag2")
             .addExeFlags("--exeFlag1", "--exeFlag2")
             .build()
-            .toList();
+            .toArgumentList();
 
     ImmutableList<Object> expected =
         ImmutableList.builder()
-            .add("/usr/bin/blaze")
             .add("run")
             .add(BlazeFlags.getToolTagFlag())
             .add("--flag1")
@@ -124,16 +113,13 @@ public class BlazeCommandTest extends BlazeTestCase {
   }
 
   @Test
-  public void binaryAndCommandShouldComeFirst() {
+  public void commandShouldComeFirst() {
     List<String> command =
-        BlazeCommand.builder(
-          FakeBuildInvoker.builder().invokeCommand(
-            ImmutableList.of("/usr/bin/blaze")).build(),
-          BlazeCommandName.BUILD)
+        BlazeCommand.builder(BlazeCommandName.BUILD)
             .addBlazeFlags("--flag")
             .addExeFlags("--exeFlag")
             .build()
-            .toList();
-    assertThat(command.subList(0, 2)).isEqualTo(ImmutableList.of("/usr/bin/blaze", "build"));
+            .toArgumentList();
+    assertThat(command.get(0)).isEqualTo("build");
   }
 }

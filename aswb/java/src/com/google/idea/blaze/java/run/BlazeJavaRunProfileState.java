@@ -58,7 +58,6 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtilRt;
 import java.io.File;
@@ -74,7 +73,6 @@ import kotlin.Unit;
  * when using a debug executor.
  */
 public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfileState {
-  private static final Logger logger = Logger.getInstance(BlazeJavaRunProfileState.class);
   private static final String JAVA_RUNFILES_ENV = "JAVA_RUNFILES=";
   private static final String TEST_DIAGNOSTICS_OUTPUT_DIR_ENV = "TEST_DIAGNOSTICS_OUTPUT_DIR=";
   private static final String TEST_SIZE_ENV = "TEST_SIZE=";
@@ -187,7 +185,6 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
       blazeCommand =
         getBlazeCommandBuilder(
           project,
-          invoker,
           getConfiguration(),
           testUiSession.getBlazeFlags(),
           getExecutorType(),
@@ -206,7 +203,6 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
       blazeCommand =
         getBlazeCommandBuilder(
           project,
-          invoker,
           getConfiguration(),
           ImmutableList.of(),
           getExecutorType(),
@@ -242,7 +238,6 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
   @VisibleForTesting
   static BlazeCommand.Builder getBlazeCommandBuilder(
     Project project,
-    BuildInvoker invoker,
     BlazeCommandRunConfiguration configuration,
     List<String> extraBlazeFlags,
     ExecutorType executorType,
@@ -260,9 +255,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
       blazeCommand = BlazeCommandName.COVERAGE;
     }
 
-    BlazeCommand.Builder command = handlerState.getBlazeBinaryState().getBlazeBinary() != null
-        ? BlazeCommand.builder(invoker, blazeCommand, handlerState.getBlazeBinaryState().getBlazeBinary())
-        : BlazeCommand.builder(invoker, blazeCommand);
+    BlazeCommand.Builder command = BlazeCommand.builder(blazeCommand);
     command.addTargetStrings(configuration.getTargetPatterns())
         .addBlazeFlags(
           BlazeFlags.blazeFlags(

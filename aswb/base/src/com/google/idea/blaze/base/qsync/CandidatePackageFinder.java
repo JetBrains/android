@@ -99,7 +99,7 @@ public class CandidatePackageFinder {
 
   private ImmutableList<String> runQuery(Path path) throws BuildException {
     BlazeCommand.Builder command =
-        BlazeCommand.builder(buildInvoker, BlazeCommandName.QUERY)
+        BlazeCommand.builder(BlazeCommandName.QUERY)
             .addBlazeFlags("--output", "package")
             .addBlazeFlags("//" + path + "/...");
     try (InputStream queryOut = buildInvoker.invokeQuery(command, context)) {

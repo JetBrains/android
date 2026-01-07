@@ -254,7 +254,7 @@ class TestBuildInvoker @TestOnly constructor(
     blazeContext: BlazeContext,
     consumer: BuildSystem.BuildEventStreamConsumer<T>,
   ): T {
-    invocations.add(RecordedInvocation("invoke", blazeCommandBuilder.build().toList()))
+    invocations.add(RecordedInvocation("invoke", blazeCommandBuilder.build().toArgumentList()))
     return consumer.consume(bepStreamProvider(blazeCommandBuilder, blazeContext))
   }
 
@@ -263,7 +263,7 @@ class TestBuildInvoker @TestOnly constructor(
     blazeContext: BlazeContext,
     consumer: BuildSystem.BuildEventStreamConsumer<Unit>,
   ): ProcessHandler {
-    invocations.add(RecordedInvocation("invokeAsProcessHandler", blazeCommandBuilder.build().toList()))
+    invocations.add(RecordedInvocation("invokeAsProcessHandler", blazeCommandBuilder.build().toArgumentList()))
     // Output to the process handler and its closure should go first here.
     consumer.consume(bepStreamProvider(blazeCommandBuilder, blazeContext))
     error("not implemented")
@@ -273,7 +273,7 @@ class TestBuildInvoker @TestOnly constructor(
     blazeCommandBuilder: BlazeCommand.Builder,
     blazeContext: BlazeContext,
   ): InputStream {
-    invocations.add(RecordedInvocation("invokeQuery", blazeCommandBuilder.build().toList()))
+    invocations.add(RecordedInvocation("invokeQuery", blazeCommandBuilder.build().toArgumentList()))
     error("not implemented")
   }
 
@@ -281,7 +281,7 @@ class TestBuildInvoker @TestOnly constructor(
     blazeCommandBuilder: BlazeCommand.Builder,
     blazeContext: BlazeContext,
   ): InputStream {
-    invocations.add(RecordedInvocation("invokeInfo", blazeCommandBuilder.build().toList()))
+    invocations.add(RecordedInvocation("invokeInfo", blazeCommandBuilder.build().toArgumentList()))
     error("not implemented")
   }
 

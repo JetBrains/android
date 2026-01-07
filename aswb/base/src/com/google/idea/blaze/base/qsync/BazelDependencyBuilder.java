@@ -204,7 +204,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
           BuildDepsStatsScope.fromContext(context);
       buildDepsStatsBuilder.ifPresent(stats -> stats.setBlazeBinaryType(invoker.getType()));
       BlazeCommand.Builder builder =
-          BlazeCommand.builder(invoker, BlazeCommandName.BUILD)
+          BlazeCommand.builder(BlazeCommandName.BUILD)
               .addBlazeFlags(buildDependenciesBazelInvocationInfo.argsAndFlags());
 
       buildDepsStatsBuilder.ifPresent(
