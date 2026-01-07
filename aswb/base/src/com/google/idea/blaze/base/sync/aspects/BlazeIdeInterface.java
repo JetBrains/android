@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.sync.aspects;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.model.BlazeVersionData;
@@ -46,6 +45,5 @@ public interface BlazeIdeInterface {
       ProjectViewSet projectViewSet,
       List<? extends String> targets,
       WorkspaceLanguageSettings workspaceLanguageSettings,
-      BlazeInvocationContext blazeInvocationContext,
-      boolean invokeParallel);
+      BlazeInvocationContext blazeInvocationContext);
 }
