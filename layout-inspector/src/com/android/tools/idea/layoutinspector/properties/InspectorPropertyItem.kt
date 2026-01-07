@@ -132,6 +132,12 @@ open class InspectorPropertyItem(
       source == other.source &&
       javaClass == other.javaClass
 
+  /** Update the value of the property. Return true if child elements were added or removed. */
+  open fun updateValue(newValue: InspectorPropertyItem): Boolean {
+    value = newValue.snapshotValue
+    return false
+  }
+
   override val helpSupport =
     object : HelpSupport {
       override fun browse() {
@@ -223,7 +229,8 @@ open class InspectorPropertyItem(
     }
 
   private fun formatFloat(value: Float): String =
-    if (value == 0.0f) "0" else DecimalFormat("0.0##", DecimalFormatSymbols.getInstance(Locale.ENGLISH)).format(value)
+    if (value == 0.0f) "0"
+    else DecimalFormat("0.0##", DecimalFormatSymbols.getInstance(Locale.ENGLISH)).format(value)
 
   @Slow
   fun resolveDimensionType(view: ViewNode) {

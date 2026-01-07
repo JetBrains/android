@@ -65,6 +65,19 @@ open class ParameterItem(
 
   open fun clone(): ParameterItem =
     ParameterItem(name, type, value, section, viewId, lookup, rootId, index)
+
+  /**
+   * Return true if this [ParameterItem] is the same parameter as [other] with respect to everything
+   * other than the value and the group settings.
+   */
+  fun sameParameter(other: ParameterItem): Boolean =
+    javaClass == other.javaClass &&
+      name == other.name &&
+      type == other.type &&
+      section == other.section &&
+      viewId == other.viewId &&
+      rootId == other.rootId &&
+      index == other.index
 }
 
 /** A composite parameter. */
@@ -142,6 +155,38 @@ class ParameterGroupItem(
         expandNow(true)
       }
     }
+  }
+
+  /**
+   * Update the value and child element information to the values from [newValue] representing
+   * changes on the device for this parameter. Attempt to use the same instances for child elements
+   * to keep expanded groups expanded after an update.
+   */
+  override fun updateValue(newValue: InspectorPropertyItem): Boolean {
+    super.updateValue(newValue)
+    val newGroup = newValue as? ParameterGroupItem ?: return true // This should not happen.
+    reference = newGroup.reference
+    // Attempt to keep as many parameter items as possible (to keep expansions in the table)
+    val commonSize = minOf(children.size, newGroup.children.size)
+    var childElementChanges = false
+    var index = 0
+    while (index < commonSize) {
+      if (!children[index].sameParameter(newGroup.children[index])) {
+        break
+      }
+      if (children[index].updateValue(newGroup.children[index])) {
+        childElementChanges = true
+      }
+      index++
+    }
+    // Remove child elemnts left in the original; and add extra child elements found in the new.
+    if (index < children.size || index < newGroup.children.size) {
+      children.subList(index, children.size).clear()
+      children.addAll(newGroup.children.subList(index, newGroup.children.size))
+      childElementChanges = true
+    }
+    // Return true if any child elements were changed.
+    return childElementChanges
   }
 
   fun applyReplacement(replacement: ParameterGroupItem): PTableGroupModification? {
