@@ -83,7 +83,6 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   private LabeledComponent<JBTextField> myAmOptionsLabeledComponent;
   private JComponent myDynamicFeaturesParametersComponent;
   private JBCheckBox myInstantAppDeployCheckBox;
-  private JPanel myInstantAppDeployCheckBoxWarning;
   private JBCheckBox myAllUsersCheckbox;
   private JBCheckBox myAlwaysInstallWithPmCheckbox;
   private JBCheckBox myAssumeVerified;
@@ -211,7 +210,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   private void setupUI() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     createUIComponents();
     myPanel = new JPanel();
-    myPanel.setLayout(new GridLayoutManager(17, 4, new Insets(0, 0, 0, 0), -1, -1));
+    myPanel.setLayout(new GridLayoutManager(15, 4, new Insets(0, 0, 0, 0), -1, -1));
     final TitledSeparator titledSeparator1 = new TitledSeparator();
     titledSeparator1.setText("Installation Options");
     myPanel.add(titledSeparator1, new GridConstraints(0, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
@@ -246,33 +245,23 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 2,
                                     false));
-
-
-    myInstantAppDeployCheckBoxWarning = new InstantAppDeprecatedPanel();
-    myPanel.add(myInstantAppDeployCheckBoxWarning, new GridConstraints(4, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                           null, null, null, 2, false));
-
     myAllUsersCheckbox = new JBCheckBox();
     myAllUsersCheckbox.setText("Install for all users (if already installed, will only update for existing users)");
-    myPanel.add(myAllUsersCheckbox, new GridConstraints(5, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+    myPanel.add(myAllUsersCheckbox, new GridConstraints(4, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 2, false));
     myPmOptionsLabeledComponent = new LabeledComponent();
     myPmOptionsLabeledComponent.setComponentClass("com.intellij.ui.components.JBTextField");
     myPmOptionsLabeledComponent.setLabelLocation("West");
     myPmOptionsLabeledComponent.setText("&Install Flags");
-
-
-    myPanel.add(myPmOptionsLabeledComponent, new GridConstraints(9, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+    myPanel.add(myPmOptionsLabeledComponent, new GridConstraints(8, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                  GridConstraints.SIZEPOLICY_CAN_GROW,
                                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                  GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 2, false));
     final TitledSeparator titledSeparator2 = new TitledSeparator();
     titledSeparator2.setText("Launch Options");
-    myPanel.add(titledSeparator2, new GridConstraints(10, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+    myPanel.add(titledSeparator2, new GridConstraints(9, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     final JBLabel jBLabel2 = new JBLabel();
@@ -280,18 +269,18 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     jBLabel2.setDisplayedMnemonic('L');
     jBLabel2.setDisplayedMnemonicIndex(0);
     myPanel.add(jBLabel2,
-                new GridConstraints(11, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                new GridConstraints(10, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                     GridConstraints.SIZEPOLICY_FIXED, null, null, null, 2, false));
     myLaunchOptionCombo = new ComboBox();
-    myPanel.add(myLaunchOptionCombo, new GridConstraints(12, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+    myPanel.add(myLaunchOptionCombo, new GridConstraints(10, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
                                                          null, null, 0, false));
     final Spacer spacer2 = new Spacer();
-    myPanel.add(spacer2, new GridConstraints(12, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+    myPanel.add(spacer2, new GridConstraints(10, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                              GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
     myLaunchOptionsCardPanel = new ConfigurableCardPanel();
-    myPanel.add(myLaunchOptionsCardPanel, new GridConstraints(13, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+    myPanel.add(myLaunchOptionsCardPanel, new GridConstraints(11, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                               null, null, null, 2, false));
@@ -299,13 +288,13 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     myAmOptionsLabeledComponent.setComponentClass("com.intellij.ui.components.JBTextField");
     myAmOptionsLabeledComponent.setLabelLocation("West");
     myAmOptionsLabeledComponent.setText("Launch &Flags");
-    myPanel.add(myAmOptionsLabeledComponent, new GridConstraints(14, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+    myPanel.add(myAmOptionsLabeledComponent, new GridConstraints(12, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                  GridConstraints.SIZEPOLICY_CAN_GROW,
                                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                  GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 2, false));
     final Spacer spacer3 = new Spacer();
-    myPanel.add(spacer3, new GridConstraints(15, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+    myPanel.add(spacer3, new GridConstraints(13, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
                                              GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
     myInstantAppDeployCheckBox = new JBCheckBox();
     myInstantAppDeployCheckBox.setText("Deploy as instant app");
@@ -313,27 +302,25 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
                                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                                 null, null, null, 0, false));
-
-
     myAlwaysInstallWithPmCheckbox = new JBCheckBox();
     myAlwaysInstallWithPmCheckbox.setText("Always install with package manager (disables deploy optimizations on Android 11 and later)");
-    myPanel.add(myAlwaysInstallWithPmCheckbox, new GridConstraints(6, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+    myPanel.add(myAlwaysInstallWithPmCheckbox, new GridConstraints(5, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                    GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
                                                                    null, null, null, 2, false));
     myAssumeVerified = new JBCheckBox();
     myAssumeVerified.setText("Skip bytecode verification for debuggable apps on Android 15 (SDK 35) and higher");
-    myPanel.add(myAssumeVerified, new GridConstraints(7, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+    myPanel.add(myAssumeVerified, new GridConstraints(6, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, 2, false));
     myClearAppStorageCheckbox = new JBCheckBox();
     myClearAppStorageCheckbox.setText("Clear app storage before deployment");
-    myPanel.add(myClearAppStorageCheckbox, new GridConstraints(8, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+    myPanel.add(myClearAppStorageCheckbox, new GridConstraints(7, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                                GridConstraints.SIZEPOLICY_FIXED, null, null, null, 2, false));
     myRestorePanelWrapper = new JPanel();
     myRestorePanelWrapper.setLayout(new BorderLayout(0, 0));
-    myPanel.add(myRestorePanelWrapper, new GridConstraints(16, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+    myPanel.add(myRestorePanelWrapper, new GridConstraints(14, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                            null, null, null, 0, false));
@@ -343,7 +330,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
    * Returns the {@link InstallOption} given the various deployment option persistent in the run configuration
    * state.
    *
-   * @param deploy           {@code true} if deployinwg APKs to the device
+   * @param deploy           {@code true} if deploying APKs to the device
    * @param deployFromBundle {@code true} if deploying APK from the bundle to the device. If {@code true}, the deploy parameter must
    *                         be {@code true} too.
    * @param artifactName     The custom artifact to deploy to the device. If {@code empty},
@@ -436,12 +423,6 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
       LaunchOptionState state = configuration.getLaunchOptionState(option.getId());
       assert state != null : "State is null for option: " + option.getDisplayName();
       myConfigurables.get(option.getId()).applyTo(state);
-    }
-
-    if (myInstantAppDeployCheckBox.isSelected()) {
-      myInstantAppDeployCheckBoxWarning.setVisible(true);
-    } else {
-      myInstantAppDeployCheckBoxWarning.setVisible(false);
     }
 
     LaunchOption launchOption = (LaunchOption)myLaunchOptionCombo.getSelectedItem();
