@@ -31,7 +31,7 @@ import icons.StudioIcons
 class GlassesBlendDropdownAction :
   DropDownAction(
     message("action.glasses.blend.title"),
-    message("action.glasses.blend.description"),
+    message("action.glasses.blend.title"),
     StudioIcons.Emulator.XR.ENVIRONMENT,
   ) {
 
