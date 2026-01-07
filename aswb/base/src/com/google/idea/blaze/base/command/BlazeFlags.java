@@ -21,7 +21,6 @@ import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.section.sections.BuildFlagsSection;
 import com.google.idea.blaze.base.projectview.section.sections.SyncFlagsSection;
 import com.google.idea.blaze.base.projectview.section.sections.TestFlagsSection;
-import com.google.idea.blaze.base.scope.BlazeContext;
 import com.intellij.execution.configurations.ParametersList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -61,7 +60,6 @@ public final class BlazeFlags {
       Project project,
       ProjectViewSet projectViewSet,
       BlazeCommandName command,
-      BlazeContext context,
       BlazeInvocationContext invocationContext) {
     List<String> flags = Lists.newArrayList();
     for (BuildFlagsProvider buildFlagsProvider : BuildFlagsProvider.EP_NAME.getExtensions()) {
@@ -69,10 +67,6 @@ public final class BlazeFlags {
     }
     flags.addAll(expandBuildFlags(projectViewSet.listItems(BuildFlagsSection.KEY)));
     if (invocationContext.type() == ContextType.Sync) {
-      for (BuildFlagsProvider buildFlagsProvider : BuildFlagsProvider.EP_NAME.getExtensions()) {
-        buildFlagsProvider.addSyncFlags(
-            project, projectViewSet, command, context, invocationContext, flags);
-      }
       flags.addAll(expandBuildFlags(projectViewSet.listItems(SyncFlagsSection.KEY)));
     }
     if (BlazeCommandName.TEST.equals(command)) {
