@@ -31,7 +31,6 @@ import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfigurationType;
 import com.google.idea.blaze.base.run.ExecutorType;
 import com.google.idea.blaze.base.run.coverage.CoverageUtils;
-import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.Scope;
 import com.google.idea.blaze.base.scope.ScopedFunction;
 import com.google.idea.blaze.base.settings.Blaze;
@@ -97,7 +96,7 @@ public class BlazeCoverageProgramRunner extends DefaultProgramRunner {
             /* beforeRunTask= */ false);
     List<String> infoFlags =
         BlazeFlags.blazeFlags(
-            project, viewSet, BlazeCommandName.INFO, BlazeContext.create(), invocationContext);
+            project, viewSet, BlazeCommandName.INFO, invocationContext);
     BuildSystemName buildSystemName = Blaze.getBuildSystemName(project);
     return Scope.push(
         null,

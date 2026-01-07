@@ -132,7 +132,6 @@ public final class BlazeBeforeRunCommandHelper {
                                 project,
                                 projectViewSet,
                                 BlazeCommandName.BUILD,
-                                context,
                                 invocationContext))
                         .addBlazeFlags(
                             handlerState.getBlazeFlagsState().getFlagsForExternalProcesses())

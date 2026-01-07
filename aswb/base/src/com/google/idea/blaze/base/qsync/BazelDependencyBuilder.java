@@ -269,7 +269,6 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
             project,
             projectViewSet,
             BlazeCommandName.BUILD,
-            context,
             BlazeInvocationContext.OTHER_CONTEXT);
 
     final var querySyncFlags = ImmutableList.<String>builder();

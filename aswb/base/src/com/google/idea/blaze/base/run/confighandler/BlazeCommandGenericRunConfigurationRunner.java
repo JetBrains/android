@@ -140,8 +140,8 @@ public final class BlazeCommandGenericRunConfigurationRunner
           getBlazeCommand(
               project,
               ExecutorType.fromExecutor(getEnvironment().getExecutor()),
-              ImmutableList.of(),
-              context);
+              ImmutableList.of()
+          );
       return isTest()
           ? getProcessHandlerForTests(project, invoker, blazeCommand, context)
           : getProcessHandlerForNonTests(project, invoker, blazeCommand, context);
@@ -320,8 +320,7 @@ public final class BlazeCommandGenericRunConfigurationRunner
     private BlazeCommand.Builder getBlazeCommand(
         Project project,
         ExecutorType executorType,
-        ImmutableList<String> testHandlerFlags,
-        BlazeContext context) {
+        ImmutableList<String> testHandlerFlags) {
       ProjectViewSet projectViewSet =
           Preconditions.checkNotNull(ProjectViewManager.getInstance(project).getProjectViewSet());
 
@@ -338,7 +337,6 @@ public final class BlazeCommandGenericRunConfigurationRunner
                   project,
                   projectViewSet,
                   getCommand(),
-                  context,
                   BlazeInvocationContext.runConfigContext(
                       executorType, configuration.getType(), false)))
           .addBlazeFlags(extraBlazeFlags)
