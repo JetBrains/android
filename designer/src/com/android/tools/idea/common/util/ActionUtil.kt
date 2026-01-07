@@ -110,3 +110,25 @@ class EnableUnderConditionWrapper(
   override fun createCustomComponent(presentation: Presentation, place: String) =
     ActionButtonWithToolTipDescription(delegate, presentation, place)
 }
+
+/**
+ * Returns the unwrapped [AnAction] from a potentially wrapped action.
+ *
+ * This property will recursively unwrap [EnableUnderConditionWrapper] and
+ * [ShowUnderConditionWrapper] instances to get to the original [AnAction].
+ */
+val AnAction.unwrapped: AnAction
+  get() = getDelegate(this)
+
+/**
+ * Recursively unwraps [AnAction] instances to find the original delegate.
+ *
+ * @param action The [AnAction] to unwrap.
+ * @return The original [AnAction] after unwrapping.
+ */
+private tailrec fun getDelegate(action: AnAction): AnAction =
+  when (action) {
+    is EnableUnderConditionWrapper -> getDelegate(action.delegate)
+    is ShowUnderConditionWrapper -> getDelegate(action.delegate)
+    else -> action
+  }
