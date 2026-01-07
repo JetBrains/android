@@ -84,8 +84,7 @@ public class BlazeQueryDirectoryToTargetProvider implements DirectoryToTargetPro
       Project project, String query, BlazeContext context) {
     BuildSystem buildSystem = Blaze.getBuildSystemProvider(project).getBuildSystem();
     BlazeCommand.Builder command =
-        BlazeCommand.builder(
-                buildSystem.getBuildInvoker(project), BlazeCommandName.QUERY)
+        BlazeCommand.builder(BlazeCommandName.QUERY)
             .addBlazeFlags("--output=label_kind")
             .addBlazeFlags("--keep_going")
             .addBlazeFlags(query);

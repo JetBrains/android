@@ -138,16 +138,14 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,
-                    FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
                     configuration,
                     ImmutableList.of(),
                     ExecutorType.RUN,
                     /*kotlinxCoroutinesJavaAgent=*/ null)
                 .build()
-                .toList())
+                .toArgumentList())
         .isEqualTo(
             ImmutableList.of(
-                "/usr/bin/blaze",
                 "command",
                 BlazeFlags.getToolTagFlag(),
                 "--flag1",
@@ -166,16 +164,14 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,
-                    FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
                     configuration,
                     ImmutableList.of(),
                     ExecutorType.DEBUG,
                     /* kotlinxCoroutinesJavaAgent= */ null)
                 .build()
-                .toList())
+                .toArgumentList())
         .isEqualTo(
             ImmutableList.of(
-                "/usr/bin/blaze",
                 "command",
                 BlazeFlags.getToolTagFlag(),
                 "--java_debug",
@@ -194,16 +190,14 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,
-                    FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
                     configuration,
                     ImmutableList.of(),
                     ExecutorType.DEBUG,
                     /* kotlinxCoroutinesJavaAgent= */ null)
                 .build()
-                .toList())
+                .toArgumentList())
         .isEqualTo(
             ImmutableList.of(
-                "/usr/bin/blaze",
                 "command",
                 BlazeFlags.getToolTagFlag(),
                 "--",
@@ -222,23 +216,21 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,
-                    FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
                     configuration,
                     ImmutableList.of(),
                     ExecutorType.DEBUG,
                     "/path/to/kotlinx-coroutines-lib.jar")
                 .build()
-                .toList());
+                .toArgumentList());
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,
-                    FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
                     configuration,
                     ImmutableList.of(),
                     ExecutorType.DEBUG,
                     "/path/to/kotlinx-coroutines-lib.jar")
                 .build()
-                .toList())
+                .toArgumentList())
         .contains("--jvmopt=-javaagent:/path/to/kotlinx-coroutines-lib.jar");
   }
 
@@ -256,13 +248,12 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,
-                    FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
                     configuration,
                     ImmutableList.of(),
                     ExecutorType.DEBUG,
                     "/path/to/kotlinx-coroutines-lib.jar")
                 .build()
-                .toList())
+                .toArgumentList())
         .contains("--wrapper_script_flag=--jvm_flag=-javaagent:/path/to/kotlinx-coroutines-lib.jar");
 
     configuration.setTargetInfo(
@@ -270,13 +261,12 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,
-                    FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
                     configuration,
                     ImmutableList.of(),
                     ExecutorType.DEBUG,
                     "/path/to/kotlinx-coroutines-lib.jar")
                 .build()
-                .toList())
+                .toArgumentList())
         .contains("--test_arg=--wrapper_script_flag=--jvm_flag=-javaagent:/path/to/kotlinx-coroutines-lib.jar");
   }
 

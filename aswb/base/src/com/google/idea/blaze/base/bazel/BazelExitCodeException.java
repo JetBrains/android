@@ -53,7 +53,7 @@ public class BazelExitCodeException extends BuildException {
   }
 
   public static void throwIfFailed(BlazeCommand command, int exitCode, ThrowOption... options) throws BazelExitCodeException {
-    throwIfFailed("Command: " + command, exitCode, options);
+    throwIfFailed("Command: <bazel> " + command, exitCode, options);
   }
 
   public static void throwIfFailed(String message, int exitCode, ThrowOption... options) throws BazelExitCodeException {

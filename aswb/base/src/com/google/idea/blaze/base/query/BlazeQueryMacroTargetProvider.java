@@ -58,7 +58,7 @@ public class BlazeQueryMacroTargetProvider implements MacroTargetProvider {
         Blaze.getBuildSystemProvider(project).getBuildSystem().getBuildInvoker(project);
 
     BlazeCommand.Builder commandBuilder =
-        BlazeCommand.builder(invoker, BlazeCommandName.QUERY)
+        BlazeCommand.builder(BlazeCommandName.QUERY)
             .addBlazeFlags("--output=proto", query)
             .addBlazeStartupFlags(ImmutableList.of(outputBase));
 
