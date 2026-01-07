@@ -376,7 +376,7 @@ public class CpuProfiler implements StudioProfiler {
                                  @Nullable Consumer<Trace.TraceStopStatus> statusResponseHandler,
                                  @Nullable Consumer<Trace.TraceInfo> cpuTraceResponseHandler) {
     Executor poolExecutor = profilers.getIdeServices().getPoolExecutor();
-    Commands.Command stopCommand = Commands.Command.newBuilder()
+    Commands.Command.Builder stopCommandBuilder = Commands.Command.newBuilder()
       .setStreamId(session.getStreamId())
       .setPid(session.getPid())
       .setSessionId(session.getSessionId())
@@ -384,8 +384,13 @@ public class CpuProfiler implements StudioProfiler {
       .setStopTrace(Trace.StopTrace.newBuilder()
                       .setProfilerType(Trace.ProfilerType.CPU)
                       .setConfiguration(configuration)
-                      .setNeedTraceResponse(statusResponseHandler != null))
-      .build();
+                      .setNeedTraceResponse(statusResponseHandler != null));
+
+    if (profilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      stopCommandBuilder.setShouldEndSession(true);
+    }
+
+    Commands.Command stopCommand = stopCommandBuilder.build();
 
     profilers.getClient().executeAsync(stopCommand, poolExecutor)
       .thenAcceptAsync(response -> {
