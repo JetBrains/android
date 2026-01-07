@@ -84,14 +84,15 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
   private final BlazeTestResultFetcher testResultsHolder = new BlazeTestResultFetcher();
 
   public BlazeAndroidTestRunContext(
-      Project project,
-      AndroidFacet facet,
-      BlazeCommandRunConfiguration runConfiguration,
-      ExecutionEnvironment env,
-      BlazeAndroidTestRunConfigurationState configState,
-      Label label,
-      ImmutableList<String> blazeFlags,
-      ApkBuildStep buildStep) {
+    Project project,
+    AndroidFacet facet,
+    BlazeCommandRunConfiguration runConfiguration,
+    ExecutionEnvironment env,
+    BlazeAndroidTestRunConfigurationState configState,
+    Label label,
+    ImmutableList<String> blazeFlags,
+    ApkBuildStep buildStep,
+    BlazeAndroidTestApplicationIdProvider applicationIdProvider) {
     this.project = project;
     this.facet = facet;
     this.runConfiguration = runConfiguration;
@@ -114,7 +115,7 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
         throw new IllegalStateException(
             "Unsupported launch method " + configState.getLaunchMethod());
     }
-    applicationIdProvider = new BlazeAndroidTestApplicationIdProvider(buildStep);
+    this.applicationIdProvider = applicationIdProvider;
     apkProvider = BlazeApkProviderService.getInstance().getApkProvider(project, buildStep);
   }
 
