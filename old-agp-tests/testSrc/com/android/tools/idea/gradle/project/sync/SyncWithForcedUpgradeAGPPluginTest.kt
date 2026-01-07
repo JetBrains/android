@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.applicableAgpVersions
+import com.android.tools.idea.testing.withForcedAgpUpgradeDialog
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.replaceService
 import org.jetbrains.annotations.Contract
@@ -67,7 +68,7 @@ class SyncWithForcedUpgradeAGPPluginTest(private val environmentDescriptor: AgpV
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = environmentDescriptor)
     preparedProject.open(
       updateOptions = {
-        it.copy(
+        it.withForcedAgpUpgradeDialog().copy(
           onProjectCreated = {
             this.replaceService(RefactoringProcessorInstantiator::class.java, instantiator, projectRule.testRootDisposable)
             doReturn(false).whenever(instantiator).showAndGetAgpUpgradeDialog(any(), any(), any())          }
