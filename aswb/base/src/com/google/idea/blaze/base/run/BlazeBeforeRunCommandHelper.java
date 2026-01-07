@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.run;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator;
 import com.google.idea.blaze.base.bazel.BuildSystem;
@@ -67,14 +66,16 @@ public final class BlazeBeforeRunCommandHelper {
       String progressMessage,
       BuildEventStreamConsumer<T> consumer) {
     return runBlazeCommand(
-        commandName,
-        configuration,
-        requiredExtraBlazeFlags,
-        overridableExtraBlazeFlags,
-        invocationContext,
-        progressMessage,
-        configuration.getTargetPatterns(),
-        consumer);
+      configuration.getProject(),
+      commandName,
+      requiredExtraBlazeFlags,
+      overridableExtraBlazeFlags,
+      invocationContext,
+      progressMessage,
+      configuration.getTargetPatterns(),
+      ((BlazeCommandRunConfigurationCommonState) configuration.getHandler().getState()).getBlazeFlagsState().getFlagsForExternalProcesses(),
+      consumer
+    );
   }
 
   /**
@@ -82,18 +83,16 @@ public final class BlazeBeforeRunCommandHelper {
    * targets from the run {@code configuration}.
    */
   public static <T> ListenableFuture<T> runBlazeCommand(
-      BlazeCommandName commandName,
-      BlazeCommandRunConfiguration configuration,
-      List<String> requiredExtraBlazeFlags,
-      List<String> overridableExtraBlazeFlags,
-      BlazeInvocationContext invocationContext,
-      String progressMessage,
-      ImmutableList<String> targets,
-      BuildEventStreamConsumer<T> consumer) {
+    final Project project,
+    BlazeCommandName commandName,
+    List<String> requiredExtraBlazeFlags,
+    List<String> overridableExtraBlazeFlags,
+    BlazeInvocationContext invocationContext,
+    String progressMessage,
+    List<String> targets,
+    List<String> flags,
+    BuildEventStreamConsumer<T> consumer) {
 
-    Project project = configuration.getProject();
-    BlazeCommandRunConfigurationCommonState handlerState =
-        (BlazeCommandRunConfigurationCommonState) configuration.getHandler().getState();
     WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
     ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
 
@@ -105,16 +104,16 @@ public final class BlazeBeforeRunCommandHelper {
                 context
                     .push(
                         new ToolWindowScope.Builder(
-                                project, new Task(project, TASK_TITLE))
+                          project, new Task(project, TASK_TITLE))
                             .setPopupBehavior(
                                 BlazeUserSettings.getInstance().getShowBlazeConsoleOnRun())
                             .setIssueParsers(
                                 BlazeIssueParser.defaultIssueParsers(
-                                    project, workspaceRoot, invocationContext.type()))
+                                  project, workspaceRoot, invocationContext.type()))
                             .build())
                     .push(
                         new ProblemsViewScope(
-                            project, BlazeUserSettings.getInstance().getShowProblemsViewOnRun()));
+                          project, BlazeUserSettings.getInstance().getShowProblemsViewOnRun()));
 
                 context.output(new StatusOutput(progressMessage));
 
@@ -129,13 +128,12 @@ public final class BlazeBeforeRunCommandHelper {
                         .addBlazeFlags(overridableExtraBlazeFlags)
                         .addBlazeFlags(
                             BlazeFlags.blazeFlags(
-                                project,
+                              project,
                                 projectViewSet,
                                 BlazeCommandName.BUILD,
                                 invocationContext))
-                        .addBlazeFlags(
-                            handlerState.getBlazeFlagsState().getFlagsForExternalProcesses())
-                        .addBlazeFlags(requiredExtraBlazeFlags);
+                      .addBlazeFlags(flags)
+                      .addBlazeFlags(requiredExtraBlazeFlags);
                 try {
                   return invoker.invoke(command, context, consumer);
                 } catch (BuildException e) {
