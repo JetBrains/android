@@ -76,6 +76,7 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
       .setPid(profilers.session.pid)
       .setSessionId(profilers.session.sessionId)
       .setType(Commands.Command.CommandType.HEAP_DUMP)
+      .setShouldEndSession(false)
       .build()
     val response = profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build())
     return response.commandId

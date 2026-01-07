@@ -334,6 +334,9 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
             logger.info("Profiler: End session " + sessionId + " track allocations log, if end session is true; isSessionAlive = " +
                         profilers.sessionsManager.isSessionAlive.toString())
           }
+          if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled && endSession) {
+             shouldEndSession = true
+          }
           setStopAllocTracking(Memory.StopAllocTracking.newBuilder().setRequestTime(timeNs))
         }
       }
