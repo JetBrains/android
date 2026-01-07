@@ -40,6 +40,7 @@ import com.google.common.truth.Truth.assertThat
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParameterDetailsCommand
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Parameter
 
 // Hand-crafted state loosely based on new basic activity app. Real data would look a lot more
 // scattered.
@@ -511,16 +512,16 @@ class FakeInspectorState(
   }
 
   private val parameterGroups =
-    listOf(
+    mutableListOf(
       ParameterGroup {
         composableId = -2
         Parameter {
-          type = LayoutInspectorComposeProtocol.Parameter.Type.STRING
+          type = Parameter.Type.STRING
           name = 101
           int32Value = 201
         }
         Parameter {
-          type = LayoutInspectorComposeProtocol.Parameter.Type.BOOLEAN
+          type = Parameter.Type.BOOLEAN
           name = 102
           int32Value = 1
         }
@@ -528,12 +529,12 @@ class FakeInspectorState(
       ParameterGroup {
         composableId = -3
         Parameter {
-          type = LayoutInspectorComposeProtocol.Parameter.Type.INT32
+          type = Parameter.Type.INT32
           name = 105
           int32Value = 16
         }
         Parameter {
-          type = LayoutInspectorComposeProtocol.Parameter.Type.COLOR
+          type = Parameter.Type.COLOR
           name = 107
           int32Value = -13172557
         }
@@ -541,17 +542,17 @@ class FakeInspectorState(
       ParameterGroup {
         composableId = -4
         Parameter {
-          type = LayoutInspectorComposeProtocol.Parameter.Type.DIMENSION_DP
+          type = Parameter.Type.DIMENSION_DP
           name = 109
           floatValue = 1f
         }
         Parameter {
-          type = LayoutInspectorComposeProtocol.Parameter.Type.DIMENSION_SP
+          type = Parameter.Type.DIMENSION_SP
           name = 110
           floatValue = 16f
         }
         Parameter {
-          type = LayoutInspectorComposeProtocol.Parameter.Type.DIMENSION_EM
+          type = Parameter.Type.DIMENSION_EM
           name = 111
           floatValue = 2f
         }
@@ -559,7 +560,7 @@ class FakeInspectorState(
       ParameterGroup {
         composableId = -5
         Parameter {
-          type = LayoutInspectorComposeProtocol.Parameter.Type.LAMBDA
+          type = Parameter.Type.LAMBDA
           name = 112
           lambdaValueBuilder.apply {
             packageName = 1
@@ -570,11 +571,11 @@ class FakeInspectorState(
           }
         }
         Parameter {
-          type = LayoutInspectorComposeProtocol.Parameter.Type.STRING
+          type = Parameter.Type.STRING
           name = 114
           int32Value = 203
           Element {
-            type = LayoutInspectorComposeProtocol.Parameter.Type.STRING
+            type = Parameter.Type.STRING
             name = 116
             int32Value = 204
             index = 0
@@ -586,13 +587,13 @@ class FakeInspectorState(
             }
           }
           Element {
-            type = LayoutInspectorComposeProtocol.Parameter.Type.INT32
+            type = Parameter.Type.INT32
             name = 115
             int32Value = 812
             index = 1
           }
           Element {
-            type = LayoutInspectorComposeProtocol.Parameter.Type.STRING
+            type = Parameter.Type.STRING
             name = 117
             int32Value = 205
             index = 11
@@ -628,24 +629,24 @@ class FakeInspectorState(
     )
 
   private val expandedParameter = ExpandedParameter {
-    type = LayoutInspectorComposeProtocol.Parameter.Type.INT32
+    type = Parameter.Type.INT32
     name = 1
     int32Value = 21
     index = 11
     Element {
-      type = LayoutInspectorComposeProtocol.Parameter.Type.STRING
+      type = Parameter.Type.STRING
       name = 2
       int32Value = 22
       index = 0
     }
     Element {
-      type = LayoutInspectorComposeProtocol.Parameter.Type.STRING
+      type = Parameter.Type.STRING
       name = 3
       int32Value = 23
       index = 1
     }
     Element {
-      type = LayoutInspectorComposeProtocol.Parameter.Type.ITERABLE
+      type = Parameter.Type.ITERABLE
       name = 4
       int32Value = 24
       index = 3
@@ -657,13 +658,13 @@ class FakeInspectorState(
         addAllCompositeIndex(listOf(11, 3))
       }
       Element {
-        type = LayoutInspectorComposeProtocol.Parameter.Type.STRING
+        type = Parameter.Type.STRING
         name = 5
         int32Value = 25
         index = 0
       }
       Element {
-        type = LayoutInspectorComposeProtocol.Parameter.Type.STRING
+        type = Parameter.Type.STRING
         name = 6
         int32Value = 26
         index = 3
@@ -685,7 +686,7 @@ class FakeInspectorState(
     )
 
   private val firstExpandedListParameter = ExpandedParameter {
-    type = LayoutInspectorComposeProtocol.Parameter.Type.ITERABLE
+    type = Parameter.Type.ITERABLE
     name = 1
     int32Value = 21
     index = 3
@@ -697,13 +698,13 @@ class FakeInspectorState(
       addAllCompositeIndex(listOf(11, 3))
     }
     Element {
-      type = LayoutInspectorComposeProtocol.Parameter.Type.STRING
+      type = Parameter.Type.STRING
       name = 2
       int32Value = 22
       index = 4
     }
     Element {
-      type = LayoutInspectorComposeProtocol.Parameter.Type.STRING
+      type = Parameter.Type.STRING
       name = 3
       int32Value = 23
       index = 6
@@ -726,24 +727,24 @@ class FakeInspectorState(
     )
 
   private val secondExpandedListParameter = ExpandedParameter {
-    type = LayoutInspectorComposeProtocol.Parameter.Type.ITERABLE
+    type = Parameter.Type.ITERABLE
     name = 1
     int32Value = 21
     index = 3
     Element {
-      type = LayoutInspectorComposeProtocol.Parameter.Type.STRING
+      type = Parameter.Type.STRING
       name = 2
       int32Value = 22
       index = 7
     }
     Element {
-      type = LayoutInspectorComposeProtocol.Parameter.Type.STRING
+      type = Parameter.Type.STRING
       name = 3
       int32Value = 23
       index = 10
     }
     Element {
-      type = LayoutInspectorComposeProtocol.Parameter.Type.STRING
+      type = Parameter.Type.STRING
       name = 4
       int32Value = 24
       index = 11
@@ -969,6 +970,24 @@ class FakeInspectorState(
     }
     propertyGroup.setProperty(propertyIndex, property)
     propertyGroups[rootId]!![propertyGroupIndex] = propertyGroup.build()
+  }
+
+  fun addParameterElement(composableId: Long, name: String) {
+    val groupIndex = parameterGroups.indexOfFirst { it.composableId == composableId }
+    val group = parameterGroups[groupIndex].toBuilder()
+    val nameId = composeStrings.first { it.str == name }.id
+    val parameterIndex = group.parameterList.indexOfFirst { it.name == nameId }
+    val parameter = group.parameterList[parameterIndex].toBuilder()
+    val element =
+      Parameter.newBuilder().apply {
+        this.name = 101
+        type = Parameter.Type.STRING
+        int32Value = 205
+        index = 1
+      }
+    parameter.addElements(element)
+    group.setParameter(parameterIndex, parameter.build())
+    parameterGroups[groupIndex] = group.build()
   }
 
   fun createFakeComposeTree(
