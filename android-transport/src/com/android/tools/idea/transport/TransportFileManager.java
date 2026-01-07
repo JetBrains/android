@@ -353,7 +353,8 @@ public final class TransportFileManager implements TransportFileCopier {
 
         // Throughout the codebase there are assumptions on how the transport files are called, which means we can't easily
         // append the hash to the name of a file. This is why a separate hash file is used.
-        myDevice.executeShellCommand("echo " + fileHash + " > " + hashFilePath, new NullOutputReceiver());
+        String createHashFileCmd = "echo " + fileHash + " > " + hashFilePath + " && chown shell:shell " + hashFilePath;
+        myDevice.executeShellCommand(createHashFileCmd, new NullOutputReceiver());
       }
 
       if (executable) {
