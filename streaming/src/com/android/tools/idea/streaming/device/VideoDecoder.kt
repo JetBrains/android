@@ -154,7 +154,7 @@ class VideoDecoder internal constructor(
 
   /**
    * Starts reading the video channel and returns. The decoder will continue to run until the video channel
-   * is disconnected or [decoderScope] is cancelled. If the [enableDecodingForPrimaryDisplay] parameter
+   * is disconnected or [decoderScope] is canceled. If the [enableDecodingForPrimaryDisplay] parameter
    * is true, decoding is enabled for primary display.
    */
   fun start(enableDecodingForPrimaryDisplay: Boolean) {
