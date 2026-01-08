@@ -19,7 +19,6 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
-import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
@@ -27,7 +26,7 @@ import org.junit.Test
 private const val APP_INSPECTION_TOOL_WINDOW_TITLE = "App Inspection"
 
 class LaunchInspectorsTest {
-  @JvmField @Rule val system = AndroidSystem.standardWithTmpDir()
+  @JvmField @Rule val system = AndroidSystem.standard()
 
   @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
@@ -53,18 +52,14 @@ class LaunchInspectorsTest {
    */
   @Test
   fun openAppInspectionToolWindow() {
-    val projectArtifactsPath =
-      Paths.get("tools/adt/idea/app-inspection/integration/minapp_project_model")
-    val project = AndroidProject(projectArtifactsPath.resolve("minapp").toString())
+    val project = AndroidProject("tools/adt/idea/app-inspection/integration/testData/minapp")
     system.installRepo(MavenRepo("tools/adt/idea/app-inspection/integration/minapp_deps.manifest"))
 
-    system.getInstallation().copySystemDir(projectArtifactsPath)
-    system.getInstallation().copyConfigDir(projectArtifactsPath)
     system.runAdb { adb ->
       system.runEmulator { emulator ->
         system.runStudio(project, watcher.dashboardName) { studio ->
-          studio.waitForSyncSkippedLog()
-          studio.waitForIndexingSkippedLog()
+          studio.waitForSync()
+          studio.waitForIndex()
           emulator.waitForBoot()
           adb.waitForDevice(emulator)
 
