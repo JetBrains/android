@@ -777,8 +777,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     - taskArtifacts               : <ROOT>/common/build/libs/common-metadata.jar [-]
                     - taskArtifacts               : <ROOT>/common/build/libs/common-jvm.jar [-]
                     configurationArtifacts
-                        - archives                    : <ROOT>/common/build/libs/common-jvm.jar [-]
-                        - archives                    : <ROOT>/common/build/libs/common-metadata.jar [-]
                         - jvmApiElements              : <ROOT>/common/build/libs/common-jvm.jar [-]
                         - jvmApiElements-published    : <ROOT>/common/build/libs/common-jvm.jar [-]
                         - jvmRuntimeElements          : <ROOT>/common/build/libs/common-jvm.jar [-]
@@ -978,7 +976,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     configurationArtifacts
                         - androidDebugArchives        : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
                         - androidReleaseArchives      : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
-                        - archives                    : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
                         - debugApiElements-published  : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
                         - debugRuntimeElements-published        : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
                         - debugSourcesElements        : <ROOT>/feature-b/build/libs/feature-b-android-debug-sources.jar [-]
@@ -1156,8 +1153,6 @@ MODULE                        : NonStandardSourceSetDependencies
                             - taskArtifacts               : <ROOT>/kmp-java/sample/build/libs/sample-metadata.jar [-]
                             - taskArtifacts               : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                             configurationArtifacts
-                                - archives                    : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
-                                - archives                    : <ROOT>/kmp-java/sample/build/libs/sample-metadata.jar [-]
                                 - jvmApiElements              : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                 - jvmApiElements-published    : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                 - jvmRuntimeElements          : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
@@ -3888,11 +3883,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        module                        : <ROOT>-:feature-b-MAIN
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:feature-b-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
@@ -3940,11 +3935,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        module                        : <ROOT>-:feature-b-MAIN
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:feature-b-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
