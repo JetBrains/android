@@ -58,7 +58,6 @@ public class BlazeCommandRunConfigurationCommonStateTest extends BlazeTestCase {
     state.getCommandState().setCommand(COMMAND);
     state.getBlazeFlagsState().setRawFlags(ImmutableList.of("--flag1", "--flag2"));
     state.getExeFlagsState().setRawFlags(ImmutableList.of("--exeFlag1"));
-    state.getBlazeBinaryState().setBlazeBinary("/usr/bin/blaze");
 
     Element element = new Element("test");
     state.writeExternal(element);
@@ -71,7 +70,6 @@ public class BlazeCommandRunConfigurationCommonStateTest extends BlazeTestCase {
         .containsExactly("--flag1", "--flag2")
         .inOrder();
     assertThat(readState.getExeFlagsState().getRawFlags()).containsExactly("--exeFlag1");
-    assertThat(readState.getBlazeBinaryState().getBlazeBinary()).isEqualTo("/usr/bin/blaze");
   }
 
   @Test
@@ -88,8 +86,6 @@ public class BlazeCommandRunConfigurationCommonStateTest extends BlazeTestCase {
         .isEqualTo(state.getBlazeFlagsState().getRawFlags());
     assertThat(readState.getExeFlagsState().getRawFlags())
         .isEqualTo(state.getExeFlagsState().getRawFlags());
-    assertThat(readState.getBlazeBinaryState().getBlazeBinary())
-        .isEqualTo(state.getBlazeBinaryState().getBlazeBinary());
   }
 
   @Test
@@ -122,7 +118,6 @@ public class BlazeCommandRunConfigurationCommonStateTest extends BlazeTestCase {
     state.getCommandState().setCommand(COMMAND);
     state.getBlazeFlagsState().setRawFlags(ImmutableList.of("--flag1", "--flag2"));
     state.getExeFlagsState().setRawFlags(ImmutableList.of("--exeFlag1"));
-    state.getBlazeBinaryState().setBlazeBinary("/usr/bin/blaze");
 
     Element firstWrite = new Element("test");
     state.writeExternal(firstWrite);
@@ -140,7 +135,6 @@ public class BlazeCommandRunConfigurationCommonStateTest extends BlazeTestCase {
     state.getCommandState().setCommand(COMMAND);
     state.getBlazeFlagsState().setRawFlags(ImmutableList.of("--flag1", "--flag2"));
     state.getExeFlagsState().setRawFlags(ImmutableList.of("--exeFlag1", "--exeFlag2"));
-    state.getBlazeBinaryState().setBlazeBinary("/usr/bin/blaze");
 
     editor.resetEditorFrom(state);
     BlazeCommandRunConfigurationCommonState readState =
@@ -153,8 +147,6 @@ public class BlazeCommandRunConfigurationCommonStateTest extends BlazeTestCase {
         .isEqualTo(state.getBlazeFlagsState().getRawFlags());
     assertThat(readState.getExeFlagsState().getRawFlags())
         .isEqualTo(state.getExeFlagsState().getRawFlags());
-    assertThat(readState.getBlazeBinaryState().getBlazeBinary())
-        .isEqualTo(state.getBlazeBinaryState().getBlazeBinary());
   }
 
   @Test
@@ -172,7 +164,5 @@ public class BlazeCommandRunConfigurationCommonStateTest extends BlazeTestCase {
         .isEqualTo(state.getBlazeFlagsState().getRawFlags());
     assertThat(readState.getExeFlagsState().getRawFlags())
         .isEqualTo(state.getExeFlagsState().getRawFlags());
-    assertThat(readState.getBlazeBinaryState().getBlazeBinary())
-        .isEqualTo(state.getBlazeBinaryState().getBlazeBinary());
   }
 }
