@@ -99,7 +99,7 @@ private fun String.toKtsFunction(funcName: String): String =
   }
 
 private fun String.toKtsProperty(funcName: String): String =
-  this.replace("$funcName ", "$funcName = ")
+  this.replace(Regex("$funcName\\s(?![={])"), "$funcName = ")
 
 internal fun String.gradleToKtsIfKts(isKts: Boolean): String =
   if (isKts) {
