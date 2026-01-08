@@ -89,7 +89,6 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
     state.getCommandState().setCommand(COMMAND);
     state.getBlazeFlagsState().setRawFlags(ImmutableList.of("--flag1", "--flag2"));
     state.getExeFlagsState().setRawFlags(ImmutableList.of("--exeFlag1"));
-    state.getBlazeBinaryState().setBlazeBinary("/usr/bin/blaze");
 
     Element element = new Element("test");
     configuration.writeExternal(element);
@@ -108,7 +107,6 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
         .containsExactly("--flag1", "--flag2")
         .inOrder();
     assertThat(readState.getExeFlagsState().getRawFlags()).containsExactly("--exeFlag1");
-    assertThat(readState.getBlazeBinaryState().getBlazeBinary()).isEqualTo("/usr/bin/blaze");
   }
 
   @Test
@@ -136,7 +134,6 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
     state.getCommandState().setCommand(COMMAND);
     state.getBlazeFlagsState().setRawFlags(ImmutableList.of("--flag1", "--flag2"));
     state.getExeFlagsState().setRawFlags(ImmutableList.of("--exeFlag1"));
-    state.getBlazeBinaryState().setBlazeBinary("/usr/bin/blaze");
 
     editor.resetFrom(configuration);
     BlazeCommandRunConfiguration readConfiguration =
@@ -155,8 +152,6 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
         .isEqualTo(state.getBlazeFlagsState().getRawFlags());
     assertThat(readState.getExeFlagsState().getRawFlags())
         .isEqualTo(state.getExeFlagsState().getRawFlags());
-    assertThat(readState.getBlazeBinaryState().getBlazeBinary())
-        .isEqualTo(state.getBlazeBinaryState().getBlazeBinary());
 
     Disposer.dispose(editor);
   }
@@ -186,7 +181,6 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
     readState.getCommandState().setCommand(COMMAND);
     readState.getBlazeFlagsState().setRawFlags(ImmutableList.of("--flag1", "--flag2"));
     readState.getExeFlagsState().setRawFlags(ImmutableList.of("--exeFlag1"));
-    readState.getBlazeBinaryState().setBlazeBinary("/usr/bin/blaze");
 
     editor.applyEditorTo(readConfiguration);
 
@@ -201,8 +195,6 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
         .isEqualTo(state.getBlazeFlagsState().getRawFlags());
     assertThat(readState.getExeFlagsState().getRawFlags())
         .isEqualTo(state.getExeFlagsState().getRawFlags());
-    assertThat(readState.getBlazeBinaryState().getBlazeBinary())
-        .isEqualTo(state.getBlazeBinaryState().getBlazeBinary());
 
     Disposer.dispose(editor);
   }

@@ -35,7 +35,7 @@ public class BlazeJavaRunConfigState extends BlazeCommandRunConfigurationCommonS
 
   @Override
   protected ImmutableList<RunConfigurationState> initializeStates() {
-    return ImmutableList.of(command, blazeFlags, exeFlags, debugPortState, blazeBinary);
+    return ImmutableList.of(command, blazeFlags, exeFlags, debugPortState);
   }
 
   public DebugPortState getDebugPortState() {
