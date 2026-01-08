@@ -2320,6 +2320,11 @@ public final class StudioFlags {
                     "Enable the integration with Google one.",
                     "When enabled, the studio-bot will show UI and upgrade paths corresponding to the Google one subscription held by the user.");
 
+  public static final Flag<Boolean> STUDIOBOT_IS_SKILLS_ENABLED =
+    new BooleanFlag(STUDIOBOT, "skills.enabled",
+                    "Enable Studio Bot Skills.",
+                    "When enabled, the studio-bot agents will be able to use skills.");
+
   public static final Flag<Boolean> STUDIOBOT_USE_BM25_FOR_FIND_FILES =
     new BooleanFlag(STUDIOBOT, "use.bm25.find.files",
                     "Use BM25 for find_files tool",
