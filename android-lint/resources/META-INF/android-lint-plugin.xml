@@ -451,6 +451,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+<!--  TODO: android-merge; upstream a6890e8b610f marks LintIdeSupport open="true", but nothing in this repository overrides the service and PluginModelValidator (AllProductsPackagingTest) rejects an open service without an override-->
     <applicationService
         serviceInterface="com.android.tools.idea.lint.common.LintIdeSupport"
         serviceImplementation="com.android.tools.idea.lint.AndroidLintIdeSupport"
