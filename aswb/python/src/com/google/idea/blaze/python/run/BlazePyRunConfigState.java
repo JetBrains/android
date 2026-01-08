@@ -32,7 +32,7 @@ final class BlazePyRunConfigState extends BlazeCommandRunConfigurationCommonStat
 
   @Override
   protected ImmutableList<RunConfigurationState> initializeStates() {
-    return ImmutableList.of(command, blazeFlags, exeFlags, envVars, blazeBinary);
+    return ImmutableList.of(command, blazeFlags, exeFlags, envVars);
   }
 
   EnvironmentVariablesState getEnvVarsState() {

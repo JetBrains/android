@@ -185,44 +185,13 @@ public class RunConfigurationSerializerTest extends BlazeIntegrationTestCase {
     WorkspacePath binaryPath = WorkspacePath.createIfValid("path/to/binary/blaze");
     assertThat(binaryPath).isNotNull();
     String absoluteBinaryPath = workspaceRoot.fileForPath(binaryPath).getPath();
-    setBlazeBinaryPath(configuration, absoluteBinaryPath);
 
     Element element = RunConfigurationSerializer.writeToXml(configuration);
-    assertThat(getBlazeBinaryPath(getProject(), element))
-        .isEqualTo(
-            String.format(
-                "$%s$/%s", RunConfigurationSerializer.WORKSPACE_ROOT_VARIABLE_NAME, binaryPath));
 
     clearRunManager(); // remove configuration from project
     RunConfigurationSerializer.loadFromXmlElementIgnoreExisting(getProject(), element);
 
     RunConfiguration config = runManager.getAllConfigurationsList().get(0);
     assertThat(config).isInstanceOf(BlazeCommandRunConfiguration.class);
-    assertThat(getBlazeBinaryPath((BlazeCommandRunConfiguration) config))
-        .isEqualTo(absoluteBinaryPath);
-  }
-
-  private static void setBlazeBinaryPath(BlazeCommandRunConfiguration configuration, String path) {
-    BlazeCommandRunConfigurationCommonState state =
-        configuration.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState.class);
-    assertThat(state).isNotNull();
-    state.getBlazeBinaryState().setBlazeBinary(path);
-  }
-
-  @Nullable
-  private static String getBlazeBinaryPath(Project project, Element element) {
-    BlazeCommandRunConfiguration config =
-        BlazeCommandRunConfigurationType.getInstance()
-            .getFactory()
-            .createTemplateConfiguration(project);
-    config.readExternal(element);
-    return getBlazeBinaryPath(config);
-  }
-
-  @Nullable
-  private static String getBlazeBinaryPath(BlazeCommandRunConfiguration configuration) {
-    BlazeCommandRunConfigurationCommonState state =
-        configuration.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState.class);
-    return state != null ? state.getBlazeBinaryState().getBlazeBinary() : null;
   }
 }
