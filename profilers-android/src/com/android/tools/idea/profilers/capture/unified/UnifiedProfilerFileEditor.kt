@@ -18,19 +18,15 @@ package com.android.tools.idea.profilers.capture.unified
 import com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.UserDataHolderBase
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
 import java.beans.PropertyChangeListener
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.SwingConstants
-import javax.swing.SwingUtilities
 import org.jetbrains.annotations.Nls
 
 /** A [com.intellij.openapi.fileEditor.FileEditor] for displaying profiler captures in a main editor tab. */
@@ -40,15 +36,6 @@ class UnifiedProfilerFileEditor(private val project: Project, private val file: 
 
   init {
     importFileIntoAndroidProfiler(project, file)
-
-    // When a user opens a profiler file via "File -> Open", the IDE opens the source file in this editor.
-    // However, the profiler imports this file into its own session storage (temp directory) and opens that copy.
-    // To avoid having two tabs (source file + imported session), we close this source file editor immediately,
-    // leaving only the imported session visible.
-    // TODO(b/472667234): Investigate and implement a alternative approach to directly open imported file.
-    if (!FileUtil.isAncestor(FileUtil.getTempDirectory(), file.path, true)) {
-      SwingUtilities.invokeLater { FileEditorManager.getInstance(project).closeFile(file) }
-    }
   }
 
   override fun getComponent() = component
@@ -72,10 +59,12 @@ class UnifiedProfilerFileEditor(private val project: Project, private val file: 
   override fun getCurrentLocation(): FileEditorLocation? = null
 
   /**
-   * Handles the import of an external profiler file into the Android Profiler tool window.
-   *
-   * @param project The current project context.
-   * @param file The [VirtualFile] representing the profiler data to be imported.
+   * There are three ways to open a trace file:
+   * - UI Import: Session -> Editor (Standard flow)
+   * - File Action: Editor, Device Explorer -> Session (Lazy registration)
+   * - Live Capture: We filter out artifacts to delegate session creation to the Editor flow.
+   * This prevents duplicate entries in 'Past Recordings', specifically for System Traces.
+   * for detailed explanation please check the comment https://b.corp.google.com/issues/472667234#comment3
    */
   private fun importFileIntoAndroidProfiler(project: Project, file: VirtualFile) {
     val window = ToolWindowManager.getInstance(project).getToolWindow(AndroidProfilerToolWindowFactory.ID)
@@ -87,20 +76,7 @@ class UnifiedProfilerFileEditor(private val project: Project, private val file: 
         window.show(null)
       }
       val profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)
-      if (profilerToolWindow != null) {
-        val fileIo = VfsUtilCore.virtualToIoFile(file)
-        // If the file is already in the temp directory, it's an internal re-open;
-        // return early to prevent an infinite import loop.
-        if (FileUtil.isAncestor(FileUtil.getTempDirectory(), fileIo.path, true)) {
-          return
-        }
-        // Check if the file is already tracked in sessions to avoid duplicate imports.
-        // TODO(b/472667234): File will be handled by external
-        val isAlreadyImported = profilerToolWindow.profilers.sessionsManager.sessionArtifacts.any { it.name == file.name }
-        if (!isAlreadyImported) {
-          profilerToolWindow.openFile(file)
-        }
-      }
+      profilerToolWindow?.openFile(file)
     }
   }
 

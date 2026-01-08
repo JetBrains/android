@@ -18,7 +18,6 @@ package com.android.tools.profilers
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.SessionData.SessionStarted
 import com.android.tools.profiler.proto.LeakCanary
-import com.android.tools.profilers.cpu.CpuCaptureStageUtils
 import com.android.tools.profilers.memory.MemoryProfiler
 import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.openapi.diagnostic.Logger
@@ -42,13 +41,7 @@ object ImportedSessionUtils {
    *
    * @return The copied file. If the copy fails, it logs a warning and returns the original file as a fallback.
    */
-  private fun copyToTemp(file: File, services: IdeProfilerServices, sessionType: SessionStarted.SessionType? = null): File {
-    if (services.featureConfig.isSystemTraceInEditorEnabled && sessionType == SessionStarted.SessionType.CPU_CAPTURE) {
-      val permanentFile = CpuCaptureStageUtils.getPermanentCaptureFile(services, file, file.name)
-      if (permanentFile != null) {
-        return permanentFile
-      }
-    }
+  private fun copyToTemp(file: File): File {
     return try {
       val tempFile = FileUtil.createTempFile("profiler-import-${file.nameWithoutExtension}", ".${file.extension}", true)
       FileUtil.copy(file, tempFile)
@@ -71,14 +64,18 @@ object ImportedSessionUtils {
     makeEvent: (Long, Long) -> Common.Event,
   ) {
     withFileImportedOnce(sessionsManager, file) { startTimestampsEpochMs, startTime, endTime ->
-      val copiedFile = copyToTemp(file, sessionsManager.studioProfilers.ideServices, sessionType)
+      val fileToImport = if (sessionsManager.studioProfilers.ideServices.featureConfig.isSystemTraceInEditorEnabled) {
+        file
+      } else {
+        copyToTemp(file)
+      }
       sessionsManager.createImportedSession(
         file.name,
         sessionType,
         startTime,
         endTime,
         startTimestampsEpochMs,
-        mapOf(startTime.toString() to copiedFile.absolutePath),
+        mapOf(startTime.toString() to fileToImport.absolutePath),
         makeEvent(startTime, endTime),
       )
     }
@@ -91,7 +88,7 @@ object ImportedSessionUtils {
   @JvmStatic
   fun importFile(sessionsManager: SessionsManager, file: File, sessionType: SessionStarted.SessionType) {
     withFileImportedOnce(sessionsManager, file) { startTimestampsEpochMs, startTime, endTime ->
-      val copiedFile = copyToTemp(file, sessionsManager.studioProfilers.ideServices, sessionType)
+      val copiedFile = copyToTemp(file)
       sessionsManager.createImportedSession(
         file.name,
         sessionType,
@@ -178,13 +175,7 @@ object ImportedSessionUtils {
 
     // The time when the session is created. Will determine the order in Past Recordings panel.
     val startTimestampEpochMs = System.currentTimeMillis()
-    var copiedFile: File? = null
-    if (sessionsManager.studioProfilers.ideServices.featureConfig.isSystemTraceInEditorEnabled) {
-      copiedFile = CpuCaptureStageUtils.getPermanentCaptureFile(sessionsManager.studioProfilers.ideServices, file, file.name)
-    }
-    if (copiedFile == null) {
-      copiedFile = FileUtil.createTempFile("imported-${file.nameWithoutExtension}", ".${file.extension}", true)
-    }
+    val copiedFile = FileUtil.createTempFile("imported-${file.nameWithoutExtension}", ".${file.extension}", true)
 
     try {
       // 1. Create the stream to get a streamId and server.

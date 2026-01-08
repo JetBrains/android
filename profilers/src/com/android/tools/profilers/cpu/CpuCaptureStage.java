@@ -82,7 +82,6 @@ import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModelKt;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.tasks.analytics.TaskFinishedState;
-import com.android.tools.profilers.tasks.analytics.TaskTracker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -143,7 +142,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   @Nullable
-  private static File getAndSaveCapture(@NotNull StudioProfilers profilers, long traceId) {
+  private static File getCaptureAsFile(@NotNull StudioProfilers profilers, long traceId) {
     Transport.BytesRequest traceRequest = Transport.BytesRequest.newBuilder()
       .setStreamId(profilers.getSession().getStreamId())
       .setId(String.valueOf(traceId))
@@ -157,20 +156,20 @@ public class CpuCaptureStage extends Stage<Timeline> {
     if (!captureFile.exists() || captureFile.length() == 0) {
       return null;
     }
+    return captureFile;
+  }
+
+  @Nullable
+  private static File getAndRenameCapture(@NotNull StudioProfilers profilers, long traceId) {
+    File captureFile = getCaptureAsFile(profilers, traceId);
+    if (captureFile == null) {
+      return null;
+    }
     // The existing flow creates a temporary file (e.g., "/private/var/folders/.../T/transport-bytes-....tmp").
     // If Unified Preview is enabled, we need to convert/save this to a permanent trace file to be viewed in the editor.
-    // TODO(b/472627125): the transport-bytes...tmp can be renamed to a trace file instead of creating a new
-    //  one. Also getAndSaveCapture shouldn't be called if isSystemTraceInEditorEnabled is enabled
-    if (profilers.getIdeServices().getFeatureConfig().isSystemTraceInEditorEnabled()) {
-      File permanentFile = CpuCaptureStageUtils.getPermanentCaptureFile(
-        profilers.getIdeServices(),
-        captureFile,
-        "capture_" + traceId + ".trace");
-      if (permanentFile != null) {
-        return permanentFile;
-      }
-    }
-    return captureFile;
+    return CpuCaptureStageUtils.renameTempToTraceFile(
+      captureFile,
+      CpuCaptureStageUtils.getTraceFile(traceId).getName());
   }
 
   /**
@@ -222,7 +221,15 @@ public class CpuCaptureStage extends Stage<Timeline> {
                                        @NotNull ProfilingConfiguration configuration,
                                        CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint,
                                        long traceId) {
-    File captureFile = getAndSaveCapture(profilers, traceId);
+    File captureFile;
+    boolean isSystemTrace = configuration.getTraceType() == ProfilingConfiguration.TraceType.ATRACE ||
+                            configuration.getTraceType() == ProfilingConfiguration.TraceType.PERFETTO;
+    if (profilers.getIdeServices().getFeatureConfig().isSystemTraceInEditorEnabled() && isSystemTrace) {
+      captureFile = getAndRenameCapture(profilers, traceId);
+    } else {
+      captureFile = getCaptureAsFile(profilers, traceId);
+    }
+
     if (captureFile == null) {
       return null;
     }

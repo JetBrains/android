@@ -489,15 +489,4 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public void closeTaskTab(@NotNull ProfilerTaskType taskType) {
   }
-
-  @Override
-  public boolean openFileFromEventStream(@NotNull EventStreamServer eventStreamServer, @NotNull String byteId) {
-    return openTraceFile(new File(byteId + ".trace"));
-  }
-
-  @NotNull
-  @Override
-  public String getProjectHomeHash() {
-    return "fake_project_hash";
-  }
 }

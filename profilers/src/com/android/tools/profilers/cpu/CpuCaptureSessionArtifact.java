@@ -20,9 +20,11 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.ExportableArtifact;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.sessions.SessionArtifact;
+import com.android.tools.profilers.sessions.SessionsManager;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -202,10 +204,43 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Trace.TraceInf
     // TODO b/133324501 handle the case where a CpuTraceInfo is still ongoing after a session has ended.
     List<Trace.TraceInfo> traceInfoList = CpuProfiler.getTraceInfoFromRange(profilers.getClient(), session, requestRange);
     List<SessionArtifact<?>> artifacts = new ArrayList<>();
+
     for (Trace.TraceInfo info : traceInfoList) {
-      artifacts.add(new CpuCaptureSessionArtifact(profilers, session, sessionMetaData, info));
+      if (!shouldSkipArtifact(info, profilers.getIdeServices(), session, sessionMetaData)) {
+        artifacts.add(new CpuCaptureSessionArtifact(profilers, session, sessionMetaData, info));
+      }
     }
 
     return artifacts;
+  }
+
+  /**
+   * When the Unified Profiler handles the import of a new trace file, it automatically
+   * creates a corresponding session via {@link com.android.tools.idea.profilers.capture.unified.UnifiedProfilerFileEditor#importFileIntoAndroidProfiler}
+   * which finally calls {@link com.android.tools.profilers.sessions.SessionsManager#createImportedSession} to create a session.
+   * <p>Therefore, explicitly adding an artifact entry here would result in a duplicate
+   * entry within the 'Past Recordings' list, pointing to the same file. To avoid
+   * this redundancy, we skip adding the artifact if it's already handled by the import process.
+   */
+  private static boolean shouldSkipArtifact(@NotNull Trace.TraceInfo info,
+                                            @NotNull IdeProfilerServices ideServices,
+                                            @NotNull Common.Session session,
+                                            @NotNull Common.SessionMetaData sessionMetaData) {
+    ProfilingConfiguration.TraceType type = ProfilingConfiguration.TraceType.from(info.getConfiguration());
+    boolean isSystemTrace = (type == ProfilingConfiguration.TraceType.ATRACE ||
+                             type == ProfilingConfiguration.TraceType.PERFETTO);
+
+    if (!isSystemTrace) {
+      return false;
+    }
+
+    // Check if the system trace editor feature is enabled.
+    boolean isSystemTraceEditorEnabled = ideServices.getFeatureConfig().isSystemTraceInEditorEnabled();
+    // To avoid duplicates in the 'Past Recordings' list, skip system trace artifacts in
+    //  FULL sessions, as they are automatically handled by the import process:
+    // We must NOT filter artifacts from Imported FULL sessions (e.g. from .asdb), otherwise they would be hidden.
+    return isSystemTraceEditorEnabled &&
+           sessionMetaData.getType() == Common.SessionMetaData.SessionType.FULL &&
+           !SessionsManager.isSessionImported(session);
   }
 }

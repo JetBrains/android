@@ -210,19 +210,4 @@ interface IdeProfilerServices {
 
   /** If profileableMode is true, performs the ProfileProfileableAction, otherwise performs the ProfileDebuggableAction. */
   fun buildAndLaunchAction(profileableMode: Boolean, device: ProcessListModel.ProfilerDeviceSelection)
-
-  /**
-   * Attempts to open a trace file directly if it's already backed by a local file in the EventStreamServer. This acts as an optimization
-   * for imported sessions to avoid duplicating the file from the transport pipeline.
-   *
-   * TODO(b/472667234) Revisit to check if openTrace file should be used
-   */
-  fun openFileFromEventStream(eventStreamServer: EventStreamServer, byteId: String): Boolean
-
-  /**
-   * Returns a hash of the project home location (or other stable unique project identifier). This is used to create unique directories for
-   * storing temporary capture files per project.
-   */
-  val projectHomeHash: String
-    get() = ""
 }

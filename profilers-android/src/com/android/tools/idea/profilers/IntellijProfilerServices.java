@@ -211,21 +211,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     return true;
   }
 
-  @Override
-  public boolean openFileFromEventStream(@NotNull EventStreamServer eventStreamServer, @NotNull String byteId) {
-    String filePath = eventStreamServer.getFilePathCache().get(byteId);
-    if (filePath == null) {
-      return false;
-    }
-    File file = new File(filePath);
-    if (!file.exists()) {
-      getLogger().warn("File does not exist at path: " + filePath);
-      return false;
-    }
-    // openFile handles the ApplicationManager.invokeLater() internally.
-    return openTraceFile(file);
-  }
-
   @NotNull
   @Override
   public NativeFrameSymbolizer getNativeFrameSymbolizer() {
@@ -504,12 +489,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public void buildAndLaunchAction(boolean profileableMode, ProcessListModel.@NotNull ProfilerDeviceSelection device) {
     ProfilerBuildAndLaunch.buildAndLaunchAction(myProject, profileableMode, device);
-  }
-
-  @NotNull
-  @Override
-  public String getProjectHomeHash() {
-    return Integer.toHexString(myProject.getLocationHash().hashCode());
   }
 
   /**
