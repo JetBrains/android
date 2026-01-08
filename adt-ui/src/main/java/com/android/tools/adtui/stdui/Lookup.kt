@@ -32,6 +32,7 @@ import com.intellij.ui.components.JBList
 import com.intellij.ui.popup.AbstractPopup
 import com.intellij.ui.speedSearch.FilteringListModel
 import com.intellij.ui.speedSearch.SpeedSearchUtil
+import com.intellij.util.text.matching.MatchedFragment
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import java.awt.Component
@@ -304,7 +305,7 @@ class Matcher {
     return internalMatcher?.matches(element) ?: true
   }
 
-  fun matchingFragments(element: String): List<TextRange>? {
+  fun matchingFragments(element: String): List<MatchedFragment>? {
     return internalMatcher?.match(element)
   }
 }
@@ -456,7 +457,7 @@ class DefaultLookupUI : LookupUI {
         selected -> LookupCellRenderer.SELECTED_NON_FOCUSED_BACKGROUND_COLOR
         else -> LookupCellRenderer.BACKGROUND_COLOR
       }
-      val ranges = matcher?.matchingFragments(value)
+      val ranges = matcher?.matchingFragments(value)?.map { TextRange(it.startOffset, it.endOffset) }
       if (ranges != null) {
         SpeedSearchUtil.appendColoredFragments(this, value, ranges, foregroundAttributes, matchedAttributes)
       }
