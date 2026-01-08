@@ -450,7 +450,8 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationService
         serviceInterface="com.android.tools.idea.lint.common.LintIdeSupport"
-        serviceImplementation="com.android.tools.idea.lint.AndroidLintIdeSupport" />
+        serviceImplementation="com.android.tools.idea.lint.AndroidLintIdeSupport"
+        open="true" />
     <lang.inspectionSuppressor
         language="UAST"
         implementationClass="com.android.tools.idea.lint.inspections.JavaApiUsageInspectionSuppressor"/>

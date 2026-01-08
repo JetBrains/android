@@ -473,7 +473,7 @@
 
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceFolderRegistry"/>
     <projectService serviceImplementation="com.android.tools.idea.rendering.RenderSettings" />
-    <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
+    <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker" open="true"
                     serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingDefaultTracker"/>
     <projectService serviceImplementation="com.android.tools.idea.ndk.NativeWorkspaceService" />
     <projectService serviceInterface="com.android.tools.idea.editors.fast.FastPreviewTrackerManager"

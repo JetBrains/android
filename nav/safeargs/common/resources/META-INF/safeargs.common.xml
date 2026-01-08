@@ -20,7 +20,7 @@
     <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker" />
     <projectService serviceImplementation="com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker" />
     <projectService
-        serviceInterface="com.android.tools.idea.nav.safeargs.tracker.SafeArgsTracker"
+        serviceInterface="com.android.tools.idea.nav.safeargs.tracker.SafeArgsTracker" open="true"
         serviceImplementation="com.android.tools.idea.nav.safeargs.tracker.DefaultSafeArgsTracker"/>
     <resolveScopeEnlarger implementation="com.android.tools.idea.nav.safeargs.finder.SafeArgsScopeEnlarger" />
     <java.shortNamesCache implementation="com.android.tools.idea.nav.safeargs.cache.DirectionsShortNamesCache"/>
