@@ -23,11 +23,14 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestActionEvent
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -41,22 +44,47 @@ class GlassesBlendDropdownActionTest {
 
   @Test
   fun `action is not visible when device is not glasses`() {
-    val event = setUpDeviceAndActionVisibility(XR_HEADSET_TAG.id)
+    val event = setUpDeviceAndActionVisibility(XR_HEADSET_TAG.id, PreviewMode.Default())
     assertThat(event.presentation.isEnabledAndVisible).isFalse()
   }
 
   @Test
-  fun `action is visible when device is glasses`() {
-    val event = setUpDeviceAndActionVisibility(AI_GLASSES_TAG.id)
+  fun `action is visible when device is glasses and mode is default`() {
+    val event = setUpDeviceAndActionVisibility(AI_GLASSES_TAG.id, PreviewMode.Default())
     assertThat(event.presentation.isEnabledAndVisible).isTrue()
+  }
+
+  @Test
+  fun `action is visible when device is glasses and mode is focus`() {
+    val event = setUpDeviceAndActionVisibility(AI_GLASSES_TAG.id, PreviewMode.Focus(mock()))
+    assertThat(event.presentation.isEnabledAndVisible).isTrue()
+  }
+
+  @Test
+  fun `action is not visible when device is glasses and mode is not default or focus`() {
+    val event = setUpDeviceAndActionVisibility(AI_GLASSES_TAG.id, PreviewMode.UiCheck(mock()))
+    assertThat(event.presentation.isEnabledAndVisible).isFalse()
+
+    val event2 = setUpDeviceAndActionVisibility(AI_GLASSES_TAG.id, PreviewMode.Interactive(mock()))
+    assertThat(event2.presentation.isEnabledAndVisible).isFalse()
+
+    val event3 =
+      setUpDeviceAndActionVisibility(AI_GLASSES_TAG.id, PreviewMode.AnimationInspection(mock()))
+    assertThat(event3.presentation.isEnabledAndVisible).isFalse()
   }
 
   /**
    * Sets up a data context containing a screen view that has a device passed as an argument. Then,
-   * create an [AnActionEvent] and calls `GlassesBlendDropdownAction#update()` on it. Returns the
-   * event so it can be used to check the action visibility.
+   * create an [AnActionEvent] and calls `GlassesBlendDropdownAction#update()` on it. The event's
+   * data context is populated with a [PreviewModeManager] that returns the given [previewMode] as
+   * the current mode.
+   *
+   * Returns the event so it can be used to check the action visibility.
    */
-  private fun setUpDeviceAndActionVisibility(deviceId: String): AnActionEvent {
+  private fun setUpDeviceAndActionVisibility(
+    deviceId: String,
+    previewMode: PreviewMode,
+  ): AnActionEvent {
     val sceneView = mock<SceneView>()
     val configuration = mock<Configuration>()
     whenever(sceneView.configuration).thenReturn(configuration)
@@ -65,7 +93,14 @@ class GlassesBlendDropdownActionTest {
     whenever(device.tagId).thenReturn(deviceId)
     whenever(configuration.device).thenReturn(device)
 
-    val dataContext = SimpleDataContext.builder().add(SCENE_VIEW, sceneView).build()
+    val previewModeManager = mock<PreviewModeManager>()
+    whenever(previewModeManager.mode).thenReturn(MutableStateFlow(previewMode))
+
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(SCENE_VIEW, sceneView)
+        .add(PreviewModeManager.KEY, previewModeManager)
+        .build()
 
     val action = GlassesBlendDropdownAction()
     return TestActionEvent.createTestEvent(action, dataContext).also { action.update(it) }
