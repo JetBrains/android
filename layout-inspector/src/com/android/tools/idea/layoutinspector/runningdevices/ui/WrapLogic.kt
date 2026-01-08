@@ -16,8 +16,11 @@
 package com.android.tools.idea.layoutinspector.runningdevices.ui
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.ui.isFocusAncestor
 import com.intellij.openapi.util.Disposer
+import java.awt.Component
 import java.awt.Container
+import java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager
 import javax.swing.JComponent
 
 /**
@@ -32,7 +35,7 @@ class WrapLogic(
   private val content: JComponent,
   private val container: Container,
 ) : Disposable {
-  private var newContainer: JComponent? = null
+  private var wrapper: JComponent? = null
 
   init {
     Disposer.register(parentDisposable, this)
@@ -45,11 +48,17 @@ class WrapLogic(
    *   [JComponent] that contains [content].
    */
   fun wrapContent(wrap: (Disposable, JComponent) -> JComponent) {
-    check(newContainer == null) { "Can't wrap, content is already wrapped" }
+    check(wrapper == null) { "Can't wrap, content is already wrapped" }
 
-    container.remove(content)
-    newContainer = wrap(this, content)
-    container.add(newContainer)
+    val index = container.components.indexOf(content)
+    if (index < 0) {
+      throw IllegalStateException("$content is not a child of $container")
+    }
+    val focusOwner = content.getContainedFocusOwner()
+    container.remove(index)
+    wrapper = wrap(this, content)
+    container.add(wrapper, index)
+    focusOwner?.requestFocusInWindow()
   }
 
   override fun dispose() {
@@ -59,15 +68,19 @@ class WrapLogic(
   }
 
   private fun unwrapContent() {
-    val newContainer = checkNotNull(newContainer) { "Can't unwrap, content is not wrapped" }
+    val wrapper = checkNotNull(wrapper) { "Can't unwrap, content is not wrapped" }
 
-    newContainer.remove(content)
-    container.remove(newContainer)
-    this.newContainer = null
-
-    container.add(content)
-
-    container.invalidate()
-    container.repaint()
+    val index = container.components.indexOf(wrapper)
+    if (index < 0) {
+      throw IllegalStateException("$wrapper is not a child of $container")
+    }
+    val focusOwner = content.getContainedFocusOwner()
+    container.remove(index)
+    container.add(content, index)
+    focusOwner?.requestFocusInWindow()
+    this.wrapper = null
   }
 }
+
+private fun Component.getContainedFocusOwner(): Component? =
+  if (isFocusAncestor()) getCurrentKeyboardFocusManager().focusOwner else null
