@@ -74,9 +74,7 @@ sealed interface CodeEditingAction {
    */
   data class PairedEnclosureInserted(val text: String) : CodeEditingAction {
     override fun getCodeEditedEvents(addedText: String, removedText: String): List<CodeEdited> {
-      if (addedText != text) {
-        thisLogger().error("""Expected "$text", got "$addedText".""")
-      }
+      if (addedText != text) thisLogger().warn("""Expected "$text", got "$addedText".""")
       return listOf(CodeEdited(addedText.length, removedText.length, Source.TYPING))
     }
   }
