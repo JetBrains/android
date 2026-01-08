@@ -27,14 +27,13 @@ import com.android.tools.perflogger.PerfData
 import com.android.tools.testlib.Emulator
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Paths
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 class BuildAndRunKMPTest {
   @JvmField
   @Rule
-  val system = AndroidSystem.standardWithTmpDir()
+  val system = AndroidSystem.standard()
 
   @JvmField
   @Rule
@@ -49,21 +48,17 @@ class BuildAndRunKMPTest {
 
     benchmark.log("test_start", System.currentTimeMillis())
 
-    val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/kmpapp_project_model")
-    val project = AndroidProject(projectArtifactsPath.resolve("kmpapp").toString())
-
+    val project = AndroidProject("tools/adt/idea/android/integration/testData/kmpapp")
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildkmpproject_deps.manifest"))
 
     benchmark.log("studio_start", System.currentTimeMillis())
 
-    system.getInstallation().copySystemDir(projectArtifactsPath)
-    system.getInstallation().copyConfigDir(projectArtifactsPath)
     system.runAdb { adb ->
       system.runStudio(project,benchmark)  { studio ->
         system.runEmulator(Emulator.SystemImage.API_31) { emulator ->
-          studio.waitForSyncSkippedLog()
+          studio.waitForSync()
           collectMemoryUsageStatistics(studio, system.installation, watcher, "afterSync")
-          studio.waitForIndexingSkippedLog()
+          studio.waitForIndex()
           println("Finished waiting for index")
 
           println("Waiting for boot")
