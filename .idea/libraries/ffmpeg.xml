@@ -8,6 +8,10 @@
       <root url="http://bytedeco.org/javacpp-presets/ffmpeg/apidocs" />
       <root url="http://bytedeco.org/javacpp/apidocs" />
     </JAVADOC>
-    <SOURCES />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/bytedeco/javacpp-presets-platform-ffmpeg-1.5.12-src.zip!/javacpp-presets-platform-1.5.12/ffmpeg/samples" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/bytedeco/javacpp-presets-platform-ffmpeg-1.5.12-src.zip!/javacpp-presets-platform-1.5.12/ffmpeg/src/gen/java" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/bytedeco/javacpp-presets-platform-ffmpeg-1.5.12-src.zip!/javacpp-presets-platform-1.5.12/ffmpeg/src/main/java" />
+    </SOURCES>
   </library>
 </component>
