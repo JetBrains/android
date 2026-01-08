@@ -45,6 +45,8 @@ import kotlin.test.fail
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -201,6 +203,11 @@ class ForegroundProcessDetectionTest {
 
   @After
   fun tearDown() {
+    runBlocking {
+      // Wait for job to complete to avoid code running in other tests setup, see: b/472691298
+      coroutineScope.coroutineContext[Job]!!.cancelAndJoin()
+    }
+
     handshakeSyncChannel.close()
     startTrackingSyncChannel.close()
     stopTrackingSyncChannel.close()
