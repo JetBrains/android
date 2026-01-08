@@ -50,14 +50,6 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "com.android.annotations",
           "com.android.tools.instrumentation.threading.agent.callback",
           "javax.inject",
-          // b/476501574 below here
-          "org.apache.commons.lang.builder",
-          "org.apache.commons.lang.exception",
-          "org.apache.commons.lang.math",
-          "org.apache.commons.lang.text",
-          "org.apache.commons.lang.time",
-          "org.apache.commons.lang",
-          // end b/476501574
           "org.objectweb.asm.commons",
           "org.objectweb.asm.signature",
           "org.objectweb.asm.tree.analysis",

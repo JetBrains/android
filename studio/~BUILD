@@ -78,7 +78,6 @@ studio_plugin(
         "//prebuilts/tools/common/m2:brotli-dec-0.1.2",
         "//prebuilts/tools/common/m2:eclipse-layout-kernel",
         "//prebuilts/tools/common/m2:juniversalchardet",
-        "//prebuilts/tools/common/m2:commons-lang",
         "//prebuilts/tools/common/m2:javapoet",
         "//prebuilts/tools/common/m2:auto-common",
         "//prebuilts/tools/common/m2:javax-servlet",
