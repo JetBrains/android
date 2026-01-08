@@ -627,7 +627,6 @@ MODULE                        : kotlinMultiPlatform
                     configurationArtifacts
                         - androidDebugArchives        : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         - androidReleaseArchives      : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
-                        - archives                    : <ROOT>/module2/build/libs/module2-metadata.jar [-]
                         - debugApiElements-published  : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         - debugRuntimeElements-published        : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         - debugSourcesElements        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
@@ -2089,14 +2088,14 @@ MODULE                        : kotlinMultiPlatform.module2
                             javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
                         androidLibrary                : com.android.support.test:monitor:1.0.2@aar
                             javaLibrary                   : com.android.support:support-annotations:27.1.1@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support:support-annotations:27.1.1@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:module2-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
@@ -2148,12 +2147,12 @@ MODULE                        : kotlinMultiPlatform.module2
                     ResourcesDirectories          : <ROOT>/module2/src/commonTest/resources [-]
                 Dependencies
                     compileClasspath
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:module2-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath

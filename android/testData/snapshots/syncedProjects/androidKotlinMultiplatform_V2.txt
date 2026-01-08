@@ -1858,7 +1858,10 @@ PROJECT                       : Kotlin Multiplatform
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmpSecondLib/src/jvmMain/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpSecondLib/src/jvmMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
+        *isInherited                  : false
+            SdkType                       : JavaSDK
+            HomePath                      : <JDK_PATH-11>
+            VersionString                 : <JDK_VERSION-11>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
@@ -1923,7 +1926,10 @@ PROJECT                       : Kotlin Multiplatform
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpSecondLib/src/jvmTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpSecondLib/src/jvmTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
+        *isInherited                  : false
+            SdkType                       : JavaSDK
+            HomePath                      : <JDK_PATH-11>
+            VersionString                 : <JDK_VERSION-11>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
