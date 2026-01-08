@@ -14,8 +14,8 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import org.jetbrains.plugins.gradle.service.resolve.GradleVersionCatalogHandler
 import java.io.File
+import org.jetbrains.plugins.gradle.service.resolve.GradleVersionCatalogHandler
 import com.android.tools.idea.gradle.dsl.model.GradleModelSource
 
 /**
@@ -30,10 +30,10 @@ class GradleDslVersionCatalogHandler : GradleVersionCatalogHandler {
   }
 
   override fun getVersionCatalogFiles(project: Project): Map<String, VirtualFile> =
-    getGradleVersionCatalogFiles(project).mapValuesNotNull { (_, value) -> VfsUtil.findFileByIoFile(File(value), false)}
+    getGradleVersionCatalogFiles(project).mapValuesNotNull { (_, value) -> VfsUtil.findFileByIoFile(File(value), false) }
 
   override fun getVersionCatalogFiles(module: Module): Map<String, VirtualFile> =
-    getGradleVersionCatalogFiles(module).mapValuesNotNull { (_, value) -> VfsUtil.findFileByIoFile(File(value), false)}
+    getGradleVersionCatalogFiles(module).mapValuesNotNull { (_, value) -> VfsUtil.findFileByIoFile(File(value), false) }
 
   override fun getAccessorClass(context: PsiElement, catalogName: String): PsiClass? {
     val project = context.project
