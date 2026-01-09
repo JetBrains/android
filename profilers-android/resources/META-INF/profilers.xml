@@ -108,7 +108,7 @@
     <fileType name="HeapProfd" implementationClass="com.android.tools.idea.profilers.capture.HeapProfdMemoryCaptureFileType"
               fieldName="INSTANCE" extensions="heapprofd"/>
     <fileType name="PerfettoCapture" implementationClass="com.android.tools.idea.profilers.capture.PerfettoCaptureFileType"
-              extensions="pftrace;perfetto-trace"/>
+              extensions="pftrace;perfetto-trace;perfetto"/>
     <fileType name="ProfilerDatabase" implementationClass="com.android.tools.idea.profilers.capture.ProfilerDatabaseFileType"
               extensions="asdb"/>
   </extensions>

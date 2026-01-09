@@ -354,7 +354,7 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
 
     fun getImportAction(ideProfilerComponents: IdeProfilerComponents, profilers: StudioProfilers, component: JComponent?): Runnable {
       return Runnable {
-        val supportedExtensions = listOf("trace", "pftrace", "perfetto-trace", "alloc", "hprof", "heapprofd", "asdb")
+        val supportedExtensions = listOf("trace", "pftrace", "perfetto-trace", "perfetto", "alloc", "hprof", "heapprofd", "asdb")
         ideProfilerComponents.createImportDialog().open({ "Open" }, supportedExtensions) { file ->
           if (!profilers.sessionsManager.importSessionFromFile(File(file.path))) {
             ideProfilerComponents.createUiMessageHandler()
