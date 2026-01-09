@@ -236,7 +236,7 @@ private class RenderingBuildStatusManagerImpl(
 
               fun handleSuccess(scope: GlobalSearchScope): ProjectBuildStatus {
                 SlowOperations.knownIssue("IDEA-359567").use {
-                  ThrowableComputable<Unit, Throwable> { preparedMarkUpToDateAction.markUpToDate(scope) }
+                  preparedMarkUpToDateAction.markUpToDate(scope)
                 }
                 // Clear the resources out of date flag
                 areResourcesOutOfDateFlow.value = false
