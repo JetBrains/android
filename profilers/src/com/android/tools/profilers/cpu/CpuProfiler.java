@@ -108,6 +108,7 @@ public class CpuProfiler implements StudioProfiler {
     sessionsManager.registerImportHandler("trace", this::loadCapture);
     sessionsManager.registerImportHandler("pftrace", this::loadCapture);
     sessionsManager.registerImportHandler("perfetto-trace", this::loadCapture);
+    sessionsManager.registerImportHandler("perfetto", this::loadCapture);
   }
 
   private void loadCapture(File file) throws IllegalStateException {
