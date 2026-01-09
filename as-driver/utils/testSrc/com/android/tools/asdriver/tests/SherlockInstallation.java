@@ -71,10 +71,6 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> implements T
     unzip(sherlockZip, workDir);
     Path sherlockDir = workDir.resolve(getSherlockDirectory());
 
-    // Delete the plugin-classpath.txt file. Otherwise, the plugins injected by the e2e framework
-    // do not work (e.g., the as-driver plugin does not run).
-    sherlockDir.resolve("plugins/plugin-classpath.txt").toFile().delete();
-
     return new SherlockInstallation(testFileSystem, workDir, sherlockDir, disableFirstRun, display, sdk);
   }
 
