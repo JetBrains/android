@@ -31,6 +31,12 @@ class ClassSet(val classEntry: ClassDb.ClassEntry) : ClassifierSet(classEntry.si
       else -> size
     }
 
+  override val isRetainedSizeCached: Boolean
+    get() = classEntry.retainedSize != -1L || super.isRetainedSizeCached
+
+  override val retainedSizeCache: Long
+    get() = if (classEntry.retainedSize != -1L) classEntry.retainedSize else super.retainedSizeCache
+
   // Do nothing, as this is a leaf node (presently).
   public override fun createSubClassifier(): Classifier = Classifier.Id
 

@@ -16,12 +16,12 @@
 package com.android.tools.profilers.memory.adapters.classifiers
 
 import com.android.tools.adtui.model.filter.Filter
-import com.android.tools.profilers.CachedFunction
 import com.android.tools.profilers.memory.adapters.InstanceObject
 import com.android.tools.profilers.memory.adapters.MemoryObject
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
 import java.util.Collections
 import java.util.IdentityHashMap
+import java.util.concurrent.ConcurrentHashMap
 import java.util.stream.Stream
 import kotlin.math.min
 import kotlin.streams.asSequence
@@ -31,10 +31,26 @@ import kotlin.streams.asStream
  * A general base class for classifying/filtering objects into categories.
  *
  * Supports lazy-loading the ClassifierSet's name in case it is expensive.
+ *
+ * THREADING & LOCKING MODEL:
+ * This class uses `synchronized(this)` to protect state consistency during updates (e.g. adding instances)
+ * and complex aggregations (e.g. calculating totalRetainedSize).
+ *
+ * Example of State Consistency:
+ * When adding an instance via [addSnapshotInstanceObject], we update multiple fields (count, size, etc.).
+ * Synchronization ensures that a concurrent reader doesn't see an inconsistent state (e.g., count incremented
+ * but size not yet updated), and that concurrent writers don't race on the read-modify-write of these counters.
+ *
+ * LOCK ORDERING & DEADLOCKS:
+ * Aggregation methods (like [totalRetainedSize]) traverse the tree downwards, establishing a PARENT -> CHILD locking order.
+ * The UI (MemoryClassifierView) often renders nodes by comparing a Child to the Root (Child -> Root access pattern).
+ * If the UI were to call synchronized methods, a Deadlock would occur (Background: Parent->Child vs UI: Child->Parent).
+ * To prevent this, the UI must ONLY access non-blocking @Volatile properties (e.g. [retainedSizeCache])
+ * and NEVER call synchronized aggregation methods directly during rendering.
  */
 abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   private sealed class State {
-    var retainedSize: Long = -1 // cached retained size. `-1` means stale
+    @Volatile var retainedSize: Long = -1
     sealed class Coalesced(
       // The set of instances that make up our baseline snapshot (e.g. live objects at the left of a selection range).
       val snapshotInstances: MutableSet<InstanceObject>,
@@ -72,26 +88,36 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   constructor(name: String): this({ name })
   private val _name by lazy(supplyName)
 
+  @Volatile
   private var state: State = initState()
 
+  @Volatile
   var totalObjectSetCount = 0
     private set
+  @Volatile
   var filteredObjectSetCount = 0
     private set
+  @Volatile
   private var snapshotObjectCount = 0
+  @Volatile
   var deltaAllocationCount = 0
     private set
+  @Volatile
   var deltaDeallocationCount = 0
     private set
+  @Volatile
   var allocationSize = 0L
     private set
+  @Volatile
   var deallocationSize = 0L
     private set
+  @Volatile
   var totalNativeSize = 0L
     private set
+  @Volatile
   var totalShallowSize = 0L
     private set
-  open val totalRetainedSize: Long get() = when (val s = state) {
+  open val totalRetainedSize: Long get() = synchronized(this) { when (val s = state) {
     is State.Coalesced -> when (s.retainedSize) {
       -1L -> {
         // b(234174316) for an arbitrary classifier, neither summing over the classes
@@ -121,23 +147,28 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
       }
       s.retainedSize
     }
-  }
+  } }
+  @Volatile
   var deltaShallowSize = 0L
     private set
+  @Volatile
   private var instancesWithStackInfoCount = 0
 
   // Number of ClassifierSet that match the filter.
+  @Volatile
   var filterMatchCount = 0
     protected set
-  private val instanceFilterMatchCounter = CachedFunction(IdentityHashMap(), ::countInstanceFilterMatch)
+  private val instanceFilterMatchCounts = ConcurrentHashMap<CaptureObjectInstanceFilter, Int>()
 
   // TODO: `myIsMatched` should be `true` initially, as "no filter" means "trivially matched".
   //        But at the moment that would break one test in `HeapSetNodeHRendererTest`
+  @Volatile
   var isMatched = false
     protected set
 
   // We need to apply filter to ClassifierSet again after any updates (insertion, deletion etc.)
   @JvmField
+  @Volatile
   protected var needsRefiltering = false
 
   val isEmpty: Boolean get() = snapshotObjectCount == 0 && deltaAllocationCount == 0 && deltaDeallocationCount == 0
@@ -165,25 +196,47 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   val filterMatches: Stream<InstanceObject> get() =
     getStreamOf({it.isMatched}) { Stream.concat(it.snapshotInstances.stream(), it.deltaInstances.stream()) }
 
-  val childrenClassifierSets: List<ClassifierSet> get() = when (val s = ensurePartitioned()) {
-    is State.Coalesced -> listOf()
-    is State.Partitioned -> s.classifier.filteredClassifierSets
+  val childrenClassifierSets: List<ClassifierSet> get() {
+    val s = state
+    if (s is State.Partitioned) {
+      return s.classifier.filteredClassifierSets
+    }
+    return synchronized(this) { when (val s = ensurePartitioned()) {
+      is State.Coalesced -> listOf()
+      is State.Partitioned -> s.classifier.filteredClassifierSets
+    } }
   }
 
   @JvmField
+  @Volatile
   protected var myIsFiltered = false
 
   val isFiltered: Boolean get() = isEmpty || myIsFiltered
   open val stringForMatching: String get() = _name
   override fun getName() = _name
 
-  private fun invalidateRetainedSizeCache() { state.retainedSize = -1 }
-  private fun ensurePartitioned() = state.forced().also { state = it }
-  protected fun coalesce() {
+  open val isRetainedSizeCached: Boolean get() = state.retainedSize != -1L
+
+  open val retainedSizeCache: Long get() = state.retainedSize
+
+  private fun invalidateRetainedSizeCache() { state.retainedSize = -1L }
+  private fun ensurePartitioned() = synchronized(this) { state.forced().also { state = it } }
+  protected fun coalesce() = synchronized(this) {
     state = state.retracted(::createSubClassifier)
   }
 
-  fun getInstanceFilterMatchCount(filter: CaptureObjectInstanceFilter): Int = instanceFilterMatchCounter.invoke(filter)
+  fun getInstanceFilterMatchCount(filter: CaptureObjectInstanceFilter): Int {
+    instanceFilterMatchCounts[filter]?.let { return it }
+    return synchronized(this) {
+      instanceFilterMatchCounts[filter]?.let { return it }
+      val count = countInstanceFilterMatch(filter)
+      instanceFilterMatchCounts[filter] = count
+      count
+    }
+  }
+
+  fun getCachedInstanceFilterMatchCount(filter: CaptureObjectInstanceFilter): Int =
+    instanceFilterMatchCounts[filter] ?: -1
 
   /**
    * Add an instance to the baseline snapshot and update the accounting of the "total" values.
@@ -198,7 +251,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   fun removeSnapshotInstanceObject(instanceObject: InstanceObject) =
     changeSnapshotInstanceObject(instanceObject, SetOperation.REMOVE)
 
-  private fun changeSnapshotInstanceObject(instanceObject: InstanceObject, op: SetOperation): Boolean {
+  private fun changeSnapshotInstanceObject(instanceObject: InstanceObject, op: SetOperation): Boolean = synchronized(this) {
     val changed: Boolean
     when (val s = state) {
       is State.Partitioned -> {
@@ -218,7 +271,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
       if (!instanceObject.isCallStackEmpty) {
         instancesWithStackInfoCount += op.countChange
       }
-      instanceFilterMatchCounter.invalidate()
+      instanceFilterMatchCounts.clear()
       needsRefiltering = true
     }
     return changed
@@ -252,7 +305,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
     INSTANCE_ADDED_OR_REMOVED(true, true);
   }
 
-  private fun changeDeltaInstanceInformation(instanceObject: InstanceObject, isAllocation: Boolean, op: SetOperation): DeltaChange {
+  private fun changeDeltaInstanceInformation(instanceObject: InstanceObject, isAllocation: Boolean, op: SetOperation): DeltaChange = synchronized(this) {
     val change = state.let { s ->
       when {
         s is State.Partitioned -> {
@@ -292,13 +345,13 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
         needsRefiltering = true
       }
       if (change.instanceChanged) {
-        instanceFilterMatchCounter.invalidate()
+        instanceFilterMatchCounts.clear()
       }
     }
     return change
   }
 
-  fun clearClassifierSets() {
+  fun clearClassifierSets() = synchronized(this) {
     state = initState().forced()
     snapshotObjectCount = 0
     deltaAllocationCount = 0
@@ -313,6 +366,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
     totalObjectSetCount = 0
     filteredObjectSetCount = 0
     filterMatchCount = 0
+    instanceFilterMatchCounts.clear()
   }
 
   /**
@@ -334,14 +388,14 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
    *
    * @return the set that contains the `target`, or null otherwise.
    */
-  fun findContainingClassifierSet(target: InstanceObject): ClassifierSet? = state.let { s -> when {
+  fun findContainingClassifierSet(target: InstanceObject): ClassifierSet? = synchronized(this) { state.let { s -> when {
     s is State.Coalesced && (target in s.snapshotInstances || target in s.deltaInstances) -> when (val forcedState = ensurePartitioned()) {
       is State.Coalesced -> this
       is State.Partitioned -> forcedState.classifier.classifierSetSequence.firstNotNullOfOrNull { it.findContainingClassifierSet(target) }
     }
     s is State.Partitioned -> s.classifier.classifierSetSequence.firstNotNullOfOrNull { it.findContainingClassifierSet(target) }
     else -> null
-  }}
+  }} }
 
   /**
    * O(N) search through all descendant ClassifierSet.
@@ -350,16 +404,16 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
    *
    * @return the set that satisfies `pred`, or null otherwise.
    */
-  fun findClassifierSet(test: (ClassifierSet) -> Boolean): ClassifierSet? = when {
+  fun findClassifierSet(test: (ClassifierSet) -> Boolean): ClassifierSet? = synchronized(this) { when {
     test(this) -> this
     else -> childrenClassifierSets.firstNotNullOfOrNull { it.findClassifierSet(test) }
-  }
+  } }
 
   /**
    * Determines if `this` ClassifierSet's descendant children forms a superset (could be equivalent) of the given
    * `targetSet`'s immediate children.
    */
-  fun isSupersetOf(targetSet: Set<InstanceObject>): Boolean {
+  fun isSupersetOf(targetSet: Set<InstanceObject>): Boolean = synchronized(this) {
     val clone = Collections.newSetFromMap(IdentityHashMap<InstanceObject, Boolean>()).apply { addAll(targetSet) }
     filterOutInstances(clone)
     return clone.isEmpty()
@@ -401,17 +455,17 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   /**
    * @return Whether the node's immediate instances overlap with `targetSet`
    */
-  fun immediateInstancesOverlapWith(targetSet: Set<InstanceObject>): Boolean = state.let { s ->
+  fun immediateInstancesOverlapWith(targetSet: Set<InstanceObject>): Boolean = synchronized(this) { state.let { s ->
     s is State.Coalesced && (overlaps(s.deltaInstances, targetSet) || overlaps(s.snapshotInstances, targetSet))
-  }
+  } }
 
   /**
    * @return Whether the node and its descendants' instances overlap with `targetSet`
    */
-  fun overlapsWith(targetSet: Set<InstanceObject>): Boolean = when (val s = state) {
+  fun overlapsWith(targetSet: Set<InstanceObject>): Boolean = synchronized(this) { when (val s = state) {
     is State.Coalesced -> immediateInstancesOverlapWith(targetSet)
     is State.Partitioned -> s.classifier.classifierSetSequence.any { it.overlapsWith(targetSet) }
-  }
+  } }
 
   /**
    * Gets the classifier this class will use to classify its instances.
@@ -432,9 +486,9 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
    * @param isTopLevel true if this has no ancestors.
    * @param filterChanged true if the filter has changed from the last pass.
    */
-  private fun applyFilter(filter: Filter, hasMatchedAncestor: Boolean, isTopLevel: Boolean, filterChanged: Boolean) {
+  private fun applyFilter(filter: Filter, hasMatchedAncestor: Boolean, isTopLevel: Boolean, filterChanged: Boolean): Unit = synchronized(this) {
     if (!filterChanged && !needsRefiltering) {
-      return
+      return@synchronized
     }
     isMatched = !isTopLevel && filter.matches(stringForMatching)
     filterMatchCount = if (isMatched) 1 else 0
