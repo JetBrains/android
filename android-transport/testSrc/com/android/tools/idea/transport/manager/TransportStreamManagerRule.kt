@@ -17,10 +17,13 @@ package com.android.tools.idea.transport.manager
 
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
-import org.junit.rules.ExternalResource
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.runBlocking
+import org.junit.rules.ExternalResource
 
 class TransportStreamManagerRule(private val fakeGrpcServer: FakeGrpcServer) : ExternalResource() {
   lateinit var streamManager: TransportStreamManager
@@ -35,7 +38,9 @@ class TransportStreamManagerRule(private val fakeGrpcServer: FakeGrpcServer) : E
   }
 
   override fun after() {
+    runBlocking {
+      scope.coroutineContext[Job]?.cancelAndJoin()
+    }
     client.shutdown()
-    scope.cancel()
   }
 }
