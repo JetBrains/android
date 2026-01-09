@@ -276,7 +276,8 @@ class VideoDecoder internal constructor(
     @GuardedBy("this") private val pendingPacket: AVPacket = av_packet_alloc()
     @GuardedBy("this") private var hasPendingPacket = false
     @GuardedBy("this") private var framesAtBitRate: Int = 0 // Used for primary display only.
-    @GuardedBy("this") private var initialized: Boolean? = false // Set to null by the close method.
+    /** Null value means that the decoding context has been closed and cannot be initialized again. */
+    @GuardedBy("this") private var initialized: Boolean? = false
     private val frameListeners = ContainerUtil.createLockFreeCopyOnWriteList<FrameListener>()
 
     init {
