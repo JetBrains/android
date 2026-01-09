@@ -52,7 +52,6 @@ studio_data(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.lint.tests",
-    generate_k1_tests = True,
     iml_files = ["intellij.android.lint.tests.iml"],
     split_test_targets = {
         "AndroidLintCustomCheckTest": {
