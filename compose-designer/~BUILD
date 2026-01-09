@@ -173,6 +173,7 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",
+        "no_k1",
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
