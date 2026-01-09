@@ -6,6 +6,8 @@ common_data = [
     ":sdkindexapp",
     ":sdkindexproject_deps",
     ":sdkindexsnapshot",
+    ":ktsprojectapp",
+    ":ktsprojectapp_deps",
     "//prebuilts/studio/sdk:build-tools/latest",
     INTEGRATION_TEST_GRADLE_VERSION,
 ]
@@ -120,6 +122,19 @@ iml_test(
 )
 
 iml_test(
+    name = "PsdFetchGradleBuildModelsTest",
+    timeout = "long",
+    data = common_data,
+    jvm_flags = ["-Didea.skip.indices.initialization=true"],
+    module = ":intellij.android.projectSystem.integration.tests",
+    tags_linux = ["block-network"],
+    # Commented out due to b/242358149
+    # tags_mac = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.projectsystem.gradle.PsdFetchGradleBuildModelsTest",
+)
+
+iml_test(
     name = "OldProjectAppTest",
     timeout = "long",
     data = old_project_app_data,
@@ -176,6 +191,17 @@ maven_repository(
 )
 
 maven_repository(
+    name = "ktsprojectapp_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "@maven//:com.android.application.com.android.application.gradle.plugin_8.1.0",
+        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_2.2.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_2.2.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.9.20",
+    ],
+)
+
+maven_repository(
     name = "oldprojectapp_deps",
     # keep sorted: for buildifier
     artifacts = [
@@ -187,6 +213,11 @@ maven_repository(
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
     ],
+)
+
+filegroup(
+    name = "ktsprojectapp",
+    srcs = glob(["testData/ktsprojectapp/**"]),
 )
 
 filegroup(
