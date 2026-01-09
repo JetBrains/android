@@ -255,9 +255,9 @@ data class SelectedTabState(
     ApplicationManager.getApplication().assertIsDispatchThread()
 
     isEnabled = false
-    unwrapUi()
 
     renderingComponents.forEach { it.removeRenderer() }
+    unwrapUi()
 
     layoutInspector.processModel?.removeSelectedProcessListener(selectedProcessListener)
 
