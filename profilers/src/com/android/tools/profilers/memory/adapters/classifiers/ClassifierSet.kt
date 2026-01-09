@@ -115,7 +115,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
       }
       else -> s.retainedSize
     }
-    is State.Partitioned -> s.classifier.classifierSetSequence.sumOf { it.totalRetainedSize }
+    is State.Partitioned -> s.classifier.classifierSetSequence.filter { !it.isFiltered }.sumOf { it.totalRetainedSize }
   }
   var deltaShallowSize = 0L
     private set

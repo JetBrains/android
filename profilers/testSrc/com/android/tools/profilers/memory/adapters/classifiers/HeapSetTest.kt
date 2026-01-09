@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters.classifiers
 
+import com.android.tools.adtui.model.filter.Filter
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject
 import com.google.common.truth.Truth.assertThat
@@ -44,5 +45,22 @@ class HeapSetTest {
     h.addDeltaInstanceObject(inst2)
     assertThat(h.totalRetainedSize).isEqualTo(8)
     assertThat(h.childrenClassifierSets[0].totalRetainedSize).isEqualTo(8)
+  }
+
+  @Test
+  fun `totalRetainedSize sums only unfiltered children`() {
+    val capture = FakeCaptureObject.Builder().build()
+    val cl1 = capture.registerClass(1, 0, "Class1", -1)
+    val cl2 = capture.registerClass(2, 0, "Class2", -1)
+    val inst1 = FakeInstanceObject.Builder(cl1).setRetainedSize(10).build()
+    val inst2 = FakeInstanceObject.Builder(cl2).setRetainedSize(20).build()
+    val h = HeapSet(capture, "Fake", 0)
+    h.addDeltaInstanceObject(inst1)
+    h.addDeltaInstanceObject(inst2)
+
+    assertThat(h.totalRetainedSize).isEqualTo(30)
+
+    h.applyFilter(Filter("Class1"), true)
+    assertThat(h.totalRetainedSize).isEqualTo(10)
   }
 }
