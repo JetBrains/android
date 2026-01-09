@@ -34,6 +34,7 @@ import kotlin.streams.asStream
  */
 abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   private sealed class State {
+    var retainedSize: Long = -1 // cached retained size. `-1` means stale
     sealed class Coalesced(
       // The set of instances that make up our baseline snapshot (e.g. live objects at the left of a selection range).
       val snapshotInstances: MutableSet<InstanceObject>,
@@ -41,7 +42,6 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
       // Note that instances here can also appear in the set of snapshot instances (e.g. when a instance is allocated before the selection
       // and deallocation within the selection).
       val deltaInstances: MutableSet<InstanceObject>): State() {
-      var retainedSize: Long = -1 // cached retained size. `-1` means stale
       class Leaf(snapshotInstances: MutableSet<InstanceObject>, deltaInstances: MutableSet<InstanceObject>)
         : Coalesced(snapshotInstances, deltaInstances)
       class Delayed(val makeClassifier: () -> Classifier,
@@ -115,7 +115,12 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
       }
       else -> s.retainedSize
     }
-    is State.Partitioned -> s.classifier.classifierSetSequence.filter { !it.isFiltered }.sumOf { it.totalRetainedSize }
+    is State.Partitioned -> {
+      if (s.retainedSize == -1L) {
+        s.retainedSize = s.classifier.classifierSetSequence.filter { !it.isFiltered }.sumOf { it.totalRetainedSize }
+      }
+      s.retainedSize
+    }
   }
   var deltaShallowSize = 0L
     private set
@@ -172,10 +177,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   open val stringForMatching: String get() = _name
   override fun getName() = _name
 
-  private fun invalidateRetainedSizeCache() = when (val s = state) {
-    is State.Coalesced -> s.retainedSize = -1
-    else -> {}
-  }
+  private fun invalidateRetainedSizeCache() { state.retainedSize = -1 }
   private fun ensurePartitioned() = state.forced().also { state = it }
   protected fun coalesce() {
     state = state.retracted(::createSubClassifier)
@@ -444,6 +446,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
       is State.Partitioned -> {
         myIsFiltered = true
         snapshotObjectCount = 0
+        invalidateRetainedSizeCache()
         deltaAllocationCount = 0
         deltaDeallocationCount = 0
         allocationSize = 0
