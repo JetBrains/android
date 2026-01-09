@@ -191,7 +191,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
       makeColumn("Shallow Size", 120, ClassifierSet::getTotalShallowSize, Comparator.comparing(ClassifierSet::getName)));
     myAttributeColumns.put(
       ClassifierAttribute.RETAINED_SIZE,
-      makeColumn("Retained Size", 130, ClassifierSet::getTotalRetainedSize));
+      makeColumn("Retained Size", 130, ClassifierSet::getRetainedSizeCache, true));
     myAttributeColumns.put(
       ClassifierAttribute.ALLOCATIONS_SIZE,
       makeColumn("Allocations Size", 160, ClassifierSet::getAllocationSize));
@@ -212,10 +212,22 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
   private AttributeColumn<ClassifierSet> makeColumn(@NotNull String name,
                                                     int width,
                                                     @NotNull ToLongFunction<ClassifierSet> prop,
-                                                    @NotNull Comparator<ClassifierSet> comp) {
+                                                    @NotNull Comparator<ClassifierSet> comp,
+                                                    boolean useColdCache) {
 
-    Function<MemoryObjectTreeNode<ClassifierSet>, String> textGetter = node ->
-      NumberFormatter.formatInteger(prop.applyAsLong(node.getAdapter()));
+    Function<MemoryObjectTreeNode<ClassifierSet>, String> textGetter = node -> {
+      long val = prop.applyAsLong(node.getAdapter());
+      if (useColdCache && val == -1L) {
+        return "...";
+      }
+      return NumberFormatter.formatInteger(val);
+    };
+
+    ToLongFunction<ClassifierSet> safeProp = set -> {
+      long val = prop.applyAsLong(set);
+      return (useColdCache && val == -1L) ? 0 : val;
+    };
+
     // Progress-bar style background that reflects percentage contribution
     final Supplier<ColoredTreeCellRenderer> renderer = () -> new PercentColumnRenderer<>(
       textGetter, v -> null, SwingConstants.RIGHT,
@@ -249,11 +261,26 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
     );
   }
 
+  private AttributeColumn<ClassifierSet> makeColumn(@NotNull String name,
+                                                    int width,
+                                                    @NotNull ToLongFunction<ClassifierSet> prop,
+                                                    @NotNull Comparator<ClassifierSet> comp) {
+    return makeColumn(name, width, prop, comp, false);
+  }
+
   /**
    * Make right-aligned, descending column displaying integer property
    */
   private AttributeColumn<ClassifierSet> makeColumn(String name, int width, ToLongFunction<ClassifierSet> prop) {
     return makeColumn(name, width, prop, Comparator.comparingLong(prop));
+  }
+
+  private AttributeColumn<ClassifierSet> makeColumn(String name, int width, ToLongFunction<ClassifierSet> prop, boolean useColdCache) {
+    ToLongFunction<ClassifierSet> safeProp = set -> {
+      long val = prop.applyAsLong(set);
+      return (useColdCache && val == -1L) ? 0 : val;
+    };
+    return makeColumn(name, width, prop, Comparator.comparingLong(safeProp), useColdCache);
   }
 
   @NotNull
@@ -544,6 +571,20 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
           break;
         }
         treeNode = nextNode;
+      }
+    }
+
+    // Compute total retained size asynchronously to warm up the cache and repaint the tree when done.
+    if (myTreeRoot != null) {
+      ClassifierSet root = myTreeRoot.getAdapter();
+      if (!root.isRetainedSizeCached()) {
+        mySelection.getIdeServices().getPoolExecutor().execute(() -> {
+          // TODO: Cleanup unused variable. Currently needed for test: /profilers-ui:intellij.android.profilers.ui_lint_test Test case: NoOp Code
+          long unused = root.getTotalRetainedSize();
+          mySelection.getIdeServices().getMainExecutor().execute(() -> {
+            if (myTree != null) myTree.repaint();
+          });
+        });
       }
     }
   }
@@ -896,9 +937,16 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
 
           // Check for each problem and update counts
           for (ProblemDescriptor problem : problemsToCheck) {
-            long count = classifierSet.getInstanceFilterMatchCount(problem.filter);
-            if (count > 0) {
-              myProblemCounts.put(problem, count);
+            int count = classifierSet.getCachedInstanceFilterMatchCount(problem.filter);
+            if (count == -1) {
+              mySelection.getIdeServices().getPoolExecutor().execute(() -> {
+                classifierSet.getInstanceFilterMatchCount(problem.filter);
+                mySelection.getIdeServices().getMainExecutor().execute(() -> {
+                  if (myTree != null) myTree.repaint();
+                });
+              });
+            } else if (count > 0) {
+              myProblemCounts.put(problem, (long)count);
             }
           }
 
