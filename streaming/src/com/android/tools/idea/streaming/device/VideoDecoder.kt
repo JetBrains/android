@@ -72,7 +72,6 @@ import org.bytedeco.ffmpeg.global.avcodec.av_parser_close
 import org.bytedeco.ffmpeg.global.avcodec.av_parser_init
 import org.bytedeco.ffmpeg.global.avcodec.av_parser_parse2
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_alloc_context3
-import org.bytedeco.ffmpeg.global.avcodec.avcodec_close
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_find_decoder_by_name
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_free_context
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_open2
@@ -346,7 +345,6 @@ class VideoDecoder internal constructor(
       onEndOfVideoStream()
       if (initialized == true) {
         av_parser_close(parserContext)
-        avcodec_close(codecContext)
         avcodec_free_context(codecContext)
         av_frame_free(decodingFrame)
         renderingFrame?.let { av_frame_free(it) }
