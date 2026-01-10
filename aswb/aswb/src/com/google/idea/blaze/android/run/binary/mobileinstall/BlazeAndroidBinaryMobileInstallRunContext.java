@@ -17,20 +17,34 @@ package com.google.idea.blaze.android.run.binary.mobileinstall;
 
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter;
 import com.android.tools.idea.projectsystem.ApplicationProjectContext;
+import com.android.tools.idea.run.ApkFileUnit;
+import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.ApplicationIdProvider;
+import com.android.tools.idea.run.ConsoleProvider;
+import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.blaze.BlazeLaunchTask;
+import com.android.tools.idea.run.editor.ProfilerState;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryApplicationIdProvider;
 import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryApplicationLaunchTaskProvider;
+import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryConsoleProvider;
 import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryRunConfigurationState;
+import com.google.idea.blaze.android.run.binary.DeploymentTimingReporterTask;
 import com.google.idea.blaze.android.run.binary.UserIdHelper;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
+import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector;
+import com.google.idea.blaze.android.run.runner.BlazeAndroidRunContext;
+import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -40,6 +54,8 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.xdebugger.XDebugSession;
+import java.util.Collections;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import kotlin.Unit;
 import kotlin.coroutines.EmptyCoroutineContext;
@@ -47,28 +63,95 @@ import kotlinx.coroutines.BuildersKt;
 import org.jetbrains.android.facet.AndroidFacet;
 
 /** Run Context for mobile install launches, #api4.0 compat. */
-public class BlazeAndroidBinaryMobileInstallRunContext
-    extends BlazeAndroidBinaryMobileInstallRunContextBase {
+public class BlazeAndroidBinaryMobileInstallRunContext implements BlazeAndroidRunContext {
+  private final Project project;
+  private final ExecutionEnvironment env;
+  private final BlazeAndroidBinaryRunConfigurationState configState;
+  private final ConsoleProvider consoleProvider;
+  private final ApplicationIdProvider applicationIdProvider;
+  private final ApkBuildStep buildStep;
+  private final String launchId;
+  private final ApplicationProjectContext applicationProjectContext;
+
   public BlazeAndroidBinaryMobileInstallRunContext(
-    Project project,
-    AndroidFacet facet,
-    RunConfiguration runConfiguration,
-    ExecutionEnvironment env,
-    BlazeAndroidBinaryRunConfigurationState configState,
-    ApkBuildStep buildStep,
-    String launchId,
-    BlazeAndroidBinaryApplicationIdProvider applicationIdProvider,
-    ApplicationProjectContext applicationProjectContext) {
-    super(
-        project,
-        facet,
-        runConfiguration,
-        env,
-        configState,
-        buildStep,
-        launchId,
-        applicationIdProvider,
-        applicationProjectContext);
+      Project project,
+      ExecutionEnvironment env,
+      BlazeAndroidBinaryRunConfigurationState configState,
+      ApkBuildStep buildStep,
+      String launchId,
+      BlazeAndroidBinaryApplicationIdProvider applicationIdProvider,
+      ApplicationProjectContext applicationProjectContext) {
+    this.project = project;
+    this.env = env;
+    this.configState = configState;
+    this.consoleProvider = new BlazeAndroidBinaryConsoleProvider(project);
+    this.buildStep = buildStep;
+    this.applicationIdProvider = applicationIdProvider;
+    this.launchId = launchId;
+    this.applicationProjectContext = applicationProjectContext;
+  }
+
+  @Override
+  public BlazeAndroidDeviceSelector getDeviceSelector() {
+    return new BlazeAndroidDeviceSelector.NormalDeviceSelector();
+  }
+
+  @Override
+  public void augmentLaunchOptions(LaunchOptions.Builder options) {
+    options
+        .setDeploy(true)
+        .setOpenLogcatAutomatically(configState.showLogcatAutomatically());
+    // This is needed for compatibility with #api211
+    options.addExtraOptions(
+        ImmutableMap.of("android.profilers.state", configState.getProfilerState()));
+  }
+
+  @Override
+  public ConsoleProvider getConsoleProvider() {
+    return consoleProvider;
+  }
+
+  @Override
+  public ApplicationIdProvider getApplicationIdProvider() {
+    return applicationIdProvider;
+  }
+
+  @Override
+  public ApkBuildStep getBuildStep() {
+    return buildStep;
+  }
+
+  @Override
+  public ProfilerState getProfileState() {
+    return configState.getProfilerState();
+  }
+
+  @Override
+  public ImmutableList<BlazeLaunchTask> getDeployTasks(IDevice device, DeployOptions deployOptions)
+      throws ExecutionException {
+    BlazeAndroidDeployInfo deployInfo;
+    String packageName;
+    try {
+      deployInfo = buildStep.getDeployInfo();
+      packageName = applicationIdProvider.getPackageName();
+    } catch (ApkProvisionException e) {
+      throw new ExecutionException(e);
+    }
+
+    if (packageName == null) {
+      throw new ExecutionException("Could not determine package name from application ID provider");
+    }
+
+    ApkInfo info =
+        new ApkInfo(
+            deployInfo.getApksToDeploy().stream()
+                .map(file -> new ApkFileUnit(BlazeDataStorage.WORKSPACE_MODULE_NAME, file))
+                .collect(Collectors.toList()),
+            packageName);
+
+    return ImmutableList.of(
+        new DeploymentTimingReporterTask(
+            launchId, project, Collections.singletonList(info), deployOptions));
   }
 
   @SuppressWarnings("unchecked") // upstream API
@@ -137,5 +220,20 @@ public class BlazeAndroidBinaryMobileInstallRunContext
   @Override
   public Executor getExecutor() {
     return env.getExecutor();
+  }
+
+  @Nullable
+  @Override
+  public Integer getUserId(IDevice device) throws ExecutionException {
+    return UserIdHelper.getUserIdFromConfigurationState(project, device, configState);
+  }
+
+  @Override
+  public String getAmStartOptions() {
+    return configState.getAmStartOptions();
+  }
+
+  public ApplicationProjectContext getApplicationProjectContext() {
+    return applicationProjectContext;
   }
 }
