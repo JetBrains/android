@@ -25,8 +25,6 @@ import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.profilers.AndroidProfilerLaunchTaskContributor;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.LaunchOptions;
-import com.android.tools.idea.run.blaze.BlazeLaunchTask;
-import com.android.tools.idea.run.blaze.BlazeLaunchTasksProvider;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.idea.blaze.android.run.binary.UserIdHelper;

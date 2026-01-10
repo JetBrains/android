@@ -29,7 +29,6 @@ import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchOptions;
-import com.android.tools.idea.run.blaze.BlazeAndroidConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidComplicationConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidTileConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidWatchFaceConfigurationExecutor;

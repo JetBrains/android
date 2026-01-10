@@ -30,7 +30,7 @@ import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
-import com.android.tools.idea.run.blaze.BlazeLaunchTask;
+import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

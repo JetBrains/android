@@ -17,8 +17,8 @@ package com.google.idea.blaze.android.run.binary;
 
 import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.run.ApkInfo;
-import com.android.tools.idea.run.blaze.BlazeLaunchContext;
-import com.android.tools.idea.run.blaze.BlazeLaunchTask;
+import com.google.idea.blaze.android.run.runner.BlazeLaunchContext;
+import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
 import com.android.tools.idea.run.tasks.DeployTasksHelper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;

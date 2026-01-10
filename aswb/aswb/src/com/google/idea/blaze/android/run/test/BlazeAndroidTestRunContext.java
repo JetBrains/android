@@ -30,7 +30,7 @@ import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
-import com.android.tools.idea.run.blaze.BlazeLaunchTask;
+import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.tasks.DeployTasksHelper;
 import com.google.common.collect.ImmutableList;
