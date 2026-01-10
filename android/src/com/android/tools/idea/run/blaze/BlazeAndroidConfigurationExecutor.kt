@@ -175,7 +175,7 @@ class BlazeAndroidConfigurationExecutor(
 
     val device = devices.single()
     indicator.text = "Connecting debugger"
-    myLaunchTasksProvider.startDebugSession(env, device, console, indicator, applicationId).runContentDescriptor
+    myLaunchTasksProvider.startDebugSession(env, device, console, indicator).runContentDescriptor
   }
 
   private suspend fun createConsole(processHandler: ProcessHandler): ConsoleView = withContext(uiThread) {
@@ -195,7 +195,7 @@ interface BlazeLaunchTasksProvider {
 
   @Throws(ExecutionException::class)
   fun startDebugSession(
-    environment: ExecutionEnvironment, device: IDevice, console: ConsoleView, indicator: ProgressIndicator, applicationId: String
+    environment: ExecutionEnvironment, device: IDevice, console: ConsoleView, indicator: ProgressIndicator
   ): XDebugSession
 }
 
