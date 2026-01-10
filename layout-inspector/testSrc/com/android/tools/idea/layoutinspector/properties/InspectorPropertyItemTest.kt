@@ -214,6 +214,10 @@ class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRu
     assertThat(dimensionPropertyOf("84").value).isEqualTo("24dp")
     assertThat(dimensionPropertyOf("2168").value).isEqualTo("619dp")
 
+    model!!.resourceLookup.dpi = 608
+    assertThat(dimensionPropertyOf("64").value).isEqualTo("17dp")
+    assertThat(dimensionPropertyOf("2168").value).isEqualTo("571dp")
+
     model!!.resourceLookup.dpi = null
     assertThat(dimensionPropertyOf("").value).isEqualTo("")
     assertThat(dimensionPropertyOf("-1").value).isEqualTo("-1")

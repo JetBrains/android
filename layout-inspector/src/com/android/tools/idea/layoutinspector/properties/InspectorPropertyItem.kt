@@ -28,6 +28,7 @@ import com.android.utils.HashCodes
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
+import kotlin.math.roundToInt
 
 private const val DEFAULT_DENSITY = 160 // Same as Density.MEDIUM.dpiValue
 private const val DEFAULT_DENSITY_FLOAT = 160.0f
@@ -162,7 +163,7 @@ open class InspectorPropertyItem(
     val dpi = resourceLookup.dpi ?: return "${pixels}px"
     return when (PropertiesSettings.dimensionUnits) {
       DimensionUnits.PIXELS -> "${pixels}px"
-      DimensionUnits.DP -> "${pixels * DEFAULT_DENSITY / dpi}dp"
+      DimensionUnits.DP -> "${(pixels.toFloat() * DEFAULT_DENSITY / dpi).roundToInt()}dp"
     }
   }
 
