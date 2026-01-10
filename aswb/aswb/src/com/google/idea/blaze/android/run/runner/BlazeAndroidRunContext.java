@@ -68,8 +68,7 @@ public interface BlazeAndroidRunContext {
       ExecutionEnvironment env,
       IDevice device,
       ConsoleView consoleView,
-      ProgressIndicator indicator,
-      String packageName);
+      ProgressIndicator indicator);
 
   @Nullable
   Integer getUserId(IDevice device) throws ExecutionException;

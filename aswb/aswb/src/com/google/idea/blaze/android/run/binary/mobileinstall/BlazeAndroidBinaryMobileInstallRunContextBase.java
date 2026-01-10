@@ -21,6 +21,7 @@ import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
+import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.blaze.BlazeLaunchTask;
@@ -55,6 +56,7 @@ abstract class BlazeAndroidBinaryMobileInstallRunContextBase implements BlazeAnd
   protected final BlazeAndroidBinaryRunConfigurationState configState;
   protected final ConsoleProvider consoleProvider;
   protected final ApplicationIdProvider applicationIdProvider;
+  protected final ApplicationProjectContext applicationProjectContext;
   protected final ApkBuildStep buildStep;
   private final String launchId;
 
@@ -66,7 +68,8 @@ abstract class BlazeAndroidBinaryMobileInstallRunContextBase implements BlazeAnd
     BlazeAndroidBinaryRunConfigurationState configState,
     ApkBuildStep buildStep,
     String launchId,
-    BlazeAndroidBinaryApplicationIdProvider applicationIdProvider) {
+    BlazeAndroidBinaryApplicationIdProvider applicationIdProvider,
+    ApplicationProjectContext applicationProjectContext) {
     this.project = project;
     this.facet = facet;
     this.runConfiguration = runConfiguration;
@@ -75,6 +78,7 @@ abstract class BlazeAndroidBinaryMobileInstallRunContextBase implements BlazeAnd
     this.consoleProvider = new BlazeAndroidBinaryConsoleProvider(project);
     this.buildStep = buildStep;
     this.applicationIdProvider = applicationIdProvider;
+    this.applicationProjectContext = applicationProjectContext;
     this.launchId = launchId;
   }
 
@@ -102,6 +106,11 @@ abstract class BlazeAndroidBinaryMobileInstallRunContextBase implements BlazeAnd
   public ApplicationIdProvider getApplicationIdProvider() {
     return applicationIdProvider;
   }
+  
+  @Override
+  public ApplicationProjectContext getApplicationProjectContext() {
+    return applicationProjectContext;
+  }
 
   @Override
   public ApkBuildStep getBuildStep() {
@@ -117,15 +126,16 @@ abstract class BlazeAndroidBinaryMobileInstallRunContextBase implements BlazeAnd
   public ImmutableList<BlazeLaunchTask> getDeployTasks(IDevice device, DeployOptions deployOptions)
       throws ExecutionException {
     BlazeAndroidDeployInfo deployInfo;
+    String packageName;
     try {
       deployInfo = buildStep.getDeployInfo();
+      packageName = applicationIdProvider.getPackageName();
     } catch (ApkProvisionException e) {
       throw new ExecutionException(e);
     }
 
-    String packageName = deployInfo.getMergedManifest().packageName;
     if (packageName == null) {
-      throw new ExecutionException("Could not determine package name from deploy info");
+      throw new ExecutionException("Could not determine package name from application ID provider");
     }
 
     ApkInfo info =

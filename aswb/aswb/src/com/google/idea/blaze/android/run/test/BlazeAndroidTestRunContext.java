@@ -35,7 +35,6 @@ import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.tasks.DeployTasksHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.idea.blaze.android.run.BazelApplicationProjectContext;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
@@ -79,6 +78,7 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
   protected final ApkBuildStep buildStep;
   protected final ApplicationIdProvider applicationIdProvider;
   protected final ApkProvider apkProvider;
+  protected final ApplicationProjectContext applicationProjectContext;
   private final BlazeTestResultFetcher testResultsHolder = new BlazeTestResultFetcher();
 
   public BlazeAndroidTestRunContext(
@@ -90,7 +90,8 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
     Label label,
     ImmutableList<String> blazeFlags,
     ApkBuildStep buildStep,
-    BlazeAndroidTestApplicationIdProvider applicationIdProvider) {
+    BlazeAndroidTestApplicationIdProvider applicationIdProvider,
+    ApplicationProjectContext applicationProjectContext) {
     this.project = project;
     this.facet = facet;
     this.runConfiguration = runConfiguration;
@@ -114,6 +115,7 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
             "Unsupported launch method " + configState.getLaunchMethod());
     }
     this.applicationIdProvider = applicationIdProvider;
+    this.applicationProjectContext = applicationProjectContext;
     apkProvider = BlazeApkProviderService.getInstance().getApkProvider(project, buildStep);
   }
 
@@ -142,7 +144,7 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
 
   @Override
   public ApplicationProjectContext getApplicationProjectContext() {
-    return new BazelApplicationProjectContext(project, getApplicationIdProvider());
+    return applicationProjectContext;
   }
 
   @Nullable
@@ -204,8 +206,7 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
       ExecutionEnvironment env,
       IDevice device,
       ConsoleView consoleView,
-      ProgressIndicator indicator,
-      String packageName) {
+      ProgressIndicator indicator) {
     try {
       return BuildersKt.runBlocking(
           EmptyCoroutineContext.INSTANCE,
@@ -230,7 +231,7 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
                     });
                 return DebugSessionStarter.INSTANCE.attachReattachingDebuggerToStartedProcess(
                     device,
-                    new BazelApplicationProjectContext(project, packageName),
+                    applicationProjectContext,
                     masterProcessHandler,
                     env,
                     androidDebugger,
@@ -243,12 +244,12 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
               case MOBILE_INSTALL:
                 return DebugSessionStarter.INSTANCE.attachDebuggerToStartedProcess(
                     device,
-                    new BazelApplicationProjectContext(project, packageName),
+                    applicationProjectContext,
                     env,
                     androidDebugger,
                     androidDebuggerState,
                     /*destroyRunningProcess*/ d -> {
-                      d.forceStop(packageName);
+                      d.forceStop(applicationProjectContext.getApplicationId());
                       return Unit.INSTANCE;
                     },
                     indicator,

@@ -25,7 +25,6 @@ import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.blaze.BlazeLaunchTask;
-import com.google.idea.blaze.android.run.BazelApplicationProjectContext;
 import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryApplicationIdProvider;
 import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryApplicationLaunchTaskProvider;
 import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryRunConfigurationState;
@@ -58,13 +57,18 @@ public class BlazeAndroidBinaryMobileInstallRunContext
     BlazeAndroidBinaryRunConfigurationState configState,
     ApkBuildStep buildStep,
     String launchId,
-    BlazeAndroidBinaryApplicationIdProvider applicationIdProvider) {
-    super(project, facet, runConfiguration, env, configState, buildStep, launchId, applicationIdProvider);
-  }
-
-  @Override
-  public ApplicationProjectContext getApplicationProjectContext() {
-    return new BazelApplicationProjectContext(project, getApplicationIdProvider());
+    BlazeAndroidBinaryApplicationIdProvider applicationIdProvider,
+    ApplicationProjectContext applicationProjectContext) {
+    super(
+        project,
+        facet,
+        runConfiguration,
+        env,
+        configState,
+        buildStep,
+        launchId,
+        applicationIdProvider,
+        applicationProjectContext);
   }
 
   @SuppressWarnings("unchecked") // upstream API
@@ -105,20 +109,19 @@ public class BlazeAndroidBinaryMobileInstallRunContext
       ExecutionEnvironment env,
       IDevice device,
       ConsoleView consoleView,
-      ProgressIndicator indicator,
-      String packageName) {
+      ProgressIndicator indicator) {
     try {
       return BuildersKt.runBlocking(
           EmptyCoroutineContext.INSTANCE,
           (scope, continuation) ->
               DebugSessionStarter.INSTANCE.attachDebuggerToStartedProcess(
                   device,
-                  new BazelApplicationProjectContext(project, packageName),
+                  getApplicationProjectContext(),
                   env,
                   androidDebugger,
                   androidDebuggerState,
                   /*destroyRunningProcess*/ d -> {
-                    d.forceStop(packageName);
+                    d.forceStop(getApplicationProjectContext().getApplicationId());
                     return Unit.INSTANCE;
                   },
                   indicator,
