@@ -20,12 +20,11 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter;
-import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.blaze.BlazeLaunchTask;
-import com.google.idea.blaze.android.run.BazelApplicationProjectContext;
+import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import com.intellij.execution.ExecutionException;
@@ -53,13 +52,9 @@ public class BlazeAndroidBinaryNormalBuildRunContext
     BlazeAndroidBinaryRunConfigurationState configState,
     ApkBuildStep buildStep,
     String launchId,
-    BlazeAndroidBinaryApplicationIdProvider applicationIdProvider) {
-    super(project, facet, runConfiguration, env, configState, buildStep, launchId, applicationIdProvider);
-  }
-
-  @Override
-  public ApplicationProjectContext getApplicationProjectContext() {
-    return new BazelApplicationProjectContext(project, getApplicationIdProvider());
+    BlazeAndroidBinaryApplicationIdProvider applicationIdProvider,
+    ApplicationProjectContext applicationProjectContext) {
+    super(project, facet, runConfiguration, env, configState, buildStep, launchId, applicationIdProvider, applicationProjectContext);
   }
 
   @Override
@@ -99,20 +94,19 @@ public class BlazeAndroidBinaryNormalBuildRunContext
       ExecutionEnvironment env,
       IDevice device,
       ConsoleView consoleView,
-      ProgressIndicator indicator,
-      String packageName) {
+      ProgressIndicator indicator) {
     try {
       return BuildersKt.runBlocking(
           EmptyCoroutineContext.INSTANCE,
           (scope, continuation) ->
               DebugSessionStarter.INSTANCE.attachDebuggerToStartedProcess(
                   device,
-                  new BazelApplicationProjectContext(project, packageName),
+                  getApplicationProjectContext(),
                   env,
                   androidDebugger,
                   androidDebuggerState,
                   /*destroyRunningProcess*/ d -> {
-                    d.forceStop(packageName);
+                    d.forceStop(getApplicationProjectContext().getApplicationId());
                     return Unit.INSTANCE;
                   },
                   indicator,

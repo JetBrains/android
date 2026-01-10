@@ -24,6 +24,7 @@ import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
+import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.blaze.BlazeLaunchTask;
@@ -59,6 +60,7 @@ public abstract class BlazeAndroidBinaryNormalBuildRunContextBase
   protected final ApkBuildStep buildStep;
   protected final ApkProvider apkProvider;
   protected final ApplicationIdProvider applicationIdProvider;
+  protected final ApplicationProjectContext applicationProjectContext;
   private final String launchId;
 
   BlazeAndroidBinaryNormalBuildRunContextBase(
@@ -69,7 +71,8 @@ public abstract class BlazeAndroidBinaryNormalBuildRunContextBase
     BlazeAndroidBinaryRunConfigurationState configState,
     ApkBuildStep buildStep,
     String launchId,
-    BlazeAndroidBinaryApplicationIdProvider applicationIdProvider) {
+    BlazeAndroidBinaryApplicationIdProvider applicationIdProvider,
+    ApplicationProjectContext applicationProjectContext) {
     this.project = project;
     this.facet = facet;
     this.runConfiguration = runConfiguration;
@@ -79,6 +82,7 @@ public abstract class BlazeAndroidBinaryNormalBuildRunContextBase
     this.buildStep = buildStep;
     this.apkProvider = BlazeApkProviderService.getInstance().getApkProvider(project, buildStep);
     this.applicationIdProvider = applicationIdProvider;
+    this.applicationProjectContext = applicationProjectContext;
     this.launchId = launchId;
   }
 
@@ -108,6 +112,11 @@ public abstract class BlazeAndroidBinaryNormalBuildRunContextBase
   @Override
   public ApplicationIdProvider getApplicationIdProvider() {
     return applicationIdProvider;
+  }
+  
+  @Override
+  public ApplicationProjectContext getApplicationProjectContext() {
+    return applicationProjectContext;
   }
 
   @Override

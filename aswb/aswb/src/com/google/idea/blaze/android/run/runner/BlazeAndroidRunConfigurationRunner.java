@@ -157,13 +157,14 @@ public final class BlazeAndroidRunConfigurationRunner
 
     RunConfigurationState state = runConfig.getHandler().getState();
 
+    ApplicationProjectContext applicationProjectContext = runContext.getApplicationProjectContext();
     if (state instanceof BlazeAndroidBinaryRunConfigurationState
         && ((BlazeAndroidBinaryRunConfigurationState) state).getCurrentWearLaunchOptions()
             != null) {
       ComponentLaunchOptions launchOptions =
           ((BlazeAndroidBinaryRunConfigurationState) state).getCurrentWearLaunchOptions();
 
-      return getWearExecutor(launchOptions, env, deployTarget);
+      return getWearExecutor(launchOptions, env, deployTarget, applicationProjectContext);
     }
 
     ApkProvider apkProvider =
@@ -173,10 +174,10 @@ public final class BlazeAndroidRunConfigurationRunner
     BlazeAndroidConfigurationExecutor runner =
         new BlazeAndroidConfigurationExecutor(
           runContext.getConsoleProvider(),
-          runContext.getApplicationProjectContext(),
+          applicationProjectContext,
           env,
           deviceFutures,
-          new BlazeAndroidLaunchTasksProvider(project, runContext, runContext.getApplicationIdProvider(), launchOptions),
+          new BlazeAndroidLaunchTasksProvider(project, runContext, launchOptions),
           launchOptions,
           apkProvider,
           LiveEditService.getInstance(env.getProject()));
@@ -184,7 +185,8 @@ public final class BlazeAndroidRunConfigurationRunner
   }
 
   private RunProfileState getWearExecutor(
-      ComponentLaunchOptions launchOptions, ExecutionEnvironment env, DeployTarget deployTarget)
+    ComponentLaunchOptions launchOptions, ExecutionEnvironment env, DeployTarget deployTarget,
+    ApplicationProjectContext applicationProjectContext)
       throws ExecutionException {
 
     AppRunSettings settings =
@@ -208,7 +210,6 @@ public final class BlazeAndroidRunConfigurationRunner
         };
 
     AndroidConfigurationExecutor configurationExecutor;
-    ApplicationProjectContext applicationProjectContext = runContext.getApplicationProjectContext();
     ApkProvider apkProvider =
         BlazeApkProviderService.getInstance()
             .getApkProvider(env.getProject(), runContext.getBuildStep());

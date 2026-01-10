@@ -18,11 +18,13 @@ package com.google.idea.blaze.android.run.binary;
 import static com.google.idea.blaze.android.run.LaunchMetrics.logBinaryLaunch;
 
 import com.android.tools.idea.run.ValidationError;
+import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.android.run.ApkBuildStepProvider;
+import com.google.idea.blaze.android.run.BazelApplicationProjectContext;
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationCommonState;
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationHandler;
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationValidationUtil;
@@ -64,7 +66,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * {@link com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationHandler} for
+ * {@link com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationRunner} for
  * android_binary targets.
  */
 public class BlazeAndroidBinaryRunConfigurationHandler
@@ -142,6 +144,8 @@ public class BlazeAndroidBinaryRunConfigurationHandler
                 exeFlags,
                 launchId);
     var applicationIdProvider = new BlazeAndroidBinaryApplicationIdProvider(buildStep);
+    var applicationProjectContext =
+        new BazelApplicationProjectContext(project, applicationIdProvider);
 
     // Create run context for matching launch method.
     BlazeAndroidRunContext runContext;
@@ -149,7 +153,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler
       case NON_BLAZE:
         runContext =
             new BlazeAndroidBinaryNormalBuildRunContext(
-              project, facet, configuration, env, configState, buildStep, launchId, applicationIdProvider);
+              project, facet, configuration, env, configState, buildStep, launchId, applicationIdProvider, applicationProjectContext);
         break;
       case MOBILE_INSTALL_V2:
         // Standardize on a single mobile-install launch method
@@ -158,7 +162,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler
       case MOBILE_INSTALL:
         runContext =
             new BlazeAndroidBinaryMobileInstallRunContext(
-              project, facet, configuration, env, configState, buildStep, launchId, applicationIdProvider);
+              project, facet, configuration, env, configState, buildStep, launchId, applicationIdProvider, applicationProjectContext);
         break;
       default:
         throw new ExecutionException("No compatible launch methods.");
