@@ -15,7 +15,7 @@
  */
 package com.google.idea.blaze.android.run.test;
 
-import static com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryNormalBuildRunContextBase.getApkInfoToInstall;
+import static com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryNormalBuildRunContext.getApkInfoToInstall;
 import static com.google.idea.blaze.android.run.runner.BlazeAndroidLaunchTasksProvider.NATIVE_DEBUGGING_ENABLED;
 
 import com.android.ddmlib.ClientData;
