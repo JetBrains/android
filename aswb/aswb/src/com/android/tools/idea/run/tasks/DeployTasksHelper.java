@@ -19,7 +19,7 @@ import com.android.tools.deployer.DeployerException;
 import com.android.tools.idea.execution.common.AndroidExecutionException;
 import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.run.ApkInfo;
-import com.android.tools.idea.run.blaze.BlazeLaunchTask;
+import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
 import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import java.util.List;

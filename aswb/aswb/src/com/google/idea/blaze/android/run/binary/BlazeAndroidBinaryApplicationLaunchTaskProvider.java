@@ -18,7 +18,7 @@ package com.google.idea.blaze.android.run.binary;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
-import com.android.tools.idea.run.blaze.BlazeLaunchTask;
+import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
 import com.google.idea.blaze.android.manifest.ManifestParser;
 import com.google.idea.blaze.android.run.binary.tasks.AndroidDeepLinkLaunchTask;
 import com.google.idea.blaze.android.run.binary.tasks.BlazeDefaultActivityLaunchTask;

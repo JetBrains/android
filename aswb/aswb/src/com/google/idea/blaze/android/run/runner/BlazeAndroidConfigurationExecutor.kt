@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.blaze
+package com.google.idea.blaze.android.run.runner
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -49,18 +49,16 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.xdebugger.XDebugSession
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-
 
 /**
  * [AndroidConfigurationExecutor] for [BlazeRunConfiguration].
- * TODO: Move to blaze module as we support Kotlin in it.
  */
 class BlazeAndroidConfigurationExecutor(
   private val consoleProvider: ConsoleProvider,

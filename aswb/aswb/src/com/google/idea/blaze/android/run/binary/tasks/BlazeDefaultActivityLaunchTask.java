@@ -17,8 +17,8 @@ package com.google.idea.blaze.android.run.binary.tasks;
 
 import com.android.tools.idea.run.activity.ActivityLocator;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
-import com.android.tools.idea.run.blaze.BlazeLaunchContext;
-import com.android.tools.idea.run.blaze.BlazeLaunchTask;
+import com.google.idea.blaze.android.run.runner.BlazeLaunchContext;
+import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
 import com.intellij.execution.ExecutionException;
 
 /** The {@code BlazeLaunchTask} that run a {@code DefaultActivityLaunchTask}. */
