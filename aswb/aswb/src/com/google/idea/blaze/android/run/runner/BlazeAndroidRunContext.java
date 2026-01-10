@@ -23,7 +23,6 @@ import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
-import com.android.tools.idea.run.blaze.BlazeLaunchTask;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;

@@ -16,8 +16,6 @@
 package com.google.idea.blaze.android.run.runner;
 
 import com.android.tools.idea.profilers.ProfilerProgramRunner;
-import com.android.tools.idea.run.blaze.BlazeLaunchContext;
-import com.android.tools.idea.run.blaze.BlazeLaunchTask;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 

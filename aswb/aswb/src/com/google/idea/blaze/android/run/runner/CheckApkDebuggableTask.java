@@ -19,8 +19,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.RunConfigurationNotifier;
-import com.android.tools.idea.run.blaze.BlazeLaunchContext;
-import com.android.tools.idea.run.blaze.BlazeLaunchTask;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceFile;
