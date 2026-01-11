@@ -2150,6 +2150,30 @@ public final class StudioFlags {
                     "Enable sending inline code completion metrics to the AIDA CES service",
                     "When enabled, metrics related to inline code completion suggestions will be sent to the CES service for AIDA.");
 
+  public static final Flag<Boolean> STUDIOBOT_QUERY_CODE_COMPLETION_ENABLED =
+    new BooleanFlag(STUDIOBOT, "query.completion",
+                    "Enable query code completion",
+                    "When enabled, queries will use code completion in the agent mode query box"
+                    );
+
+  public static final Flag<Boolean> STUDIOBOT_QUERY_CYCLIC_EXPAND =
+    new BooleanFlag(STUDIOBOT, "query.cyclic.expand",
+                    "Enable cyclic expansion in queries",
+                    "When enabled, queries will allow cyclic expansion of symbols in the context."
+                    );
+
+  public static final Flag<Boolean> STUDIOBOT_INCLUDE_SYMBOL_REFERENCES =
+    new BooleanFlag(STUDIOBOT, "include.symbol.references",
+                    "Include symbol references in context",
+                    "When enabled, symbol references will be included in the context sent to Gemini."
+                    );
+
+  public static final Flag<Boolean> STUDIOBOT_READ_OUTLINE_TOOL =
+    new BooleanFlag(STUDIOBOT, "read.outline.tool",
+                    "Enable the Read Outline tool",
+                    "When enabled, the Read Outline tool will be available for agents."
+    );
+
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_FILE_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.file.context.enabled",
                     "Enable sending additional file context with completion requests",
