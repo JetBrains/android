@@ -59,7 +59,6 @@ class ResourceNotificationManagerTest {
   private val facet by lazy { requireNotNull(AndroidFacet.getInstance(module)) }
 
   @Test
-  @Throws(Exception::class)
   fun testEditNotifications() {
     // Setup sample project: a strings file, and a couple of layout file
     val layout1 =
@@ -360,7 +359,6 @@ class ResourceNotificationManagerTest {
   }
 
   @Test
-  @Throws(Exception::class)
   fun testNotifiedOnRename() {
     // Setup sample project: a strings file, and a couple of layout file
     @Language("XML")
@@ -415,7 +413,6 @@ class ResourceNotificationManagerTest {
   }
 
   @Test
-  @Throws(Exception::class)
   fun testNotNotifiedOnRenameNonResourceFile() {
     // Setup sample project: a strings file, and a couple of layout file.
     @Language("JAVA") val java = "class Hello {}"
@@ -453,7 +450,6 @@ class ResourceNotificationManagerTest {
   }
 
   @Test // Regression test for b/362961808
-  @Throws(Exception::class)
   fun testResourceImageChangedNotNotifiedWhenOtherFileIsReformatted() {
     // Setup sample project: a layout file and an animated vector file
     val layout =
@@ -526,7 +522,6 @@ class ResourceNotificationManagerTest {
       .isFalse()
   }
 
-  @Throws(InterruptedException::class, TimeoutException::class)
   private fun ensureCalled(
     called1: Ref<Boolean>,
     calledValue1: Ref<MutableSet<ResourceNotificationManager.Reason>>,
@@ -541,7 +536,6 @@ class ResourceNotificationManagerTest {
     assertThat(calledValue2.get()).isEqualTo(EnumSet.of(reason))
   }
 
-  @Throws(InterruptedException::class, TimeoutException::class)
   private fun ensureNotCalled(called1: Ref<Boolean>, called2: Ref<Boolean>) {
     waitForResourceRepositoryUpdates(module)
     UIUtil.dispatchAllInvocationEvents()
