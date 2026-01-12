@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint.common;
 
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -86,7 +87,6 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiPackage;
-import com.intellij.util.PathUtil;
 import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.net.HttpConnectionUtils;
 import java.io.File;
@@ -431,7 +431,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
 
     if (inScope) {
-      file = new File(PathUtil.getCanonicalPath(file.getPath()));
+      file = new File(toCanonicalPath(file.getPath()));
 
       Map<File, List<LintProblemData>> file2ProblemList = myProblemMap.get(issue);
       if (file2ProblemList == null) {
@@ -716,7 +716,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     final String path = ourSystemPath != null
                         ? ourSystemPath
-                        : (ourSystemPath = PathUtil.getCanonicalPath(PathManager.getSystemPath()));
+                        : (ourSystemPath = toCanonicalPath(PathManager.getSystemPath()));
     String relative = "lint";
     if (name != null) {
       relative += File.separator + name;
