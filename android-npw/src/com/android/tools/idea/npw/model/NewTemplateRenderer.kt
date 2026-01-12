@@ -253,7 +253,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
     "App Widget" -> TemplateRenderer.APP_WIDGET
     "Layout XML File" -> TemplateRenderer.LAYOUT_XML_FILE
     "Values XML File" -> TemplateRenderer.VALUES_XML_FILE
-    "Gemini API Starter" -> TemplateRenderer.EXPERIMENTAL_ACTIVITY
+    "Gemini API Starter with Firebase" -> TemplateRenderer.EXPERIMENTAL_ACTIVITY
     "Basic Headset Activity" -> TemplateRenderer.EXPERIMENTAL_ACTIVITY_2
     "Navigation UI Activity" -> TemplateRenderer.COMPOSE_NAVIGATION_UI_ACTIVITY
     else -> TemplateRenderer.CUSTOM_TEMPLATE_RENDERER
