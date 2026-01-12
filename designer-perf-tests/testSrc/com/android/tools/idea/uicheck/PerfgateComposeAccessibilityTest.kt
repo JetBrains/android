@@ -25,9 +25,11 @@ import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.perflogger.Metric
 import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.intellij.testFramework.PerformanceUnitTest
 import org.junit.Test
 
 class PerfgateComposeAccessibilityTest : ComposeRenderTestBase() {
+  @PerformanceUnitTest
   @Test
   fun testAccessibilityParsingPerformance() {
     uiCheckBenchmark.measureOperation(
