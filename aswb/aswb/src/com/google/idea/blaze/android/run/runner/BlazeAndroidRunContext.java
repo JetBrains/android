@@ -20,6 +20,7 @@ import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.projectsystem.ApplicationProjectContext;
+import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
@@ -46,6 +47,8 @@ public interface BlazeAndroidRunContext {
   ApkBuildStep getBuildStep();
 
   ApplicationIdProvider getApplicationIdProvider();
+
+  ApkProvider getApkProvider();
 
   ApplicationProjectContext getApplicationProjectContext();
 

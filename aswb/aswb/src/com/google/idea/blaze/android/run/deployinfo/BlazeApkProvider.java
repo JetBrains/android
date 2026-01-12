@@ -33,7 +33,7 @@ public class BlazeApkProvider implements ApkProvider {
   private final Project project;
   private final ApkBuildStep buildStep;
 
-  public BlazeApkProvider(Project project, ApkBuildStep buildStep) {
+  private BlazeApkProvider(Project project, ApkBuildStep buildStep) {
     this.project = project;
     this.buildStep = buildStep;
   }
@@ -64,5 +64,9 @@ public class BlazeApkProvider implements ApkProvider {
   // can be deleted post #api212
   public List<ValidationError> validate() {
     return ImmutableList.of();
+  }
+
+  public static ApkProvider getApkProvider(Project project, ApkBuildStep deployInfo) {
+    return new BlazeApkProvider(project, deployInfo);
   }
 }
