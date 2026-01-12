@@ -233,6 +233,11 @@ public final class StudioFlags {
     "Enable GenAI template",
     "Allows the GenAI template to be used.");
 
+  public static final Flag<Boolean> NPW_ENABLE_GEMINI_FIREBASE_TEMPLATE = new BooleanFlag(
+    NPW, "gemini.firebase.template",
+    "Enable 'Gemini API Starter with Firebase' template",
+    "Allows the 'Gemini API Starter with Firebase' template to be used.");
+
   public static final Flag<Boolean> NPW_ENABLE_XR_TEMPLATE = new BooleanFlag(
     NPW, "xr.template",
     "Enable XR template",
