@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.res
 
-// TODO android merge; commented-out unfinished code (see commit msg: "Convert ResourceNotificationManagerTest to kt (2/3)")
-/*
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.testutils.waitForCondition
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.res.ResourceNotificationManager.Companion.getInstance
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.onDisk
 import com.android.tools.idea.testing.EdtAndroidProjectRule
@@ -31,114 +28,118 @@ import com.android.tools.idea.util.ReformatUtil
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.refactoring.rename.RenameDialog
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
 import java.util.EnumSet
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.test.assertNotNull
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.Assert
-import org.junit.Before
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
 /** Tests for [ResourceNotificationManager]. */
 @RunsInEdt
 class ResourceNotificationManagerTest {
-  @Rule var projectRule: EdtAndroidProjectRule = EdtAndroidProjectRule(onDisk().initAndroid(true))
-  private var myFixture: CodeInsightTestFixture? = null
-  private var myModule: Module? = null
-  private var myProject: Project? = null
-  private var myFacet: AndroidFacet? = null
+  @get:Rule val projectRule = EdtAndroidProjectRule(onDisk().initAndroid(true))
 
-  @Before
-  fun setUp() {
-    myFixture = projectRule.fixture
-    myModule = myFixture!!.getModule()
-    myProject = projectRule.project
-    myFacet = AndroidFacet.getInstance(myModule!!)
-  }
+  private val myFixture by lazy { projectRule.fixture }
+  private val myModule by lazy { myFixture.module }
+  private val myProject by lazy { projectRule.project }
+  private val myFacet by lazy { requireNotNull(AndroidFacet.getInstance(myModule)) }
 
   @Test
   @Throws(Exception::class)
   fun testEditNotifications() {
-    @Language("XML") var xml: String?
-
     // Setup sample project: a strings file, and a couple of layout file
-    xml =
-      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-        "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-        "    android:layout_width=\"match_parent\"\n" +
-        "    android:layout_height=\"match_parent\">\n" +
-        "    <!-- My comment -->\n" +
-        "    <TextView\n" +
-        "        android:layout_width=\"match_parent\"\n" +
-        "        android:layout_height=\"match_parent\"\n" +
-        "        android:text=\"@string/hello\" />\n" +
-        "</FrameLayout>"
-    val layout1 = projectRule.fixture.addFileToProject("res/layout/my_layout1.xml", xml) as XmlFile
-    val resourceDir = layout1.getParent()!!.getParent()!!.getVirtualFile()
-    Assert.assertNotNull(resourceDir)
+    val layout1 =
+      projectRule.fixture.addFileToProject(
+        "res/layout/my_layout1.xml",
+        // language=xml
+        """<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <!-- My comment -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="@string/hello" />
+</FrameLayout>""",
+      ) as XmlFile
+    val resourceDir = layout1.parent!!.parent!!.virtualFile
+    assertNotNull(resourceDir)
 
-    xml =
-      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-        "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-        "    android:layout_width=\"match_parent\"\n" +
-        "    android:layout_height=\"match_parent\" />\n"
-    val layout2 = myFixture!!.addFileToProject("res/layout/my_layout2.xml", xml) as XmlFile
+    val layout2 =
+      myFixture.addFileToProject(
+        "res/layout/my_layout2.xml",
+        // language=xml
+        """<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />
+""",
+      ) as XmlFile
 
-    xml =
-      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-        "<resources>\n" +
-        "    <string name=\"hello\">Hello</string>\n" +
-        "\n" +
-        "    <!-- Base application theme. -->\n" +
-        "    <style name=\"AppTheme\" parent=\"Theme.AppCompat.Light.DarkActionBar\">\n" +
-        "        <!-- Customize your theme here. -->\n" +
-        "        <item name=\"android:colorBackground\">#ff0000</item>\n" +
-        "    </style>" +
-        "</resources>"
-    val values1 = myFixture!!.addFileToProject("res/values/my_values1.xml", xml) as XmlFile
+    val values1 =
+      myFixture.addFileToProject(
+        "res/values/my_values1.xml",
+        // language=xml
+        """<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello</string>
 
-    xml =
-      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" + "<resources>\n" + "    \n" + "</resources>"
-    myFixture!!.addFileToProject("res/values/colors.xml", xml)
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="android:colorBackground">#ff0000</item>
+    </style></resources>""",
+      ) as XmlFile
 
-    val configuration1: Configuration =
-      ConfigurationManager.getOrCreateInstance(myModule!!)
-        .getConfiguration(layout1.getVirtualFile())
-    val manager = ResourceNotificationManager.getInstance(myProject!!)
+    myFixture.addFileToProject(
+      "res/values/colors.xml",
+      // language=xml
+      """<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+</resources>""",
+    )
+
+    val configuration1 =
+      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout1.virtualFile)
+    val manager = ResourceNotificationManager.getInstance(myProject)
 
     // Listener 1: Listens for changes in layout 1.
-    val called1 = Ref<Boolean?>(false)
-    val calledValue1 = Ref<MutableSet<ResourceNotificationManager.Reason?>?>()
+    val called1 = Ref<Boolean>(false)
+    val calledValue1 = Ref<MutableSet<ResourceNotificationManager.Reason>>()
     val listener1 =
-      ResourceChangeListener { reason: ImmutableSet<ResourceNotificationManager.Reason?>? ->
+      ResourceChangeListener { reason: ImmutableSet<ResourceNotificationManager.Reason> ->
         called1.set(true)
         calledValue1.set(reason)
       }
 
     // Listener 2: Only listens for general changes in the module.
-    val called2 = Ref<Boolean?>(false)
-    val calledValue2 = Ref<MutableSet<ResourceNotificationManager.Reason?>?>()
+    val called2 = Ref<Boolean>(false)
+    val calledValue2 = Ref<MutableSet<ResourceNotificationManager.Reason>>()
     val listener2 =
-      ResourceChangeListener { reason: ImmutableSet<ResourceNotificationManager.Reason?>? ->
+      ResourceChangeListener { reason: ImmutableSet<ResourceNotificationManager.Reason> ->
         called2.set(true)
         calledValue2.set(reason)
       }
 
-    manager.addListener(listener1, myFacet!!, layout1.getVirtualFile(), configuration1)
-    manager.addListener(listener2, myFacet!!, null, null)
+    manager.addListener(listener1, myFacet, layout1.virtualFile, configuration1)
+    manager.addListener(listener2, myFacet, null, null)
 
     // Make sure that when we're modifying multiple files, with complicated
     // edits (that trigger full file rescans), we handle that scenario correctly.
@@ -149,14 +150,14 @@ class ResourceNotificationManagerTest {
     // hasn't actually been looked up and rendered in a layout. In order to make sure
     // that that optimization doesn't kick in here, we need to look up the value of
     // the resource item first:
-    Assert.assertEquals(
+    assertEquals(
       "#ff0000",
       configuration1
         .getResourceResolver()
         .getStyle(
           com.android.ide.common.rendering.api.ResourceReference(
             ResourceNamespace.RES_AUTO,
-            com.android.resources.ResourceType.STYLE,
+            ResourceType.STYLE,
             "AppTheme",
           )
         )!!
@@ -164,12 +165,12 @@ class ResourceNotificationManagerTest {
         .getValue(),
     )
     createValueResource(
-      myProject!!,
+      myProject,
       resourceDir,
       "color2",
       ResourceType.COLOR,
       "colors.xml",
-      mutableListOf<String>("values"),
+      mutableListOf("values"),
       "#fa2395",
     )
     ensureCalled(
@@ -180,12 +181,11 @@ class ResourceNotificationManagerTest {
       ResourceNotificationManager.Reason.RESOURCE_EDIT,
     )
     clear(called1, calledValue1, called2, calledValue2)
-    val tag = values1.getDocument()!!.getRootTag()!!.getSubTags()[1].getSubTags()[0]
-    Assert.assertEquals("item", tag.getName())
-    WriteCommandAction.runWriteCommandAction(
-      myProject,
-      Runnable { tag.getValue().setEscapedText("@color/color2") },
-    )
+    val tag = values1.document!!.rootTag!!.subTags[1].subTags[0]
+    assertEquals("item", tag.name)
+    WriteCommandAction.runWriteCommandAction(myProject) {
+      tag.value.setEscapedText("@color/color2")
+    }
     ensureCalled(
       called1,
       calledValue1,
@@ -198,7 +198,7 @@ class ResourceNotificationManagerTest {
 
     // First check: Modify the layout by changing @string/hello to @string/hello_world
     // and verify that our listeners are called.
-    val version1 = manager.getCurrentVersion(myFacet!!, layout1, configuration1)
+    val version1 = manager.getCurrentVersion(myFacet, layout1, configuration1)
     addText(layout1, "@string/hello^", "_world")
     ensureCalled(
       called1,
@@ -207,13 +207,13 @@ class ResourceNotificationManagerTest {
       calledValue2,
       ResourceNotificationManager.Reason.EDIT,
     )
-    val version2 = manager.getCurrentVersion(myFacet!!, layout1, configuration1)
-    Assert.assertNotEquals(version1.toString(), version1, version2)
+    val version2 = manager.getCurrentVersion(myFacet, layout1, configuration1)
+    assertNotEquals(version1.toString(), version1, version2)
 
     // Next check: Modify a <string> value definition in a values file
     // and check that those changes are flagged too
     clear(called1, calledValue1, called2, calledValue2)
-    val version3 = manager.getCurrentVersion(myFacet!!, layout1, configuration1)
+    val version3 = manager.getCurrentVersion(myFacet, layout1, configuration1)
     addText(values1, "name=\"hello^\"", "_world")
     ensureCalled(
       called1,
@@ -222,8 +222,8 @@ class ResourceNotificationManagerTest {
       calledValue2,
       ResourceNotificationManager.Reason.RESOURCE_EDIT,
     )
-    val version4 = manager.getCurrentVersion(myFacet!!, layout1, configuration1)
-    Assert.assertNotEquals(version4.toString(), version3, version4)
+    val version4 = manager.getCurrentVersion(myFacet, layout1, configuration1)
+    assertNotEquals(version4.toString(), version3, version4)
 
     // Next check: Modify content in a comment and verify that no changes are fired
     clear(called1, calledValue1, called2, calledValue2)
@@ -246,14 +246,14 @@ class ResourceNotificationManagerTest {
     // Check that editing text in a *values file* -does- have an effect
     // Read the value first to ensure that we trigger it as a read (see comment above for previous
     // resource resolver lookup).
-    Assert.assertEquals(
+    assertEquals(
       "Hello",
       configuration1
         .getResourceResolver()
         .getResolvedResource(
           com.android.ide.common.rendering.api.ResourceReference(
             ResourceNamespace.RES_AUTO,
-            com.android.resources.ResourceType.STRING,
+            ResourceType.STRING,
             "hello_world",
           )
         )!!
@@ -272,14 +272,14 @@ class ResourceNotificationManagerTest {
     // Check that recreating AppResourceRepository object doesn't affect the
     // ResourceNotificationManager.
     clear(called1, calledValue1, called2, calledValue2)
-    StudioResourceRepositoryManager.getInstance(myFacet!!).resetAllCaches()
+    StudioResourceRepositoryManager.getInstance(myFacet).resetAllCaches()
     createValueResource(
-      myProject!!,
+      myProject,
       resourceDir,
       "color4",
       ResourceType.COLOR,
       "colors.xml",
-      mutableListOf<String>("values"),
+      mutableListOf("values"),
       "#ff2300",
     )
     ensureCalled(
@@ -293,7 +293,7 @@ class ResourceNotificationManagerTest {
     // Next check: Mark the lines between <TextView .... /> as comments
     // and verify that our listeners are called.
     clear(called1, calledValue1, called2, calledValue2)
-    val version5 = manager.getCurrentVersion(myFacet!!, layout1, configuration1)
+    val version5 = manager.getCurrentVersion(myFacet, layout1, configuration1)
     replaceText(layout1, "^<TextView", 9, "<!--<TextView-->")
     replaceText(
       layout1,
@@ -315,14 +315,14 @@ class ResourceNotificationManagerTest {
       calledValue2,
       ResourceNotificationManager.Reason.EDIT,
     )
-    val version6 = manager.getCurrentVersion(myFacet!!, layout1, configuration1)
-    Assert.assertNotEquals(version6.toString(), version5, version6)
+    val version6 = manager.getCurrentVersion(myFacet, layout1, configuration1)
+    assertNotEquals(version6.toString(), version5, version6)
 
     // Next check: Un-mark the comments of the lines between <!--<TextView ... />--> (which we just
     // commented in previous check)
     // and verify that our listeners are called.
     clear(called1, calledValue1, called2, calledValue2)
-    val version7 = manager.getCurrentVersion(myFacet!!, layout1, configuration1)
+    val version7 = manager.getCurrentVersion(myFacet, layout1, configuration1)
     replaceText(layout1, "^<!--<TextView-->", 15, "<TextView")
     replaceText(
       layout1,
@@ -349,12 +349,12 @@ class ResourceNotificationManagerTest {
       calledValue2,
       ResourceNotificationManager.Reason.EDIT,
     )
-    val version8 = manager.getCurrentVersion(myFacet!!, layout1, configuration1)
-    Assert.assertNotEquals(version8.toString(), version7, version8)
+    val version8 = manager.getCurrentVersion(myFacet, layout1, configuration1)
+    assertNotEquals(version8.toString(), version7, version8)
 
     // Finally check that once we remove the listeners there are no more notifications.
-    manager.removeListener(listener1, myFacet!!, layout1.getVirtualFile(), configuration1)
-    manager.removeListener(listener2, myFacet!!, layout2.getVirtualFile(), configuration1)
+    manager.removeListener(listener1, myFacet, layout1.virtualFile, configuration1)
+    manager.removeListener(listener2, myFacet, layout2.virtualFile, configuration1)
     clear(called1, calledValue1, called2, calledValue2)
     addText(layout1, "@string/hello_world^", "2")
     ensureNotCalled(called1, called2)
@@ -380,38 +380,36 @@ class ResourceNotificationManagerTest {
         "        android:layout_height=\"match_parent\"\n" +
         "        android:text=\"@string/hello\" />\n" +
         "</FrameLayout>"
-    val layout1 = myFixture!!.addFileToProject("res/layout/my_layout1.xml", xml) as XmlFile
-    val resourceDir = layout1.getParent()!!.getParent()!!.getVirtualFile()
-    Assert.assertNotNull(resourceDir)
+    val layout1 = myFixture.addFileToProject("res/layout/my_layout1.xml", xml) as XmlFile
+    val resourceDir = layout1.parent!!.parent!!.virtualFile
+    assertNotNull(resourceDir)
 
     val configuration1: Configuration =
-      ConfigurationManager.getOrCreateInstance(myModule!!)
-        .getConfiguration(layout1.getVirtualFile())
-    val manager = ResourceNotificationManager.getInstance(myProject!!)
+      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout1.virtualFile)
+    val manager = ResourceNotificationManager.getInstance(myProject)
 
     // Listener 1: Listens for changes in layout 1.
-    val called1 = Ref<Boolean?>(false)
-    val calledValue1 = Ref<MutableSet<ResourceNotificationManager.Reason?>?>()
+    val called1 = Ref<Boolean>(false)
+    val calledValue1 = Ref<MutableSet<ResourceNotificationManager.Reason>>()
     val listener1 =
-      ResourceChangeListener { reason: ImmutableSet<ResourceNotificationManager.Reason?>? ->
+      ResourceChangeListener { reason: ImmutableSet<ResourceNotificationManager.Reason> ->
         called1.set(true)
         calledValue1.set(reason)
       }
 
     // Listener 2: Only listens for general changes in the module.
-    val called2 = Ref<Boolean?>(false)
-    val calledValue2 = Ref<MutableSet<ResourceNotificationManager.Reason?>?>()
+    val called2 = Ref<Boolean>(false)
+    val calledValue2 = Ref<MutableSet<ResourceNotificationManager.Reason>>()
     val listener2 =
-      ResourceChangeListener { reason: ImmutableSet<ResourceNotificationManager.Reason?>? ->
+      ResourceChangeListener { reason: ImmutableSet<ResourceNotificationManager.Reason> ->
         called2.set(true)
         calledValue2.set(reason)
       }
-    manager.addListener(listener1, myFacet!!, layout1.getVirtualFile(), configuration1)
-    manager.addListener(listener2, myFacet!!, null, null)
-    ApplicationManager.getApplication()
-      .invokeAndWait(
-        Runnable { RenameDialog(myProject!!, layout1, null, null).performRename("newLayout") }
-      )
+    manager.addListener(listener1, myFacet, layout1.virtualFile, configuration1)
+    manager.addListener(listener2, myFacet, null, null)
+    ApplicationManager.getApplication().invokeAndWait {
+      RenameDialog(myProject, layout1, null, null).performRename("newLayout")
+    }
     ensureCalled(
       called1,
       calledValue1,
@@ -426,118 +424,109 @@ class ResourceNotificationManagerTest {
   fun testNotNotifiedOnRenameNonResourceFile() {
     // Setup sample project: a strings file, and a couple of layout file.
     @Language("JAVA") val java = "class Hello {}"
-    val javaFile = myFixture!!.addFileToProject("src/hello.java", java)
-    val resourceDir = javaFile.getParent()!!.getParent()!!.getVirtualFile()
-    Assert.assertNotNull(resourceDir)
+    val javaFile = myFixture.addFileToProject("src/hello.java", java)
+    val resourceDir = javaFile.parent!!.parent!!.virtualFile
+    assertNotNull(resourceDir)
 
     val configuration1: Configuration =
-      ConfigurationManager.getOrCreateInstance(myModule!!)
-        .getConfiguration(javaFile.getVirtualFile())
-    val manager = ResourceNotificationManager.getInstance(myProject!!)
+      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(javaFile.virtualFile)
+    val manager = ResourceNotificationManager.getInstance(myProject)
 
     // Listener 1: Listens for changes in layout 1.
-    val called1 = Ref<Boolean?>(false)
-    val calledValue1 = Ref<MutableSet<ResourceNotificationManager.Reason?>?>()
+    val called1 = Ref<Boolean>(false)
+    val calledValue1 = Ref<MutableSet<ResourceNotificationManager.Reason>>()
     val listener1 =
-      ResourceChangeListener { reason: ImmutableSet<ResourceNotificationManager.Reason?>? ->
+      ResourceChangeListener { reason: ImmutableSet<ResourceNotificationManager.Reason> ->
         called1.set(true)
         calledValue1.set(reason)
       }
 
     // Listener 2: Only listens for general changes in the module.
-    val called2 = Ref<Boolean?>(false)
-    val calledValue2 = Ref<MutableSet<ResourceNotificationManager.Reason?>?>()
+    val called2 = Ref<Boolean>(false)
+    val calledValue2 = Ref<MutableSet<ResourceNotificationManager.Reason>>()
     val listener2 =
-      ResourceChangeListener { reason: ImmutableSet<ResourceNotificationManager.Reason?>? ->
+      ResourceChangeListener { reason: ImmutableSet<ResourceNotificationManager.Reason> ->
         called2.set(true)
         calledValue2.set(reason)
       }
-    manager.addListener(listener1, myFacet!!, javaFile.getVirtualFile(), configuration1)
-    manager.addListener(listener2, myFacet!!, null, null)
-    ApplicationManager.getApplication()
-      .invokeAndWait(
-        java.lang.Runnable {
-          RenameDialog(myProject!!, javaFile, null, null).performRename("newFile.java")
-        }
-      )
+    manager.addListener(listener1, myFacet, javaFile.virtualFile, configuration1)
+    manager.addListener(listener2, myFacet, null, null)
+    ApplicationManager.getApplication().invokeAndWait {
+      RenameDialog(myProject, javaFile, null, null).performRename("newFile.java")
+    }
     ensureNotCalled(called1, called2)
   }
 
   @Test // Regression test for b/362961808
   @Throws(Exception::class)
   fun testResourceImageChangedNotNotifiedWhenOtherFileIsReformatted() {
-    @Language("XML") var xml: String?
-
     // Setup sample project: a layout file and an animated vector file
-    val layoutContents =
-      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-        "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-        "    android:layout_width=\"match_parent\"\n" +
-        "    android:layout_height=\"match_parent\">\n" +
-        "    <!-- My comment -->\n" +
-        "    <TextView\n" +
-        "        android:layout_width=\"match_parent\"\n" +
-        "        android:layout_height=\"match_parent\"\n" +
-        "        android:text=\"@string/hello\" />\n" +
-        "</FrameLayout>"
     val layout =
-      projectRule.fixture.addFileToProject("res/layout/my_layout1.xml", layoutContents) as XmlFile
-
-    val vectorXml =
-      """
-      <animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:aapt="http://schemas.android.com/aapt" >
-          <aapt:attr name="android:drawable">
-              <vector
-                  android:height="64dp"
-                  android:width="64dp"
-                  android:viewportHeight="600"
-                  android:viewportWidth="600" >
-                  <group
-                      android:name="rotationGroup"
-                      android:pivotX="300.0"
-                      android:pivotY="300.0"
-                      android:rotation="45.0" >
-                      <path
-                          android:name="v"
-                          android:fillColor="#000000"
-                          android:pathData="M300,70 l 0,-70 70,70 0,0 -70,70z" />
-                  </group>
-              </vector>
-          </aapt:attr>
-      </animated-vector>
-
-      """
-        .trimIndent()
+      projectRule.fixture.addFileToProject(
+        "res/layout/my_layout1.xml",
+        // language=xml
+        """<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <!-- My comment -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="@string/hello" />
+</FrameLayout>""",
+      ) as XmlFile
 
     val animatedVector =
-      projectRule.fixture.addFileToProject("res/drawable/my_animated_vector.xml", vectorXml)
-        as XmlFile
-    WriteCommandAction.runWriteCommandAction(
-      myProject,
-      Runnable { ReformatUtil.reformatAndRearrange(myProject!!, animatedVector) },
-    )
+      projectRule.fixture.addFileToProject(
+        "res/drawable/my_animated_vector.xml",
+        // language=xml
+        """
+        <animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:aapt="http://schemas.android.com/aapt" >
+            <aapt:attr name="android:drawable">
+                <vector
+                    android:height="64dp"
+                    android:width="64dp"
+                    android:viewportHeight="600"
+                    android:viewportWidth="600" >
+                    <group
+                        android:name="rotationGroup"
+                        android:pivotX="300.0"
+                        android:pivotY="300.0"
+                        android:rotation="45.0" >
+                        <path
+                            android:name="v"
+                            android:fillColor="#000000"
+                            android:pathData="M300,70 l 0,-70 70,70 0,0 -70,70z" />
+                    </group>
+                </vector>
+            </aapt:attr>
+        </animated-vector>
+        """
+          .trimIndent(),
+      ) as XmlFile
+    WriteCommandAction.runWriteCommandAction(myProject) {
+      ReformatUtil.reformatAndRearrange(myProject, animatedVector)
+    }
 
     val resourcesHaveChanged = AtomicBoolean(false)
     val layoutConfiguration: Configuration =
-      ConfigurationManager.getOrCreateInstance(myModule!!).getConfiguration(layout.getVirtualFile())
+      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout.virtualFile)
     UIUtil.dispatchAllInvocationEvents() // Dispatch any pending notifications
-    val manager = getInstance(projectRule.project)
+    val manager = ResourceNotificationManager.getInstance(projectRule.project)
     manager.addListener(
-      ResourceChangeListener { reasons: ImmutableSet<ResourceNotificationManager.Reason?>? ->
-        resourcesHaveChanged.set(true)
-      },
-      myFacet!!,
-      layout.getVirtualFile(),
+      { resourcesHaveChanged.set(true) },
+      myFacet,
+      layout.virtualFile,
       layoutConfiguration,
     )
-    WriteCommandAction.runWriteCommandAction(
-      myProject,
-      Runnable { ReformatUtil.reformatAndRearrange(myProject!!, animatedVector) },
-    )
-    waitForResourceRepositoryUpdates(myModule!!, 4, TimeUnit.SECONDS)
+    WriteCommandAction.runWriteCommandAction(myProject) {
+      ReformatUtil.reformatAndRearrange(myProject, animatedVector)
+    }
+    waitForResourceRepositoryUpdates(myModule, 4, TimeUnit.SECONDS)
     UIUtil.dispatchAllInvocationEvents() // Dispatch notifications
-    Assert.assertFalse(
+    assertFalse(
       "Reformat of the vector should not have triggered a change",
       resourcesHaveChanged.get(),
     )
@@ -545,28 +534,28 @@ class ResourceNotificationManagerTest {
 
   @Throws(InterruptedException::class, TimeoutException::class)
   private fun ensureCalled(
-    called1: Ref<Boolean?>,
-    calledValue1: Ref<MutableSet<ResourceNotificationManager.Reason?>?>,
-    called2: Ref<Boolean?>,
-    calledValue2: Ref<MutableSet<ResourceNotificationManager.Reason?>?>,
+    called1: Ref<Boolean>,
+    calledValue1: Ref<MutableSet<ResourceNotificationManager.Reason>>,
+    called2: Ref<Boolean>,
+    calledValue2: Ref<MutableSet<ResourceNotificationManager.Reason>>,
     reason: ResourceNotificationManager.Reason,
   ) {
-    waitForResourceRepositoryUpdates(myModule!!, 4, TimeUnit.SECONDS)
+    waitForResourceRepositoryUpdates(myModule, 4, TimeUnit.SECONDS)
     UIUtil.dispatchAllInvocationEvents()
     waitForCondition(5, TimeUnit.SECONDS) { called1.get() && called2.get() }
-    Assert.assertEquals(EnumSet.of<ResourceNotificationManager.Reason?>(reason), calledValue1.get())
-    Assert.assertEquals(EnumSet.of<ResourceNotificationManager.Reason?>(reason), calledValue2.get())
+    assertEquals(EnumSet.of(reason), calledValue1.get())
+    assertEquals(EnumSet.of(reason), calledValue2.get())
   }
 
   @Throws(InterruptedException::class, TimeoutException::class)
-  private fun ensureNotCalled(called1: Ref<Boolean?>, called2: Ref<Boolean?>) {
-    waitForResourceRepositoryUpdates(myModule!!)
+  private fun ensureNotCalled(called1: Ref<Boolean>, called2: Ref<Boolean>) {
+    waitForResourceRepositoryUpdates(myModule)
     UIUtil.dispatchAllInvocationEvents()
     try {
       waitForCondition(5, TimeUnit.SECONDS) { called1.get() || called2.get() }
-      Assert.assertFalse(called1.get()!!)
-      Assert.assertFalse(called2.get()!!)
-    } catch (e: TimeoutException) {}
+      assertFalse(called1.get()!!)
+      assertFalse(called2.get()!!)
+    } catch (_: TimeoutException) {}
   }
 
   private fun addText(file: PsiFile, location: String, insertedText: String) {
@@ -582,44 +571,37 @@ class ResourceNotificationManagerTest {
   }
 
   private fun editText(file: PsiFile, location: String, length: Int, text: String) {
-    val documentManager = PsiDocumentManager.getInstance(myProject!!)
-    val document = documentManager.getDocument(file)
-    Assert.assertNotNull(document)
+    val documentManager = PsiDocumentManager.getInstance(myProject)
+    val document = assertNotNull(documentManager.getDocument(file))
 
     // Insert a comment at the beginning
-    WriteCommandAction.runWriteCommandAction(
-      null,
-      Runnable {
-        val documentText = document!!.getText()
-        val delta = location.indexOf('^')
-        Assert.assertTrue(
-          "Missing ^ describing caret offset in text window " + location,
-          delta != -1,
-        )
-        val target = location.substring(0, delta) + location.substring(delta + 1)
-        val offset = documentText.indexOf(target)
-        Assert.assertTrue("Could not find " + target + " in " + documentText, offset != -1)
+    WriteCommandAction.runWriteCommandAction(null) {
+      val documentText = document.text
+      val delta = location.indexOf('^')
+      assertTrue("Missing ^ describing caret offset in text window $location", delta != -1)
+      val target = location.substring(0, delta) + location.substring(delta + 1)
+      val offset = documentText.indexOf(target)
+      assertTrue("Could not find $target in $documentText", offset != -1)
 
-        if (!text.isEmpty()) {
-          if (length == 0) {
-            document.insertString(offset + delta, text)
-          } else {
-            document.replaceString(offset + delta, offset + delta + length, text)
-          }
+      if (!text.isEmpty()) {
+        if (length == 0) {
+          document.insertString(offset + delta, text)
         } else {
-          document.deleteString(offset + delta, offset + delta + length)
+          document.replaceString(offset + delta, offset + delta + length, text)
         }
-        documentManager.commitDocument(document)
-      },
-    )
+      } else {
+        document.deleteString(offset + delta, offset + delta + length)
+      }
+      documentManager.commitDocument(document)
+    }
   }
 
   companion object {
     private fun clear(
-      called1: Ref<Boolean?>,
-      calledValue1: Ref<MutableSet<ResourceNotificationManager.Reason?>?>,
-      called2: Ref<Boolean?>,
-      calledValue2: Ref<MutableSet<ResourceNotificationManager.Reason?>?>,
+      called1: Ref<Boolean>,
+      calledValue1: Ref<MutableSet<ResourceNotificationManager.Reason>>,
+      called2: Ref<Boolean>,
+      calledValue2: Ref<MutableSet<ResourceNotificationManager.Reason>>,
     ) {
       called1.set(false)
       called2.set(false)
@@ -628,4 +610,3 @@ class ResourceNotificationManagerTest {
     }
   }
 }
-*/
