@@ -16,6 +16,7 @@
 package com.android.tools.adtui.device;
 
 import static com.android.SdkConstants.DOT_PNG;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static java.awt.RenderingHints.KEY_ANTIALIASING;
 import static java.awt.RenderingHints.KEY_INTERPOLATION;
 import static java.awt.RenderingHints.KEY_RENDERING;
@@ -30,7 +31,6 @@ import com.android.sdklib.devices.Screen;
 import com.android.tools.adtui.ImageUtils;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.ui.Gray;
-import com.intellij.util.PathUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -587,8 +587,7 @@ public class DeviceArtPainter {
     }
 
     private static File getThumbnailCacheDir() {
-      final String path = ourSystemPath != null ? ourSystemPath : (ourSystemPath = PathUtil.getCanonicalPath(PathManager.getSystemPath()));
-      //noinspection HardCodedStringLiteral
+      String path = ourSystemPath != null ? ourSystemPath : (ourSystemPath = toCanonicalPath(PathManager.getSystemPath()));
       return new File(path, "android-devices" + File.separator + "v4");
     }
 
