@@ -55,7 +55,7 @@ public class AndroidJava8ListSortInspectionTest extends AndroidInspectionTestCas
            "public class X {\n" +
            "\n" +
            "    public void test(List<String> strings, Comparator<String> comparator) {\n" +
-           "        Collections./*Collections.sort could be replaced with List.sort*/sort/**/(strings, comparator);\n" +
+           "        Collections./*'Collections.sort()' can be replaced with 'List.sort()'*/sort/**/(strings, comparator);\n" +
            "    }\n" +
            "}\n");
   }
