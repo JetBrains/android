@@ -24,6 +24,7 @@ import com.android.tools.idea.execution.common.debug.DebugSessionStarter;
 import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
+import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsoleProvider;
@@ -69,6 +70,7 @@ public class BlazeAndroidBinaryMobileInstallRunContext implements BlazeAndroidRu
   private final BlazeAndroidBinaryRunConfigurationState configState;
   private final ConsoleProvider consoleProvider;
   private final ApplicationIdProvider applicationIdProvider;
+  private final ApkProvider apkProvider;
   private final ApkBuildStep buildStep;
   private final String launchId;
   private final ApplicationProjectContext applicationProjectContext;
@@ -80,6 +82,7 @@ public class BlazeAndroidBinaryMobileInstallRunContext implements BlazeAndroidRu
       ApkBuildStep buildStep,
       String launchId,
       BlazeAndroidBinaryApplicationIdProvider applicationIdProvider,
+      ApkProvider apkProvider,
       ApplicationProjectContext applicationProjectContext) {
     this.project = project;
     this.env = env;
@@ -87,6 +90,7 @@ public class BlazeAndroidBinaryMobileInstallRunContext implements BlazeAndroidRu
     this.consoleProvider = new BlazeAndroidBinaryConsoleProvider(project);
     this.buildStep = buildStep;
     this.applicationIdProvider = applicationIdProvider;
+    this.apkProvider = apkProvider;
     this.launchId = launchId;
     this.applicationProjectContext = applicationProjectContext;
   }
@@ -114,6 +118,11 @@ public class BlazeAndroidBinaryMobileInstallRunContext implements BlazeAndroidRu
   @Override
   public ApplicationIdProvider getApplicationIdProvider() {
     return applicationIdProvider;
+  }
+
+  @Override
+  public ApkProvider getApkProvider() {
+    return apkProvider;
   }
 
   @Override
