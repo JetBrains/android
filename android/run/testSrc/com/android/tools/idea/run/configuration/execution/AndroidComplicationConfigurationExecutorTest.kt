@@ -124,7 +124,6 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
           AndroidComplicationConfiguration.ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE)
         )
       }
-      override val module = myModule
     }
 
     // Mock installation that returns app.
@@ -237,7 +236,6 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
           AndroidComplicationConfiguration.ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE)
         )
       }
-      override val module = myModule
     }
 
     val appInstaller = TestApplicationInstaller(
@@ -334,7 +332,6 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
         chosenSlots = listOf(AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT))
       }
-      override val module = myModule
     }
 
     val appInstaller = TestApplicationInstaller(
@@ -404,7 +401,6 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
         chosenSlots = listOf(AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT))
       }
-      override val module = myModule
     }
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
