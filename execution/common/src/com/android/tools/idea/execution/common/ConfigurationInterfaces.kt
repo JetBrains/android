@@ -24,7 +24,6 @@ import com.intellij.openapi.module.Module
 interface AppRunSettings {
   val deployOptions: DeployOptions
   val componentLaunchOptions: ComponentLaunchOptions
-  val module: Module?
 }
 
 interface ComponentLaunchOptions {
