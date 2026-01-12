@@ -26,7 +26,6 @@ import com.android.tools.idea.execution.common.ComponentLaunchOptions;
 import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.execution.common.stats.RunStats;
 import com.android.tools.idea.projectsystem.ApplicationProjectContext;
-import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.configuration.execution.AndroidComplicationConfigurationExecutor;
@@ -42,7 +41,6 @@ import com.android.tools.idea.run.util.LaunchUtils;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryRunConfigurationState;
-import com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService;
 import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator;
 import com.google.idea.blaze.base.command.BlazeInvocationContext.ContextType;
 import com.google.idea.blaze.base.experiments.ExperimentScope;
@@ -163,12 +161,9 @@ public final class BlazeAndroidRunConfigurationRunner
       ComponentLaunchOptions launchOptions =
           ((BlazeAndroidBinaryRunConfigurationState) state).getCurrentWearLaunchOptions();
 
-      return getWearExecutor(launchOptions, env, deployTarget, applicationProjectContext);
+      return getWearExecutor(launchOptions, env, deployTarget);
     }
 
-    ApkProvider apkProvider =
-        BlazeApkProviderService.getInstance()
-            .getApkProvider(env.getProject(), runContext.getBuildStep());
     final LaunchOptions launchOptions = launchOptionsBuilder.build();
     BlazeAndroidConfigurationExecutor runner =
         new BlazeAndroidConfigurationExecutor(
@@ -178,14 +173,13 @@ public final class BlazeAndroidRunConfigurationRunner
           deviceFutures,
           new BlazeAndroidLaunchTasksProvider(project, runContext, launchOptions),
           launchOptions,
-          apkProvider,
+          runContext.getApkProvider(),
           LiveEditService.getInstance(env.getProject()));
     return new AndroidConfigurationExecutorRunProfileState(runner);
   }
 
   private RunProfileState getWearExecutor(
-    ComponentLaunchOptions launchOptions, ExecutionEnvironment env, DeployTarget deployTarget,
-    ApplicationProjectContext applicationProjectContext)
+    ComponentLaunchOptions launchOptions, ExecutionEnvironment env, DeployTarget deployTarget)
       throws ExecutionException {
 
     AppRunSettings settings =
@@ -209,9 +203,6 @@ public final class BlazeAndroidRunConfigurationRunner
         };
 
     AndroidConfigurationExecutor configurationExecutor;
-    ApkProvider apkProvider =
-        BlazeApkProviderService.getInstance()
-            .getApkProvider(env.getProject(), runContext.getBuildStep());
     DeviceFutures deviceFutures = deployTarget.launchDevices(env.getProject());
 
     ApplicationDeployer deployer =
@@ -223,8 +214,8 @@ public final class BlazeAndroidRunConfigurationRunner
               env,
               deviceFutures,
               settings,
-              apkProvider,
-              applicationProjectContext,
+              runContext.getApkProvider(),
+              runContext.getApplicationProjectContext(),
               deployer);
     } else if (launchOptions instanceof WatchFaceLaunchOptions) {
       configurationExecutor =
@@ -232,8 +223,8 @@ public final class BlazeAndroidRunConfigurationRunner
               env,
               deviceFutures,
               settings,
-              apkProvider,
-              applicationProjectContext,
+              runContext.getApkProvider(),
+              runContext.getApplicationProjectContext(),
               deployer);
     } else if (launchOptions instanceof ComplicationLaunchOptions) {
       configurationExecutor =
@@ -241,8 +232,8 @@ public final class BlazeAndroidRunConfigurationRunner
               env,
               deviceFutures,
               settings,
-              apkProvider,
-              applicationProjectContext,
+              runContext.getApkProvider(),
+              runContext.getApplicationProjectContext(),
               deployer);
     } else {
       throw new RuntimeException("Unknown launch options " + launchOptions.getClass().getName());

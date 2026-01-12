@@ -16,7 +16,6 @@
 package com.google.idea.blaze.android.run.test;
 
 import com.android.tools.idea.execution.common.DeployableToDevice;
-import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.android.tools.idea.run.ValidationError;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -26,6 +25,7 @@ import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationCommonState
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationHandler;
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationValidationUtil;
 import com.google.idea.blaze.android.run.LaunchMetrics;
+import com.google.idea.blaze.android.run.deployinfo.BlazeApkProvider;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunConfigurationRunner;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunContext;
@@ -121,13 +121,13 @@ public class BlazeAndroidTestRunConfigurationHandler
             project, configState, configuration, blazeFlags, exeFlags, launchId, label);
 
     var applicationIdProvider = new BlazeAndroidTestApplicationIdProvider(buildStep);
+    var apkProvider = BlazeApkProvider.getApkProvider(project, buildStep);
     var applicationProjectContext =
         new BazelApplicationProjectContext(project, applicationIdProvider);
-
     BlazeAndroidRunContext runContext =
         new BlazeAndroidTestRunContext(
           project, facet, configuration, env, configState, label, blazeFlags, buildStep,
-          applicationIdProvider, applicationProjectContext);
+          applicationIdProvider, apkProvider, applicationProjectContext);
 
     LaunchMetrics.logTestLaunch(
         launchId, configState.getLaunchMethod().name(), env.getExecutor().getId());

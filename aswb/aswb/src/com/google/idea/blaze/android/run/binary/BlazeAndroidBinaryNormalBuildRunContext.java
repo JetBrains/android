@@ -33,16 +33,15 @@ import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
-import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.util.DynamicAppUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
-import com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunContext;
+import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -75,21 +74,22 @@ public class BlazeAndroidBinaryNormalBuildRunContext implements BlazeAndroidRunC
   private final ApplicationProjectContext applicationProjectContext;
 
   BlazeAndroidBinaryNormalBuildRunContext(
-      Project project,
-      ExecutionEnvironment env,
-      BlazeAndroidBinaryRunConfigurationState configState,
-      ApkBuildStep buildStep,
-      String launchId,
-      BlazeAndroidBinaryApplicationIdProvider applicationIdProvider,
-      ApplicationProjectContext applicationProjectContext) {
+    Project project,
+    ExecutionEnvironment env,
+    BlazeAndroidBinaryRunConfigurationState configState,
+    ApkBuildStep buildStep,
+    String launchId,
+    BlazeAndroidBinaryApplicationIdProvider applicationIdProvider,
+    ApkProvider apkProvider,
+    ApplicationProjectContext applicationProjectContext) {
     this.project = project;
     this.env = env;
     this.configState = configState;
     this.consoleProvider = new BlazeAndroidBinaryConsoleProvider(project);
     this.buildStep = buildStep;
-    this.apkProvider = BlazeApkProviderService.getInstance().getApkProvider(project, buildStep);
-    this.applicationIdProvider = applicationIdProvider;
     this.launchId = launchId;
+    this.applicationIdProvider = applicationIdProvider;
+    this.apkProvider = apkProvider;
     this.applicationProjectContext = applicationProjectContext;
   }
 
@@ -118,6 +118,11 @@ public class BlazeAndroidBinaryNormalBuildRunContext implements BlazeAndroidRunC
   @Override
   public ApplicationIdProvider getApplicationIdProvider() {
     return applicationIdProvider;
+  }
+
+  @Override
+  public ApkProvider getApkProvider() {
+    return apkProvider;
   }
 
   @Override

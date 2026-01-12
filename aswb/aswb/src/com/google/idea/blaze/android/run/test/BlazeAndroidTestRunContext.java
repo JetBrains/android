@@ -30,16 +30,15 @@ import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
-import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.tasks.DeployTasksHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
-import com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunContext;
+import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
 import com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProvider.AndroidTestLaunchMethod;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
@@ -91,15 +90,16 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
     ImmutableList<String> blazeFlags,
     ApkBuildStep buildStep,
     BlazeAndroidTestApplicationIdProvider applicationIdProvider,
+    ApkProvider apkProvider,
     ApplicationProjectContext applicationProjectContext) {
     this.project = project;
     this.facet = facet;
     this.runConfiguration = runConfiguration;
     this.env = env;
-    this.label = label;
     this.configState = configState;
-    this.buildStep = buildStep;
+    this.label = label;
     this.blazeFlags = blazeFlags;
+    this.buildStep = buildStep;
     switch (configState.getLaunchMethod()) {
       case MOBILE_INSTALL:
       case NON_BLAZE:
@@ -115,8 +115,8 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
             "Unsupported launch method " + configState.getLaunchMethod());
     }
     this.applicationIdProvider = applicationIdProvider;
+    this.apkProvider = apkProvider;
     this.applicationProjectContext = applicationProjectContext;
-    apkProvider = BlazeApkProviderService.getInstance().getApkProvider(project, buildStep);
   }
 
   @Override
@@ -140,6 +140,11 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
   @Override
   public ApplicationIdProvider getApplicationIdProvider() {
     return applicationIdProvider;
+  }
+
+  @Override
+  public ApkProvider getApkProvider() {
+    return apkProvider;
   }
 
   @Override
