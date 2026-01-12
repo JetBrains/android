@@ -195,11 +195,6 @@ public final class BlazeAndroidRunConfigurationRunner
           public ComponentLaunchOptions getComponentLaunchOptions() {
             return launchOptions;
           }
-
-          @Override
-          public Module getModule() {
-            return runConfig.getModules()[0];
-          }
         };
 
     AndroidConfigurationExecutor configurationExecutor;

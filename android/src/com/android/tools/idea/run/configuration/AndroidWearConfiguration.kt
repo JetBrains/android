@@ -125,7 +125,6 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
       val appRunSettings = object : AppRunSettings {
         override val deployOptions = this@AndroidWearConfiguration.deployOptions
         override val componentLaunchOptions = this@AndroidWearConfiguration.componentLaunchOptions
-        override val module = this@AndroidWearConfiguration.module
       }
       val deployer = ApplicationDeployerImpl(project, stats)
       val state = getExecutor(

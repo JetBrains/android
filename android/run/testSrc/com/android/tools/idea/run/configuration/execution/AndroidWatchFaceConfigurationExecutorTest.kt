@@ -100,7 +100,6 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
       override val componentLaunchOptions = WatchFaceLaunchOptions().apply {
         componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName
       }
-      override val module = myModule
     }
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
@@ -171,7 +170,6 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
       override val componentLaunchOptions = WatchFaceLaunchOptions().apply {
         componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName
       }
-      override val module = myModule
     }
 
     // Executor we test.
@@ -234,7 +232,6 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
       override val componentLaunchOptions = WatchFaceLaunchOptions().apply {
         componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName
       }
-      override val module = myModule
     }
 
     // Executor we test.
@@ -314,7 +311,6 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
       override val componentLaunchOptions = WatchFaceLaunchOptions().apply {
         componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName
       }
-      override val module = myModule
     }
 
     // Executor we test.
