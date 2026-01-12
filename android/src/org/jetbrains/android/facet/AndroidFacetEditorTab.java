@@ -17,6 +17,7 @@ package org.jetbrains.android.facet;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 
 import com.android.SdkConstants;
 import com.intellij.facet.ui.FacetEditorContext;
@@ -911,8 +912,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     }
     @SystemIndependent String moduleDirPath = AndroidRootUtil.getModuleDirPath(myContext.getModule());
     if (moduleDirPath == null) return null;
-    final String path = PathUtil.getCanonicalPath(new File(moduleDirPath, genRelativePath).getPath());
-    return path != null ? PathUtil.getLocalPath(path) : null;
+    String path = toCanonicalPath(new File(moduleDirPath, genRelativePath).getPath());
+    return PathUtil.getLocalPath(path);
   }
 
   private void createUIComponents() {
