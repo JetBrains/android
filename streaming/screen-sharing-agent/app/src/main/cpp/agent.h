@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "audio_streamer.h"
+#include "codec_info.h"
 #include "controller.h"
 #include "display_streamer.h"
 #include "session_environment.h"
