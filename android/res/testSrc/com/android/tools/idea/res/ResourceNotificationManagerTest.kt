@@ -26,6 +26,8 @@ import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.android.tools.idea.util.ReformatUtil
 import com.google.common.collect.ImmutableSet
+import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.Ref
@@ -42,10 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.assertNotNull
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -150,20 +149,20 @@ class ResourceNotificationManagerTest {
     // hasn't actually been looked up and rendered in a layout. In order to make sure
     // that that optimization doesn't kick in here, we need to look up the value of
     // the resource item first:
-    assertEquals(
-      "#ff0000",
-      configuration1
-        .getResourceResolver()
-        .getStyle(
-          com.android.ide.common.rendering.api.ResourceReference(
-            ResourceNamespace.RES_AUTO,
-            ResourceType.STYLE,
-            "AppTheme",
-          )
-        )!!
-        .getItem(ResourceNamespace.ANDROID, "colorBackground")!!
-        .getValue(),
-    )
+    assertThat(
+        configuration1
+          .getResourceResolver()
+          .getStyle(
+            com.android.ide.common.rendering.api.ResourceReference(
+              ResourceNamespace.RES_AUTO,
+              ResourceType.STYLE,
+              "AppTheme",
+            )
+          )!!
+          .getItem(ResourceNamespace.ANDROID, "colorBackground")!!
+          .getValue()
+      )
+      .isEqualTo("#ff0000")
     createValueResource(
       project,
       resourceDir,
@@ -182,10 +181,8 @@ class ResourceNotificationManagerTest {
     )
     clear(called1, calledValue1, called2, calledValue2)
     val tag = values1.document!!.rootTag!!.subTags[1].subTags[0]
-    assertEquals("item", tag.name)
-    WriteCommandAction.runWriteCommandAction(project) {
-      tag.value.setEscapedText("@color/color2")
-    }
+    assertThat(tag.name).isEqualTo("item")
+    WriteCommandAction.runWriteCommandAction(project) { tag.value.setEscapedText("@color/color2") }
     ensureCalled(
       called1,
       calledValue1,
@@ -193,8 +190,6 @@ class ResourceNotificationManagerTest {
       calledValue2,
       ResourceNotificationManager.Reason.RESOURCE_EDIT,
     )
-
-    /**  */
 
     // First check: Modify the layout by changing @string/hello to @string/hello_world
     // and verify that our listeners are called.
@@ -208,7 +203,7 @@ class ResourceNotificationManagerTest {
       ResourceNotificationManager.Reason.EDIT,
     )
     val version2 = manager.getCurrentVersion(facet, layout1, configuration1)
-    assertNotEquals(version1.toString(), version1, version2)
+    assertThat(version2).isNotEqualTo(version1)
 
     // Next check: Modify a <string> value definition in a values file
     // and check that those changes are flagged too
@@ -223,7 +218,7 @@ class ResourceNotificationManagerTest {
       ResourceNotificationManager.Reason.RESOURCE_EDIT,
     )
     val version4 = manager.getCurrentVersion(facet, layout1, configuration1)
-    assertNotEquals(version4.toString(), version3, version4)
+    assertThat(version4).isNotEqualTo(version3)
 
     // Next check: Modify content in a comment and verify that no changes are fired
     clear(called1, calledValue1, called2, calledValue2)
@@ -246,19 +241,19 @@ class ResourceNotificationManagerTest {
     // Check that editing text in a *values file* -does- have an effect
     // Read the value first to ensure that we trigger it as a read (see comment above for previous
     // resource resolver lookup).
-    assertEquals(
-      "Hello",
-      configuration1
-        .getResourceResolver()
-        .getResolvedResource(
-          com.android.ide.common.rendering.api.ResourceReference(
-            ResourceNamespace.RES_AUTO,
-            ResourceType.STRING,
-            "hello_world",
-          )
-        )!!
-        .getValue(),
-    )
+    assertThat(
+        configuration1
+          .getResourceResolver()
+          .getResolvedResource(
+            com.android.ide.common.rendering.api.ResourceReference(
+              ResourceNamespace.RES_AUTO,
+              ResourceType.STRING,
+              "hello_world",
+            )
+          )!!
+          .getValue()
+      )
+      .isEqualTo("Hello")
     // getResolvedResource
     addText(values1, "Hello^</string>", " World")
     ensureCalled(
@@ -526,10 +521,9 @@ class ResourceNotificationManagerTest {
     }
     waitForResourceRepositoryUpdates(module, 4, TimeUnit.SECONDS)
     UIUtil.dispatchAllInvocationEvents() // Dispatch notifications
-    assertFalse(
-      "Reformat of the vector should not have triggered a change",
-      resourcesHaveChanged.get(),
-    )
+    assertWithMessage("Reformat of the vector should not have triggered a change")
+      .that(resourcesHaveChanged.get())
+      .isFalse()
   }
 
   @Throws(InterruptedException::class, TimeoutException::class)
@@ -543,8 +537,8 @@ class ResourceNotificationManagerTest {
     waitForResourceRepositoryUpdates(module, 4, TimeUnit.SECONDS)
     UIUtil.dispatchAllInvocationEvents()
     waitForCondition(5, TimeUnit.SECONDS) { called1.get() && called2.get() }
-    assertEquals(EnumSet.of(reason), calledValue1.get())
-    assertEquals(EnumSet.of(reason), calledValue2.get())
+    assertThat(calledValue1.get()).isEqualTo(EnumSet.of(reason))
+    assertThat(calledValue2.get()).isEqualTo(EnumSet.of(reason))
   }
 
   @Throws(InterruptedException::class, TimeoutException::class)
@@ -553,8 +547,8 @@ class ResourceNotificationManagerTest {
     UIUtil.dispatchAllInvocationEvents()
     try {
       waitForCondition(5, TimeUnit.SECONDS) { called1.get() || called2.get() }
-      assertFalse(called1.get()!!)
-      assertFalse(called2.get()!!)
+      assertThat(called1.get()).isFalse()
+      assertThat(called2.get()).isFalse()
     } catch (_: TimeoutException) {}
   }
 
@@ -577,11 +571,12 @@ class ResourceNotificationManagerTest {
     // Insert a comment at the beginning
     WriteCommandAction.runWriteCommandAction(null) {
       val documentText = document.text
+      assertThat(location).contains("^")
       val delta = location.indexOf('^')
-      assertTrue("Missing ^ describing caret offset in text window $location", delta != -1)
+
       val target = location.substring(0, delta) + location.substring(delta + 1)
+      assertThat(documentText).contains(target)
       val offset = documentText.indexOf(target)
-      assertTrue("Could not find $target in $documentText", offset != -1)
 
       if (!text.isEmpty()) {
         if (length == 0) {
