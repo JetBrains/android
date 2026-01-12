@@ -32,7 +32,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildAndWait
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
@@ -41,9 +40,7 @@ import com.intellij.openapi.roots.ex.ProjectRootManagerEx
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.writeText
 import com.intellij.psi.PsiManager
-import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.workspaceModel.ide.impl.WorkspaceEntityLifecycleSupporterUtils
 import org.junit.Rule
 import org.junit.Test
 
@@ -73,30 +70,45 @@ class BuildListenerTest {
   }
 
   @Test
-  fun `re-open subscribe-at-opening no-build`() {
+  fun `open subscribe-at-opening no-build`() {
     val preparedTestProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    preparedTestProject.runTest {
-      // Do nothing.
-    }
-
-    collector.clear()
     preparedTestProject.runTest(onFirstContent = { project ->
       setupTestListener(
         buildTargetReferenceFromFile(project, preparedTestProject, "app/src/main/java/google/simpleapplication/MyActivity.java")
       )
     }) {
       runInEdtAndWait {
-        WorkspaceEntityLifecycleSupporterUtils.withAllEntitiesInWorkspaceFromProvidersDefinedOnEdt(project) {
-          assertThat(collectedEvents()).isEqualTo(
-            """
-          * firstSourceRootsAdded
-          * setupBuildListener
-          * syncSkipped
-          ->startedListening
-        """.trimIndent() // Note that `->startedListening` comes only after `* syncSkipped`.
-          )
-        }
+        assertThat(collectedEvents()).isEqualTo("""
+        * syncStarted
+        * firstSourceRootsAdded
+        * setupBuildListener
+        * syncSucceeded
+        ->startedListening
+      """.trimIndent()
+        )
       }
+    }
+  }
+
+  @Test
+  fun `re-open subscribe no-build`() {
+    val preparedTestProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedTestProject.runTest {
+      // Do nothing.
+    }
+
+    collector.clear()
+    preparedTestProject.runTest {
+      setupTestListener(buildTargetReference)
+
+      assertThat(collectedEvents()).isEqualTo(
+        """
+          * firstSourceRootsAdded
+          * syncSkipped
+          * setupBuildListener
+          ->startedListening
+        """.trimIndent()
+      )
     }
   }
 
