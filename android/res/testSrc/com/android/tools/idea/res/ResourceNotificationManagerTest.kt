@@ -39,9 +39,10 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import java.util.EnumSet
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.assertNotNull
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Assert.assertNotEquals
@@ -522,6 +523,8 @@ class ResourceNotificationManagerTest {
       .isFalse()
   }
 
+  private val waitForListenerDuration = 5.seconds
+
   private fun ensureCalled(
     called1: Ref<Boolean>,
     calledValue1: Ref<MutableSet<ResourceNotificationManager.Reason>>,
@@ -531,7 +534,7 @@ class ResourceNotificationManagerTest {
   ) {
     waitForResourceRepositoryUpdates(module, 4, TimeUnit.SECONDS)
     UIUtil.dispatchAllInvocationEvents()
-    waitForCondition(5, TimeUnit.SECONDS) { called1.get() && called2.get() }
+    waitForCondition(waitForListenerDuration) { called1.get() && called2.get() }
     assertThat(calledValue1.get()).isEqualTo(EnumSet.of(reason))
     assertThat(calledValue2.get()).isEqualTo(EnumSet.of(reason))
   }
@@ -539,11 +542,13 @@ class ResourceNotificationManagerTest {
   private fun ensureNotCalled(called1: Ref<Boolean>, called2: Ref<Boolean>) {
     waitForResourceRepositoryUpdates(module)
     UIUtil.dispatchAllInvocationEvents()
-    try {
-      waitForCondition(5, TimeUnit.SECONDS) { called1.get() || called2.get() }
-      assertThat(called1.get()).isFalse()
-      assertThat(called2.get()).isFalse()
-    } catch (_: TimeoutException) {}
+
+    // Wait the same amount of time that ensureCalled does, to make sure that the listeners were not
+    // called.
+    Thread.sleep(waitForListenerDuration.toJavaDuration())
+
+    assertThat(called1.get()).isFalse()
+    assertThat(called2.get()).isFalse()
   }
 
   private fun addText(file: PsiFile, location: String, insertedText: String) {
