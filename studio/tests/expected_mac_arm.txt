@@ -2374,6 +2374,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/org.eclipse.elk.graph-0.
 Android Studio Preview.app/Contents/plugins/android/lib/org.eclipse.emf.common-2.12.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/org.eclipse.emf.ecore-2.12.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/perfetto-protos.jar
+Android Studio Preview.app/Contents/plugins/android/lib/perfetto_android_protos.jar
 Android Studio Preview.app/Contents/plugins/android/lib/pixelprobe.jar
 Android Studio Preview.app/Contents/plugins/android/lib/play_vitals_kt_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/proto.jar
@@ -2391,6 +2392,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/shark-android-2.14.jar
 Android Studio Preview.app/Contents/plugins/android/lib/shark-graph-2.14.jar
 Android Studio Preview.app/Contents/plugins/android/lib/shark-hprof-2.14.jar
 Android Studio Preview.app/Contents/plugins/android/lib/shark-log-2.14.jar
+Android Studio Preview.app/Contents/plugins/android/lib/sherlock-plugin-protos.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-baksmali-3.0.9.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-dexlib2-3.0.9.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-util-3.0.9.jar
@@ -2762,6 +2764,7 @@ Android Studio Preview.app/Contents/plugins/android/resources/simpleperf/x86_64/
 Android Studio Preview.app/Contents/plugins/android/resources/threading_agent.jar
 Android Studio Preview.app/Contents/plugins/android/resources/trace_agent.jar
 Android Studio Preview.app/Contents/plugins/android/resources/trace_processor_daemon/trace_processor_daemon
+Android Studio Preview.app/Contents/plugins/android/resources/trace_processor_server/trace-processor
 Android Studio Preview.app/Contents/plugins/android/resources/transport/arm64-v8a/transport
 Android Studio Preview.app/Contents/plugins/android/resources/transport/armeabi-v7a/transport
 Android Studio Preview.app/Contents/plugins/android/resources/transport/native/agent/arm64-v8a/libjvmtiagent.so

@@ -55,6 +55,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/artwork:intellij.android.artwork",
         "//tools/adt/idea/native-symbolizer",
+        "//tools/profiler/common:sherlock.common",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/deploy:intellij.android.deploy",
         "//tools/adt/idea/android-transport:intellij.android.transport",

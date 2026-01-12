@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<idea-plugin>
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <extensions defaultExtensionNs="com.intellij">
     <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
     <!--JetBrains patch: use the Android-badged profiler icon to distinguish it from other profilers -->
@@ -125,4 +125,10 @@
     <listener class="com.android.tools.idea.profilers.AndroidProfilerRunWindowRestorerExecutionListener" topic="com.intellij.execution.ExecutionListener" />
     <listener class="com.android.tools.idea.profilers.ProfilerExecutionListener" topic="com.intellij.execution.ExecutionListener"/>
   </projectListeners>
+  <!-- /META-INF/studio-common.xml is a resource of the sherlock.common module, which the monorepo
+       does not carry and for which no artifact is published, so this include cannot be resolved and
+       would break loading of the plugin descriptor. It registers Sherlock's TextMeasurer
+       application service.
+  <xi:include href="/META-INF/studio-common.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  -->
 </idea-plugin>
