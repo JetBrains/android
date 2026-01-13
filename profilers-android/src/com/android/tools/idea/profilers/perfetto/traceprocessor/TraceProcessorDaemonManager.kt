@@ -24,6 +24,7 @@ import com.google.common.base.Ticker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.util.system.CpuArch;
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -70,7 +71,7 @@ class TraceProcessorDaemonManager(
           "prebuilts/tools/common/trace-processor-daemon/windows"
         }
         SystemInfo.isMac -> {
-          "prebuilts/tools/common/trace-processor-daemon/${if (SystemInfo.isAarch64) "darwin-arm64" else "darwin-x86_64"}"
+          "prebuilts/tools/common/trace-processor-daemon/${if (CpuArch.isArm64()) "darwin-arm64" else "darwin-x86_64"}"
         }
         SystemInfo.isLinux -> {
           "prebuilts/tools/common/trace-processor-daemon/linux"
