@@ -37,16 +37,16 @@ class JClass;
 class JObject {
 public:
   JObject() noexcept
-    : jni_env_(nullptr),
-      ref_(nullptr) {
+      : jni_env_(nullptr),
+        ref_(nullptr) {
   };
   JObject(JNIEnv* jni_env, jobject&& ref) noexcept
-    : jni_env_(jni_env),
-      ref_(ref) {
+      : jni_env_(jni_env),
+        ref_(ref) {
   }
   JObject(JObject&& other) noexcept
-    : jni_env_(other.jni_env_),
-      ref_(other.ref_) {
+      : jni_env_(other.jni_env_),
+        ref_(other.ref_) {
     other.ref_ = nullptr;
   }
   JObject(JNIEnv* jni_env, JObject&& other)
@@ -164,10 +164,10 @@ class JRef : public JObject {
 public:
   using JObject::JObject;
   JRef(JNIEnv* jni_env, Base&& ref)
-    : JObject(jni_env, ref) {
+      : JObject(jni_env, ref) {
   }
   explicit JRef(JObject&& other) noexcept
-    : JObject(std::move(other)) {
+      : JObject(std::move(other)) {
   }
 
   Wrapper& operator=(Wrapper&& other) noexcept {
