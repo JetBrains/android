@@ -52,12 +52,12 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.RuleChain
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -224,7 +224,9 @@ class LayoutInspectorRule(
 
   val adbRule = FakeAdbServerAdbLibRule()
   val adbFileProviderRule = AdbFileProviderRule(projectRule::project)
-  private val ruleChain = RuleChain.outerRule(adbRule).around(adbFileProviderRule)
+  private val provisionerServiceRule = DeviceProvisionerServiceCleanUpRule(projectRule::project)
+
+  private val ruleChain = RuleChain(adbRule, adbFileProviderRule, provisionerServiceRule)
 
   lateinit var inspector: LayoutInspector
     private set
