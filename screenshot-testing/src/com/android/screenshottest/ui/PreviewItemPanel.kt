@@ -22,6 +22,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ImageLoader
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.AsyncProcessIcon
@@ -40,7 +41,7 @@ import javax.swing.JPanel
 
 // Limits the maximum dimension (width or height) of the preview thumbnail
 // to ensure it fits within the list item layout without distorting the UI.
-private const val MAX_IMAGE_SIZE = 200
+private val MAX_IMAGE_SIZE: Int get() = JBUIScale.scale(200)
 
 /**
  * A UI panel that displays a single screenshot test preview image.
@@ -239,7 +240,7 @@ class PreviewItemPanel(
   private class ImagePanel : JPanel(GridBagLayout()) {
     private var image: JBImageIcon? = null
     private val loadingIcon = AsyncProcessIcon(WAITING_FOR_IMAGE_TEXT)
-    private val initialSize = Dimension(200, 200)
+    private val initialSize: Dimension get() = Dimension(MAX_IMAGE_SIZE, MAX_IMAGE_SIZE)
 
     init {
       // Set an initial fixed size for the loading state.
