@@ -43,10 +43,10 @@ public class ConsoleOutputFileSettingsUi<T extends RunConfigurationBase<?>>
 
   public ConsoleOutputFileSettingsUi() {
     outputFile.addBrowseFolderListener(
-        "Choose File to Save Console Output",
-        "Console output would be saved to the specified file",
         /* project= */ null,
-        FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor(),
+        FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
+          .withTitle("Choose File to Save Console Output")
+          .withDescription("Console output would be saved to the specified file"),
         TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT);
     saveToFile.addActionListener(e -> outputFile.setEnabled(uiEnabled && saveToFile.isSelected()));
   }
