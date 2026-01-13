@@ -23,7 +23,7 @@ import kotlin.math.ceil
 
 open class TestPositionableContent(
   override val organizationGroup: OrganizationGroup?,
-  private val size: Dimension = Dimension(0, 0),
+  private var size: Dimension = Dimension(0, 0),
 ) : PositionableContent {
   override val scale = 1.0
   override val x = 0
@@ -38,6 +38,10 @@ open class TestPositionableContent(
   override fun setLocation(x: Int, y: Int) {}
 
   override fun getMargin(scale: Double): Insets = Insets(0, 0, 0, 0)
+
+  fun setSize(newSize: Dimension) {
+    size = newSize
+  }
 }
 
 class HeaderTestPositionableContent(
