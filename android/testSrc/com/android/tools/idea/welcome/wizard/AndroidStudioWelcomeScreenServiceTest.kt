@@ -26,6 +26,7 @@ import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.config.InstallerData
 import com.android.tools.sdk.AndroidSdkData
+import com.intellij.openapi.ui.DoNotAskOption
 import com.intellij.openapi.ui.Messages
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
@@ -204,7 +205,7 @@ class AndroidStudioWelcomeScreenServiceTest {
               any(),
               any(),
               anyOrNull(),
-              anyOrNull(),
+              anyOrNull<DoNotAskOption>(),
             )
           )
           .thenReturn(1)
@@ -223,7 +224,7 @@ class AndroidStudioWelcomeScreenServiceTest {
             any(),
             any(),
             anyOrNull(),
-            anyOrNull(),
+            anyOrNull<DoNotAskOption>(),
           )
         }
       }
