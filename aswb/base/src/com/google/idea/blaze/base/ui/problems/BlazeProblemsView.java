@@ -117,7 +117,7 @@ public class BlazeProblemsView {
     }
     ToolWindow toolWindow =
         wm.registerToolWindow(toolWindowId, false, ToolWindowAnchor.BOTTOM, project, true);
-    Content content = ContentFactory.SERVICE.getInstance().createContent(panel, "", false);
+    Content content = ContentFactory.getInstance().createContent(panel, "", false);
     toolWindow.getContentManager().addContent(content);
     Disposer.register(project, () -> toolWindow.getContentManager().removeAllContents(true));
     updateIcon(panel);
