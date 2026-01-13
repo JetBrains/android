@@ -122,7 +122,7 @@ iml_test(
 )
 
 iml_test(
-    name = "PsdFetchGradleBuildModelsTest",
+    name = "PsdFetchGradleBuildModelsGroovyTest",
     timeout = "long",
     data = common_data,
     jvm_flags = ["-Didea.skip.indices.initialization=true"],
@@ -131,7 +131,20 @@ iml_test(
     # Commented out due to b/242358149
     # tags_mac = ["block-network"],
     tags_windows = ["block-network"],
-    test_class = "com.android.tools.idea.projectsystem.gradle.PsdFetchGradleBuildModelsTest",
+    test_class = "com.android.tools.idea.projectsystem.gradle.PsdFetchGradleBuildModelsGroovyTest",
+)
+
+iml_test(
+    name = "PsdFetchGradleBuildModelsKtsTest",
+    timeout = "long",
+    data = common_data,
+    jvm_flags = ["-Didea.skip.indices.initialization=true"],
+    module = ":intellij.android.projectSystem.integration.tests",
+    tags_linux = ["block-network"],
+    # Commented out due to b/242358149
+    # tags_mac = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.projectsystem.gradle.PsdFetchGradleBuildModelsKtsTest",
 )
 
 iml_test(
