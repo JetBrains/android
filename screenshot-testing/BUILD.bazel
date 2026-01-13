@@ -119,6 +119,7 @@ jvm_library(
     "//android/testartifacts",
     "//android/project-system-gradle:projectSystem-gradle",
     "//libraries/mockito",
+    "//libraries/guava",
     "//platform/execution",
     "//platform/external-system-impl:externalSystem-impl",
     "//platform/lang-api:lang",

@@ -35,6 +35,7 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.ExecutorService
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JPanel
@@ -48,9 +49,12 @@ private val MAX_IMAGE_SIZE: Int get() = JBUIScale.scale(200)
  */
 class PreviewItemPanel(
   val previewData: PreviewDetails,
-  private val showDetails: Boolean = true,
-  private val logger: Logger = Logger.getInstance(PreviewItemPanel::class.java)
+  showDetails: Boolean = true,
+  private val logger: Logger = Logger.getInstance(PreviewItemPanel::class.java),
+  private val appExecutorService: ExecutorService = AppExecutorUtil.getAppExecutorService(),
+  private val createImageIcon: PreviewItemPanel.(String)->JBImageIcon? = PreviewItemPanel::createImageIconImpl,
 ) : JPanel() {
+  private var currentImagePath: String = ""
   private val imagePanel: ImagePanel
   var isLoadedSuccessfully: Boolean = false
     private set
@@ -166,7 +170,12 @@ class PreviewItemPanel(
       previewData.srcImagePath?.let { _sourceImageToCopy[it] = simpleClassName }
     }
 
-    AppExecutorUtil.getAppExecutorService().submit {
+    if (currentImagePath == newPath) {
+      return
+    }
+    currentImagePath = newPath
+
+    appExecutorService.submit {
       val image = createImageIcon(newPath)
 
       ApplicationManager.getApplication().invokeLater {
@@ -186,7 +195,7 @@ class PreviewItemPanel(
     }
   }
 
-  private fun createImageIcon(path: String): JBImageIcon? {
+  private fun createImageIconImpl(path: String): JBImageIcon? {
     val ioFile = File(path)
     if (!ioFile.exists()) {
       logger.warn("Image file not found. Path: $path")

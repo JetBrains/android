@@ -18,6 +18,7 @@ package com.android.screenshottest.ui
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotViewType
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBLabel
@@ -26,11 +27,16 @@ import org.junit.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Container
+import org.junit.rules.TemporaryFolder
+import org.mockito.Mockito.mock
 
 class PreviewItemPanelTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
+
+  @get:Rule
+  var temporaryFolder = TemporaryFolder()
 
   @Test
   fun verifyInitialization() = runInEdtAndWait {
@@ -157,6 +163,50 @@ class PreviewItemPanelTest {
 
     val label = findLabel(panel)
     assertEquals("No Reference Image", label?.text)
+  }
+
+  @Test
+  fun verifyImageLoadIsCached() = runInEdtAndWait {
+    var imageCreationCount = 0
+
+    val srcPath = temporaryFolder.newFile("image.png").absolutePath
+    val diffPath = temporaryFolder.newFile("diff.png").absolutePath
+    val details = PreviewDetails(
+      testId = "test.id",
+      className = "TestClass",
+      methodName = "testMethod",
+      previewName = "preview",
+      testResult = AndroidTestCaseResult.FAILED,
+      srcImagePath = srcPath,
+      diffImagePath = diffPath
+    )
+
+    val panel = PreviewItemPanel(
+      previewData = details,
+      appExecutorService = MoreExecutors.newDirectExecutorService(),
+      createImageIcon = { _ ->
+        imageCreationCount++
+        mock()
+      }
+    )
+
+    panel.showImageForView(ScreenshotViewType.NEW)
+
+    assertEquals("First load should trigger image creation", 1, imageCreationCount)
+
+    // We request the SAME path. The 'if (current == new)' check should prevent execution.
+    panel.showImageForView(ScreenshotViewType.NEW)
+
+    assertEquals(
+      "Subsequent load for same path should be skipped (Cached)",
+      1,
+      imageCreationCount
+    )
+
+    // Switch to DIFF view (different path)
+    panel.showImageForView(ScreenshotViewType.DIFF)
+
+    assertEquals("Changing the path should trigger new load", 2, imageCreationCount)
   }
 
   private fun findLabel(container: Container): JBLabel? {
