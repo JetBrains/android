@@ -30,15 +30,13 @@ import javax.swing.JComponent
  *
  * If wrapped, [content] is unwrapped on disposal.
  */
-class WrapLogic(
-  parentDisposable: Disposable,
-  private val content: JComponent,
-  private val container: Container,
-) : Disposable {
+class WrapLogic(parentDisposable: Disposable, private val content: JComponent) : Disposable {
   private var wrapper: JComponent? = null
+  private val container: Container
 
   init {
     Disposer.register(parentDisposable, this)
+    container = content.parent
   }
 
   /**

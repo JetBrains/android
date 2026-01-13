@@ -34,12 +34,10 @@ import kotlinx.coroutines.flow.asStateFlow
  * For this reason they should not be kept around if they don't belong to the selected tab.
  *
  * @param tabContentPanel The component containing the main content of the tab (the display).
- * @param tabContentPanelContainer The container of [tabContentPanel].
  */
 class TabComponents(
   val disposable: Disposable,
   val tabContentPanel: JComponent,
-  val tabContentPanelContainer: Container,
   private val displayOwner: DisplayOwner,
 ) : Disposable {
 

@@ -48,6 +48,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import java.awt.Component
 import java.awt.Container
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 import kotlin.time.Duration.Companion.seconds
 
 /** Proxy used to avoid exposing the entire [LayoutInspectorSettings]. */
@@ -140,6 +141,8 @@ inline fun <reified T : LayoutInspectorRenderer> verifyUiInjected(
   container: Container,
   displays: List<AbstractDisplayView>,
 ) {
+  assertThat(SwingUtilities.isDescendingFrom(content, container)).isTrue()
+
   val workbench =
     when (uiConfig) {
       UiConfig.HORIZONTAL -> {
@@ -268,6 +271,8 @@ fun findSplitter(content: Component): Splitter? =
   }
 
 fun verifyUiRemoved(content: Component, container: Container, displays: List<AbstractDisplayView>) {
+  assertThat(SwingUtilities.isDescendingFrom(content, container)).isTrue()
+
   assertThat(content.allParents().filterIsInstance<Splitter>()).hasSize(0)
   assertThat(content.allParents().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(0)
   assertThat(container.allChildren().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(0)

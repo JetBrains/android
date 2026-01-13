@@ -164,12 +164,7 @@ data class SelectedTabState(
   private fun wrapUi(uiConfig: UiConfig) {
     PropertiesComponent.getInstance().setValue(UI_CONFIGURATION_KEY, uiConfig.name)
 
-    wrapLogic =
-      WrapLogic(
-        parentDisposable = this,
-        content = tabComponents.tabContentPanel,
-        container = tabComponents.tabContentPanelContainer,
-      )
+    wrapLogic = WrapLogic(parentDisposable = this, content = tabComponents.tabContentPanel)
 
     wrapLogic?.wrapContent { disposable, component ->
       val processPicker =
@@ -261,8 +256,8 @@ data class SelectedTabState(
 
     layoutInspector.processModel?.removeSelectedProcessListener(selectedProcessListener)
 
-    tabComponents.tabContentPanelContainer.revalidate()
-    tabComponents.tabContentPanelContainer.repaint()
+    tabComponents.tabContentPanel.revalidate()
+    tabComponents.tabContentPanel.repaint()
   }
 
   private val selectedProcessListener = {

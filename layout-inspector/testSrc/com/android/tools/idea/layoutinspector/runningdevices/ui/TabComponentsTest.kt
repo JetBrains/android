@@ -82,7 +82,6 @@ class TabComponentsTest {
     return TabComponents(
       disposable = displayViewRule.disposable,
       tabContentPanel = content,
-      tabContentPanelContainer = container,
       displayOwner =
         object : DisplayOwner {
           override fun addDeviceDisplayListener(listener: DeviceDisplayListener) {
