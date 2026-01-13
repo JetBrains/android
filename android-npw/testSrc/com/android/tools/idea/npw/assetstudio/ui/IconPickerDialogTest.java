@@ -20,9 +20,13 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.tools.idea.material.icons.common.MaterialIconsMetadataUrlProvider;
 import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider;
+import com.intellij.ide.DataManager;
+import com.intellij.ide.impl.HeadlessDataManager;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.testFramework.LightPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.ui.SearchTextField;
 import com.intellij.util.WaitFor;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
@@ -156,6 +160,19 @@ public class IconPickerDialogTest extends LightPlatformTestCase {
       stylesString.toString()
     );
 
+
+    dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
+  }
+
+  public void testSearchFieldConfiguredInPanelContext() {
+    HeadlessDataManager.fallbackToProductionDataManager(getTestRootDisposable());
+
+    IconPickerDialog dialog = getInitializedIconPickerDialog();
+    JComponent centerPanel = dialog.createCenterPanel();
+    DataContext context = DataManager.getInstance().getDataContext(centerPanel);
+    SearchTextField providedField = context.getData(SearchTextField.KEY);
+
+    assertThat(providedField).isNotNull();
 
     dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
   }

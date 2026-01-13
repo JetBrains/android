@@ -23,10 +23,10 @@ import com.android.tools.idea.material.icons.MaterialVdIcons;
 import com.android.tools.idea.material.icons.common.MaterialIconsMetadataUrlProvider;
 import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.DataSink;
+import com.intellij.openapi.actionSystem.UiDataProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
@@ -73,7 +73,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * A dialog to pick a pre-configured material icon in vector format.
  */
-public final class IconPickerDialog extends DialogWrapper implements DataProvider {
+public final class IconPickerDialog extends DialogWrapper {
   private static class Style {
     private final String myName;
     private final String myDisplayName;
@@ -259,7 +259,6 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     myIconTable.setColumnSelectionInterval(0, 0);
     myIconTable.requestFocusInWindow();
 
-    DataManager.registerDataProvider(myContentPanel, this);
     AnAction action = ActionManager.getInstance().getAction(ACTION_FIND);
     if (action != null) {
       new SearchTextField.FindAction().registerCustomShortcutSet(action.getShortcutSet(), getRootPane(), myDisposable);
@@ -487,12 +486,6 @@ false);
     return myContentPanel;
   }
 
-  @Override
-  @Nullable
-  public Object getData(@NotNull String dataId) {
-    return SearchTextField.KEY.is(dataId) ? mySearchField : null;
-  }
-
   @TestOnly
   boolean isBusy() {
     return isBusy.get();
@@ -500,8 +493,9 @@ false);
 
   private void setupUI() {
     createUIComponents();
-    myContentPanel = new JPanel();
+    myContentPanel = new SearchFieldProviderPanel(mySearchField);
     myContentPanel.setLayout(new BorderLayout(20, 10));
+
     final JPanel panel1 = new JPanel();
     panel1.setLayout(new GridBagLayout());
     myContentPanel.add(panel1, BorderLayout.NORTH);
@@ -543,5 +537,19 @@ false);
                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                            null, null, null, 0, false));
+  }
+
+  private static class SearchFieldProviderPanel extends JPanel implements UiDataProvider {
+    private final SearchTextField mySearchField;
+
+    SearchFieldProviderPanel(@NotNull SearchTextField searchField) {
+      super();
+      mySearchField = searchField;
+    }
+
+    @Override
+    public void uiDataSnapshot(@NotNull DataSink sink) {
+      sink.set(SearchTextField.KEY, mySearchField);
+    }
   }
 }
