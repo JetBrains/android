@@ -21,13 +21,10 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import org.junit.Rule
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
-class PsdFetchGradleBuildModelsTest {
-  private val testProjectPath = "tools/adt/idea/project-system-integration-tests/testData/ktsprojectapp"
-  private val testRepoManifest = "tools/adt/idea/project-system-integration-tests/ktsprojectapp_deps.manifest"
+open class PsdFetchGradleBuildModelsTestBase {
   private val gradleModelsTimeoutSeconds: Long = 60
 
   @JvmField
@@ -38,8 +35,7 @@ class PsdFetchGradleBuildModelsTest {
   @Rule
   var watcher = MemoryDashboardNameProviderWatcher()
 
-  @Test
-  fun `Fetch Gradle models when PSD is opened`() {
+  fun verifyPsdFetchesGradleModels(testProjectPath: String, testRepoManifest: String) {
     val project = AndroidProject(testProjectPath)
     system.installRepo(MavenRepo(testRepoManifest))
 
