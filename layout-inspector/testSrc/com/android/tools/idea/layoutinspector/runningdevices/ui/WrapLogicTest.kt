@@ -35,7 +35,7 @@ class WrapLogicTest {
 
     originalContainer.add(component)
 
-    val wrapLogic = WrapLogic(disposableRule.disposable, component, originalContainer)
+    val wrapLogic = WrapLogic(disposableRule.disposable, component)
 
     wrapLogic.wrapContent { disposable, component ->
       newContainer.add(component)
@@ -65,7 +65,7 @@ class WrapLogicTest {
 
     originalContainer.add(component)
 
-    val wrapLogic = WrapLogic(disposableRule.disposable, component, originalContainer)
+    val wrapLogic = WrapLogic(disposableRule.disposable, component)
 
     wrapLogic.wrapContent { disposable, component ->
       newContainer.add(component)
@@ -91,7 +91,7 @@ class WrapLogicTest {
 
     originalContainer.add(component)
 
-    val wrapLogic = WrapLogic(disposableRule.disposable, component, originalContainer)
+    val wrapLogic = WrapLogic(disposableRule.disposable, component)
     // Should not throw
     Disposer.dispose(wrapLogic)
   }
