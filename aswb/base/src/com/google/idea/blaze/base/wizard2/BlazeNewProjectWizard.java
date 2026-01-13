@@ -17,15 +17,11 @@ package com.google.idea.blaze.base.wizard2;
 
 import com.google.idea.blaze.base.help.BlazeHelpHandler;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.intellij.ide.util.projectWizard.ProjectBuilder;
-import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.CancelledConfigurationException;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.DumbModePermission;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
@@ -106,8 +102,7 @@ public abstract class BlazeNewProjectWizard extends AbstractWizard<ProjectImport
   @Override
   protected final void doOKAction() {
     final Ref<Boolean> result = Ref.create(false);
-    DumbService.allowStartingDumbModeInside(
-        DumbModePermission.MAY_START_BACKGROUND, () -> result.set(doFinishAction()));
+    result.set(doFinishAction());
     if (!result.get()) {
       return;
     }
