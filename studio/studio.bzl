@@ -78,6 +78,9 @@ type_channel_mappings = {
     "Stable": "Stable",
 }
 
+def _lnzipper_resources(_os, _num_inputs):
+    return {"cpu": 16, "memory": 4096}
+
 def _zipper(ctx, desc, map, out, deps = []):
     files = [f for (p, f) in map if f]
     zipper_files = [r + "=" + (f.path if f else "") + "\n" for r, f in map]
@@ -121,6 +124,7 @@ def _lnzipper(ctx, desc, filemap, out, keep_symlink = True, attrs = {}, deps = [
         outputs = [out],
         executable = ctx.executable._lnzipper,
         execution_requirements = {"no-sandbox": "true", "no-remote": "true", "cpu:16": ""},
+        resource_set = _lnzipper_resources,
         arguments = args,
         progress_message = "lnzipping %s" % desc,
         mnemonic = "lnzipper",
