@@ -222,7 +222,6 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       TabComponents(
         disposable = selectedTabContent,
         tabContentPanel = streamingContentPanel,
-        tabContentPanelContainer = streamingContentPanel.parent,
         displayOwner = streamingDevicePanel as DisplayOwner,
       )
 
