@@ -25,6 +25,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DoNotAskOption
 import com.intellij.openapi.ui.Messages
 import java.util.concurrent.CancellationException
 
@@ -65,7 +66,8 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
         """.trimMargin(),
         confirmationDialogHeader,
         arrayOf("Run Builds", Messages.getCancelButton()), 0,
-        Messages.getInformationIcon(), null
+        Messages.getInformationIcon(),
+        null as DoNotAskOption? // Disambiguate to use the non-deprecated overload
       )
       if (confirmationResult == Messages.OK) {
         scheduleRebuildWithCCOptionAndRunOnSuccess(originalBuildRequestData, firstBuild = true, onBuildFailure = this::showFailureMessage) {
@@ -111,7 +113,8 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
         message,
         confirmationDialogHeader,
         arrayOf("Enable Configuration Cache", Messages.getCancelButton()), 0,
-        Messages.getInformationIcon(), null
+        Messages.getInformationIcon(),
+        null as DoNotAskOption? // Disambiguate to use the non-deprecated overload
       )
       if (confirmationResult == Messages.OK) {
         StudioProvidedInfo.turnOnConfigurationCacheInProperties(project, originalBuildRequestData, isFeatureConsideredStable)
@@ -161,7 +164,8 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
           "Build was cancelled.",
           confirmationDialogHeader,
           arrayOf(Messages.getOkButton()), 0,
-          Messages.getInformationIcon(), null
+          Messages.getInformationIcon(),
+          null as DoNotAskOption? // Disambiguate to use the non-deprecated overload
         )
       }
       //TODO (b/186203445): we have configuration cache exception with a detailed message and a link to the html report inside.
@@ -171,7 +175,8 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
         "Build failed. Please, check build output for a detailed report of incompatibilities detected by Gradle.",
         confirmationDialogHeader,
         arrayOf(Messages.getOkButton()), 0,
-        Messages.getErrorIcon(), null
+        Messages.getErrorIcon(),
+        null as DoNotAskOption? // Disambiguate to use the non-deprecated overload
       )
     }
   }

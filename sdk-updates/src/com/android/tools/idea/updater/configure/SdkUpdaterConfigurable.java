@@ -50,6 +50,7 @@ import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DoNotAskOption;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
@@ -373,7 +374,15 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     Icon icon = AllIcons.General.Warning;
 
     // I would use showOkCancelDialog but Mac sheet panels do not gracefully handle long messages and their buttons can display off-screen
-    return Messages.showIdeaMessageDialog(null, message.getHtml(), "Confirm Change", options, 1, icon, null) == 1;
+    return Messages.showIdeaMessageDialog(
+      null,
+      message.getHtml(),
+      "Confirm Change",
+      options,
+      1,
+      icon,
+      (DoNotAskOption)null // Disambiguate to use the non-deprecated overload
+    ) == 1;
   }
 
   @Override
