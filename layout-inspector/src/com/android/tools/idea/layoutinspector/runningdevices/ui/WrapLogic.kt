@@ -22,6 +22,7 @@ import java.awt.Component
 import java.awt.Container
 import java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager
 import javax.swing.JComponent
+import javax.swing.SwingUtilities
 
 /**
  * Class used to wrap and unwrap [content] inside another component. When unwrapped, [container] is
@@ -55,6 +56,7 @@ class WrapLogic(parentDisposable: Disposable, private val content: JComponent) :
     val focusOwner = content.getContainedFocusOwner()
     container.remove(index)
     wrapper = wrap(this, content)
+    assert(SwingUtilities.isDescendingFrom(content, wrapper))
     container.add(wrapper, index)
     focusOwner?.requestFocusInWindow()
   }
