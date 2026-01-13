@@ -375,6 +375,70 @@ class LayoutInspectorToolWindowFactoryTest {
 
     assertThat(notificationModel.notifications).isEmpty()
   }
+
+  @Test
+  fun testEmbeddedLayoutInspectorSwitchRemovesBanner() {
+    val originalService =
+      ApplicationManager.getApplication().getService(ShowSettingsUtil::class.java)
+    val mockService = mock<ShowSettingsUtil>()
+    ApplicationManager.getApplication()
+      .replaceService(ShowSettingsUtil::class.java, mockService, projectRule.testRootDisposable)
+
+    // Ensure we start with embedded inspector disabled
+    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = false
+    try {
+      val notificationModel = NotificationModel(projectRule.project)
+
+      val testScheduler = TestCoroutineScheduler()
+      val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
+
+      var activateEmbeddedLiInvocationsCounter = 0
+      showEmbeddedLayoutInspectorBanner(
+        project = projectRule.project,
+        notificationModel = notificationModel,
+        scope = scope,
+        shouldShowBanner = { true },
+        setShouldShowBanner = {},
+        activateEmbeddedLayoutInspector = { activateEmbeddedLiInvocationsCounter += 1 },
+      )
+
+      whenever(
+          mockService.showSettingsDialog(
+            eq(projectRule.project),
+            eq(LayoutInspectorConfigurable::class.java),
+          )
+        )
+        .then {
+          // Wait for the coroutine to start listening to embeddedLayoutInspectorChanges
+          testScheduler.advanceUntilIdle()
+          // Simulate the user enabling the setting in the ui
+          LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = true
+        }
+
+      val notification = notificationModel.notifications.first()
+      assertThat(notification.id).isEqualTo(BANNER_STRING_ID)
+
+      val enableAction =
+        notification.actions.find { it.name == LayoutInspectorBundle.message("enable") }
+      enableAction!!.invoke(notification)
+      testScheduler.advanceUntilIdle()
+
+      verify(mockService)
+        .showSettingsDialog(eq(projectRule.project), eq(LayoutInspectorConfigurable::class.java))
+      waitForCondition(10.seconds) { activateEmbeddedLiInvocationsCounter == 1 }
+
+      // The notification should be removed after enabling
+      assertThat(notificationModel.notifications).isEmpty()
+    } finally {
+      LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = false
+      ApplicationManager.getApplication()
+        .replaceService(
+          ShowSettingsUtil::class.java,
+          originalService,
+          projectRule.testRootDisposable,
+        )
+    }
+  }
 }
 
 @Ignore("b/205981893")

@@ -356,7 +356,7 @@ constructor(
           """
           <b>Layout Inspection</b> is running in the background.<br>
           You can either <a href="stop">stop</a> it, or leave it running and resume your session later.
-        """
+          """
             .trimIndent(),
           null,
         ) { hyperlinkEvent ->
@@ -407,12 +407,13 @@ fun showEmbeddedLayoutInspectorBanner(
           setShouldShowBanner(false)
           notificationModel.removeNotification(notification.id)
         },
-        StatusNotificationAction(LayoutInspectorBundle.message("enable")) {
+        StatusNotificationAction(LayoutInspectorBundle.message("enable")) { notification ->
           // launch the coroutine first, since showSettingsDialog is blocking
           scope.launch {
             val settings = LayoutInspectorSettings.getInstance()
             settings.embeddedLayoutInspectorChanges.collect { enabled ->
               if (enabled == true) {
+                notificationModel.removeNotification(notification.id)
                 // if embedded LI is enabled, activate running devices toolbar
                 withContext(Dispatchers.EDT) { activateEmbeddedLayoutInspector(project) }
               }
