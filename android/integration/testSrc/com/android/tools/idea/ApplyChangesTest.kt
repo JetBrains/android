@@ -67,7 +67,7 @@ class ApplyChangesTest {
           val xmlPath = project.targetProject.resolve("src/main/res/values/strings.xml")
           studio.openFile("ApplyChangesTest", xmlPath.toString())
 
-          studio.executeAction("MakeGradleProject")
+          studio.executeActionWhenSmart("MakeGradleProject")
           studio.waitForBuild()
           studio.executeAction("Run")
 
