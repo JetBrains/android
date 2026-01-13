@@ -30,6 +30,8 @@ import java.awt.Dimension
 import java.awt.Point
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import org.junit.Test
 
@@ -540,6 +542,59 @@ class GridLayoutManagerTest {
     // content we could have wider groups than others.
     // It's important that width is still within the available space
     assertTrue(fitScaleSize.width < availableSize.width)
+  }
+
+  @Test
+  fun testCacheUpdatedOnContentAndSizeChange() {
+    val manager = createGridLayoutManager()
+
+    // Given a content that is not organized, and it should show as a grid.
+    val contents =
+      mutableListOf<PositionableContent>(
+        TestPositionableContent(null, Dimension(400, 400)),
+        TestPositionableContent(null, Dimension(1400, 500)),
+        TestPositionableContent(null, Dimension(600, 1000)),
+        TestPositionableContent(null, Dimension(400, 500)),
+        TestPositionableContent(null, Dimension(400, 800)),
+        TestPositionableContent(null, Dimension(400, 500)),
+        TestPositionableContent(null, Dimension(600, 1000)),
+        TestPositionableContent(null, Dimension(400, 500)),
+      )
+
+    assertNull(manager.getCurrentCachedSizeForTestOnly())
+
+    val firstNewSize =
+      manager.getSize(content = contents, scaleFunc = { scale }, availableWidth = 800)
+
+    val cachedSizeAfterFirstGetSize = manager.getCurrentCachedSizeForTestOnly()
+    assertEquals(firstNewSize, cachedSizeAfterFirstGetSize)
+
+    // Check cache updates after availableWidth update
+    val newSizeAfterWidthChange =
+      manager.getSize(content = contents, scaleFunc = { scale }, availableWidth = 700)
+    val cachedSizeAfterWidthChange = manager.getCurrentCachedSizeForTestOnly()
+
+    // The cache has been updated
+    assertNotEquals(cachedSizeAfterFirstGetSize, cachedSizeAfterWidthChange)
+    assertEquals(newSizeAfterWidthChange, cachedSizeAfterWidthChange)
+
+    // Check cache updates after content update
+    (contents.first() as TestPositionableContent).setSize(Dimension(10000, 10000))
+    val newSizeAfterContentUpdate =
+      manager.getSize(content = contents, scaleFunc = { scale }, availableWidth = 700)
+    val cachedSizeAfterContentUpdate = manager.getCurrentCachedSizeForTestOnly()
+
+    // The cache has been updated
+    assertNotEquals(cachedSizeAfterWidthChange, cachedSizeAfterContentUpdate)
+    assertEquals(newSizeAfterContentUpdate, cachedSizeAfterContentUpdate)
+
+    // Call getSize with the same values
+    val cachedSize =
+      manager.getSize(content = contents, scaleFunc = { scale }, availableWidth = 700)
+    // CachedSize returns the same object of the previously cached value because no cache has been
+    // updated
+    assertSame(cachedSize, cachedSizeAfterContentUpdate)
+    assertSame(cachedSizeAfterContentUpdate, manager.getCurrentCachedSizeForTestOnly())
   }
 
   private fun createGroups(): List<PositionableGroup> {

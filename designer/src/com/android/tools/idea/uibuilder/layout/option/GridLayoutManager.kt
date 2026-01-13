@@ -35,6 +35,7 @@ import com.intellij.ui.scale.JBUIScale
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -48,6 +49,8 @@ open class GridLayoutManager(
   private val padding: OrganizationPadding = DEFAULT_LAYOUT_PADDING,
   val transform: (Collection<PositionableContent>) -> List<PositionableGroup> = NO_GROUP_TRANSFORM,
 ) : SurfaceLayoutManager {
+
+  private var storedSurfaceSizes: StoredSurfaceSizes? = null
 
   override fun getRequiredSize(
     content: Collection<PositionableContent>,
@@ -69,7 +72,23 @@ open class GridLayoutManager(
     scaleFunc: PositionableContent.() -> Double,
     availableWidth: Int,
   ): Dimension {
-    return calculateSize(content = content, scaleFunc = scaleFunc, availableWidth = availableWidth)
+    // PositionableContent.contentSize is mutable. Create a defensive copy of the dimensions to
+    // avoid side effects.
+    val newContentSizes = content.map { Dimension(it.contentSize.width, it.contentSize.height) }
+    // Check if there is a cached size already, if so, returns the cached size if the input
+    // parameters match the previous calculation.
+    storedSurfaceSizes?.let {
+      (storedPositionableContentSize, storedAvailableWidth, storedCalculatedSize) ->
+      if (
+        storedPositionableContentSize == newContentSizes && storedAvailableWidth == availableWidth
+      ) {
+        return storedCalculatedSize
+      }
+    }
+    // Otherwise, we call [calculateSize] and we update [storedSurfaceSizes].
+    val newSize = calculateSize(content, scaleFunc, availableWidth)
+    storedSurfaceSizes = StoredSurfaceSizes(newContentSizes, availableWidth, newSize)
+    return newSize
   }
 
   private fun calculateSize(
@@ -425,4 +444,21 @@ open class GridLayoutManager(
   /** @return [NlConstants.RESIZING_HOVERING_SIZE] if [containsResizableContent], 0 otherwsie */
   private fun getResizableHoveringArea(): Int =
     NlConstants.RESIZING_HOVERING_SIZE.takeIf { containsResizableContent } ?: 0
+
+  /**
+   * Class used to store the [PositionableContent]s sizes and [DesignSurface]s available width used
+   * to check if we should update [currentCachedSize]
+   *
+   * @property contentSize The collection of [PositionableContent.contentSize] to be laid out.
+   * @property availableWidth The available width to show the content in the layout.
+   * @property cachedCalculatedSize The stored result of [calculateSize] call given [contentSize]
+   *   and [availableWidth].
+   */
+  private data class StoredSurfaceSizes(
+    val contentSize: Collection<Dimension>,
+    val availableWidth: Int,
+    val cachedCalculatedSize: Dimension,
+  )
+
+  @TestOnly fun getCurrentCachedSizeForTestOnly() = storedSurfaceSizes?.cachedCalculatedSize
 }
