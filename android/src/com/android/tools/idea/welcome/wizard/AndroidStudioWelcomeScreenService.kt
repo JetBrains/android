@@ -26,6 +26,7 @@ import com.android.tools.idea.welcome.config.installerData
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.ui.DoNotAskOption
 import com.intellij.openapi.ui.Messages
 import com.intellij.util.net.HttpConnectionUtils
 import com.intellij.util.net.HttpProxyConfigurable
@@ -153,7 +154,7 @@ class AndroidStudioWelcomeScreenService {
         arrayOf("Setup Proxy", "Cancel"),
         1,
         Messages.getErrorIcon(),
-        null,
+        null as DoNotAskOption?, // Disambiguate to use the non-deprecated overload
       )
     val showSetupProxy = selection == 0
     if (showSetupProxy) {
