@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.ui;
 
 import com.intellij.ide.util.BrowseFilesListener;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.TextComponentAccessors;
 import com.intellij.openapi.util.text.StringUtil;
@@ -35,11 +36,9 @@ public class FileSelectorWithStoredHistory
     super(textField, null);
 
     addBrowseFolderListener(
-        title,
-        "",
-        null,
-        BrowseFilesListener.SINGLE_FILE_DESCRIPTOR,
-        TextComponentAccessors.TEXT_FIELD_WITH_STORED_HISTORY_WHOLE_TEXT);
+      null,
+      FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withTitle(title),
+      TextComponentAccessors.TEXT_FIELD_WITH_STORED_HISTORY_WHOLE_TEXT);
   }
 
   /** Set the text without altering the history. */

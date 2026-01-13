@@ -161,12 +161,9 @@ public final class BlazeEditProjectViewControl {
     projectDataDirField = new TextFieldWithBrowseButton();
     projectDataDirField.setName("project-data-dir-field");
     projectDataDirField.addBrowseFolderListener(
-        "",
-        buildSystemName + " project data directory",
         null,
-        PROJECT_FOLDER_DESCRIPTOR,
-        TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT,
-        false);
+        PROJECT_FOLDER_DESCRIPTOR.withDescription(buildSystemName + " project data directory"),
+        TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT);
     final String dataDirToolTipText = "Directory in which to store the project's metadata.";
     projectDataDirField.setToolTipText(dataDirToolTipText);
     projectDataDirLabel.setToolTipText(dataDirToolTipText);
