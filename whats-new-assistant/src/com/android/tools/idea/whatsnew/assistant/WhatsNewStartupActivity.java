@@ -18,7 +18,9 @@ package com.android.tools.idea.whatsnew.assistant;
 import com.android.repository.Revision;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.GuiTestingService;
+import com.android.tools.idea.util.OpenStudioBotOnFirstStart;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ApplicationInfo;
@@ -49,7 +51,8 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
     }
 
     // b/428227953: Hide in Android Studio Cloud, where the Gemini tool window takes priority.
-    if (System.getenv("GOOGLE_CLOUD_WORKSTATIONS") != null) {
+    // TODO(b/475565083): temporarily do the above for all of Studio
+    if (System.getenv("GOOGLE_CLOUD_WORKSTATIONS") != null || OpenStudioBotOnFirstStart.shouldShow()) {
       return;
     }
 

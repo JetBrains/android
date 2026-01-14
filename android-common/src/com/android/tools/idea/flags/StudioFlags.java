@@ -2777,6 +2777,12 @@ public final class StudioFlags {
                     "Enable AICode integration",
                     "Enable AICode backend integration to be used for agent, code transform and code completion");
 
+  public static final Flag<Boolean> STUDIOBOT_SHOW_ON_FIRST_OPEN =
+    new BooleanFlag(STUDIOBOT,
+                    "show.on.first.open",
+                    "Open Studio Bot tool window on first launch",
+                    "Automatically open Studio Bot tool window on first Studio launch");
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI

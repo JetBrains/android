@@ -252,6 +252,7 @@ studiobot.regenerate.chat.request.button.enabled=PREVIEW
 studiobot.remote.models.enabled=COMPLETE:2025
 studiobot.replace.text.tool.enabled=INTERNAL
 studiobot.shell.tool=INTERNAL
+studiobot.show.on.first.open=PREVIEW
 studiobot.show.shimmer.placeholder=PREVIEW
 studiobot.show.thoughts=PREVIEW
 studiobot.skills.enabled=INTERNAL
