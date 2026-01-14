@@ -92,6 +92,43 @@ class UpdateScreenshotTestResultsListenerTest {
   }
 
   /**
+   * Verifies that the listener correctly cleans the preview name from raw artifacts.
+   */
+  @Test
+  fun testOnTestCaseFinished_cleansPreviewName() {
+    val dialog = mock(UpdateReferenceImagesDialog::class.java)
+    val listener = UpdateScreenshotTestResultsListener(dialog)
+    val mockDevice = mock(AndroidDevice::class.java)
+    val mockSuite = mock(AndroidTestSuite::class.java)
+
+    val artifacts = mutableMapOf(
+        "PreviewScreenshot.methodName" to "testMethod",
+        "PreviewScreenshot.previewName" to "[{provider=com.example.MyProvider}]",
+        "PreviewScreenshot.refImagePath" to "/path/to/ref.png"
+    )
+
+    val testCase = AndroidTestCase(
+        id = "test1",
+        methodName = "ignored",
+        className = "com.example.TestClass",
+        packageName = "com.example",
+        result = AndroidTestCaseResult.PASSED,
+        additionalTestArtifacts = artifacts
+    )
+
+    listener.onTestCaseFinished(mockDevice, mockSuite, testCase)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    val captor = ArgumentCaptor.forClass(PreviewDetails::class.java)
+    verify(dialog).updateDialogWithTestResult(capturePreviewDetails(captor), ArgumentMatchers.eq(true))
+
+    val details = captor.value
+    // Should be cleaned and have _0 removed
+    assertEquals("MyProvider", details.previewName)
+    assertEquals("com.example.TestClass.testMethod.MyProvider", details.testId)
+  }
+
+  /**
    * Verifies that the listener handles cases where the artifacts map is empty,
    * providing safe default values instead of crashing or returning nulls where strings are expected.
    */
