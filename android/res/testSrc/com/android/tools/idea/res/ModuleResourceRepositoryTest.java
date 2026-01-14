@@ -38,6 +38,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.psi.impl.file.impl.FileManagerEx;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import java.io.IOException;
@@ -491,7 +492,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
       .containsExactly(ResourceNamespace.RES_AUTO);
 
     enableNamespacing(myFacet, "p1.p2");
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
 
     assertThat(StudioResourceRepositoryManager.getModuleResources(myFacet).getNamespaces())
       .containsExactly(ResourceNamespace.fromPackageName("p1.p2"));

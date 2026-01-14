@@ -32,6 +32,7 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -126,7 +127,7 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
       // Finish dispatching any remaining events before shutting down everything
       Application application = ApplicationManager.getApplication();
       if (application.isDispatchThread()) {
-        UIUtil.dispatchAllInvocationEvents();
+        PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
       } else {
         application.invokeAndWait(UIUtil::dispatchAllInvocationEvents);
       }

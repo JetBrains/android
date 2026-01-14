@@ -52,6 +52,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
@@ -117,7 +118,7 @@ public class GradleFilesIntegrationTest {
   private void simulateSyncForGradleFilesUpdate() {
     myGradleFiles.maybeProcessSyncStarted();
     myGradleFiles.maybeProcessSyncSucceeded();
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     assertThat(myGradleFiles.areGradleFilesModified()).isFalse();
   }
 

@@ -54,6 +54,7 @@ import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.codeStyle.arrangement.engine.ArrangementEngine;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.ui.UIUtil;
 import java.util.Arrays;
 import java.util.Collections;
@@ -187,7 +188,7 @@ public final class NlComponentTest extends LayoutTestCase {
   private void deleteXmlTag(@NotNull NlComponent component) {
     XmlTag tag = component.getBackend().getTag();
     WriteCommandAction.writeCommandAction(getProject()).run(() -> tag.delete());
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
   }
 
   public void testAttributeTransactions() {
@@ -447,7 +448,7 @@ public final class NlComponentTest extends LayoutTestCase {
       " android:layout_height=\"wrap_content\" />");
     NlComponent textView = createComponent(textViewXmlTag);
     NlWriteCommandActionUtil.run(relativeLayout, "addTextView", () -> textView.addTags(relativeLayout, null, InsertType.PASTE));
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
 
     @Language("XML")
     String expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -498,7 +499,7 @@ public final class NlComponentTest extends LayoutTestCase {
     NlComponent relativeLayout = myModel.getTreeReader().getComponents().get(0);
 
     NlWriteCommandActionUtil.run(relativeLayout, "set attr", () -> relativeLayout.setAttribute(AUTO_URI, "something", "1"));
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
 
     @Language("XML")
     String expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -534,7 +535,7 @@ public final class NlComponentTest extends LayoutTestCase {
       NlComponent child = NlComponentHelperKt.createChild(componentWithoutFile, "", null, InsertType.CREATE);
       assertNull(child);});
 
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
   }
 
   public void testCreateChildValidTag() {
@@ -552,7 +553,7 @@ public final class NlComponentTest extends LayoutTestCase {
     NlWriteCommandActionUtil.run(relativeLayout, "addTextView", () -> {
       assertNotNull(NlComponentHelperKt.createChild(relativeLayout, "TextView", null, InsertType.CREATE));
     });
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
   }
 
   public void testAddTagsWithInvalidXmlTag() {

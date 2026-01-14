@@ -46,6 +46,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.RenameDialog;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.util.ui.UIUtil;
@@ -387,14 +388,14 @@ public class ResourceNotificationManagerTest {
 
     AtomicBoolean resourcesHaveChanged = new AtomicBoolean(false);
     Configuration layoutConfiguration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout.getVirtualFile());
-    UIUtil.dispatchAllInvocationEvents(); // Dispatch any pending notifications
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue(); // Dispatch any pending notifications
     ResourceNotificationManager manager = ResourceNotificationManager.getInstance(projectRule.getProject());
     manager.addListener(reasons -> resourcesHaveChanged.set(true), myFacet, layout.getVirtualFile(), layoutConfiguration);
     WriteCommandAction.runWriteCommandAction(myProject, () -> {
       ReformatUtil.reformatAndRearrange(myProject, animatedVector);
     });
     waitForResourceRepositoryUpdates(myModule, 4, TimeUnit.SECONDS);
-    UIUtil.dispatchAllInvocationEvents(); // Dispatch notifications
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue(); // Dispatch notifications
     assertFalse("Reformat of the vector should not have triggered a change", resourcesHaveChanged.get());
   }
 
@@ -402,7 +403,7 @@ public class ResourceNotificationManagerTest {
                             @NotNull Ref<Boolean> called2, @NotNull Ref<Set<Reason>> calledValue2,
                             @NotNull Reason reason) throws InterruptedException, TimeoutException {
     waitForResourceRepositoryUpdates(myModule, 4, TimeUnit.SECONDS);
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     waitForCondition(5, TimeUnit.SECONDS, () -> called1.get() && called2.get());
     assertEquals(EnumSet.of(reason), calledValue1.get());
     assertEquals(EnumSet.of(reason), calledValue2.get());
@@ -418,7 +419,7 @@ public class ResourceNotificationManagerTest {
 
   private void ensureNotCalled(@NotNull Ref<Boolean> called1, @NotNull Ref<Boolean> called2) throws InterruptedException, TimeoutException {
     waitForResourceRepositoryUpdates(myModule);
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     try {
       waitForCondition(5, TimeUnit.SECONDS, () -> called1.get() || called2.get());
       assertFalse(called1.get());
