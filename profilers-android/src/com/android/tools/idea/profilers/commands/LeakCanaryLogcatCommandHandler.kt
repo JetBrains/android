@@ -116,11 +116,20 @@ class LeakCanaryLogcatCommandHandler(
       .setType(Commands.Command.CommandType.END_SESSION)
       .setEndSession(EndSession.newBuilder().setSessionId(command.sessionId))
       .build()
-    transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(endSessionCommand).build())
+    try {
+      transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(endSessionCommand).build())
+    } catch (e: Exception) {
+      logger.warn("Failed to execute end session command", e)
+    }
   }
 
   private fun getCurrentTimestampInNs(): Long {
-    return transportStub.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
+    try {
+      return transportStub.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
+    } catch (e: Exception) {
+      logger.warn("Failed to get current timestamp", e)
+      return 0
+    }
   }
 
   /**
