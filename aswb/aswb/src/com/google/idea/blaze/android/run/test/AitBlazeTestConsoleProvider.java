@@ -18,8 +18,8 @@ package com.google.idea.blaze.android.run.test;
 import com.android.tools.idea.run.ConsoleProvider;
 import com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProvider.AndroidTestLaunchMethod;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
-import com.google.idea.blaze.base.run.smrunner.BlazeTestUiSession;
 import com.google.idea.blaze.base.run.smrunner.SmRunnerUtils;
+import com.google.idea.blaze.base.run.testlogs.BlazeTestResultsProvider;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.executors.DefaultDebugExecutor;
@@ -28,7 +28,6 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import javax.annotation.Nullable;
 
 /**
  * Console provider for {@code android_instrumentation_test}, when the tests are run using Blaze
@@ -37,15 +36,14 @@ import javax.annotation.Nullable;
 class AitBlazeTestConsoleProvider implements ConsoleProvider {
   private final Project project;
   private final BlazeCommandRunConfiguration runConfiguration;
-  @Nullable private final BlazeTestUiSession testUiSession;
+  public final BlazeTestResultsProvider testResultFinderStrategy;
 
   AitBlazeTestConsoleProvider(
-      Project project,
-      BlazeCommandRunConfiguration runConfiguration,
-      @Nullable BlazeTestUiSession testUiSession) {
+    Project project,
+    BlazeCommandRunConfiguration runConfiguration, BlazeTestResultsProvider testResultFinderStrategy) {
     this.project = project;
     this.runConfiguration = runConfiguration;
-    this.testUiSession = testUiSession;
+    this.testResultFinderStrategy = testResultFinderStrategy;
   }
 
   @Override
@@ -57,12 +55,12 @@ class AitBlazeTestConsoleProvider implements ConsoleProvider {
   }
 
   private ConsoleView createBlazeTestConsole(Executor executor) {
-    if (testUiSession == null || isDebugging(executor)) {
+    if (testResultFinderStrategy == null || isDebugging(executor)) {
       // SM runner console not yet supported when debugging, because we're calling this once per
       // test case (see ConnectBlazeTestDebuggerTask::setUpForReattachingDebugger)
       return TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
     }
-    return SmRunnerUtils.getConsoleView(project, runConfiguration, executor, testUiSession.getTestResultFinderStrategy());
+    return SmRunnerUtils.getConsoleView(project, runConfiguration, executor, testResultFinderStrategy);
   }
 
   private static boolean isDebugging(Executor executor) {

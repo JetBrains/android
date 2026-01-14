@@ -42,7 +42,6 @@ import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
 import com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProvider.AndroidTestLaunchMethod;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
-import com.google.idea.blaze.base.run.smrunner.BlazeTestUiSession;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFetcher;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
@@ -106,9 +105,7 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
         consoleProvider = new AitIdeTestConsoleProvider(runConfiguration, configState);
         break;
       case BLAZE_TEST:
-        BlazeTestUiSession session =
-            BlazeTestUiSession.create(ImmutableList.of(), testResultsHolder);
-        this.consoleProvider = new AitBlazeTestConsoleProvider(project, runConfiguration, session);
+        this.consoleProvider = new AitBlazeTestConsoleProvider(project, runConfiguration, testResultsHolder);
         break;
       default:
         throw new IllegalStateException(
