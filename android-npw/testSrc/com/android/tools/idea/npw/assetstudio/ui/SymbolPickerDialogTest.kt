@@ -20,7 +20,11 @@ import com.android.tools.idea.material.icons.common.MaterialSymbolsUrlProvider
 import com.android.tools.idea.material.icons.common.Symbols
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
+import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.DataManager
+import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.ui.SearchTextField
 import com.intellij.ui.table.JBTable
 import com.intellij.util.WaitFor
 import com.intellij.util.io.createDirectories
@@ -150,6 +154,29 @@ class SymbolPickerDialogTest {
         assertNotNull(table.getValueAt(0, 0))
         assertNull(table.getValueAt(0, 1))
       }
+    }
+
+  @Test
+  fun testSearchFieldConfiguredInPanelContext() =
+    runBlocking(Dispatchers.Main) {
+      HeadlessDataManager.fallbackToProductionDataManager(projectRule.fixture.testRootDisposable)
+
+      val testDirectory = createTempDirectory()
+      val dialog =
+        getInitializedIconPickerDialog(
+          SymbolPickerDialog(
+            projectRule.fixture.module.androidFacet!!,
+            projectRule.fixture.testRootDisposable,
+            TestSymbolsUrlProvider(testDirectory),
+            TestSymbolsMetadataUrlProvider,
+          )
+        )
+
+      val centerPanel = dialog.createCenterPanel()
+      val context = DataManager.getInstance().getDataContext(centerPanel)
+      val providedField = context.getData(SearchTextField.KEY)
+
+      assertThat(providedField).isNotNull()
     }
 
   private fun getInitializedIconPickerDialog(dialog: SymbolPickerDialog): SymbolPickerDialog {
