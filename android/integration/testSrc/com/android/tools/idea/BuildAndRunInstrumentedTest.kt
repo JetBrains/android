@@ -22,6 +22,7 @@ import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.testlib.Emulator
 import org.junit.Rule
 import org.junit.Test
+import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.minutes
 
@@ -29,7 +30,7 @@ import kotlin.time.Duration.Companion.minutes
 class BuildAndRunInstrumentedTest {
   @JvmField
   @Rule
-  val system: AndroidSystem = AndroidSystem.standard()
+  val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
   @JvmField
   @Rule
@@ -38,14 +39,17 @@ class BuildAndRunInstrumentedTest {
 
   @Test
   fun deployInstrumentedTest() {
-    val project = AndroidProject("tools/adt/idea/android/integration/testData/InstrumentedTestApp")
+    val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/instrumenttestapp_project_model")
+    val project = AndroidProject(projectArtifactsPath.resolve("InstrumentedTestApp").toString())
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/run_instrumented_test_project_deps.manifest"))
 
+    system.getInstallation().copySystemDir(projectArtifactsPath)
+    system.getInstallation().copyConfigDir(projectArtifactsPath)
     system.runAdb { adb ->
       system.runEmulator(Emulator.SystemImage.API_33_ATD) { emulator ->
         system.runStudio(project, watcher.dashboardName) { studio ->
-          studio.waitForSync()
-          studio.waitForIndex()
+          studio.waitForSyncSkippedLog()
+          studio.waitForIndexingSkippedLog()
           emulator.waitForBoot()
           adb.waitForDevice(emulator)
 
