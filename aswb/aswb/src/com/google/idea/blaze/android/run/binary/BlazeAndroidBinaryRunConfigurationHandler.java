@@ -179,7 +179,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
         env.getExecutor().getId(),
         configuration.getSingleTargetPattern(),
         configState.getCommonState().isNativeDebuggingEnabled());
-    return new BlazeAndroidRunConfigurationRunner(module, runContext, configuration);
+    return new BlazeAndroidRunConfigurationRunner(runContext, configuration);
   }
 
   @Override
