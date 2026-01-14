@@ -36,10 +36,8 @@ import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerIm
 import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.rendering.SlowResourcePreviewManager
 import com.intellij.icons.AllIcons
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
@@ -79,12 +77,10 @@ import javax.swing.event.ChangeEvent
 import javax.swing.event.DocumentEvent
 import javax.swing.event.ListSelectionEvent
 import javax.swing.table.AbstractTableModel
-import kotlin.collections.get
 import kotlin.math.min
 import kotlin.reflect.KClass
 import kotlinx.coroutines.launch
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
@@ -102,7 +98,7 @@ class SymbolPickerDialog(
   parentDisposable: Disposable,
   materialSymbolsUrlProvider: MaterialSymbolsUrlProvider? = null,
   materialIconsMetadataUrlProvider: MaterialIconsMetadataUrlProvider? = null,
-) : DialogWrapper(false), DataProvider {
+) : DialogWrapper(false) {
 
   // The following arrays are the possible values for the visual customizations of Material Symbols
   // Check out https://fonts.google.com/icons/ for more details
@@ -112,8 +108,9 @@ class SymbolPickerDialog(
   private val categoriesBoxNameMap: MutableMap<String, String> = HashMap(EXPECTED_NUMBER_OF_ICONS)
 
   private val loadingPanel = JBLoadingPanel(BorderLayout(), myDisposable)
-  private val contentPanel = JPanel()
   private val searchField = SearchTextField(false)
+  private val contentPanel = SearchFieldProviderPanel(searchField)
+
   private val categoriesBox = ComboBox<String>()
   private val stylesBox = ComboBox<String>()
   private val weightSlider = JSlider(0, weightSliderValues.size - 1)
@@ -361,11 +358,7 @@ class SymbolPickerDialog(
 
   @VisibleForTesting
   public override fun createCenterPanel(): JComponent {
-    return loadingPanel
-  }
-
-  override fun getData(dataId: @NonNls String): Any? {
-    return if (SearchTextField.KEY.`is`(dataId)) searchField else null
+    return contentPanel
   }
 
   fun getSelectedIcon(): VdIcon {
@@ -480,7 +473,6 @@ class SymbolPickerDialog(
     iconTable.requestFocusInWindow()
 
     // Register the panel & dialog with the DataManager
-    DataManager.registerDataProvider(contentPanel, this)
     val action = ActionManager.getInstance().getAction(IdeActions.ACTION_FIND)
     if (action != null) {
       SearchTextField.FindAction()
@@ -540,7 +532,7 @@ class SymbolPickerDialog(
 
   private fun setupUI() {
     loadingPanel.setLoadingText(SymbolsBundle.message("table.downloading"))
-    loadingPanel.add(contentPanel, BorderLayout.CENTER)
+    loadingPanel.add(iconsPanel, BorderLayout.CENTER)
 
     contentPanel.setLayout(BorderLayout(20, 10))
     val panel1 = JPanel()
@@ -602,7 +594,7 @@ class SymbolPickerDialog(
 
     iconsPanel.setLayout(BorderLayout(0, 0))
     iconsPanel.minimumSize = Dimension(300, 400)
-    contentPanel.add(iconsPanel, BorderLayout.CENTER)
+    contentPanel.add(loadingPanel, BorderLayout.CENTER)
     licensePanel.setLayout(GridLayoutManager(1, 1, JBUI.emptyInsets(), -1, -1))
     contentPanel.add(licensePanel, BorderLayout.SOUTH)
     val licenseLabel = HyperlinkLabel()
