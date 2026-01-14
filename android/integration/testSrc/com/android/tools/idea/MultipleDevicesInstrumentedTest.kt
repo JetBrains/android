@@ -23,6 +23,7 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.time.Duration.Companion.minutes
 
 
@@ -30,13 +31,17 @@ import kotlin.time.Duration.Companion.minutes
 class MultipleDevicesInstrumentedTest {
   @JvmField
   @Rule
-  val system: AndroidSystem = AndroidSystem.standard()
+  val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
   @Test
   fun deployInstrumentedTest() {
-    val project = AndroidProject("tools/adt/idea/android/integration/testData/InstrumentedTestApp")
+    val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/instrumenttestapp_project_model")
+    val project = AndroidProject(projectArtifactsPath.resolve("InstrumentedTestApp").toString())
+
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/run_instrumented_test_project_deps.manifest"))
 
+    system.getInstallation().copySystemDir(projectArtifactsPath)
+    system.getInstallation().copyConfigDir(projectArtifactsPath)
     system.runAdb { adb ->
       system.runEmulator(Emulator.SystemImage.API_33_ATD) { emulator1 ->
         system.runEmulator(Emulator.SystemImage.API_33_ATD) { emulator2 ->
@@ -46,8 +51,8 @@ class MultipleDevicesInstrumentedTest {
           adb.waitForDevice(emulator1)
           adb.waitForDevice(emulator2)
           system.runStudio(project) { studio ->
-            studio.waitForSync()
-            studio.waitForIndex()
+            studio.waitForSyncSkippedLog()
+            studio.waitForIndexingSkippedLog()
 
             studio.executeAction("MakeGradleProject")
             studio.waitForBuild()
