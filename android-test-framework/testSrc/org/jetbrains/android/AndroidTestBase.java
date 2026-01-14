@@ -53,11 +53,11 @@ import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.ExtensionTestUtil;
 import com.intellij.testFramework.InspectionTestUtil;
 import com.intellij.testFramework.InspectionsKt;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
-import com.intellij.util.ui.UIUtil;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -138,7 +138,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       WriteAction.run(() -> LocalFileSystem.getInstance().refresh(false));
 
       // Run VFS listeners.
-      UIUtil.dispatchAllInvocationEvents();
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     });
   }
 

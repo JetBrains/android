@@ -47,6 +47,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
@@ -258,7 +259,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     AtomicBoolean done = new AtomicBoolean();
     myRepository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE, () -> done.set(true));
     waitForCondition(2, TimeUnit.SECONDS, done::get);
-    dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
 
     List<Object> sortedKeysAfter = myTable.getColumnAt(keyColumn);
     assertThat(sortedKeysAfter).isEqualTo(sortedKeysBefore);
@@ -283,7 +284,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     AtomicBoolean done = new AtomicBoolean();
     myRepository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE, () -> done.set(true));
     waitForCondition(2, TimeUnit.SECONDS, done::get);
-    dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
   }
 
   public void testKeyboardNavigation() throws Exception {

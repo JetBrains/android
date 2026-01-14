@@ -21,6 +21,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.intentions.OverrideResourceAction;
@@ -99,7 +100,7 @@ public class OverrideResourceActionTest extends AndroidTestCase {
         }
       }
     }, "", "");
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     myFixture.checkResultByFile(afterPath, BASE_PATH + after, false);
   }
 }

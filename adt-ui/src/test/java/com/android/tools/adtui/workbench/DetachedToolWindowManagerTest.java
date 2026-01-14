@@ -38,6 +38,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 import java.awt.KeyboardFocusManager;
@@ -149,7 +150,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   public void testProjectClosed() {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1);
     myManager.restoreDefaultLayout();
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     Disposer.dispose(myManager);
     verify(myDetachedToolWindow1a).updateSettingsInAttachedToolWindow();
   }
@@ -157,7 +158,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   public void testRestoreDefaultLayout() {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1);
     myManager.restoreDefaultLayout();
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     verify(myDetachedToolWindow1a).show(eq(myAttachedToolWindow1a));
   }
 
@@ -168,7 +169,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   public void testFileOpenedCausingFloatingToolWindowToDisplay() {
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor1});
     myListener.fileOpened(myEditorManager, myVirtualFile);
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
 
     verify(myDetachedToolWindow1a).show(eq(myAttachedToolWindow1a));
   }
@@ -176,7 +177,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   public void testFileOpenedCausingFloatingToolWindowToDisplay2() {
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor1, myFileEditor2});
     myListener.fileOpened(myEditorManager, myVirtualFile);
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
 
     verify(myDetachedToolWindow1a).show(eq(myAttachedToolWindow1a));
   }
@@ -184,10 +185,10 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   public void testSwitchingBetweenTwoEditorsWithDifferentFloatingToolWindows() {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1, myWorkBench2);
     myListener.fileOpened(myEditorManager, myVirtualFile);
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     verify(myDetachedToolWindow1a).show(eq(myAttachedToolWindow1a));
     myListener.fileOpened(myEditorManager, myVirtualFile);
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     verify(myDetachedToolWindow1a).hide();
     verify(myDetachedToolWindow2a).show(eq(myAttachedToolWindow2a));
 
@@ -195,18 +196,18 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     FileEditorManagerEvent event2 = createEvent(myFileEditor2);
 
     myListener.selectionChanged(event1);
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     verify(myDetachedToolWindow2a).hide();
     verify(myDetachedToolWindow1a, times(2)).show(eq(myAttachedToolWindow1a));
     myListener.selectionChanged(event2);
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     verify(myDetachedToolWindow1a, times(2)).hide();
     verify(myDetachedToolWindow2a, times(2)).show(eq(myAttachedToolWindow2a));
 
     // Now unregister one of them:
     myManager.unregister(myFileEditor1);
     myListener.selectionChanged(event1);
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     verify(myDetachedToolWindow1a, times(3)).hide();
     verify(myDetachedToolWindow2a, times(2)).hide();
   }
@@ -226,18 +227,18 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   public void testFileCloseCausingFloatingToolWindowToHide() {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1, new JLabel());
     myListener.fileOpened(myEditorManager, myVirtualFile);
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     verify(myDetachedToolWindow1a).show(eq(myAttachedToolWindow1a));
 
     myListener.fileClosed(myEditorManager, myVirtualFile);
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     verify(myDetachedToolWindow1a).hide();
   }
 
   public void testMinimizeRestoreAndDockFloatingToolWindow() {
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor1});
     myListener.fileOpened(myEditorManager, myVirtualFile);
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
 
     ToolWindowManager tm = ToolWindowManager.getInstance(getProject());
     ToolWindow tw1 = mock(ToolWindow.class);

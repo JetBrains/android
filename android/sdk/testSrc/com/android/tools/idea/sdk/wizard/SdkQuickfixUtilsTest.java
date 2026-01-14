@@ -46,6 +46,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.IndexingTestUtil;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.util.ui.UIUtil;
 import java.nio.file.Path;
@@ -130,7 +131,7 @@ public class SdkQuickfixUtilsTest {
                                                              null, false);
     assertNotNull(dialog);
     dialog.close(DialogWrapper.CANCEL_EXIT_CODE);
-    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     // We're fine with non-zero cache expiration values, as those inherently optimize the redundant downloads.
     // One such call is currently made from the wizard, which starts SDK installation once built - we will accept that.
     verify(myRepoManager, never()).loadSynchronously(eq(0), any(), any(), any(), any(), any(), any());
