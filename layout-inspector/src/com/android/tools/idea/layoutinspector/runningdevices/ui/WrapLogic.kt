@@ -19,25 +19,22 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.isFocusAncestor
 import com.intellij.openapi.util.Disposer
 import java.awt.Component
-import java.awt.Container
 import java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
 
 /**
- * Class used to wrap and unwrap [content] inside another component. When unwrapped, [container] is
- * the parent of [content]. When wrapped, [container] is the parent of the wrapper and the wrapper
- * contains [content].
+ * Class used to wrap and unwrap [content] inside another component. When unwrapped, the parent of
+ * [content] is the original parent. When wrapped, [content] is a descendant of wrapper. And the
+ * parent of wrapper is the original parent of [content].
  *
  * If wrapped, [content] is unwrapped on disposal.
  */
 class WrapLogic(parentDisposable: Disposable, private val content: JComponent) : Disposable {
   private var wrapper: JComponent? = null
-  private val container: Container
 
   init {
     Disposer.register(parentDisposable, this)
-    container = content.parent
   }
 
   /**
@@ -49,10 +46,8 @@ class WrapLogic(parentDisposable: Disposable, private val content: JComponent) :
   fun wrapContent(wrap: (Disposable, JComponent) -> JComponent) {
     check(wrapper == null) { "Can't wrap, content is already wrapped" }
 
+    val container = content.parent ?: throw IllegalStateException("Parent can't be null")
     val index = container.components.indexOf(content)
-    if (index < 0) {
-      throw IllegalStateException("$content is not a child of $container")
-    }
     val focusOwner = content.getContainedFocusOwner()
     container.remove(index)
     wrapper = wrap(this, content)
@@ -68,12 +63,10 @@ class WrapLogic(parentDisposable: Disposable, private val content: JComponent) :
   }
 
   private fun unwrapContent() {
-    val wrapper = checkNotNull(wrapper) { "Can't unwrap, content is not wrapped" }
+    val wrapper = wrapper ?: return
 
+    val container = wrapper.parent ?: throw IllegalStateException("Parent can't be null")
     val index = container.components.indexOf(wrapper)
-    if (index < 0) {
-      throw IllegalStateException("$wrapper is not a child of $container")
-    }
     val focusOwner = content.getContainedFocusOwner()
     container.remove(index)
     container.add(content, index)
