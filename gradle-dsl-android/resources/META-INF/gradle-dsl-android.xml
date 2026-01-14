@@ -13,6 +13,7 @@
     <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.android.model.crashlytics.CrashlyticsBlockModelProvider"/>
     <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.android.model.crashlytics.FirebaseCrashlyticsBlockModelProvider"/>
     <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.android.model.android.AndroidBlockModelProvider"/>
+    <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.android.model.android.KmpAndroidLibraryBlockModelProvider"/>
     <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.android.model.android.AndroidDeclarativeBlockModelProvider"/>
     <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.android.model.android.AndroidDefaultDslModelBlockProvider"/>
     <gradleDeclarativeBuildModelProvider implementation="com.android.tools.idea.gradle.dsl.android.model.android.AndroidGradleDeclarativeBuildModelProvider"/>

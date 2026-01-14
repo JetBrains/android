@@ -19,11 +19,15 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeBuildModel
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidDeclarativeModel
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel
+import com.android.tools.idea.gradle.dsl.android.api.android.KmpAndroidLibraryModel
+import com.android.tools.idea.gradle.dsl.api.kotlin.KotlinModel
 import com.android.tools.idea.gradle.dsl.model.BlockModelBuilder
 import com.android.tools.idea.gradle.dsl.model.BlockModelProvider
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement
+import com.android.tools.idea.gradle.dsl.android.parser.android.KmpAndroidLibraryDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
+import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 
 class AndroidBlockModelProvider : BlockModelProvider<GradleBuildModel, GradleBuildFile> {
@@ -48,3 +52,23 @@ fun GradleBuildModel.android() = when {
   this is GradleDeclarativeBuildModel -> getModel(AndroidDeclarativeModel::class.java)
   else -> getModel(AndroidModel::class.java)
 }
+
+class KmpAndroidLibraryBlockModelProvider : BlockModelProvider<KotlinModel, KotlinDslElement> {
+  override val parentClass = KotlinModel::class.java
+  override val parentDslClass = KotlinDslElement::class.java
+
+  override fun availableModels(kind: GradleDslNameConverter.Kind):
+    List<BlockModelBuilder<*, KotlinDslElement>> = listOf(
+    object : BlockModelBuilder<KmpAndroidLibraryModel, KotlinDslElement> {
+      override fun modelClass() = KmpAndroidLibraryModel::class.java
+      override fun create(parent: KotlinDslElement) =
+        KmpAndroidLibraryModelImpl(
+          parent.ensurePropertyElement(KmpAndroidLibraryDslElement.KMP_ANDROID_LIBRARY))
+    })
+
+  override fun elementsMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> {
+    return mapOf("androidLibrary" to KmpAndroidLibraryDslElement.KMP_ANDROID_LIBRARY)
+  }
+}
+
+fun KotlinModel.androidLibrary() = getModel(KmpAndroidLibraryModel::class.java)
