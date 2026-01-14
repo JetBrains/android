@@ -41,7 +41,6 @@ import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.ExecutorType;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationRunner;
 import com.google.idea.blaze.base.run.smrunner.BlazeTestEventsHandler;
-import com.google.idea.blaze.base.run.smrunner.BlazeTestUiSession;
 import com.google.idea.blaze.base.run.smrunner.SmRunnerUtils;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFetcher;
@@ -169,45 +168,27 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
 
   private PrepareBazelCommandResult prepareBazelCommand(Project project, BuildInvoker invoker) {
     BlazeCommand.Builder blazeCommand;
-    BlazeTestUiSession testUiSession = null;
     final var testResultFinderStrategy = new BlazeTestResultFetcher();
-    if (useTestUi()
-        && BlazeTestEventsHandler.targetsSupported(project, getConfiguration().getTargetPatterns())) {
-      testUiSession =
-        BlazeTestUiSession.create(
-          ImmutableList.<String>builder()
-            .add("--runs_per_test=1")
-            .add("--flaky_test_attempts=1")
-            .build(),
-          testResultFinderStrategy);
-    }
-    if (testUiSession != null) {
+    final var useTestUiSession = useTestUi()
+                              && BlazeTestEventsHandler.targetsSupported(project, getConfiguration().getTargetPatterns());
       blazeCommand =
         getBlazeCommandBuilder(
           project,
           getConfiguration(),
-          testUiSession.getBlazeFlags(),
+          useTestUiSession ? ImmutableList.of("--runs_per_test=1", "--flaky_test_attempts=1") : ImmutableList.of(),
           getExecutorType(),
           kotlinxCoroutinesJavaAgent);
-      ConsoleView consoleView = SmRunnerUtils.getConsoleView(project, getConfiguration(), getEnvironment().getExecutor(),
-                                                             testUiSession.getTestResultFinderStrategy());
-      setConsoleBuilder(
-        new TextConsoleBuilderImpl(project) {
-          @Override
-          protected ConsoleView createConsole() {
-            return consoleView;
-          }
-        });
-    }
-    else {
-      blazeCommand =
-        getBlazeCommandBuilder(
-          project,
-          getConfiguration(),
-          ImmutableList.of(),
-          getExecutorType(),
-          kotlinxCoroutinesJavaAgent);
-    }
+      if (useTestUiSession) {
+        ConsoleView consoleView = SmRunnerUtils.getConsoleView(project, getConfiguration(), getEnvironment().getExecutor(),
+                                                               testResultFinderStrategy);
+        setConsoleBuilder(
+          new TextConsoleBuilderImpl(project) {
+            @Override
+            protected ConsoleView createConsole() {
+              return consoleView;
+            }
+          });
+      }
     PrepareBazelCommandResult result = new PrepareBazelCommandResult(blazeCommand, testResultFinderStrategy);
     return result;
   }
