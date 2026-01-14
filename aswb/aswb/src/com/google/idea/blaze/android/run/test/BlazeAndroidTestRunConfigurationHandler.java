@@ -132,7 +132,7 @@ public class BlazeAndroidTestRunConfigurationHandler
     LaunchMetrics.logTestLaunch(
         launchId, configState.getLaunchMethod().name(), env.getExecutor().getId());
 
-    return new BlazeAndroidRunConfigurationRunner(module, runContext, configuration);
+    return new BlazeAndroidRunConfigurationRunner(runContext, configuration);
   }
 
   private static ApkBuildStep getTestBuildStep(
