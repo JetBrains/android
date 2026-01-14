@@ -25,8 +25,6 @@ import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.DataSink;
-import com.intellij.openapi.actionSystem.UiDataProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
@@ -537,19 +535,5 @@ false);
                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                            null, null, null, 0, false));
-  }
-
-  private static class SearchFieldProviderPanel extends JPanel implements UiDataProvider {
-    private final SearchTextField mySearchField;
-
-    SearchFieldProviderPanel(@NotNull SearchTextField searchField) {
-      super();
-      mySearchField = searchField;
-    }
-
-    @Override
-    public void uiDataSnapshot(@NotNull DataSink sink) {
-      sink.set(SearchTextField.KEY, mySearchField);
-    }
   }
 }
