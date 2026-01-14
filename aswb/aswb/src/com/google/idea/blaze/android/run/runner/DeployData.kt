@@ -13,20 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.android.run.runner;
+package com.google.idea.blaze.android.run.runner
 
-import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableList;
-import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest;
-import com.google.idea.blaze.common.artifact.OutputArtifact;
+import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest
+import com.google.idea.blaze.common.artifact.OutputArtifact
 
-@AutoValue
-abstract class DeployData {
-  static DeployData create(ParsedManifest manifest, ImmutableList<OutputArtifact> apks) {
-    return new com.google.idea.blaze.android.run.runner.AutoValue_DeployData(manifest, apks);
+@JvmRecord
+internal data class DeployData(val mergedManifest: ParsedManifest, val apks: List<OutputArtifact>) {
+  companion object {
+    @JvmStatic
+    fun create(mergedManifest: ParsedManifest, apks: List<OutputArtifact>): DeployData = DeployData(mergedManifest, apks)
   }
-
-  abstract ParsedManifest mergedManifest();
-
-  abstract ImmutableList<OutputArtifact> apks();
 }
+

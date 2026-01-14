@@ -191,6 +191,7 @@ intellij_integration_test_suite(
     srcs = glob(
         [
             "tests/integrationtests/com/google/idea/blaze/android/**/*.java",
+            "tests/integrationtests/com/google/idea/blaze/android/**/*.kt",
         ],
         exclude = [
             "tests/integrationtests/com/google/idea/blaze/android/plugin/NdkDependenciesTest.java",  # Extracted to separate target

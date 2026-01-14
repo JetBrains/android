@@ -30,6 +30,7 @@ import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import javax.annotation.Nullable;
 
 /** Extracts {@link BlazeAndroidDeployInfo} for {@code android_instrumentation_test} builds. */
@@ -48,7 +49,7 @@ public final class AitDeployInfoExtractor implements DeployInfoExtractor {
       String deployInfoOutputGroups,
       String apkOutputGroup,
       BlazeContext context,
-      ImmutableList<File> nativeSymbols)
+      List<? extends File> nativeSymbols)
       throws IOException {
     DeployData testData =
         deployDataForTarget(
@@ -90,7 +91,7 @@ public final class AitDeployInfoExtractor implements DeployInfoExtractor {
       DeployData testData,
       @Nullable DeployData targetData,
       BlazeContext context,
-      ImmutableList<File> nativeSymbols) {
+      List<? extends File> nativeSymbols) {
     ParsedManifest targetManifest = targetData == null ? null : targetData.mergedManifest();
 
     ImmutableList.Builder<File> apks = new ImmutableList.Builder<File>();
@@ -98,11 +99,11 @@ public final class AitDeployInfoExtractor implements DeployInfoExtractor {
     if (targetData != null) {
       apks.addAll(cacheLocally(instrumentationInfo.targetApp, targetData.apks(), context));
     }
-    return new BlazeAndroidDeployInfo(testData.mergedManifest(), targetManifest, apks.build(), nativeSymbols);
+    return new BlazeAndroidDeployInfo(testData.mergedManifest(), targetManifest, apks.build(), ImmutableList.copyOf(nativeSymbols));
   }
 
   private ImmutableList<File> cacheLocally(
-      Label targetLabel, ImmutableList<OutputArtifact> artifacts, BlazeContext context) {
+    Label targetLabel, List<? extends OutputArtifact> artifacts, BlazeContext context) {
     RuntimeArtifactCache runtimeArtifactCache = RuntimeArtifactCache.getInstance(project);
     return runtimeArtifactCache
         .fetchArtifacts(

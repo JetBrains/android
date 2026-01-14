@@ -29,6 +29,7 @@ import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Deploy Info extractor for {@code android_binary} targets.
@@ -52,7 +53,7 @@ public final class BinaryDeployInfoExtractor implements DeployInfoExtractor {
     String deployInfoOutputGroups,
     String apkOutputGroup,
     BlazeContext context,
-    ImmutableList<File> nativeSymbols)
+    List<? extends File> nativeSymbols)
     throws IOException {
 
     String suffix = useMobileInstall ? "_mi.deployinfo.pb" : ".deployinfo.pb";
@@ -70,6 +71,6 @@ public final class BinaryDeployInfoExtractor implements DeployInfoExtractor {
         .map(Path::toFile)
         .collect(toImmutableList());
     return new BlazeAndroidDeployInfo(
-      deployData.mergedManifest(), /* testTargetMergedManifest */ null, localApks, nativeSymbols);
+      deployData.mergedManifest(), /* testTargetMergedManifest */ null, localApks, ImmutableList.copyOf(nativeSymbols));
   }
 }
