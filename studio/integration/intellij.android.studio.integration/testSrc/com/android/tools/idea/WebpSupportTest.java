@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea;
 
-import static org.junit.Assert.assertTrue;
-
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.testlib.Display;
 import com.android.tools.testlib.TestFileSystem;
+import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -38,7 +37,11 @@ public class WebpSupportTest {
 
     try (Display display = Display.createDefault(); AndroidStudio studio = install.run(display)) {
       studio.executeAction("com.android.tools.adtui.webp.WebpSupportTestAction");
-      assertTrue(install.getIdeaLog().hasMatchingLine(".*ImageIO supports WebP.*"));
+      install.getIdeaLog().waitForMatchingLine(
+        ".*ImageIO supports WebP.*",
+        10,
+        TimeUnit.SECONDS
+      );
     }
   }
 }
