@@ -2174,6 +2174,18 @@ public final class StudioFlags {
                     "When enabled, the Read Outline tool will be available for agents."
     );
 
+  public static final Flag<Boolean> STUDIOBOT_FIND_DECLARATION_TOOL =
+    new BooleanFlag(STUDIOBOT, "find.declaration.tool",
+                    "Enable the Find Declaration tool",
+                    "When enabled, the Find Declaration tool will be available for agents."
+    );
+
+  public static final Flag<Boolean> STUDIOBOT_READ_URI_TOOL =
+    new BooleanFlag(STUDIOBOT, "read.uri.tool",
+                    "Enable the Read URI tool",
+                    "When enabled, the Read URI tool will be available for agents."
+    );
+
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_FILE_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.file.context.enabled",
                     "Enable sending additional file context with completion requests",
