@@ -20,6 +20,7 @@ import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.testlib.Display;
 import com.android.tools.testlib.TestFileSystem;
 import java.util.concurrent.TimeUnit;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -29,6 +30,7 @@ public class WebpSupportTest {
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
 
+  @Ignore("b/474615315")
   @Test
   public void testWebpSupported() throws Exception {
     TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
