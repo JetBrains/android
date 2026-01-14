@@ -39,6 +39,8 @@ jvm_library(
         "@lib//:kotlin-stdlib",
         "//libraries/guava",
         "//libraries/guava:guava_test_lib",
+        "//libraries/hamcrest",
+        "//libraries/hamcrest:hamcrest_test_lib",
         "@lib//:junit4",
         "@lib//:jetbrains-annotations",
         "//libraries/mockito",
