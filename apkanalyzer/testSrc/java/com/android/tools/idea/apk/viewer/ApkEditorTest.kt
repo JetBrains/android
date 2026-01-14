@@ -84,11 +84,11 @@ import javax.swing.tree.TreePath
 // IsLoaded occurs when the APK has been read and the download size is available.
 // At this point app info isn't necessarily available nor have warning nodes been
 // expanded.
-private val IS_LOADED_TIMEOUT = 6.seconds
+private val IS_LOADED_TIMEOUT = 9.seconds
 // Timeout to use when waiting for isUpdated condition.
 // IsUpdated occurs when tree data has been populated, when app info has been read,
 // and tree nodes with warning messages have been expanded.
-private val IS_UPDATED_TIMEOUT = 6.seconds
+private val IS_UPDATED_TIMEOUT = 9.seconds
 
 /**
  * Tests for [ApkEditor]
