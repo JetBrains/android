@@ -931,7 +931,7 @@ def _android_studio_impl(ctx):
     _produce_update_message_html(ctx)
 
     host_platform = platform_by_name[ctx.attr.host_platform_name]
-    script = ctx.actions.declare_file("%s/%s.py" % (ctx.attr.name, ctx.attr.name))
+    script = ctx.actions.declare_file("%s/%s.py" % (ctx.attr.name, ctx.attr.config_profile))
     studio_files = _studio_runner(ctx, ctx.attr.name, all_files[host_platform], script)
 
     # Leave everything that is not the main zips as implicit outputs
@@ -968,6 +968,7 @@ _android_studio = rule(
         "version_release_number": attr.int(),
         "update_message_template": attr.label(allow_single_file = True),
         "configuration": attr.label(providers = [_ConfigurationInfo]),
+        "config_profile": attr.string(),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "exec",
@@ -1076,7 +1077,7 @@ def android_studio(
         name,
         plugins,
         configurations,
-        legacy_default_configuration,
+        legacy_default_configuration = None,
         generate_package_metadata = False,
         **kwargs):
     if generate_package_metadata:
@@ -1090,17 +1091,16 @@ def android_studio(
     for configuration in configurations:
         config_name = Label(configuration).name
         configured_targets["." + config_name] = configuration
-        if config_name == legacy_default_configuration:
+        if legacy_default_configuration and config_name == legacy_default_configuration:
             configured_targets[""] = configuration
             default_configuration = configuration
-    if not default_configuration:
-        fail("Default configuration " + legacy_default_configuration + " not found in list of configurations")
 
     for suffix, configuration in configured_targets.items():
         _android_studio(
             name = name + suffix,
             compress = is_release(),
             configuration = configuration,
+            config_profile = name,
             host_platform_name = select({
                 "@platforms//os:linux": LINUX.name,
                 "//tools/base/bazel/platforms:macos-x86_64": MAC.name,
