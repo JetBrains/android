@@ -24,11 +24,12 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import java.util.Arrays;
+import java.util.Set;
 
 /** An extension point that works for only a specific set of build systems. */
 public interface BuildSystemExtensionPoint {
 
-  ImmutableSet<BuildSystemName> getSupportedBuildSystems();
+  Set<? extends BuildSystemName> getSupportedBuildSystems();
 
   /**
    * Get the bound instance of the given extension point that matches the given build system. Any

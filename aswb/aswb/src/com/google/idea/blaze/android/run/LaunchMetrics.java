@@ -23,6 +23,7 @@ import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.common.experiments.BoolExperiment;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 
 /** Metrics collected during launch events. */
 public class LaunchMetrics {
@@ -59,7 +60,7 @@ public class LaunchMetrics {
       String launchId,
       Duration buildDuration,
       int blazeExitCode,
-      ImmutableMap<String, String> additionalMetrics) {
+      Map<String, String> additionalMetrics) {
     if (!launchMetricsEnabled.getValue()) {
       return;
     }

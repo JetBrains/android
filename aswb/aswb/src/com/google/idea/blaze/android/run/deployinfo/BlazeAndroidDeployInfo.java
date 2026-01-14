@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.manifest.ManifestParser;
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest;
 import java.io.File;
+import java.util.List;
 import javax.annotation.Nullable;
 
 /** Info about the deployment phase. */
@@ -34,12 +35,12 @@ public class BlazeAndroidDeployInfo {
   public BlazeAndroidDeployInfo(
       ParsedManifest mergedManifest,
       @Nullable ParsedManifest testTargetMergedManifest,
-      ImmutableList<File> apksToDeploy,
-      ImmutableList<File> symbolFiles) {
+      List<? extends File> apksToDeploy,
+      List<? extends File> symbolFiles) {
     this.mergedManifest = mergedManifest;
     this.testTargetMergedManifest = testTargetMergedManifest;
-    this.apksToDeploy = apksToDeploy;
-    this.symbolFiles = symbolFiles;
+    this.apksToDeploy = ImmutableList.copyOf(apksToDeploy);
+    this.symbolFiles = ImmutableList.copyOf(symbolFiles);
   }
 
   /**

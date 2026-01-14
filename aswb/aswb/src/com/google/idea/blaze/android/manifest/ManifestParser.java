@@ -30,6 +30,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -72,10 +73,10 @@ public class ManifestParser {
 
     public ParsedManifest(
         @Nullable String packageName,
-        ImmutableList<String> instrumentationClassNames,
+        List<? extends String> instrumentationClassNames,
         @Nullable String defaultActivityClassName) {
       this.packageName = packageName;
-      this.instrumentationClassNames = instrumentationClassNames;
+      this.instrumentationClassNames = ImmutableList.copyOf(instrumentationClassNames);
       this.defaultActivityClassName = defaultActivityClassName;
     }
   }
