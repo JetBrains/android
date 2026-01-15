@@ -38,7 +38,6 @@ import com.android.tools.rendering.tracking.RenderTaskAllocationTracker;
 import com.android.tools.rendering.tracking.RenderTaskAllocationTrackerImpl;
 import com.android.tools.rendering.tracking.StackTraceCapture;
 import com.android.tools.sdk.LayoutlibFactory;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -284,6 +283,7 @@ final public class RenderService implements Disposable {
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
     private Function<Object, List<ViewInfo>> myCustomContentHierarchyParser = null;
+    private boolean useCachingImageFactory = true;
 
     /**
      * If two RenderTasks share the same ModuleClassLoader they share the same compose framework. This way they share the state. If we would
@@ -414,6 +414,15 @@ final public class RenderService implements Disposable {
     @NotNull
     public RenderTaskBuilder disableImagePool() {
       this.myImagePool = ImagePoolFactory.getNonPooledPool();
+      return this;
+    }
+
+    /**
+     * Disables the cache image factory for this render task
+     */
+    @NotNull
+    public RenderTaskBuilder disableCachingImageFactory() {
+      useCachingImageFactory = false;
       return this;
     }
 
@@ -644,7 +653,8 @@ final public class RenderService implements Disposable {
                            myCredential, myContext.getModule().getEnvironment().getCrashReporter(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, tracker,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
-                           classesToPreload, immediateClassesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater, useLoadViewFallbacks, myTestEventListener, animationDurationScale);
+                           classesToPreload, immediateClassesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater, useLoadViewFallbacks, myTestEventListener, animationDurationScale,
+                           useCachingImageFactory);
           if (myXmlFile != null) {
             task.setXmlFile(myXmlFile);
           }
