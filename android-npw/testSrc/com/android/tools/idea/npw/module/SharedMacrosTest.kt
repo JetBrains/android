@@ -17,8 +17,6 @@ package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.AndroidMajorVersion
-import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.npw.module.recipes.compileSdk
 import com.android.tools.idea.npw.module.recipes.minSdk
 import com.android.tools.idea.npw.module.recipes.targetSdk
 import kotlin.test.assertEquals
@@ -31,11 +29,9 @@ class SharedMacrosTest {
 
     assertEquals("minSdkVersion 34", minSdk(AndroidMajorVersion(34), agpVersion))
     assertEquals("targetSdkVersion 34", targetSdk(AndroidMajorVersion(34), agpVersion))
-    assertEquals("compileSdkVersion 34", compileSdk(AndroidVersion(34, 0), agpVersion))
 
     assertEquals("minSdkVersion \"S\"", minSdk(AndroidMajorVersion(30, "S"), agpVersion))
     assertEquals("targetSdkVersion \"S\"", targetSdk(AndroidMajorVersion(30, "S"), agpVersion))
-    assertEquals("compileSdkVersion \"S\"", compileSdk(AndroidVersion(30, "S"), agpVersion))
 
     assertEquals(
       "minSdkVersion \"SomeFutureVersion\"",
@@ -45,10 +41,6 @@ class SharedMacrosTest {
       "targetSdkVersion \"SomeFutureVersion\"",
       targetSdk(AndroidMajorVersion(99, "SomeFutureVersion"), agpVersion),
     )
-    assertEquals(
-      "compileSdkVersion \"SomeFutureVersion\"",
-      compileSdk(AndroidVersion(99, "SomeFutureVersion"), agpVersion),
-    )
   }
 
   @Test
@@ -57,15 +49,12 @@ class SharedMacrosTest {
 
     assertEquals("minSdk 34", minSdk(AndroidMajorVersion(34), agpVersion))
     assertEquals("targetSdk 34", targetSdk(AndroidMajorVersion(34), agpVersion))
-    assertEquals("compileSdk 34", compileSdk(AndroidVersion(34, 0), agpVersion))
 
     assertEquals("minSdk 36", minSdk(AndroidMajorVersion(36), agpVersion))
     assertEquals("targetSdk 36", targetSdk(AndroidMajorVersion(36), agpVersion))
-    assertEquals("compileSdk 36", compileSdk(AndroidVersion(36, 0), agpVersion))
 
     assertEquals("minSdkPreview \"S\"", minSdk(AndroidMajorVersion(30, "S"), agpVersion))
     assertEquals("targetSdkPreview \"S\"", targetSdk(AndroidMajorVersion(30, "S"), agpVersion))
-    assertEquals("compileSdkPreview \"S\"", compileSdk(AndroidVersion(30, "S"), agpVersion))
 
     assertEquals(
       "minSdkPreview \"SomeFutureVersion\"",
@@ -75,26 +64,5 @@ class SharedMacrosTest {
       "targetSdkPreview \"SomeFutureVersion\"",
       targetSdk(AndroidMajorVersion(99, "SomeFutureVersion"), agpVersion),
     )
-    assertEquals(
-      "compileSdkPreview \"SomeFutureVersion\"",
-      compileSdk(AndroidVersion(99, "SomeFutureVersion"), agpVersion),
-    )
-  }
-
-  @Test
-  fun toAndroidFieldVersionWithMinorVersion() {
-    val agpVersion = AgpVersion(8, 13, 0)
-
-    assertEquals(
-      "compileSdk {\n  version = release(34) { minorApiLevel = 1 }\n}",
-      compileSdk(AndroidVersion(34, 1), agpVersion),
-    )
-    assertEquals(
-      "compileSdk {\n  version = release(36) { minorApiLevel = 3 }\n}",
-      compileSdk(AndroidVersion(36, 3), agpVersion),
-    )
-    val oldAgpVersion = AgpVersion(8, 12, 0)
-    assertEquals("compileSdk 34", compileSdk(AndroidVersion(34, 1), oldAgpVersion))
-    assertEquals("compileSdk 36", compileSdk(AndroidVersion(36, 3), oldAgpVersion))
   }
 }

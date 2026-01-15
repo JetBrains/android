@@ -101,27 +101,6 @@ fun proguardConfig(
     """
   }
 
-// Still need this for KMP as it's DSL model needs to be enhanced
-fun compileSdk(androidVersion: AndroidVersion, agpVersion: AgpVersion): String {
-  val isNewAGP = agpVersion.compareIgnoringQualifiers("7.0.0") >= 0
-  val hasBlockSyntaxSupport = agpVersion.compareIgnoringQualifiers("8.13.0-alpha01") >= 0
-  val apiLevelMajor = androidVersion.androidApiLevel.majorVersion
-  val apiLevelMinor = androidVersion.androidApiLevel.minorVersion
-
-  if (apiLevelMinor != 0 && hasBlockSyntaxSupport) {
-    return "compileSdk {\n" +
-      "  version = release(${apiLevelMajor}) { minorApiLevel = ${apiLevelMinor} }\n" +
-      "}"
-  }
-  return when {
-    isNewAGP && androidVersion.isPreview ->
-      "compileSdkPreview \"${androidVersion.apiStringWithExtension}\""
-    isNewAGP -> "compileSdk $apiLevelMajor"
-    androidVersion.isPreview -> "compileSdkVersion \"${androidVersion.apiStringWithExtension}\""
-    else -> "compileSdkVersion $apiLevelMajor"
-  }
-}
-
 fun minSdk(androidVersion: AndroidMajorVersion, agpVersion: AgpVersion): String =
   toAndroidFieldVersion("minSdk", androidVersion, agpVersion)
 
