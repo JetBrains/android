@@ -31,7 +31,6 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.Backg
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.capitalizedName
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.icon
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.toFormattedTimeString
-import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.NewUI
@@ -40,6 +39,7 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeModelAdapter
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.event.MouseAdapter
@@ -60,6 +60,7 @@ import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.annotations.VisibleForTesting
 
 @VisibleForTesting
 val CLASS_NAME_COMPARATOR =
@@ -245,12 +246,6 @@ class BackgroundTaskTreeTableView(
         }
       }
 
-    val headerRenderer = TreeCellRenderer { _, value, _, _, _, _, _ ->
-      JLabel((value as DefaultMutableTreeNode).userObject as String).apply {
-        preferredSize = Dimension(preferredSize.width, 30)
-      }
-    }
-
     val sorter =
       ColumnTreeBuilder.TreeSorter<Any> { comparator, _ ->
         if (comparator != null) {
@@ -262,7 +257,7 @@ class BackgroundTaskTreeTableView(
         .setShowVerticalLines(true)
         .setBorder(BorderFactory.createEmptyBorder())
         .setTreeSorter(sorter)
-        .setHeaderRowCellRenderer(headerRenderer)
+        .setHeaderRowCellRenderer(HeaderRenderer())
         .addColumn(classColumn)
         .addColumn(statusColumn)
         .addColumn(startTimeColumn)
@@ -274,6 +269,31 @@ class BackgroundTaskTreeTableView(
     for (path in expandedPaths) {
       tree.expandPath(path)
     }
+  }
+
+  private class HeaderRenderer : TreeCellRenderer {
+    val label = JLabel()
+
+    override fun getTreeCellRendererComponent(
+      tree: JTree?,
+      value: Any?,
+      selected: Boolean,
+      expanded: Boolean,
+      leaf: Boolean,
+      row: Int,
+      hasFocus: Boolean,
+    ): Component {
+      label.text = (value as DefaultMutableTreeNode).userObject as String
+      // Reset to null so super calculates based on new text
+      label.preferredSize = null
+      label.preferredSize = Dimension(label.preferredSize.width, HEADER_LABEL_HEIGHT)
+      return label
+    }
+  }
+
+  companion object {
+    val HEADER_LABEL_HEIGHT
+      @VisibleForTesting get() = JBUI.scale(30)
   }
 }
 
