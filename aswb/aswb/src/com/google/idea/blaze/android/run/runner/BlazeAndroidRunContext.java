@@ -15,69 +15,66 @@
  */
 package com.google.idea.blaze.android.run.runner;
 
-import com.android.ddmlib.IDevice;
-import com.android.tools.idea.execution.common.DeployOptions;
-import com.android.tools.idea.execution.common.debug.AndroidDebugger;
-import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsoleProvider;
-import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.editor.ProfilerState;
-import com.google.common.collect.ImmutableList;
-import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
-import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.ui.ConsoleView;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.xdebugger.XDebugSession;
-import javax.annotation.Nullable;
-import org.jetbrains.annotations.NotNull;
 
-/** Instantiated when the configuration wants to run. */
-public interface BlazeAndroidRunContext {
+/** Holds the context data required to run an Android application. */
+public final class BlazeAndroidRunContext {
 
-  BlazeAndroidDeviceSelector getDeviceSelector();
+  private final ConsoleProvider consoleProvider;
+  private final ApkBuildStep buildStep;
+  private final ApplicationIdProvider applicationIdProvider;
+  private final ApkProvider apkProvider;
+  private final ApplicationProjectContext applicationProjectContext;
+  private final Executor executor;
+  private final ProfilerState profileState;
 
-  void augmentLaunchOptions(LaunchOptions.Builder options);
+  public BlazeAndroidRunContext(
+      ConsoleProvider consoleProvider,
+      ApkBuildStep buildStep,
+      ApplicationIdProvider applicationIdProvider,
+      ApkProvider apkProvider,
+      ApplicationProjectContext applicationProjectContext,
+      Executor executor,
+      ProfilerState profileState) {
+    this.consoleProvider = consoleProvider;
+    this.buildStep = buildStep;
+    this.applicationIdProvider = applicationIdProvider;
+    this.apkProvider = apkProvider;
+    this.applicationProjectContext = applicationProjectContext;
+    this.executor = executor;
+    this.profileState = profileState;
+  }
 
-  ConsoleProvider getConsoleProvider();
+  public ConsoleProvider getConsoleProvider() {
+    return consoleProvider;
+  }
 
-  ApkBuildStep getBuildStep();
+  public ApkBuildStep getBuildStep() {
+    return buildStep;
+  }
 
-  ApplicationIdProvider getApplicationIdProvider();
+  public ApplicationIdProvider getApplicationIdProvider() {
+    return applicationIdProvider;
+  }
 
-  ApkProvider getApkProvider();
+  public ApkProvider getApkProvider() {
+    return apkProvider;
+  }
 
-  ApplicationProjectContext getApplicationProjectContext();
+  public ApplicationProjectContext getApplicationProjectContext() {
+    return applicationProjectContext;
+  }
 
-  /** Returns the tasks to deploy the application. */
-  ImmutableList<BlazeLaunchTask> getDeployTasks(IDevice device, DeployOptions deployOptions)
-      throws ExecutionException;
+  public Executor getExecutor() {
+    return executor;
+  }
 
-  /** Returns the task to launch the application. */
-  @Nullable
-  BlazeLaunchTask getApplicationLaunchTask(
-      boolean isDebug, @Nullable Integer userId, @NotNull String contributorsAmStartOptions)
-      throws ExecutionException;
-
-  /** Returns the task to connect the debugger. */
-  @Nullable
-  XDebugSession startDebuggerSession(
-      AndroidDebugger androidDebugger,
-      AndroidDebuggerState androidDebuggerState,
-      ExecutionEnvironment env,
-      IDevice device,
-      ConsoleView consoleView,
-      ProgressIndicator indicator);
-
-  @Nullable
-  Integer getUserId(IDevice device) throws ExecutionException;
-
-  String getAmStartOptions();
-
-  Executor getExecutor();
-
-  ProfilerState getProfileState();
+  public ProfilerState getProfileState() {
+    return profileState;
+  }
 }
