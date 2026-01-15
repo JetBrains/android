@@ -1,5 +1,5 @@
 package androidx.savedstate;
 
-public abstract class SavedStateRegistryOwner implements androidx.lifecycle.LifecycleOwner {
+public interface SavedStateRegistryOwner extends androidx.lifecycle.LifecycleOwner {
 
 }
