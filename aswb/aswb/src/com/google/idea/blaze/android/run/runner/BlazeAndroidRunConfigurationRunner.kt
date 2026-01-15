@@ -70,6 +70,7 @@ import org.jetbrains.android.util.AndroidBundle
  */
 class BlazeAndroidRunConfigurationRunner(
   private val runContext: BlazeAndroidRunContext,
+  private val launchStrategy: BlazeAndroidDeployAndLaunchStrategy,
   private val runConfig: BlazeCommandRunConfiguration,
 ) : BlazeCommandRunConfigurationRunner {
   @Throws(ExecutionException::class)
@@ -77,7 +78,7 @@ class BlazeAndroidRunConfigurationRunner(
     val project = environment.project
     val isDebug = executor is DefaultDebugExecutor
 
-    val deviceSelector = runContext.getDeviceSelector()
+    val deviceSelector = launchStrategy.getDeviceSelector()
     val deviceSession =
       deviceSelector.getDevice(project, executor, environment, isDebug, runConfig.uniqueID) ?: return null
 
@@ -103,7 +104,7 @@ class BlazeAndroidRunConfigurationRunner(
     }
 
     val launchOptionsBuilder = LaunchOptions.builder()
-    runContext.augmentLaunchOptions(launchOptionsBuilder)
+    launchStrategy.augmentLaunchOptions(launchOptionsBuilder)
 
     // Store the run context on the execution environment so before-run tasks can access it.
     environment.putCopyableUserData(RUN_CONTEXT_KEY, runContext)
@@ -124,7 +125,7 @@ class BlazeAndroidRunConfigurationRunner(
         applicationProjectContext,
         environment,
         deviceFutures,
-        BlazeAndroidLaunchTasksProvider(project, runContext, launchOptions),
+        BlazeAndroidLaunchTasksProvider(project, runContext, launchStrategy, launchOptions),
         launchOptions,
         runContext.getApkProvider(),
         getInstance(environment.project)
@@ -198,6 +199,7 @@ class BlazeAndroidRunConfigurationRunner(
   override fun executeBeforeRunTask(environment: ExecutionEnvironment): Boolean {
     val project = environment.project
     val settings = BlazeUserSettings.getInstance()
+    val runData = runContext
     return Scope.root(
       ScopedFunction { context ->
         context
@@ -217,7 +219,7 @@ class BlazeAndroidRunConfigurationRunner(
           .push(IdeaLogScope())
         val deviceSession = environment.getCopyableUserData(DEVICE_SESSION_KEY)
 
-        val buildStep = runContext.getBuildStep()
+        val buildStep = runData.getBuildStep()
         try {
           val buildFuture =
             ProgressiveTaskWithProgressIndicator.builder(

@@ -70,7 +70,7 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
 
   private ListenableFuture<Boolean> blazeResult;
 
-  private final BlazeAndroidTestRunContext runContext;
+  private final AndroidTestDeployAndLaunchStrategy launchStrategy;
 
   private final boolean debug;
 
@@ -79,14 +79,14 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
       Label target,
       List<String> buildFlags,
       BlazeAndroidTestFilter testFilter,
-      BlazeAndroidTestRunContext runContext,
+      AndroidTestDeployAndLaunchStrategy launchStrategy,
       boolean debug,
       BlazeTestResultFetcher testResultsHolder) {
     this.project = project;
     this.target = target;
     this.buildFlags = buildFlags;
     this.testFilter = testFilter;
-    this.runContext = runContext;
+    this.launchStrategy = launchStrategy;
     this.debug = debug;
     this.testResultsHolder = testResultsHolder;
   }
@@ -185,7 +185,7 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
                       return !context.hasErrors();
                     }));
 
-    blazeResult.addListener(runContext::onLaunchTaskComplete, PooledThreadExecutor.INSTANCE);
+    blazeResult.addListener(launchStrategy::onLaunchTaskComplete, PooledThreadExecutor.INSTANCE);
 
     // The debug case is set up in ConnectBlazeTestDebuggerTask
     if (!debug) {
