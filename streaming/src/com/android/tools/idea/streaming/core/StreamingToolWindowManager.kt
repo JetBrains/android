@@ -41,7 +41,6 @@ import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.MirroringHandle
 import com.android.tools.idea.streaming.MirroringManager
 import com.android.tools.idea.streaming.MirroringState
-import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.actions.toolWindowContents
 import com.android.tools.idea.streaming.core.StreamingDevicePanel.UiState
@@ -295,9 +294,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     val messageBusConnection = project.messageBus.connect(this)
     messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
 
-      // TODO: Override the stateChanged method that takes a ToolWindow when it becomes a public API.
-      override fun stateChanged(toolWindowManager: ToolWindowManager, changeType: ToolWindowManagerEventType) {
-        val toolWindow = toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?: return
+      @Suppress("UnstableApiUsage")
+      override fun stateChanged(toolWindowManager: ToolWindowManager, toolWindow: ToolWindow, changeType: ToolWindowManagerEventType) {
+        if (toolWindow != this@StreamingToolWindowManager.toolWindow) {
+          return
+        }
 
         when (changeType) {
           ActivateToolWindow, ShowToolWindow, HideToolWindow, MovedOrResized -> {
