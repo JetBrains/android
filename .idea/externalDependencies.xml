@@ -3,5 +3,6 @@
   <component name="ExternalDependencies">
     <plugin id="AntSupport" />
     <plugin id="DevKit" />
+    <plugin id="com.facebook.ktfmt_idea_plugin" />
   </component>
 </project>
