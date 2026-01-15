@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -32,6 +33,7 @@ import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotificationProvider
 import com.intellij.ui.LightColors
 import java.util.function.Function
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val PREVIEW_OUT_OF_DATE = "The preview is out of date"
 private const val BUILD_AND_REFRESH = "Build & Refresh"
@@ -62,6 +64,27 @@ internal class CustomViewPreviewNotificationProvider : EditorNotificationProvide
             setText("Correct preview cannot be displayed until after a successful build.")
           }
         else -> null
+      }
+    }
+  }
+}
+
+@VisibleForTesting
+class CustomViewDeprecationNotificationProvider : EditorNotificationProvider {
+  override fun collectNotificationData(
+    project: Project,
+    file: VirtualFile,
+  ): Function<FileEditor, EditorNotificationPanel?>? {
+    return Function { fileEditor ->
+      if (fileEditor.getCustomViewPreviewManager() == null) return@Function null
+      EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning).apply {
+        text =
+          "Custom View preview will be deprecated in the next release, please update your use accordingly."
+        createActionLabel("Learn more") {
+          BrowserUtil.browse(
+            "https://developer.android.com/studio/preview/features#custom-view-preview-deprecation"
+          )
+        }
       }
     }
   }

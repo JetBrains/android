@@ -27,6 +27,7 @@
 
   <extensions defaultExtensionNs="com.android.tools.idea.customview.preview">
     <customViewEditorNotificationProvider implementation="com.android.tools.idea.customview.preview.CustomViewPreviewNotificationProvider" />
+    <customViewEditorNotificationProvider implementation="com.android.tools.idea.customview.preview.CustomViewDeprecationNotificationProvider" />
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode">
