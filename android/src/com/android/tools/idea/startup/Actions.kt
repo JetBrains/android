@@ -123,10 +123,6 @@ class ConditionalActionWrapper(
     ActionWrapperUtil.update(e, this, getWrappedActionFor(e))
   }
 
-  override fun beforeActionPerformedUpdate(e: AnActionEvent) {
-    getWrappedActionFor(e).beforeActionPerformedUpdate(e)
-  }
-
   override fun actionPerformed(e: AnActionEvent) {
     ActionWrapperUtil.actionPerformed(e, this, getWrappedActionFor(e))
   }

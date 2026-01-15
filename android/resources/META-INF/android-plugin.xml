@@ -513,7 +513,7 @@
     <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidIconProvider" id="androidIcons" order="before javaDirectory" />
     <refactoring.safeDeleteProcessor id="android_resource_file" implementation="org.jetbrains.android.AndroidResourceFileSafeDeleteProcessor"/>
 
-    <statusBarWidgetProvider implementation="com.android.tools.idea.widget.AdbConnectionWidgetProvider"/>
+    <statusBarWidgetFactory implementation="com.android.tools.idea.widget.AdbConnectionWidgetFactory" id="AdbConnectionWidget" order="after InspectionProfile" />
     <applicationService serviceImplementation="com.android.tools.idea.startup.ApplicationAdbFileProvider"
                         serviceInterface="com.android.tools.idea.adb.AdbFileProvider" />
     <projectService serviceImplementation="com.android.tools.idea.startup.ProjectAdbFileProvider"
