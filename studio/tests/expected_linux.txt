@@ -3106,12 +3106,8 @@ android-studio/plugins/gemini/lib/lucene-sandbox-10.3.0.jar
 android-studio/plugins/gemini/lib/mcp-sdk-libraries.jar
 android-studio/plugins/gemini/lib/openai-java-client-okhttp-4.0.0.jar
 android-studio/plugins/gemini/lib/openai-java-core-4.0.0.jar
-android-studio/plugins/gemini/lib/proto-models-1.0.jar
 android-studio/plugins/gemini/lib/sqlite-jdbc-3.43.0.0.jar
-android-studio/plugins/gemini/lib/wire-runtime-jvm-5.3.1.jar
-android-studio/plugins/gemini/resources/journeys/images/clipart/cursor_large.png
 android-studio/plugins/gemini/resources/kb_zip/dac.zip
-android-studio/plugins/gemini/resources/recorder-release-androidTest.apk
 android-studio/plugins/git4insights/lib/git4insights.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.so.jar
