@@ -48,7 +48,8 @@ public final class RuleKinds {
           "android_local_test",
           "_wrapped_android_local_test",
           "android_instrumentation_test",
-          "kt_android_library_helper");
+          "kt_android_library_helper",
+          "kt_android_library");
 
   /**
    * C++ rule kinds
