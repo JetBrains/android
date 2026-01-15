@@ -20,7 +20,10 @@ import com.android.tools.idea.run.deployment.Heading
 import com.intellij.ide.HelpTooltip
 import com.intellij.ide.ui.UISettings
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.PresentationFactory
+import com.intellij.ui.popup.ActionPopupOptions
 import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup
 import com.intellij.ui.popup.PopupFactoryImpl.ActionItem
 import com.intellij.ui.popup.list.ListPopupImpl
@@ -34,7 +37,24 @@ import javax.swing.AbstractAction
 import javax.swing.JList
 
 internal class Popup(group: ActionGroup, context: DataContext, runnable: Runnable) :
-  ActionGroupPopup(null, group, context, false, true, true, false, runnable, 30, null, null, true) {
+  ActionGroupPopup(
+    null,
+    null,
+    group,
+    context,
+    ActionPlaces.POPUP,
+    PresentationFactory(),
+    ActionPopupOptions.create(
+      false,
+      true,
+      true,
+      false,
+      30,
+      true,
+      null
+    ),
+    runnable
+  ) {
   init {
     setMinimumSize(Dimension(1, 1))
     @Suppress("UNCHECKED_CAST") val list = list as JList<ActionItem>

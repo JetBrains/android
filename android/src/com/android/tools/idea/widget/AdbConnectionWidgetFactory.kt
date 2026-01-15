@@ -13,34 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.widget;
+package com.android.tools.idea.widget
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.StatusBar;
-import com.intellij.openapi.wm.StatusBarWidget;
-import com.intellij.openapi.wm.StatusBarWidgetProvider;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.NlsContexts
+import com.intellij.openapi.wm.StatusBar
+import com.intellij.openapi.wm.StatusBarWidget
+import com.intellij.openapi.wm.StatusBarWidgetFactory
 
-public class AdbConnectionWidgetProvider implements StatusBarWidgetProvider {
-  @Nullable
-  @Override
-  public StatusBarWidget getWidget(@NotNull Project project) {
-    if (!StudioFlags.ADB_CONNECTION_STATUS_WIDGET_ENABLED.get()) {
-      return null;
-    }
-    return createWidget(project);
+class AdbConnectionWidgetFactory : StatusBarWidgetFactory {
+  override fun getId(): String = "AdbConnectionWidget"
+
+  override fun getDisplayName(): @NlsContexts.ConfigurableName String = "ADB Connection"
+
+  override fun isAvailable(project: Project): Boolean {
+    return StudioFlags.ADB_CONNECTION_STATUS_WIDGET_ENABLED.get()
   }
 
-  @NotNull
-  @Override
-  public String getAnchor() {
-    return StatusBar.Anchors.after("InspectionProfile");
+  override fun createWidget(project: Project): StatusBarWidget {
+    return AdbConnectionWidget(StudioAdapter(project))
   }
 
-  @NotNull
-  public StatusBarWidget createWidget(@NotNull Project project) {
-    return new AdbConnectionWidget(new StudioAdapter(project));
+  override fun disposeWidget(widget: StatusBarWidget) {
+    Disposer.dispose(widget)
   }
+
+  override fun canBeEnabledOn(statusBar: StatusBar): Boolean = true
 }
