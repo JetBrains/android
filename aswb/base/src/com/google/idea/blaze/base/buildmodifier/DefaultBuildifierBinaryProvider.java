@@ -46,9 +46,7 @@ public class DefaultBuildifierBinaryProvider implements BuildifierBinaryProvider
     notifyError(
         "Could not find the buildifier binary. Please install buildifier via the instructions at"
             + " https://github.com/bazelbuild/buildtools/tree/master/buildifier#readme and point"
-            + " to it in the "
-            + Blaze.guessBuildSystemName()
-            + " settings.");
+            + " to it in the Blaze Settings.");
     return null;
   }
 

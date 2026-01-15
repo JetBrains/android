@@ -73,7 +73,7 @@ public class BlazeCommandRunConfigurationType implements ConfigurationType {
   @Override
   public String getConfigurationTypeDescription() {
     return String.format(
-        "Configuration for launching arbitrary %s commands.", Blaze.guessBuildSystemName());
+        "Configuration for launching arbitrary %s commands.", Blaze.defaultBuildSystemName());
   }
 
   @Override

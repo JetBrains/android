@@ -17,10 +17,14 @@ package icons;
 
 import com.google.common.base.Ascii;
 import com.google.idea.blaze.base.settings.Blaze;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.IconLoader;
 import javax.swing.Icon;
+import javax.swing.SwingUtilities;
 
 /** Class to manage icons used by the Blaze plugin. */
 public class BlazeIcons {
@@ -47,14 +51,29 @@ public class BlazeIcons {
     return IconLoader.getIcon(BASE + path, BlazeIcons.class);
   }
 
+  /**
+   * Tries to guess the current project. This is used to determine the build system name when there is no project.
+   */
+  private static Project guessCurrentProject() {
+    Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
+    if (openProjects.length == 1) {
+      return openProjects[0];
+    }
+    if (SwingUtilities.isEventDispatchThread()) {
+      return DataManager.getInstance().getDataContext().getData(CommonDataKeys.PROJECT);
+    }
+    return null;
+  }
+
   private static Icon loadForBuildSystem(String basename) {
     // Guessing the build system name may result in an NPE if (e.g.) it was called from a
     // unit-testing scenario where there aren't Application/ProjectManager instances yet.
     if (ApplicationManager.getApplication() == null || ProjectManager.getInstance() == null) {
-      // Default to the blaze icons.
-      return load("blaze/" + basename);
+      // Default to the bazel icons.
+      return load("bazel/" + basename);
     } else {
-      return load(Ascii.toLowerCase(Blaze.guessBuildSystemName()) + "/" + basename);
+      Project project = guessCurrentProject();
+      return load(Ascii.toLowerCase(Blaze.buildSystemName(project)) + "/" + basename);
     }
   }
 }
