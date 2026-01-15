@@ -58,7 +58,6 @@ import org.jetbrains.annotations.NotNull;
 /** Launch Strategy for android_test targets. */
 public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAndLaunchStrategy {
   private final Project project;
-  private final BlazeAndroidRunContext runContext;
   private final BlazeAndroidTestRunConfigurationState configState;
   private final Label label;
   private final ImmutableList<String> blazeFlags;
@@ -68,13 +67,11 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
 
   public AndroidTestDeployAndLaunchStrategy(
       Project project,
-      BlazeAndroidRunContext runContext,
       BlazeAndroidTestRunConfigurationState configState,
       Label label,
       ImmutableList<String> blazeFlags,
       BlazeTestResultFetcher testResultsHolder) {
     this.project = project;
-    this.runContext = runContext;
     this.configState = configState;
     this.label = label;
     this.blazeFlags = blazeFlags;
@@ -106,7 +103,8 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
   }
 
   @Override
-  public ImmutableList<BlazeLaunchTask> getDeployTasks(IDevice device, DeployOptions deployOptions)
+  public ImmutableList<BlazeLaunchTask> getDeployTasks(
+      BlazeAndroidRunContext runContext, IDevice device, DeployOptions deployOptions)
       throws ExecutionException {
     if (configState.getLaunchMethod() != AndroidTestLaunchMethod.NON_BLAZE) {
       return ImmutableList.of();
@@ -121,7 +119,10 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
   @Override
   @Nullable
   public BlazeLaunchTask getApplicationLaunchTask(
-      boolean isDebug, @Nullable Integer userId, @NotNull String contributorsAmStartOptions)
+      BlazeAndroidRunContext runContext,
+      boolean isDebug,
+      @Nullable Integer userId,
+      @NotNull String contributorsAmStartOptions)
       throws ExecutionException {
     switch (configState.getLaunchMethod()) {
       case BLAZE_TEST:
@@ -150,6 +151,7 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
   @Override
   @SuppressWarnings({"unchecked", "rawtypes"}) // Raw type from upstream.
   public XDebugSession startDebuggerSession(
+      BlazeAndroidRunContext runContext,
       AndroidDebugger androidDebugger,
       AndroidDebuggerState androidDebuggerState,
       ExecutionEnvironment env,

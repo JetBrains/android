@@ -59,17 +59,14 @@ import org.jetbrains.annotations.NotNull;
 public class MobileInstallDeployAndLaunchStrategy implements BlazeAndroidDeployAndLaunchStrategy {
   private final Project project;
   private final BlazeAndroidBinaryRunConfigurationState configState;
-  private final BlazeAndroidRunContext runContext;
   private final String launchId;
 
   public MobileInstallDeployAndLaunchStrategy(
       Project project,
       BlazeAndroidBinaryRunConfigurationState configState,
-      BlazeAndroidRunContext runContext,
       String launchId) {
     this.project = project;
     this.configState = configState;
-    this.runContext = runContext;
     this.launchId = launchId;
   }
 
@@ -101,7 +98,8 @@ public class MobileInstallDeployAndLaunchStrategy implements BlazeAndroidDeployA
 
   @Override
   public ImmutableList<BlazeLaunchTask> getDeployTasks(
-      IDevice device, DeployOptions deployOptions) throws ExecutionException {
+      BlazeAndroidRunContext runContext, IDevice device, DeployOptions deployOptions)
+      throws ExecutionException {
     ApkBuildStep buildStep = runContext.getBuildStep();
     BlazeAndroidDeployInfo deployInfo;
     String packageName;
@@ -132,7 +130,10 @@ public class MobileInstallDeployAndLaunchStrategy implements BlazeAndroidDeployA
   @Override
   @Nullable
   public BlazeLaunchTask getApplicationLaunchTask(
-      boolean isDebug, @Nullable Integer userId, @NotNull String contributorsAmStartOptions)
+      BlazeAndroidRunContext runContext,
+      boolean isDebug,
+      @Nullable Integer userId,
+      @NotNull String contributorsAmStartOptions)
       throws ExecutionException {
 
     String extraFlags = UserIdHelper.getFlagsFromUserId(userId);
@@ -162,6 +163,7 @@ public class MobileInstallDeployAndLaunchStrategy implements BlazeAndroidDeployA
   @Nullable
   @Override
   public XDebugSession startDebuggerSession(
+      BlazeAndroidRunContext runContext,
       AndroidDebugger androidDebugger,
       AndroidDebuggerState androidDebuggerState,
       ExecutionEnvironment env,

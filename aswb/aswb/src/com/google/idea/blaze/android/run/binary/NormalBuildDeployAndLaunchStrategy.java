@@ -58,17 +58,14 @@ import org.jetbrains.annotations.NotNull;
 public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAndLaunchStrategy {
   private final Project project;
   private final BlazeAndroidBinaryRunConfigurationState configState;
-  private final BlazeAndroidRunContext runContext;
   private final String launchId;
 
   public NormalBuildDeployAndLaunchStrategy(
       Project project,
       BlazeAndroidBinaryRunConfigurationState configState,
-      BlazeAndroidRunContext runContext,
       String launchId) {
     this.project = project;
     this.configState = configState;
-    this.runContext = runContext;
     this.launchId = launchId;
   }
 
@@ -101,7 +98,10 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
 
   @Override
   public BlazeLaunchTask getApplicationLaunchTask(
-      boolean isDebug, @Nullable Integer userId, String contributorsAmStartOptions)
+      BlazeAndroidRunContext runContext,
+      boolean isDebug,
+      @Nullable Integer userId,
+      String contributorsAmStartOptions)
       throws ExecutionException {
     String extraFlags = UserIdHelper.getFlagsFromUserId(userId);
     if (!contributorsAmStartOptions.isEmpty()) {
@@ -130,7 +130,8 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
 
   @Nullable
   @Override
-  public ImmutableList<BlazeLaunchTask> getDeployTasks(IDevice device, DeployOptions deployOptions)
+  public ImmutableList<BlazeLaunchTask> getDeployTasks(
+      BlazeAndroidRunContext runContext, IDevice device, DeployOptions deployOptions)
       throws ExecutionException {
     return ImmutableList.of(
         new DeploymentTimingReporterTask(
@@ -172,6 +173,7 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
   @Nullable
   @Override
   public XDebugSession startDebuggerSession(
+      BlazeAndroidRunContext runContext,
       AndroidDebugger androidDebugger,
       AndroidDebuggerState androidDebuggerState,
       ExecutionEnvironment env,

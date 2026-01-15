@@ -37,18 +37,23 @@ public interface BlazeAndroidDeployAndLaunchStrategy {
   void augmentLaunchOptions(LaunchOptions.Builder options);
 
   /** Returns the tasks to deploy the application. */
-  ImmutableList<BlazeLaunchTask> getDeployTasks(IDevice device, DeployOptions deployOptions)
+  ImmutableList<BlazeLaunchTask> getDeployTasks(
+      BlazeAndroidRunContext runContext, IDevice device, DeployOptions deployOptions)
       throws ExecutionException;
 
   /** Returns the task to launch the application. */
   @Nullable
   BlazeLaunchTask getApplicationLaunchTask(
-      boolean isDebug, @Nullable Integer userId, @NotNull String contributorsAmStartOptions)
+      BlazeAndroidRunContext runContext,
+      boolean isDebug,
+      @Nullable Integer userId,
+      @NotNull String contributorsAmStartOptions)
       throws ExecutionException;
 
   /** Returns the task to connect the debugger. */
   @Nullable
   XDebugSession startDebuggerSession(
+      BlazeAndroidRunContext runContext,
       AndroidDebugger androidDebugger,
       AndroidDebuggerState androidDebuggerState,
       ExecutionEnvironment env,

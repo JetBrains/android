@@ -91,7 +91,7 @@ public class BlazeAndroidLaunchTasksProvider implements BlazeLaunchTasksProvider
       DeployOptions deployOptions =
           new DeployOptions(Collections.emptyList(), pmInstallOption, false, false, false);
       ImmutableList<BlazeLaunchTask> deployTasks =
-          launchStrategy.getDeployTasks(device, deployOptions);
+          launchStrategy.getDeployTasks(runContext, device, deployOptions);
       launchTasks.addAll(deployTasks);
     }
 
@@ -114,7 +114,7 @@ public class BlazeAndroidLaunchTasksProvider implements BlazeLaunchTasksProvider
       }
       BlazeLaunchTask appLaunchTask =
           launchStrategy.getApplicationLaunchTask(
-              isDebug, userId, String.join(" ", amStartOptions.build()));
+              runContext, isDebug, userId, String.join(" ", amStartOptions.build()));
       if (appLaunchTask != null) {
         launchTasks.add(appLaunchTask);
         // TODO(arvindanekal): the live edit api changed and we cannot get the apk here to create
@@ -159,7 +159,7 @@ public class BlazeAndroidLaunchTasksProvider implements BlazeLaunchTasksProvider
     }
 
     return launchStrategy.startDebuggerSession(
-        debugger, debuggerState, environment, device, console, indicator);
+        runContext, debugger, debuggerState, environment, device, console, indicator);
   }
 
   private boolean isNativeDebuggingEnabled(LaunchOptions launchOptions) {
