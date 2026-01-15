@@ -19,6 +19,7 @@ import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.executeAction
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.core.StreamingDevicePanel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -64,6 +65,21 @@ class EmulatorViewRule : TestRule {
     newEmulatorDisplayPanel(avdCreator, displayId).displayView
 
   fun newEmulatorDisplayPanel(avdCreator: ((Path) -> Path)? = null, displayId: Int = PRIMARY_DISPLAY_ID): EmulatorDisplayPanel {
+    val emulatorController = getEmulatorController(avdCreator)
+    val displayPanel = EmulatorDisplayPanel(disposable, emulatorController, project, displayId, null, false, true)
+    waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    return displayPanel
+  }
+
+  fun newEmulatorToolWindowPanel(avdCreator: ((Path) -> Path)? = null): StreamingDevicePanel<EmulatorDisplayPanel> {
+    val emulatorController = getEmulatorController(avdCreator)
+    val panel = EmulatorToolWindowPanel(disposable, project, emulatorController)
+    panel.createContent(true, null)
+    waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    return panel
+  }
+
+  private fun getEmulatorController(avdCreator: ((Path) -> Path)?): EmulatorController {
     val catalog = RunningEmulatorCatalog.getInstance()
     val tempFolder = emulatorRule.avdRoot
     val avdCreator = avdCreator ?: { path -> FakeEmulator.createPhoneAvd(path) }
@@ -71,10 +87,7 @@ class EmulatorViewRule : TestRule {
     fakeEmulators[fakeEmulator.grpcPort] = fakeEmulator
     fakeEmulator.start()
     val emulators = runBlocking { catalog.updateNow().await() }
-    val emulatorController = emulators.find { it.emulatorId.grpcPort == fakeEmulator.grpcPort }!!
-    val displayPanel = EmulatorDisplayPanel(disposable, emulatorController, project, displayId, null, false, true)
-    waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-    return displayPanel
+    return emulators.find { it.emulatorId.grpcPort == fakeEmulator.grpcPort }!!
   }
 
   fun executeAction(actionId: String, emulatorView: EmulatorView, place: String = ActionPlaces.TOOLBAR) {

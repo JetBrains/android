@@ -89,6 +89,7 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/layout-inspector/testData",
+        "//tools/adt/idea/streaming/native:libimage_converter.prebuilt",
         "//tools/base/build-system:gradle-distrib",
     ],
     # do not sort: must match IML order
