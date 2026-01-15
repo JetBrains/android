@@ -16,15 +16,18 @@
 package com.google.idea.blaze.android.run.runner
 
 import com.android.ddmlib.IDevice
+import com.android.tools.deployer.ApkVerifierTracker
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.ApplicationTerminator
+import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.clearAppStorage
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.profilers.AndroidProfilerLaunchTaskContributor
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ConsoleProvider
@@ -38,6 +41,8 @@ import com.android.tools.idea.run.configuration.execution.createRunContentDescri
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.util.LaunchUtils
+import com.google.idea.blaze.android.run.BazelAndroidRunContext
+import com.google.idea.blaze.android.run.binary.UserIdHelper
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.process.NopProcessHandler
@@ -65,7 +70,8 @@ class BlazeAndroidConfigurationExecutor(
   private val applicationContext: ApplicationProjectContext,
   private val env: ExecutionEnvironment,
   private val deviceFutures: DeviceFutures,
-  private val myLaunchTasksProvider: BlazeLaunchTasksProvider,
+  private val runContext: BazelAndroidRunContext,
+  private val launchStrategy: BlazeAndroidDeployAndLaunchStrategy,
   private val launchOptions: LaunchOptions,
   private val apkProvider: ApkProvider,
   private val liveEditService: LiveEditService
@@ -103,6 +109,70 @@ class BlazeAndroidConfigurationExecutor(
     createRunContentDescriptor(processHandler, console, env)
   }
 
+  private suspend fun getTasks(device: IDevice, isDebug: Boolean): List<BlazeLaunchTask> {
+    return buildList {
+      val launchTasks = this
+      val packageName = runContext.applicationProjectContext.applicationId
+
+      val userId = launchStrategy.getUserId(device)
+
+      // NOTE: Task for opening the profiler tool-window should come before deployment
+      // to ensure the tool-window opens correctly. This is required because starting
+      // the profiler session requires the tool-window to be open.
+      if (AndroidProfilerLaunchTaskContributor.isProfilerLaunch(runContext.executor)) {
+        launchTasks.add(BlazeAndroidOpenProfilerWindowTask(project))
+      }
+
+      if (launchOptions.isDeploy) {
+        val userIdFlags = UserIdHelper.getFlagsFromUserId(userId)
+        val skipVerification =
+          ApkVerifierTracker.getSkipVerificationInstallationFlag(device, packageName)
+        val pmInstallOption = if (skipVerification != null) "$userIdFlags $skipVerification" else userIdFlags
+        val deployOptions =
+          DeployOptions(
+            disabledDynamicFeatures = emptyList(),
+            pmInstallFlags = pmInstallOption,
+            installOnAllUsers = false,
+            alwaysInstallWithPm = false,
+            allowAssumeVerified = false
+          )
+        val deployTasks =
+          launchStrategy.getDeployTasks(runContext, device, deployOptions)
+        launchTasks.addAll(deployTasks)
+      }
+
+      if (isDebug) {
+        launchTasks.add(
+          CheckApkDebuggableTask(project, runContext.buildStep.getDeployInfo())
+        )
+      }
+
+      val amStartOptions = mutableListOf<String>()
+      amStartOptions.add(launchStrategy.getAmStartOptions())
+      if (AndroidProfilerLaunchTaskContributor.isProfilerLaunch(runContext.executor)) {
+        amStartOptions.add(
+          AndroidProfilerLaunchTaskContributor.getAmStartOptions(
+            project,
+            packageName,
+            runContext.profileState,
+            device,
+            runContext.executor
+          )
+        )
+      }
+      val appLaunchTask =
+        launchStrategy.getApplicationLaunchTask(
+          runContext, isDebug, userId, amStartOptions.joinToString(separator = " ")
+        )
+      if (appLaunchTask != null) {
+        launchTasks.add(appLaunchTask)
+        // TODO(arvindanekal): the live edit api changed and we cannot get the apk here to create
+        // live
+        // edit; the live edit team or Arvind need to fix this
+      }
+    }
+  }
+
   private suspend fun doRun(
     devices: List<IDevice>,
     processHandler: ProcessHandler,
@@ -127,7 +197,7 @@ class BlazeAndroidConfigurationExecutor(
           LaunchUtils.initiateDismissKeyguard(device)
           LOG.info("Launching on device ${device.name}")
           val launchContext = BlazeLaunchContext(env, device, console, processHandler, indicator)
-          myLaunchTasksProvider.getTasks(device, isDebug).forEach {
+          getTasks(device, isDebug).forEach {
             it.run(launchContext)
           }
           LiveEditHelper().invokeLiveEdit(
@@ -173,7 +243,23 @@ class BlazeAndroidConfigurationExecutor(
 
     val device = devices.single()
     indicator.text = "Connecting debugger"
-    myLaunchTasksProvider.startDebugSession(env, device, console, indicator).runContentDescriptor
+
+    // Do not get debugger state directly from the debugger itself.
+    // See BlazeAndroidDebuggerService#getDebuggerState for an explanation.
+    val isNativeDebuggingEnabled = isNativeDebuggingEnabled(launchOptions)
+    val debuggerService = BlazeAndroidDebuggerService.getInstance(project)
+    val debugger = debuggerService.getDebugger(isNativeDebuggingEnabled) ?: throw ExecutionException("Can't find AndroidDebugger for launch")
+    val debuggerState = debuggerService.getDebuggerState(debugger) ?: throw ExecutionException("Can't find AndroidDebuggerState for launch")
+    if (isNativeDebuggingEnabled) {
+      val deployInfo = runContext.buildStep.getDeployInfo()
+      debuggerService.configureNativeDebugger(debuggerState, deployInfo)
+    }
+
+    val debugSession = launchStrategy.startDebuggerSession(
+      runContext, debugger, debuggerState, env, device, console, indicator
+    ) ?: throw ExecutionException("Failed to start debugger")
+
+    debugSession.runContentDescriptor
   }
 
   private suspend fun createConsole(processHandler: ProcessHandler): ConsoleView = withContext(uiThread) {
@@ -184,17 +270,15 @@ class BlazeAndroidConfigurationExecutor(
     val date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(Date())
     consoleView.println("$date: Launching ${configuration.name} on '${env.executionTarget.displayName}.")
   }
-}
 
+  private fun isNativeDebuggingEnabled(launchOptions: LaunchOptions): Boolean {
+    val flag = launchOptions.getExtraOption(NATIVE_DEBUGGING_ENABLED)
+    return flag is Boolean && flag
+  }
 
-interface BlazeLaunchTasksProvider {
-  @Throws(ExecutionException::class)
-  fun getTasks(device: IDevice, isDebug: Boolean): List<BlazeLaunchTask>
-
-  @Throws(ExecutionException::class)
-  fun startDebugSession(
-    environment: ExecutionEnvironment, device: IDevice, console: ConsoleView, indicator: ProgressIndicator
-  ): XDebugSession
+  companion object {
+    const val NATIVE_DEBUGGING_ENABLED: String = "NATIVE_DEBUGGING_ENABLED"
+  }
 }
 
 

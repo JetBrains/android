@@ -134,7 +134,8 @@ class BlazeAndroidRunConfigurationRunner(
             applicationProjectContext,
             environment,
             deviceFutures,
-            BlazeAndroidLaunchTasksProvider(project, runContext, launchStrategy, launchOptions),
+            runContext,
+            launchStrategy,
             launchOptions,
             runContext.apkProvider,
             getInstance(environment.project)
