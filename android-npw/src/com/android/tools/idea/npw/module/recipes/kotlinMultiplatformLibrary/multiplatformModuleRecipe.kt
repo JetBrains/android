@@ -65,6 +65,8 @@ private fun RecipeExecutor.generateModule(
     data.rootDir.resolve(buildFile),
   )
 
+  addCompileSdk(data.apis.buildApi, true)
+
   setKotlinVersion(projectData.kotlinVersion)
   addPlugin(
     "org.jetbrains.kotlin.multiplatform",

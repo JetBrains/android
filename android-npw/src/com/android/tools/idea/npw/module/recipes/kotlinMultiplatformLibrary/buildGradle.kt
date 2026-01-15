@@ -19,7 +19,6 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.AndroidMajorVersion
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
-import com.android.tools.idea.npw.module.recipes.compileSdk
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.minSdk
 
@@ -115,7 +114,6 @@ private fun androidTargetConfig(
       // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
     androidLibrary {
       namespace '$packageName'
-      ${compileSdk(compileApi, agpVersion)}
       ${minSdk(minApi, agpVersion)}
 
       withHostTestBuilder {
