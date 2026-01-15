@@ -114,31 +114,30 @@ class BlazeAndroidRunConfigurationRunner(
 
     val state = runConfig.handler.getState()
 
-    val applicationProjectContext = runContext.getApplicationProjectContext()
+    val applicationProjectContext = runContext.applicationProjectContext
     val wearLaunchOptions = (state as? BlazeAndroidBinaryRunConfigurationState)?.currentWearLaunchOptions
-    if (wearLaunchOptions != null) {
-      return getWearExecutor(wearLaunchOptions, environment, deployTarget, runContext)
-    }
-
-    val launchOptions = launchOptionsBuilder.build()
-    val runner =
+    val configurationExecutor = if (wearLaunchOptions != null) {
+      getWearExecutor(wearLaunchOptions, environment, deployTarget, runContext)
+    } else {
+      val launchOptions = launchOptionsBuilder.build()
       BlazeAndroidConfigurationExecutor(
-        runContext.getConsoleProvider(),
+        runContext.consoleProvider,
         applicationProjectContext,
         environment,
         deviceFutures,
         BlazeAndroidLaunchTasksProvider(project, runContext, launchStrategy, launchOptions),
         launchOptions,
-        runContext.getApkProvider(),
+        runContext.apkProvider,
         getInstance(environment.project)
       )
-    return AndroidConfigurationExecutorRunProfileState(runner)
+    }
+    return AndroidConfigurationExecutorRunProfileState(configurationExecutor)
   }
 
   @Throws(ExecutionException::class)
   private fun getWearExecutor(
     launchOptions: ComponentLaunchOptions, env: ExecutionEnvironment, deployTarget: DeployTarget, runContext: BlazeAndroidRunContext,
-    ): RunProfileState {
+    ): AndroidConfigurationExecutor {
     val settings: AppRunSettings =
       object : AppRunSettings {
         override val deployOptions: DeployOptions
@@ -159,43 +158,19 @@ class BlazeAndroidRunConfigurationRunner(
     val deployer: ApplicationDeployer =
       ApplicationDeployerImpl(env.project, RunStats.from(env))
 
-    val configurationExecutor: AndroidConfigurationExecutor =
-      when (launchOptions) {
-        is TileLaunchOptions ->
-          AndroidTileConfigurationExecutor(
-            env,
-            deviceFutures,
-            settings,
-            runContext.getApkProvider(),
-            runContext.getApplicationProjectContext(),
-            deployer
-          )
-
-        is WatchFaceLaunchOptions ->
-          AndroidWatchFaceConfigurationExecutor(
-            env,
-            deviceFutures,
-            settings,
-            runContext.getApkProvider(),
-            runContext.getApplicationProjectContext(),
-            deployer
-          )
-
-        is ComplicationLaunchOptions ->
-          AndroidComplicationConfigurationExecutor(
-            env,
-            deviceFutures,
-            settings,
-            runContext.getApkProvider(),
-            runContext.getApplicationProjectContext(),
-            deployer
-          )
-
-        else ->
-          error("Unknown launch options " + launchOptions.javaClass.getName())
-      }
-
-    return AndroidConfigurationExecutorRunProfileState(configurationExecutor)
+    return when (launchOptions) {
+      is TileLaunchOptions -> ::AndroidTileConfigurationExecutor
+      is WatchFaceLaunchOptions -> ::AndroidWatchFaceConfigurationExecutor
+      is ComplicationLaunchOptions -> ::AndroidComplicationConfigurationExecutor
+      else -> error("Unknown launch options " + launchOptions.javaClass.getName())
+    }(
+      env,
+      deviceFutures,
+      settings,
+      runContext.apkProvider,
+      runContext.applicationProjectContext,
+      deployer
+    )
   }
 
   override fun executeBeforeRunTask(environment: ExecutionEnvironment): Boolean {
