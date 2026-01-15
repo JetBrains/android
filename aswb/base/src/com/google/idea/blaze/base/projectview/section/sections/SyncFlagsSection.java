@@ -52,11 +52,9 @@ public class SyncFlagsSection {
 
     @Override
     public String quickDocs() {
-      return String.format(
-          "A set of flags that get passed to %s build during all sync actions. Unlike"
-              + "'build_flags', these are not used for run configurations, so use 'sync_flags' "
-              + "only when necessary, as they can defeat %<s caching.",
-          Blaze.guessBuildSystemName());
+      return "A set of flags that get passed to bazel build during all sync actions. Unlike"
+          + "'build_flags', these are not used for run configurations, so use 'sync_flags' "
+          + "only when necessary, as they can defeat bazel caching.";
     }
   }
 }

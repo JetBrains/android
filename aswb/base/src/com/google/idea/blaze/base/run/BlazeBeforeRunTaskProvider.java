@@ -16,7 +16,6 @@
 package com.google.idea.blaze.base.run;
 
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationRunner;
-import com.google.idea.blaze.base.settings.Blaze;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.ExecutionException;
@@ -68,12 +67,12 @@ public final class BlazeBeforeRunTaskProvider
 
   @Override
   public String getName() {
-    return Blaze.guessBuildSystemName() + " before-run task";
+    return "Bazel before-Run Task";
   }
 
   @Override
   public String getDescription(Task task) {
-    return Blaze.guessBuildSystemName() + " before-run task";
+    return "Bazel before-run task";
   }
 
   @Override

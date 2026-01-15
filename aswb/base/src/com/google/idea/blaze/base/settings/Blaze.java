@@ -105,24 +105,4 @@ public class Blaze {
   public static String defaultBuildSystemName() {
     return BuildSystemProvider.defaultBuildSystem().buildSystem().getName();
   }
-
-  /**
-   * Tries to guess the current project, and uses that to determine the build system name.<br>
-   * Should only be used in situations where the current project is not accessible.
-   */
-  public static String guessBuildSystemName() {
-    Project project = guessCurrentProject();
-    return buildSystemName(project);
-  }
-
-  private static Project guessCurrentProject() {
-    Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-    if (openProjects.length == 1) {
-      return openProjects[0];
-    }
-    if (SwingUtilities.isEventDispatchThread()) {
-      return DataManager.getInstance().getDataContext().getData(CommonDataKeys.PROJECT);
-    }
-    return null;
-  }
 }

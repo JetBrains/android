@@ -52,9 +52,7 @@ public class TestFlagsSection {
 
     @Override
     public String quickDocs() {
-      return String.format(
-          "A set of flags that get passed to all %s test command invocations as arguments.",
-          Blaze.guessBuildSystemName());
+      return "A set of flags that get passed to all bazel test command invocations as arguments.";
     }
   }
 }

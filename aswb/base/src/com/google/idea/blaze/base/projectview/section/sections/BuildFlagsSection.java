@@ -52,10 +52,8 @@ public class BuildFlagsSection {
 
     @Override
     public String quickDocs() {
-      return String.format(
-          "A set of flags that get passed to all %s build command invocations as arguments. This"
-              + " includes both sync and run configuration actions.",
-          Blaze.guessBuildSystemName());
+      return "A set of flags that get passed to all bazel build command invocations as arguments. This"
+         + " includes both sync and run configuration actions.";
     }
   }
 }
