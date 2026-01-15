@@ -269,6 +269,10 @@ class WifiPairableDeviceProvisionerPluginTest {
         port = port,
         ipv6 = emptyList(),
         buildVersionSdkFull = sdk,
+        // TODO merge
+        givenName = null,
+        serial = null,
+        mdnsServiceVersion = null,
       )
     val services = listOf(MdnsTlsService(serviceInfo, knownDevice))
     return MdnsServices(emptyList(), services, emptyList())

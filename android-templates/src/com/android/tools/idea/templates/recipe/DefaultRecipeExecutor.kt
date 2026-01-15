@@ -603,6 +603,11 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     projectSettingsModel?.addModulePath(moduleName)
   }
 
+  // TODO merge
+  override fun addJourneysTestSuite(testSuiteName: String, targetVariant: String?) {
+    TODO("not implemented")
+  }
+
   /** Adds a new build feature to android block. For example, may enable compose. */
   override fun setBuildFeature(name: String, value: Boolean) {
     val buildModel = moduleGradleBuildModel ?: return

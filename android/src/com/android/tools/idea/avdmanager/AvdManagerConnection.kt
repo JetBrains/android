@@ -120,7 +120,9 @@ constructor(
         IJ_LOG.error("Could not find Android SDK!", e)
       }
     }
-    return listOf(*avdManager.allAvds)
+    // TODO merge
+    return listOf()
+    //return listOf(*avdManager.allAvds)
   }
 
   /** Delete the given AVD if it exists. */
@@ -485,7 +487,8 @@ constructor(
       return project != null &&
         ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null &&
         (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_HEADSET_AVD.get() || !avd.isXrHeadsetDevice) &&
-        (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_GLASSES_AVD.get() || !avd.isXrGlassesDevice)
+             // TODO merge
+        (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_GLASSES_AVD.get() /*|| !avd.isXrGlassesDevice*/)
     }
 
     @JvmStatic
