@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 import androidx.work.inspection.WorkManagerInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.ide.IntellijUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
@@ -44,6 +45,8 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.Backg
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getJobsCategoryNode
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getWakeLocksCategoryNode
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getWorksCategoryNode
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.BackgroundTaskTreeTableView
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.BackgroundTaskTreeTableView.Companion.HEADER_LABEL_HEIGHT
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.CLASS_NAME_COMPARATOR
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.START_TIME_COMPARATOR
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.STATUS_COMPARATOR
@@ -53,6 +56,12 @@ import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.ui.util.preferredHeight
+import com.intellij.ui.util.preferredWidth
+import javax.swing.JLabel
+import javax.swing.JScrollPane
+import javax.swing.JTree
+import javax.swing.tree.DefaultMutableTreeNode
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -65,9 +74,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JScrollPane
-import javax.swing.JTree
-import javax.swing.tree.DefaultMutableTreeNode
 
 class BackgroundTaskTreeTableViewTest {
   private val projectRule = ProjectRule()
@@ -396,6 +402,34 @@ class BackgroundTaskTreeTableViewTest {
         root.verifyNaturalOrdering { startTimeMs }
       }
     }
+
+  /**
+   * Asserts that the header renderer uses the same underlying component (b/472094288) and sets
+   * height correctly.
+   */
+  @Test
+  fun headerRendererUsesSameComponent() {
+    val view = BackgroundTaskTreeTableView(tab, client, selectionModel, scope, uiDispatcher)
+
+    val tree = view.component.getDescendant<JTree>()
+    val renderer = tree.cellRenderer
+    val root = DefaultMutableTreeNode("root")
+    val foo = DefaultMutableTreeNode("Foo").apply { setParent(root) }
+    val bar = DefaultMutableTreeNode("FooBar").apply { setParent(root) }
+
+    val fooLabel = renderer.getTreeCellRendererComponent(tree, foo, false, false, false, 0, false)
+    assertThat((fooLabel as JLabel).text).isEqualTo("Foo")
+    val fooWidth = fooLabel.preferredWidth
+    assertThat(fooWidth).isGreaterThan(0)
+    assertThat(fooLabel.preferredHeight).isEqualTo(HEADER_LABEL_HEIGHT)
+
+    val barLabel = renderer.getTreeCellRendererComponent(tree, bar, false, false, false, 0, false)
+    assertThat((barLabel as JLabel).text).isEqualTo("FooBar")
+    assertThat(barLabel.preferredWidth).isGreaterThan(fooWidth)
+    assertThat(barLabel.preferredHeight).isEqualTo(HEADER_LABEL_HEIGHT)
+
+    assertThat(fooLabel).isSameAs(barLabel)
+  }
 }
 
 private fun <T> DefaultMutableTreeNode.verifyNaturalOrdering(
