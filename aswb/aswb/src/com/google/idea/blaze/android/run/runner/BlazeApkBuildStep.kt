@@ -51,6 +51,11 @@ class BlazeApkBuildStep(
   private val buildInvoker: BuildInvoker,
   private val deployInfoExtractor: DeployInfoExtractor
 ) : ApkBuildStep {
+  private var done = false
+  override fun isDone(): Boolean {
+    return done
+  }
+
   private var blazeAndroidDeployInfo: BlazeAndroidDeployInfo? = null
 
   /**
@@ -132,7 +137,7 @@ class BlazeApkBuildStep(
       IssueOutput.error(message).submit(context)
       return
     }
-
+    done = true
     context.output(StatusOutput("Deployment information parsed from build artifacts."))
   }
 
