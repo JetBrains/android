@@ -27,8 +27,8 @@ import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.impl.InternalDecorator
 import com.intellij.testFramework.replaceService
-import org.mockito.kotlin.mock
 import javax.swing.Icon
+import org.mockito.kotlin.mock
 
 /** Creates a [FakeToolWindow] for testing. */
 fun createFakeToolWindow(
@@ -127,7 +127,7 @@ class FakeToolWindow(
   }
 
   private fun notifyStateChanged(changeType: ToolWindowManagerListener.ToolWindowManagerEventType) {
-    project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(manager, changeType)
+    project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(manager, this, changeType)
   }
 }
 
