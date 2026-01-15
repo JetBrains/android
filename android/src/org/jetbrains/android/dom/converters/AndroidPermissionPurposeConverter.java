@@ -17,7 +17,8 @@ package org.jetbrains.android.dom.converters;
 
 import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.TAG_PERMISSION;
-import static com.android.SdkConstants.TAG_VALID_PURPOSE;
+// TODO merge
+//import static com.android.SdkConstants.TAG_VALID_PURPOSE;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.sdk.AndroidPlatform;
@@ -148,7 +149,8 @@ public class AndroidPermissionPurposeConverter extends ResolvingConverter<String
         continue;
       }
       List<String> purposes = new ArrayList<>();
-      NodeList purposeNodes = permissionElement.getElementsByTagName(TAG_VALID_PURPOSE);
+      // TODO merge
+      NodeList purposeNodes = null;//permissionElement.getElementsByTagName(TAG_VALID_PURPOSE);
       for (int j = 0; j < purposeNodes.getLength(); j++) {
         Element purposeElement = (Element)purposeNodes.item(j);
         String purposeName = purposeElement.getAttribute(ATTR_NAME);

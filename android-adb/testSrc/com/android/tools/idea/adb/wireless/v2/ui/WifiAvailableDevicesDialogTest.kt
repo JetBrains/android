@@ -115,6 +115,10 @@ class WifiAvailableDevicesDialogTest {
         port,
         model,
         sdk,
+        // TODO merge
+        null,
+        null,
+        null,
       ),
       knownDevice,
     )

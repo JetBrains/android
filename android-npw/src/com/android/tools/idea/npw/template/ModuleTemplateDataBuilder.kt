@@ -274,6 +274,9 @@ class ModuleTemplateDataBuilder(
       useGenericInstrumentedTests = useGenericInstrumentedTests,
       commonSrcDir = commonSrcDir,
       iosSrcDir = iosSrcDir,
+      // TODO merge
+      currentVariant = TODO(),
+      isWatchFace = TODO(),
     )
   }
 }

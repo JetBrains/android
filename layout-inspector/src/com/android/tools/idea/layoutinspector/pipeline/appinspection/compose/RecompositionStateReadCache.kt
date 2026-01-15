@@ -24,8 +24,9 @@ import fleet.util.async.firstNotNull
 import java.util.WeakHashMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.RecompositionStateRead
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.RecompositionStateReadEvent
+// TODO merge
+//import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.RecompositionStateRead
+//import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.RecompositionStateReadEvent
 
 /**
  * Cache for recomposition state reads.
@@ -72,11 +73,12 @@ class RecompositionStateReadCache(
     model.removeStateReadsNodeListener(listener)
   }
 
-  fun handleEvent(event: RecompositionStateReadEvent) {
-    if (!treeSettings.observeStateReadsForAll) {
-      onDemandCache.handleEvent(event)
-    }
-  }
+  // TODO merge
+  //fun handleEvent(event: RecompositionStateReadEvent) {
+  //  if (!treeSettings.observeStateReadsForAll) {
+  //    onDemandCache.handleEvent(event)
+  //  }
+  //}
 
   fun clear() {
     onDemandCache.clear()
@@ -120,12 +122,14 @@ class RecompositionStateReadCache(
       val response =
         client?.getRecompositionStateReads(node.anchorHash, recomposition) ?: return null
       val reads = convertStateRead(response, lookup)
-      val firstRecomposition = response.firstRecomposition
-      val actualRecomposition = response.read.recompositionNumber
-      val key = Key(node.anchorHash, actualRecomposition)
-      cache[key] = reads
-      firstRecompositions[node.anchorHash] = firstRecomposition
-      return RecomposeStateReadResult(node, key.recomposition, reads, firstRecomposition)
+      // TODO merge
+      return TODO()
+      //val firstRecomposition = response.firstRecomposition
+      //val actualRecomposition = response.read.recompositionNumber
+      //val key = Key(node.anchorHash, actualRecomposition)
+      //cache[key] = reads
+      //firstRecompositions[node.anchorHash] = firstRecomposition
+      //return RecomposeStateReadResult(node, key.recomposition, reads, firstRecomposition)
     }
   }
 
@@ -163,20 +167,21 @@ class RecompositionStateReadCache(
       return fetchDataFor(node, recomposition)
     }
 
-    fun handleEvent(event: RecompositionStateReadEvent) {
-      synchronized(lock) {
-        if (event.anchorHash != anchorHashObserved) {
-          return
-        }
-        val cacheWasEmpty = cache.isEmpty()
-        convertStateReadEvent(event, lookup) { recomposition, readList ->
-          cache[Key(anchorHashObserved, recomposition)] = readList
-        }
-        if (cacheWasEmpty && cache.isNotEmpty()) {
-          firstRecompositionWithStateReads.value = cache.keys.first()
-        }
-      }
-    }
+    // TODO merge
+    //fun handleEvent(event: RecompositionStateReadEvent) {
+    //  synchronized(lock) {
+    //    if (event.anchorHash != anchorHashObserved) {
+    //      return
+    //    }
+    //    val cacheWasEmpty = cache.isEmpty()
+    //    convertStateReadEvent(event, lookup) { recomposition, readList ->
+    //      cache[Key(anchorHashObserved, recomposition)] = readList
+    //    }
+    //    if (cacheWasEmpty && cache.isNotEmpty()) {
+    //      firstRecompositionWithStateReads.value = cache.keys.first()
+    //    }
+    //  }
+    //}
 
     fun clear() {
       synchronized(lock) {
@@ -204,18 +209,19 @@ class RecompositionStateReadCache(
           // for an earlier composable: just ignore the result.
           return null
         }
-        if (response.read != RecompositionStateRead.getDefaultInstance()) {
-          // The state reads existed on the device: return it now.
-          val reads = convertStateRead(response, lookup)
-          val key = Key(response.anchorHash, response.read.recompositionNumber)
-          cache[key] = reads
-          return RecomposeStateReadResult(
-            node,
-            key.recomposition,
-            reads,
-            cache.keys.first().recomposition,
-          )
-        }
+        // TODO merge
+        //if (response.read != RecompositionStateRead.getDefaultInstance()) {
+        //  // The state reads existed on the device: return it now.
+        //  val reads = convertStateRead(response, lookup)
+        //  val key = Key(response.anchorHash, response.read.recompositionNumber)
+        //  cache[key] = reads
+        //  return RecomposeStateReadResult(
+        //    node,
+        //    key.recomposition,
+        //    reads,
+        //    cache.keys.first().recomposition,
+        //  )
+        //}
       }
       // The state reads did not exist on the device. Wait for the first event to
       // be received:

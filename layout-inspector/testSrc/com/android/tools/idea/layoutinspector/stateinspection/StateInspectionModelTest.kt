@@ -76,26 +76,28 @@ class StateInspectionModelTest {
   private val treeSettings = FakeTreeSettings()
   private val read2Anchor1 = RecompositionStateReadResponse {
     AnchorHash(ANCHOR1)
-    RecompositionStateRead {
-      Recomposition(2)
-      StateRead {
-        Parameter("value", Type.DIMENSION_DP, 1.0f)
-        Invalidated(true)
-        StackTraceLine("androidx.CompositionImpl", "recordReadOf", "Composition.kt", 1015)
-        StackTraceLine("androidx.SnapshotKt", "readable", "Snapshot.kt", 225)
-      }
-    }
+    // TODO merge
+    //RecompositionStateRead {
+    //  Recomposition(2)
+    //  StateRead {
+    //    Parameter("value", Type.DIMENSION_DP, 1.0f)
+    //    Invalidated(true)
+    //    StackTraceLine("androidx.CompositionImpl", "recordReadOf", "Composition.kt", 1015)
+    //    StackTraceLine("androidx.SnapshotKt", "readable", "Snapshot.kt", 225)
+    //  }
+    //}
   }
   private val read3Anchor1 = RecompositionStateReadResponse {
     AnchorHash(ANCHOR1)
-    RecompositionStateRead {
-      Recomposition(3)
-      StateRead {
-        Parameter("value", Type.DIMENSION_DP, 1.5f)
-        StackTraceLine("androidx.CompositionImpl", "recordReadOf", "Composition.kt", 1015)
-        StackTraceLine("androidx.SnapshotKt", "readable", "Snapshot.kt", 225)
-      }
-    }
+    // TODO merge
+    //RecompositionStateRead {
+    //  Recomposition(3)
+    //  StateRead {
+    //    Parameter("value", Type.DIMENSION_DP, 1.5f)
+    //    StackTraceLine("androidx.CompositionImpl", "recordReadOf", "Composition.kt", 1015)
+    //    StackTraceLine("androidx.SnapshotKt", "readable", "Snapshot.kt", 225)
+    //  }
+    //}
   }
 
   @Before
@@ -413,12 +415,14 @@ class StateInspectionModelTest {
     firstObservedRecomposition: Int = 1,
   ): RecomposeStateReadResult {
     val reads = convertStateRead(this, inspectorModel)
-    return RecomposeStateReadResult(
-      node,
-      read.recompositionNumber,
-      reads,
-      firstObservedRecomposition,
-    )
+    // TODO merge
+    return TODO()
+    //return RecomposeStateReadResult(
+    //  node,
+    //  read.recompositionNumber,
+    //  reads,
+    //  firstObservedRecomposition,
+    //)
   }
 
   private class FakeClient(project: Project, scope: CoroutineScope, disposable: Disposable) :

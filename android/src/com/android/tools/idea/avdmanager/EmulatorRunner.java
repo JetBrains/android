@@ -96,7 +96,8 @@ public class EmulatorRunner {
     if (avdInfo == null) {
       return AvdClass.UNKNOWN_AVD_CLASS;
     }
-    ImmutableList<IdDisplay> tags = avdInfo.getTags();
+    // TODO merge
+    ImmutableList<IdDisplay> tags = null;//avdInfo.getTags();
     if (SystemImageTags.isTvImage(tags)) {
       return AvdClass.TV;
     }
@@ -109,7 +110,8 @@ public class EmulatorRunner {
     if (isFoldable(avdInfo)) {
       return AvdClass.FOLDABLE;
     }
-    if (SystemImageTags.isXrHeadsetImage(tags) || SystemImageTags.isXrGlassesImage(tags)) {
+    // TODO merge
+    if (SystemImageTags.isXrHeadsetImage(tags)/* || SystemImageTags.isXrGlassesImage(tags)*/) {
       return AvdClass.XR;
     }
     return AvdClass.GENERIC;
