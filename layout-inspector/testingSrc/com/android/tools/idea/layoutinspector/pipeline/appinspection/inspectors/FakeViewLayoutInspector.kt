@@ -124,6 +124,37 @@ class FakeViewLayoutInspector(connection: Connection<Event>) :
           )
           .build()
       }
+      Command.SpecializedCase.DRAW_COMMAND -> {
+        Response.newBuilder()
+          .setDrawResponse(LayoutInspectorViewProtocol.DrawResponse.getDefaultInstance())
+          .build()
+      }
+      Command.SpecializedCase.DRAW_COMMAND -> {
+        Response.newBuilder()
+          .setDrawResponse(LayoutInspectorViewProtocol.DrawResponse.getDefaultInstance())
+          .build()
+      }
+      Command.SpecializedCase.INTERCEPT_TOUCH_EVENTS_COMMAND -> {
+        Response.newBuilder()
+          .setInterceptTouchEventsResponse(
+            LayoutInspectorViewProtocol.InterceptTouchEventsResponse.getDefaultInstance()
+          )
+          .build()
+      }
+      Command.SpecializedCase.DRAW_OVERLAY_COMMAND -> {
+        Response.newBuilder()
+          .setDrawOverlayResponse(
+            LayoutInspectorViewProtocol.DrawOverlayResponse.getDefaultInstance()
+          )
+          .build()
+      }
+      Command.SpecializedCase.SET_OVERLAY_ALPHA_COMMAND -> {
+        Response.newBuilder()
+          .setSetOverlayAlphaResponse(
+            LayoutInspectorViewProtocol.SetOverlayAlphaResponse.getDefaultInstance()
+          )
+          .build()
+      }
       else -> fail("Unhandled view inspector command: ${command.specializedCase}")
     }
   }
