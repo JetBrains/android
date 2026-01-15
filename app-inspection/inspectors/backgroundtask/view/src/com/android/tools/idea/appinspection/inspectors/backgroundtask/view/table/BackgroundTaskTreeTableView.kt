@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.view.tabl
 import androidx.work.inspection.WorkManagerInspectorProtocol
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.ColumnTreeBuilder
+import com.android.tools.adtui.common.ColumnTreeBuilder.ColumnBuilder
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskTreeModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
@@ -33,7 +34,8 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.toFor
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ui.ColoredTreeCellRenderer
-import com.intellij.ui.ExperimentalUI
+import com.intellij.ui.NewUI
+import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
@@ -43,6 +45,7 @@ import java.awt.Rectangle
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JTree
@@ -52,6 +55,7 @@ import javax.swing.event.TreeExpansionEvent
 import javax.swing.event.TreeExpansionListener
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreeCellRenderer
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -204,138 +208,66 @@ class BackgroundTaskTreeTableView(
       }
     }
 
-    val builder =
-      ColumnTreeBuilder(tree)
-        .setShowVerticalLines(true)
-        .setBorder(BorderFactory.createEmptyBorder())
-        .setTreeSorter { comparator, _ ->
-          if (comparator != null) {
-            treeModel.sort(comparator)
+    val classColumn =
+      newColumn("Class", CLASS_NAME_COMPARATOR) { data, _ ->
+        when (data) {
+          is BackgroundTaskEntry -> append(data.className)
+          is String -> append(data) // The main use case here is to show the empty state message.
+        }
+      }
+
+    val statusColumn =
+      newColumn("Status", STATUS_COMPARATOR) { data, selected ->
+        when (data) {
+          is BackgroundTaskEntry -> {
+            append(data.status.capitalizedName())
+            icon = data.getIcon(selected)
           }
         }
+      }
 
-    builder.setHeaderRowCellRenderer { _, value, _, _, _, _, _ ->
+    val startTimeColumn =
+      newColumn("Start", START_TIME_COMPARATOR) { data, _ ->
+        when (data) {
+          is BackgroundTaskEntry -> {
+            append(data.startTimeMs.toFormattedTimeString())
+          }
+        }
+      }
+
+    // TODO(aalbert): Investigate why this isn't using a RETRIES_COMPARATOR
+    val retriesColumn =
+      newColumn("Retries", START_TIME_COMPARATOR) { data, _ ->
+        when (data) {
+          is WorkEntry,
+          is JobEntry -> append(data.retries.toString())
+          else -> append("-")
+        }
+      }
+
+    val headerRenderer = TreeCellRenderer { _, value, _, _, _, _, _ ->
       JLabel((value as DefaultMutableTreeNode).userObject as String).apply {
         preferredSize = Dimension(preferredSize.width, 30)
       }
     }
 
-    builder.addColumn(
-      ColumnTreeBuilder.ColumnBuilder()
-        .setName("Class")
-        .setHeaderAlignment(SwingConstants.LEFT)
-        .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-        .setRenderer(
-          object : ColoredTreeCellRenderer() {
-            override fun customizeCellRenderer(
-              tree: JTree,
-              value: Any?,
-              selected: Boolean,
-              expanded: Boolean,
-              leaf: Boolean,
-              row: Int,
-              hasFocus: Boolean,
-            ) {
-              when (val data = (value as DefaultMutableTreeNode).userObject) {
-                is BackgroundTaskEntry -> {
-                  append(data.className)
-                }
-                is String -> {
-                  // The main use case here is to show the empty state message.
-                  append(data)
-                }
-              }
-            }
-          }
-        )
-        .setComparator(CLASS_NAME_COMPARATOR)
-    )
-    builder.addColumn(
-      ColumnTreeBuilder.ColumnBuilder()
-        .setName("Status")
-        .setHeaderAlignment(SwingConstants.LEFT)
-        .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-        .setRenderer(
-          object : ColoredTreeCellRenderer() {
-            override fun customizeCellRenderer(
-              tree: JTree,
-              value: Any?,
-              selected: Boolean,
-              expanded: Boolean,
-              leaf: Boolean,
-              row: Int,
-              hasFocus: Boolean,
-            ) {
-              when (val data = (value as DefaultMutableTreeNode).userObject) {
-                is BackgroundTaskEntry -> {
-                  append(data.status.capitalizedName())
-                  val stateIcon = data.icon()
-                  icon =
-                    if (selected && !ExperimentalUI.isNewUI() && stateIcon != null)
-                      ColoredIconGenerator.generateWhiteIcon(stateIcon)
-                    else stateIcon
-                }
-              }
-            }
-          }
-        )
-        .setComparator(STATUS_COMPARATOR)
-    )
-    builder.addColumn(
-      ColumnTreeBuilder.ColumnBuilder()
-        .setName("Start")
-        .setHeaderAlignment(SwingConstants.LEFT)
-        .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-        .setRenderer(
-          object : ColoredTreeCellRenderer() {
-            override fun customizeCellRenderer(
-              tree: JTree,
-              value: Any?,
-              selected: Boolean,
-              expanded: Boolean,
-              leaf: Boolean,
-              row: Int,
-              hasFocus: Boolean,
-            ) {
-              when (val data = (value as DefaultMutableTreeNode).userObject) {
-                is BackgroundTaskEntry -> {
-                  append(data.startTimeMs.toFormattedTimeString())
-                }
-              }
-            }
-          }
-        )
-        .setComparator(START_TIME_COMPARATOR)
-    )
-    builder.addColumn(
-      ColumnTreeBuilder.ColumnBuilder()
-        .setName("Retries")
-        .setHeaderAlignment(SwingConstants.LEFT)
-        .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-        .setRenderer(
-          object : ColoredTreeCellRenderer() {
-            override fun customizeCellRenderer(
-              tree: JTree,
-              value: Any?,
-              selected: Boolean,
-              expanded: Boolean,
-              leaf: Boolean,
-              row: Int,
-              hasFocus: Boolean,
-            ) {
-              when (val data = (value as DefaultMutableTreeNode).userObject) {
-                is WorkEntry,
-                is JobEntry -> {
-                  append((data as BackgroundTaskEntry).retries.toString())
-                }
-                else -> append("-")
-              }
-            }
-          }
-        )
-        .setComparator(START_TIME_COMPARATOR)
-    )
-    component = builder.build()
+    val sorter =
+      ColumnTreeBuilder.TreeSorter<Any> { comparator, _ ->
+        if (comparator != null) {
+          treeModel.sort(comparator)
+        }
+      }
+    component =
+      ColumnTreeBuilder(tree)
+        .setShowVerticalLines(true)
+        .setBorder(BorderFactory.createEmptyBorder())
+        .setTreeSorter(sorter)
+        .setHeaderRowCellRenderer(headerRenderer)
+        .addColumn(classColumn)
+        .addColumn(statusColumn)
+        .addColumn(startTimeColumn)
+        .addColumn(retriesColumn)
+        .build()
   }
 
   private fun restoreExpandedPaths(tree: JTree) {
@@ -343,4 +275,40 @@ class BackgroundTaskTreeTableView(
       tree.expandPath(path)
     }
   }
+}
+
+private fun newColumn(
+  name: String,
+  comparator: Comparator<*>,
+  renderer: SimpleColoredComponent.(Any, Boolean) -> Unit,
+): ColumnBuilder {
+  return ColumnBuilder()
+    .setName(name)
+    .setHeaderAlignment(SwingConstants.LEFT)
+    .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
+    .setComparator(comparator)
+    .setRenderer(
+      object : ColoredTreeCellRenderer() {
+        override fun customizeCellRenderer(
+          tree: JTree,
+          value: Any?,
+          selected: Boolean,
+          expanded: Boolean,
+          leaf: Boolean,
+          row: Int,
+          hasFocus: Boolean,
+        ) {
+          val data = (value as? DefaultMutableTreeNode)?.userObject ?: return
+          renderer(data, selected)
+        }
+      }
+    )
+}
+
+private fun BackgroundTaskEntry.getIcon(selected: Boolean): Icon? {
+  val icon = icon() ?: return null
+  if (!selected || NewUI.isEnabled()) {
+    return icon
+  }
+  return ColoredIconGenerator.generateWhiteIcon(icon)
 }
