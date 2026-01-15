@@ -143,7 +143,6 @@ public class BlazeAndroidTestRunConfigurationHandler
 
     BlazeAndroidDeployAndLaunchStrategy launchStrategy = new AndroidTestDeployAndLaunchStrategy(
         project,
-        runContext,
         configState,
         label,
         blazeFlags,

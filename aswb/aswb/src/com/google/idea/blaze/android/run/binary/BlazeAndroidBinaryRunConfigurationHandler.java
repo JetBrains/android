@@ -170,14 +170,14 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
 
     switch (configState.getLaunchMethod()) {
       case NON_BLAZE:
-        launchStrategy = new NormalBuildDeployAndLaunchStrategy(project, configState, runContext, launchId);
+        launchStrategy = new NormalBuildDeployAndLaunchStrategy(project, configState, launchId);
         break;
       case MOBILE_INSTALL_V2:
         // Standardize on a single mobile-install launch method
         configState.setLaunchMethod(AndroidBinaryLaunchMethod.MOBILE_INSTALL);
         // fall through
       case MOBILE_INSTALL:
-        launchStrategy = new MobileInstallDeployAndLaunchStrategy(project, configState, runContext, launchId);
+        launchStrategy = new MobileInstallDeployAndLaunchStrategy(project, configState, launchId);
         break;
       default:
         throw new ExecutionException("No compatible launch methods.");
