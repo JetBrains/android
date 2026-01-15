@@ -362,7 +362,6 @@ filegroup(
         "//tools/base/threading-agent:threading_agent.jar",
         "//tools/base/tracer:trace_agent",
         "//tools/vendor/google/ml/aiplugin/ij-platform/atlas:atlas_artifacts",
-        "//tools/vendor/google/uiautomator-recorder:recorder",
     ] + select({
         "@platforms//os:windows": [],
         "//conditions:default": [
@@ -441,7 +440,6 @@ filegroup(
         "//tools/vendor/google/ml/aiplugin/android-plugin/integration:aida_proto",
         "//tools/vendor/google/ml/aiplugin/android-plugin/integration:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/android/journeys/gradle:libjourneys-java-proto",
-        "//tools/vendor/google/ml/aiplugin/android/journeys:proto-models-1.0",
         "//tools/vendor/google/ml/aiplugin/android:agent_log_proto",
         "//tools/vendor/google/ml/aiplugin/backends/aicode:aicode_grpc",
         "//tools/vendor/google/ml/aiplugin/core/aicore:aida_grpc",
