@@ -57,7 +57,6 @@ import com.android.tools.idea.streaming.emulator.EmulatorNotificationDispatcher
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.streaming.emulator.displayNameWithApi
-import com.android.utils.TraceUtils.currentStack
 import com.android.utils.TraceUtils.simpleId
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -302,9 +301,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
         when (changeType) {
           ActivateToolWindow, ShowToolWindow, HideToolWindow, MovedOrResized -> {
-            if (StudioFlags.EMBEDDED_EMULATOR_B458422581_LOGGING.get() && changeType == ActivateToolWindow) {
-              logger.info("ToolWindowManagerListener.stateChanged: Running Devices tool window activated\n$currentStack")
-            }
             toolWindowManager.invokeLater {
               if (!toolWindow.isDisposed) {
                 if (toolWindow.isVisible) {
@@ -754,9 +750,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun ToolWindow.activate(activation: ActivationLevel) {
-    if (StudioFlags.EMBEDDED_EMULATOR_B458422581_LOGGING.get() && activation >= ActivationLevel.ACTIVATE_TAB) {
-      logger.info("ToolWindow.activate($activation): Activating Running Devices tool window, isVisible=$isVisible\n$currentStack")
-    }
     if (isVisible) {
       if (activation >= ActivationLevel.ACTIVATE_TAB) {
         activate(null)
@@ -1340,9 +1333,6 @@ private val ContentManager.placeholderContent: Content?
   }
 
 private fun Content.select(activation: ActivationLevel) {
-  if (StudioFlags.EMBEDDED_EMULATOR_B458422581_LOGGING.get() && activation >= ActivationLevel.ACTIVATE_TAB) {
-    logger.info("Content.select($activation): Requesting focus to $deviceId\n$currentStack")
-  }
   manager?.setSelectedContent(this, activation >= ActivationLevel.ACTIVATE_TAB)
 }
 
