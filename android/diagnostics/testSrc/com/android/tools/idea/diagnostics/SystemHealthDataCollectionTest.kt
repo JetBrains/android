@@ -37,7 +37,8 @@ import kotlin.test.assertContentEquals
 class SystemHealthDataCollectionTest {
 
   private lateinit var systemHealthDataCollection: SystemHealthDataCollection
-  private lateinit var oldWriter: UsageTrackerWriter
+  // TODO merge
+  //private lateinit var oldWriter: UsageTrackerWriter
   private lateinit var testUsageTracker: TestUsageTracker
 
   private lateinit var scheduler: VirtualTimeScheduler
@@ -54,14 +55,16 @@ class SystemHealthDataCollectionTest {
     scheduler = VirtualTimeScheduler()
     scheduler.advanceBy(1L)
     testUsageTracker = TestUsageTracker(scheduler)
-    oldWriter = UsageTracker.setWriterForTest(testUsageTracker)
+    // TODO merge
+    //oldWriter = UsageTracker.setWriterForTest(testUsageTracker)
     systemHealthDataCollection.clock = SystemHealthDataCollection.Clock { scheduler.currentTimeMillis }
     systemHealthDataCollection.dedicatedThreadExecutor = scheduler
   }
 
   @After
   fun tearDown() {
-    UsageTracker.setWriterForTest(oldWriter)
+    // TODO merge
+    //UsageTracker.setWriterForTest(oldWriter)
   }
 
   @Test

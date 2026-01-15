@@ -71,7 +71,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Event
+// TODO merge
+//import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Event
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersCommand
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesCommand
@@ -543,7 +544,8 @@ class ComposeLayoutInspectorClient(
       messenger.eventFlow
         .mapNotNull { eventBytes ->
           try {
-            Event.parseFrom(eventBytes)
+            // TODO merge
+            //Event.parseFrom(eventBytes)
           } catch (_: InvalidProtocolBufferException) {
             // Catch and swallow protocol exceptions thrown when debugging the application.
             // The above bytes are stitched together from separate messages. However, messages
@@ -554,9 +556,10 @@ class ComposeLayoutInspectorClient(
           }
         }
         .collect { event ->
-          if (event.specializedCase == Event.SpecializedCase.STATE_READ_EVENT) {
-            recompositionStateReadsCache.handleEvent(event.stateReadEvent)
-          }
+          // TODO merge
+          //if (event.specializedCase == Event.SpecializedCase.STATE_READ_EVENT) {
+          //  recompositionStateReadsCache.handleEvent(event.stateReadEvent)
+          //}
         }
     }
   }
@@ -687,7 +690,8 @@ class ComposeLayoutInspectorClient(
           GetRecompositionStateReadCommand.newBuilder()
             .apply {
               this.anchorHash = anchorHash
-              this.recompositionNumber = recomposition
+              // TODO merge
+              //this.recompositionNumber = recomposition
             }
             .build()
       }
@@ -708,15 +712,16 @@ class ComposeLayoutInspectorClient(
               includeRecomposeCounts = treeSettings.showRecompositions
               keepRecomposeCounts = keepRecompositionCounts
               stateReadSettingsBuilder.apply {
-                when {
-                  treeSettings.observeStateReadsForAll ->
-                    allBuilder.maxRecompositions = maxRecompositions
-                  nodeForStateReads != null -> {
-                    byIdBuilder.addComposableToObserve(nodeForStateReads.anchorHash)
-                    byIdBuilder.maxRecompositions = maxRecompositions
-                  }
-                  else -> noneBuilder
-                }
+                // TODO merge
+                //when {
+                //  treeSettings.observeStateReadsForAll ->
+                //    allBuilder.maxRecompositions = maxRecompositions
+                //  nodeForStateReads != null -> {
+                //    byIdBuilder.addComposableToObserve(nodeForStateReads.anchorHash)
+                //    byIdBuilder.maxRecompositions = maxRecompositions
+                //  }
+                //  else -> noneBuilder
+                //}
               }
               delayParameterExtractions = true
               reduceChildNesting = true

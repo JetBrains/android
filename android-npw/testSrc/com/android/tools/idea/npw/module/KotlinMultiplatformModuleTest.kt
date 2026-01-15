@@ -169,6 +169,8 @@ class KotlinMultiplatformModuleTest {
         useGenericLocalTests = true,
         useGenericInstrumentedTests = true,
         isCompose = false,
+        // TODO merge
+        currentVariant = null,
       )
 
     runWriteCommandAction(projectRule.project) {

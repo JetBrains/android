@@ -24,8 +24,9 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetRecompositionStateReadResponse
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.RecompositionStateRead
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.RecompositionStateReadEvent
+// TODO merge
+//import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.RecompositionStateRead
+//import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.RecompositionStateReadEvent
 
 fun LayoutInspectorComposeProtocol.Quad.toPolygon(): Polygon {
   return Polygon(intArrayOf(x0, x1, x2, x3), intArrayOf(y0, y1, y2, y3), 4)
@@ -107,43 +108,47 @@ fun convertStateRead(
 ): List<RecomposeStateReadData> {
   val stringTable = StringTableImpl(response.stringsList)
   val valueGenerator = ComposeParametersDataGenerator(stringTable, lookup)
-  return convertRecompositionStateRead(response.read, stringTable, valueGenerator)
+  // TODO merge
+  //return convertRecompositionStateRead(response.read, stringTable, valueGenerator)
+  return TODO()
 }
 
-fun convertStateReadEvent(
-  event: RecompositionStateReadEvent,
-  lookup: ViewNodeAndResourceLookup,
-  consume: (Int, List<RecomposeStateReadData>) -> Unit,
-) {
-  val stringTable = StringTableImpl(event.stringsList)
-  val valueGenerator = ComposeParametersDataGenerator(stringTable, lookup)
-  event.readList.forEach { read ->
-    consume(
-      read.recompositionNumber,
-      convertRecompositionStateRead(read, stringTable, valueGenerator),
-    )
-  }
-}
+// TODO merge
+//fun convertStateReadEvent(
+//  event: RecompositionStateReadEvent,
+//  lookup: ViewNodeAndResourceLookup,
+//  consume: (Int, List<RecomposeStateReadData>) -> Unit,
+//) {
+//  val stringTable = StringTableImpl(event.stringsList)
+//  val valueGenerator = ComposeParametersDataGenerator(stringTable, lookup)
+//  event.readList.forEach { read ->
+//    consume(
+//      read.recompositionNumber,
+//      convertRecompositionStateRead(read, stringTable, valueGenerator),
+//    )
+//  }
+//}
 
-fun convertRecompositionStateRead(
-  read: RecompositionStateRead,
-  stringTable: StringTable,
-  valueGenerator: ComposeParametersDataGenerator,
-): List<RecomposeStateReadData> {
-  return read.readList.map { read ->
-    val item = valueGenerator.generateItem(-1L, -1L, ParameterKind.Unknown, read.value)
-    RecomposeStateReadData(
-      item,
-      read.valueInstanceHash,
-      read.invalidated,
-      read.stackTraceLineList.map {
-        TraceElement(
-          declaringClass = stringTable[it.declaringClass],
-          methodName = stringTable[it.methodName],
-          fileName = stringTable[it.fileName],
-          lineNumber = it.lineNumber,
-        )
-      },
-    )
-  }
-}
+// TODO merge
+//fun convertRecompositionStateRead(
+//  read: RecompositionStateRead,
+//  stringTable: StringTable,
+//  valueGenerator: ComposeParametersDataGenerator,
+//): List<RecomposeStateReadData> {
+//  return read.readList.map { read ->
+//    val item = valueGenerator.generateItem(-1L, -1L, ParameterKind.Unknown, read.value)
+//    RecomposeStateReadData(
+//      item,
+//      read.valueInstanceHash,
+//      read.invalidated,
+//      read.stackTraceLineList.map {
+//        TraceElement(
+//          declaringClass = stringTable[it.declaringClass],
+//          methodName = stringTable[it.methodName],
+//          fileName = stringTable[it.fileName],
+//          lineNumber = it.lineNumber,
+//        )
+//      },
+//    )
+//  }
+//}

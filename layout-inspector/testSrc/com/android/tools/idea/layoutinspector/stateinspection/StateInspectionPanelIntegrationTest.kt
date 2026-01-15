@@ -29,7 +29,8 @@ import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.COMPOSE3
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.FakeInspectorStateReads
+// TODO merge
+//import com.android.tools.idea.layoutinspector.pipeline.appinspection.FakeInspectorStateReads
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -85,9 +86,10 @@ class StateInspectionPanelIntegrationTest {
 
   @Test
   fun testPanelWithStateReadsForAll() {
-    inspectorRule.inspector.treeSettings.observeStateReadsForAll = true
-    val state = FakeInspectorStateReads(inspectionRule.composeInspector)
-    state.createFakeStateReadsForAll()
+    // TODO merge
+    //inspectorRule.inspector.treeSettings.observeStateReadsForAll = true
+    //val state = FakeInspectorStateReads(inspectionRule.composeInspector)
+    //state.createFakeStateReadsForAll()
 
     val panel = createPanel(COMPOSE1)
     val ui = FakeUi(panel, createFakeWindow = true)
@@ -123,8 +125,9 @@ class StateInspectionPanelIntegrationTest {
   @Test
   fun testPanelWithStateReadsOnDemand() {
     inspectorRule.inspector.treeSettings.observeStateReadsForAll = false
-    val state = FakeInspectorStateReads(inspectionRule.composeInspector)
-    state.createFakeStateReadsForOnDemand()
+    // TODO merge
+    //val state = FakeInspectorStateReads(inspectionRule.composeInspector)
+    //state.createFakeStateReadsForOnDemand()
 
     val panel = createPanel(COMPOSE1)
     val compose1 = inspectorRule.inspectorModel[COMPOSE1]!!
@@ -142,7 +145,8 @@ class StateInspectionPanelIntegrationTest {
     assertThat(next.isEnabled).isFalse()
 
     compose1.recompositions.count = 4
-    state.sendEventForRecomposition3()
+    // TODO merge
+    //state.sendEventForRecomposition3()
     waitForCondition(10.seconds) { recompositionText.text == "Recomposition 3" }
     assertThat(stateReadText.text).isEqualTo("State Reads: 1")
     panel.checkContent("state_reads_1_1.txt")

@@ -981,7 +981,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       it.dataFolderPath !in runningAvdFolders &&
       findContentByAvdFolder(it.dataFolderPath) == null &&
       (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_HEADSET_AVD.get() || !it.isXrHeadsetDevice) &&
-      (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_GLASSES_AVD.get() || !it.isXrGlassesDevice)
+      // TODO merge
+      (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_GLASSES_AVD.get()/* || !it.isXrGlassesDevice*/)
     }
   }
 

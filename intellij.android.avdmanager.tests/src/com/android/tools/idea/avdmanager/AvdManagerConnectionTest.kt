@@ -94,6 +94,8 @@ class AvdManagerConnectionTest : AndroidTestCase() {
         null,
         null,
         null,
+        // TODO merge
+        null,
         false,
         false,
         false,
@@ -141,6 +143,8 @@ class AvdManagerConnectionTest : AndroidTestCase() {
         null,
         null,
         null,
+        // TODO merge
+        null,
         false,
         true,
         false,
@@ -171,6 +175,8 @@ class AvdManagerConnectionTest : AndroidTestCase() {
         null,
         null,
         null,
+        null,
+        // TODO merge
         null,
         false,
         true,

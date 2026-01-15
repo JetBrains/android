@@ -16,10 +16,13 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.MakeRecompositionStateReadEvent
+// TODO merge
+//import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.MakeRecompositionStateReadEvent
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.RecompositionStateReadResponse
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Event
+// TODO merge
+//import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
+// TODO merge
+//import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Event
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetRecompositionStateReadResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Parameter.Type
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Response
@@ -189,152 +192,152 @@ private const val STACK_TRACE3 =
   at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:971)
 """
 
-class FakeInspectorStateReads(private val composeInspector: FakeComposeLayoutInspector) {
-  fun createFakeStateReadsForAll() {
-    setupFakeStateReads(readsForAll)
-  }
-
-  fun createFakeStateReadsForOnDemand() {
-    setupFakeStateReads(readsForOnDemand)
-  }
-
-  private fun setupFakeStateReads(reads: Map<Int, Map<Int, GetRecompositionStateReadResponse>>) {
-    composeInspector.interceptWhen({ it.hasGetRecompositionStateReadCommand() }) { command ->
-      val readCommand = command.getRecompositionStateReadCommand
-      val anchorHash = readCommand.anchorHash
-      val recomposition = readCommand.recompositionNumber
-      val recompositions = reads[anchorHash] ?: error("AnchorHash not found: $anchorHash")
-      val read = recompositions[recomposition] ?: error("Recomposition not found: $recomposition")
-      Response.newBuilder().setGetRecompositionStateReadResponse(read).build()
-    }
-  }
-
-  fun sendEventForRecomposition3() {
-    composeInspector.connection.sendEvent(
-      Event.newBuilder().apply { stateReadEvent = anchor1Recomposition3 }.build()
-    )
-  }
-
-  private val anchor1Recomposition1 = RecompositionStateReadResponse {
-    AnchorHash(COMPOSE1_ANCHOR_HASH)
-    FirstRecomposition(1)
-    RecompositionStateRead {
-      Recomposition(1)
-      StateRead {
-        Parameter("value", Type.ITERABLE, "List[2]") {
-          Element("[0]", Type.STRING, "b")
-          Element("[1]", Type.STRING, "c")
-        }
-        Invalidated(true)
-        ValueInstance(STATE_VALUE_INSTANCE2)
-        ParseStackTraceLines(STACK_TRACE1.trimStackTrace())
-      }
-    }
-  }
-
-  private val anchor1Recomposition2 = RecompositionStateReadResponse {
-    AnchorHash(COMPOSE1_ANCHOR_HASH)
-    FirstRecomposition(1)
-    RecompositionStateRead {
-      Recomposition(2)
-      StateRead {
-        Parameter("value", Type.STRING, "TextStyle") {
-          Element("color", Type.STRING, "Unspecified")
-          Element("fontSize", Type.DIMENSION_SP, 14f)
-          Element("fontWeight", Type.STRING, "W500")
-          Element("fontFamily", Type.STRING, "SansSerif")
-          Element("letterSpacing", Type.DIMENSION_SP, 0.1f)
-          Element("background", Type.STRING, "Unspecified")
-          Element("textDirection", Type.STRING, "Unspecified")
-          Element("lineHeight", Type.DIMENSION_SP, 20f)
-        }
-        ValueInstance(STATE_VALUE_INSTANCE1)
-        ParseStackTraceLines(STACK_TRACE2.trimStackTrace())
-      }
-
-      StateRead {
-        Parameter("value", Type.ITERABLE, "List[6]") {
-          Element("[0]", Type.STRING, "a")
-          Element("[1]", Type.STRING, "b")
-          Element("[2]", Type.STRING, "c")
-          Element("[3]", Type.STRING, "d")
-          Element("[4]", Type.STRING, "e")
-          Reference(COMPOSE1_ANCHOR_HASH)
-        }
-        ValueInstance(STATE_VALUE_INSTANCE2)
-        ParseStackTraceLines(STACK_TRACE3.trimStackTrace())
-      }
-    }
-  }
-
-  private val anchor1EmptyRecomposition = RecompositionStateReadResponse {
-    AnchorHash(COMPOSE1_ANCHOR_HASH)
-  }
-
-  private val anchor1Recomposition3 = MakeRecompositionStateReadEvent {
-    AnchorHash(COMPOSE1_ANCHOR_HASH)
-    RecompositionStateRead {
-      Recomposition(3)
-      StateRead {
-        Parameter("value", Type.ITERABLE, "List[2]") {
-          Element("[0]", Type.STRING, "b")
-          Element("[1]", Type.STRING, "c")
-        }
-        Invalidated(true)
-        ValueInstance(STATE_VALUE_INSTANCE2)
-        ParseStackTraceLines(STACK_TRACE1.trimStackTrace())
-      }
-    }
-  }
-
-  private val anchor1Recomposition4 = RecompositionStateReadResponse {
-    AnchorHash(COMPOSE1_ANCHOR_HASH)
-    RecompositionStateRead {
-      Recomposition(4)
-      StateRead {
-        Parameter("value", Type.STRING, "TextStyle") {
-          Element("color", Type.STRING, "Unspecified")
-          Element("fontSize", Type.DIMENSION_SP, 14f)
-          Element("fontWeight", Type.STRING, "W500")
-          Element("fontFamily", Type.STRING, "SansSerif")
-          Element("letterSpacing", Type.DIMENSION_SP, 0.1f)
-          Element("background", Type.STRING, "Unspecified")
-          Element("textDirection", Type.STRING, "Unspecified")
-          Element("lineHeight", Type.DIMENSION_SP, 20f)
-        }
-        ValueInstance(STATE_VALUE_INSTANCE1)
-        ParseStackTraceLines(STACK_TRACE2.trimStackTrace())
-      }
-
-      StateRead {
-        Parameter("value", Type.ITERABLE, "List[6]") {
-          Element("[0]", Type.STRING, "a")
-          Element("[1]", Type.STRING, "b")
-          Element("[2]", Type.STRING, "c")
-          Element("[3]", Type.STRING, "d")
-          Element("[4]", Type.STRING, "e")
-          Reference(COMPOSE1_ANCHOR_HASH)
-        }
-        ValueInstance(STATE_VALUE_INSTANCE2)
-        ParseStackTraceLines(STACK_TRACE3.trimStackTrace())
-      }
-    }
-  }
-
-  private fun String.trimStackTrace(): String = substring(1).trimIndent()
-
-  private val readsForAll =
-    mapOf(COMPOSE1_ANCHOR_HASH to mapOf(1 to anchor1Recomposition1, 2 to anchor1Recomposition2))
-
-  private val readsForOnDemand =
-    mapOf(
-      COMPOSE1_ANCHOR_HASH to
-        mapOf(
-          0 to anchor1EmptyRecomposition,
-          1 to anchor1EmptyRecomposition,
-          2 to anchor1EmptyRecomposition,
-          3 to anchor1EmptyRecomposition,
-          4 to anchor1Recomposition4,
-        )
-    )
-}
+//class FakeInspectorStateReads(private val composeInspector: FakeComposeLayoutInspector) {
+//  fun createFakeStateReadsForAll() {
+//    setupFakeStateReads(readsForAll)
+//  }
+//
+//  fun createFakeStateReadsForOnDemand() {
+//    setupFakeStateReads(readsForOnDemand)
+//  }
+//
+//  private fun setupFakeStateReads(reads: Map<Int, Map<Int, GetRecompositionStateReadResponse>>) {
+//    composeInspector.interceptWhen({ it.hasGetRecompositionStateReadCommand() }) { command ->
+//      val readCommand = command.getRecompositionStateReadCommand
+//      val anchorHash = readCommand.anchorHash
+//      val recomposition = readCommand.recompositionNumber
+//      val recompositions = reads[anchorHash] ?: error("AnchorHash not found: $anchorHash")
+//      val read = recompositions[recomposition] ?: error("Recomposition not found: $recomposition")
+//      Response.newBuilder().setGetRecompositionStateReadResponse(read).build()
+//    }
+//  }
+//
+//  fun sendEventForRecomposition3() {
+//    composeInspector.connection.sendEvent(
+//      Event.newBuilder().apply { stateReadEvent = anchor1Recomposition3 }.build()
+//    )
+//  }
+//
+//  private val anchor1Recomposition1 = RecompositionStateReadResponse {
+//    AnchorHash(COMPOSE1_ANCHOR_HASH)
+//    FirstRecomposition(1)
+//    RecompositionStateRead {
+//      Recomposition(1)
+//      StateRead {
+//        Parameter("value", Type.ITERABLE, "List[2]") {
+//          Element("[0]", Type.STRING, "b")
+//          Element("[1]", Type.STRING, "c")
+//        }
+//        Invalidated(true)
+//        ValueInstance(STATE_VALUE_INSTANCE2)
+//        ParseStackTraceLines(STACK_TRACE1.trimStackTrace())
+//      }
+//    }
+//  }
+//
+//  private val anchor1Recomposition2 = RecompositionStateReadResponse {
+//    AnchorHash(COMPOSE1_ANCHOR_HASH)
+//    FirstRecomposition(1)
+//    RecompositionStateRead {
+//      Recomposition(2)
+//      StateRead {
+//        Parameter("value", Type.STRING, "TextStyle") {
+//          Element("color", Type.STRING, "Unspecified")
+//          Element("fontSize", Type.DIMENSION_SP, 14f)
+//          Element("fontWeight", Type.STRING, "W500")
+//          Element("fontFamily", Type.STRING, "SansSerif")
+//          Element("letterSpacing", Type.DIMENSION_SP, 0.1f)
+//          Element("background", Type.STRING, "Unspecified")
+//          Element("textDirection", Type.STRING, "Unspecified")
+//          Element("lineHeight", Type.DIMENSION_SP, 20f)
+//        }
+//        ValueInstance(STATE_VALUE_INSTANCE1)
+//        ParseStackTraceLines(STACK_TRACE2.trimStackTrace())
+//      }
+//
+//      StateRead {
+//        Parameter("value", Type.ITERABLE, "List[6]") {
+//          Element("[0]", Type.STRING, "a")
+//          Element("[1]", Type.STRING, "b")
+//          Element("[2]", Type.STRING, "c")
+//          Element("[3]", Type.STRING, "d")
+//          Element("[4]", Type.STRING, "e")
+//          Reference(COMPOSE1_ANCHOR_HASH)
+//        }
+//        ValueInstance(STATE_VALUE_INSTANCE2)
+//        ParseStackTraceLines(STACK_TRACE3.trimStackTrace())
+//      }
+//    }
+//  }
+//
+//  private val anchor1EmptyRecomposition = RecompositionStateReadResponse {
+//    AnchorHash(COMPOSE1_ANCHOR_HASH)
+//  }
+//
+//  private val anchor1Recomposition3 = MakeRecompositionStateReadEvent {
+//    AnchorHash(COMPOSE1_ANCHOR_HASH)
+//    RecompositionStateRead {
+//      Recomposition(3)
+//      StateRead {
+//        Parameter("value", Type.ITERABLE, "List[2]") {
+//          Element("[0]", Type.STRING, "b")
+//          Element("[1]", Type.STRING, "c")
+//        }
+//        Invalidated(true)
+//        ValueInstance(STATE_VALUE_INSTANCE2)
+//        ParseStackTraceLines(STACK_TRACE1.trimStackTrace())
+//      }
+//    }
+//  }
+//
+//  private val anchor1Recomposition4 = RecompositionStateReadResponse {
+//    AnchorHash(COMPOSE1_ANCHOR_HASH)
+//    RecompositionStateRead {
+//      Recomposition(4)
+//      StateRead {
+//        Parameter("value", Type.STRING, "TextStyle") {
+//          Element("color", Type.STRING, "Unspecified")
+//          Element("fontSize", Type.DIMENSION_SP, 14f)
+//          Element("fontWeight", Type.STRING, "W500")
+//          Element("fontFamily", Type.STRING, "SansSerif")
+//          Element("letterSpacing", Type.DIMENSION_SP, 0.1f)
+//          Element("background", Type.STRING, "Unspecified")
+//          Element("textDirection", Type.STRING, "Unspecified")
+//          Element("lineHeight", Type.DIMENSION_SP, 20f)
+//        }
+//        ValueInstance(STATE_VALUE_INSTANCE1)
+//        ParseStackTraceLines(STACK_TRACE2.trimStackTrace())
+//      }
+//
+//      StateRead {
+//        Parameter("value", Type.ITERABLE, "List[6]") {
+//          Element("[0]", Type.STRING, "a")
+//          Element("[1]", Type.STRING, "b")
+//          Element("[2]", Type.STRING, "c")
+//          Element("[3]", Type.STRING, "d")
+//          Element("[4]", Type.STRING, "e")
+//          Reference(COMPOSE1_ANCHOR_HASH)
+//        }
+//        ValueInstance(STATE_VALUE_INSTANCE2)
+//        ParseStackTraceLines(STACK_TRACE3.trimStackTrace())
+//      }
+//    }
+//  }
+//
+//  private fun String.trimStackTrace(): String = substring(1).trimIndent()
+//
+//  private val readsForAll =
+//    mapOf(COMPOSE1_ANCHOR_HASH to mapOf(1 to anchor1Recomposition1, 2 to anchor1Recomposition2))
+//
+//  private val readsForOnDemand =
+//    mapOf(
+//      COMPOSE1_ANCHOR_HASH to
+//        mapOf(
+//          0 to anchor1EmptyRecomposition,
+//          1 to anchor1EmptyRecomposition,
+//          2 to anchor1EmptyRecomposition,
+//          3 to anchor1EmptyRecomposition,
+//          4 to anchor1Recomposition4,
+//        )
+//    )
+//}

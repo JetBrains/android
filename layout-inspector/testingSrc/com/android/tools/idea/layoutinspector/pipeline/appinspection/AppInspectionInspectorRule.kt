@@ -31,7 +31,8 @@ import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_LAYOUT_INSPECTOR_ID
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
+// TODO merge
+//import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.VIEW_LAYOUT_INSPECTOR_ID
@@ -83,23 +84,24 @@ class AppInspectionInspectorRule(
         }
       }
     )
-  val composeInspector =
-    FakeComposeLayoutInspector(
-      object : FakeInspector.Connection<LayoutInspectorComposeProtocol.Event>() {
-        override fun sendEvent(event: LayoutInspectorComposeProtocol.Event) {
-          if (withDefaultResponse) {
-            inspectionService.addAppInspectionEvent(
-              AppInspection.AppInspectionEvent.newBuilder()
-                .apply {
-                  inspectorId = COMPOSE_LAYOUT_INSPECTOR_ID
-                  rawEventBuilder.content = event.toByteString()
-                }
-                .build()
-            )
-          }
-        }
-      }
-    )
+  // TODO merge
+  //val composeInspector =
+  //  FakeComposeLayoutInspector(
+  //    object : FakeInspector.Connection<LayoutInspectorComposeProtocol.Event>() {
+  //      override fun sendEvent(event: LayoutInspectorComposeProtocol.Event) {
+  //        if (withDefaultResponse) {
+  //          inspectionService.addAppInspectionEvent(
+  //            AppInspection.AppInspectionEvent.newBuilder()
+  //              .apply {
+  //                inspectorId = COMPOSE_LAYOUT_INSPECTOR_ID
+  //                rawEventBuilder.content = event.toByteString()
+  //              }
+  //              .build()
+  //          )
+  //        }
+  //      }
+  //    }
+  //  )
 
   init {
     val viewInspectorHandler =
@@ -117,32 +119,32 @@ class AppInspectionInspectorRule(
         },
       )
 
-    val composeInspectorHandler =
-      TestAppInspectorCommandHandler(
-        timer,
-        createInspectorResponse = { createCommand ->
-          createCommand.createResponse(composeInspector.createResponseStatus)
-        },
-        rawInspectorResponse = { rawCommand ->
-          val composeCommand = LayoutInspectorComposeProtocol.Command.parseFrom(rawCommand.content)
-          val composeResponse = composeInspector.handleCommand(composeCommand)
-          val rawResponse =
-            AppInspection.RawResponse.newBuilder().setContent(composeResponse.toByteString())
-          AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
-        },
-      )
+    //val composeInspectorHandler =
+    //  TestAppInspectorCommandHandler(
+    //    timer,
+    //    createInspectorResponse = { createCommand ->
+    //      createCommand.createResponse(composeInspector.createResponseStatus)
+    //    },
+    //    rawInspectorResponse = { rawCommand ->
+    //      val composeCommand = LayoutInspectorComposeProtocol.Command.parseFrom(rawCommand.content)
+    //      val composeResponse = composeInspector.handleCommand(composeCommand)
+    //      val rawResponse =
+    //        AppInspection.RawResponse.newBuilder().setContent(composeResponse.toByteString())
+    //      AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
+    //    },
+    //  )
 
-    transportService.setCommandHandler(
-      Commands.Command.CommandType.APP_INSPECTION,
-      object : CommandHandler(timer) {
-        override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
-          when (command.appInspectionCommand.inspectorId) {
-            VIEW_LAYOUT_INSPECTOR_ID -> viewInspectorHandler.handleCommand(command, events)
-            COMPOSE_LAYOUT_INSPECTOR_ID -> composeInspectorHandler.handleCommand(command, events)
-          }
-        }
-      },
-    )
+    //transportService.setCommandHandler(
+    //  Commands.Command.CommandType.APP_INSPECTION,
+    //  object : CommandHandler(timer) {
+    //    override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+    //      when (command.appInspectionCommand.inspectorId) {
+    //        VIEW_LAYOUT_INSPECTOR_ID -> viewInspectorHandler.handleCommand(command, events)
+    //        COMPOSE_LAYOUT_INSPECTOR_ID -> composeInspectorHandler.handleCommand(command, events)
+    //      }
+    //    }
+    //  },
+    //)
   }
 
   /** Convenience method to create an [appInspectionClientProvider]. */

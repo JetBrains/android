@@ -133,6 +133,11 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
 
   override fun addIncludeToSettings(moduleName: String) {}
 
+  // TODO merge
+  override fun addJourneysTestSuite(testSuiteName: String, targetVariant: String?) {
+    TODO("not implemented")
+  }
+
   override fun setBuildFeature(name: String, value: Boolean) {}
 
   override fun setViewBinding(value: Boolean) {}

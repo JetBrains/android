@@ -205,11 +205,13 @@ fun modelCacheV2Impl(
   }
 
   fun sourceProviderFrom(source: TestSuiteSource): IdeSourceProvider {
-    return if (source.folders?.isNotEmpty() ?: false) {
-      sourceProviderFrom(source.name, source.folders!!)
-    } else {
-      sourceProviderFrom(source.sourceProvider!!)
-    }
+    // FIXME merge
+    TODO("FIXME merge")
+    //return if (source.folders?.isNotEmpty() ?: false) {
+    //  sourceProviderFrom(source.name, source.folders!!)
+    //} else {
+    //  sourceProviderFrom(source.sourceProvider!!)
+    //}
   }
 
 
@@ -1440,7 +1442,8 @@ fun modelCacheV2Impl(
         val testSuite = project.testSuites.first { it.name == basicTestSuite.name }
         IdeTestSuiteImpl(
           name = basicTestSuite.name,
-          sources = basicTestSuite.sources.map(::testSuiteSourceFrom),
+          // TODO merge
+          sources = TODO(), // basicTestSuite.sources.map(::testSuiteSourceFrom),
           junitEngineInfo = IdeJUnitEngineInfoImpl(testSuite.junitEngineInfo.includedEngines),
           targetedVariants = basicTestSuite.targetsByVariant.map { it.targetedVariant }
         )

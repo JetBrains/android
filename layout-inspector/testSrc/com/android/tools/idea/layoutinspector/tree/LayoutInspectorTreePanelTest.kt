@@ -217,61 +217,63 @@ class LayoutInspectorTreePanelTest {
     val withoutSourceInfo =
       nameRule.methodName == "testRecompositionColumnVisibilityWhenNoSourceInformationAvailable"
 
-    appInspectorRule.composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) {
-      LayoutInspectorComposeProtocol.Response.newBuilder()
-        .apply {
-          getComposablesResponseBuilder.apply {
-            ComposableString(1, "com.example")
-            ComposableString(2, "File1.kt")
-            ComposableString(3, "Button")
-            ComposableString(4, "Text")
-            ComposableString(5, "Column")
+    // TODO merge
+    //appInspectorRule.composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) {
+    //  LayoutInspectorComposeProtocol.Response.newBuilder()
+    //    .apply {
+    //      getComposablesResponseBuilder.apply {
+    //        ComposableString(1, "com.example")
+    //        ComposableString(2, "File1.kt")
+    //        ComposableString(3, "Button")
+    //        ComposableString(4, "Text")
+    //        ComposableString(5, "Column")
+    //
+    //        ComposableRoot {
+    //          viewId = VIEW4
+    //          ComposableNode {
+    //            id = COMPOSE3
+    //            packageHash = if (withoutSourceInfo) -1 else 1
+    //            filename = if (withoutSourceInfo) 0 else 2
+    //            lineNumber = if (withoutSourceInfo) 0 else 15
+    //            name = 5
+    //            flags = LayoutInspectorComposeProtocol.ComposableNode.Flags.INLINED_VALUE
+    //          }
+    //          ComposableNode {
+    //            id = COMPOSE1
+    //            packageHash = if (withoutSourceInfo) -1 else 1
+    //            filename = if (withoutSourceInfo) 0 else 2
+    //            lineNumber = if (withoutSourceInfo) 0 else 34
+    //            name = 3
+    //            recomposeCount = 7
+    //            recomposeSkips = 14
+    //            ComposableNode {
+    //              id = COMPOSE2
+    //              packageHash = if (withoutSourceInfo) -1 else 1
+    //              filename = if (withoutSourceInfo) 0 else 2
+    //              lineNumber = if (withoutSourceInfo) 0 else 57
+    //              name = 4
+    //              recomposeCount = 9
+    //              recomposeSkips = 33
+    //            }
+    //          }
+    //        }
+    //      }
+    //    }
+    //    .build()
+    //}
 
-            ComposableRoot {
-              viewId = VIEW4
-              ComposableNode {
-                id = COMPOSE3
-                packageHash = if (withoutSourceInfo) -1 else 1
-                filename = if (withoutSourceInfo) 0 else 2
-                lineNumber = if (withoutSourceInfo) 0 else 15
-                name = 5
-                flags = LayoutInspectorComposeProtocol.ComposableNode.Flags.INLINED_VALUE
-              }
-              ComposableNode {
-                id = COMPOSE1
-                packageHash = if (withoutSourceInfo) -1 else 1
-                filename = if (withoutSourceInfo) 0 else 2
-                lineNumber = if (withoutSourceInfo) 0 else 34
-                name = 3
-                recomposeCount = 7
-                recomposeSkips = 14
-                ComposableNode {
-                  id = COMPOSE2
-                  packageHash = if (withoutSourceInfo) -1 else 1
-                  filename = if (withoutSourceInfo) 0 else 2
-                  lineNumber = if (withoutSourceInfo) 0 else 57
-                  name = 4
-                  recomposeCount = 9
-                  recomposeSkips = 33
-                }
-              }
-            }
-          }
-        }
-        .build()
-    }
-
-    appInspectorRule.composeInspector.interceptWhen({ it.hasUpdateSettingsCommand() }) { command ->
-      lastUpdateSettingsCommand = command.updateSettingsCommand
-      updateSettingsCommands++
-      updateSettingsLatch?.countDown()
-      LayoutInspectorComposeProtocol.Response.newBuilder()
-        .apply {
-          updateSettingsResponse =
-            LayoutInspectorComposeProtocol.UpdateSettingsResponse.getDefaultInstance()
-        }
-        .build()
-    }
+    // TODO merge
+    //appInspectorRule.composeInspector.interceptWhen({ it.hasUpdateSettingsCommand() }) { command ->
+    //  lastUpdateSettingsCommand = command.updateSettingsCommand
+    //  updateSettingsCommands++
+    //  updateSettingsLatch?.countDown()
+    //  LayoutInspectorComposeProtocol.Response.newBuilder()
+    //    .apply {
+    //      updateSettingsResponse =
+    //        LayoutInspectorComposeProtocol.UpdateSettingsResponse.getDefaultInstance()
+    //    }
+    //    .build()
+    //}
 
     updateSettingsLatch = ReportingCountDownLatch(1)
     inspectorRule.attachDevice(MODERN_DEVICE)

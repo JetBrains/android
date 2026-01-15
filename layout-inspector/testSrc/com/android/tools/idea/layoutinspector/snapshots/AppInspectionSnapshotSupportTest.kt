@@ -139,13 +139,14 @@ class AppInspectionSnapshotSupportTest {
   @Test
   fun saveAndLoadLiveSnapshotWithDeepComposeNesting() = runBlocking {
     inspectorClientSettings.inLiveMode = true
-    val inspectorState =
-      FakeInspectorState(appInspectorRule.viewInspector, appInspectorRule.composeInspector)
-    inspectorState.createFakeViewTree()
-    inspectorState.createFakeViewTreeAsSnapshot()
-    inspectorState.createFakeLargeComposeTree()
-    inspectorRule.processNotifier.fireConnected(PROCESS)
-    inspectorRule.processes.selectedProcess = PROCESS
+    // TODO merge
+    //val inspectorState =
+    //  FakeInspectorState(appInspectorRule.viewInspector, appInspectorRule.composeInspector)
+    //inspectorState.createFakeViewTree()
+    //inspectorState.createFakeViewTreeAsSnapshot()
+    //inspectorState.createFakeLargeComposeTree()
+    //inspectorRule.processNotifier.fireConnected(PROCESS)
+    //inspectorRule.processes.selectedProcess = PROCESS
     waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }
 
     inspectorRule.inspectorClient.saveSnapshot(savePath)

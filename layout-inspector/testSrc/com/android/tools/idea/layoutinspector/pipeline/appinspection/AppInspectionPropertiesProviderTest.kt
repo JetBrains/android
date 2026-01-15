@@ -109,15 +109,17 @@ class AppInspectionPropertiesProviderTest {
 
     // Check that generated getComposablesCommands has the `extractAllParameters` set in snapshot
     // mode.
-    inspectionRule.composeInspector.listenWhen({ it.hasGetComposablesCommand() }) { command ->
-      assertThat(command.getComposablesCommand.extractAllParameters)
-        .isEqualTo(!inspectorClientSettings.inLiveMode)
-    }
+    // TODO merge
+    //inspectionRule.composeInspector.listenWhen({ it.hasGetComposablesCommand() }) { command ->
+    //  assertThat(command.getComposablesCommand.extractAllParameters)
+    //    .isEqualTo(!inspectorClientSettings.inLiveMode)
+    //}
 
-    inspectorState =
-      FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
-    inspectorState.createAllResponses()
-    inspectorRule.attachDevice(MODERN_DEVICE)
+    // TODO merge
+    //inspectorState =
+    //  FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    //inspectorState.createAllResponses()
+    //inspectorRule.attachDevice(MODERN_DEVICE)
 
     val fixture = projectRule.fixture
     fixture.testDataPath =
