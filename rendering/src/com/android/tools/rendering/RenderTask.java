@@ -17,8 +17,6 @@ package com.android.tools.rendering;
 
 import com.android.ide.common.rendering.api.ResourceReference;
 
-import static com.android.tools.configurations.AdditionalDevices.DEVICE_CLASS_DESKTOP_ID;
-import static com.android.tools.configurations.AdditionalDevices.DEVICE_CLASS_TABLET_ID;
 import static com.android.tools.rendering.ProblemSeverity.ERROR;
 import static com.android.tools.rendering.ProblemSeverity.WARNING;
 import static com.android.tools.rendering.RenderAsyncActionExecutor.DEFAULT_RENDER_THREAD_TIMEOUT_MS;
@@ -209,7 +207,7 @@ public class RenderTask {
   @NotNull private final Locale myLocale;
   @NotNull private final Object myCredential;
   @Nullable private RenderSession myRenderSession;
-  @NotNull private final IImageFactory myCachingImageFactory;
+  @NotNull private final IImageFactory myImageFactory;
   @Nullable private IImageFactory myImageFactoryDelegate;
   private final boolean isSecurityManagerEnabled;
   @NotNull private CrashReporter myCrashReporter;
@@ -260,7 +258,8 @@ public class RenderTask {
              boolean useCustomInflater,
              boolean useLoadViewFallbacks,
              @NotNull TestEventListener testEventListener,
-             float animatorDurationScale) throws NoDeviceException {
+             float animatorDurationScale,
+             boolean useCachingImageFactory) throws NoDeviceException {
     myTracker = tracker;
     myImagePool = imagePool;
     myContext = renderContext;
@@ -319,7 +318,13 @@ public class RenderTask {
         myLayoutlibCallback.loadAndParseRClass();
       }
       myLocale = renderContext.getConfiguration().getLocale();
-      myCachingImageFactory = new ConstrainedImageFactory(MAX_IMAGE_SIZE, () -> myTargetQuality, new CachingImageFactory(SIMPLE_IMAGE_FACTORY));
+      IImageFactory imageFactory;
+      if (useCachingImageFactory) {
+        imageFactory = new CachingImageFactory(SIMPLE_IMAGE_FACTORY);
+      } else {
+        imageFactory = SIMPLE_IMAGE_FACTORY;
+      }
+      myImageFactory = new ConstrainedImageFactory(MAX_IMAGE_SIZE, () -> myTargetQuality, imageFactory);
       setQuality(quality);
 
       stackTraceCaptureElement.bind(this);
@@ -398,6 +403,14 @@ public class RenderTask {
     }
   }
 
+  /**
+   * Release rendered image without closing render session.
+   */
+  public void releaseRender() {
+    if (myRenderSession != null) {
+      myRenderSession.releaseRender();
+    }
+  }
 
   /**
    * Disposes the RenderTask and releases the allocated resources. The execution of the dispose operation will run asynchronously.
@@ -1216,7 +1229,7 @@ public class RenderTask {
    */
   @NotNull
   public CompletableFuture<RenderResult> render() {
-    return render(myCachingImageFactory);
+    return render(myImageFactory);
   }
 
   /**
