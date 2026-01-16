@@ -2873,10 +2873,6 @@ public final class StudioFlags {
     JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.execution", "Enable Journeys with Gemini execution",
     "Enable Journeys with Gemini related functionality to allow users to create, edit and execute Journeys."
   );
-  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_RECORDING = new BooleanFlag(
-    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.recording", "Enable Journeys with Gemini recording",
-    "Enable recording of Journeys with Gemini"
-  );
   public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_EDITOR_DISABLE_XML_SPACE_PRESERVE = new BooleanFlag(
     JOURNEYS_WITH_GEMINI, "journeys.with.gemini.editor.disable.xml.space.preserve", "Disable insertion of 'xml:space:\"preserve\" attribute",
     "Disable insertion of 'xml:space:\"preserve\" attribute when editing a Journey XML file."
