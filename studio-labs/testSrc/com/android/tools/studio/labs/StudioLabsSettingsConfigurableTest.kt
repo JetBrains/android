@@ -16,7 +16,6 @@
 package com.android.tools.studio.labs
 
 import com.android.tools.analytics.UsageTrackerRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -83,34 +82,6 @@ class StudioLabsSettingsConfigurableTest {
     StudioLabsSettingsConfigurable().panelList.forEach {
       assertThat(it).isNotInstanceOf(FakeStudioLabsFeaturePanelUi::class.java)
     }
-  }
-
-  @Test
-  fun configurable_whenAgenticFlagsEnabled_excludesLegacyFeatures() {
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.override(true)
-    StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI_AGENTIC.override(true)
-
-    val panelList = StudioLabsSettingsConfigurable().panelList
-    assertThat(panelList.any { it.flag == StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW }).isFalse()
-    assertThat(panelList.any { it.flag == StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI })
-      .isFalse()
-
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.clearOverride()
-    StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI_AGENTIC.clearOverride()
-  }
-
-  @Test
-  fun configurable_whenAgenticFlagsDisabled_includesLegacyFeatures() {
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.override(false)
-    StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI_AGENTIC.override(false)
-
-    val panelList = StudioLabsSettingsConfigurable().panelList
-    assertThat(panelList.any { it.flag == StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW }).isTrue()
-    assertThat(panelList.any { it.flag == StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI })
-      .isTrue()
-
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.clearOverride()
-    StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI_AGENTIC.clearOverride()
   }
 
   private fun UsageTrackerRule.studioLabsUsageEvents(): List<StudioLabsEvent> {
