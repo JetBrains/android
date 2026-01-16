@@ -27,17 +27,22 @@ import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.util.DynamicAppUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.idea.blaze.android.run.BazelApplicationProjectContext;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
+import com.google.idea.blaze.android.run.deployinfo.BlazeApkProvider;
+import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeployAndLaunchStrategy;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunContext;
 import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
+import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
@@ -94,6 +99,25 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
   @Override
   public Integer getUserId(IDevice device) throws ExecutionException {
     return UserIdHelper.getUserIdFromConfigurationState(project, device, configState);
+  }
+
+  @Override
+  public BlazeAndroidRunContext createBlazeAndroidRunContext(
+      ExecutionEnvironment env, ApkBuildStep buildStep, BlazeCommandRunConfiguration configuration) {
+    var applicationIdProvider = new BlazeAndroidBinaryApplicationIdProvider(buildStep);
+    var apkProvider = BlazeApkProvider.getApkProvider(project, buildStep);
+    var applicationProjectContext =
+        new BazelApplicationProjectContext(project, applicationIdProvider);
+
+    ConsoleProvider consoleProvider = new BlazeAndroidBinaryConsoleProvider(project);
+    return new BlazeAndroidRunContext(
+        consoleProvider,
+        buildStep,
+        applicationIdProvider,
+        apkProvider,
+        applicationProjectContext,
+        env.getExecutor(),
+        configState.getProfilerState());
   }
 
   @Override

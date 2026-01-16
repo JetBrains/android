@@ -16,21 +16,17 @@
 package com.google.idea.blaze.android.run.test;
 
 import com.android.tools.idea.execution.common.DeployableToDevice;
-import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.ValidationError;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.idea.blaze.android.run.ApkBuildStepProvider;
-import com.google.idea.blaze.android.run.BazelApplicationProjectContext;
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationCommonState;
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationHandler;
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationValidationUtil;
 import com.google.idea.blaze.android.run.LaunchMetrics;
-import com.google.idea.blaze.android.run.deployinfo.BlazeApkProvider;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeployAndLaunchStrategy;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunConfigurationRunner;
-import com.google.idea.blaze.android.run.runner.BlazeAndroidRunContext;
 import com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProvider.AndroidTestLaunchMethod;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
@@ -114,32 +110,7 @@ public class BlazeAndroidTestRunConfigurationHandler
     ApkBuildStep buildStep =
         getTestBuildStep(
             project, configState, configuration, blazeFlags, exeFlags, launchId, label);
-
-    var applicationIdProvider = new BlazeAndroidTestApplicationIdProvider(buildStep);
-    var apkProvider = BlazeApkProvider.getApkProvider(project, buildStep);
-    var applicationProjectContext =
-        new BazelApplicationProjectContext(project, applicationIdProvider);
-
     BlazeTestResultFetcher testResultsHolder = new BlazeTestResultFetcher();
-
-    ConsoleProvider consoleProvider =
-        switch (configState.getLaunchMethod()) {
-          case MOBILE_INSTALL, NON_BLAZE -> new AitIdeTestConsoleProvider(configuration, configState);
-          case BLAZE_TEST -> new AitBlazeTestConsoleProvider(
-              project, configuration, testResultsHolder);
-          default -> throw new IllegalStateException(
-              "Unsupported launch method " + configState.getLaunchMethod());
-        };
-
-    BlazeAndroidRunContext runContext = new BlazeAndroidRunContext(
-        consoleProvider,
-        buildStep,
-        applicationIdProvider,
-        apkProvider,
-        applicationProjectContext,
-        env.getExecutor(),
-        null
-    );
 
     BlazeAndroidDeployAndLaunchStrategy launchStrategy = new AndroidTestDeployAndLaunchStrategy(
         project,
@@ -148,11 +119,11 @@ public class BlazeAndroidTestRunConfigurationHandler
         blazeFlags,
         testResultsHolder
     );
-
+    
     LaunchMetrics.logTestLaunch(
         launchId, configState.getLaunchMethod().name(), env.getExecutor().getId());
 
-    return new BlazeAndroidRunConfigurationRunner(runContext, launchStrategy, configuration);
+    return new BlazeAndroidRunConfigurationRunner(launchStrategy, configuration, buildStep);
   }
 
   private static ApkBuildStep getTestBuildStep(
@@ -184,7 +155,7 @@ public class BlazeAndroidTestRunConfigurationHandler
 
   /**
    * We collect errors rather than throwing to avoid missing fatal errors by exiting early for a
-   * warning. We use a separate method for the collection so the compiler prevents us from
+   * warning. We use a separate method for the collection so the collection prevents us from
    * accidentally throwing.
    */
   private List<ValidationError> validate() {
