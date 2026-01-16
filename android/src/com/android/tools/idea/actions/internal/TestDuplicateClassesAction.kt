@@ -44,11 +44,13 @@ import kotlin.io.path.nameWithoutExtension
 class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
 
   // Plugin name to set of packages to ignore
+  // TODO (476432139): move this into a separate file
   val exceptions =
     mapOf(
       "org.jetbrains.android" to
         setOf(
-          "com.google.devrel.gmscore.tools.apk.arsc",
+          "com.google.devrel.gmscore.tools.apk.arsc", // b/476427677
+          // b/476430566 below here
           "io.opencensus.common",
           "io.opencensus.metrics",
           "io.opencensus.metrics.data",
@@ -66,9 +68,11 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "io.opencensus.trace.unsafe",
           "io.opencensus.internal",
           "io.opencensus.tags.propagation",
+          // end b/476430566
           "com.android.annotations.concurrency",
           "com.android.annotations",
           "com.android.tools.instrumentation.threading.agent.callback",
+          // b/476493791 below here
           "com.google.api",
           "com.google.cloud.audit",
           "com.google.cloud.location",
@@ -78,15 +82,18 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "com.google.longrunning",
           "com.google.shopping.type",
           "io.perfmark",
+          // end b/476493791
           "javax.inject",
+          // b/476501574 below here
           "org.apache.commons.lang.builder",
           "org.apache.commons.lang.exception",
           "org.apache.commons.lang.math",
           "org.apache.commons.lang.text",
           "org.apache.commons.lang.time",
           "org.apache.commons.lang",
-          "org.HdrHistogram.packedarray",
-          "org.HdrHistogram",
+          // end b/476501574
+          "org.HdrHistogram.packedarray", // b/476488908
+          "org.HdrHistogram",  // b/476488908
           "org.objectweb.asm.commons",
           "org.objectweb.asm.signature",
           "org.objectweb.asm.tree.analysis",
@@ -100,7 +107,8 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
       "com.google.tools.ij.aiplugin" to
         setOf(
           "androidx.annotation",
-          "com.android.tools.journeys.proto",
+          "com.android.tools.journeys.proto", // b/476493309
+          // b/476493791 below here
           "com.google.api",
           "com.google.apps.card.v1",
           "com.google.cloud.audit",
@@ -110,11 +118,13 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "com.google.logging.type",
           "com.google.longrunning",
           "com.google.shopping.type",
+          // end b/476493791
           "com.google.type",
-          "com.squareup.wire",
-          "com.squareup.wire.internal",
+          "com.squareup.wire", // b/476432509
+          "com.squareup.wire.internal", // b/476432509
           "kotlinx.atomicfu.locks",
           "kotlinx.atomicfu",
+          // b/476502383 below here
           "org.sqlite.core",
           "org.sqlite.date",
           "org.sqlite.javax",
@@ -122,7 +132,10 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "org.sqlite.jdbc4",
           "org.sqlite.util",
           "org.sqlite",
+          // end b/476502383
         ),
+
+      // The below are all coming from the platform: we can't do anything about them directly.
       "com.intellij.cidr.base" to
         setOf(
           "org.objenesis.strategy",
