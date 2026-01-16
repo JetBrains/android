@@ -103,7 +103,7 @@ class PreviewSurfaceActionManagerTest {
 
   @Test
   fun testAvailableActionsOnPreviewContextMenu() {
-    StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.overrideForTest(
+    StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI_AGENTIC.overrideForTest(
       true,
       projectRule.testRootDisposable,
     )
@@ -159,41 +159,6 @@ class PreviewSurfaceActionManagerTest {
     assertThat(aiActionsDefaultGroup is DefaultActionGroup)
     val children = aiActionsDefaultGroup.getChildren(null)
     assertThat(children.size).isAtLeast(2)
-  }
-
-  @Test
-  fun testAvailableActionsOnPreviewContextMenuWithAgentsDisabled() {
-    StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.overrideForTest(
-      true,
-      projectRule.testRootDisposable,
-    )
-    StudioFlags.COMPOSE_PREVIEW_MATCH_UI_AGENT.overrideForTest(
-      false,
-      projectRule.testRootDisposable,
-    )
-    StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.overrideForTest(false, projectRule.testRootDisposable)
-    ExtensionTestUtil.maskExtensions(
-      ComposeStudioBotActionFactory.EP_NAME,
-      listOf(FakeStudioBotActionFactory()),
-      projectRule.testRootDisposable,
-    )
-
-    val menuGroup = actionManager.getPopupMenuActions(null, fakeMouseEvent)
-
-    val actions = menuGroup.getChildren(null)
-    assertThat(actions.size).isEqualTo(EXPECTED_NUMBER_OF_ACTIONS)
-    // The last action should be the transform preview action wrapped
-    val transformActionOuter = actions[7] as ShowGroupUnderConditionWrapper
-    val children = transformActionOuter.getChildren(null)
-
-    val innerAction = children.single()
-
-    // If text is null, it might be a wrapper.
-    if (innerAction is AnActionWrapper) {
-      assertThat(innerAction.delegate.templatePresentation.text).isEqualTo("transformPreview")
-    } else {
-      assertThat(innerAction.templatePresentation.text).isEqualTo("transformPreview")
-    }
   }
 
   @Test
