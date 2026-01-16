@@ -34,6 +34,7 @@ import com.android.tools.idea.run.configuration.execution.TileLaunchOptions
 import com.android.tools.idea.run.configuration.execution.WatchFaceLaunchOptions
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetState
+import com.android.utils.executeWithRetries
 import com.google.common.util.concurrent.Futures
 import com.google.idea.blaze.android.run.BazelAndroidRunContext
 import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryRunConfigurationState
@@ -113,6 +114,7 @@ class BlazeAndroidRunConfigurationRunner(
 
     return AndroidConfigurationExecutorRunProfileState(
       LazilyInitializedDelegatingBlazeAndroidConfigurationExecutor(runConfig) {
+        executeBuild(environment)
         if (!apkBuildStep.isDone) error("Build must be complete")
         // Instantiate the run context locally after completion of the build step.
         val runContext = launchStrategy.createBlazeAndroidRunContext(environment, apkBuildStep, runConfig)
@@ -187,6 +189,10 @@ class BlazeAndroidRunConfigurationRunner(
   }
 
   override fun executeBeforeRunTask(environment: ExecutionEnvironment): Boolean {
+    return true
+  }
+
+  private fun executeBuild(environment: ExecutionEnvironment): Boolean {
     val project = environment.project
     val settings = BlazeUserSettings.getInstance()
     return Scope.root(
