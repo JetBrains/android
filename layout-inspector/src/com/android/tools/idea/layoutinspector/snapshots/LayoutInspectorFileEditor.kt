@@ -155,28 +155,24 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
           treeSettings = treeSettings,
         )
 
-      val hasBitmapImage =
-        when (model.pictureType) {
-          AndroidWindow.ImageType.BITMAP_AS_REQUESTED -> true
-          AndroidWindow.ImageType.UNKNOWN,
-          AndroidWindow.ImageType.SKP_PENDING,
-          AndroidWindow.ImageType.SKP -> false
-        }
-
       rootPanel =
-        if (hasBitmapImage) {
-          createNewLayoutInspectorUi(this, project, layoutInspector)
-        } else {
-          // TODO(b/459411932): remove this else statement once we fully remove the old inspector
-          // Notify the user that skia images are not going to be supported going forward
-          notificationModel.addNotification(
-            id = SNAPSHOT_OUTDATED_ID,
-            text = LayoutInspectorBundle.message(SNAPSHOT_OUTDATED_ID),
-            sticky = true,
-          )
+        when (model.pictureType) {
+          AndroidWindow.ImageType.BITMAP_AS_REQUESTED ->
+            createNewLayoutInspectorUi(this, project, layoutInspector)
+          AndroidWindow.ImageType.SKP_PENDING,
+          AndroidWindow.ImageType.SKP -> {
+            // TODO(b/459411932): remove this else statement once we fully remove the old inspector
+            // Notify the user that skia images are not going to be supported going forward
+            notificationModel.addNotification(
+              id = SNAPSHOT_OUTDATED_ID,
+              text = LayoutInspectorBundle.message(SNAPSHOT_OUTDATED_ID),
+              sticky = true,
+            )
 
-          // If the snapshot file contains a skia image fallback to old layout inspector
-          createOldLayoutInspectorUi(this, project, layoutInspector)
+            // If the snapshot file contains a skia image fallback to old layout inspector
+            createOldLayoutInspectorUi(this, project, layoutInspector)
+          }
+          AndroidWindow.ImageType.UNKNOWN -> throw IllegalStateException("Unknown picture type")
         }
 
       metadata.loadDuration = System.currentTimeMillis() - startTime
@@ -198,13 +194,14 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
         object : StatusText() {
           override fun isStatusVisible() = true
         }
+      
       // TODO these "gap" calls can be removed after the images in
       //  com.android.tools.idea.layoutinspector.snapshots.LayoutInspectorFileEditorTest.editorShowsVersionError
       //  are updated accordingly (there was a bug in StatusText that added the gap after the second line,
       //  but not after the first line, and the test images were created with that bug)
       status.forceGapAfterLastLine()
       status.withUnscaledGapAfter(0).appendLine("Error loading snapshot")
-      (exception as? SnapshotLoaderException)?.message?.let { status.withUnscaledGapAfter(2).appendLine(it) }
+      exception?.message?.let { status.withUnscaledGapAfter(2).appendLine(it) }
 
       return object : JPanel() {
         init {
