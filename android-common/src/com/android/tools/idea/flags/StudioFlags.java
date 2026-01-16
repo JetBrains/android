@@ -1643,14 +1643,10 @@ public final class StudioFlags {
     "Invalidates the preview is there is a resource change"
     );
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_PREVIEW = new BooleanFlag(
-    COMPOSE, "preview.generate.preview.action", "Enable editor action for generating Compose Previews",
-    "Enable context-menu actions that can generate a Compose Preview corresponding to the selected @Composable"
-    );
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC = new BooleanFlag(
     COMPOSE, "preview.generate.preview.action.agentic", "Use agents to generate Compose Previews",
-    "Uses agentic approach when generating Compose Previews corresponding to the selected @Composable. This replaces the transform based approach set by compose.preview.generate.preview.action. preview.generate.preview.action must be enabled for the action to be available."
+    "Uses agentic approach when generating Compose Previews corresponding to the selected @Composable."
   );
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_EXTRA_PARAMETER_CONTEXT = new BooleanFlag(
@@ -1673,10 +1669,6 @@ public final class StudioFlags {
     "Enables a button to fix with AI render errors related to previews"
   );
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI = new BooleanFlag(
-    COMPOSE, "transform.ui.with.ai", "Enable action to transform UI with Gemini",
-    "Enables a context-menu action to transform UI with Gemini."
-    );
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI_AGENTIC = new BooleanFlag(
     COMPOSE, "transform.ui.with.ai.agentic", "Use agent for Transform UI with Gemini",
