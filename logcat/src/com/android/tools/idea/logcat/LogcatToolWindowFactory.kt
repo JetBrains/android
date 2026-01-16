@@ -111,7 +111,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
           } else {
             toolWindow.createLogcatTab(name, device, applicationId)
           }
-          toolWindow.activate(null)
+          toolWindow.activate(null, false)
         } finally {
           insideShowLogcatListener = false
         }
