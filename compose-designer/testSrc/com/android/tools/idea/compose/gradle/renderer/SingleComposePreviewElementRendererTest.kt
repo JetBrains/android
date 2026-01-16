@@ -426,4 +426,27 @@ class SingleComposePreviewElementRendererTest {
 
     assertTrue(currentRunningSet.isEmpty())
   }
+
+  /** Checks the rendering of the default `@Preview` in the Compose template. */
+  @Test
+  fun testXliffRendering() {
+    val facet = projectRule.androidFacet(":app")
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/OtherPreviews.kt")
+    val defaultRender =
+      renderPreviewElement(
+          facet,
+          mainActivityFile,
+          SingleComposePreviewElementInstance.forTesting(
+            "google.simpleapplication.OtherPreviewsKt.XliffPreview"
+          ),
+        )
+        .get()!!
+    assertImageSimilar(
+      Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/xliff.png"),
+      defaultRender,
+      0.1,
+      1,
+    )
+  }
 }

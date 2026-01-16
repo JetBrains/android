@@ -22,6 +22,7 @@ import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 
@@ -61,4 +62,10 @@ fun PreviewInOtherFile() {
 fun TextFieldPreview() {
   val textState = remember { mutableStateOf(TextFieldValue()) }
   MaterialTheme { TextField(value = textState.value, onValueChange = { textState.value = it }) }
+}
+
+@Preview
+@Composable
+fun XliffPreview() {
+  MaterialTheme { Text(stringResource(R.string.xliff_example, "1")) }
 }
