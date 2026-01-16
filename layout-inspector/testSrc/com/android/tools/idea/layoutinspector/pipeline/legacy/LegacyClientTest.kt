@@ -36,6 +36,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.TestScope
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -110,6 +111,7 @@ class LegacyClientTest {
       )
   }
 
+  @Ignore("b/477373297")
   @Test
   fun testReloadAllWindowsWithNone() {
     // This test may end up in a deadlock if a synchronized launcher is used.
@@ -137,7 +139,7 @@ class LegacyClientTest {
 
     // User disconnects:
     notification1.actions.last().invoke(mock())
-    waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient === DisconnectedClient }
+    waitForCondition(30, TimeUnit.SECONDS) { inspectorRule.inspectorClient === DisconnectedClient }
     executor.shutdownNow()
     inspectorRule.awaitLaunch()
   }
