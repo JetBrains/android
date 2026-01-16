@@ -18,25 +18,21 @@ package com.google.idea.blaze.android.run.binary;
 import static com.google.idea.blaze.android.run.LaunchMetrics.logBinaryLaunch;
 
 import com.android.tools.idea.execution.common.DeployableToDevice;
-import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.ValidationError;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.android.run.ApkBuildStepProvider;
-import com.google.idea.blaze.android.run.BazelApplicationProjectContext;
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationCommonState;
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationHandler;
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationValidationUtil;
 import com.google.idea.blaze.android.run.LaunchMetrics;
 import com.google.idea.blaze.android.run.binary.AndroidBinaryLaunchMethodsUtils.AndroidBinaryLaunchMethod;
 import com.google.idea.blaze.android.run.binary.mobileinstall.MobileInstallDeployAndLaunchStrategy;
-import com.google.idea.blaze.android.run.deployinfo.BlazeApkProvider;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeployAndLaunchStrategy;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunConfigurationRunner;
-import com.google.idea.blaze.android.run.runner.BlazeAndroidRunContext;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.logging.EventLoggingService;
@@ -149,25 +145,8 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
                 blazeFlags,
                 exeFlags,
                 launchId);
-    var applicationIdProvider = new BlazeAndroidBinaryApplicationIdProvider(buildStep);
-    var apkProvider = BlazeApkProvider.getApkProvider(project, buildStep);
-    var applicationProjectContext =
-        new BazelApplicationProjectContext(project, applicationIdProvider);
 
-    BlazeAndroidRunContext runContext;
     BlazeAndroidDeployAndLaunchStrategy launchStrategy;
-
-    ConsoleProvider consoleProvider = new BlazeAndroidBinaryConsoleProvider(project);
-    runContext = new BlazeAndroidRunContext(
-        consoleProvider,
-        buildStep,
-        applicationIdProvider,
-        apkProvider,
-        applicationProjectContext,
-        env.getExecutor(),
-        configState.getProfilerState());
-
-
     switch (configState.getLaunchMethod()) {
       case NON_BLAZE:
         launchStrategy = new NormalBuildDeployAndLaunchStrategy(project, configState, launchId);
@@ -189,7 +168,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
         env.getExecutor().getId(),
         configuration.getSingleTargetPattern(),
         configState.getCommonState().isNativeDebuggingEnabled());
-    return new BlazeAndroidRunConfigurationRunner(runContext, launchStrategy, configuration);
+    return new BlazeAndroidRunConfigurationRunner(launchStrategy, configuration, buildStep);
   }
 
   @Override

@@ -21,6 +21,7 @@ import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.run.LaunchOptions;
 import com.google.common.collect.ImmutableList;
+import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
@@ -65,4 +66,9 @@ public interface BlazeAndroidDeployAndLaunchStrategy {
 
   @Nullable
   Integer getUserId(IDevice device) throws ExecutionException;
+
+  /** Creates a {@link BlazeAndroidRunContext} for the run configuration. */
+  BlazeAndroidRunContext createBlazeAndroidRunContext(
+      ExecutionEnvironment env, ApkBuildStep buildStep, BlazeCommandRunConfiguration configuration)
+      throws ExecutionException;
 }

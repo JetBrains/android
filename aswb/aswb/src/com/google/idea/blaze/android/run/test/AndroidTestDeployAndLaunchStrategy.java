@@ -29,13 +29,17 @@ import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.tasks.DeployTasksHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.idea.blaze.android.run.BazelApplicationProjectContext;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
+import com.google.idea.blaze.android.run.deployinfo.BlazeApkProvider;
+import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeployAndLaunchStrategy;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunContext;
 import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
 import com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProvider.AndroidTestLaunchMethod;
 import com.google.idea.blaze.base.model.primitives.Label;
+import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFetcher;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.NopProcessHandler;
@@ -114,6 +118,32 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
             project,
             getApkInfoToInstall(device, deployOptions, runContext.getApkProvider()),
             deployOptions));
+  }
+
+  @Override
+  public BlazeAndroidRunContext createBlazeAndroidRunContext(
+      ExecutionEnvironment env, ApkBuildStep buildStep, BlazeCommandRunConfiguration configuration) {
+    var applicationIdProvider = new BlazeAndroidTestApplicationIdProvider(buildStep);
+    var apkProvider = BlazeApkProvider.getApkProvider(project, buildStep);
+    var applicationProjectContext =
+        new BazelApplicationProjectContext(project, applicationIdProvider);
+
+    var consoleProvider =
+        switch (configState.getLaunchMethod()) {
+          case MOBILE_INSTALL, NON_BLAZE -> new AitIdeTestConsoleProvider(configuration, configState);
+          case BLAZE_TEST -> new AitBlazeTestConsoleProvider(
+              project, configuration, testResultsHolder);
+        };
+
+    return new BlazeAndroidRunContext(
+        consoleProvider,
+        buildStep,
+        applicationIdProvider,
+        apkProvider,
+        applicationProjectContext,
+        env.getExecutor(),
+        null
+    );
   }
 
   @Override
