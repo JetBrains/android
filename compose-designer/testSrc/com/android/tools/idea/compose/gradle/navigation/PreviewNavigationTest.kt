@@ -173,7 +173,7 @@ class PreviewNavigationTest {
             MainActivity.kt:50
             MainActivity.kt:49
             MainActivity.kt:48
-          """
+            """
               .trimIndent(),
             findComponentHits(viewInfos, 0, 0)
               .filter { it.fileName == "MainActivity.kt" }
@@ -189,7 +189,7 @@ class PreviewNavigationTest {
             MainActivity.kt:51
             MainActivity.kt:49
             MainActivity.kt:48
-          """
+            """
               .trimIndent(),
             findComponentHits(viewInfos, 0, bounds.bottom - bounds.bottom / 4)
               .filter { it.fileName == "MainActivity.kt" }
@@ -265,7 +265,7 @@ class PreviewNavigationTest {
           val descriptorInOtherFile =
             findNavigatableComponentHit(module, viewInfos, 0, 0) as OpenFileDescriptor
           assertEquals("OtherPreviews.kt", descriptorInOtherFile.file.name)
-          assertEquals(51, descriptorInOtherFile.calculateLine())
+          assertEquals(52, descriptorInOtherFile.calculateLine())
         }
       }
       .join()

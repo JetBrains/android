@@ -143,6 +143,12 @@ import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.ColorsIcon
 import com.intellij.util.xml.DomManager
+import java.awt.Color
+import java.io.File
+import java.io.IOException
+import java.util.EnumSet
+import java.util.Properties
+import javax.swing.Icon
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.AndroidFileTemplateProvider
 import org.jetbrains.android.actions.CreateTypedResourceFileAction
@@ -163,15 +169,8 @@ import org.jetbrains.annotations.Contract
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
-import org.jetbrains.kotlin.util.collectionUtils.filterIsInstanceAnd
 import org.jetbrains.kotlin.utils.SmartList
 import org.jetbrains.kotlin.utils.filterIsInstanceAndTo
-import java.awt.Color
-import java.io.File
-import java.io.IOException
-import java.util.EnumSet
-import java.util.Properties
-import javax.swing.Icon
 
 private const val RESOURCE_CLASS_SUFFIX = "." + AndroidUtils.R_CLASS_NAME
 private const val ROOT_TAG_PROPERTY = "ROOT_TAG"
@@ -938,11 +937,17 @@ fun getNamespaceResolver(element: XmlElement): ResourceNamespace.Resolver {
 }
 
 /** Returns the text content of a given tag */
-fun getTextContent(tag: XmlTag): String {
+fun getTextContent(tag: XmlTag): String = getTextContent(tag, ignoreXliff = false)
+
+/** Returns the text content of a given tag when used for rendering */
+fun getTextContentForRendering(tag: XmlTag): String = getTextContent(tag, ignoreXliff = true)
+
+private fun getTextContent(tag: XmlTag, ignoreXliff: Boolean): String {
   // We can't just use tag.getValue().getTrimmedText() here because we need to remove
   // intermediate elements such as <xliff> text:
   // TODO: Make sure I correct handle HTML content for XML items in <string> nodes!
-  // For example, for the following string we want to compute "Share with %s":
+  // For example, for the following string we want to compute "Share with (Bluetooth)" (for
+  // getTextContent) or "Share with %s" (for getTextContentForRendering):
   // <string name="share">Share with <xliff:g id="application_name"
   // example="Bluetooth">%s</xliff:g></string>
   val subTags = tag.subTags
@@ -955,7 +960,7 @@ fun getTextContent(tag: XmlTag): String {
     }
   }
   val sb = StringBuilder(40)
-  appendText(sb, tag)
+  appendText(sb, tag, ignoreXliff)
   return sb.toString()
 }
 
@@ -989,14 +994,18 @@ private fun getXmlTextValue(element: XmlText): String {
   return element.text
 }
 
-private fun appendText(sb: StringBuilder, tag: XmlTag) {
+private fun appendText(sb: StringBuilder, tag: XmlTag, ignoreXliff: Boolean) {
   val children = tag.children
   for (child in children) {
     if (child is XmlText) {
       sb.append(getXmlTextValue(child))
     } else if (child is XmlTag) {
       // xliff support
-      if (XLIFF_G_TAG == child.localName && child.namespace.startsWith(XLIFF_NAMESPACE_PREFIX)) {
+      if (
+        !ignoreXliff &&
+          XLIFF_G_TAG == child.localName &&
+          child.namespace.startsWith(XLIFF_NAMESPACE_PREFIX)
+      ) {
         val example = child.getAttributeValue(ATTR_EXAMPLE)
         if (example != null) {
           // <xliff:g id="number" example="7">%d</xliff:g> minutes => "(7) minutes"
@@ -1011,7 +1020,7 @@ private fun appendText(sb: StringBuilder, tag: XmlTag) {
           }
         }
       }
-      appendText(sb, child)
+      appendText(sb, child, ignoreXliff)
     }
   }
 }

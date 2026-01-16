@@ -469,6 +469,9 @@ public final class PsiResourceItem implements ResourceItem {
     text = ValueXmlHelper.unescapeResourceString(text, true, true);
     value.setValue(text);
 
+    String renderingText = IdeResourcesUtil.getTextContentForRendering(tag);
+    value.setRenderingValue(renderingText);
+
     return value;
   }
 
