@@ -139,37 +139,6 @@ class StudioLabsSettingsConfigurable :
       //      imageDescription = "Prompt Library settings",
       //    )
 
-      if (!StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.get()) {
-        add(
-          StudioLabsFeaturePanelUi(
-            flag = StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW,
-            heading = "Generate Compose Preview",
-            description =
-              """
-                Allows the generation of new Compose Previews for existing Composables.
-              """
-                .trimIndent(),
-            imageKey = StudioLabsIcons.Features.GenerateComposePreview,
-            imageDescription = "Generate Compose Preview menu",
-          )
-        )
-      }
-
-      if (!StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI_AGENTIC.get()) {
-        add(
-          StudioLabsFeaturePanelUi(
-            flag = StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI,
-            heading = "Change Compose UI",
-            description =
-              """
-              Allows the changing of existing UI within the Compose Preview environment using AI.
-            """
-                .trimIndent(),
-            imageKey = StudioLabsIcons.Features.TransformComposePreview,
-            imageDescription = "Change UI action",
-          )
-        )
-      }
       /*
       Disabled pending move to agent
       add(StudioLabsFeaturePanelUi(
@@ -190,10 +159,10 @@ class StudioLabsSettingsConfigurable :
           heading = "Journeys",
           description =
             """
-                Use the vision and reasoning capabilities of AI to convert natural language instructions into automated tests.
+            Use the vision and reasoning capabilities of AI to convert natural language instructions into automated tests.
 
-                An IDE restart is required for this change to take effect.
-              """
+            An IDE restart is required for this change to take effect.
+            """
               .trimIndent(),
           imageKey = StudioLabsIcons.Features.Journeys,
           imageDescription = "Journeys",
