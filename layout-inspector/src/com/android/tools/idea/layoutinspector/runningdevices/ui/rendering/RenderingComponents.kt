@@ -138,7 +138,7 @@ fun createRenderingComponents(
         )
 
       val renderer =
-        StudioRendererPanel(
+        EmbeddedRendererPanel(
           disposable = combinedDisposable,
           scope = layoutInspector.coroutineScope,
           renderModel = renderModel,
