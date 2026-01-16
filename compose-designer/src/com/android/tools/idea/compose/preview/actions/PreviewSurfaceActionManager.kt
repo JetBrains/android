@@ -103,24 +103,14 @@ internal class PreviewSurfaceActionManager(
         .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
 
   private fun getAiActionGroup(shouldShowInDropDown: Boolean): AnAction? {
-    val factory = ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()
-    val isTransformEnabled = StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.get()
-    val isMatchUiEnabled = StudioFlags.COMPOSE_PREVIEW_MATCH_UI_AGENT.get()
-    val isUiCheckFixEnabled = StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.get()
+    val factory = ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull() ?: return null
 
-    return if (isTransformEnabled && (isMatchUiEnabled || isUiCheckFixEnabled)) {
-        if (shouldShowInDropDown) {
-          factory?.previewAgentsDropDownAction()
-        } else {
-          factory?.previewAgentsActionGroup()
-        }
+    val action =
+      if (shouldShowInDropDown) {
+        factory.previewAgentsDropDownAction()
       } else {
-        // Add action to transform UI with AI directly to the context-menu if the dropdown menu is
-        // not enabled.
-        StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.ifEnabled {
-          factory?.transformPreviewAction()?.hideIfRenderErrors()
-        }
+        factory.previewAgentsActionGroup()
       }
-      ?.visibleOnlyInStaticPreview()
+    return action?.visibleOnlyInStaticPreview()
   }
 }
