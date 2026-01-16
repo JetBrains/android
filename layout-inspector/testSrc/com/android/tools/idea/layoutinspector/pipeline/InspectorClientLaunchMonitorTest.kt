@@ -24,6 +24,7 @@ import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.android.tools.idea.layoutinspector.DeviceProvisionerServiceCleanUpRule
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
@@ -82,8 +83,9 @@ private enum class DebuggerType {
 class InspectorClientLaunchMonitorTest {
   private val provisionerRule = DeviceProvisionerRule()
   private val projectRule = AndroidProjectRule.inMemory()
+  private val provisionerServiceRule = DeviceProvisionerServiceCleanUpRule { projectRule.project }
 
-  @get:Rule val chain = RuleChain(projectRule, provisionerRule)
+  @get:Rule val chain = RuleChain(projectRule, provisionerRule, provisionerServiceRule)
 
   @Before
   fun before() {

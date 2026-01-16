@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.layoutinspector.DeviceProvisionerServiceCleanUpRule
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
@@ -42,6 +43,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -49,16 +51,15 @@ import kotlinx.coroutines.delay
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.kotlin.mock
 
 class InspectorClientLauncherTest {
   private val disposableRule = DisposableRule()
   private val projectRule = ProjectRule()
   private val adbRule = FakeAdbServerAdbLibRule { addDeviceHandler(FakeShellCommandHandler()) }
+  private val provisionerServiceRule = DeviceProvisionerServiceCleanUpRule { projectRule.project }
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(disposableRule).around(adbRule)!!
+  @get:Rule val ruleChain = RuleChain(projectRule, disposableRule, adbRule, provisionerServiceRule)
 
   @Before
   fun before() {
@@ -607,9 +608,9 @@ class InspectorClientLauncherMetricsTest {
   private val disposableRule = DisposableRule()
   private val projectRule = ProjectRule()
   private val adbRule = FakeAdbServerAdbLibRule { addDeviceHandler(FakeShellCommandHandler()) }
+  private val provisionerServiceRule = DeviceProvisionerServiceCleanUpRule { projectRule.project }
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(disposableRule).around(adbRule)!!
+  @get:Rule val ruleChain = RuleChain(projectRule, disposableRule, adbRule, provisionerServiceRule)
 
   @Before
   fun before() {

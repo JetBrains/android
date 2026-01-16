@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
+import com.android.tools.idea.layoutinspector.DeviceProvisionerServiceCleanUpRule
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.TransportClient
@@ -35,6 +36,7 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.replaceService
 import com.intellij.util.concurrency.SameThreadExecutor
 import java.util.concurrent.CountDownLatch
@@ -44,7 +46,6 @@ import layout_inspector.LayoutInspector
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.kotlin.mock
 
 class ForegroundProcessDetectionInitializerTest {
@@ -57,8 +58,6 @@ class ForegroundProcessDetectionInitializerTest {
       transportService,
     )
   private val streamManagerRule = TransportStreamManagerRule(grpcServerRule)
-
-  @get:Rule val ruleChain = RuleChain.outerRule(grpcServerRule).around(streamManagerRule)
 
   private val device1 = FakeDevice(serial = "1")
   private val device2 = FakeDevice(serial = "2")
@@ -76,7 +75,11 @@ class ForegroundProcessDetectionInitializerTest {
 
   private lateinit var testProcessDiscovery: TestProcessDiscovery
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
+  private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
+  private val provisionerServiceRule = DeviceProvisionerServiceCleanUpRule { projectRule.project }
+
+  @get:Rule
+  val chain = RuleChain(projectRule, grpcServerRule, streamManagerRule, provisionerServiceRule)
 
   @Before
   fun setup() {
