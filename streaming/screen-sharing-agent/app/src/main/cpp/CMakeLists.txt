@@ -39,6 +39,7 @@ add_library(
         audio_streamer.cc
         base128_input_stream.cc
         base128_output_stream.cc
+        codec_handle.cc
         codec_input_buffer.cc
         codec_output_buffer.cc
         concurrent_list.cc
@@ -50,7 +51,6 @@ add_library(
         jvm.cc
         log.cc
         main.cc
-        codec_handle.cc
         scoped_setting.cc
         shell_command.cc
         shell_command_executor.cc
