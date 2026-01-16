@@ -254,6 +254,7 @@ studiobot.show.thoughts=PREVIEW
 studiobot.studiobot.apply.changes.action=INTERNAL
 studiobot.support.gias.enterprise=COMPLETE:2025
 studiobot.use.bm25.find.files=PREVIEW
+studiobot.use.bm25.grep=PREVIEW
 studiobot.verify.user.tier.in.aida.rpcs=COMPLETE:2025
 studiobot.version.upgrade.agent=PREVIEW
 studiobot.write.critic.main.passes=PREVIEW
