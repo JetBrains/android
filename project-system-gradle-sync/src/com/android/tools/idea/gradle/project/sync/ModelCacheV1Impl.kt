@@ -151,6 +151,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       if (mlModelBindingEnabled) copy(provider::getMlModelsDirectories, mapper = { it }).makeRelativeAndDeduplicate() else emptyList(),
       customSourceDirectories = emptyList(),
       baselineProfileDirectories = emptyList(),
+      keepRulesDirectoriesField = emptyList(),
     )
   }
 

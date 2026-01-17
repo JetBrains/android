@@ -38,6 +38,7 @@ data class IdeSourceProvider constructor(
   private val mlModelsDirectoriesField: List<FileImpl>,
   private val customSourceDirectoriesField: List<IdeCustomSourceDirectoryImpl>,
   private val baselineProfileDirectoriesField: List<FileImpl>,
+  private val keepRulesDirectoriesField: List<FileImpl>,
 ) : Serializable {
 
   constructor(
@@ -55,7 +56,8 @@ data class IdeSourceProvider constructor(
     shadersDirectories: List<File>,
     mlModelsDirectories: List<File>,
     customSourceDirectories: List<IdeCustomSourceDirectoryImpl>,
-    baselineProfileDirectories: List<File>
+    baselineProfileDirectories: List<File>,
+    keepRulesDirectories: List<FileImpl>
   ) : this(
     nameField = name,
     folderField = folder?.toImpl(),
@@ -72,6 +74,7 @@ data class IdeSourceProvider constructor(
     mlModelsDirectoriesField = mlModelsDirectories.toImpl(),
     customSourceDirectoriesField = customSourceDirectories,
     baselineProfileDirectoriesField = baselineProfileDirectories.toImpl(),
+    keepRulesDirectoriesField = keepRulesDirectories.toImpl()
   )
 
   constructor(
@@ -89,7 +92,8 @@ data class IdeSourceProvider constructor(
     shadersDirectories: List<String>,
     mlModelsDirectories: List<String>,
     customSourceDirectories: List<IdeCustomSourceDirectoryImpl>,
-    baselineProfileDirectories: List<String>
+    baselineProfileDirectories: List<String>,
+    keepRulesDirectoriesField: List<String>,
   ) : this(
     name,
     folder,
@@ -106,6 +110,7 @@ data class IdeSourceProvider constructor(
     mlModelsDirectories.translate(folder),
     customSourceDirectories,
     baselineProfileDirectories.translate(folder),
+    keepRulesDirectoriesField.translate(folder),
   )
 
   // Used for serialization by the IDE.
@@ -125,6 +130,7 @@ data class IdeSourceProvider constructor(
     mlModelsDirectoriesField = mutableListOf(),
     customSourceDirectoriesField = mutableListOf(),
     baselineProfileDirectoriesField = mutableListOf(),
+    keepRulesDirectoriesField = mutableListOf()
   )
 
   fun appendDirectories(
@@ -139,6 +145,7 @@ data class IdeSourceProvider constructor(
     shadersDirectories: List<File> = emptyList(),
     mlModelsDirectories: List<File> = emptyList(),
     baselineProfileDirectories: List<File> = emptyList(),
+    keepRulesDirectories: List<File> = emptyList()
   ): IdeSourceProvider = copy(
     javaDirectoriesField = javaDirectoriesField + javaDirectories.map { normalize(folderField, it) },
     kotlinDirectoriesField = kotlinDirectoriesField + kotlinDirectories.map { normalize(folderField, it) },
@@ -151,6 +158,8 @@ data class IdeSourceProvider constructor(
     shadersDirectoriesField = shadersDirectoriesField + shadersDirectories.map { normalize(folderField, it) },
     mlModelsDirectoriesField = mlModelsDirectoriesField + mlModelsDirectories.map { normalize(folderField, it) },
     baselineProfileDirectoriesField = baselineProfileDirectoriesField + baselineProfileDirectories.map { normalize(folderField, it) },
+    keepRulesDirectoriesField = keepRulesDirectoriesField + keepRulesDirectories.map { normalize(folderField, it) },
+
   )
 
 
@@ -170,6 +179,8 @@ data class IdeSourceProvider constructor(
     get() = customSourceDirectoriesField
   val baselineProfileDirectories: List<FileImpl>
     get() = baselineProfileDirectoriesField
+  val keepRulesDirectories:List<FileImpl>
+  get() = keepRulesDirectoriesField
 }
 
 private fun normalize(folder: File?, file: File): FileImpl = (if (folder != null) file.relativeToOrSelf(folder).path else file.path).translate(folder)
@@ -177,4 +188,3 @@ private fun normalize(folder: File?, file: File): FileImpl = (if (folder != null
 private fun String.translate(folder: File?): FileImpl = (folder?.resolve(this) ?: FileImpl(this)).normalize().toImpl()
 
 private fun List<String>.translate(folder: File?): List<FileImpl> = map { it.translate(folder) }
-
