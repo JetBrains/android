@@ -72,17 +72,6 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "com.android.annotations.concurrency",
           "com.android.annotations",
           "com.android.tools.instrumentation.threading.agent.callback",
-          // b/476493791 below here
-          "com.google.api",
-          "com.google.cloud.audit",
-          "com.google.cloud.location",
-          "com.google.cloud",
-          "com.google.geo.type",
-          "com.google.logging.type",
-          "com.google.longrunning",
-          "com.google.shopping.type",
-          "io.perfmark",
-          // end b/476493791
           "javax.inject",
           // b/476501574 below here
           "org.apache.commons.lang.builder",
