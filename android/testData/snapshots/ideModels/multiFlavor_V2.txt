@@ -756,6 +756,7 @@ MODULE                        : MultiFlavor.app
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/main/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -770,6 +771,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTest/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -783,6 +785,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/test/keepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -811,6 +814,7 @@ MODULE                        : MultiFlavor.app
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/debug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -825,6 +829,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTestDebug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -839,6 +844,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/testDebug/keepRules [-]
         BuildType
             Name                          : release
             ApplicationIdSuffix           : .release
@@ -867,6 +873,7 @@ MODULE                        : MultiFlavor.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/release/keepRules [-]
     ProductFlavors
         ProductFlavor
             Name                          : firstAbc
@@ -891,6 +898,7 @@ MODULE                        : MultiFlavor.app
             AssetsDirectories             : <ROOT>/app/src/firstAbc/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/firstAbc/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/firstAbc/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/firstAbc/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -905,6 +913,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestFirstAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestFirstAbc/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestFirstAbc/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTestFirstAbc/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -918,6 +927,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/testFirstAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testFirstAbc/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testFirstAbc/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/testFirstAbc/keepRules [-]
         ProductFlavor
             Name                          : firstXyz
             Dimension                     : Dim1
@@ -933,6 +943,7 @@ MODULE                        : MultiFlavor.app
             AssetsDirectories             : <ROOT>/app/src/firstXyz/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/firstXyz/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/firstXyz/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/firstXyz/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -947,6 +958,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestFirstXyz/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestFirstXyz/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestFirstXyz/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTestFirstXyz/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -960,6 +972,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/testFirstXyz/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testFirstXyz/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testFirstXyz/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/testFirstXyz/keepRules [-]
         ProductFlavor
             Name                          : secondAbc
             ApplicationIdSuffix           : .secondAbc
@@ -988,6 +1001,7 @@ MODULE                        : MultiFlavor.app
             AssetsDirectories             : <ROOT>/app/src/secondAbc/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/secondAbc/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/secondAbc/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/secondAbc/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1002,6 +1016,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestSecondAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestSecondAbc/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestSecondAbc/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTestSecondAbc/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -1015,6 +1030,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/testSecondAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testSecondAbc/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testSecondAbc/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/testSecondAbc/keepRules [-]
         ProductFlavor
             Name                          : secondXyz
             ApplicationIdSuffix           : .secondXyz
@@ -1038,6 +1054,7 @@ MODULE                        : MultiFlavor.app
             AssetsDirectories             : <ROOT>/app/src/secondXyz/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/secondXyz/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/secondXyz/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/secondXyz/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1052,6 +1069,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestSecondXyz/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestSecondXyz/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestSecondXyz/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTestSecondXyz/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -1065,6 +1083,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/testSecondXyz/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testSecondXyz/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testSecondXyz/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/testSecondXyz/keepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -1192,6 +1211,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/firstAbcSecondAbcDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/firstAbcSecondAbcDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/firstAbcSecondAbcDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/firstAbcSecondAbcDebug/keepRules [-]
                 MultiFlavorSourceProvider
                     Name                          : firstAbcSecondAbc
                     Manifest                      : <ROOT>/app/src/firstAbcSecondAbc/AndroidManifest.xml [-]
@@ -1204,6 +1224,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/firstAbcSecondAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/firstAbcSecondAbc/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/firstAbcSecondAbc/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/firstAbcSecondAbc/keepRules [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.1.0@aar
@@ -1434,6 +1455,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/keepRules [-]
                 MultiFlavorSourceProvider
                     Name                          : androidTestFirstAbcSecondAbc
                     Manifest                      : <ROOT>/app/src/androidTestFirstAbcSecondAbc/AndroidManifest.xml [-]
@@ -1445,6 +1467,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestFirstAbcSecondAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestFirstAbcSecondAbc/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestFirstAbcSecondAbc/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTestFirstAbcSecondAbc/keepRules [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.test.ext:junit:1.1.2@aar
@@ -1680,6 +1703,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/testFirstAbcSecondAbcDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testFirstAbcSecondAbcDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testFirstAbcSecondAbcDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/testFirstAbcSecondAbcDebug/keepRules [-]
                 MultiFlavorSourceProvider
                     Name                          : testFirstAbcSecondAbc
                     Manifest                      : <ROOT>/app/src/testFirstAbcSecondAbc/AndroidManifest.xml [-]
@@ -1691,6 +1715,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/testFirstAbcSecondAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testFirstAbcSecondAbc/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testFirstAbcSecondAbc/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/testFirstAbcSecondAbc/keepRules [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.1.0@aar

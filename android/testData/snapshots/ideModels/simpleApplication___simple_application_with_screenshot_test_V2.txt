@@ -808,6 +808,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/main/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -822,6 +823,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTest/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -835,6 +837,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/test/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _screenshot_test_
                 SourceProvider
@@ -848,6 +851,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/screenshotTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/screenshotTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/screenshotTest/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/screenshotTest/keepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -869,6 +873,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/debug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -883,6 +888,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTestDebug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -897,6 +903,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/testDebug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _screenshot_test_
@@ -911,6 +918,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/screenshotTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/screenshotTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/screenshotTestDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/screenshotTestDebug/keepRules [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -933,6 +941,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/release/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _screenshot_test_
@@ -947,6 +956,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/screenshotTestRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/screenshotTestRelease/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/screenshotTestRelease/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/screenshotTestRelease/keepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

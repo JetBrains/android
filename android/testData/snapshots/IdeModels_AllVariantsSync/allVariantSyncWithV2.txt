@@ -130,6 +130,7 @@ DefaultConfig
         AssetsDirectories             : <ROOT>/app/src/main/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
         BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
+        KeepRulesDirectories          : <ROOT>/app/src/main/keepRules [-]
     ExtraSourceProviders
         ExtraSourceProvider
             ArtifactName                  : _android_test_
@@ -144,6 +145,7 @@ DefaultConfig
                 AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/androidTest/keepRules [-]
         ExtraSourceProvider
             ArtifactName                  : _unit_test_
             SourceProvider
@@ -157,6 +159,7 @@ DefaultConfig
                 AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/test/keepRules [-]
 BuildTypes
     BuildType
         Name                          : debug
@@ -178,6 +181,7 @@ BuildTypes
         AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
         BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
+        KeepRulesDirectories          : <ROOT>/app/src/debug/keepRules [-]
     ExtraSourceProviders
         ExtraSourceProvider
             ArtifactName                  : _android_test_
@@ -192,6 +196,7 @@ BuildTypes
                 AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/androidTestDebug/keepRules [-]
     ExtraSourceProviders
         ExtraSourceProvider
             ArtifactName                  : _unit_test_
@@ -206,6 +211,7 @@ BuildTypes
                 AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/testDebug/keepRules [-]
     BuildType
         Name                          : release
         ApplicationIdSuffix           : suffix
@@ -231,6 +237,7 @@ BuildTypes
         AssetsDirectories             : <ROOT>/app/src/release/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
         BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
+        KeepRulesDirectories          : <ROOT>/app/src/release/keepRules [-]
     BuildType
         Name                          : specialRelease
         VersionNameSuffix             : vnsSpecial
@@ -253,6 +260,7 @@ BuildTypes
         AssetsDirectories             : <ROOT>/app/src/specialRelease/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/specialRelease/jniLibs [-]
         BaselineProfileDirectories    : <ROOT>/app/src/specialRelease/baselineProfiles [-]
+        KeepRulesDirectories          : <ROOT>/app/src/specialRelease/keepRules [-]
 ProductFlavors
     ProductFlavor
         Name                          : basic
@@ -270,6 +278,7 @@ ProductFlavors
         AssetsDirectories             : <ROOT>/app/src/basic/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/basic/jniLibs [-]
         BaselineProfileDirectories    : <ROOT>/app/src/basic/baselineProfiles [-]
+        KeepRulesDirectories          : <ROOT>/app/src/basic/keepRules [-]
     ExtraSourceProviders
         ExtraSourceProvider
             ArtifactName                  : _android_test_
@@ -284,6 +293,7 @@ ProductFlavors
                 AssetsDirectories             : <ROOT>/app/src/androidTestBasic/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBasic/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestBasic/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/androidTestBasic/keepRules [-]
         ExtraSourceProvider
             ArtifactName                  : _unit_test_
             SourceProvider
@@ -297,6 +307,7 @@ ProductFlavors
                 AssetsDirectories             : <ROOT>/app/src/testBasic/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasic/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasic/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/testBasic/keepRules [-]
     ProductFlavor
         Name                          : paid
         VersionNameSuffix             : vnsFoo
@@ -330,6 +341,7 @@ ProductFlavors
         AssetsDirectories             : <ROOT>/app/src/paid/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/paid/jniLibs [-]
         BaselineProfileDirectories    : <ROOT>/app/src/paid/baselineProfiles [-]
+        KeepRulesDirectories          : <ROOT>/app/src/paid/keepRules [-]
     ExtraSourceProviders
         ExtraSourceProvider
             ArtifactName                  : _android_test_
@@ -344,6 +356,7 @@ ProductFlavors
                 AssetsDirectories             : <ROOT>/app/src/androidTestPaid/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestPaid/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestPaid/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/androidTestPaid/keepRules [-]
         ExtraSourceProvider
             ArtifactName                  : _unit_test_
             SourceProvider
@@ -357,6 +370,7 @@ ProductFlavors
                 AssetsDirectories             : <ROOT>/app/src/testPaid/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaid/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaid/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/testPaid/keepRules [-]
     ProductFlavor
         Name                          : bar
         ApplicationIdSuffix           : barSuffix
@@ -373,6 +387,7 @@ ProductFlavors
         AssetsDirectories             : <ROOT>/app/src/bar/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/bar/jniLibs [-]
         BaselineProfileDirectories    : <ROOT>/app/src/bar/baselineProfiles [-]
+        KeepRulesDirectories          : <ROOT>/app/src/bar/keepRules [-]
     ExtraSourceProviders
         ExtraSourceProvider
             ArtifactName                  : _android_test_
@@ -387,6 +402,7 @@ ProductFlavors
                 AssetsDirectories             : <ROOT>/app/src/androidTestBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/androidTestBar/keepRules [-]
         ExtraSourceProvider
             ArtifactName                  : _unit_test_
             SourceProvider
@@ -400,6 +416,7 @@ ProductFlavors
                 AssetsDirectories             : <ROOT>/app/src/testBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/testBar/keepRules [-]
     ProductFlavor
         Name                          : otherBar
         Dimension                     : bar
@@ -419,6 +436,7 @@ ProductFlavors
         AssetsDirectories             : <ROOT>/app/src/otherBar/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/otherBar/jniLibs [-]
         BaselineProfileDirectories    : <ROOT>/app/src/otherBar/baselineProfiles [-]
+        KeepRulesDirectories          : <ROOT>/app/src/otherBar/keepRules [-]
     ExtraSourceProviders
         ExtraSourceProvider
             ArtifactName                  : _android_test_
@@ -433,6 +451,7 @@ ProductFlavors
                 AssetsDirectories             : <ROOT>/app/src/androidTestOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestOtherBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestOtherBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/androidTestOtherBar/keepRules [-]
         ExtraSourceProvider
             ArtifactName                  : _unit_test_
             SourceProvider
@@ -446,6 +465,7 @@ ProductFlavors
                 AssetsDirectories             : <ROOT>/app/src/testOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testOtherBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testOtherBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/testOtherBar/keepRules [-]
 SigningConfigs
     SigningConfig
         Name                          : debug
@@ -1267,6 +1287,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/basicBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBarDebug/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicBarDebug/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/basicBarDebug/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : basicBar
                 Manifest                      : <ROOT>/app/src/basicBar/AndroidManifest.xml [-]
@@ -1278,6 +1299,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/basicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/basicBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -1607,6 +1629,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/androidTestBasicBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBasicBarDebug/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestBasicBarDebug/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/androidTestBasicBarDebug/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : androidTestBasicBar
                 Manifest                      : <ROOT>/app/src/androidTestBasicBar/AndroidManifest.xml [-]
@@ -1618,6 +1641,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/androidTestBasicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBasicBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestBasicBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/androidTestBasicBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -1848,6 +1872,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/testBasicBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicBarDebug/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicBarDebug/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/testBasicBarDebug/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : testBasicBar
                 Manifest                      : <ROOT>/app/src/testBasicBar/AndroidManifest.xml [-]
@@ -1859,6 +1884,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/testBasicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/testBasicBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -2204,6 +2230,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBarDebug/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicOtherBarDebug/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/basicOtherBarDebug/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : basicOtherBar
                 Manifest                      : <ROOT>/app/src/basicOtherBar/AndroidManifest.xml [-]
@@ -2215,6 +2242,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicOtherBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/basicOtherBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -2544,6 +2572,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/androidTestBasicOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBasicOtherBarDebug/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestBasicOtherBarDebug/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/androidTestBasicOtherBarDebug/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : androidTestBasicOtherBar
                 Manifest                      : <ROOT>/app/src/androidTestBasicOtherBar/AndroidManifest.xml [-]
@@ -2555,6 +2584,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/androidTestBasicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBasicOtherBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestBasicOtherBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/androidTestBasicOtherBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -2785,6 +2815,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/testBasicOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicOtherBarDebug/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicOtherBarDebug/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/testBasicOtherBarDebug/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : testBasicOtherBar
                 Manifest                      : <ROOT>/app/src/testBasicOtherBar/AndroidManifest.xml [-]
@@ -2796,6 +2827,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/testBasicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicOtherBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicOtherBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/testBasicOtherBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -3142,6 +3174,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/paidBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBarDebug/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidBarDebug/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/paidBarDebug/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : paidBar
                 Manifest                      : <ROOT>/app/src/paidBar/AndroidManifest.xml [-]
@@ -3153,6 +3186,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/paidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/paidBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -3482,6 +3516,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/androidTestPaidBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestPaidBarDebug/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestPaidBarDebug/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/androidTestPaidBarDebug/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : androidTestPaidBar
                 Manifest                      : <ROOT>/app/src/androidTestPaidBar/AndroidManifest.xml [-]
@@ -3493,6 +3528,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/androidTestPaidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestPaidBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestPaidBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/androidTestPaidBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -3723,6 +3759,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/testPaidBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidBarDebug/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidBarDebug/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/testPaidBarDebug/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : testPaidBar
                 Manifest                      : <ROOT>/app/src/testPaidBar/AndroidManifest.xml [-]
@@ -3734,6 +3771,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/testPaidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/testPaidBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -4083,6 +4121,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBarDebug/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidOtherBarDebug/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/paidOtherBarDebug/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : paidOtherBar
                 Manifest                      : <ROOT>/app/src/paidOtherBar/AndroidManifest.xml [-]
@@ -4094,6 +4133,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidOtherBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/paidOtherBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -4423,6 +4463,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/androidTestPaidOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestPaidOtherBarDebug/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestPaidOtherBarDebug/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/androidTestPaidOtherBarDebug/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : androidTestPaidOtherBar
                 Manifest                      : <ROOT>/app/src/androidTestPaidOtherBar/AndroidManifest.xml [-]
@@ -4434,6 +4475,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/androidTestPaidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestPaidOtherBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestPaidOtherBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/androidTestPaidOtherBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -4664,6 +4706,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/testPaidOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidOtherBarDebug/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidOtherBarDebug/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/testPaidOtherBarDebug/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : testPaidOtherBar
                 Manifest                      : <ROOT>/app/src/testPaidOtherBar/AndroidManifest.xml [-]
@@ -4675,6 +4718,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/testPaidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidOtherBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidOtherBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/testPaidOtherBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -5020,6 +5064,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/basicBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBarRelease/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicBarRelease/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/basicBarRelease/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : basicBar
                 Manifest                      : <ROOT>/app/src/basicBar/AndroidManifest.xml [-]
@@ -5031,6 +5076,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/basicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/basicBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -5387,6 +5433,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBarRelease/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicOtherBarRelease/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/basicOtherBarRelease/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : basicOtherBar
                 Manifest                      : <ROOT>/app/src/basicOtherBar/AndroidManifest.xml [-]
@@ -5398,6 +5445,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicOtherBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/basicOtherBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -5755,6 +5803,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/paidBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBarRelease/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidBarRelease/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/paidBarRelease/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : paidBar
                 Manifest                      : <ROOT>/app/src/paidBar/AndroidManifest.xml [-]
@@ -5766,6 +5815,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/paidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/paidBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -6126,6 +6176,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBarRelease/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidOtherBarRelease/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/paidOtherBarRelease/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : paidOtherBar
                 Manifest                      : <ROOT>/app/src/paidOtherBar/AndroidManifest.xml [-]
@@ -6137,6 +6188,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidOtherBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/paidOtherBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -6487,6 +6539,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/basicBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBarSpecialRelease/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicBarSpecialRelease/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/basicBarSpecialRelease/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : basicBar
                 Manifest                      : <ROOT>/app/src/basicBar/AndroidManifest.xml [-]
@@ -6498,6 +6551,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/basicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/basicBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -6850,6 +6904,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBarSpecialRelease/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicOtherBarSpecialRelease/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/basicOtherBarSpecialRelease/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : basicOtherBar
                 Manifest                      : <ROOT>/app/src/basicOtherBar/AndroidManifest.xml [-]
@@ -6861,6 +6916,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicOtherBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/basicOtherBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -7214,6 +7270,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/paidBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBarSpecialRelease/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidBarSpecialRelease/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/paidBarSpecialRelease/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : paidBar
                 Manifest                      : <ROOT>/app/src/paidBar/AndroidManifest.xml [-]
@@ -7225,6 +7282,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/paidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/paidBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -7581,6 +7639,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBarSpecialRelease/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidOtherBarSpecialRelease/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/paidOtherBarSpecialRelease/keepRules [-]
             MultiFlavorSourceProvider
                 Name                          : paidOtherBar
                 Manifest                      : <ROOT>/app/src/paidOtherBar/AndroidManifest.xml [-]
@@ -7592,6 +7651,7 @@ IdeVariants
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBar/jniLibs [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidOtherBar/baselineProfiles [-]
+                KeepRulesDirectories          : <ROOT>/app/src/paidOtherBar/keepRules [-]
             Dependencies
                 compileClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar

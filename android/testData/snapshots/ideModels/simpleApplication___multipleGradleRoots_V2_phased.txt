@@ -143,6 +143,7 @@ MODULE                        : gradle_project_1.app
             AssetsDirectories             : <ROOT>/gradle_project_1/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project_1/app/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/gradle_project_1/app/src/main/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/gradle_project_1/app/src/main/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -157,6 +158,7 @@ MODULE                        : gradle_project_1.app
                     AssetsDirectories             : <ROOT>/gradle_project_1/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_1/app/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/gradle_project_1/app/src/androidTest/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/gradle_project_1/app/src/androidTest/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -170,6 +172,7 @@ MODULE                        : gradle_project_1.app
                     AssetsDirectories             : <ROOT>/gradle_project_1/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_1/app/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/gradle_project_1/app/src/test/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/gradle_project_1/app/src/test/keepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -191,6 +194,7 @@ MODULE                        : gradle_project_1.app
             AssetsDirectories             : <ROOT>/gradle_project_1/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project_1/app/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/gradle_project_1/app/src/debug/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/gradle_project_1/app/src/debug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -205,6 +209,7 @@ MODULE                        : gradle_project_1.app
                     AssetsDirectories             : <ROOT>/gradle_project_1/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_1/app/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/gradle_project_1/app/src/androidTestDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/gradle_project_1/app/src/androidTestDebug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -219,6 +224,7 @@ MODULE                        : gradle_project_1.app
                     AssetsDirectories             : <ROOT>/gradle_project_1/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_1/app/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/gradle_project_1/app/src/testDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/gradle_project_1/app/src/testDebug/keepRules [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/gradle_project_1/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -241,6 +247,7 @@ MODULE                        : gradle_project_1.app
             AssetsDirectories             : <ROOT>/gradle_project_1/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project_1/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/gradle_project_1/app/src/release/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/gradle_project_1/app/src/release/keepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -1295,6 +1302,7 @@ MODULE                        : gradle_project_name.app
             AssetsDirectories             : <ROOT>/gradle_project_2/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project_2/app/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/gradle_project_2/app/src/main/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/gradle_project_2/app/src/main/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1309,6 +1317,7 @@ MODULE                        : gradle_project_name.app
                     AssetsDirectories             : <ROOT>/gradle_project_2/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_2/app/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/gradle_project_2/app/src/androidTest/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/gradle_project_2/app/src/androidTest/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -1322,6 +1331,7 @@ MODULE                        : gradle_project_name.app
                     AssetsDirectories             : <ROOT>/gradle_project_2/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_2/app/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/gradle_project_2/app/src/test/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/gradle_project_2/app/src/test/keepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -1343,6 +1353,7 @@ MODULE                        : gradle_project_name.app
             AssetsDirectories             : <ROOT>/gradle_project_2/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project_2/app/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/gradle_project_2/app/src/debug/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/gradle_project_2/app/src/debug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1357,6 +1368,7 @@ MODULE                        : gradle_project_name.app
                     AssetsDirectories             : <ROOT>/gradle_project_2/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_2/app/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/gradle_project_2/app/src/androidTestDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/gradle_project_2/app/src/androidTestDebug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -1371,6 +1383,7 @@ MODULE                        : gradle_project_name.app
                     AssetsDirectories             : <ROOT>/gradle_project_2/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_2/app/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/gradle_project_2/app/src/testDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/gradle_project_2/app/src/testDebug/keepRules [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/gradle_project_2/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -1393,6 +1406,7 @@ MODULE                        : gradle_project_name.app
             AssetsDirectories             : <ROOT>/gradle_project_2/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project_2/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/gradle_project_2/app/src/release/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/gradle_project_2/app/src/release/keepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

@@ -794,6 +794,7 @@ MODULE                        : application.app
             AssetsDirectories             : <ROOT>/externalRoot/main/assets [-]
             JniLibsDirectories            : <ROOT>/externalRoot/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/externalRoot/main/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/externalRoot/main/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -808,6 +809,7 @@ MODULE                        : application.app
                     AssetsDirectories             : <ROOT>/application/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/application/app/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/application/app/src/androidTest/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/application/app/src/androidTest/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -821,6 +823,7 @@ MODULE                        : application.app
                     AssetsDirectories             : <ROOT>/application/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/application/app/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/application/app/src/test/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/application/app/src/test/keepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -842,6 +845,7 @@ MODULE                        : application.app
             AssetsDirectories             : <ROOT>/application/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/application/app/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/application/app/src/debug/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/application/app/src/debug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -856,6 +860,7 @@ MODULE                        : application.app
                     AssetsDirectories             : <ROOT>/application/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/application/app/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/application/app/src/androidTestDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/application/app/src/androidTestDebug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -870,6 +875,7 @@ MODULE                        : application.app
                     AssetsDirectories             : <ROOT>/application/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/application/app/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/application/app/src/testDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/application/app/src/testDebug/keepRules [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/application/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -892,6 +898,7 @@ MODULE                        : application.app
             AssetsDirectories             : <ROOT>/application/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/application/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/application/app/src/release/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/application/app/src/release/keepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
