@@ -933,6 +933,7 @@ fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStruc
     shadersDirectories = emptyList(),
     customSourceDirectories = emptyList(),
     baselineProfileDirectories = emptyList(),
+    keepRulesDirectoriesField = emptyList(),
   )
 }
 
@@ -1043,6 +1044,7 @@ private fun sourceProvider(
     customSourceDirectories =
       listOf(/*IdeCustomSourceDirectoryImpl("custom", rootDir, "custom")*/ ),
     baselineProfileDirectories = listOf("baselineProfiles"),
+    keepRulesDirectoriesField = listOf("keepRules"),
   )
 }
 

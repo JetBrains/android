@@ -207,7 +207,8 @@ class TestSuiteUtilsTest {
           path = "."
         )
       ),
-      baselineProfileDirectories = emptyList()
+      baselineProfileDirectories = emptyList(),
+      keepRulesDirectoriesField = emptyList(),
     ), testSuite.sources.first().sourceProvider)
   }
 

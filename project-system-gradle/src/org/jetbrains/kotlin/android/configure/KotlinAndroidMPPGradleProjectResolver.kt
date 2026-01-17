@@ -179,7 +179,8 @@ fun IdeVariantCoreImpl.patchFromMppModel(
         shadersDirectories = emptyList(),
         mlModelsDirectories = emptyList(),
         customSourceDirectories = emptyList(),
-        baselineProfileDirectories = emptyList()
+        baselineProfileDirectories = emptyList(),
+        keepRulesDirectoriesField = emptyList()
       )
 
     return thisOrNewProvider.appendDirectories(

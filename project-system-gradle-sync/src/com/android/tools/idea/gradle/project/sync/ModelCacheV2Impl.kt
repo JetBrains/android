@@ -190,6 +190,10 @@ fun modelCacheV2Impl(
       baselineProfileDirectories = if (modelVersions[ModelFeature.HAS_BASELINE_PROFILE_DIRECTORIES])
         provider.baselineProfileDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf()
       else
+        mutableListOf(),
+      keepRulesDirectoriesField = if (modelVersions[ModelFeature.HAS_KEEP_RULES_SOURCES])
+        provider.keepRulesDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf()
+      else
         mutableListOf()
     )
   }
@@ -230,7 +234,8 @@ fun modelCacheV2Impl(
       shadersDirectories = emptyList(),
       mlModelsDirectories = emptyList(),
       customSourceDirectories = emptyList(),
-      baselineProfileDirectories = emptyList()
+      baselineProfileDirectories = emptyList(),
+      keepRulesDirectoriesField = emptyList()
     )
   }
 
@@ -262,7 +267,8 @@ fun modelCacheV2Impl(
       customSourceDirectories = source.directories.map {
         IdeCustomSourceDirectoryImpl(TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY, it, it.makeRelativeAndDeduplicate())
       },
-      baselineProfileDirectories = emptyList()
+      baselineProfileDirectories = emptyList(),
+      keepRulesDirectoriesField = emptyList(),
     )
   }
 

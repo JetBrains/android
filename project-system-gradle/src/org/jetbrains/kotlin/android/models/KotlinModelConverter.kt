@@ -173,7 +173,8 @@ class KotlinModelConverter {
       shadersDirectories = emptyList(),
       mlModelsDirectories = emptyList(),
       baselineProfileDirectories = emptyList(),
-      customSourceDirectories = emptyList()
+      customSourceDirectories = emptyList(),
+      keepRulesDirectoriesField = emptyList(),
     )
   }
 

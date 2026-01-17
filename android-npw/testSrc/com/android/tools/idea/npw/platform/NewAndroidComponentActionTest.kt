@@ -88,6 +88,7 @@ class NewAndroidComponentActionTest {
                   shadersDirectories = emptyList(),
                   customSourceDirectories = emptyList(),
                   baselineProfileDirectories = emptyList(),
+                  keepRulesDirectoriesField = emptyList(),
                 )
               },
             ),
