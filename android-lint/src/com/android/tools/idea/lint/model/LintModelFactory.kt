@@ -505,11 +505,11 @@ class LintModelFactory : LintModelModuleLoader {
       javaDirectories = (provider.javaDirectories + provider.kotlinDirectories).distinct(),
       resDirectories = provider.resDirectories,
       assetsDirectories = provider.assetsDirectories,
+      keepRulesDirectories = provider.keepRulesDirectories,
       unitTestOnly = providerContainer.isUnitTest(),
       instrumentationTestOnly = providerContainer.isInstrumentationTest(),
       debugOnly = debugOnly,
       testFixture = providerContainer.isTestFixtures(),
-      keepRulesDirectories = TODO("TODO: android-merge; needs a cherry-pick of a commit providing provider.keepRulesDirectories"),
     )
   }
 
@@ -525,11 +525,11 @@ class LintModelFactory : LintModelModuleLoader {
       javaDirectories = (provider.javaDirectories + provider.kotlinDirectories).distinct(),
       resDirectories = provider.resDirectories,
       assetsDirectories = provider.assetsDirectories,
+      keepRulesDirectories = provider.keepRulesDirectories,
       unitTestOnly = unitTestOnly,
       instrumentationTestOnly = instrumentationTestOnly,
       debugOnly = debugOnly,
       testFixture = testFixturesOnly,
-      keepRulesDirectories = TODO("TODO: android-merge; needs a cherry-pick of a commit providing provider.keepRulesDirectories"),
     )
   }
 
