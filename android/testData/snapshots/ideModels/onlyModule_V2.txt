@@ -816,6 +816,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/main/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -830,6 +831,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTest/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -843,6 +845,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/test/keepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -864,6 +867,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/debug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -878,6 +882,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTestDebug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -892,6 +897,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/testDebug/keepRules [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -912,6 +918,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/release/keepRules [-]
         BuildType
             Name                          : benchmark
             IsDebuggable                  : false
@@ -933,6 +940,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/benchmark/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/benchmark/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/benchmark/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/benchmark/keepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -1157,6 +1165,7 @@ MODULE                        : project.benchmark
             AssetsDirectories             : <ROOT>/benchmark/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/benchmark/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/benchmark/src/main/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/benchmark/src/main/keepRules [-]
         ExtraSourceProviders
     BuildTypes
         BuildType
@@ -1190,6 +1199,7 @@ MODULE                        : project.benchmark
             AssetsDirectories             : <ROOT>/benchmark/src/benchmark/assets [-]
             JniLibsDirectories            : <ROOT>/benchmark/src/benchmark/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/benchmark/src/benchmark/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/benchmark/src/benchmark/keepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -1629,6 +1639,7 @@ MODULE                        : project.test
             AssetsDirectories             : <ROOT>/test/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/test/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/test/src/main/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/test/src/main/keepRules [-]
         ExtraSourceProviders
     BuildTypes
         BuildType
@@ -1651,6 +1662,7 @@ MODULE                        : project.test
             AssetsDirectories             : <ROOT>/test/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/test/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/test/src/debug/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/test/src/debug/keepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -2089,6 +2101,7 @@ MODULE                        : project.test2
             AssetsDirectories             : <ROOT>/test2/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/test2/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/test2/src/main/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/test2/src/main/keepRules [-]
         ExtraSourceProviders
     BuildTypes
         BuildType
@@ -2111,6 +2124,7 @@ MODULE                        : project.test2
             AssetsDirectories             : <ROOT>/test2/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/test2/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/test2/src/debug/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/test2/src/debug/keepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

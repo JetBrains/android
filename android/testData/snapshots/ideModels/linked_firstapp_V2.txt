@@ -718,6 +718,7 @@ MODULE                        : My_First_App.app
             AssetsDirectories             : <ROOT>/firstapp/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/firstapp/app/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/firstapp/app/src/main/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/firstapp/app/src/main/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -732,6 +733,7 @@ MODULE                        : My_First_App.app
                     AssetsDirectories             : <ROOT>/firstapp/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/firstapp/app/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/firstapp/app/src/androidTest/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/firstapp/app/src/androidTest/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -745,6 +747,7 @@ MODULE                        : My_First_App.app
                     AssetsDirectories             : <ROOT>/firstapp/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/firstapp/app/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/firstapp/app/src/test/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/firstapp/app/src/test/keepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -766,6 +769,7 @@ MODULE                        : My_First_App.app
             AssetsDirectories             : <ROOT>/firstapp/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/firstapp/app/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/firstapp/app/src/debug/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/firstapp/app/src/debug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -780,6 +784,7 @@ MODULE                        : My_First_App.app
                     AssetsDirectories             : <ROOT>/firstapp/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/firstapp/app/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/firstapp/app/src/androidTestDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/firstapp/app/src/androidTestDebug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -794,6 +799,7 @@ MODULE                        : My_First_App.app
                     AssetsDirectories             : <ROOT>/firstapp/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/firstapp/app/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/firstapp/app/src/testDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/firstapp/app/src/testDebug/keepRules [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/firstapp/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -816,6 +822,7 @@ MODULE                        : My_First_App.app
             AssetsDirectories             : <ROOT>/firstapp/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/firstapp/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/firstapp/app/src/release/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/firstapp/app/src/release/keepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -1776,6 +1783,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
             AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/shared/mysharedlibrary/src/main/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/shared/mysharedlibrary/src/main/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1790,6 +1798,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/shared/mysharedlibrary/src/androidTest/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/shared/mysharedlibrary/src/androidTest/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -1803,6 +1812,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/shared/mysharedlibrary/src/test/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/shared/mysharedlibrary/src/test/keepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -1824,6 +1834,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
             AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/shared/mysharedlibrary/src/debug/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/shared/mysharedlibrary/src/debug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1838,6 +1849,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -1852,6 +1864,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/shared/mysharedlibrary/src/testDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/shared/mysharedlibrary/src/testDebug/keepRules [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/shared/mysharedlibrary/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -1874,6 +1887,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
             AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/shared/mysharedlibrary/src/release/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/shared/mysharedlibrary/src/release/keepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

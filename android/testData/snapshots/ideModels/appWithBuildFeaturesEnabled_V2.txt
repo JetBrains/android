@@ -1001,6 +1001,7 @@ MODULE                        : project.app
             ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
             MlModelsDirectories           : <ROOT>/app/src/main/ml [-]
             BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/main/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1019,6 +1020,7 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
                     MlModelsDirectories           : <ROOT>/app/src/androidTest/ml [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTest/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -1036,6 +1038,7 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
                     MlModelsDirectories           : <ROOT>/app/src/test/ml [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/test/keepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -1061,6 +1064,7 @@ MODULE                        : project.app
             ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
             MlModelsDirectories           : <ROOT>/app/src/debug/ml [-]
             BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/debug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1079,6 +1083,7 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
                     MlModelsDirectories           : <ROOT>/app/src/androidTestDebug/ml [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTestDebug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -1097,6 +1102,7 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
                     MlModelsDirectories           : <ROOT>/app/src/testDebug/ml [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/testDebug/keepRules [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -1123,6 +1129,7 @@ MODULE                        : project.app
             ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
             MlModelsDirectories           : <ROOT>/app/src/release/ml [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/release/keepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

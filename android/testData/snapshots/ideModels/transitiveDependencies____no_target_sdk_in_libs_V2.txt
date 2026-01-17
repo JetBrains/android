@@ -1012,6 +1012,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/main/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1026,6 +1027,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTest/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -1039,6 +1041,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/test/keepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -1060,6 +1063,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/debug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1074,6 +1078,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/androidTestDebug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -1088,6 +1093,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/app/src/testDebug/keepRules [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -1110,6 +1116,7 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/app/src/release/keepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -2087,6 +2094,7 @@ MODULE                        : project.library1
             AssetsDirectories             : <ROOT>/library1/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/library1/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/library1/src/main/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/library1/src/main/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2101,6 +2109,7 @@ MODULE                        : project.library1
                     AssetsDirectories             : <ROOT>/library1/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/library1/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/library1/src/androidTest/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/library1/src/androidTest/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -2114,6 +2123,7 @@ MODULE                        : project.library1
                     AssetsDirectories             : <ROOT>/library1/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/library1/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/library1/src/test/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/library1/src/test/keepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -2135,6 +2145,7 @@ MODULE                        : project.library1
             AssetsDirectories             : <ROOT>/library1/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/library1/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/library1/src/debug/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/library1/src/debug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2149,6 +2160,7 @@ MODULE                        : project.library1
                     AssetsDirectories             : <ROOT>/library1/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/library1/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/library1/src/androidTestDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/library1/src/androidTestDebug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2163,6 +2175,7 @@ MODULE                        : project.library1
                     AssetsDirectories             : <ROOT>/library1/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/library1/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/library1/src/testDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/library1/src/testDebug/keepRules [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/library1/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -2185,6 +2198,7 @@ MODULE                        : project.library1
             AssetsDirectories             : <ROOT>/library1/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/library1/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/library1/src/release/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/library1/src/release/keepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -3146,6 +3160,7 @@ MODULE                        : project.library2
             AssetsDirectories             : <ROOT>/library2/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/library2/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/library2/src/main/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/library2/src/main/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -3160,6 +3175,7 @@ MODULE                        : project.library2
                     AssetsDirectories             : <ROOT>/library2/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/library2/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/library2/src/androidTest/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/library2/src/androidTest/keepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -3173,6 +3189,7 @@ MODULE                        : project.library2
                     AssetsDirectories             : <ROOT>/library2/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/library2/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/library2/src/test/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/library2/src/test/keepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -3194,6 +3211,7 @@ MODULE                        : project.library2
             AssetsDirectories             : <ROOT>/library2/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/library2/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/library2/src/debug/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/library2/src/debug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -3208,6 +3226,7 @@ MODULE                        : project.library2
                     AssetsDirectories             : <ROOT>/library2/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/library2/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/library2/src/androidTestDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/library2/src/androidTestDebug/keepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -3222,6 +3241,7 @@ MODULE                        : project.library2
                     AssetsDirectories             : <ROOT>/library2/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/library2/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/library2/src/testDebug/baselineProfiles [-]
+                    KeepRulesDirectories          : <ROOT>/library2/src/testDebug/keepRules [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/library2/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -3244,6 +3264,7 @@ MODULE                        : project.library2
             AssetsDirectories             : <ROOT>/library2/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/library2/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/library2/src/release/baselineProfiles [-]
+            KeepRulesDirectories          : <ROOT>/library2/src/release/keepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
