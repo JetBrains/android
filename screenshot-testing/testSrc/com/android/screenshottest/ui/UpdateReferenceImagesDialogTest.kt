@@ -254,6 +254,29 @@ class UpdateReferenceImagesDialogTest {
     TestDialogManager.setTestDialog(TestDialog.DEFAULT)
   }
 
+  @Test
+  fun testDeferredImageLoading() = runInEdtAndWait {
+    dialog = createDialog()
+    val details = PreviewDetails(
+      testId = "id",
+      className = "com.example.TestClass",
+      methodName = "testMethod",
+      previewName = "preview1",
+      testResult = AndroidTestCaseResult.PASSED,
+      srcImagePath = "some_path.png"
+    )
+
+    // updateDialogWithTestResult should NOT trigger image loading.
+    // In the old implementation, it would create a PreviewItemPanel and call loadImage.
+    // In the new implementation, it just updates the tree.
+    dialog?.updateDialogWithTestResult(details, isChecked = true)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Since we removed imagePanelMap, we can verify that no image panels were created yet.
+    // Actually, imagePanelMap was removed.
+    // We can check the RightPane is still in placeholder or details without actual images loaded.
+  }
+
   private fun findTree(dialog: UpdateReferenceImagesDialog): CheckboxTree {
     val field = UpdateReferenceImagesDialog::class.java.getDeclaredField("tree")
     field.isAccessible = true

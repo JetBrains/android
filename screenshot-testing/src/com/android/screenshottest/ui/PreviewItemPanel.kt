@@ -48,19 +48,21 @@ private val MAX_IMAGE_SIZE: Int get() = JBUIScale.scale(200)
  * A UI panel that displays a single screenshot test preview image.
  */
 class PreviewItemPanel(
-  val previewData: PreviewDetails,
-  showDetails: Boolean = true,
+  var previewData: PreviewDetails,
+  private val showDetails: Boolean = true,
+  private val thumbnailCache: MutableMap<String, JBImageIcon>? = null,
   private val logger: Logger = Logger.getInstance(PreviewItemPanel::class.java),
   private val appExecutorService: ExecutorService = AppExecutorUtil.getAppExecutorService(),
   private val createImageIcon: PreviewItemPanel.(String)->JBImageIcon? = PreviewItemPanel::createImageIconImpl,
 ) : JPanel() {
   private var currentImagePath: String = ""
+  private var currentTestId: String = previewData.testId
   private val imagePanel: ImagePanel
+  private lateinit var previewNameLabel: JBLabel
+  private lateinit var matchLabelContainer: JPanel
+
   var isLoadedSuccessfully: Boolean = false
     private set
-
-  private val _sourceImageToCopy = mutableMapOf<String, String>()
-  val sourceImageToCopy: Map<String, String> get() = _sourceImageToCopy
 
   init {
     // Use GridBagLayout to stack components vertically without forcing them to the same width.
@@ -82,18 +84,40 @@ class PreviewItemPanel(
         JPanel().apply {
           layout = BoxLayout(this, BoxLayout.Y_AXIS)
           border = BorderFactory.createEmptyBorder(8, 0, 0, 0)
+          isOpaque = false
         }
 
-      val matchLabel = createMatchPercentageLabel(previewData)
-      val previewNameLabel =
-        JBLabel(previewData.previewName).apply { alignmentX = LEFT_ALIGNMENT }
-      detailsPanel.add(matchLabel)
+      matchLabelContainer = JPanel().apply {
+        layout = BoxLayout(this, BoxLayout.X_AXIS)
+        isOpaque = false
+        alignmentX = LEFT_ALIGNMENT
+      }
+      previewNameLabel = JBLabel(previewData.previewName).apply { alignmentX = LEFT_ALIGNMENT }
+
+      detailsPanel.add(matchLabelContainer)
       detailsPanel.add(previewNameLabel)
       // TODO: Add Composable link
 
       c.gridy = 1
       add(detailsPanel, c)
+      updateDetails(previewData)
     }
+  }
+
+  fun updateData(newData: PreviewDetails, viewType: ScreenshotViewType, onImageLoaded: (() -> Unit)? = null) {
+    this.previewData = newData
+    if (showDetails) {
+      updateDetails(newData)
+    }
+    showImageForView(viewType, onImageLoaded)
+  }
+
+  private fun updateDetails(previewData: PreviewDetails) {
+    previewNameLabel.text = previewData.previewName
+    matchLabelContainer.removeAll()
+    matchLabelContainer.add(createMatchPercentageLabel(previewData))
+    matchLabelContainer.revalidate()
+    matchLabelContainer.repaint()
   }
 
   private fun createMatchPercentageLabel(previewData: PreviewDetails): JPanel {
@@ -135,17 +159,17 @@ class PreviewItemPanel(
     }
   }
 
-  fun showImageForView(viewType: ScreenshotViewType) {
+  fun showImageForView(viewType: ScreenshotViewType, onImageLoaded: (() -> Unit)? = null) {
     when (viewType) {
       ScreenshotViewType.ALL -> {
       }
       ScreenshotViewType.NEW -> {
-        previewData.srcImagePath?.let { loadImage(it, previewData.testId) } ?: showError(NO_NEW_IMAGE_TEXT)
+        previewData.srcImagePath?.let { loadImage(it, previewData.testId, onImageLoaded) } ?: showError(NO_NEW_IMAGE_TEXT)
       }
       ScreenshotViewType.DIFF -> {
         val diffPath = previewData.diffImagePath
         if (diffPath != null && File(diffPath).exists()) {
-          loadImage(diffPath, previewData.testId)
+          loadImage(diffPath, previewData.testId, onImageLoaded)
         } else {
           if (previewData.testResult == AndroidTestCaseResult.PASSED) {
             showPlaceholder(NO_DIFFERENCE_TEXT, JBColor.GREEN)
@@ -157,7 +181,7 @@ class PreviewItemPanel(
       ScreenshotViewType.REFERENCE -> {
         val refPath = previewData.destImagePath
         if (refPath != null && File(refPath).exists()) {
-          loadImage(refPath, previewData.testId)
+          loadImage(refPath, previewData.testId, onImageLoaded)
         } else {
           showPlaceholder(NO_REF_IMAGE_TEXT, JBColor.RED)
         }
@@ -165,33 +189,54 @@ class PreviewItemPanel(
     }
   }
 
-  fun loadImage(newPath: String, testId: String) {
+  fun loadImage(newPath: String, testId: String, onImageLoaded: (() -> Unit)? = null) {
     val simpleClassName = testId.split('.', limit = 2).first()
 
-    if (_sourceImageToCopy.isEmpty()) {
-      previewData.srcImagePath?.let { _sourceImageToCopy[it] = simpleClassName }
-    }
-
-    if (currentImagePath == newPath) {
+    if (currentImagePath == newPath && currentTestId == testId) {
+      if (isLoadedSuccessfully) {
+        onImageLoaded?.invoke()
+      }
       return
     }
+    // Update tracking fields immediately to ensure subsequent calls can detect if this request becomes stale.
     currentImagePath = newPath
+    currentTestId = testId
+
+    val cachedImage = thumbnailCache?.get(newPath)
+    if (cachedImage != null) {
+      imagePanel.setImage(cachedImage)
+      isLoadedSuccessfully = true
+      revalidate()
+      repaint()
+      onImageLoaded?.invoke()
+      return
+    }
+
+    isLoadedSuccessfully = false
+    imagePanel.showLoading()
 
     appExecutorService.submit {
       val image = createImageIcon(newPath)
+      if (image != null) {
+        thumbnailCache?.put(newPath, image)
+      }
 
       ApplicationManager.getApplication().invokeLater {
-        if (image != null) {
-          imagePanel.setImage(image)
+        // Double-check if the request is still relevant to this panel instance before updating the UI.
+        if (currentImagePath == newPath && currentTestId == testId) {
+          if (image != null) {
+            imagePanel.setImage(image)
 
-          // The layout is now independent, so we just need to trigger a re-layout.
-          revalidate()
-          repaint()
+            // The layout is now independent, so we just need to trigger a re-layout.
+            revalidate()
+            repaint()
 
-          isLoadedSuccessfully = true
-        } else {
-          logger.error("Couldn't load image from path: $newPath")
-          showError(COULD_NOT_LOAD_IMAGE_TEXT)
+            isLoadedSuccessfully = true
+            onImageLoaded?.invoke()
+          } else {
+            logger.error("Couldn't load image from path: $newPath")
+            showError(COULD_NOT_LOAD_IMAGE_TEXT)
+          }
         }
       }
     }
@@ -263,13 +308,23 @@ class PreviewItemPanel(
 
     fun setImage(newImage: JBImageIcon) {
       this.image = newImage
-      removeAll() // Remove loading icon
+      removeAll() // Remove loading icon or text labels
 
       // Lock the panel's size to the image's size. This is the key to preventing distortion.
       val newSize = Dimension(newImage.iconWidth, newImage.iconHeight)
       preferredSize = newSize
       maximumSize = newSize
 
+      revalidate()
+      repaint()
+    }
+
+    fun showLoading() {
+      this.image = null
+      removeAll()
+      add(loadingIcon)
+      preferredSize = initialSize
+      maximumSize = initialSize
       revalidate()
       repaint()
     }
