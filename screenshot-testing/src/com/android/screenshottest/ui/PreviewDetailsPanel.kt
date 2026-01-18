@@ -34,6 +34,7 @@ import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.ui.JBImageIcon
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.CardLayout
@@ -52,6 +53,12 @@ import javax.swing.JSeparator
 import javax.swing.SwingUtilities
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
+import com.intellij.ui.components.JBList
+import java.awt.Component
+import javax.swing.DefaultListModel
+import javax.swing.JList
+import javax.swing.ListCellRenderer
+import javax.swing.ListSelectionModel
 
 // Keys for the CardLayout switching between single and multiple preview modes.
 private const val MULTIPLE_PREVIEWS_PANEL = "MULTIPLE_PREVIEWS_PANEL"
@@ -71,10 +78,19 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
 
   @VisibleForTesting
   val screenshotAttributesView = ScreenshotAttributesView()
-  private val multiplePreviewsPanel = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
-  }
+  private val multiplePreviewsPanel = JPanel(BorderLayout())
   private val singlePreviewPanel = JPanel(BorderLayout())
+
+  private val listModel = DefaultListModel<MethodGroup>()
+  private val methodGroupRenderer = MethodGroupRenderer()
+  // Use JBList for virtualization: only visible rows are rendered, which is essential for scalability.
+  private val multiplePreviewsList = JBList(listModel).apply {
+    selectionMode = ListSelectionModel.SINGLE_SELECTION
+    setBackground(UIUtil.getPanelBackground())
+    emptyText.text = "No previews to display"
+    setExpandableItemsEnabled(false) // Disable popups on hover to stay within window bounds.
+    setCellRenderer(methodGroupRenderer)
+  }
 
   // Panels for the "All" view (3-way split) in single preview mode.
   private val newImagePanel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = false, showTitle = true)
@@ -135,6 +151,13 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     }
 
   init {
+    val scrollPane = JBScrollPane(multiplePreviewsList).apply {
+      verticalScrollBarPolicy = JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
+      horizontalScrollBarPolicy = JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+      border = null
+    }
+    multiplePreviewsPanel.add(scrollPane, BorderLayout.CENTER)
+
     add(multiplePreviewsPanel, MULTIPLE_PREVIEWS_PANEL)
     add(singlePreviewPanel, SINGLE_PREVIEW_PANEL)
   }
@@ -146,13 +169,11 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
    * or the multi-preview grid based on the number of previews.
    *
    * @param previewsToShow The list of [PreviewDetails] to display.
-   * @param imagePanelMap A map to retrieve the corresponding [PreviewItemPanel] for each preview.
    * @param viewType The current view type (e.g., New, Diff, All) to show.
    * @param previewToolbar The shared toolbar component, visible in single-preview mode.
    */
   fun displayPreviews(
     previewsToShow: List<PreviewDetails>,
-    imagePanelMap: Map<String, PreviewItemPanel>,
     viewType: ScreenshotViewType,
     previewToolbar: ComposePanel?
   ) {
@@ -161,7 +182,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
       displaySinglePreviewDetails(previewsToShow.first(), viewType, previewToolbar)
       cardLayout.show(this, SINGLE_PREVIEW_PANEL)
     } else {
-      displayMultiplePreviews(previewsToShow, imagePanelMap, viewType)
+      displayMultiplePreviews(previewsToShow, viewType)
       cardLayout.show(this, MULTIPLE_PREVIEWS_PANEL)
     }
   }
@@ -180,11 +201,13 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     val topContent = JPanel().apply {
       layout = BoxLayout(this, BoxLayout.Y_AXIS)
       border = BorderFactory.createEmptyBorder(10, 10, 0, 10)
+      isOpaque = false
     }
 
     val titlePanel = JPanel().apply {
       layout = BoxLayout(this, BoxLayout.X_AXIS)
       alignmentX = JComponent.LEFT_ALIGNMENT
+      isOpaque = false
       val methodNameLabel = JBLabel(previewData.methodName)
       val previewNameLabel = JBLabel(previewData.previewName).apply {
         foreground = UIUtil.getLabelDisabledForeground()
@@ -359,64 +382,100 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
    */
   private fun displayMultiplePreviews(
     previewsToShow: List<PreviewDetails>,
-    imagePanelMap: Map<String, PreviewItemPanel>,
     viewType: ScreenshotViewType
   ) {
-    multiplePreviewsPanel.removeAll()
-    multiplePreviewsPanel.layout = BorderLayout()
-
-    val contentPanel = JPanel().apply {
-      layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    }
-
     val previewsByClassAndMethod = previewsToShow.groupBy { "${it.className}.${it.methodName}" }
     val previewsGroupedByMethodName = previewsToShow.groupBy { it.methodName }
 
-    previewsByClassAndMethod.forEach { (_, previews) ->
-      val methodName = previews.first().methodName ?: UNNAMED_FUNCTION_TEXT
-      val className = previews.first().className
-
-      // If the total number of previews with this method name is greater than the
-      // number of previews in this specific class-method group, it means there are
-      // other previews with the same method name but different class.
+    val methodGroups = previewsByClassAndMethod.map { (_, previews) ->
+      val first = previews.first()
+      val methodName = first.methodName.ifBlank { UNNAMED_FUNCTION_TEXT }
+      val className = first.className
       val labelText = if ((previewsGroupedByMethodName[methodName]?.size ?: 0) > previews.size) {
         "${className.substringAfterLast('.')}.$methodName" // SimpleClassName.MethodName
       } else {
         methodName
       }
-
-      val functionNameLabel =
-        JBLabel(labelText).apply {
-          font = font.deriveFont(Font.BOLD, font.size + 2f)
-          border = BorderFactory.createEmptyBorder(15, 5, 5, 5)
-          alignmentX = JComponent.LEFT_ALIGNMENT
-        }
-      contentPanel.add(functionNameLabel)
-
-      // Use FlowLayout to align components to the left.
-      val horizontalPreviewsPanel =
-        JPanel(FlowLayout(FlowLayout.LEFT, 10, 0)).apply {
-          border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
-          alignmentX = JComponent.LEFT_ALIGNMENT
-        }
-
-      previews.forEach { previewData ->
-        imagePanelMap[previewData.testId]?.let { panel ->
-          panel.showImageForView(viewType)
-          horizontalPreviewsPanel.add(panel)
-        }
-      }
-      contentPanel.add(horizontalPreviewsPanel)
+      MethodGroup(className, methodName, labelText, previews)
     }
 
-    val scrollPane = JBScrollPane(contentPanel).apply {
-      verticalScrollBarPolicy = JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
-      horizontalScrollBarPolicy = JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
-      border = null
-    }
-    multiplePreviewsPanel.add(scrollPane, BorderLayout.CENTER)
+    listModel.clear()
+    methodGroups.forEach { listModel.addElement(it) }
+    methodGroupRenderer.viewType = viewType
+
     multiplePreviewsPanel.revalidate()
     multiplePreviewsPanel.repaint()
+  }
+
+  /**
+   * A renderer for a group of previews belonging to the same test method.
+   * This renderer uses a "rubber stamp" pattern, reusing the same panel instance
+   * for all rows to optimize memory and performance.
+   */
+  private class MethodGroupRenderer : JPanel(), ListCellRenderer<MethodGroup> {
+    var viewType: ScreenshotViewType = ScreenshotViewType.NEW
+    // Shared cache for scaled thumbnails to prevent redundant disk I/O and memory pressure.
+    private val thumbnailCache = object : LinkedHashMap<String, JBImageIcon>(200, 0.75f, true) {
+      override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, JBImageIcon>?): Boolean = size > 200
+    }
+
+    private val functionNameLabel = JBLabel().apply {
+      font = font.deriveFont(Font.BOLD, font.size + 2f)
+      border = BorderFactory.createEmptyBorder(15, 5, 5, 5)
+      alignmentX = JComponent.LEFT_ALIGNMENT
+    }
+    private val horizontalPreviewsPanel = JPanel(FlowLayout(FlowLayout.LEFT, 10, 0)).apply {
+      border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
+      alignmentX = JComponent.LEFT_ALIGNMENT
+      isOpaque = false
+    }
+    // Pool of panels to reuse across different rows, accommodating varying preview counts.
+    private val previewPanelPool = mutableListOf<PreviewItemPanel>()
+
+    init {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+      isOpaque = true
+      add(functionNameLabel)
+      add(horizontalPreviewsPanel)
+    }
+
+    override fun getListCellRendererComponent(
+      list: JList<out MethodGroup>,
+      value: MethodGroup,
+      index: Int,
+      isSelected: Boolean,
+      cellHasFocus: Boolean
+    ): Component {
+      background = if (isSelected) UIUtil.getListSelectionBackground(cellHasFocus) else list.background
+      foreground = if (isSelected) UIUtil.getListSelectionForeground(cellHasFocus) else list.foreground
+
+      functionNameLabel.text = value.labelText
+      functionNameLabel.foreground = foreground
+
+      val previews = value.previews
+      // Manage the pool of PreviewItemPanels to match the current row's preview count.
+      while (previewPanelPool.size < previews.size) {
+        val dummyData = previews[0] // Use any data for initial creation
+        val panel = PreviewItemPanel(dummyData, showDetails = true, thumbnailCache = thumbnailCache)
+        previewPanelPool.add(panel)
+        horizontalPreviewsPanel.add(panel)
+      }
+
+      previewPanelPool.forEachIndexed { i, panel ->
+        if (i < previews.size) {
+          panel.isVisible = true
+          // Update the panel with the current row's data. If the image is cached, it renders immediately.
+          // Otherwise, it triggers an async load and repaints the list upon completion.
+          panel.updateData(previews[i], viewType) {
+            list.repaint()
+          }
+        } else {
+          panel.isVisible = false
+        }
+      }
+
+      return this
+    }
   }
 
   /**

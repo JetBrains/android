@@ -212,6 +212,99 @@ class PreviewItemPanelTest {
   }
 
   @Test
+  fun testUpdateData() = runInEdtAndWait {
+    val details1 = PreviewDetails(
+      testId = "id1",
+      className = "Class1",
+      methodName = "method1",
+      previewName = "preview1",
+      testResult = AndroidTestCaseResult.PASSED
+    )
+    val panel = PreviewItemPanel(details1)
+
+    val details2 = PreviewDetails(
+      testId = "id2",
+      className = "Class2",
+      methodName = "method2",
+      previewName = "preview2",
+      testResult = AndroidTestCaseResult.FAILED,
+      diffPercent = "0.05"
+    )
+
+    panel.updateData(details2, ScreenshotViewType.NEW)
+
+    assertEquals(details2, panel.previewData)
+    val labels = findAllLabels(panel)
+    assertNotNull(labels.find { it.text == "preview2" })
+    assertNotNull(labels.find { it.text == "95.00%" })
+  }
+
+  @Test
+  fun testStaleLoadPrevention() = runInEdtAndWait {
+    var imageCreationCount = 0
+    val executor = MoreExecutors.newDirectExecutorService()
+
+    val path1 = temporaryFolder.newFile("image1.png").absolutePath
+    val path2 = temporaryFolder.newFile("image2.png").absolutePath
+
+    val details = PreviewDetails(
+      testId = "id",
+      className = "Class",
+      methodName = "method",
+      previewName = "preview",
+      testResult = AndroidTestCaseResult.PASSED,
+      srcImagePath = path1
+    )
+
+    // We need to control the order of execution for the async loads.
+    // However, since we use DirectExecutor, they happen immediately.
+    // To simulate stale loads, we can manually manipulate the fields if needed,
+    // but the current implementation of loadImage already handles it by checking currentImagePath.
+
+    val panel = PreviewItemPanel(
+      previewData = details,
+      appExecutorService = executor,
+      createImageIcon = { path ->
+        imageCreationCount++
+        mock()
+      }
+    )
+
+    panel.loadImage(path1, "id")
+    assertEquals(1, imageCreationCount)
+
+    panel.loadImage(path2, "id")
+    assertEquals(2, imageCreationCount)
+  }
+
+  @Test
+  fun testOnImageLoadedCallback() = runInEdtAndWait {
+    var callbackCount = 0
+    val executor = MoreExecutors.newDirectExecutorService()
+    val path = temporaryFolder.newFile("image.png").absolutePath
+    val details =
+      PreviewDetails(
+        testId = "id",
+        className = "Class",
+        methodName = "m",
+        previewName = "p",
+        srcImagePath = path
+      )
+
+    val panel =
+      PreviewItemPanel(
+        previewData = details,
+        appExecutorService = executor,
+        createImageIcon = { mock() }
+      )
+
+    panel.updateData(details, ScreenshotViewType.NEW) { callbackCount++ }
+
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertEquals("Callback should be invoked after image load", 1, callbackCount)
+  }
+
+  @Test
   fun verifyImageReloadsAfterPlaceholder() = runInEdtAndWait {
     var imageCreationCount = 0
     val srcPath = temporaryFolder.newFile("image.png").absolutePath

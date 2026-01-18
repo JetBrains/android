@@ -32,6 +32,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.Component
 import java.awt.Container
+import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 
@@ -54,7 +55,6 @@ class PreviewDetailsPanelTest {
 
     panel.displayPreviews(
       listOf(details),
-      emptyMap(),
       ScreenshotViewType.NEW,
       toolbar
     )
@@ -90,7 +90,6 @@ class PreviewDetailsPanelTest {
 
     panel.displayPreviews(
       listOf(details1, details2),
-      emptyMap(),
       ScreenshotViewType.NEW,
       toolbar
     )
@@ -117,7 +116,6 @@ class PreviewDetailsPanelTest {
 
     panel.displayPreviews(
       listOf(details),
-      emptyMap(),
       ScreenshotViewType.NEW,
       null
     )
@@ -129,6 +127,31 @@ class PreviewDetailsPanelTest {
     // Should be multiple view (JBScrollPane)
     val hasScrollPane = activePanel.components.any { it is JBScrollPane }
     assertTrue("Should fallback to multiple preview (JBScrollPane) when no toolbar", hasScrollPane)
+  }
+
+  @Test
+  fun testJBListVirtualization() = runInEdtAndWait {
+    val panel = PreviewDetailsPanel()
+    val detailsList = (1..10).map { i ->
+      PreviewDetails(
+        testId = "test$i",
+        className = "Class",
+        methodName = "method",
+        previewName = "preview$i",
+        testResult = AndroidTestCaseResult.PASSED
+      )
+    }
+
+    panel.displayPreviews(detailsList, ScreenshotViewType.NEW, null)
+
+    val visibleComponents = panel.components.filter { it.isVisible }
+    val activePanel = visibleComponents[0] as JPanel
+    val scrollPane = activePanel.components.find { it is JBScrollPane } as JBScrollPane
+    val list = scrollPane.viewport.view as JList<*>
+
+    assertEquals(1, list.model.size) // One MethodGroup
+    val group = list.model.getElementAt(0) as MethodGroup
+    assertEquals(10, group.previews.size)
   }
 
   @Test
@@ -148,7 +171,6 @@ class PreviewDetailsPanelTest {
 
     panel.displayPreviews(
       listOf(details),
-      emptyMap(),
       ScreenshotViewType.ALL, // Use ALL to check all 3 panels
       toolbar
     )
@@ -184,7 +206,6 @@ class PreviewDetailsPanelTest {
 
     panel.displayPreviews(
       listOf(details),
-      emptyMap(),
       ScreenshotViewType.ALL,
       toolbar
     )
@@ -209,7 +230,6 @@ class PreviewDetailsPanelTest {
 
     panel.displayPreviews(
       listOf(details),
-      emptyMap(),
       ScreenshotViewType.ALL,
       toolbar
     )
@@ -253,7 +273,6 @@ class PreviewDetailsPanelTest {
 
     panel.displayPreviews(
       listOf(details1, details2, details3),
-      emptyMap(),
       ScreenshotViewType.NEW,
       null
     )
@@ -286,7 +305,6 @@ class PreviewDetailsPanelTest {
 
     panel.displayPreviews(
       listOf(details),
-      emptyMap(),
       ScreenshotViewType.NEW,
       toolbar
     )
@@ -309,7 +327,6 @@ class PreviewDetailsPanelTest {
 
     panel.displayPreviews(
       listOf(details),
-      emptyMap(),
       ScreenshotViewType.NEW,
       toolbar
     )
@@ -320,7 +337,21 @@ class PreviewDetailsPanelTest {
   private fun findLabelsInScrollPaneContent(container: Container): List<String> {
     val scrollPane = container.components.find { it is JBScrollPane } as? JBScrollPane ?: return emptyList()
     val viewport = scrollPane.viewport
-    val contentPanel = viewport.view as? Container ?: return emptyList()
+    val view = viewport.view
+
+    if (view is JList<*>) {
+      val model = view.model
+      val result = mutableListOf<String>()
+      for (i in 0 until model.size) {
+        val element = model.getElementAt(i)
+        if (element is MethodGroup) {
+          result.add(element.labelText)
+        }
+      }
+      return result
+    }
+
+    val contentPanel = view as? Container ?: return emptyList()
 
     return contentPanel.components
       .filterIsInstance<JBLabel>()

@@ -56,6 +56,7 @@ import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Dimension
+import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -84,7 +85,6 @@ class UpdateReferenceImagesDialog(
   private val successfulLoads = AtomicInteger(0)
   private lateinit var tree: CheckboxTree
   private val placeholderLabel = JBLabel("Select a node from the left to see its previews.", JBLabel.CENTER)
-  private val imagePanelMap = mutableMapOf<String, PreviewItemPanel>()
   private val classNodeMap = mutableMapOf<String, CheckedTreeNode>()
   private val methodNodeMap = mutableMapOf<String, MutableMap<String, CheckedTreeNode>>()
   private lateinit var previewToolbar: ComposePanel
@@ -172,15 +172,8 @@ class UpdateReferenceImagesDialog(
         model.insertNodeInto(leafNode, methodNode, methodNode.childCount)
         tree.expandPath(TreePath(methodNode.path))
 
-        val panel = PreviewItemPanel(previewData = previewDetails)
-        imagePanelMap[testId] = panel
-
-        if (srcImagePath != null) {
-          panel.loadImage(srcImagePath, testId)
-        }
-        else {
+        if (srcImagePath == null) {
           logger.warn("Source image path missing. Test did not produce an image for testId: $testId")
-          panel.showError("Test did not produce an image")
         }
         updateRightPane(tree)
       } else {
@@ -360,14 +353,14 @@ class UpdateReferenceImagesDialog(
       if(isLeafSelected) {
         rightPaneWrapper.remove(previewToolbar)
         previewToolbar.border = null
-        previewDetailsPanel.displayPreviews(previewsToShow, imagePanelMap, selectedViewType, previewToolbar)
+        previewDetailsPanel.displayPreviews(previewsToShow, selectedViewType, previewToolbar)
       } else {
         rightPaneWrapper.add(previewToolbar, BorderLayout.SOUTH)
         previewToolbar.border = BorderFactory.createMatteBorder(1, 0, 1, 0, JBColor.border())
         if (selectedViewType == ScreenshotViewType.ALL) {
           selectedViewType = ScreenshotViewType.NEW
         }
-        previewDetailsPanel.displayPreviews(previewsToShow, imagePanelMap, selectedViewType, null)
+        previewDetailsPanel.displayPreviews(previewsToShow, selectedViewType, null)
       }
 
       rightPaneCardLayout.show(rightPaneContent, "details")
@@ -402,17 +395,20 @@ class UpdateReferenceImagesDialog(
       return
     }
 
-    val panelsToCopy = checkedPreviews.mapNotNull { previewDetails ->
-      previewDetails.testId?.let { imagePanelMap[it] }
+    val imagesToCopy = checkedPreviews.map { previewDetails ->
+      val sourceImageMap = mutableMapOf<String, String>()
+      val simpleClassName = previewDetails.testId.split('.', limit = 2).first()
+      previewDetails.srcImagePath?.let { sourceImageMap[it] = simpleClassName }
+      ImageData(previewDetails, sourceImageMap)
     }
 
-    val failedPreviews = panelsToCopy.filter { !it.isLoadedSuccessfully }
-    if (failedPreviews.isNotEmpty()) {
-      val failedNames = failedPreviews.joinToString(separator = "\n") { "- ${it.previewData.methodName}.${it.previewData.previewName}" }
-      logger.error("The following selected previews have not rendered successfully: $failedNames")
+    val missingFiles = imagesToCopy.filter { it.previewData.srcImagePath == null || !File(it.previewData.srcImagePath).exists() }
+    if (missingFiles.isNotEmpty()) {
+      val failedNames = missingFiles.joinToString(separator = "\n") { "- ${it.previewData.methodName}.${it.previewData.previewName}" }
+      logger.error("The following selected previews have no source image: $failedNames")
       Messages.showErrorDialog(
         project,
-        "The following selected previews have not rendered successfully. Please uncheck them to proceed:\n\n$failedNames",
+        "The following selected previews have no source image. Please uncheck them to proceed:\n\n$failedNames",
         "Cannot Add Reference Images"
       )
       return
@@ -429,9 +425,6 @@ class UpdateReferenceImagesDialog(
     cancelButton?.isEnabled = false
 
     AppExecutorUtil.getAppExecutorService().submit {
-      val imagesToCopy = panelsToCopy.map {
-        ImageData(it.previewData, it.sourceImageToCopy)
-      }
       val failures = copyReferenceImages(imagesToCopy)
 
       ApplicationManager.getApplication().invokeLater {
@@ -472,4 +465,11 @@ data class PreviewDetails(
   val srcImagePath: String? = null,
   val diffImagePath: String? = null,
   val diffPercent: String? = null
+)
+
+data class MethodGroup(
+  val className: String,
+  val methodName: String,
+  val labelText: String,
+  val previews: List<PreviewDetails>
 )
