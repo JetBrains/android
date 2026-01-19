@@ -50,6 +50,8 @@ object IntUiPaletteDefaults {
     const val Blue9 = 0xFF6B9BFA.toInt()
     const val Blue10 = 0xFF83ACFC.toInt()
     const val Blue11 = 0xFF99BBFF.toInt()
+    const val Blue12 = 0xFFB5CEFF.toInt()
+    const val Blue13 = 0xFFD1E0FF.toInt()
 
     const val Green1 = 0xFF253627.toInt()
     const val Green2 = 0xFF273828.toInt()

@@ -161,7 +161,7 @@ fun getDefaultRenderExtensions(
 /**
  * CompositionLocal for providing a [MarkdownFactory] to the composition tree.
  *
- * Consumers should use [JewelTheme.markdownFactory] to access the factory.
+ * Consumers should use [`JewelTheme.markdownFactory`][MarkdownFactory] to access the factory.
  */
 val LocalMarkdownFactory =
   staticCompositionLocalOf<MarkdownFactory> {
