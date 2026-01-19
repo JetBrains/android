@@ -62,7 +62,7 @@ public final class StudioFlags {
   private static Flags createFlags() {
     FlagValueContainer userOverrides;
     if (isUnitTestMode()) {
-      userOverrides = new InMemoryFlagValueContainer("StudioFlags"); // TODO: android-merge; needs a cherry-pick of a commit providing correct value
+      userOverrides = new InMemoryFlagValueContainer("unit test user overrides");
     }
     else {
       userOverrides = new LazyStudioFlagSettings();
@@ -98,6 +98,11 @@ public final class StudioFlags {
     @Override
     public String get(@NotNull Flag<?> flag) {
       return StudioFlagSettings.getInstance().get(flag);
+    }
+
+    @Override
+    public String toString() {
+      return "LazyStudioFlagSettings(" + StudioFlagSettings.getInstance() + ")";
     }
   }
 

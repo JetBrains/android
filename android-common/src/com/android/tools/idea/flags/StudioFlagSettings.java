@@ -78,4 +78,9 @@ public final class StudioFlagSettings implements FlagValueContainer, PersistentS
   public String get(@NonNull Flag<?> flag) {
     return data.get(flag.getId());
   }
+
+  @Override
+  public String toString() {
+    return "StudioFlagSettings(data.size=" + data.size() +")";
+  }
 }

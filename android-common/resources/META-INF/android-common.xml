@@ -31,5 +31,6 @@
                         serviceImplementation="com.android.tools.idea.gservices.ServerFlagBasedDevServicesDeprecationDataProvider" />
     <applicationService serviceInterface="com.android.tools.sdk.DeviceManagerDeviceFilter"
                         serviceImplementation="com.android.tools.sdk.StudioDeviceManagerDeviceFilter" />
+    <aboutPopupDescriptionProvider implementation="com.android.tools.idea.flags.StudioFlagsAboutProvider" />
   </extensions>
 </idea-plugin>

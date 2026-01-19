@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics.report
 
 import com.android.tools.idea.diagnostics.DIAGNOSTICS_REPORTS_DIR
+import com.android.tools.idea.flags.StudioFlagsDiagnosticFileProvider
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import java.nio.file.Files
@@ -50,6 +51,7 @@ interface DiagnosticsSummaryFileProvider {
       SystemInfoFileProvider,
       DefaultMetricsLogFileProvider,
       HeapReportProvider,
+      StudioFlagsDiagnosticFileProvider,
       ThreadDumpProvider,
       UIFreezeProvider,
       AdbHostLogFileProvider)
