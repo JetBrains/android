@@ -21,6 +21,11 @@ import com.android.tools.idea.adb.wireless.UIColors
 import com.android.tools.idea.npw.importing.SourceToGradleModuleModel
 import com.android.tools.idea.npw.importing.SourceToGradleModuleStep
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
+import com.android.tools.idea.npw.project.ChooseAndroidProjectStep.Companion.createTitle
+import com.android.tools.idea.npw.project.TABLE_CELL_HEIGHT
+import com.android.tools.idea.npw.project.TABLE_CELL_LEFT_PADDING
+import com.android.tools.idea.npw.project.TABLE_CELL_WIDTH
+import com.android.tools.idea.npw.project.TABLE_TITLE_PADDING
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.ui.SelectedListValueProperty
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -36,7 +41,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.GroupHeaderSeparator
-import com.intellij.ui.JBColor
 import com.intellij.ui.border.CustomLineBorder
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
@@ -54,11 +58,6 @@ import javax.swing.SwingConstants
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 import org.jetbrains.android.util.AndroidBundle.message
-
-const val TABLE_CELL_WIDTH = 260
-const val TABLE_CELL_HEIGHT = 32
-const val TABLE_CELL_LEFT_PADDING = 20
-const val TABLE_TITLE_PADDING = 20
 
 /** This step allows the user to select which type of module they want to create. */
 class ChooseModuleTypeWizard(
@@ -204,23 +203,6 @@ class ChooseModuleTypeWizard(
     }
 
     override fun dispose() {}
-  }
-
-  companion object {
-    fun createTitle(): JBLabel {
-      return JBLabel("Templates").apply {
-        isOpaque = true
-        background = UIUtil.getListBackground()
-        foreground = JBColor(0x999999, 0x787878)
-        border =
-          JBUI.Borders.empty(
-            TABLE_TITLE_PADDING,
-            TABLE_CELL_LEFT_PADDING,
-            TABLE_TITLE_PADDING,
-            TABLE_TITLE_PADDING,
-          )
-      }
-    }
   }
 }
 
