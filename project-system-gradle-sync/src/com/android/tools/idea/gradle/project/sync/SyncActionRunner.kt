@@ -36,6 +36,7 @@ import com.android.tools.idea.projectsystem.gradle.sync.Counter
 import org.gradle.api.Action
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
+import org.gradle.tooling.FetchModelResult
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
@@ -173,6 +174,25 @@ data class ActionToRun<T>(
       override fun getCanQueryProjectModelInParallel(p0: Class<*>?): Boolean = error("Not intended to be used")
 
       override fun send(p0: Any): Unit = error("Not intended to be used")
+      override fun <M : Any> fetch(modelType: Class<M>): FetchModelResult<M>? {
+        validateModelType(modelType)
+        return delegate.fetch(modelType)
+      }
+
+      override fun <M : Any> fetch(target: Model?, modelType: Class<M>): FetchModelResult<M>? {
+        validateModelType(modelType)
+        return delegate.fetch(target, modelType)
+      }
+
+      override fun <M : Any, P : Any> fetch(modelType: Class<M>, parameterType: Class<P?>?, parameterInitializer: Action<in P>?): FetchModelResult<M>? {
+        validateModelType(modelType)
+        return delegate.fetch(modelType, parameterType, parameterInitializer)
+      }
+
+      override fun <M : Any, P : Any> fetch(target: Model?, modelType: Class<M>, parameterType: Class<P?>?, parameterInitializer: Action<in P>?): FetchModelResult<M>? {
+        validateModelType(modelType)
+        return delegate.fetch(target, modelType, parameterType, parameterInitializer)
+      }
     }
   }
 }
@@ -293,6 +313,21 @@ private fun BuildController.toMeasuringController(syncCounters: SyncCounters): B
 
     override fun <T, P : Any> findModel(target: Model?, modelType: Class<T>, parameterType: Class<P>, parameterInitializer: Action<in P>): T? {
       return syncCounters.measure(modelType) { delegate.findModel(target, modelType, parameterType, parameterInitializer) }
+    }
+    override fun <M : Any> fetch(modelType: Class<M>): FetchModelResult<M>? {
+      return syncCounters.measure(modelType)  { delegate.fetch(modelType) }
+    }
+
+    override fun <M : Any> fetch(target: Model?, modelType: Class<M>): FetchModelResult<M>? {
+      return syncCounters.measure(modelType) { delegate.fetch(target, modelType) }
+    }
+
+    override fun <M : Any, P : Any> fetch(modelType: Class<M>, parameterType: Class<P?>?, parameterInitializer: Action<in P>?): FetchModelResult<M>? {
+      return syncCounters.measure(modelType) { delegate.fetch(modelType, parameterType, parameterInitializer) }
+    }
+
+    override fun <M : Any, P : Any> fetch(target: Model?, modelType: Class<M>, parameterType: Class<P?>?, parameterInitializer: Action<in P>?): FetchModelResult<M>? {
+      return syncCounters.measure(modelType) { delegate.fetch(target, modelType, parameterType, parameterInitializer) }
     }
 
     override fun getBuildModel(): GradleBuild = error("Not intended to be used")
