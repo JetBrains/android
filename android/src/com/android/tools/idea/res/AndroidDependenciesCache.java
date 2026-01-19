@@ -20,21 +20,15 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.ModuleRClass.SourceSet;
-import com.intellij.facet.Facet;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.FacetManagerListener;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.project.ModuleListener;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.messages.MessageBusConnection;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,39 +50,6 @@ public class AndroidDependenciesCache implements Disposable {
     myModule = module;
 
     AndroidProjectRootListener.ensureSubscribed(module.getProject());
-
-    // ProjectTopics.MODULES publishes on the project bus, FACETS_TOPIC is per module but broadcasts to parent buses. For this
-    // AndroidDependenciesCache we are interested in any changes in the project.
-    MessageBusConnection busConnection = module.getProject().getMessageBus().connect(this);
-
-    busConnection.subscribe(FacetManager.FACETS_TOPIC, new FacetManagerListener() {
-      @Override
-      public void facetAdded(@NotNull Facet facet) {
-        dropCache();
-      }
-
-      @Override
-      public void facetRemoved(@NotNull Facet facet) {
-        dropCache();
-      }
-
-      @Override
-      public void facetConfigurationChanged(@NotNull Facet facet) {
-        dropCache();
-      }
-    });
-
-    busConnection.subscribe(ModuleListener.TOPIC, new ModuleListener() {
-      @Override
-      public void modulesAdded(@NotNull Project project, @NotNull List<? extends Module> modules) {
-        dropCache();
-      }
-
-      @Override
-      public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
-        dropCache();
-      }
-    });
   }
 
   @Override
