@@ -26,6 +26,7 @@ import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
+import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.vfs.VirtualFile
@@ -50,6 +51,8 @@ fun createRenderTaskFuture(
   customViewInfoParser: ((Any) -> List<ViewInfo>)? = null,
   showDecorations: Boolean = false,
   configure: (Configuration) -> Unit = {},
+  renderTopic: RenderAsyncActionExecutor.RenderingTopic =
+    RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED,
 ): CompletableFuture<RenderTask> {
   val project = facet.module.project
 
@@ -67,6 +70,7 @@ fun createRenderTaskFuture(
     StudioRenderService.getInstance(project)
       .taskBuilder(AndroidBuildTargetReference.gradleOnly(facet), configuration)
       .withPsiFile(PsiXmlFile(xmlFile))
+      .withTopic(renderTopic)
       .apply {
         if (privateClassLoader) {
           usePrivateClassLoader()
@@ -102,6 +106,8 @@ fun createRenderResultFuture(
   customViewInfoParser: ((Any) -> List<ViewInfo>)? = null,
   showDecorations: Boolean = false,
   configure: (Configuration) -> Unit = {},
+  renderTopic: RenderAsyncActionExecutor.RenderingTopic =
+    RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED,
 ): CompletableFuture<RenderResult> {
   val renderTaskFuture =
     createRenderTaskFuture(
@@ -113,6 +119,7 @@ fun createRenderResultFuture(
       customViewInfoParser,
       showDecorations,
       configure,
+      renderTopic,
     )
   val renderResultFuture =
     CompletableFuture.supplyAsync(
