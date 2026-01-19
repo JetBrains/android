@@ -458,8 +458,7 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
       .anyMatch(provider -> provider.getDesugarLibraryConfigFilesKnown());
   }
 
-  /** Collect desugarig library config files from every supporting extension and return the list */
-  @Override
+  /** Collect desugaring library config files from every supporting extension and return the list */
   public ImmutableList<Path> getDesugarLibraryConfigFiles() {
     return DesugaringLibraryConfigFilesLocator.forBuildSystem(
         Blaze.getBuildSystemName(module.getProject()))
