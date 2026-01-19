@@ -169,9 +169,15 @@ interface RenderAsyncActionExecutor {
 
     // Topic used by default when the tool/context doesn't specify one.
     NOT_SPECIFIED("Not specified", 100),
+
     COMPOSE_PREVIEW("Compose preview", 100),
     WEAR_TILE_PREVIEW("Wear tile preview", 100),
     GLANCE_PREVIEW("Glance preview", 100),
+
+    // Topic indicating this render has been triggered through the render tool in the agent.
+    // Important, but yields to the main editor
+    AI_GENERATED_PREVIEW("AI Agent Preview", 50),
+
     VISUAL_LINT("Visual lint", 1),
   }
 
