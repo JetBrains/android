@@ -933,7 +933,7 @@ public class IdeSdks {
    * @param path the JDK path to validate
    * @return true if the path contains a valid JDK
    */
-  private static boolean isValidJdkPath(@NotNull Path path) {
+  public static boolean isValidJdkPath(@NotNull Path path) {
     return checkForJdk(path) && checkForJre(path);
   }
 
