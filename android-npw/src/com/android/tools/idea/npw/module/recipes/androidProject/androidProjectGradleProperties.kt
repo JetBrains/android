@@ -15,42 +15,43 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidProject
 
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.wizard.template.renderIf
 
+private val ANDROIDX_DEFAULT_IN_AGP = AgpVersion.parse("9.0.0-alpha01")
+
 fun androidProjectGradleProperties(
-  addAndroidXSupport: Boolean,
+  agpVersion: AgpVersion,
   generateKotlin: Boolean,
   overridePathCheck: Boolean?,
 ): String {
-  val androidXBlock = renderIf(addAndroidXSupport) { """
+  val androidXBlock =
+    renderIf(agpVersion < ANDROIDX_DEFAULT_IN_AGP) {
+      """
 # AndroidX package structure to make it clearer which packages are bundled with the
 # Android operating system, and which are packaged with your app's APK
 # https://developer.android.com/topic/libraries/support-library/androidx-rn
 android.useAndroidX=true
 """
-  }
+    }
 
-  val kotlinStyleBlock = renderIf(generateKotlin) { """
+  val kotlinStyleBlock =
+    renderIf(generateKotlin) {
+      """
 # Kotlin code style for this project: "official" or "obsolete":
 kotlin.code.style=official
 """
-  }
+    }
 
-  val overridePathCheckBlock = renderIf(overridePathCheck != null) {
-    """
+  val overridePathCheckBlock =
+    renderIf(overridePathCheck != null) {
+      """
 # Allow non-ASCII characters in project path on Windows
 android.overridePathCheck=$overridePathCheck
 """
-  }
+    }
 
-  val nonTransitiveRClass =  """
-# Enables namespacing of each library's R class so that its R class includes only the
-# resources declared in the library itself and none from the library's dependencies,
-# thereby reducing the size of the R class for that library
-android.nonTransitiveRClass=true
-"""
-
-  return  """
+  return """
 # Project-wide Gradle settings.
 
 # IDE (e.g. Android Studio) users:
@@ -72,7 +73,6 @@ org.gradle.jvmargs=-Xmx${maxHeapSize}m -Dfile.encoding=UTF-8
 $androidXBlock
 $kotlinStyleBlock
 $overridePathCheckBlock
-$nonTransitiveRClass
 """
 }
 

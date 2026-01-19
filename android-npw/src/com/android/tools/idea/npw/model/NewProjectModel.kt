@@ -328,7 +328,6 @@ if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && !prompt.isEmpty.get()) {
           data = data as ProjectTemplateData,
           appTitle = applicationName.get(),
           language = language.value,
-          addAndroidXSupport = true,
           useGradleKts = useGradleKts.get(),
         )
       }
