@@ -67,6 +67,16 @@ abstract class UpdateReferenceImagesBaseAction(
     connection.subscribe(AndroidTestSuiteView.ANDROID_TEST_SUITE_TOPIC, UpdateScreenshotTestResultsListener(dialog))
 
     connection.subscribe(ExecutionManager.EXECUTION_TOPIC, object : ExecutionListener {
+      override fun processStarted(
+        executorId: String,
+        env: ExecutionEnvironment,
+        handler: ProcessHandler
+      ) {
+        if (env.runnerAndConfigurationSettings == updateRunconfigSettings) {
+          dialog.setBuildProcessHandler(handler)
+        }
+      }
+
       override fun processTerminated(
         executorId: String,
         env: ExecutionEnvironment,

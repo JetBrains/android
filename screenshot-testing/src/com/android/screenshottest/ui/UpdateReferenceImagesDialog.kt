@@ -15,6 +15,7 @@
  */
 package com.android.screenshottest.ui
 
+import com.intellij.execution.process.ProcessHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -93,6 +94,23 @@ class UpdateReferenceImagesDialog(
   private lateinit var rightPaneCardLayout: CardLayout
   private var isLeafSelected by mutableStateOf(false)
   private lateinit var rightPaneWrapper: JPanel
+
+  private var buildProcessHandler: ProcessHandler? = null
+  private var isCancelled = false
+
+  fun setBuildProcessHandler(handler: ProcessHandler) {
+    if (isCancelled) {
+      handler.destroyProcess()
+    } else {
+      buildProcessHandler = handler
+    }
+  }
+
+  override fun doCancelAction() {
+    isCancelled = true
+    buildProcessHandler?.destroyProcess()
+    super.doCancelAction()
+  }
 
 
   init {
@@ -185,7 +203,7 @@ class UpdateReferenceImagesDialog(
   fun onBuildFailed() {
     ApplicationManager.getApplication().invokeLater {
       // Only act if we haven't discovered any tests yet (meaning the failure happened during build or startup)
-      if (!isFirstTestDiscovered) {
+      if (!isFirstTestDiscovered && !isCancelled) {
         logger.warn("Build or execution failed. Closing dialog.")
         close(CANCEL_EXIT_CODE)
 
