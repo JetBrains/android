@@ -2183,6 +2183,12 @@ public final class StudioFlags {
                     "When enabled, the Read URI tool will be available for agents."
     );
 
+  public static final Flag<Boolean> STUDIOBOT_SHOW_THOUGHTS =
+    new BooleanFlag(STUDIOBOT, "show.thoughts",
+                    "Shows thoughts in the timeline",
+                    "When enabled, thoughts will be shown in the timeline for models that support thinking."
+    );
+
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_FILE_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.file.context.enabled",
                     "Enable sending additional file context with completion requests",

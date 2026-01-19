@@ -253,6 +253,7 @@ studiobot.remote.models.enabled=COMPLETE:2025
 studiobot.replace.text.tool.enabled=INTERNAL
 studiobot.shell.tool=INTERNAL
 studiobot.show.shimmer.placeholder=PREVIEW
+studiobot.show.thoughts=INTERNAL
 studiobot.studiobot.apply.changes.action=INTERNAL
 studiobot.support.gias.enterprise=COMPLETE:2025
 studiobot.use.bm25.find.files=PREVIEW
