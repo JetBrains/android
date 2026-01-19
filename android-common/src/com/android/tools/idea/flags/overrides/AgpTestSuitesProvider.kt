@@ -22,10 +22,15 @@ import com.android.tools.idea.flags.StudioFlags
 
 class AgpTestSuitesProvider : FlagValueProvider {
   override fun get(flag: Flag<*>): String? {
-    if (flag == StudioFlags.AGP_TEST_SUITES_ENABLED && StudioFlags.JOURNEYS_WITH_GEMINI_EXECUTION.get()) {
+    if (flag == StudioFlags.AGP_TEST_SUITES_ENABLED && journeysWithGeminiEnabled()) {
       // Journeys with Gemini is enabled, and is dependent on AGP Test Suites, so force enable it.
       return BooleanFlag.Converter.serialize(true)
     }
     return null
+  }
+  private fun journeysWithGeminiEnabled(): Boolean = StudioFlags.JOURNEYS_WITH_GEMINI_EXECUTION.get()
+
+  override fun toString(): String {
+    return "AgpTestSuitesProvider(journeysWithGeminiEnabled=" + journeysWithGeminiEnabled() + ")";
   }
 }

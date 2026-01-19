@@ -39,4 +39,6 @@ class ServerFlagOverrides : FlagValueProvider {
       else -> null
     }
   }
+
+  override fun toString(): String = "ServerFlagOverrides(${ServerFlagService.instance.toString().replace("\n","\n        ")})"
 }

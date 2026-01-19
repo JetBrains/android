@@ -24,8 +24,14 @@ import com.android.tools.idea.flags.FeatureConfiguration
 class AgpReleaseBranchProvider : FlagValueProvider {
   override fun get(flag: Flag<*>): String? {
     if (flag == StudioFlags.USE_ALONGSIDE_AGP) {
-      return (Version.IS_AGP_RELEASE_BRANCH || FeatureConfiguration.current < FeatureConfiguration.COMPLETE).toString()
+      return (releasedWithAgp()).toString()
     }
     return null;
+  }
+
+  private fun releasedWithAgp(): Boolean = Version.IS_AGP_RELEASE_BRANCH || FeatureConfiguration.current < FeatureConfiguration.COMPLETE
+
+  override fun toString(): String {
+    return "AgpReleaseBranchProvider(releasedWithAgp=" + releasedWithAgp() + ")";
   }
 }

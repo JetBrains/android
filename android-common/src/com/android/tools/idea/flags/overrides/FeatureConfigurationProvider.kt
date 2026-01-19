@@ -124,6 +124,8 @@ class FeatureConfigurationProvider private constructor(
       } else flagValue
     }
   }
+
+  override fun toString(): String = "FeatureConfigurationProvider(currentConfig=$currentConfig)"
 }
 
 const val FEATURE_FLAGS_FILE = "/feature_flags.txt"

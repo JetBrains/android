@@ -25,4 +25,6 @@ class MendelOverrides: FlagValueProvider {
     (flag as? MendelFlag)?.mendelId?.let {
       MendelFlagsProvider.isExperimentEnabled(it).toString()
     }
+
+  override fun toString(): String = "MendelOverrides(MendelFlagsProvider count=${MendelFlagsProvider.EP_NAME.extensionList.size})"
 }
