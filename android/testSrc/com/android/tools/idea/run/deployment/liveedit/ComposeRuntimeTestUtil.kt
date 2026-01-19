@@ -28,6 +28,7 @@ import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
+import org.jetbrains.kotlin.analysis.api.KaPlatformInterface
 import org.jetbrains.kotlin.analysis.api.platform.projectStructure.KotlinCompilerPluginsProvider
 import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
@@ -72,7 +73,7 @@ private val composeExtensionStorage by lazy {
   storage
 }
 
-@OptIn(ExperimentalCompilerApi::class)
+@OptIn(ExperimentalCompilerApi::class, KaPlatformInterface::class)
 private val composeCompilerPluginProviderForTest by lazy {
   object : KotlinCompilerPluginsProvider {
     override fun <T : Any> getRegisteredExtensions(module: KaModule,
@@ -92,7 +93,7 @@ private val composeCompilerPluginProviderForTest by lazy {
  * you should probably use [setUpComposeInProjectFixture] which will also add the Compose Runtime dependency to the
  * project.
  */
-@OptIn(ExperimentalCompilerApi::class)
+@OptIn(ExperimentalCompilerApi::class, KaPlatformInterface::class)
 fun registerComposeCompilerPlugin(project: Project) {
   // Register the compose compiler plugin much like what Intellij would normally do.
   if (KotlinPluginModeProvider.isK2Mode()) {
