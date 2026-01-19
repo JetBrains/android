@@ -43,10 +43,10 @@ import com.intellij.openapi.application.invokeLater
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.Typography
 import org.jetbrains.jewel.ui.icon.IconKey
 import org.jetbrains.jewel.ui.icon.newUiChecker
 import org.jetbrains.jewel.ui.painter.rememberResourcePainterProvider
+import org.jetbrains.jewel.ui.typography
 
 /** Class representing a Studio Labs Feature Panel. */
 open class StudioLabsFeaturePanelUi(
@@ -77,7 +77,7 @@ open class StudioLabsFeaturePanelUi(
       FeatureImage(imageKey, imageDescription, modifier = Modifier.fillMaxWidth().height(200.dp))
 
       Column(modifier = Modifier.padding(16.dp)) {
-        Text(heading, style = Typography.h2TextStyle(), fontWeight = FontWeight.Bold)
+        Text(heading, style = JewelTheme.typography.h2TextStyle, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.size(12.dp))
         Text(description)
         Spacer(modifier = Modifier.size(16.dp))
