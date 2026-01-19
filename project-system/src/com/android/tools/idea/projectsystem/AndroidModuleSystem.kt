@@ -287,8 +287,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   /** A user visible message, such as 'Only supported for project using Android Gradle plugin '8.1.0-alpha05' and above' */
   val desugarLibraryConfigFilesNotKnownUserMessage: String? get() = "Only supported for Gradle projects"
 
-  val desugarLibraryConfigFiles: List<Path> get() = listOf()
-
   val moduleDependencies: ModuleDependencies get() = error("Not implemented")
 
   /** Return a String suitable for presenting to the user to identify this Module System's module. */

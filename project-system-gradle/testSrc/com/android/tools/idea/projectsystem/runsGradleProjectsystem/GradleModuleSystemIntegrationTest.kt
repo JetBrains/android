@@ -219,7 +219,7 @@ class GradleModuleSystemIntegrationTest {
     """.trimIndent())
     preparedProject.open { project ->
 
-      val moduleSystem = project.findAppModule().getModuleSystem()
+      val moduleSystem = project.findAppModule().getModuleSystem() as GradleModuleSystem
 
       assertThat(moduleSystem.desugarLibraryConfigFilesKnown).named("desugarLibraryConfigFilesKnown").isTrue()
       assertThat(moduleSystem.desugarLibraryConfigFilesNotKnownUserMessage).named("desugarLibraryConfigFilesNotKnownUserMessage").isNull()

@@ -34,7 +34,6 @@ import com.android.tools.idea.gradle.model.IdeDeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
-import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
@@ -98,6 +97,7 @@ import java.io.File
 import java.nio.file.Path
 import com.android.ide.common.gradle.Module as ExternalModule
 import com.android.tools.idea.gradle.project.entities.getGradleAndroidModel
+import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
 import com.android.tools.idea.model.AndroidModel
 import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.util.text.nullize
@@ -610,7 +610,7 @@ class GradleModuleSystem(
       !desugarLibraryConfigFilesKnown -> "Only supported for projects using Android Gradle plugin '$DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION' and above."
       else -> null
     }
-  override val desugarLibraryConfigFiles: List<Path>
+  val desugarLibraryConfigFiles: List<Path>
     get() = GradleAndroidModel.get(module)?.androidProject?.desugarLibraryConfigFiles?.map { it.toPath() } ?: emptyList()
 
   override val disableAgpUpgradePrompt: Boolean

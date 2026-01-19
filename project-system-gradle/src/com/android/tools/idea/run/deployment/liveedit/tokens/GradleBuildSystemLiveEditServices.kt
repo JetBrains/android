@@ -35,6 +35,7 @@ import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEdit
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
+import java.nio.file.Path
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.components.KaCompilationOptionsBuilder
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
@@ -46,7 +47,6 @@ import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.psi.KtFile
-import java.nio.file.Path
 
 class GradleBuildSystemLiveEditServices :
   BuildSystemLiveEditServices<GradleProjectSystem, FacetBasedApplicationProjectContext>,
@@ -127,12 +127,14 @@ internal class GradleApplicationLiveEditServices(private val module: Module): Ap
     configureLanguageVersionSettings(ktFile.languageVersionSettings)
   }
 
-  override fun getDesugarConfigs() =
-    if (module.getModuleSystem().desugarLibraryConfigFilesKnown) {
-      DesugarConfigs.Known(module.getModuleSystem().desugarLibraryConfigFiles)
-    } else {
-      DesugarConfigs.NotKnown(module.getModuleSystem().desugarLibraryConfigFilesNotKnownUserMessage)
+  override fun getDesugarConfigs(): DesugarConfigs {
+    val moduleSystem = module.getModuleSystem()
+    if (moduleSystem !is GradleModuleSystem) return DesugarConfigs.NotKnown(moduleSystem.desugarLibraryConfigFilesNotKnownUserMessage)
+    return when (moduleSystem.desugarLibraryConfigFilesKnown) {
+      true -> DesugarConfigs.Known(moduleSystem.desugarLibraryConfigFiles)
+      false -> DesugarConfigs.NotKnown(moduleSystem.desugarLibraryConfigFilesNotKnownUserMessage)
     }
+  }
 
   override fun getRuntimeVersionString(): String {
     val moduleSystem = module.getModuleSystem() as? GradleModuleSystem ?: return DEFAULT_RUNTIME_VERSION
