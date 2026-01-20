@@ -19,12 +19,12 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2025.3.1.00">
+    version="2026.1.2.00">
   <feature
-      name="What's New in Panda 1">
+      name="What's New in Panda 2">
     <tutorial
         key="whats-new"
-        label=" What's New in Panda 1"
+        label=" What's New in Panda 2"
         icon="preview/product-icon.svg"
         remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2025-3-1"
         remoteLinkLabel="Read in a browser">
@@ -147,7 +147,7 @@
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 12/12/2025</em><br>
+              <br><em>Last updated 01/20/2025</em><br>
             ]]>
           </section>
         </stepElement>
