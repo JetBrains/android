@@ -44,6 +44,7 @@ jvm_library(
         "//libraries/fastutil",
         "//libraries/http-client",
         "@lib//:jetbrains-annotations",
+        "@lib//:jna",
         "@lib//:kotlin-stdlib",
         "//libraries/kotlinx/coroutines/core",
         "@lib//:kotlinc-analysis-api-provided",
