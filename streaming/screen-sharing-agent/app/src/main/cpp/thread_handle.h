@@ -44,7 +44,7 @@ private:
   enum class RunState { STOPPED, RUNNING, STOPPING };
 
   std::mutex mutex_;
-  RunState run_state_;  // GUARDED_BY(mutex_)
+  RunState run_state_ = RunState::STOPPED;  // GUARDED_BY(mutex_)
   std::thread thread_;  // GUARDED_BY(mutex_)
 
   DISALLOW_COPY_AND_ASSIGN(ThreadHandle);
