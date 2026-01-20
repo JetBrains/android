@@ -39,7 +39,13 @@ def _get_followed_java_proto_dependencies(rule):
 IDE_JAVA_PROTO = struct(
     get_java_proto_info = _get_java_proto_info,
     srcs_attributes = [],
-    follow_attributes = ["toolchain", "_toolchain", "runtime"],
+    follow_attributes = [
+        "toolchain",
+        "_toolchain",
+        "runtime",
+        "_proto_toolchain_for_javalite",
+        "_proto_toolchain_for_java",
+    ],
     followed_dependencies = _get_followed_java_proto_dependencies,
     toolchains_aspects = _PROTO_TOOLCHAIN_TYPES,
 )
