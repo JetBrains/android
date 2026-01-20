@@ -1286,6 +1286,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS = new BooleanFlag(
     EMBEDDED_EMULATOR, "collapsible.floating.toolbars", "Make zoom and XR toolbars collapsible",
     "Make zoom and XR toolbars in the Running Devices window collapsible");
+  public static final Flag<Boolean> UI_SETTINGS_B475894230_LOGGING = new BooleanFlag(
+    EMBEDDED_EMULATOR, "b475894230.logging", "Enable logging for investigation of b/475894230",
+    "Enable logging for investigation of b/475894230");
   //endregion
 
   //region Device Mirroring
