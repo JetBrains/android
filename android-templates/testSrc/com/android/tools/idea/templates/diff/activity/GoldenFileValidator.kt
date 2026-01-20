@@ -129,12 +129,12 @@ class GoldenFileValidator(
         setOf(
           "'class IntentService : Service' is deprecated. Deprecated in Java.",
           "'constructor(p0: String!): IntentService' is deprecated. Deprecated in Java.",
-          "This declaration overrides a deprecated member but is not marked as deprecated itself. Please add the '@Deprecated' annotation or suppress the diagnostic.",
+          "This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.",
         ),
       // TODO: b/390510059
       "testNewGoogleAdMobFragmentWithKotlin" to
         setOf(
-          "This declaration overrides a deprecated member but is not marked as deprecated itself. Please add the '@Deprecated' annotation or suppress the diagnostic.",
+          "This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.",
           "'fun onActivityCreated(p0: Bundle?): Unit' is deprecated. Deprecated in Java.",
         ),
       // TODO: b/390509936
