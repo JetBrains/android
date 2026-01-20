@@ -134,6 +134,7 @@ class ActionDispatcher(
       is Action.FetchIssueVariants -> fetchIssueVariants(currentState, action)
       is Action.ListEvents -> listEvents(currentState, action)
       is Action.FetchInsight -> fetchInsight(connection, currentState, action)
+      is Action.UpdateInsightFeedback -> updateInsightFeedback(action)
       is Action.DisableAction -> CancellationToken.noop(action)
       is Action.EnableAction -> CancellationToken.noop(action)
     }
@@ -384,6 +385,16 @@ class ActionDispatcher(
         eventEmitter(AiInsightFetched(insight))
       }
       .toToken(action)
+  }
+
+  private fun updateInsightFeedback(action: Action.UpdateInsightFeedback): CancellationToken {
+    aiInsightToolkit.updateInsightFeedback(
+      action.connection,
+      action.id,
+      action.variantId,
+      action.feedback,
+    )
+    return CancellationToken.noop(Action.NONE)
   }
 
   private fun <T, U> ReceiveChannel<T>.batchFold(

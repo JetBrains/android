@@ -32,7 +32,6 @@ import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
 import com.android.tools.idea.insights.ai.StubInsightsOnboardingProvider
-import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
 import com.android.tools.idea.testing.disposable
@@ -114,11 +113,7 @@ class InsightContentPanelTest {
       .state
     doReturn(projectRule.project).whenever(mockController).project
     doReturn(
-        FakeAiInsightToolkit(
-          projectRule.project,
-          aiInsightOnboardingProvider = onboardingProvider,
-          cache = AppInsightsCacheImpl(FakeInsightsProvider()),
-        )
+        FakeAiInsightToolkit(projectRule.project, aiInsightOnboardingProvider = onboardingProvider)
       )
       .whenever(mockController)
       .aiInsightToolkit

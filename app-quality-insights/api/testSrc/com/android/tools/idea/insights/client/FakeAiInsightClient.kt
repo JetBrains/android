@@ -16,9 +16,19 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.experiments.InsightFeedback
+import com.android.tools.idea.insights.model.connection.Connection
+import com.android.tools.idea.insights.model.issue.IssueId
 
 object FakeAiInsightClient : AiInsightClient {
   override suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight {
     return AiInsight(request.toString(), request.event)
   }
+
+  override fun insightFeedbackUpdated(
+    connection: Connection,
+    issueId: IssueId,
+    variantId: String?,
+    feedback: InsightFeedback,
+  ) = Unit
 }

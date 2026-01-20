@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.IssueId
@@ -38,4 +39,11 @@ interface AiInsightClient {
    *   crash
    */
   suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight
+
+  fun insightFeedbackUpdated(
+    connection: Connection,
+    issueId: IssueId,
+    variantId: String?,
+    feedback: InsightFeedback,
+  )
 }

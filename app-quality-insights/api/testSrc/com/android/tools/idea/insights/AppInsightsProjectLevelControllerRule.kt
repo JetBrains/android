@@ -115,7 +115,7 @@ class AppInsightsProjectLevelControllerRule(
     connections = MutableSharedFlow(replay = 1)
     tracker = mock<AppInsightsTracker>()
     fakeGeminiPluginApi = FakeGeminiPluginApi()
-    geminiToolkit = FakeAiInsightToolkit(projectProvider(), cache = cache)
+    geminiToolkit = FakeAiInsightToolkit(projectProvider())
     ExtensionTestUtil.maskExtensions(
       GeminiPluginApi.EP_NAME,
       listOf(fakeGeminiPluginApi),

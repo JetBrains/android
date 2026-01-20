@@ -16,6 +16,8 @@
 package com.android.tools.idea.insights.events.actions
 
 import com.android.tools.idea.insights.client.FetchSource
+import com.android.tools.idea.insights.experiments.InsightFeedback
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
@@ -143,6 +145,15 @@ sealed class Action {
   ) : IssueAction() {
     override fun maybeDoCancel(reasons: List<Single>) =
       cancelIf(reasons) { it is FetchInsight || shouldCancelFetch(it) }
+  }
+
+  data class UpdateInsightFeedback(
+    override val id: IssueId,
+    val connection: Connection,
+    val variantId: String?,
+    val feedback: InsightFeedback,
+  ) : IssueAction() {
+    override fun maybeDoCancel(reasons: List<Single>) = null
   }
 
   data class DisableAction(val action: KClass<out Action>) : Single() {

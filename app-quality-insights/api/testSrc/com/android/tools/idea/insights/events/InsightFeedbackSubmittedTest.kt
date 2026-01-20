@@ -24,7 +24,6 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.Timed
-import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.experiments.InsightFeedback
@@ -38,7 +37,7 @@ import org.mockito.kotlin.verify
 
 class InsightFeedbackSubmittedTest {
   @Test
-  fun `InsightFeedbackSubmitted tracks feedback and caches it`() {
+  fun `InsightFeedbackSubmitted tracks feedback`() {
     val tracker = mock<AppInsightsTracker>()
     val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
     val startingState =
@@ -55,8 +54,6 @@ class InsightFeedbackSubmittedTest {
 
     val expectedInsight = DEFAULT_AI_INSIGHT.copy(feedback = InsightFeedback.THUMBS_UP)
     assertThat(transition.newState.currentInsight.valueOrNull()).isEqualTo(expectedInsight)
-    assertThat(cache.getAiInsight(CONNECTION1, ISSUE1.id, null, ContextSharingState.DISABLED))
-      .isEqualTo(expectedInsight.copy(isCached = true))
 
     verify(tracker)
       .logInsightSentiment(

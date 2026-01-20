@@ -15,17 +15,12 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.NOTE1
 import com.android.tools.idea.insights.NOTE2
 import com.android.tools.idea.insights.TestConnection
-import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.ai.codecontext.CodeContext
-import com.android.tools.idea.insights.ai.codecontext.CodeContextData
-import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.model.common.Interval
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
@@ -565,56 +560,13 @@ class AppInsightsCacheTest {
   }
 
   @Test
-  fun `get and put AI insights`() {
-    val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
-    val context =
-      CodeContextData(
-        listOf(CodeContext("/path", "abc")),
-        contextSharingState = ContextSharingState.ALLOWED,
-      )
-    cache.populateIssues(connection, listOf(ISSUE1))
-
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.DISABLED))
-      .isNull()
-
-    cache.putAiInsight(connection, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.DISABLED))
-      .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
-
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", ContextSharingState.DISABLED))
-      .isNull()
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.ALLOWED))
-      .isNull()
-
-    val newInsight = AiInsight("blah", ISSUE1.sampleEvent, codeContextData = context)
-    cache.putAiInsight(connection, ISSUE1.id, null, newInsight)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.ALLOWED))
-      .isEqualTo(newInsight.copy(isCached = true))
-
-    cache.putAiInsight(connection, ISSUE1.id, "variant1", DEFAULT_AI_INSIGHT)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", ContextSharingState.DISABLED))
-      .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
-  }
-
-  @Test
   fun `removeIssue removes the issue from cache`() {
     val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
     cache.populateIssues(connection, listOf(ISSUE1))
     cache.addNote(connection, ISSUE1.issueDetails.id, NOTE1)
-    cache.putAiInsight(connection, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
-    cache.putAiInsight(
-      connection,
-      ISSUE1.id,
-      "variant2",
-      AiInsight("blah", ISSUE1.sampleEvent, codeContextData = CodeContextData.DISABLED),
-    )
 
     cache.removeIssue(connection, ISSUE1.id)
     assertThat(cache.getIssues(connection, listOf(ISSUE1.id))).isEmpty()
     assertThat(cache.getNotes(connection, ISSUE1.id)).isNull()
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.DISABLED))
-      .isNull()
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant2", ContextSharingState.DISABLED))
-      .isNull()
   }
 }

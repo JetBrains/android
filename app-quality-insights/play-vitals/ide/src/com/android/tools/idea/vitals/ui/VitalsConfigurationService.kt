@@ -266,7 +266,7 @@ class VitalsConfigurationManager(
                 project,
                 GeminiAiInsightsOnboardingProvider(project),
                 codeContextResolver,
-                GeminiAiInsightClient(project, cache, codeContextResolver),
+                GeminiAiInsightClient(project, codeContextResolver),
               ),
             cache = cache,
           )
