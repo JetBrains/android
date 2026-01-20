@@ -2415,6 +2415,11 @@ public final class StudioFlags {
                     "Enable tl;dr mode for the agent",
                     "When enabled, the agent timeline UI will show a summary of each plan step execution.");
 
+  public static final Flag<Boolean> STUDIOBOT_PLANNING_MODE_ENABLED =
+    new BooleanFlag(STUDIOBOT, "planning.mode.enabled",
+                    "Enable planning mode",
+                    "When enabled, planning mode will be enabled.");
+
   public static final Flag<Boolean> STUDIOBOT_STOP_BUTTON_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.stop.button.enabled",
                     "Enable Stop Button",
