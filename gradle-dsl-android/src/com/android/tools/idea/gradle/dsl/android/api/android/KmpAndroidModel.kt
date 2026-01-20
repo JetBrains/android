@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.dsl.android.api.android
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel
 
-interface KmpAndroidLibraryModel : GradleBlockModel {
+interface KmpAndroidModel : GradleBlockModel {
   fun namespace(): ResolvedPropertyModel
 
   fun compileSdkVersion(): CompileSdkPropertyModel
@@ -30,4 +30,8 @@ interface KmpAndroidLibraryModel : GradleBlockModel {
   fun compileSdkExtension(): ResolvedPropertyModel
 
   fun minSdkVersion(): ResolvedPropertyModel
+
+  companion object {
+    const val KMP_ANDROID_MINIMUM_AGP_VERSION = "9.0.0"
+  }
 }

@@ -201,7 +201,7 @@ plugins {
   // Target declarations - add or remove as needed below. These define
   // which platforms this KMP module supports.
   // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
-androidLibrary {
+android {
   namespace = "com.kmplib.packagename"
     compileSdk {
         version = release($SDK_VERSION_FOR_NPW_TESTS)

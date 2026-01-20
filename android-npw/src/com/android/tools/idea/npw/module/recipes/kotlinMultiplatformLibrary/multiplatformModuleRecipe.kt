@@ -59,7 +59,6 @@ private fun RecipeExecutor.generateModule(
       projectData.agpVersion,
       data.name,
       data.namespace,
-      data.apis.buildApi,
       data.apis.minApi,
     ),
     data.rootDir.resolve(buildFile),

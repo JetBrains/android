@@ -1,5 +1,5 @@
 kotlin {
-  androidLibrary {
+  android {
     namespace = "abc"
     compileSdk {
         version = release(36) {

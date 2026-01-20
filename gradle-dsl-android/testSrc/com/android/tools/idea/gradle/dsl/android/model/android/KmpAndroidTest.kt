@@ -16,28 +16,23 @@
 package com.android.tools.idea.gradle.dsl.android.model.android
 
 import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
-import com.android.tools.idea.gradle.dsl.android.api.android.CompileSdkPropertyModel.Companion.COMPILE_SDK_BLOCK_VERSION
 import com.android.tools.idea.gradle.dsl.android.api.android.CompileSdkReleaseModel
-import com.android.tools.idea.gradle.dsl.android.api.android.KmpAndroidLibraryModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.api.kotlin.KotlinModel
 import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.common.truth.Truth.assertThat
 import java.io.File
 import org.jetbrains.annotations.SystemDependent
-import org.junit.Ignore
 import org.junit.Test
 
-class KmpAndroidLibraryTest : AndroidGradleFileModelTestCase() {
+class KmpAndroidTest : AndroidGradleFileModelTestCase() {
 
   @Test
-  fun testParseKmpAndroidLibrary() {
+  fun testParseKmpAndroid() {
     isIrrelevantForGroovy("Kotlin Multiplatform modules are not available for Groovy")
 
-    writeToBuildFile(TestFile.KMP_ANDROID_LIBRARY)
-    val kmpAndroidLibraryModel = gradleBuildModel.kotlin().androidLibrary()
+    writeToBuildFile(TestFile.KMP_ANDROID)
+    val kmpAndroidLibraryModel = gradleBuildModel.kotlin().android()
 
     assertEquals("namespace", "abc", kmpAndroidLibraryModel.namespace())
 
@@ -62,33 +57,53 @@ class KmpAndroidLibraryTest : AndroidGradleFileModelTestCase() {
   }
 
   @Test
-  fun testRemoveAndApply() {
+  fun testParseKmpAndroidLibrary() {
     isIrrelevantForGroovy("Kotlin Multiplatform modules are not available for Groovy")
 
     writeToBuildFile(TestFile.KMP_ANDROID_LIBRARY)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(COMPILE_SDK_BLOCK_VERSION)
 
-    buildModel.kotlin().androidLibrary().delete()
+    // Specifically using an AGP version older than 9.0.0
+    gradleBuildModel.context.agpVersion = AndroidGradlePluginVersion.parse("8.12.0")
+    val kmpAndroidLibraryModel = gradleBuildModel.kotlin().android()
+
+    assertEquals("namespace", "abc", kmpAndroidLibraryModel.namespace())
+
+    assertThat(kmpAndroidLibraryModel.compileSdkVersion().getValue(
+      GradlePropertyModel.INTEGER_TYPE)).isEqualTo(36)
+
+    assertThat(kmpAndroidLibraryModel.minSdkVersion().getValue(
+      GradlePropertyModel.INTEGER_TYPE)).isEqualTo(30)
+  }
+
+  @Test
+  fun testRemoveAndApply() {
+    isIrrelevantForGroovy("Kotlin Multiplatform modules are not available for Groovy")
+
+    writeToBuildFile(TestFile.KMP_ANDROID)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("9.0.0")
+
+    buildModel.kotlin().android().delete()
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, "")
 
-    buildModel.kotlin().androidLibrary().namespace().setValue("abc")
+    buildModel.kotlin().android().namespace().setValue("abc")
 
-    val config = buildModel.kotlin().androidLibrary().compileSdkVersion().toCompileSdkConfig()
+    val config = buildModel.kotlin().android().compileSdkVersion().toCompileSdkConfig()
     assertThat(config).isNotNull()
 
     config!!.setReleaseVersion(36,1, null)
 
-    buildModel.kotlin().androidLibrary().minSdkVersion().setValue(30)
+    buildModel.kotlin().android().minSdkVersion().setValue(30)
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, TestFile.KMP_ANDROID_LIBRARY)
+    verifyFileContents(myBuildFile, TestFile.KMP_ANDROID)
   }
 
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
-    KMP_ANDROID_LIBRARY("block")
+    KMP_ANDROID("block"),
+    KMP_ANDROID_LIBRARY("legacyBlock")
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

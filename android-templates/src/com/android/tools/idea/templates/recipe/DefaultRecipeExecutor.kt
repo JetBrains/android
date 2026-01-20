@@ -40,7 +40,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
-import com.android.tools.idea.gradle.dsl.android.model.android.androidLibrary
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint
@@ -788,7 +787,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
 
     val compileSdkModel =
       if (isKotlinMultiplatform) {
-        val kmpModel = moduleGradleBuildModel?.kotlin()?.androidLibrary() ?: return
+        val kmpModel = moduleGradleBuildModel?.kotlin()?.android() ?: return
         val afterElement = kmpModel.namespace().takeIf { it.psiElement != null }
         kmpModel.compileSdkVersion(afterElement)
       }
