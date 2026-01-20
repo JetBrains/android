@@ -174,9 +174,12 @@ maven_repository(
         "@maven//:androidx.compose.material.material_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.material.material_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.material3.adaptive.adaptive_1.0.0",  # Compose BOM 2024.09.00. Needed for Navigation UI Template
+        "@maven//:androidx.compose.material3.adaptive.adaptive_1.2.0",  # Compose BOM 2025.12.00. Needed for Navigation UI Template
         "@maven//:androidx.compose.material3.material3-adaptive-navigation-suite_1.3.0",  # Compose BOM 2024.09.00. Needed for Navigation UI Template
+        "@maven//:androidx.compose.material3.material3-adaptive-navigation-suite_1.4.0",  # Compose BOM 2025.12.00. Needed for Navigation UI Template
         "@maven//:androidx.compose.material3.material3-desktop_1.3.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.material3.material3_1.3.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.material3.material3_1.4.0",  # Compose BOM 2025.12.00. Needed for Navigation UI Template
         "@maven//:androidx.compose.runtime.runtime-desktop_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.runtime.runtime-saveable-desktop_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.runtime.runtime-saveable_1.10.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
@@ -253,6 +256,7 @@ maven_repository(
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.8.3",  # Compose BOM 2024.09.00
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.8.7",  # XR template
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.9.4",  # Compose BOM 2025.12.00. Needed for Navigation UI Template
         "@maven//:androidx.lifecycle.lifecycle-livedata-core_2.8.3",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.lifecycle.lifecycle-livedata-core_2.9.2",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.lifecycle.lifecycle-livedata-core_2.9.4",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
