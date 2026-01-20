@@ -586,15 +586,10 @@ constructor(
       add(CreateScratchFileAction())
       add(Separator.create())
       actions.forEach { add(it) }
-      if (
-        StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() &&
-          StudioFlags.LOGCAT_TERMINATE_APP_ACTIONS_ENABLED.get()
-      ) {
-        add(Separator.getInstance())
-        add(TerminateAppActions.ForceStopAppAction())
-        add(TerminateAppActions.KillAppAction())
-        add(TerminateAppActions.CrashAppAction())
-      }
+      add(Separator.getInstance())
+      add(TerminateAppActions.ForceStopAppAction())
+      add(TerminateAppActions.KillAppAction())
+      add(TerminateAppActions.CrashAppAction())
       add(Separator.create())
       add(ClearLogcatAction())
       add(Separator.create())
