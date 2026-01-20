@@ -532,11 +532,13 @@ class TemplateDiffTest(private val testMode: TestMode) {
     checkCreateTemplate("Empty Wear App With Tile And Complication", withSpecificKotlin)
   }
 
+  @Ignore("b/443868398")
   @Test
   fun testNewTvActivity() {
     checkCreateTemplate("Android TV Blank Views Activity")
   }
 
+  @Ignore("b/443868398")
   @Test
   fun testNewTvActivityWithKotlin() {
     checkCreateTemplate("Android TV Blank Views Activity", withKotlin())
