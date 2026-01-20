@@ -199,6 +199,105 @@ class GlassesPairingWizardTest {
 
     assertThat(duration).isLessThan(9.seconds)
   }
+
+  @Test
+  fun testPairingErrors() {
+    val coroutineScope = CoroutineScope(UnconfinedTestDispatcher())
+    val tracker = TestTracker()
+    UsageTracker.setWriterForTest(tracker)
+
+    try {
+      val phone =
+        FakeDeviceProvisionerPlugin.FakeDeviceHandle(
+          "p1",
+          coroutineScope,
+          DeviceState.Disconnected(
+            DeviceProperties.buildForTest {
+              icon = EmptyIcon.DEFAULT
+              manufacturer = "Google"
+              model = "Pixel 9"
+              deviceType = DeviceType.HANDHELD
+              androidVersion = AndroidVersion(36, 1)
+            }
+          ),
+        )
+      val glasses =
+        FakeDeviceProvisionerPlugin.FakeDeviceHandle(
+          "g1",
+          coroutineScope,
+          DeviceState.Disconnected(
+            DeviceProperties.buildForTest {
+              icon = EmptyIcon.DEFAULT
+              manufacturer = "Google"
+              model = "AI Glasses"
+              deviceType = DeviceType.AI_GLASSES
+              androidVersion = AndroidVersion(36, 1)
+            }
+          ),
+        )
+      val devicesFlow = MutableStateFlow(listOf(phone, glasses))
+
+      val pairingFlow = MutableStateFlow<PairingState>(PairingState.NotStarted)
+      fun pair(g: DeviceHandle, p: DeviceHandle): Flow<PairingState> {
+        return pairingFlow
+      }
+
+      val glassesWizard =
+        GlassesPairingWizard(null, coroutineScope, devicesFlow, glasses, ::pair, { true })
+      val wizard = TestComposeWizard { with(glassesWizard) { SelectDevicePage() } }
+
+      composeTestRule.setContent { wizard.Content() }
+
+      // Select device and start
+      composeTestRule.onNodeWithText("Google Pixel 9").performClick()
+      composeTestRule.onNodeWithText("Next").performClick()
+
+      // 1. Test UI_CDM_ASSOCIATION_FAILED
+      pairingFlow.value =
+        PairingState.Error(
+          heading = "Error pairing AI Glasses",
+          detailText = "Failed to create companion device association with glasses device.",
+        )
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithText("Error pairing AI Glasses").assertIsDisplayed()
+      composeTestRule
+        .onNodeWithText("Failed to create companion device association with glasses device.")
+        .assertIsDisplayed()
+      tracker.events.clear()
+
+      // 2. Test WORKER_GLASSES_CORE_CONNECTION_FAILED
+      pairingFlow.value =
+        PairingState.Error(
+          heading = "Error pairing AI Glasses",
+          detailText =
+            "Failed to connect to device. Please make sure to accept all permissions on the phone.",
+        )
+      composeTestRule.waitForIdle()
+      composeTestRule
+        .onNodeWithText(
+          "Failed to connect to device. Please make sure to accept all permissions on the phone."
+        )
+        .assertIsDisplayed()
+      tracker.events.clear()
+
+      // 3. Test WORKER_BOND_FAILED
+      pairingFlow.value =
+        PairingState.Error(
+          heading = "Error pairing AI Glasses",
+          detailText = "Failed to bluetooth bond to glasses device.",
+        )
+      composeTestRule.waitForIdle()
+      composeTestRule
+        .onNodeWithText("Failed to bluetooth bond to glasses device.")
+        .assertIsDisplayed()
+
+      composeTestRule.onNodeWithText("Cancel").performClick()
+      wizard.awaitClose()
+    } finally {
+      coroutineScope.cancel()
+      UsageTracker.cleanAfterTesting()
+    }
+  }
 }
 
 // TODO: android-merge; the UsageTrackerWrite interface had changed upstream (no generic, different callback to override)

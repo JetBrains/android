@@ -244,7 +244,22 @@ private fun PairingState(pairingState: PairingState, phone: DeviceRow) {
         Row(Modifier.padding(40.dp)) {
           CircularProgressIndicator()
           Spacer(Modifier.size(5.dp))
-          Text(pairingState.detailText ?: "Waiting for user to accept permissions on ${phone.name}")
+          Text(
+            pairingState.detailText
+              ?: "Waiting for user to accept Companion app permissions on ${phone.name}..."
+          )
+        }
+      }
+      is PairingState.GlassesCoreConnecting -> {
+        LargeText(pairingState.heading)
+
+        Row(Modifier.padding(40.dp)) {
+          CircularProgressIndicator()
+          Spacer(Modifier.size(5.dp))
+          Text(
+            pairingState.detailText
+              ?: "Waiting for user to accept XR Services permissions on ${phone.name}..."
+          )
         }
       }
       is PairingState.Complete -> {
@@ -336,7 +351,15 @@ internal sealed class PairingState {
   }
 
   data object AwaitingAuthorization : PairingState() {
-    override val heading: String = "Accept Permissions on Companion device"
+    override val heading: String = "Accept Companion app Permissions on Companion device"
+  }
+
+  data object GlassesCoreConnecting : PairingState() {
+    override val heading: String = "Accept XR Services Permissions on Companion device"
+  }
+
+  data object GlassesCoreConnected : PairingState() {
+    override val heading: String = "Finishing pairing..."
   }
 
   data class Error(
@@ -512,17 +535,25 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
             when (pairingState) {
               "PAIRED" -> emit(PairingState.Complete)
               "UI_CDM_ASSOCIATING" -> emit(PairingState.AwaitingAuthorization)
+              "WORKER_CONNECTING" -> emit(PairingState.GlassesCoreConnecting)
+              "WORKER_GLASSES_CORE_CONNECTED" -> emit(PairingState.GlassesCoreConnected)
               in AiGlassesPairing.TERMINAL_STATES ->
                 emit(
                   PairingState.Error(
                     heading = "Error pairing $glassesName",
                     detailText =
                       when (pairingState) {
+                        "UI_CDM_ASSOCIATION_FAILED" -> {
+                          GlassesPairingUsageTracker.log(
+                            GlassesPairingEvent.EventKind.PAIRING_ERROR_COMPANION_CDM_FAILED
+                          )
+                          "Failed to create companion device association with glasses device."
+                        }
                         "WORKER_BOND_FAILED" -> {
                           GlassesPairingUsageTracker.log(
                             GlassesPairingEvent.EventKind.PAIRING_ERROR_BOND_FAILED
                           )
-                          "Failed to bond to device."
+                          "Failed to create a Bluetooth bond to glasses device."
                         }
                         "WORKER_CONNECTION_FAILED" -> {
                           GlassesPairingUsageTracker.log(
@@ -530,10 +561,15 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
                           )
                           "Failed to connect to device."
                         }
+                        "WORKER_GLASSES_CORE_CONNECTION_FAILED" -> {
+                          GlassesPairingUsageTracker.log(
+                            GlassesPairingEvent.EventKind.PAIRING_ERROR_CONNECTION_FAILED
+                          )
+                          "Failed to connect to device. Please make sure to accept all permissions on the phone."
+                        }
                         "WORKER_CANCELLED" -> {
                           GlassesPairingUsageTracker.log(
-                            GlassesPairingEvent.EventKind
-                              .UNSPECIFIED // TODO: Add a new event kind for this
+                            GlassesPairingEvent.EventKind.PAIRING_ERROR_WORKER_CANCELLED
                           )
                           "Pairing was cancelled."
                         }
@@ -548,7 +584,7 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
           .catch { cause ->
             if (cause is ShellCommandException) {
               GlassesPairingUsageTracker.log(
-                GlassesPairingEvent.EventKind.PAIRING_ERROR_LAUNCH_FAILED
+                GlassesPairingEvent.EventKind.PAIRING_ERROR_SHELL_COMMAND
               )
               emit(
                 PairingState.Error(
@@ -559,9 +595,7 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
                 )
               )
             } else if (cause is java.io.IOException) {
-              GlassesPairingUsageTracker.log(
-                GlassesPairingEvent.EventKind.PAIRING_ERROR_CONNECTION_FAILED
-              )
+              GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.PAIRING_ERROR_IO_FAILED)
               emit(
                 PairingState.Error(
                   heading = "Connection lost",
@@ -591,6 +625,18 @@ internal fun pairGlassesToPhone(glasses: DeviceHandle, phone: DeviceHandle): Flo
             GlassesPairingEvent.EventKind.PAIRING_AWAITING_AUTHORIZATION
           )
           logger.debug("Awaiting authorization")
+        }
+        PairingState.GlassesCoreConnecting -> {
+          GlassesPairingUsageTracker.log(
+            GlassesPairingEvent.EventKind.PAIRING_GLASSES_CORE_CONNECTING
+          )
+          logger.debug("Connecting to glasses services")
+        }
+        PairingState.GlassesCoreConnected -> {
+          GlassesPairingUsageTracker.log(
+            GlassesPairingEvent.EventKind.PAIRING_GLASSES_CORE_CONNECTED
+          )
+          logger.debug("Glasses services connection successful")
         }
         PairingState.Complete -> logger.info("Successfully paired $phoneName with $glassesName")
         is PairingState.Error -> logger.warn(it.toLogMessage())
