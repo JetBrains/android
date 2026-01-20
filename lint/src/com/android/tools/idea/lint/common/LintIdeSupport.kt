@@ -19,6 +19,7 @@ import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
 import com.android.SdkConstants.FN_ANDROID_PROGUARD_FILE
 import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
+import com.android.SdkConstants.DOT_KEEP
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.lint.client.api.Configuration
@@ -114,7 +115,7 @@ abstract class LintIdeSupport {
       val name = file.name
       return name == FN_PROJECT_PROGUARD_FILE ||
         name == FN_ANDROID_PROGUARD_FILE ||
-        name == OLD_PROGUARD_FILE
+        name == OLD_PROGUARD_FILE || name.endsWith(DOT_KEEP)
     } else if (file.isGradleFile()) {
       return true
     }
