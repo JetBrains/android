@@ -17,8 +17,8 @@ package com.android.tools.compose.code.completion
 
 import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.codeInsight.completion.BaseCompletionParameters
 import com.intellij.codeInsight.completion.CompletionLocation
-import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionWeigher
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
@@ -42,14 +42,14 @@ import org.jetbrains.kotlin.psi.KtValueArgument
  */
 class ComposeCompletionWeigher : CompletionWeigher() {
   override fun weigh(element: LookupElement, location: CompletionLocation): Int {
-    if (!location.completionParameters.isInComposeEnabledModuleAndFile()) return 0
+    if (!location.baseCompletionParameters.isInComposeEnabledModuleAndFile()) return 0
 
     // Since Compose uses so many named arguments, promote them to the top. This is for a case where
     // the user has typed something like
     // "Button(en<caret>)", and we want to promote the completion "enabled = Boolean".
     if (element.isNamedArgumentCompletion()) return 3
 
-    if (location.completionParameters.isForStatement()) {
+    if (location.baseCompletionParameters.isForStatement()) {
       // For statements, ensure that the order of completion ends up as:
       // [Weight 2] Non-Composable functions that are being promoted above Composables
       // [Weight 1] Composable functions
@@ -59,7 +59,7 @@ class ComposeCompletionWeigher : CompletionWeigher() {
       return 0
     }
 
-    if (location.completionParameters.isForValueArgument()) {
+    if (location.baseCompletionParameters.isForValueArgument()) {
       // For arguments, ensure that the order of completion ends up as:
       // [Weight 2] Non-Composable functions that are being promoted
       // [Weight 1] Non-Composable functions / Anything else (default case)
@@ -115,7 +115,7 @@ private fun LookupElement.isNamedArgumentCompletion() = lookupString.endsWith(" 
  * Checks if this completion is for a statement (where Compose views are usually called) and not
  * part of another expression.
  */
-private fun CompletionParameters.isForStatement() =
+private fun BaseCompletionParameters.isForStatement() =
   position is LeafPsiElement &&
     position.node.elementType == KtTokens.IDENTIFIER &&
     position.parent?.parent is KtBlockExpression
@@ -123,11 +123,11 @@ private fun CompletionParameters.isForStatement() =
 /**
  * Checks if this completion is for a value argument, where Compose views are usually not called.
  */
-private fun CompletionParameters.isForValueArgument() =
+private fun BaseCompletionParameters.isForValueArgument() =
   position is LeafPsiElement &&
     position.node.elementType == KtTokens.IDENTIFIER &&
     position.parentOfType<KtValueArgument>() != null
 
 /** Checks if the given completions parameters are in a Kotlin file in a Compose-enabled module. */
-private fun CompletionParameters.isInComposeEnabledModuleAndFile() =
+private fun BaseCompletionParameters.isInComposeEnabledModuleAndFile() =
   position.language == KotlinLanguage.INSTANCE && position.getModuleSystem()?.usesCompose == true
