@@ -22,6 +22,7 @@ import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
 import com.android.SdkConstants.FN_ANDROID_PROGUARD_FILE
 import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
+import com.android.SdkConstants.DOT_KEEP
 import com.android.tools.lint.checks.DeprecatedSinceApiDetector
 import com.android.tools.lint.checks.DeprecationDetector
 import com.android.tools.lint.checks.DiscouragedDetector
@@ -207,7 +208,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       } else if (
         name == OLD_PROGUARD_FILE ||
           name == FN_PROJECT_PROGUARD_FILE ||
-          name == FN_ANDROID_PROGUARD_FILE
+          name == FN_ANDROID_PROGUARD_FILE ||
+          name.endsWith(DOT_KEEP)
       ) {
         scope = EnumSet.of(Scope.PROGUARD_FILE)
       } else if (GradleFileType.isGradleFile(mainFile)) {
