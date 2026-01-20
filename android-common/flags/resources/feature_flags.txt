@@ -106,7 +106,6 @@ logcat.export.import.enable=COMPLETE:2023
 logcat.ignore.studio.tags=COMPLETE:2023
 logcat.is.filter=COMPLETE:2022
 logcat.protobuf.enable=COMPLETE:2025
-logcat.terminate.app.actions.enable=COMPLETE:2023
 ndk.apkdebugbuildidcheck=COMPLETE:2018
 ndk.apkdebugreload=COMPLETE:2019
 ndk.ndk.projectview.showfilessunknowntocmake=COMPLETE:2020

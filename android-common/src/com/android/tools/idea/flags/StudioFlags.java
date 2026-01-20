@@ -759,15 +759,6 @@ public final class StudioFlags {
     "Enable Logcat Panel memory saving feature",
     "Reduces memory usage of Logcat tool by writing data to a file when the panel is not visible");
 
-  public static final Flag<Boolean> LOGCAT_TERMINATE_APP_ACTIONS_ENABLED = new BooleanFlag(
-    LOGCAT,
-    "terminate.app.actions.enable",
-    "Enable right-click actions for terminating the application",
-    "Enable right-click actions for terminating the application. " +
-    "Note that this feature is only enabled if the flag ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER is also true. " +
-    "Changing the value of this flag requires restarting Android Studio."
-  );
-
   public static final Flag<Boolean> LOGCAT_IGNORE_STUDIO_TAGS = new BooleanFlag(
     LOGCAT,
     "ignore.studio.tags",
