@@ -461,5 +461,5 @@ private object IOUtils {
 
   private fun getHomeDir(): Path? = VfsUtil.getUserHomeDir()?.toNioPath()
 
-  fun getDefaultBaseDir(): Path? = IdeFileUtils.getDesktopDirectory() ?: getHomeDir()
+  fun getDefaultBaseDir(): Path? = IdeFileUtils.getDesktopDirectoryIfExists() ?: getHomeDir()
 }
