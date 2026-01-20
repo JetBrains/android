@@ -283,6 +283,7 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.GradleBrokenPipeIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.IncompatibleAgpVersionsIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.IncompatibleGradleJvmAndGradleIssueChecker" order="first"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.InternetConnectionIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingBuildToolsIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingCMakeIssueChecker"/>

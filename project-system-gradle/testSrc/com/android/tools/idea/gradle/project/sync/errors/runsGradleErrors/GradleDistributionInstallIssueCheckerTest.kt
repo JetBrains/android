@@ -94,7 +94,7 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
 
     runSyncAndCheckBuildIssueFailure(
       preparedProject,
-      { _, buildIssue ->
+      verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect.that(buildIssue.description).isEqualTo("""
           Could not install Gradle distribution from 'https://127.0.0.1:1234/distributions/gradle-8.3-rc-2-bin.zip'.
@@ -108,7 +108,7 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
           OpenStudioProxySettingsQuickFix::class.java
         ))
       },
-      AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
       expectedPhasesReported = """
         FAILURE : SYNC_TOTAL
       """.trimIndent(),
@@ -142,7 +142,7 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
     """.trimIndent())
     runSyncAndCheckBuildIssueFailure(
       preparedProject,
-      { _, buildIssue ->
+      verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect.that(buildIssue.description).isEqualTo("""
           Could not install Gradle distribution from 'https://$unknownHost/distributions/gradle-8.3-rc-2-bin.zip'.
@@ -156,7 +156,7 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
           OpenStudioProxySettingsQuickFix::class.java
         ))
       },
-      AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
       expectedPhasesReported = """
         FAILURE : SYNC_TOTAL
       """.trimIndent(),
