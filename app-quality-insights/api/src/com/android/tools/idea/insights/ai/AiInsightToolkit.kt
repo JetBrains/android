@@ -23,6 +23,7 @@ import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.client.AiInsightClient
+import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
@@ -76,6 +77,15 @@ abstract class AiInsightToolkit(
     failureType: FailureType,
     event: Event,
   ): LoadingState.Done<AiInsight>
+
+  fun updateInsightFeedback(
+    connection: Connection,
+    issueId: IssueId,
+    variantId: String?,
+    feedback: InsightFeedback,
+  ) {
+    aiInsightClient.insightFeedbackUpdated(connection, issueId, variantId, feedback)
+  }
 
   private fun getDeprecationData(service: String, userFriendlyServiceName: String) =
     DevServicesDeprecationDataProvider.getInstance()

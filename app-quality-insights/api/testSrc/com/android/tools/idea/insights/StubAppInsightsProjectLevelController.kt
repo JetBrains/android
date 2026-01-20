@@ -44,7 +44,7 @@ open class StubAppInsightsProjectLevelController(
   override val state: Flow<AppInsightsState> = emptyFlow(),
   override val coroutineScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
   private val retrieveInsights: (PsiFile) -> List<AppInsight> = { _ -> emptyList() },
-  override val aiInsightToolkit: AiInsightToolkit = FakeAiInsightToolkit(mock(), cache = mock()),
+  override val aiInsightToolkit: AiInsightToolkit = FakeAiInsightToolkit(mock()),
 ) : AppInsightsProjectLevelController {
   override val project: Project = mock()
 

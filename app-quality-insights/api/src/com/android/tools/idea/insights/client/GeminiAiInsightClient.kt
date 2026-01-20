@@ -24,6 +24,7 @@ import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
+import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.IssueId
@@ -37,38 +38,38 @@ import org.jetbrains.annotations.VisibleForTesting
 @VisibleForTesting
 private val GEMINI_PREAMBLE =
   """
-    Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
-    For headings, use H3 only. Initial explanation should not be under a heading.
-    Begin with the explanation directly. Do not add fillers at the start of response.
+  Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+  For headings, use H3 only. Initial explanation should not be under a heading.
+  Begin with the explanation directly. Do not add fillers at the start of response.
   """
     .trimIndent()
 
 private val SHORT_GEMINI_PREAMBLE =
   """
-    Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
-    Do no include headings. Begin with the explanation directly. Do not add fillers at the start of
-    response. Respond in no more than four sentences.
+  Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+  Do no include headings. Begin with the explanation directly. Do not add fillers at the start of
+  response. Respond in no more than four sentences.
   """
     .trimIndent()
 
 private val GEMINI_INSIGHT_PROMPT_FORMAT =
   """
-    Explain this exception from my app running on %s with Android version %s:
-    Exception:
-    ```
-    %s
-    ```
+  Explain this exception from my app running on %s with Android version %s:
+  Exception:
+  ```
+  %s
+  ```
   """
     .trimIndent()
 
 private val GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT =
   """
-    Explain this exception from my app running on %s with Android version %s.
-    Please reference the provided source code if they are helpful.
-    Exception:
-    ```
-    %s
-    ```
+  Explain this exception from my app running on %s with Android version %s.
+  Please reference the provided source code if they are helpful.
+  Exception:
+  ```
+  %s
+  ```
   """
     .trimIndent()
 
@@ -103,17 +104,17 @@ private val GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_PROMPT =
 
 private val CONTEXT_PREAMBLE =
   """
-    Respond with a comma separated list of the paths of the files, in descending order of relevance.
-    If the file is a Java or Kotlin file, convert its package name to path.
+  Respond with a comma separated list of the paths of the files, in descending order of relevance.
+  If the file is a Java or Kotlin file, convert its package name to path.
   """
     .trimIndent()
 
 private val CONTEXT_PROMPT =
   """
-    What are the files relevant for fixing this exception?
-    ```
-    %s
-    ```
+  What are the files relevant for fixing this exception?
+  ```
+  %s
+  ```
   """
     .trimIndent()
 
@@ -124,8 +125,8 @@ private const val CONTEXT_WINDOW_PADDING = 150
 
 class GeminiAiInsightClient(
   private val project: Project,
-  private val cache: AppInsightsCache,
   private val codeContextResolver: CodeContextResolver,
+  private val cache: AiInsightCache = AiInsightCache(),
 ) : AiInsightClient {
   private val logger =
     Logger.getInstance("com.android.tools.idea.insights.client.GeminiAiInsightClient")
@@ -177,6 +178,20 @@ class GeminiAiInsightClient(
         insightSource = InsightSource.STUDIO_BOT,
       )
     }
+
+  override fun insightFeedbackUpdated(
+    connection: Connection,
+    issueId: IssueId,
+    variantId: String?,
+    feedback: InsightFeedback,
+  ) {
+    val cachedInsight =
+      getCachedInsight(
+        GeminiCrashInsightRequest(connection, issueId, variantId, "", "", Event.EMPTY)
+      ) ?: return
+
+    cache.putAiInsight(connection, issueId, variantId, cachedInsight.copy(feedback = feedback))
+  }
 
   // Always prefer the insight generated with context regardless of current context sharing setting.
   private fun getCachedInsight(request: GeminiCrashInsightRequest): AiInsight? =

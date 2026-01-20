@@ -22,7 +22,6 @@ import com.android.tools.idea.gemini.formatForTests
 import com.android.tools.idea.insights.AI_INSIGHT_WITH_CODE_CONTEXT
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
-import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
@@ -61,23 +60,23 @@ class GeminiAiInsightClientTest {
       CodeContext(
         "a/b/c/HelloWorld1.kt",
         """
-      |package a.b.c
-      |
-      |fun helloWorld() {
-      |  println("Hello World")
-      |}
-      """
+        |package a.b.c
+        |
+        |fun helloWorld() {
+        |  println("Hello World")
+        |}
+        """
           .trimMargin(),
       ),
       CodeContext(
         "a/b/c/HelloWorld2.kt",
         """
-      |package a.b.c
-      |
-      |fun helloWorld2() {
-      |  println("Hello World 2")
-      |}
-      """
+        |package a.b.c
+        |
+        |fun helloWorld2() {
+        |  println("Hello World 2")
+        |}
+        """
           .trimMargin(),
       ),
     )
@@ -100,12 +99,7 @@ class GeminiAiInsightClientTest {
 
   @Test
   fun `test gemini client without code context`() = runBlocking {
-    val client =
-      GeminiAiInsightClient(
-        projectRule.project,
-        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-        codeContextResolver,
-      )
+    val client = GeminiAiInsightClient(projectRule.project, codeContextResolver)
 
     val request =
       GeminiCrashInsightRequest(
@@ -133,7 +127,8 @@ class GeminiAiInsightClientTest {
       |retrofit2.HttpException: HTTP 401 
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
-      |```"""
+      |```
+      """
         .trimMargin()
     val insight = client.fetchCrashInsight(request)
 
@@ -144,12 +139,7 @@ class GeminiAiInsightClientTest {
 
   @Test
   fun `test gemini client with code context`() = runBlocking {
-    val client =
-      GeminiAiInsightClient(
-        projectRule.project,
-        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-        codeContextResolver,
-      )
+    val client = GeminiAiInsightClient(projectRule.project, codeContextResolver)
 
     val request =
       GeminiCrashInsightRequest(
@@ -192,7 +182,8 @@ class GeminiAiInsightClientTest {
       |fun helloWorld2() {
       |  println("Hello World 2")
       |}
-      |```"""
+      |```
+      """
         .trimMargin()
     val insight = client.fetchCrashInsight(request)
 
@@ -205,9 +196,9 @@ class GeminiAiInsightClientTest {
   @Test
   fun `client reuses cached insights`() = runBlocking {
     fakeGeminiPluginApi.contextAllowed = false
-    val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
+    val cache = AiInsightCache()
     cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
-    val client = GeminiAiInsightClient(projectRule.project, cache, codeContextResolver)
+    val client = GeminiAiInsightClient(projectRule.project, codeContextResolver, cache)
 
     (codeContextResolver as FakeCodeContextResolver).codeContext = emptyList()
 
@@ -227,8 +218,8 @@ class GeminiAiInsightClientTest {
 
   @Test
   fun `client caches new insight`() = runBlocking {
-    val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
-    val client = GeminiAiInsightClient(projectRule.project, cache, codeContextResolver)
+    val cache = AiInsightCache()
+    val client = GeminiAiInsightClient(projectRule.project, codeContextResolver, cache)
 
     (codeContextResolver as FakeCodeContextResolver).codeContext = emptyList()
     fakeGeminiPluginApi.generateResponse = ""
@@ -255,10 +246,10 @@ class GeminiAiInsightClientTest {
   fun `client prefers insight generated with code context regardless of context sharing setting`() =
     runBlocking {
       fakeGeminiPluginApi.contextAllowed = false
-      val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
+      val cache = AiInsightCache()
       cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
       cache.putAiInsight(CONNECTION1, ISSUE1.id, null, AI_INSIGHT_WITH_CODE_CONTEXT)
-      val client = GeminiAiInsightClient(projectRule.project, cache, codeContextResolver)
+      val client = GeminiAiInsightClient(projectRule.project, codeContextResolver, cache)
 
       val request =
         GeminiCrashInsightRequest(
@@ -278,9 +269,9 @@ class GeminiAiInsightClientTest {
   fun `when context sharing is enabled, client does not serve cached insight generated without context`() =
     runBlocking {
       fakeGeminiPluginApi.contextAllowed = true
-      val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
+      val cache = AiInsightCache()
       cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
-      val client = GeminiAiInsightClient(projectRule.project, cache, codeContextResolver)
+      val client = GeminiAiInsightClient(projectRule.project, codeContextResolver, cache)
 
       val request =
         GeminiCrashInsightRequest(
@@ -294,36 +285,37 @@ class GeminiAiInsightClientTest {
 
       expectedPromptText =
         """
-      |USER
-      |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
-      |For headings, use H3 only. Initial explanation should not be under a heading.
-      |Begin with the explanation directly. Do not add fillers at the start of response.
-      |
-      |USER
-      |Explain this exception from my app running on DeviceName with Android version ApiLevel.
-      |Please reference the provided source code if they are helpful.
-      |Exception:
-      |```
-      |retrofit2.HttpException: HTTP 401 
-      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
-      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
-      |```
-      |a/b/c/HelloWorld1.kt:
-      |```
-      |package a.b.c
-      |
-      |fun helloWorld() {
-      |  println("Hello World")
-      |}
-      |```
-      |a/b/c/HelloWorld2.kt:
-      |```
-      |package a.b.c
-      |
-      |fun helloWorld2() {
-      |  println("Hello World 2")
-      |}
-      |```"""
+        |USER
+        |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+        |For headings, use H3 only. Initial explanation should not be under a heading.
+        |Begin with the explanation directly. Do not add fillers at the start of response.
+        |
+        |USER
+        |Explain this exception from my app running on DeviceName with Android version ApiLevel.
+        |Please reference the provided source code if they are helpful.
+        |Exception:
+        |```
+        |retrofit2.HttpException: HTTP 401 
+        |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
+        |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
+        |```
+        |a/b/c/HelloWorld1.kt:
+        |```
+        |package a.b.c
+        |
+        |fun helloWorld() {
+        |  println("Hello World")
+        |}
+        |```
+        |a/b/c/HelloWorld2.kt:
+        |```
+        |package a.b.c
+        |
+        |fun helloWorld2() {
+        |  println("Hello World 2")
+        |}
+        |```
+        """
           .trimMargin()
       val insight = client.fetchCrashInsight(request)
 
@@ -335,12 +327,7 @@ class GeminiAiInsightClientTest {
 
   @Test
   fun `client omits code context when connection does not match project`() = runBlocking {
-    val client =
-      GeminiAiInsightClient(
-        projectRule.project,
-        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-        codeContextResolver,
-      )
+    val client = GeminiAiInsightClient(projectRule.project, codeContextResolver)
     val connection = mock<Connection>()
     `when`(connection.isMatchingProject()).thenReturn(false)
 
@@ -368,7 +355,8 @@ class GeminiAiInsightClientTest {
       |retrofit2.HttpException: HTTP 401 
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
       |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
-      |```"""
+      |```
+      """
         .trimMargin()
     val insight = client.fetchCrashInsight(request)
 
@@ -382,12 +370,7 @@ class GeminiAiInsightClientTest {
 
   @Test
   fun `create gemini insight request truncates at the context limit`() = runBlocking {
-    val client =
-      GeminiAiInsightClient(
-        projectRule.project,
-        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-        codeContextResolver,
-      )
+    val client = GeminiAiInsightClient(projectRule.project, codeContextResolver)
 
     val event = ISSUE1.sampleEvent
 
@@ -408,8 +391,8 @@ class GeminiAiInsightClientTest {
       |Exception:
       |```
       |retrofit2.HttpException: HTTP 401 
-	    |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
-	    |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
+      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
+      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
       |```
       |a/b/c/HelloWorld1.kt:
       |```
@@ -418,7 +401,8 @@ class GeminiAiInsightClientTest {
       |fun helloWorld() {
       |  println("Hello World")
       |}
-      |```"""
+      |```
+      """
         .trimMargin()
     val insight = client.fetchCrashInsight(request)
 
@@ -431,12 +415,7 @@ class GeminiAiInsightClientTest {
   @Test
   fun `gemini insight request with suggest a fix prompt`() = runBlocking {
     StudioFlags.SUGGEST_A_FIX.override(true)
-    val client =
-      GeminiAiInsightClient(
-        projectRule.project,
-        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-        codeContextResolver,
-      )
+    val client = GeminiAiInsightClient(projectRule.project, codeContextResolver)
 
     val request =
       GeminiCrashInsightRequest(
@@ -482,7 +461,8 @@ class GeminiAiInsightClientTest {
       |fun helloWorld2() {
       |  println("Hello World 2")
       |}
-      |```"""
+      |```
+      """
         .trimMargin()
     val insight = client.fetchCrashInsight(request)
 
@@ -497,12 +477,7 @@ class GeminiAiInsightClientTest {
     runBlocking {
       StudioFlags.SUGGEST_A_FIX.override(true)
       StudioFlags.STUDIOBOT_TRANSFORM_SESSION_DIFF_EDITOR_VIEWER_ENABLED.override(true)
-      val client =
-        GeminiAiInsightClient(
-          projectRule.project,
-          AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-          codeContextResolver,
-        )
+      val client = GeminiAiInsightClient(projectRule.project, codeContextResolver)
 
       val request =
         GeminiCrashInsightRequest(
@@ -516,40 +491,41 @@ class GeminiAiInsightClientTest {
 
       expectedPromptText =
         """
-      |USER
-      |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
-      |For headings, use H3 only. Initial explanation should not be under a heading.
-      |Begin with the explanation directly. Do not add fillers at the start of response.
-      |
-      |USER
-      |Explain this exception from my app running on DeviceName with Android version ApiLevel.
-      |Please reference the provided source code if they are helpful.
-      |If you think you can guess which files the fix for this crash should be performed in,
-      |please include at the end of the response the extract phrase \"The fix should likely be in \${'$'}files,
-      |where files is a comma separated list of the fully qualified path of the source files
-      |in which you think the fix should likely be performed.
-      |Exception:
-      |```
-      |retrofit2.HttpException: HTTP 401 
-      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
-      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
-      |```
-      |a/b/c/HelloWorld1.kt:
-      |```
-      |package a.b.c
-      |
-      |fun helloWorld() {
-      |  println("Hello World")
-      |}
-      |```
-      |a/b/c/HelloWorld2.kt:
-      |```
-      |package a.b.c
-      |
-      |fun helloWorld2() {
-      |  println("Hello World 2")
-      |}
-      |```"""
+        |USER
+        |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+        |For headings, use H3 only. Initial explanation should not be under a heading.
+        |Begin with the explanation directly. Do not add fillers at the start of response.
+        |
+        |USER
+        |Explain this exception from my app running on DeviceName with Android version ApiLevel.
+        |Please reference the provided source code if they are helpful.
+        |If you think you can guess which files the fix for this crash should be performed in,
+        |please include at the end of the response the extract phrase \"The fix should likely be in \${'$'}files,
+        |where files is a comma separated list of the fully qualified path of the source files
+        |in which you think the fix should likely be performed.
+        |Exception:
+        |```
+        |retrofit2.HttpException: HTTP 401 
+        |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
+        |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
+        |```
+        |a/b/c/HelloWorld1.kt:
+        |```
+        |package a.b.c
+        |
+        |fun helloWorld() {
+        |  println("Hello World")
+        |}
+        |```
+        |a/b/c/HelloWorld2.kt:
+        |```
+        |package a.b.c
+        |
+        |fun helloWorld2() {
+        |  println("Hello World 2")
+        |}
+        |```
+        """
           .trimMargin()
       val insight = client.fetchCrashInsight(request)
 
@@ -571,12 +547,7 @@ class GeminiAiInsightClientTest {
           return CodeContextData(context)
         }
       }
-    val client =
-      GeminiAiInsightClient(
-        projectRule.project,
-        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-        codeContextResolver,
-      )
+    val client = GeminiAiInsightClient(projectRule.project, codeContextResolver)
     fakeGeminiPluginApi.generateResponse = "a /b /c /Hello World1 .kt,\na/b/c/Hello World 2.kt\n"
 
     val request =
@@ -623,7 +594,8 @@ class GeminiAiInsightClientTest {
       |fun helloWorld2() {
       |  println("Hello World 2")
       |}
-      |```"""
+      |```
+      """
         .trimMargin()
 
     val insight = client.fetchCrashInsight(request)

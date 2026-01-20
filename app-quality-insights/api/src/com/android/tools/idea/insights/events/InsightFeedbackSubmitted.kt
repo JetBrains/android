@@ -41,7 +41,9 @@ class InsightFeedbackSubmitted(val feedback: InsightFeedback) : ChangeEvent {
       currentIssue.issueDetails.fatality.toCrashType(),
       currentInsight,
     )
-    cache.putAiInsight(connection, currentIssue.id, state.selectedVariant?.id, newInsight)
-    return StateTransition(newState, Action.NONE)
+    return StateTransition(
+      newState,
+      Action.UpdateInsightFeedback(currentIssue.id, connection, state.selectedVariant?.id, feedback),
+    )
   }
 }
