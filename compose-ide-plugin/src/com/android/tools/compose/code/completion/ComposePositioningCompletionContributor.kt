@@ -451,7 +451,7 @@ class ComposePositioningCompletionContributor : CompletionContributor() {
 /** Suggests completion for the Alignment and Arrangement interfaces. */
 class ComposePositioningCompletionWeigher : CompletionWeigher() {
   override fun weigh(lookupElement: LookupElement, location: CompletionLocation): Int? {
-    val parameters = location.completionParameters
+    val parameters = location.baseCompletionParameters
     val elementToComplete = parameters.position
     if (!isComposeEnabled(elementToComplete) || parameters.originalFile !is KtFile) {
       // Return null when this isn't a completion we care about to avoid any further comparisons or
