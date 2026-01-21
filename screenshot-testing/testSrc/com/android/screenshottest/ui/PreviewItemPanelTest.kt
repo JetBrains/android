@@ -27,6 +27,8 @@ import org.junit.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Container
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.rules.TemporaryFolder
 import org.mockito.Mockito.mock
 
@@ -207,6 +209,54 @@ class PreviewItemPanelTest {
     panel.showImageForView(ScreenshotViewType.DIFF)
 
     assertEquals("Changing the path should trigger new load", 2, imageCreationCount)
+  }
+
+  @Test
+  fun verifyImageReloadsAfterPlaceholder() = runInEdtAndWait {
+    var imageCreationCount = 0
+    val srcPath = temporaryFolder.newFile("image.png").absolutePath
+    val details = PreviewDetails(
+      testId = "test.id",
+      className = "TestClass",
+      methodName = "testMethod",
+      previewName = "preview",
+      testResult = AndroidTestCaseResult.PASSED,
+      srcImagePath = srcPath,
+      diffImagePath = null
+    )
+
+    val panel = PreviewItemPanel(
+      previewData = details,
+      showDetails = false, // Disable details to avoid finding the "Match: " label
+      appExecutorService = MoreExecutors.newDirectExecutorService(),
+      createImageIcon = { _ ->
+        imageCreationCount++
+        mock()
+      }
+    )
+
+    // 1. Initial load
+    panel.showImageForView(ScreenshotViewType.NEW)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertEquals("Should load image the first time", 1, imageCreationCount)
+    assertTrue("Flag should be true after successful load", panel.isLoadedSuccessfully)
+    assertNull("The placeholder label should be removed when an image is displayed", findLabel(panel))
+
+    // 2. Switch to Diff (which shows a placeholder for PASSED tests)
+    panel.showImageForView(ScreenshotViewType.DIFF)
+    // CRUCIAL: Dispatch events so the invokeLater in showPlaceholder runs
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    val label = findLabel(panel)
+    assertEquals("No Difference", label?.text)
+
+    // 3. Switch back to "New" image (same path as step 1)
+    panel.showImageForView(ScreenshotViewType.NEW)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // This should now be 2 because showPlaceholder reset currentImagePath
+    assertEquals("Should trigger a new load after a placeholder was shown", 2, imageCreationCount)
+    assertTrue("Flag should still be true", panel.isLoadedSuccessfully)
   }
 
   private fun findLabel(container: Container): JBLabel? {

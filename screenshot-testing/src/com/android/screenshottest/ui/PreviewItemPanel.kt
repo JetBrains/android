@@ -121,6 +121,7 @@ class PreviewItemPanel(
   }
 
   fun showError(message: String) {
+    currentImagePath = ""
     ApplicationManager.getApplication().invokeLater {
       isLoadedSuccessfully = false
       imagePanel.showText(message)
@@ -128,6 +129,7 @@ class PreviewItemPanel(
   }
 
   private fun showPlaceholder(message: String, color: JBColor) {
+    currentImagePath = ""
     ApplicationManager.getApplication().invokeLater {
       imagePanel.showText(message, color)
     }
