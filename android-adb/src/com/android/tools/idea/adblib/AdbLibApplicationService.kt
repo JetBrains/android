@@ -50,6 +50,7 @@ import com.intellij.openapi.startup.StartupActivity
 import java.time.Duration
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.guava.await
@@ -224,6 +225,7 @@ class AdbLibApplicationService : Disposable {
       private val adbFileLocationTracker: AdbFileLocationTracker,
     ) : AdbServerChannelProvider {
       private val logger = thisLogger()
+      private val isStartingAdbInProgress = AtomicBoolean(false)
 
       override suspend fun createChannel(timeout: Long, unit: TimeUnit): AdbChannel {
         return host.timeProvider.withErrorTimeout(timeout, unit) {
@@ -245,19 +247,25 @@ class AdbLibApplicationService : Disposable {
           // `AdbService.getInstance().getDebugBridge` which will trigger createBridge call.
           // Start asynchronously to prevent circular dependency between `AdbLibAndroidDebugBridge`
           // and `AdbServerController`
-          session.scope.launch {
-            val adbLibFile =
+          if (isStartingAdbInProgress.compareAndSet(false, true)) {
+            session.scope.launch {
               try {
-                adbFileLocationTracker.get()
-              } catch (e: CancellationException) {
-                throw e
-              } catch (e: Exception) {
-                // Suppress exceptions caused by a missing adb file.
-                logger.warn("Failed to retrieve adb file location", e)
-                null
-              }
+                val adbLibFile =
+                  try {
+                    adbFileLocationTracker.get()
+                  } catch (e: CancellationException) {
+                    throw e
+                  } catch (e: Exception) {
+                    // Suppress exceptions caused by a missing adb file.
+                    logger.warn("Failed to retrieve adb file location", e)
+                    null
+                  }
 
-            adbLibFile?.let { AdbService.getInstance().getDebugBridge(it).await() }
+                adbLibFile?.let { AdbService.getInstance().getDebugBridge(it).await() }
+              } finally {
+                isStartingAdbInProgress.set(false)
+              }
+            }
           }
         }
       }
