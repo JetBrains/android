@@ -19,9 +19,10 @@ import com.android.SdkConstants.EXT_PNG
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
+import com.android.tools.idea.io.IdeFileUtils.getDesktopDirectory
 import com.android.tools.idea.ui.extractTextFromHtml
+import com.android.tools.idea.ui.save.SaveConfigurationResolver.Companion.DESKTOP_DIR_MACRO
 import com.android.tools.idea.ui.save.SaveConfigurationResolver.Companion.PROJECT_DIR_MACRO
-import com.android.tools.idea.ui.save.SaveConfigurationResolver.Companion.USER_HOME_MACRO
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
@@ -33,13 +34,13 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.dialog
-import org.junit.Rule
-import org.junit.Test
 import java.io.File
 import java.time.LocalDateTime
 import java.time.ZoneId
 import javax.swing.JEditorPane
 import javax.swing.event.HyperlinkEvent
+import org.junit.Rule
+import org.junit.Test
 
 /** Tests for [SaveConfigurationPanel]. */
 @RunsInEdt
@@ -53,7 +54,8 @@ class SaveConfigurationPanelTest {
     get() = projectRule.project
   private val projectDir: String
     get() = project.guessProjectDir()?.toNioPath().toString()
-  private val homeDir = System.getProperty("user.home")
+  private val desktopDir: String
+    get() = getDesktopDirectory().toString()
   private val timestamp = LocalDateTime.of(2025, 1, 21, 10, 22, 14).atZone(ZoneId.systemDefault()).toInstant()
   private val saveConfig = SaveConfiguration().apply { filenameTemplate = "Screenshot_<yyyy><MM><dd>_<HH><mm><ss>" }
 
@@ -65,11 +67,11 @@ class SaveConfigurationPanelTest {
     createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
       val ui = FakeUi(dlg.rootPane)
       val saveLocationField = ui.getComponent<TextFieldWithBrowseButton>()
-      assertThat(saveLocationField.text).isEqualTo("$homeDir/Desktop".toPlatformPath())
+      assertThat(saveLocationField.text).isEqualTo(desktopDir.toPlatformPath())
       val filenameTemplateField = ui.getComponent<JBTextField>()
       assertThat(filenameTemplateField.text).isEqualTo("Screenshot_<yyyy><MM><dd>_<HH><mm><ss>")
       val previewField = ui.getComponent<JEditorPane>()
-      assertThat(extractTextFromHtml(previewField.text)).isEqualTo("$homeDir/Desktop/Screenshot_20250121_102214.png".toPlatformPath())
+      assertThat(extractTextFromHtml(previewField.text)).isEqualTo("$desktopDir/Screenshot_20250121_102214.png".toPlatformPath())
       saveLocationField.text = "$projectDir/foo/bar"
       filenameTemplateField.text = "screenshots/<####>"
       assertThat(extractTextFromHtml(previewField.text)).isEqualTo("$projectDir/foo/bar/screenshots/0005.png".toPlatformPath())
@@ -119,11 +121,11 @@ class SaveConfigurationPanelTest {
     createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
       val ui = FakeUi(dlg.rootPane)
       val saveLocationField = ui.getComponent<TextFieldWithBrowseButton>()
-      assertThat(saveLocationField.text).isEqualTo("$homeDir/Desktop".toPlatformPath())
+      assertThat(saveLocationField.text).isEqualTo(desktopDir.toPlatformPath())
       val filenameTemplateField = ui.getComponent<JBTextField>()
       assertThat(filenameTemplateField.text).isEqualTo("Screenshot_<yyyy><MM><dd>_<HH><mm><ss>")
       val previewField = ui.getComponent<JEditorPane>()
-      assertThat(extractTextFromHtml(previewField.text)).isEqualTo("$homeDir/Desktop/Screenshot_20250121_102214.png".toPlatformPath())
+      assertThat(extractTextFromHtml(previewField.text)).isEqualTo("$desktopDir/Screenshot_20250121_102214.png".toPlatformPath())
       saveLocationField.text = "$projectDir/foo/bar"
       filenameTemplateField.text = "screenshots/<####>"
       assertThat(extractTextFromHtml(previewField.text)).isEqualTo("$projectDir/foo/bar/screenshots/0005.png".toPlatformPath())
@@ -136,7 +138,7 @@ class SaveConfigurationPanelTest {
 
     assertThat(dialogWrapper.isDisposed).isTrue()
     assertThat(dialogWrapper.isOK).isFalse()
-    assertThat(saveConfig.saveLocation).isEqualTo("$USER_HOME_MACRO/Desktop")
+    assertThat(saveConfig.saveLocation).isEqualTo(DESKTOP_DIR_MACRO)
     assertThat(saveConfig.filenameTemplate).isEqualTo("Screenshot_<yyyy><MM><dd>_<HH><mm><ss>")
     assertThat(saveConfig.postSaveAction).isEqualTo(PostSaveAction.OPEN)
   }
