@@ -550,23 +550,21 @@ def _form_version_full(ctx):
     code_name_and_patch_components = (ctx.attr.version_code_name +
                                       " | " +
                                       "{0}.{1}.{2}")
-    return code_name_and_patch_components + _form_channel_and_release_number_suffix(ctx)
+    patch_name = _form_patch_name(ctx)
+    patch_name_suffix = " " + patch_name if patch_name else ""
+    return code_name_and_patch_components + patch_name_suffix
 
-def _form_colloquial_name(ctx):
-    """E.g., Bumblebee Canary 4, Bumblebee RC 1, Bumblebee Patch 1"""
-    return ctx.attr.version_code_name + _form_channel_and_release_number_suffix(ctx)
-
-def _form_channel_and_release_number_suffix(ctx):
+def _form_patch_name(ctx):
     """E.g., Canary 4, RC 1, Patch 1, Nightly 2025-01-01"""
     config = ctx.attr.configuration[_ConfigurationInfo]
     channel = _get_channel_info(config.version_type)
     if channel == "Stable":
         if ctx.attr.version_release_number <= 1:
             return ""
-        return " Patch " + str(ctx.attr.version_release_number - 1)
+        return "Patch " + str(ctx.attr.version_release_number - 1)
     if config.version_suffix:
-        return " " + config.version_suffix
-    return " " + config.version_type + " " + str(ctx.attr.version_release_number)
+        return config.version_suffix
+    return config.version_type + " " + str(ctx.attr.version_release_number)
 
 def _form_studio_version_component(intellij_info, studio_micro):
     """Returns the 4th component of the full 5-component build number, identifying a specific Studio release"""
@@ -641,7 +639,7 @@ def _produce_manifest(ctx, platform, platform_files):
     args += ["--resources_jar", resources_jar.path]
     args += ["--channel", channel]
     args += ["--code_name", ctx.attr.version_code_name]
-    args += ["--colloquial_name", _form_colloquial_name(ctx)]
+    args += ["--patch_name", _form_patch_name(ctx)]
 
     ctx.actions.run(
         inputs = [build_txt, resources_jar, ctx.info_file, ctx.version_file],
