@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.errors
 
+import com.android.tools.idea.rendering.StudioHtmlLinkManager
 import com.android.tools.idea.rendering.errors.ui.MessageTip
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel.Issue
 import com.android.tools.rendering.HtmlLinkManager
@@ -121,7 +122,11 @@ object ComposeRenderErrorContributor {
 
   /** Analyzes the logged errors and returns a list of [Issue] for Compose-specific problems. */
   @JvmStatic
-  fun reportComposeErrors(logger: RenderLogger, linkManager: HtmlLinkManager, linkHandler: HyperlinkListener): List<Issue> =
+  fun reportComposeErrors(
+    logger: RenderLogger,
+    linkManager: HtmlLinkManager = StudioHtmlLinkManager(),
+    linkHandler: HyperlinkListener = HyperlinkListener {},
+  ): List<Issue> =
     logger.messages.mapNotNull { message ->
       ComposeRenderErrorType.entries
         .firstOrNull { it.predicate(message.throwable) }
