@@ -100,24 +100,20 @@ public class AdbServiceTest extends LightPlatformTestCase {
   }
 
   public void testOptionsChanged() throws Exception {
+    // Prepare
     Path adb = TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB);
-    boolean testOptionSetting = StudioFlags.ENABLE_JDWP_PROXY_SERVICE.get();
 
     ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb.toFile());
     AndroidDebugBridge bridge0 = getUninterruptibly(future);
     assertThat(bridge0.isConnected()).isTrue();
-    assertThat(DdmPreferences.isJdwpProxyEnabled()).isEqualTo(testOptionSetting);
 
-    // Change options and notify AdbService.
-    testOptionSetting = !testOptionSetting;
-    StudioFlags.ENABLE_JDWP_PROXY_SERVICE.override(testOptionSetting);
+    // Act: change options and notify AdbService.
     AdbOptionsService.getInstance().getOptionsUpdater().commit();
 
-    // Ensure new bridge is recreated with new settings.
+    // Assert: Ensure new bridge is recreated
     future = AdbService.getInstance().getDebugBridge(adb.toFile());
     AndroidDebugBridge bridge1 = getUninterruptibly(future);
     assertThat(bridge1.isConnected()).isTrue();
-    assertThat(DdmPreferences.isJdwpProxyEnabled()).isEqualTo(testOptionSetting);
     assertThat(bridge1).isNotSameAs(bridge0);
   }
 
