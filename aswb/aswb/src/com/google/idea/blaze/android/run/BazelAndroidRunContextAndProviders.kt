@@ -25,14 +25,15 @@ import com.android.tools.idea.run.editor.ProfilerState
 import com.google.idea.blaze.android.run.runner.ApkBuildStep
 import com.intellij.execution.Executor
 import com.intellij.openapi.project.Project
+import java.io.File
 
 /** Holds the context data required to run an Android application.  */
 class BazelAndroidRunContext(
   val consoleProvider: ConsoleProvider,
   val buildStep: ApkBuildStep,
   val applicationIdProvider: BazelApplicationIdProvider,
-  val apkProvider: ApkProvider,
-  val applicationProjectContext: ApplicationProjectContext,
+  val apkProvider: BazelApkProvider,
+  val applicationProjectContext: BazelApplicationProjectContext,
   val executor: Executor,
   val profileState: ProfilerState?
 )
@@ -53,7 +54,10 @@ class BazelApplicationIdProvider(
 }
 
 /** Apk provider from deploy info proto  */
-class BazelApkProvider(val apkInfos: List<ApkInfo>) : ApkProvider {
+class BazelApkProvider(
+  val apkInfos: List<ApkInfo>,
+  val symbolFiles: List<File>
+) : ApkProvider {
   override fun getApks(device: IDevice): Collection<ApkInfo> {
     return apkInfos
   }

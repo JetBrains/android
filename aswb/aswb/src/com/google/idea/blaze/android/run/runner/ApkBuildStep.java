@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.android.run.runner;
 
-import com.android.tools.idea.run.ApkProvisionException;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.base.scope.BlazeContext;
 

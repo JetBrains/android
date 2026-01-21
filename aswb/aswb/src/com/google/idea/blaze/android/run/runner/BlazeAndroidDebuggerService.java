@@ -22,7 +22,7 @@ import com.android.tools.ndk.run.editor.AutoAndroidDebuggerState;
 import com.android.tools.ndk.run.editor.NativeAndroidDebuggerState;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.cppimpl.debug.BlazeAutoAndroidDebugger;
-import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
+import com.google.idea.blaze.android.run.BazelApkProvider;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.components.ServiceManager;
@@ -48,8 +48,7 @@ public interface BlazeAndroidDebuggerService {
    */
   AndroidDebuggerState getDebuggerState(AndroidDebugger debugger);
 
-  void configureNativeDebugger(
-      AndroidDebuggerState state, @Nullable BlazeAndroidDeployInfo deployInfo);
+  void configureNativeDebugger(AndroidDebuggerState state, @Nullable BazelApkProvider provider);
 
   /** Default debugger service. */
   class DefaultDebuggerService implements BlazeAndroidDebuggerService {
@@ -93,7 +92,7 @@ public interface BlazeAndroidDebuggerService {
 
     @Override
     public void configureNativeDebugger(
-        AndroidDebuggerState rawState, @Nullable BlazeAndroidDeployInfo deployInfo) {
+        AndroidDebuggerState rawState, @Nullable BazelApkProvider provider) {
       if (!isNdkPluginLoaded() && !(rawState instanceof AutoAndroidDebuggerState)) {
         return;
       }
@@ -120,9 +119,9 @@ public interface BlazeAndroidDebuggerService {
 
       // NDK plugin will pass symbol directories to LLDB as `settings append
       // target.exec-search-paths`.
-      if (deployInfo != null) {
+      if (provider != null) {
         state.setSymbolDirs(
-            deployInfo.getSymbolFiles().stream()
+            provider.getSymbolFiles().stream()
                 .map(symbol -> symbol.getParentFile().getAbsolutePath())
                 .collect(ImmutableList.toImmutableList()));
       }
