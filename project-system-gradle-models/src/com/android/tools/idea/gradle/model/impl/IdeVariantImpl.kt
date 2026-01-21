@@ -218,6 +218,39 @@ data class IdeVariantCoreImpl(
   override val deprecatedPreMergedTestApplicationId: String?,
   override val desugaredMethodsFiles: List<FileImpl>,
   override val experimentalProperties: Map<String, String>,
+  private val hashCode: Int =
+    computeHashCode(
+      name,
+      displayName,
+      mainArtifact,
+      testSuiteArtifacts,
+      hostTestArtifacts,
+      deviceTestArtifacts,
+      testFixturesArtifact,
+      buildType,
+      productFlavors,
+      minSdkVersion,
+      targetSdkVersion,
+      maxSdkVersion,
+      versionCode,
+      versionNameWithSuffix,
+      versionNameSuffix,
+      instantAppCompatible,
+      vectorDrawablesUseSupportLibrary,
+      resourceConfigurations,
+      resValues,
+      proguardFiles,
+      consumerProguardFiles,
+      manifestPlaceholders,
+      testInstrumentationRunner,
+      testInstrumentationRunnerArguments,
+      testedTargetVariants,
+      runTestInSeparateProcess,
+      deprecatedPreMergedApplicationId,
+      deprecatedPreMergedTestApplicationId,
+      desugaredMethodsFiles,
+      experimentalProperties,
+    ),
 ) : IdeVariantCoreSerializable {
   constructor(
     name: String,
@@ -283,6 +316,150 @@ data class IdeVariantCoreImpl(
     desugaredMethodsFiles.toImpl(),
     experimentalProperties,
   )
+
+  override fun hashCode() = hashCode
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as IdeVariantCoreImpl
+
+    if (hashCode() != other.hashCode()) return false
+    if (name != other.name) return false
+    if (displayName != other.displayName) return false
+    if (mainArtifact != other.mainArtifact) return false
+    if (testSuiteArtifacts != other.testSuiteArtifacts) return false
+    if (hostTestArtifacts != other.hostTestArtifacts) return false
+    if (deviceTestArtifacts != other.deviceTestArtifacts) return false
+    if (testFixturesArtifact != other.testFixturesArtifact) return false
+    if (buildType != other.buildType) return false
+    if (productFlavors != other.productFlavors) return false
+    if (minSdkVersion != other.minSdkVersion) return false
+    if (targetSdkVersion != other.targetSdkVersion) return false
+    if (maxSdkVersion != other.maxSdkVersion) return false
+    if (versionCode != other.versionCode) return false
+    if (versionNameWithSuffix != other.versionNameWithSuffix) return false
+    if (versionNameSuffix != other.versionNameSuffix) return false
+    if (instantAppCompatible != other.instantAppCompatible) return false
+    if (vectorDrawablesUseSupportLibrary != other.vectorDrawablesUseSupportLibrary) return false
+    if (resourceConfigurations != other.resourceConfigurations) return false
+    if (resValues != other.resValues) return false
+    if (proguardFiles != other.proguardFiles) return false
+    if (consumerProguardFiles != other.consumerProguardFiles) return false
+    if (manifestPlaceholders != other.manifestPlaceholders) return false
+    if (testInstrumentationRunner != other.testInstrumentationRunner) return false
+    if (testInstrumentationRunnerArguments != other.testInstrumentationRunnerArguments) return false
+    if (testedTargetVariants != other.testedTargetVariants) return false
+    if (runTestInSeparateProcess != other.runTestInSeparateProcess) return false
+    if (deprecatedPreMergedApplicationId != other.deprecatedPreMergedApplicationId) return false
+    if (deprecatedPreMergedTestApplicationId != other.deprecatedPreMergedTestApplicationId) return false
+    if (desugaredMethodsFiles != other.desugaredMethodsFiles) return false
+    if (experimentalProperties != other.experimentalProperties) return false
+    return true
+  }
+
+  @Suppress("unused") // Used by equality unit tests
+  private fun computeHashCode() =
+    computeHashCode(
+      name,
+      displayName,
+      mainArtifact,
+      testSuiteArtifacts,
+      hostTestArtifacts,
+      deviceTestArtifacts,
+      testFixturesArtifact,
+      buildType,
+      productFlavors,
+      minSdkVersion,
+      targetSdkVersion,
+      maxSdkVersion,
+      versionCode,
+      versionNameWithSuffix,
+      versionNameSuffix,
+      instantAppCompatible,
+      vectorDrawablesUseSupportLibrary,
+      resourceConfigurations,
+      resValues,
+      proguardFiles,
+      consumerProguardFiles,
+      manifestPlaceholders,
+      testInstrumentationRunner,
+      testInstrumentationRunnerArguments,
+      testedTargetVariants,
+      runTestInSeparateProcess,
+      deprecatedPreMergedApplicationId,
+      deprecatedPreMergedTestApplicationId,
+      desugaredMethodsFiles,
+      experimentalProperties,
+    )
+
+  companion object {
+    private fun computeHashCode(
+      name: String,
+      displayName: String,
+      mainArtifact: IdeAndroidArtifactCoreImpl,
+      testSuiteArtifacts: List<IdeTestSuiteVariantTargetImpl>,
+      hostTestArtifacts: List<IdeJavaArtifactCoreImpl>,
+      deviceTestArtifacts: List<IdeAndroidArtifactCoreImpl>,
+      testFixturesArtifact: IdeAndroidArtifactCoreImpl?,
+      buildType: String,
+      productFlavors: List<String>,
+      minSdkVersion: IdeApiVersionImpl,
+      targetSdkVersion: IdeApiVersionImpl?,
+      maxSdkVersion: Int?,
+      versionCode: Int?,
+      versionNameWithSuffix: String?,
+      versionNameSuffix: String?,
+      instantAppCompatible: Boolean,
+      vectorDrawablesUseSupportLibrary: Boolean,
+      resourceConfigurations: List<String>,
+      resValues: Map<String, IdeClassFieldImpl>,
+      proguardFiles: List<FileImpl>,
+      consumerProguardFiles: List<FileImpl>,
+      manifestPlaceholders: Map<String, String>,
+      testInstrumentationRunner: String?,
+      testInstrumentationRunnerArguments: Map<String, String>,
+      testedTargetVariants: List<IdeTestedTargetVariantImpl>,
+      runTestInSeparateProcess: Boolean,
+      deprecatedPreMergedApplicationId: String?,
+      deprecatedPreMergedTestApplicationId: String?,
+      desugaredMethodsFiles: List<FileImpl>,
+      experimentalProperties: Map<String, String>,
+    ): Int {
+      var result = name.hashCode()
+      result = 31 * result + displayName.hashCode()
+      result = 31 * result + mainArtifact.hashCode()
+      result = 31 * result + testSuiteArtifacts.hashCode()
+      result = 31 * result + hostTestArtifacts.hashCode()
+      result = 31 * result + deviceTestArtifacts.hashCode()
+      result = 31 * result + testFixturesArtifact.hashCode()
+      result = 31 * result + buildType.hashCode()
+      result = 31 * result + productFlavors.hashCode()
+      result = 31 * result + minSdkVersion.hashCode()
+      result = 31 * result + targetSdkVersion.hashCode()
+      result = 31 * result + maxSdkVersion.hashCode()
+      result = 31 * result + versionCode.hashCode()
+      result = 31 * result + versionNameWithSuffix.hashCode()
+      result = 31 * result + versionNameSuffix.hashCode()
+      result = 31 * result + instantAppCompatible.hashCode()
+      result = 31 * result + vectorDrawablesUseSupportLibrary.hashCode()
+      result = 31 * result + resourceConfigurations.hashCode()
+      result = 31 * result + resValues.hashCode()
+      result = 31 * result + proguardFiles.hashCode()
+      result = 31 * result + consumerProguardFiles.hashCode()
+      result = 31 * result + manifestPlaceholders.hashCode()
+      result = 31 * result + testInstrumentationRunner.hashCode()
+      result = 31 * result + testInstrumentationRunnerArguments.hashCode()
+      result = 31 * result + testedTargetVariants.hashCode()
+      result = 31 * result + runTestInSeparateProcess.hashCode()
+      result = 31 * result + deprecatedPreMergedApplicationId.hashCode()
+      result = 31 * result + deprecatedPreMergedTestApplicationId.hashCode()
+      result = 31 * result + desugaredMethodsFiles.hashCode()
+      result = 31 * result + experimentalProperties.hashCode()
+      return result
+    }
+  }
 }
 
 class IdeVariantImpl(private val core: IdeVariantCoreImpl, resolver: IdeLibraryModelResolverImpl) : IdeVariant, IdeVariantCore {
