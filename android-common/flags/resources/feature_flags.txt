@@ -243,6 +243,7 @@ studiobot.project.facts.context.enabled=INTERNAL
 studiobot.prompt.library.chat.lookup=COMPLETE:2025
 studiobot.prompt.library.rules=COMPLETE:2025
 studiobot.prompt.library=COMPLETE:2025
+studiobot.quick.edit.enabled=INTERNAL
 # studiobot.rag.use.lucindex=INTERNAL  # disabled even in INTERNAL due to perf issues (b/462665363)
 studiobot.read.uri.tool=INTERNAL
 studiobot.regenerate.chat.request.button.enabled=INTERNAL
