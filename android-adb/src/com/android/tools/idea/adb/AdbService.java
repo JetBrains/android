@@ -23,8 +23,6 @@ import static com.google.common.util.concurrent.Futures.immediateFuture;
 
 import com.android.adblib.AdbSession;
 import com.android.adblib.CoroutineScopeCache;
-import com.android.adblib.ddmlibcompatibility.debugging.AdbLibClientManagerFactory;
-import com.android.adblib.ddmlibcompatibility.AdbLibIDeviceManagerFactory;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.AdbDelegateUsageTracker;
 import com.android.ddmlib.AdbInitOptions;
@@ -35,8 +33,6 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IDeviceUsageTracker;
 import com.android.ddmlib.Log;
 import com.android.ddmlib.TimeoutRemainder;
-import com.android.ddmlib.clientmanager.ClientManager;
-import com.android.ddmlib.idevicemanager.IDeviceManagerFactory;
 import com.android.tools.idea.adblib.AdbLibApplicationService;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.io.Files;
@@ -302,15 +298,12 @@ public final class AdbService implements Disposable {
     AndroidDebugBridge.addDebugBridgeChangeListener(myDebugBridgeChangeListener);
     AndroidDebugBridge.addDeviceChangeListener(myDeviceChangeListener);
 
-    // TODO Also connect to adblib
-    AndroidDebugBridge.setJdwpTracerFactory(() -> new StudioDDMLibJdwpTracer(StudioFlags.JDWP_TRACER.get()) {});
     StudioAdbLibJdwpTracerFactory.install(AdbLibApplicationService.getInstance().getSession(), () -> {
       // The tracer is enabled in the Adblib factory only if SCache is *not* enabled.
       // If SCache is enabled, the SCache wrapper takes care of tracing, because it is the only
       // component that has access to the "journaling" (i.e. emulated) JDWP traffic.
       return StudioFlags.JDWP_TRACER.get() && !JDWP_SCACHE.get();
     });
-    AndroidDebugBridge.setJdwpProcessorFactory(() -> new StudioDDMLibSCache(JDWP_SCACHE.get(), new StudioSCacheLogger()));
     StudioAdbLibSCacheJdwpSessionPipelineFactory.install(AdbLibApplicationService.getInstance().getSession());
 
     // Ensure ADB is terminated when there are no more open projects.
@@ -383,13 +376,6 @@ public final class AdbService implements Disposable {
     if (AdbOptionsService.getInstance().shouldUseUserManagedAdb()) {
       options.enableUserManagedAdbMode(AdbOptionsService.getInstance().getUserManagedAdbPort());
     }
-    options.setClientManager(StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() ?
-                             getClientManager() :
-                             null);
-    if (StudioFlags.ADBLIB_MIGRATION_DDMLIB_IDEVICE_MANAGER.get()) {
-      LOG.info("'adblib.migration.ddmlib.idevicemanager' flag is set to true");
-      options.setIDeviceManagerFactory(getIDeviceManagerFactory());
-    }
     options.setIDeviceUsageTracker(ADBLIB_MIGRATION_DDMLIB_IDEVICE_USAGE_TRACKER.get() ?
                                    getIDeviceUsageTracker() :
                                    null);
@@ -419,35 +405,13 @@ public final class AdbService implements Disposable {
   }
 
   @NotNull
-  private static final CoroutineScopeCache.Key<ClientManager> CLIENT_MANAGER_KEY =
-    new CoroutineScopeCache.Key<>("client manager for ddmlib compatibility");
-
-  @NotNull
-  private static ClientManager getClientManager() {
-    AdbSession session = AdbLibApplicationService.getInstance().getSession();
-    return session.getCache().getOrPut(CLIENT_MANAGER_KEY, () -> AdbLibClientManagerFactory.createClientManager(session));
-  }
-
-  @NotNull
-  private static final CoroutineScopeCache.Key<IDeviceManagerFactory> IDEVICE_MANAGER_FACTORY_KEY =
-    new CoroutineScopeCache.Key<>("IDevice manager for ddmlib compatibility");
-
-  @NotNull
-  private static IDeviceManagerFactory getIDeviceManagerFactory() {
-    AdbSession session = AdbLibApplicationService.getInstance().getSession();
-    return session.getCache().getOrPut(IDEVICE_MANAGER_FACTORY_KEY, () -> new AdbLibIDeviceManagerFactory(session));
-  }
-
-  @NotNull
   private static final CoroutineScopeCache.Key<IDeviceUsageTracker> IDEVICE_TRACKER_USAGE_KEY =
     new CoroutineScopeCache.Key<>("IDevice usage tracker for ddmlib compatibility");
 
   @NotNull
   private static IDeviceUsageTracker getIDeviceUsageTracker() {
     AdbSession session = AdbLibApplicationService.getInstance().getSession();
-    return session.getCache().getOrPut(IDEVICE_TRACKER_USAGE_KEY, () -> StudioFlags.ADBLIB_MIGRATION_DDMLIB_IDEVICE_MANAGER.get()
-                                                                        ? IDeviceUsageTrackerImpl.Companion.forAdblibIDeviceWrapper(session)
-                                                                        : IDeviceUsageTrackerImpl.Companion.forDeviceImpl(session));
+    return session.getCache().getOrPut(IDEVICE_TRACKER_USAGE_KEY, () -> IDeviceUsageTrackerImpl.Companion.forAdblibIDeviceWrapper(session));
   }
 
 
@@ -458,9 +422,8 @@ public final class AdbService implements Disposable {
   @NotNull
   private static AdbDelegateUsageTracker getAdbDelegateUsageTracker() {
     AdbSession session = AdbLibApplicationService.getInstance().getSession();
-    return session.getCache().getOrPut(ADB_DELEGATE_USAGE_TRACKER_KEY, () -> StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE.get()
-                                                                        ? AdbDelegateUsageTrackerImpl.Companion.forAdbLibAndroidDebugBridge(session)
-                                                                        : AdbDelegateUsageTrackerImpl.Companion.forAndroidDebugBridgeImpl(session));
+    return session.getCache()
+      .getOrPut(ADB_DELEGATE_USAGE_TRACKER_KEY, () -> AdbDelegateUsageTrackerImpl.Companion.forAdbLibAndroidDebugBridge(session));
   }
 
   /**

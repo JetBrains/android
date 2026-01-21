@@ -150,9 +150,7 @@ class AdbLibApplicationService : Disposable {
           // instance
           // on the *application* AdbSession only (i.e. this one), because all JdwpProcess instances
           // are delegated to this AdbSession.
-          val inventoryServerEnabled = {
-            StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() && StudioFlags.ADBLIB_USE_PROCESS_INVENTORY_SERVER.get()
-          }
+          val inventoryServerEnabled = { StudioFlags.ADBLIB_USE_PROCESS_INVENTORY_SERVER.get() }
 
           // Store the process inventory server in the session cache so it is closed when the
           // session is closed.
