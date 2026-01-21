@@ -343,9 +343,6 @@ public final class AdbService implements Disposable {
 
   private static @NotNull AdbInitOptions getAdbInitOptions() {
     AdbInitOptions.Builder options = AdbInitOptions.builder();
-    options.setClientSupportEnabled(true); // IDE needs client monitoring support.
-    options.useJdwpProxyService(StudioFlags.ENABLE_JDWP_PROXY_SERVICE.get());
-    options.useDdmlibCommandService(StudioFlags.ENABLE_DDMLIB_COMMAND_SERVICE.get());
 
     // There are three cases.
     // 1. If ADB_LIBUSB is not set, adb server will choose the backend (preferred)
