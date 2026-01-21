@@ -129,7 +129,8 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
     var packageName = deployInfo.getAppUnderTestPackageName() != null ? deployInfo.getAppUnderTestPackageName() : testPackageName;
     var applicationIds = new BazelApplicationIdProvider(packageName, testPackageName);
     var applicationId = applicationIds.getPackageName();
-    var apkProvider = new BazelApkProvider(deployInfo.getApkInfos());
+
+    var apkProvider = new BazelApkProvider(deployInfo.getApkInfos(), deployInfo.getSymbolFiles());
     var applicationProjectContext = new BazelApplicationProjectContext(project, applicationId);
 
     var consoleProvider =

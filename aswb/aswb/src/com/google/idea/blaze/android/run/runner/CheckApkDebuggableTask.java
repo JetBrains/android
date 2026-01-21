@@ -19,6 +19,8 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.RunConfigurationNotifier;
+import com.android.tools.idea.run.ApkFileUnit;
+import com.android.tools.idea.run.ApkInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceFile;
@@ -26,7 +28,7 @@ import com.google.devrel.gmscore.tools.apk.arsc.Chunk;
 import com.google.devrel.gmscore.tools.apk.arsc.XmlAttribute;
 import com.google.devrel.gmscore.tools.apk.arsc.XmlChunk;
 import com.google.devrel.gmscore.tools.apk.arsc.XmlStartElementChunk;
-import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
+import com.google.idea.blaze.android.run.BazelApkProvider;
 import com.intellij.execution.ExecutionException;
 import com.intellij.openapi.project.Project;
 import java.io.File;
@@ -39,16 +41,16 @@ import org.jetbrains.annotations.NotNull;
 /** Checks APKs to see if they are debuggable and warn the user if they aren't. */
 public class CheckApkDebuggableTask implements BlazeLaunchTask {
   private static final String ID = "APK_DEBUGGABILITY_CHECKER";
-  private final BlazeAndroidDeployInfo deployInfo;
+  private final BazelApkProvider apkProvider;
 
-  public CheckApkDebuggableTask(Project project, BlazeAndroidDeployInfo deployInfo) {
-    this.deployInfo = deployInfo;
+  public CheckApkDebuggableTask(Project project, BazelApkProvider apkProvider) {
+    this.apkProvider = apkProvider;
   }
 
   @Override
   public void run(@NotNull BlazeLaunchContext launchContext) throws ExecutionException {
     checkApkDebuggableTaskDelegate(
-        launchContext.getEnv().getProject(), deployInfo, launchContext.getDevice());
+        launchContext.getEnv().getProject(), apkProvider, launchContext.getDevice());
   }
 
   /**
@@ -58,14 +60,14 @@ public class CheckApkDebuggableTask implements BlazeLaunchTask {
    */
   @VisibleForTesting
   public static void checkApkDebuggableTaskDelegate(
-      Project project, BlazeAndroidDeployInfo deployInfo, IDevice device)
+      Project project, BazelApkProvider apkProvider, IDevice device)
       throws ExecutionException {
     if (isDebugDevice(device)) {
       return;
     }
     try {
       ImmutableList<String> nonDebuggableApkNames =
-          getNonDebuggableDeployApks(deployInfo).stream()
+          getNonDebuggableDeployApks(apkProvider, device).stream()
               .map(File::getName)
               .collect(toImmutableList());
       if (nonDebuggableApkNames.isEmpty()) {
@@ -84,12 +86,15 @@ public class CheckApkDebuggableTask implements BlazeLaunchTask {
     }
   }
 
-  private static ImmutableList<File> getNonDebuggableDeployApks(BlazeAndroidDeployInfo deployInfo)
-      throws IOException {
+  private static ImmutableList<File> getNonDebuggableDeployApks(
+    BazelApkProvider apkProvider, IDevice device) throws IOException {
     ImmutableList.Builder<File> nonDebuggableApks = ImmutableList.builder();
-    for (File apk : deployInfo.getApksToDeploy()) {
-      if (!isApkDebuggable(apk)) {
-        nonDebuggableApks.add(apk);
+    for (ApkInfo apkInfo : apkProvider.getApks(device)) {
+      for (ApkFileUnit apkFileUnit : apkInfo.getFiles()) {
+        File apk = apkFileUnit.getApkFile();
+        if (!isApkDebuggable(apk)) {
+          nonDebuggableApks.add(apk);
+        }
       }
     }
     return nonDebuggableApks.build();

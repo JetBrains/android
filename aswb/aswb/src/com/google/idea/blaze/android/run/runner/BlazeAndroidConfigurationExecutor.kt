@@ -73,7 +73,6 @@ class BlazeAndroidConfigurationExecutor(
   private val runContext: BazelAndroidRunContext,
   private val launchStrategy: BlazeAndroidDeployAndLaunchStrategy,
   private val launchOptions: LaunchOptions,
-  private val apkProvider: ApkProvider,
   private val liveEditService: LiveEditService
 ) : AndroidConfigurationExecutor {
 
@@ -143,7 +142,7 @@ class BlazeAndroidConfigurationExecutor(
 
       if (isDebug) {
         launchTasks.add(
-          CheckApkDebuggableTask(project, runContext.buildStep.getDeployInfo())
+          CheckApkDebuggableTask(project, runContext.apkProvider)
         )
       }
 
@@ -204,7 +203,7 @@ class BlazeAndroidConfigurationExecutor(
             liveEditService,
             env,
             applicationProjectContext,
-            apkProvider.getApks(device),
+            runContext.apkProvider.getApks(device),
             device
           ) // Notify listeners of the deployment.
           project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
@@ -251,8 +250,7 @@ class BlazeAndroidConfigurationExecutor(
     val debugger = debuggerService.getDebugger(isNativeDebuggingEnabled) ?: throw ExecutionException("Can't find AndroidDebugger for launch")
     val debuggerState = debuggerService.getDebuggerState(debugger) ?: throw ExecutionException("Can't find AndroidDebuggerState for launch")
     if (isNativeDebuggingEnabled) {
-      val deployInfo = runContext.buildStep.getDeployInfo()
-      debuggerService.configureNativeDebugger(debuggerState, deployInfo)
+      debuggerService.configureNativeDebugger(debuggerState, runContext.apkProvider)
     }
 
     val debugSession = launchStrategy.startDebuggerSession(

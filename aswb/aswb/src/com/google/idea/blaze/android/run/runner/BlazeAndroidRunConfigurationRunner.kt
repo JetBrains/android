@@ -15,7 +15,7 @@
  */
 package com.google.idea.blaze.android.run.runner
 
-import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.getInstance
+import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutorRunProfileState
 import com.android.tools.idea.execution.common.AppRunSettings
@@ -137,8 +137,7 @@ class BlazeAndroidRunConfigurationRunner(
             runContext,
             launchStrategy,
             launchOptions,
-            runContext.apkProvider,
-            getInstance(environment.project)
+            LiveEditService.getInstance(environment.project)
           )
         }
       }
