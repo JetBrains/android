@@ -2514,6 +2514,12 @@ public final class StudioFlags {
                     "Enable test scenario generation.",
                     "When enabled, generate test scenarios and corresponding function names for the selected code.");
 
+  public static final Flag<Boolean> STUDIOBOT_AGENTIC_TEST_GENERATION =
+      new BooleanFlag(STUDIOBOT, "agentic.test.generation",
+                      "Enable agentic automated unit test generation",
+                      "When enabled, generate unit tests using studio bot agent.");
+
+
   public static final Flag<Boolean> STUDIOBOT_SUPPORT_GIAS_ENTERPRISE =
     new BooleanFlag(STUDIOBOT, "support.gias.enterprise",
                     "Enable support for GCA Enterprise tier",
