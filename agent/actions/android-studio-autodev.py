@@ -16,7 +16,7 @@ def run_gemini_loop() -> None:
 
     # Construct the shell command.
     # We use a single string because shell=True handles the pipe logic.
-    command = f"cat {prompt_path} | gemini -s --yolo --model=gemini-3-flash-preview"
+    command = f"cat {prompt_path} | gemini --yolo --model=gemini-3-flash-preview"
 
     logging.info("Starting Gemini loop. Press Ctrl+C to stop.")
 
@@ -30,7 +30,7 @@ def run_gemini_loop() -> None:
 
             while result.returncode != 0:
                 logging.info(f"Gemini exited with non-zero return code: {result.returncode}. Resuming session...")
-                result = subprocess.run(f"cat {prompt_path} | gemini -s --yolo --model=gemini-3-flash-preview --resume", shell=True)
+                result = subprocess.run(f"cat {prompt_path} | gemini --yolo --model=gemini-3-flash-preview --resume", shell=True)
 
             logging.info("--- Iteration complete. Waiting 5 seconds ---")
             time.sleep(5)
