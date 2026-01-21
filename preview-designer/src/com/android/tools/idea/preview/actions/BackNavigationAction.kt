@@ -26,6 +26,13 @@ import icons.StudioIcons
 class BackNavigationAction() :
   DumbAwareAction(message("action.navigate.back"), null, StudioIcons.Emulator.Toolbar.BACK) {
 
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    // TODO(b/462365661): This action should not be visible while we don't add support for
+    //  predictive back navigation.
+    e.presentation.isEnabledAndVisible = false
+  }
+
   override fun actionPerformed(e: AnActionEvent) {
     val selectedPreview =
       e.dataContext.findPreviewManager(PreviewModeManager.KEY)?.mode?.value?.selected ?: return
