@@ -55,7 +55,7 @@ class StandaloneRendererPanel(
   }
 
   override fun getPreferredSize(): Dimension {
-    val renderBounds = renderModel.inspectorModel.root.transitiveBounds
+    val renderBounds = renderModel.inspectorModel.root.layoutBounds
     val scale = scaleProvider()
 
     val contentWidth = (renderBounds.width * scale).toInt()
