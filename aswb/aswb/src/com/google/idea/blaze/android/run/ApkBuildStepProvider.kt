@@ -16,9 +16,9 @@
 package com.google.idea.blaze.android.run
 
 import com.google.idea.blaze.android.run.runner.ApkBuildStep
-import com.google.idea.blaze.base.model.primitives.Label
 import com.google.idea.blaze.base.settings.BuildSystemName
 import com.google.idea.blaze.base.util.BuildSystemExtensionPoint
+import com.google.idea.blaze.common.Label
 import com.intellij.execution.ExecutionException
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project

@@ -23,11 +23,11 @@ import com.google.idea.blaze.android.run.runner.BlazeApkBuildStep
 import com.google.idea.blaze.android.run.runner.DeployInfoExtractor
 import com.google.idea.blaze.base.BlazeIntegrationTestCase
 import com.google.idea.blaze.base.bazel.FakeBuildInvoker
-import com.google.idea.blaze.base.model.primitives.Label
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.scope.ErrorCollector
 import com.google.idea.blaze.base.scope.output.IssueOutput
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
+import com.google.idea.blaze.common.Label
 import java.io.File
 import java.io.IOException
 import org.junit.Before
@@ -107,7 +107,7 @@ class BlazeApkBuildStepTest : BlazeIntegrationTestCase() {
   private fun createBlazeApkBuildStep(deployInfoExtractor: DeployInfoExtractor): BlazeApkBuildStep {
     return BlazeApkBuildStep(
       project = getProject(),
-      targets = listOf(Label.create("//default/test:target")),
+      targets = listOf(Label.of("//default/test:target")),
       blazeFlags = emptyList<String>(),
       exeFlags = emptyList<String>(),
       useMobileInstall = true,

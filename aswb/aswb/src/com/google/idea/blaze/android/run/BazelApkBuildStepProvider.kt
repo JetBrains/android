@@ -21,10 +21,10 @@ import com.google.idea.blaze.android.run.runner.BinaryDeployInfoExtractor
 import com.google.idea.blaze.android.run.runner.BlazeApkBuildStep
 import com.google.idea.blaze.android.run.runner.InstrumentationInfo
 import com.google.idea.blaze.android.run.runner.InstrumentationInfo.InstrumentationParserException
-import com.google.idea.blaze.base.model.primitives.Label
 import com.google.idea.blaze.base.settings.Blaze
 import com.google.idea.blaze.base.settings.BuildSystemName
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager
+import com.google.idea.blaze.common.Label
 import com.intellij.execution.ExecutionException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
