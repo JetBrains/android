@@ -31,6 +31,53 @@ import javax.swing.event.HyperlinkListener
 object ComposeRenderErrorContributor {
 
   // region Public API - These methods must remain stable for external contract.
+  const val VIEW_MODEL_HINT =
+    """
+      This appears to be a ViewModel-related error, as Previews cannot instantiate them directly.
+      A common solution is to refactor the Composable to accept state parameters directly, instead
+      of the whole ViewModel instance.
+      Alternatively, consider mocking the ViewModel or providing a custom factory for the Preview.
+      """
+
+  /**
+   * Hint for [ClassCastException] when trying to cast `BridgeContext` (used in Layoutlib for
+   * previews) to a platform `Context` like `Activity`.
+   */
+  const val CLASS_CAST_EXCEPTION_HINT =
+    """
+      To resolve this error and ensure the resilience of the Composables across both preview and
+      runtime environments, the recommended practice is to avoid direct casting. Instead, you
+      should implement a safe, recursive findActivity() extension function. This function is
+      designed to properly traverse the Context hierarchy, returning the actual Activity when
+      present or safely yielding null when running in a preview. This allows you to interact
+      with the Activity using the safe-call operator ?., thereby preventing rendering errors
+      and maintaining a smooth development workflow.
+      """
+  const val COMPOSITION_LOCAL_NOT_FOUND_HINT =
+    """
+      This error is not a bug in the Compose framework; it is an intentional "fail-fast" mechanism.
+      Here's the background you need to know:
+      * Purpose of CompositionLocal: It's a way to pass data down the composable tree implicitly,
+      without having to pass it as a parameter to every single composable.
+      * Creation: When a CompositionLocal is created (e.g., with staticCompositionLocalOf), it
+      requires a defaultFactory lambda. This lambda is only executed if a composable tries to access
+       the local's value (via .current) but no value has been provided by an ancestor in the tree.
+      * The Crash: For essential services that have no sensible default (like theme colors or screen
+      density), the standard practice is to make this defaultFactory throw an IllegalStateException.
+      The error is always solved by wrapping the composable (or one of its ancestors) in the correct
+       CompositionLocalProvider composable, which provides a value for that specific
+       CompositionLocal.
+      """
+
+  /** Returns a hint for the given [throwable] if it is a known Compose issue. */
+  @JvmStatic
+  fun getHint(throwable: Throwable?): String? =
+    when {
+      isViewModelThrowable(throwable) -> VIEW_MODEL_HINT
+      isCompositionLocalThrowable(throwable) -> COMPOSITION_LOCAL_NOT_FOUND_HINT
+      isClassCastException(throwable) -> CLASS_CAST_EXCEPTION_HINT
+      else -> null
+    }
 
   /** Checks if the given [Throwable] is one of the types that this contributor can handle. */
   @JvmStatic
