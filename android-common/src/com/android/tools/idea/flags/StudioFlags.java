@@ -2325,6 +2325,11 @@ public final class StudioFlags {
                     "Enable Studio Bot Skills.",
                     "When enabled, the studio-bot agents will be able to use skills.");
 
+  public static final Flag<Boolean> STUDIOBOT_IS_QUICK_EDIT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "quick.edit.enabled",
+                    "Enable the quick edit support.",
+                    "When enabled, the user can use Command + I and Command + K to quickly chat with agent and make changes inline.");
+
   public static final Flag<Boolean> STUDIOBOT_USE_BM25_FOR_FIND_FILES =
     new BooleanFlag(STUDIOBOT, "use.bm25.find.files",
                     "Use BM25 for find_files tool",
