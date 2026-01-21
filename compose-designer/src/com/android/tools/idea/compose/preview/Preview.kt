@@ -1477,7 +1477,7 @@ class ComposePreviewRepresentation(
    * [hasPreviewsCachedValue] accordingly.
    */
   override suspend fun hasPreviews(): Boolean {
-    val vFile = readAction { psiFilePointer.element?.virtualFile } ?: return false
+    val vFile = readAction { psiFilePointer.virtualFile } ?: return false
     findAnnotatedMethodsValues(
         project,
         vFile,
