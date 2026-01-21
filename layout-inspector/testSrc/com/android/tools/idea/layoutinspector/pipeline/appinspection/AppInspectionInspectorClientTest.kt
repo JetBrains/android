@@ -108,6 +108,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -259,7 +260,7 @@ class AppInspectionInspectorClientTest {
     }
   }
 
-  @org.junit.Ignore("b/244336884")
+  @Ignore("b/244336884")
   @Test
   fun treeRecompositionVisibilitySetAtConnectTime() {
     val panel = LayoutInspectorTreePanel(projectRule.testRootDisposable)
@@ -1139,6 +1140,7 @@ class AppInspectionInspectorClientTest {
 }
 
 // TODO: Move to separate file or integrate with main test class
+@Ignore("b/477622325")
 class AppInspectionInspectorClientWithUnsupportedApi29 {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
