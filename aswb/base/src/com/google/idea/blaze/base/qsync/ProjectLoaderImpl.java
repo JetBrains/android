@@ -382,7 +382,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
         projectDefinition,
         snapshotHolder,
         workspaceRoot,
-        vcsHandler,
+        vcsHandler.orElse(null),
         buildArtifactCache,
         handledRuleKinds);
   }
