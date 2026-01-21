@@ -41,10 +41,10 @@ import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.bazel.BepUtils.FileArtifact;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider.BuildEventStreamException;
 import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
-import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.run.RuntimeArtifactKind;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -65,8 +65,8 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
-  private static final Label TEST_APP = Label.create("//javatests/com/foo/test:binary");
-  private static final Label TARGET_APP = Label.create("//javatests/com/foo/target:binary");
+  private static final Label TEST_APP = Label.of("//javatests/com/foo/test:binary");
+  private static final Label TARGET_APP = Label.of("//javatests/com/foo/target:binary");
 
   private static final String MNEMONIC = "k9-opt";
   private static final ImmutableList<String> BIN_PREFIXES =

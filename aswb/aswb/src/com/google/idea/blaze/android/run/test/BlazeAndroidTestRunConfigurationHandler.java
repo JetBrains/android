@@ -30,7 +30,6 @@ import com.google.idea.blaze.android.run.runner.BlazeAndroidRunConfigurationRunn
 import com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProvider.AndroidTestLaunchMethod;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
-import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
@@ -39,6 +38,7 @@ import com.google.idea.blaze.base.run.ExecutorType;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationRunner;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFetcher;
 import com.google.idea.blaze.base.settings.Blaze;
+import com.google.idea.blaze.common.Label;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.JavaExecutionUtil;
@@ -105,7 +105,7 @@ public class BlazeAndroidTestRunConfigurationHandler
     if (labelString == null) {
       throw new ExecutionException("No target pattern specified for configuration.");
     }
-    Label label = Label.create(labelString);
+    Label label = Label.of(labelString);
 
     ApkBuildStep buildStep =
         getTestBuildStep(

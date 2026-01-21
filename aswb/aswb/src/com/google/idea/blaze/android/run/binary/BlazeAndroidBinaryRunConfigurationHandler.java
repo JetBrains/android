@@ -37,7 +37,6 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.logging.EventLoggingService;
 import com.google.idea.blaze.base.logging.GenericEvent;
-import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
@@ -49,6 +48,7 @@ import com.google.idea.blaze.base.run.state.RunConfigurationState;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.blaze.base.sync.projectstructure.ModuleFinder;
+import com.google.idea.blaze.common.Label;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
@@ -138,13 +138,13 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
     ApkBuildStep buildStep =
         ApkBuildStepProvider.getInstance(Blaze.getBuildSystemName(project))
             .getBinaryBuildStep(
-                project,
-                AndroidBinaryLaunchMethodsUtils.useMobileInstall(configState.getLaunchMethod()),
-                configState.getCommonState().isNativeDebuggingEnabled(),
-                Label.create(configuration.getSingleTargetPattern()),
-                blazeFlags,
-                exeFlags,
-                launchId);
+              project,
+              AndroidBinaryLaunchMethodsUtils.useMobileInstall(configState.getLaunchMethod()),
+              configState.getCommonState().isNativeDebuggingEnabled(),
+              configuration.getSingleTargetPattern() != null ? Label.of(configuration.getSingleTargetPattern()): Label.of("//"),
+              blazeFlags,
+              exeFlags,
+              launchId);
 
     BlazeAndroidDeployAndLaunchStrategy launchStrategy;
     switch (configState.getLaunchMethod()) {

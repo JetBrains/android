@@ -22,18 +22,19 @@ import com.google.idea.blaze.android.run.LaunchMetrics
 import com.google.idea.blaze.android.run.NativeSymbolFinder
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector.DeviceSession
+import com.google.idea.blaze.base.model.primitives.Label as LegacyLabel
 import com.google.idea.blaze.base.bazel.BazelExitCodeException
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker
 import com.google.idea.blaze.base.command.BlazeCommand
 import com.google.idea.blaze.base.command.BlazeCommandName
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser
-import com.google.idea.blaze.base.model.primitives.Label
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.scope.output.IssueOutput
 import com.google.idea.blaze.base.scope.output.StatusOutput
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
 import com.google.idea.blaze.base.util.SaveUtil
 import com.google.idea.blaze.common.Interners
+import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.exception.BuildException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -102,7 +103,7 @@ class BlazeApkBuildStep(
           launchId,
           stopwatch.elapsed(),
           buildOutputs!!.buildResult().exitCode,
-          ImmutableMap.of<String, String>()
+          ImmutableMap.of()
         )
         BazelExitCodeException.throwIfFailed(command, buildOutputs.buildResult())
         logger.info("Finished build, id: " + buildOutputs.idForLogging())
@@ -118,7 +119,7 @@ class BlazeApkBuildStep(
         val nativeSymbolFinderList: List<NativeSymbolFinder> = NativeSymbolFinder.EP_NAME.extensionList
         targets.flatMap { target ->
             nativeSymbolFinderList.flatMap {
-              it.getNativeSymbolsForBuild(project, context, target, buildOutputs)
+              it.getNativeSymbolsForBuild(project, context, LegacyLabel.create(target.toString()), buildOutputs)
             }
         }
       } else emptyList()
