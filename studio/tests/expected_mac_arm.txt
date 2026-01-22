@@ -2394,7 +2394,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/shark-log-2.14.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-baksmali-3.0.9.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-dexlib2-3.0.9.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-util-3.0.9.jar
-Android Studio Preview.app/Contents/plugins/android/lib/sqlite-jdbc-3.34.0.jar
+Android Studio Preview.app/Contents/plugins/android/lib/sqlite-jdbc-3.51.1.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/studio-grpc.jar
 Android Studio Preview.app/Contents/plugins/android/lib/studio-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar

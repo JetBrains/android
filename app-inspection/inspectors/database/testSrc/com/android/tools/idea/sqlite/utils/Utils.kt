@@ -21,6 +21,7 @@ import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.JdbcDatabaseConnection
+import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
@@ -48,3 +49,5 @@ internal fun initAdbFileProvider(project: Project) {
   val adbFileProvider = AdbFileProvider { TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB).toFile() }
   project.replaceService(AdbFileProvider::class.java, adbFileProvider, project)
 }
+
+fun SqliteSchema.findTable(name: String) = tables.first { it.name == name }

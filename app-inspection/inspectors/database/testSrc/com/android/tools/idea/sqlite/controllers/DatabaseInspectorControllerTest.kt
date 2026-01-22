@@ -645,11 +645,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Assert
     val column = SqliteColumn("c1", SqliteAffinity.INTEGER, false, true)
     val table = SqliteTable("t2", listOf(column), null, false)
-
-    verify(databaseInspectorView)
-      .updateDatabaseSchema(
-        ViewDatabase(databaseId, true),
-        listOf(AddTable(IndexedSqliteTable(table, 1), listOf(IndexedSqliteColumn(column, 0)))),
+    assertThat(databaseInspectorView.databaseSchemaUpdates)
+      .containsExactly(
+        ViewDatabase(databaseId, true) to listOf(AddTable(IndexedSqliteTable(table, 3), listOf(IndexedSqliteColumn(column, 0))))
       )
   }
 

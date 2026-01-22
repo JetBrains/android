@@ -16,9 +16,13 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.controllers.TabId
+import com.android.tools.idea.sqlite.ui.mainView.AddColumns
+import com.android.tools.idea.sqlite.ui.mainView.AddTable
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
+import com.android.tools.idea.sqlite.ui.mainView.RemoveColumns
+import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
 import com.android.tools.idea.sqlite.ui.mainView.SchemaDiffOperation
 import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import javax.swing.Icon
@@ -32,6 +36,8 @@ open class FakeDatabaseInspectorView : DatabaseInspectorView {
 
   val errorInvocations = mutableListOf<Pair<String, Throwable?>>()
 
+  val databaseSchemaUpdates = mutableListOf<Pair<ViewDatabase, List<SchemaDiffOperation>>>()
+
   override fun addListener(listener: Listener) {
     viewListeners.add(listener)
   }
@@ -44,7 +50,18 @@ open class FakeDatabaseInspectorView : DatabaseInspectorView {
 
   override fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) {}
 
-  override fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>) {}
+  override fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>) {
+    val operations =
+      diffOperations.filter {
+        when (it) {
+          is AddColumns -> !it.tableName.isInternalTable()
+          is AddTable -> !it.indexedSqliteTable.sqliteTable.name.isInternalTable()
+          is RemoveColumns -> !it.tableName.isInternalTable()
+          is RemoveTable -> !it.tableName.isInternalTable()
+        }
+      }
+    databaseSchemaUpdates.add(viewDatabase to operations)
+  }
 
   override fun openTab(tabId: TabId, tabName: String, tabIcon: Icon, component: JComponent) {
     lastDisplayedResultSetTabId = tabId
@@ -75,3 +92,5 @@ open class FakeDatabaseInspectorView : DatabaseInspectorView {
 
   override fun setForceOpen(forceOpen: Boolean) {}
 }
+
+private fun String.isInternalTable() = startsWith("sqlite_autoindex_")
