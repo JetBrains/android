@@ -196,7 +196,14 @@ private fun SyncContributorAndroidProjectContext.createSourceSetDataForSourcePro
     provider.kotlinDirectories +
     provider.aidlDirectories.orEmpty() +
     provider.renderscriptDirectories.orEmpty() +
-    provider.shadersDirectories.orEmpty()).toSet()
+    provider.shadersDirectories.orEmpty() +
+      (
+        if (versions[ModelFeature.HAS_KEEP_RULES_SOURCES])
+          provider.keepRulesDirectories.orEmpty()
+        else
+          emptySet()
+      )
+    ).toSet()
 
   // TODO(b/384022658): Handle custom directories
   val resourceDirectories =

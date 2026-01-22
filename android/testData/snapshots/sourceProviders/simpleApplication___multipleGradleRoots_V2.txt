@@ -48,6 +48,8 @@ MODULE: gradle_project_1.app
                 ./gradle_project_1/app/src/main/resources
             BaselineProfileDirectories:
                 ./gradle_project_1/app/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./gradle_project_1/app/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -67,6 +69,8 @@ MODULE: gradle_project_1.app
                     ./gradle_project_1/app/src/main/resources
                 BaselineProfileDirectories:
                     ./gradle_project_1/app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./gradle_project_1/app/src/main/keepRules
             debug
                 Manifest:
                     ./gradle_project_1/app/src/debug/AndroidManifest.xml
@@ -85,6 +89,8 @@ MODULE: gradle_project_1.app
                     ./gradle_project_1/app/src/debug/resources
                 BaselineProfileDirectories:
                     ./gradle_project_1/app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./gradle_project_1/app/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -104,6 +110,8 @@ MODULE: gradle_project_1.app
                     ./gradle_project_1/app/src/main/resources
                 BaselineProfileDirectories:
                     ./gradle_project_1/app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./gradle_project_1/app/src/main/keepRules
             debug
                 Manifest:
                     ./gradle_project_1/app/src/debug/AndroidManifest.xml
@@ -122,6 +130,8 @@ MODULE: gradle_project_1.app
                     ./gradle_project_1/app/src/debug/resources
                 BaselineProfileDirectories:
                     ./gradle_project_1/app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./gradle_project_1/app/src/debug/keepRules
             release
                 Manifest:
                     ./gradle_project_1/app/src/release/AndroidManifest.xml
@@ -140,6 +150,8 @@ MODULE: gradle_project_1.app
                     ./gradle_project_1/app/src/release/resources
                 BaselineProfileDirectories:
                     ./gradle_project_1/app/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./gradle_project_1/app/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -160,6 +172,8 @@ MODULE: gradle_project_1.app
                         ./gradle_project_1/app/src/test/resources
                     BaselineProfileDirectories:
                         ./gradle_project_1/app/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./gradle_project_1/app/src/test/keepRules
                 testDebug
                     Manifest:
                         ./gradle_project_1/app/src/testDebug/AndroidManifest.xml
@@ -178,6 +192,8 @@ MODULE: gradle_project_1.app
                         ./gradle_project_1/app/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./gradle_project_1/app/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./gradle_project_1/app/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -198,6 +214,8 @@ MODULE: gradle_project_1.app
                         ./gradle_project_1/app/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./gradle_project_1/app/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./gradle_project_1/app/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./gradle_project_1/app/src/androidTestDebug/AndroidManifest.xml
@@ -216,6 +234,8 @@ MODULE: gradle_project_1.app
                         ./gradle_project_1/app/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./gradle_project_1/app/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./gradle_project_1/app/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -766,6 +786,8 @@ MODULE: gradle_project_name.app
                 ./gradle_project_2/app/src/main/resources
             BaselineProfileDirectories:
                 ./gradle_project_2/app/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./gradle_project_2/app/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -785,6 +807,8 @@ MODULE: gradle_project_name.app
                     ./gradle_project_2/app/src/main/resources
                 BaselineProfileDirectories:
                     ./gradle_project_2/app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./gradle_project_2/app/src/main/keepRules
             debug
                 Manifest:
                     ./gradle_project_2/app/src/debug/AndroidManifest.xml
@@ -803,6 +827,8 @@ MODULE: gradle_project_name.app
                     ./gradle_project_2/app/src/debug/resources
                 BaselineProfileDirectories:
                     ./gradle_project_2/app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./gradle_project_2/app/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -822,6 +848,8 @@ MODULE: gradle_project_name.app
                     ./gradle_project_2/app/src/main/resources
                 BaselineProfileDirectories:
                     ./gradle_project_2/app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./gradle_project_2/app/src/main/keepRules
             debug
                 Manifest:
                     ./gradle_project_2/app/src/debug/AndroidManifest.xml
@@ -840,6 +868,8 @@ MODULE: gradle_project_name.app
                     ./gradle_project_2/app/src/debug/resources
                 BaselineProfileDirectories:
                     ./gradle_project_2/app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./gradle_project_2/app/src/debug/keepRules
             release
                 Manifest:
                     ./gradle_project_2/app/src/release/AndroidManifest.xml
@@ -858,6 +888,8 @@ MODULE: gradle_project_name.app
                     ./gradle_project_2/app/src/release/resources
                 BaselineProfileDirectories:
                     ./gradle_project_2/app/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./gradle_project_2/app/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -878,6 +910,8 @@ MODULE: gradle_project_name.app
                         ./gradle_project_2/app/src/test/resources
                     BaselineProfileDirectories:
                         ./gradle_project_2/app/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./gradle_project_2/app/src/test/keepRules
                 testDebug
                     Manifest:
                         ./gradle_project_2/app/src/testDebug/AndroidManifest.xml
@@ -896,6 +930,8 @@ MODULE: gradle_project_name.app
                         ./gradle_project_2/app/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./gradle_project_2/app/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./gradle_project_2/app/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -916,6 +952,8 @@ MODULE: gradle_project_name.app
                         ./gradle_project_2/app/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./gradle_project_2/app/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./gradle_project_2/app/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./gradle_project_2/app/src/androidTestDebug/AndroidManifest.xml
@@ -934,6 +972,8 @@ MODULE: gradle_project_name.app
                         ./gradle_project_2/app/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./gradle_project_2/app/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./gradle_project_2/app/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

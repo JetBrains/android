@@ -48,6 +48,8 @@ MODULE: MultiFlavor.app
                 ./app/src/main/resources
             BaselineProfileDirectories:
                 ./app/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./app/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -67,6 +69,8 @@ MODULE: MultiFlavor.app
                     ./app/src/main/resources
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/main/keepRules
             firstAbc
                 Manifest:
                     ./app/src/firstAbc/AndroidManifest.xml
@@ -85,6 +89,8 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbc/resources
                 BaselineProfileDirectories:
                     ./app/src/firstAbc/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/firstAbc/keepRules
             secondAbc
                 Manifest:
                     ./app/src/secondAbc/AndroidManifest.xml
@@ -104,6 +110,8 @@ MODULE: MultiFlavor.app
                     ./app/src/secondAbc/resources
                 BaselineProfileDirectories:
                     ./app/src/secondAbc/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/secondAbc/keepRules
             firstAbcSecondAbc
                 Manifest:
                     ./app/src/firstAbcSecondAbc/AndroidManifest.xml
@@ -123,6 +131,8 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbc/resources
                 BaselineProfileDirectories:
                     ./app/src/firstAbcSecondAbc/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/firstAbcSecondAbc/keepRules
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -141,6 +151,8 @@ MODULE: MultiFlavor.app
                     ./app/src/debug/resources
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/debug/keepRules
             firstAbcSecondAbcDebug
                 Manifest:
                     ./app/src/firstAbcSecondAbcDebug/AndroidManifest.xml
@@ -159,6 +171,8 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbcDebug/resources
                 BaselineProfileDirectories:
                     ./app/src/firstAbcSecondAbcDebug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/firstAbcSecondAbcDebug/keepRules
         All:
             main
                 Manifest:
@@ -178,6 +192,8 @@ MODULE: MultiFlavor.app
                     ./app/src/main/resources
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/main/keepRules
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -196,6 +212,8 @@ MODULE: MultiFlavor.app
                     ./app/src/debug/resources
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/debug/keepRules
             firstAbc
                 Manifest:
                     ./app/src/firstAbc/AndroidManifest.xml
@@ -214,6 +232,8 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbc/resources
                 BaselineProfileDirectories:
                     ./app/src/firstAbc/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/firstAbc/keepRules
             firstAbcSecondAbc
                 Manifest:
                     ./app/src/firstAbcSecondAbc/AndroidManifest.xml
@@ -233,6 +253,8 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbc/resources
                 BaselineProfileDirectories:
                     ./app/src/firstAbcSecondAbc/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/firstAbcSecondAbc/keepRules
             firstAbcSecondAbcDebug
                 Manifest:
                     ./app/src/firstAbcSecondAbcDebug/AndroidManifest.xml
@@ -251,6 +273,8 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbcDebug/resources
                 BaselineProfileDirectories:
                     ./app/src/firstAbcSecondAbcDebug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/firstAbcSecondAbcDebug/keepRules
             firstXyz
                 Manifest:
                     ./app/src/firstXyz/AndroidManifest.xml
@@ -269,6 +293,8 @@ MODULE: MultiFlavor.app
                     ./app/src/firstXyz/resources
                 BaselineProfileDirectories:
                     ./app/src/firstXyz/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/firstXyz/keepRules
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -287,6 +313,8 @@ MODULE: MultiFlavor.app
                     ./app/src/release/resources
                 BaselineProfileDirectories:
                     ./app/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/release/keepRules
             secondAbc
                 Manifest:
                     ./app/src/secondAbc/AndroidManifest.xml
@@ -306,6 +334,8 @@ MODULE: MultiFlavor.app
                     ./app/src/secondAbc/resources
                 BaselineProfileDirectories:
                     ./app/src/secondAbc/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/secondAbc/keepRules
             secondXyz
                 Manifest:
                     ./app/src/secondXyz/AndroidManifest.xml
@@ -324,6 +354,8 @@ MODULE: MultiFlavor.app
                     ./app/src/secondXyz/resources
                 BaselineProfileDirectories:
                     ./app/src/secondXyz/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/secondXyz/keepRules
         HostTest:
             UnitTest
                 test
@@ -344,6 +376,8 @@ MODULE: MultiFlavor.app
                         ./app/src/test/resources
                     BaselineProfileDirectories:
                         ./app/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/test/keepRules
                 testFirstAbc
                     Manifest:
                         ./app/src/testFirstAbc/AndroidManifest.xml
@@ -362,6 +396,8 @@ MODULE: MultiFlavor.app
                         ./app/src/testFirstAbc/resources
                     BaselineProfileDirectories:
                         ./app/src/testFirstAbc/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/testFirstAbc/keepRules
                 testSecondAbc
                     Manifest:
                         ./app/src/testSecondAbc/AndroidManifest.xml
@@ -380,6 +416,8 @@ MODULE: MultiFlavor.app
                         ./app/src/testSecondAbc/resources
                     BaselineProfileDirectories:
                         ./app/src/testSecondAbc/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/testSecondAbc/keepRules
                 testFirstAbcSecondAbc
                     Manifest:
                         ./app/src/testFirstAbcSecondAbc/AndroidManifest.xml
@@ -398,6 +436,8 @@ MODULE: MultiFlavor.app
                         ./app/src/testFirstAbcSecondAbc/resources
                     BaselineProfileDirectories:
                         ./app/src/testFirstAbcSecondAbc/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/testFirstAbcSecondAbc/keepRules
                 testDebug
                     Manifest:
                         ./app/src/testDebug/AndroidManifest.xml
@@ -416,6 +456,8 @@ MODULE: MultiFlavor.app
                         ./app/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/testDebug/keepRules
                 testFirstAbcSecondAbcDebug
                     Manifest:
                         ./app/src/testFirstAbcSecondAbcDebug/AndroidManifest.xml
@@ -432,6 +474,8 @@ MODULE: MultiFlavor.app
                         ./app/src/testFirstAbcSecondAbcDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/testFirstAbcSecondAbcDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/testFirstAbcSecondAbcDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -452,6 +496,8 @@ MODULE: MultiFlavor.app
                         ./app/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTest/keepRules
                 androidTestFirstAbc
                     Manifest:
                         ./app/src/androidTestFirstAbc/AndroidManifest.xml
@@ -470,6 +516,8 @@ MODULE: MultiFlavor.app
                         ./app/src/androidTestFirstAbc/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTestFirstAbc/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTestFirstAbc/keepRules
                 androidTestSecondAbc
                     Manifest:
                         ./app/src/androidTestSecondAbc/AndroidManifest.xml
@@ -488,6 +536,8 @@ MODULE: MultiFlavor.app
                         ./app/src/androidTestSecondAbc/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTestSecondAbc/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTestSecondAbc/keepRules
                 androidTestFirstAbcSecondAbc
                     Manifest:
                         ./app/src/androidTestFirstAbcSecondAbc/AndroidManifest.xml
@@ -506,6 +556,8 @@ MODULE: MultiFlavor.app
                         ./app/src/androidTestFirstAbcSecondAbc/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTestFirstAbcSecondAbc/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTestFirstAbcSecondAbc/keepRules
                 androidTestDebug
                     Manifest:
                         ./app/src/androidTestDebug/AndroidManifest.xml
@@ -524,6 +576,8 @@ MODULE: MultiFlavor.app
                         ./app/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTestDebug/keepRules
                 androidTestFirstAbcSecondAbcDebug
                     Manifest:
                         ./app/src/androidTestFirstAbcSecondAbcDebug/AndroidManifest.xml
@@ -542,6 +596,8 @@ MODULE: MultiFlavor.app
                         ./app/src/androidTestFirstAbcSecondAbcDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTestFirstAbcSecondAbcDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTestFirstAbcSecondAbcDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

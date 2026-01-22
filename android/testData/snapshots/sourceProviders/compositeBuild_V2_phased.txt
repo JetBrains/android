@@ -48,6 +48,8 @@ MODULE: project.app
                 ./app/src/main/resources
             BaselineProfileDirectories:
                 ./app/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./app/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -67,6 +69,8 @@ MODULE: project.app
                     ./app/src/main/resources
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/main/keepRules
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -85,6 +89,8 @@ MODULE: project.app
                     ./app/src/debug/resources
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -104,6 +110,8 @@ MODULE: project.app
                     ./app/src/main/resources
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/main/keepRules
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -122,6 +130,8 @@ MODULE: project.app
                     ./app/src/debug/resources
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/debug/keepRules
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -140,6 +150,8 @@ MODULE: project.app
                     ./app/src/release/resources
                 BaselineProfileDirectories:
                     ./app/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -160,6 +172,8 @@ MODULE: project.app
                         ./app/src/test/resources
                     BaselineProfileDirectories:
                         ./app/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/test/keepRules
                 testDebug
                     Manifest:
                         ./app/src/testDebug/AndroidManifest.xml
@@ -178,6 +192,8 @@ MODULE: project.app
                         ./app/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -198,6 +214,8 @@ MODULE: project.app
                         ./app/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./app/src/androidTestDebug/AndroidManifest.xml
@@ -216,6 +234,8 @@ MODULE: project.app
                         ./app/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -766,6 +786,8 @@ MODULE: project.lib
                 ./lib/src/main/resources
             BaselineProfileDirectories:
                 ./lib/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./lib/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -785,6 +807,8 @@ MODULE: project.lib
                     ./lib/src/main/resources
                 BaselineProfileDirectories:
                     ./lib/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./lib/src/main/keepRules
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -803,6 +827,8 @@ MODULE: project.lib
                     ./lib/src/debug/resources
                 BaselineProfileDirectories:
                     ./lib/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./lib/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -822,6 +848,8 @@ MODULE: project.lib
                     ./lib/src/main/resources
                 BaselineProfileDirectories:
                     ./lib/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./lib/src/main/keepRules
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -840,6 +868,8 @@ MODULE: project.lib
                     ./lib/src/debug/resources
                 BaselineProfileDirectories:
                     ./lib/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./lib/src/debug/keepRules
             release
                 Manifest:
                     ./lib/src/release/AndroidManifest.xml
@@ -858,6 +888,8 @@ MODULE: project.lib
                     ./lib/src/release/resources
                 BaselineProfileDirectories:
                     ./lib/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./lib/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -878,6 +910,8 @@ MODULE: project.lib
                         ./lib/src/test/resources
                     BaselineProfileDirectories:
                         ./lib/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./lib/src/test/keepRules
                 testDebug
                     Manifest:
                         ./lib/src/testDebug/AndroidManifest.xml
@@ -896,6 +930,8 @@ MODULE: project.lib
                         ./lib/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./lib/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./lib/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -916,6 +952,8 @@ MODULE: project.lib
                         ./lib/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./lib/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./lib/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./lib/src/androidTestDebug/AndroidManifest.xml
@@ -934,6 +972,8 @@ MODULE: project.lib
                         ./lib/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./lib/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./lib/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -1484,6 +1524,8 @@ MODULE: includedLib1.app
                 ./TestCompositeLib1/app/src/main/resources
             BaselineProfileDirectories:
                 ./TestCompositeLib1/app/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./TestCompositeLib1/app/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -1503,6 +1545,8 @@ MODULE: includedLib1.app
                     ./TestCompositeLib1/app/src/main/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib1/app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib1/app/src/main/keepRules
             debug
                 Manifest:
                     ./TestCompositeLib1/app/src/debug/AndroidManifest.xml
@@ -1521,6 +1565,8 @@ MODULE: includedLib1.app
                     ./TestCompositeLib1/app/src/debug/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib1/app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib1/app/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -1540,6 +1586,8 @@ MODULE: includedLib1.app
                     ./TestCompositeLib1/app/src/main/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib1/app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib1/app/src/main/keepRules
             debug
                 Manifest:
                     ./TestCompositeLib1/app/src/debug/AndroidManifest.xml
@@ -1558,6 +1606,8 @@ MODULE: includedLib1.app
                     ./TestCompositeLib1/app/src/debug/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib1/app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib1/app/src/debug/keepRules
             release
                 Manifest:
                     ./TestCompositeLib1/app/src/release/AndroidManifest.xml
@@ -1576,6 +1626,8 @@ MODULE: includedLib1.app
                     ./TestCompositeLib1/app/src/release/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib1/app/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib1/app/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -1596,6 +1648,8 @@ MODULE: includedLib1.app
                         ./TestCompositeLib1/app/src/test/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib1/app/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib1/app/src/test/keepRules
                 testDebug
                     Manifest:
                         ./TestCompositeLib1/app/src/testDebug/AndroidManifest.xml
@@ -1614,6 +1668,8 @@ MODULE: includedLib1.app
                         ./TestCompositeLib1/app/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib1/app/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib1/app/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -1634,6 +1690,8 @@ MODULE: includedLib1.app
                         ./TestCompositeLib1/app/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib1/app/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib1/app/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./TestCompositeLib1/app/src/androidTestDebug/AndroidManifest.xml
@@ -1652,6 +1710,8 @@ MODULE: includedLib1.app
                         ./TestCompositeLib1/app/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib1/app/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib1/app/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -2202,6 +2262,8 @@ MODULE: includedLib1.lib
                 ./TestCompositeLib1/lib/src/main/resources
             BaselineProfileDirectories:
                 ./TestCompositeLib1/lib/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./TestCompositeLib1/lib/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -2221,6 +2283,8 @@ MODULE: includedLib1.lib
                     ./TestCompositeLib1/lib/src/main/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib1/lib/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib1/lib/src/main/keepRules
             debug
                 Manifest:
                     ./TestCompositeLib1/lib/src/debug/AndroidManifest.xml
@@ -2239,6 +2303,8 @@ MODULE: includedLib1.lib
                     ./TestCompositeLib1/lib/src/debug/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib1/lib/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib1/lib/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -2258,6 +2324,8 @@ MODULE: includedLib1.lib
                     ./TestCompositeLib1/lib/src/main/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib1/lib/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib1/lib/src/main/keepRules
             debug
                 Manifest:
                     ./TestCompositeLib1/lib/src/debug/AndroidManifest.xml
@@ -2276,6 +2344,8 @@ MODULE: includedLib1.lib
                     ./TestCompositeLib1/lib/src/debug/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib1/lib/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib1/lib/src/debug/keepRules
             release
                 Manifest:
                     ./TestCompositeLib1/lib/src/release/AndroidManifest.xml
@@ -2294,6 +2364,8 @@ MODULE: includedLib1.lib
                     ./TestCompositeLib1/lib/src/release/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib1/lib/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib1/lib/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -2314,6 +2386,8 @@ MODULE: includedLib1.lib
                         ./TestCompositeLib1/lib/src/test/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib1/lib/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib1/lib/src/test/keepRules
                 testDebug
                     Manifest:
                         ./TestCompositeLib1/lib/src/testDebug/AndroidManifest.xml
@@ -2332,6 +2406,8 @@ MODULE: includedLib1.lib
                         ./TestCompositeLib1/lib/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib1/lib/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib1/lib/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -2352,6 +2428,8 @@ MODULE: includedLib1.lib
                         ./TestCompositeLib1/lib/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib1/lib/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib1/lib/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./TestCompositeLib1/lib/src/androidTestDebug/AndroidManifest.xml
@@ -2370,6 +2448,8 @@ MODULE: includedLib1.lib
                         ./TestCompositeLib1/lib/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib1/lib/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib1/lib/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -2920,6 +3000,8 @@ MODULE: TestCompositeLib3.app
                 ./TestCompositeLib3/app/src/main/resources
             BaselineProfileDirectories:
                 ./TestCompositeLib3/app/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./TestCompositeLib3/app/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -2939,6 +3021,8 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/main/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib3/app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib3/app/src/main/keepRules
             debug
                 Manifest:
                     ./TestCompositeLib3/app/src/debug/AndroidManifest.xml
@@ -2957,6 +3041,8 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/debug/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib3/app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib3/app/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -2976,6 +3062,8 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/main/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib3/app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib3/app/src/main/keepRules
             debug
                 Manifest:
                     ./TestCompositeLib3/app/src/debug/AndroidManifest.xml
@@ -2994,6 +3082,8 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/debug/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib3/app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib3/app/src/debug/keepRules
             release
                 Manifest:
                     ./TestCompositeLib3/app/src/release/AndroidManifest.xml
@@ -3012,6 +3102,8 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/release/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib3/app/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib3/app/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -3032,6 +3124,8 @@ MODULE: TestCompositeLib3.app
                         ./TestCompositeLib3/app/src/test/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib3/app/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib3/app/src/test/keepRules
                 testDebug
                     Manifest:
                         ./TestCompositeLib3/app/src/testDebug/AndroidManifest.xml
@@ -3050,6 +3144,8 @@ MODULE: TestCompositeLib3.app
                         ./TestCompositeLib3/app/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib3/app/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib3/app/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -3070,6 +3166,8 @@ MODULE: TestCompositeLib3.app
                         ./TestCompositeLib3/app/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib3/app/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib3/app/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./TestCompositeLib3/app/src/androidTestDebug/AndroidManifest.xml
@@ -3088,6 +3186,8 @@ MODULE: TestCompositeLib3.app
                         ./TestCompositeLib3/app/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib3/app/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib3/app/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -3638,6 +3738,8 @@ MODULE: TestCompositeLib3.lib
                 ./TestCompositeLib3/lib/src/main/resources
             BaselineProfileDirectories:
                 ./TestCompositeLib3/lib/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./TestCompositeLib3/lib/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -3657,6 +3759,8 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/main/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib3/lib/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib3/lib/src/main/keepRules
             debug
                 Manifest:
                     ./TestCompositeLib3/lib/src/debug/AndroidManifest.xml
@@ -3675,6 +3779,8 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/debug/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib3/lib/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib3/lib/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -3694,6 +3800,8 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/main/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib3/lib/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib3/lib/src/main/keepRules
             debug
                 Manifest:
                     ./TestCompositeLib3/lib/src/debug/AndroidManifest.xml
@@ -3712,6 +3820,8 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/debug/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib3/lib/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib3/lib/src/debug/keepRules
             release
                 Manifest:
                     ./TestCompositeLib3/lib/src/release/AndroidManifest.xml
@@ -3730,6 +3840,8 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/release/resources
                 BaselineProfileDirectories:
                     ./TestCompositeLib3/lib/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./TestCompositeLib3/lib/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -3750,6 +3862,8 @@ MODULE: TestCompositeLib3.lib
                         ./TestCompositeLib3/lib/src/test/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib3/lib/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib3/lib/src/test/keepRules
                 testDebug
                     Manifest:
                         ./TestCompositeLib3/lib/src/testDebug/AndroidManifest.xml
@@ -3768,6 +3882,8 @@ MODULE: TestCompositeLib3.lib
                         ./TestCompositeLib3/lib/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib3/lib/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib3/lib/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -3788,6 +3904,8 @@ MODULE: TestCompositeLib3.lib
                         ./TestCompositeLib3/lib/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib3/lib/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib3/lib/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./TestCompositeLib3/lib/src/androidTestDebug/AndroidManifest.xml
@@ -3806,6 +3924,8 @@ MODULE: TestCompositeLib3.lib
                         ./TestCompositeLib3/lib/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./TestCompositeLib3/lib/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./TestCompositeLib3/lib/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

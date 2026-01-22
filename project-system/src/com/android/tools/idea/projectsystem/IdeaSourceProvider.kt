@@ -75,6 +75,9 @@ interface IdeaSourceProvider {
   val baselineProfileDirectoryUrls: Iterable<String>
   val baselineProfileDirectories: Iterable<VirtualFile>
 
+  val keepRulesDirectoryUrls: Iterable<String>
+  val keepRulesDirectories: Iterable<VirtualFile>
+
   interface Custom {
     val directoryUrls: Iterable<String>
     val directories: Iterable<VirtualFile>

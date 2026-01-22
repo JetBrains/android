@@ -1127,6 +1127,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         provider.assetsDirectories,
         provider.jniLibsDirectories,
         provider.baselineProfileDirectories,
+        provider.keepRulesDirectories
       ).flatten()
     }
   }

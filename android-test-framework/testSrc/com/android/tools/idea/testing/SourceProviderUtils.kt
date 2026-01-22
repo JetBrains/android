@@ -101,6 +101,7 @@ fun Project.dumpSourceProviders(): String {
           dumpPaths("ShadersDirectories") { it.shadersDirectories }
           dumpPaths("MlModelsDirectories") { it.mlModelsDirectories }
           dumpPaths("BaselineProfileDirectories") { it.baselineProfileDirectories }
+          dumpPaths("KeepRulesDirectories") { it.keepRulesDirectories }
           customSourceDirectories.forEach { it.dump() }
         }
       }
@@ -152,7 +153,7 @@ fun Project.dumpSourceProviders(): String {
       }
 
       this@dumpSourceProviders.getAndroidFacets()
-        .sortedWith(compareBy({ it.module.getGradleProjectPath()?.buildRoot}, { it.module.name }))
+        .sortedWith(compareBy({ it.module.getGradleProjectPath()?.buildRoot }, { it.module.name }))
         .forEach { facet ->
           out("MODULE: ${facet.module.name}")
           nest {

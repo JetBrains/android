@@ -48,6 +48,8 @@ MODULE: AS36.app
                 ./app/src/main/resources
             BaselineProfileDirectories:
                 ./app/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./app/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -67,6 +69,8 @@ MODULE: AS36.app
                     ./app/src/main/resources
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/main/keepRules
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -85,6 +89,8 @@ MODULE: AS36.app
                     ./app/src/debug/resources
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -104,6 +110,8 @@ MODULE: AS36.app
                     ./app/src/main/resources
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/main/keepRules
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -122,6 +130,8 @@ MODULE: AS36.app
                     ./app/src/debug/resources
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/debug/keepRules
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -140,6 +150,8 @@ MODULE: AS36.app
                     ./app/src/release/resources
                 BaselineProfileDirectories:
                     ./app/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -160,6 +172,8 @@ MODULE: AS36.app
                         ./app/src/test/resources
                     BaselineProfileDirectories:
                         ./app/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/test/keepRules
                 testDebug
                     Manifest:
                         ./app/src/testDebug/AndroidManifest.xml
@@ -178,6 +192,8 @@ MODULE: AS36.app
                         ./app/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -198,6 +214,8 @@ MODULE: AS36.app
                         ./app/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./app/src/androidTestDebug/AndroidManifest.xml
@@ -216,6 +234,8 @@ MODULE: AS36.app
                         ./app/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -760,6 +780,8 @@ MODULE: AS36.features.dynamicfeature
                 ./features/dynamicfeature/src/main/resources
             BaselineProfileDirectories:
                 ./features/dynamicfeature/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./features/dynamicfeature/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -779,6 +801,8 @@ MODULE: AS36.features.dynamicfeature
                     ./features/dynamicfeature/src/main/resources
                 BaselineProfileDirectories:
                     ./features/dynamicfeature/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./features/dynamicfeature/src/main/keepRules
             debug
                 Manifest:
                     ./features/dynamicfeature/src/debug/AndroidManifest.xml
@@ -797,6 +821,8 @@ MODULE: AS36.features.dynamicfeature
                     ./features/dynamicfeature/src/debug/resources
                 BaselineProfileDirectories:
                     ./features/dynamicfeature/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./features/dynamicfeature/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -816,6 +842,8 @@ MODULE: AS36.features.dynamicfeature
                     ./features/dynamicfeature/src/main/resources
                 BaselineProfileDirectories:
                     ./features/dynamicfeature/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./features/dynamicfeature/src/main/keepRules
             debug
                 Manifest:
                     ./features/dynamicfeature/src/debug/AndroidManifest.xml
@@ -834,6 +862,8 @@ MODULE: AS36.features.dynamicfeature
                     ./features/dynamicfeature/src/debug/resources
                 BaselineProfileDirectories:
                     ./features/dynamicfeature/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./features/dynamicfeature/src/debug/keepRules
             release
                 Manifest:
                     ./features/dynamicfeature/src/release/AndroidManifest.xml
@@ -852,6 +882,8 @@ MODULE: AS36.features.dynamicfeature
                     ./features/dynamicfeature/src/release/resources
                 BaselineProfileDirectories:
                     ./features/dynamicfeature/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./features/dynamicfeature/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -872,6 +904,8 @@ MODULE: AS36.features.dynamicfeature
                         ./features/dynamicfeature/src/test/resources
                     BaselineProfileDirectories:
                         ./features/dynamicfeature/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./features/dynamicfeature/src/test/keepRules
                 testDebug
                     Manifest:
                         ./features/dynamicfeature/src/testDebug/AndroidManifest.xml
@@ -890,6 +924,8 @@ MODULE: AS36.features.dynamicfeature
                         ./features/dynamicfeature/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./features/dynamicfeature/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./features/dynamicfeature/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -910,6 +946,8 @@ MODULE: AS36.features.dynamicfeature
                         ./features/dynamicfeature/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./features/dynamicfeature/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./features/dynamicfeature/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./features/dynamicfeature/src/androidTestDebug/AndroidManifest.xml
@@ -928,6 +966,8 @@ MODULE: AS36.features.dynamicfeature
                         ./features/dynamicfeature/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./features/dynamicfeature/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./features/dynamicfeature/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -1412,6 +1452,8 @@ MODULE: AS36.features.dynamicfeature2
                 ./features/dynamicfeature2/src/main/resources
             BaselineProfileDirectories:
                 ./features/dynamicfeature2/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./features/dynamicfeature2/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -1431,6 +1473,8 @@ MODULE: AS36.features.dynamicfeature2
                     ./features/dynamicfeature2/src/main/resources
                 BaselineProfileDirectories:
                     ./features/dynamicfeature2/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./features/dynamicfeature2/src/main/keepRules
             debug
                 Manifest:
                     ./features/dynamicfeature2/src/debug/AndroidManifest.xml
@@ -1449,6 +1493,8 @@ MODULE: AS36.features.dynamicfeature2
                     ./features/dynamicfeature2/src/debug/resources
                 BaselineProfileDirectories:
                     ./features/dynamicfeature2/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./features/dynamicfeature2/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -1468,6 +1514,8 @@ MODULE: AS36.features.dynamicfeature2
                     ./features/dynamicfeature2/src/main/resources
                 BaselineProfileDirectories:
                     ./features/dynamicfeature2/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./features/dynamicfeature2/src/main/keepRules
             debug
                 Manifest:
                     ./features/dynamicfeature2/src/debug/AndroidManifest.xml
@@ -1486,6 +1534,8 @@ MODULE: AS36.features.dynamicfeature2
                     ./features/dynamicfeature2/src/debug/resources
                 BaselineProfileDirectories:
                     ./features/dynamicfeature2/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./features/dynamicfeature2/src/debug/keepRules
             release
                 Manifest:
                     ./features/dynamicfeature2/src/release/AndroidManifest.xml
@@ -1504,6 +1554,8 @@ MODULE: AS36.features.dynamicfeature2
                     ./features/dynamicfeature2/src/release/resources
                 BaselineProfileDirectories:
                     ./features/dynamicfeature2/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./features/dynamicfeature2/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -1524,6 +1576,8 @@ MODULE: AS36.features.dynamicfeature2
                         ./features/dynamicfeature2/src/test/resources
                     BaselineProfileDirectories:
                         ./features/dynamicfeature2/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./features/dynamicfeature2/src/test/keepRules
                 testDebug
                     Manifest:
                         ./features/dynamicfeature2/src/testDebug/AndroidManifest.xml
@@ -1542,6 +1596,8 @@ MODULE: AS36.features.dynamicfeature2
                         ./features/dynamicfeature2/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./features/dynamicfeature2/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./features/dynamicfeature2/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -1562,6 +1618,8 @@ MODULE: AS36.features.dynamicfeature2
                         ./features/dynamicfeature2/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./features/dynamicfeature2/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./features/dynamicfeature2/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./features/dynamicfeature2/src/androidTestDebug/AndroidManifest.xml
@@ -1580,6 +1638,8 @@ MODULE: AS36.features.dynamicfeature2
                         ./features/dynamicfeature2/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./features/dynamicfeature2/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./features/dynamicfeature2/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -2070,6 +2130,8 @@ MODULE: AS36.libs.android_library
                 ./libs/android_library/src/main/resources
             BaselineProfileDirectories:
                 ./libs/android_library/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./libs/android_library/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -2089,6 +2151,8 @@ MODULE: AS36.libs.android_library
                     ./libs/android_library/src/main/resources
                 BaselineProfileDirectories:
                     ./libs/android_library/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./libs/android_library/src/main/keepRules
             debug
                 Manifest:
                     ./libs/android_library/src/debug/AndroidManifest.xml
@@ -2107,6 +2171,8 @@ MODULE: AS36.libs.android_library
                     ./libs/android_library/src/debug/resources
                 BaselineProfileDirectories:
                     ./libs/android_library/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./libs/android_library/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -2126,6 +2192,8 @@ MODULE: AS36.libs.android_library
                     ./libs/android_library/src/main/resources
                 BaselineProfileDirectories:
                     ./libs/android_library/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./libs/android_library/src/main/keepRules
             debug
                 Manifest:
                     ./libs/android_library/src/debug/AndroidManifest.xml
@@ -2144,6 +2212,8 @@ MODULE: AS36.libs.android_library
                     ./libs/android_library/src/debug/resources
                 BaselineProfileDirectories:
                     ./libs/android_library/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./libs/android_library/src/debug/keepRules
             release
                 Manifest:
                     ./libs/android_library/src/release/AndroidManifest.xml
@@ -2162,6 +2232,8 @@ MODULE: AS36.libs.android_library
                     ./libs/android_library/src/release/resources
                 BaselineProfileDirectories:
                     ./libs/android_library/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./libs/android_library/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -2182,6 +2254,8 @@ MODULE: AS36.libs.android_library
                         ./libs/android_library/src/test/resources
                     BaselineProfileDirectories:
                         ./libs/android_library/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./libs/android_library/src/test/keepRules
                 testDebug
                     Manifest:
                         ./libs/android_library/src/testDebug/AndroidManifest.xml
@@ -2200,6 +2274,8 @@ MODULE: AS36.libs.android_library
                         ./libs/android_library/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./libs/android_library/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./libs/android_library/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -2220,6 +2296,8 @@ MODULE: AS36.libs.android_library
                         ./libs/android_library/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./libs/android_library/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./libs/android_library/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./libs/android_library/src/androidTestDebug/AndroidManifest.xml
@@ -2238,6 +2316,8 @@ MODULE: AS36.libs.android_library
                         ./libs/android_library/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./libs/android_library/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./libs/android_library/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

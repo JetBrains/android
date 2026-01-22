@@ -45,6 +45,7 @@ class NamedIdeaSourceProviderImpl(
     val mlModelsDirectoryUrls: Sequence<String>
     val customSourceDirectories: Map<String, Sequence<String>>
     val baselineProfileDirectoryUrls: Sequence<String>
+    val keepRulesDirectoryUrls: Sequence<String>
   }
 
   private val manifestFileUrl: String? get() = core.manifestFileUrl
@@ -61,6 +62,7 @@ class NamedIdeaSourceProviderImpl(
 
   override val custom: Map<String, IdeaSourceProvider.Custom> = core.customSourceDirectories.mapValues { CustomImpl(it.value) }
   override val baselineProfileDirectoryUrls: Iterable<String> get() = core.baselineProfileDirectoryUrls.asIterable()
+  override val keepRulesDirectoryUrls: Iterable<String> get() = core.keepRulesDirectoryUrls.asIterable()
 
   @Volatile
   private var myManifestFile: VirtualFile? = null
@@ -102,6 +104,7 @@ class NamedIdeaSourceProviderImpl(
   override val shadersDirectories: Iterable<VirtualFile> get() = core.shadersDirectoryUrls.toVirtualFiles()
   override val mlModelsDirectories: Iterable<VirtualFile> get() = core.mlModelsDirectoryUrls.toVirtualFiles()
   override val baselineProfileDirectories: Iterable<VirtualFile> get() = core.baselineProfileDirectoryUrls.toVirtualFiles()
+  override val keepRulesDirectories: Iterable<VirtualFile> get() = core.keepRulesDirectoryUrls.toVirtualFiles()
   override fun toString(): String = "$name($scopeType)"
 }
 
@@ -129,6 +132,7 @@ class IdeaSourceProviderImpl(
     val mlModelsDirectoryUrls: Sequence<String>
     val customSourceDirectories: Map<String, Sequence<String>>
     val baselineProfileDirectoryUrls: Sequence<String>
+    val keepRulesDirectoryUrls: Sequence<String>
   }
 
   override val manifestFileUrls: Iterable<String> get() = core.manifestFileUrls.asIterable()
@@ -144,6 +148,7 @@ class IdeaSourceProviderImpl(
   override val shadersDirectoryUrls: Iterable<String> get() = core.shadersDirectoryUrls.asIterable()
   override val mlModelsDirectoryUrls: Iterable<String> get() = core.mlModelsDirectoryUrls.asIterable()
   override val baselineProfileDirectoryUrls: Iterable<String> get() = core.baselineProfileDirectoryUrls.asIterable()
+  override val keepRulesDirectoryUrls: Iterable<String> get() = core.keepRulesDirectoryUrls.asIterable()
 
   override val manifestFiles: Iterable<VirtualFile> get() = core.manifestFileUrls.toVirtualFiles()
   override val manifestDirectories: Iterable<VirtualFile> get() = core.manifestDirectoryUrls.toVirtualFiles()
@@ -159,6 +164,7 @@ class IdeaSourceProviderImpl(
   override val mlModelsDirectories: Iterable<VirtualFile> get() = core.mlModelsDirectoryUrls.toVirtualFiles()
   override val custom: Map<String, IdeaSourceProvider.Custom> = core.customSourceDirectories.mapValues { CustomImpl(it.value) }
   override val baselineProfileDirectories: Iterable<VirtualFile> get() = core.baselineProfileDirectoryUrls.toVirtualFiles()
+  override val keepRulesDirectories: Iterable<VirtualFile> get() = core.keepRulesDirectoryUrls.toVirtualFiles()
 }
 
 /**
@@ -181,6 +187,7 @@ interface NamedIdeaSourceProviderBuilder {
   fun withMlModelsDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
   fun withCustomSourceDirectories(customSourceDirectories: Map<String, Collection<String>>) : NamedIdeaSourceProviderBuilder
   fun withBaselineProfileDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
+  fun withKeepRulesDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
 
   fun build(): NamedIdeaSourceProvider
 
@@ -206,7 +213,8 @@ interface NamedIdeaSourceProviderBuilder {
     val mlModelsDirectoryUrls: Collection<String> = emptyList(),
     val customSourceDirectories: Map<String, Collection<String>> = emptyMap(),
     val baselineProfileDirectoryUrls: Collection<String> = emptyList(),
-  ) : NamedIdeaSourceProviderBuilder {
+    val keepRulesDirectoryUrls: Collection<String> = emptyList(),
+    ) : NamedIdeaSourceProviderBuilder {
     override fun withName(name: String): NamedIdeaSourceProviderBuilder = copy(name = name)
     override fun withScopeType(scopeType: ScopeType): NamedIdeaSourceProviderBuilder = copy(scopeType = scopeType)
     override fun withManifestFileUrl(url: String): NamedIdeaSourceProviderBuilder = copy(manifestFileUrl = url)
@@ -224,6 +232,7 @@ interface NamedIdeaSourceProviderBuilder {
     override fun withCustomSourceDirectories(customSourceDirectories: Map<String, Collection<String>>): NamedIdeaSourceProviderBuilder =
       copy(customSourceDirectories = customSourceDirectories)
     override fun withBaselineProfileDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(baselineProfileDirectoryUrls = urls)
+    override fun withKeepRulesDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(keepRulesDirectoryUrls = urls)
     override fun build(): NamedIdeaSourceProvider = NamedIdeaSourceProviderImpl(
       name,
       scopeType,
@@ -241,6 +250,7 @@ interface NamedIdeaSourceProviderBuilder {
         override val mlModelsDirectoryUrls: Sequence<String> get() = this@Builder.mlModelsDirectoryUrls.asSequence()
         override val customSourceDirectories: Map<String, Sequence<String>> = this@Builder.customSourceDirectories.mapValues { it.value.asSequence() }
         override val baselineProfileDirectoryUrls: Sequence<String> get() = this@Builder.baselineProfileDirectoryUrls.asSequence()
+        override val keepRulesDirectoryUrls: Sequence<String>get() = this@Builder.keepRulesDirectoryUrls.asSequence()
       }
     )
   }

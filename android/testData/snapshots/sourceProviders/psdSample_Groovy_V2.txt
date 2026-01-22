@@ -48,6 +48,8 @@ MODULE: project.app
                 ./app/src/main/resources
             BaselineProfileDirectories:
                 ./app/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./app/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -67,6 +69,8 @@ MODULE: project.app
                     ./app/src/main/resources
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/main/keepRules
             basic
                 Manifest:
                     ./app/src/basic/AndroidManifest.xml
@@ -85,6 +89,8 @@ MODULE: project.app
                     ./app/src/basic/resources
                 BaselineProfileDirectories:
                     ./app/src/basic/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/basic/keepRules
             bar
                 Manifest:
                     ./app/src/bar/AndroidManifest.xml
@@ -103,6 +109,8 @@ MODULE: project.app
                     ./app/src/bar/resources
                 BaselineProfileDirectories:
                     ./app/src/bar/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/bar/keepRules
             basicBar
                 Manifest:
                     ./app/src/basicBar/AndroidManifest.xml
@@ -121,6 +129,8 @@ MODULE: project.app
                     ./app/src/basicBar/resources
                 BaselineProfileDirectories:
                     ./app/src/basicBar/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/basicBar/keepRules
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -139,6 +149,8 @@ MODULE: project.app
                     ./app/src/debug/resources
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/debug/keepRules
             basicBarDebug
                 Manifest:
                     ./app/src/basicBarDebug/AndroidManifest.xml
@@ -157,6 +169,8 @@ MODULE: project.app
                     ./app/src/basicBarDebug/resources
                 BaselineProfileDirectories:
                     ./app/src/basicBarDebug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/basicBarDebug/keepRules
         All:
             main
                 Manifest:
@@ -176,6 +190,8 @@ MODULE: project.app
                     ./app/src/main/resources
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/main/keepRules
             bar
                 Manifest:
                     ./app/src/bar/AndroidManifest.xml
@@ -194,6 +210,8 @@ MODULE: project.app
                     ./app/src/bar/resources
                 BaselineProfileDirectories:
                     ./app/src/bar/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/bar/keepRules
             basic
                 Manifest:
                     ./app/src/basic/AndroidManifest.xml
@@ -212,6 +230,8 @@ MODULE: project.app
                     ./app/src/basic/resources
                 BaselineProfileDirectories:
                     ./app/src/basic/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/basic/keepRules
             basicBar
                 Manifest:
                     ./app/src/basicBar/AndroidManifest.xml
@@ -230,6 +250,8 @@ MODULE: project.app
                     ./app/src/basicBar/resources
                 BaselineProfileDirectories:
                     ./app/src/basicBar/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/basicBar/keepRules
             basicBarDebug
                 Manifest:
                     ./app/src/basicBarDebug/AndroidManifest.xml
@@ -248,6 +270,8 @@ MODULE: project.app
                     ./app/src/basicBarDebug/resources
                 BaselineProfileDirectories:
                     ./app/src/basicBarDebug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/basicBarDebug/keepRules
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -266,6 +290,8 @@ MODULE: project.app
                     ./app/src/debug/resources
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/debug/keepRules
             otherBar
                 Manifest:
                     ./app/src/otherBar/AndroidManifest.xml
@@ -284,6 +310,8 @@ MODULE: project.app
                     ./app/src/otherBar/resources
                 BaselineProfileDirectories:
                     ./app/src/otherBar/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/otherBar/keepRules
             paid
                 Manifest:
                     ./app/src/paid/AndroidManifest.xml
@@ -302,6 +330,8 @@ MODULE: project.app
                     ./app/src/paid/resources
                 BaselineProfileDirectories:
                     ./app/src/paid/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/paid/keepRules
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -320,6 +350,8 @@ MODULE: project.app
                     ./app/src/release/resources
                 BaselineProfileDirectories:
                     ./app/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/release/keepRules
             specialRelease
                 Manifest:
                     ./app/src/specialRelease/AndroidManifest.xml
@@ -338,6 +370,8 @@ MODULE: project.app
                     ./app/src/specialRelease/resources
                 BaselineProfileDirectories:
                     ./app/src/specialRelease/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/specialRelease/keepRules
         HostTest:
             UnitTest
                 test
@@ -358,6 +392,8 @@ MODULE: project.app
                         ./app/src/test/resources
                     BaselineProfileDirectories:
                         ./app/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/test/keepRules
                 testBasic
                     Manifest:
                         ./app/src/testBasic/AndroidManifest.xml
@@ -376,6 +412,8 @@ MODULE: project.app
                         ./app/src/testBasic/resources
                     BaselineProfileDirectories:
                         ./app/src/testBasic/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/testBasic/keepRules
                 testBar
                     Manifest:
                         ./app/src/testBar/AndroidManifest.xml
@@ -394,6 +432,8 @@ MODULE: project.app
                         ./app/src/testBar/resources
                     BaselineProfileDirectories:
                         ./app/src/testBar/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/testBar/keepRules
                 testBasicBar
                     Manifest:
                         ./app/src/testBasicBar/AndroidManifest.xml
@@ -412,6 +452,8 @@ MODULE: project.app
                         ./app/src/testBasicBar/resources
                     BaselineProfileDirectories:
                         ./app/src/testBasicBar/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/testBasicBar/keepRules
                 testDebug
                     Manifest:
                         ./app/src/testDebug/AndroidManifest.xml
@@ -430,6 +472,8 @@ MODULE: project.app
                         ./app/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/testDebug/keepRules
                 testBasicBarDebug
                     Manifest:
                         ./app/src/testBasicBarDebug/AndroidManifest.xml
@@ -446,6 +490,8 @@ MODULE: project.app
                         ./app/src/testBasicBarDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/testBasicBarDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/testBasicBarDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -466,6 +512,8 @@ MODULE: project.app
                         ./app/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTest/keepRules
                 androidTestBasic
                     Manifest:
                         ./app/src/androidTestBasic/AndroidManifest.xml
@@ -484,6 +532,8 @@ MODULE: project.app
                         ./app/src/androidTestBasic/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTestBasic/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTestBasic/keepRules
                 androidTestBar
                     Manifest:
                         ./app/src/androidTestBar/AndroidManifest.xml
@@ -502,6 +552,8 @@ MODULE: project.app
                         ./app/src/androidTestBar/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTestBar/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTestBar/keepRules
                 androidTestBasicBar
                     Manifest:
                         ./app/src/androidTestBasicBar/AndroidManifest.xml
@@ -520,6 +572,8 @@ MODULE: project.app
                         ./app/src/androidTestBasicBar/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTestBasicBar/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTestBasicBar/keepRules
                 androidTestDebug
                     Manifest:
                         ./app/src/androidTestDebug/AndroidManifest.xml
@@ -538,6 +592,8 @@ MODULE: project.app
                         ./app/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTestDebug/keepRules
                 androidTestBasicBarDebug
                     Manifest:
                         ./app/src/androidTestBasicBarDebug/AndroidManifest.xml
@@ -556,6 +612,8 @@ MODULE: project.app
                         ./app/src/androidTestBasicBarDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTestBasicBarDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTestBasicBarDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -1909,6 +1967,8 @@ MODULE: project.dyn_feature
                 ./dyn_feature/src/main/resources
             BaselineProfileDirectories:
                 ./dyn_feature/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./dyn_feature/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -1928,6 +1988,8 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/main/resources
                 BaselineProfileDirectories:
                     ./dyn_feature/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/main/keepRules
             debug
                 Manifest:
                     ./dyn_feature/src/debug/AndroidManifest.xml
@@ -1946,6 +2008,8 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/debug/resources
                 BaselineProfileDirectories:
                     ./dyn_feature/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -1965,6 +2029,8 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/main/resources
                 BaselineProfileDirectories:
                     ./dyn_feature/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/main/keepRules
             debug
                 Manifest:
                     ./dyn_feature/src/debug/AndroidManifest.xml
@@ -1983,6 +2049,8 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/debug/resources
                 BaselineProfileDirectories:
                     ./dyn_feature/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/debug/keepRules
             release
                 Manifest:
                     ./dyn_feature/src/release/AndroidManifest.xml
@@ -2001,6 +2069,8 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/release/resources
                 BaselineProfileDirectories:
                     ./dyn_feature/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -2021,6 +2091,8 @@ MODULE: project.dyn_feature
                         ./dyn_feature/src/test/resources
                     BaselineProfileDirectories:
                         ./dyn_feature/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./dyn_feature/src/test/keepRules
                 testDebug
                     Manifest:
                         ./dyn_feature/src/testDebug/AndroidManifest.xml
@@ -2039,6 +2111,8 @@ MODULE: project.dyn_feature
                         ./dyn_feature/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./dyn_feature/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./dyn_feature/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -2059,6 +2133,8 @@ MODULE: project.dyn_feature
                         ./dyn_feature/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./dyn_feature/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./dyn_feature/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./dyn_feature/src/androidTestDebug/AndroidManifest.xml
@@ -2077,6 +2153,8 @@ MODULE: project.dyn_feature
                         ./dyn_feature/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./dyn_feature/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./dyn_feature/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -2567,6 +2645,8 @@ MODULE: project.lib
                 ./lib/src/main/resources
             BaselineProfileDirectories:
                 ./lib/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./lib/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -2586,6 +2666,8 @@ MODULE: project.lib
                     ./lib/src/main/resources
                 BaselineProfileDirectories:
                     ./lib/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./lib/src/main/keepRules
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -2604,6 +2686,8 @@ MODULE: project.lib
                     ./lib/src/debug/resources
                 BaselineProfileDirectories:
                     ./lib/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./lib/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -2623,6 +2707,8 @@ MODULE: project.lib
                     ./lib/src/main/resources
                 BaselineProfileDirectories:
                     ./lib/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./lib/src/main/keepRules
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -2641,6 +2727,8 @@ MODULE: project.lib
                     ./lib/src/debug/resources
                 BaselineProfileDirectories:
                     ./lib/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./lib/src/debug/keepRules
             release
                 Manifest:
                     ./lib/src/release/AndroidManifest.xml
@@ -2659,6 +2747,8 @@ MODULE: project.lib
                     ./lib/src/release/resources
                 BaselineProfileDirectories:
                     ./lib/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./lib/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -2679,6 +2769,8 @@ MODULE: project.lib
                         ./lib/src/test/resources
                     BaselineProfileDirectories:
                         ./lib/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./lib/src/test/keepRules
                 testDebug
                     Manifest:
                         ./lib/src/testDebug/AndroidManifest.xml
@@ -2697,6 +2789,8 @@ MODULE: project.lib
                         ./lib/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./lib/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./lib/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -2717,6 +2811,8 @@ MODULE: project.lib
                         ./lib/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./lib/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./lib/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./lib/src/androidTestDebug/AndroidManifest.xml
@@ -2735,6 +2831,8 @@ MODULE: project.lib
                         ./lib/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./lib/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./lib/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -3243,6 +3341,8 @@ MODULE: project.nested1
                 ./nested1/src/main/resources
             BaselineProfileDirectories:
                 ./nested1/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./nested1/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -3262,6 +3362,8 @@ MODULE: project.nested1
                     ./nested1/src/main/resources
                 BaselineProfileDirectories:
                     ./nested1/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested1/src/main/keepRules
             debug
                 Manifest:
                     ./nested1/src/debug/AndroidManifest.xml
@@ -3280,6 +3382,8 @@ MODULE: project.nested1
                     ./nested1/src/debug/resources
                 BaselineProfileDirectories:
                     ./nested1/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested1/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -3299,6 +3403,8 @@ MODULE: project.nested1
                     ./nested1/src/main/resources
                 BaselineProfileDirectories:
                     ./nested1/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested1/src/main/keepRules
             debug
                 Manifest:
                     ./nested1/src/debug/AndroidManifest.xml
@@ -3317,6 +3423,8 @@ MODULE: project.nested1
                     ./nested1/src/debug/resources
                 BaselineProfileDirectories:
                     ./nested1/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested1/src/debug/keepRules
             release
                 Manifest:
                     ./nested1/src/release/AndroidManifest.xml
@@ -3335,6 +3443,8 @@ MODULE: project.nested1
                     ./nested1/src/release/resources
                 BaselineProfileDirectories:
                     ./nested1/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested1/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -3355,6 +3465,8 @@ MODULE: project.nested1
                         ./nested1/src/test/resources
                     BaselineProfileDirectories:
                         ./nested1/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested1/src/test/keepRules
                 testDebug
                     Manifest:
                         ./nested1/src/testDebug/AndroidManifest.xml
@@ -3373,6 +3485,8 @@ MODULE: project.nested1
                         ./nested1/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./nested1/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested1/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -3393,6 +3507,8 @@ MODULE: project.nested1
                         ./nested1/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./nested1/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested1/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./nested1/src/androidTestDebug/AndroidManifest.xml
@@ -3411,6 +3527,8 @@ MODULE: project.nested1
                         ./nested1/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./nested1/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested1/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -3895,6 +4013,8 @@ MODULE: project.nested1.deep
                 ./nested1/deep/src/main/resources
             BaselineProfileDirectories:
                 ./nested1/deep/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./nested1/deep/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -3914,6 +4034,8 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/main/resources
                 BaselineProfileDirectories:
                     ./nested1/deep/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested1/deep/src/main/keepRules
             debug
                 Manifest:
                     ./nested1/deep/src/debug/AndroidManifest.xml
@@ -3932,6 +4054,8 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/debug/resources
                 BaselineProfileDirectories:
                     ./nested1/deep/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested1/deep/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -3951,6 +4075,8 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/main/resources
                 BaselineProfileDirectories:
                     ./nested1/deep/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested1/deep/src/main/keepRules
             debug
                 Manifest:
                     ./nested1/deep/src/debug/AndroidManifest.xml
@@ -3969,6 +4095,8 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/debug/resources
                 BaselineProfileDirectories:
                     ./nested1/deep/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested1/deep/src/debug/keepRules
             release
                 Manifest:
                     ./nested1/deep/src/release/AndroidManifest.xml
@@ -3987,6 +4115,8 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/release/resources
                 BaselineProfileDirectories:
                     ./nested1/deep/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested1/deep/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -4007,6 +4137,8 @@ MODULE: project.nested1.deep
                         ./nested1/deep/src/test/resources
                     BaselineProfileDirectories:
                         ./nested1/deep/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested1/deep/src/test/keepRules
                 testDebug
                     Manifest:
                         ./nested1/deep/src/testDebug/AndroidManifest.xml
@@ -4025,6 +4157,8 @@ MODULE: project.nested1.deep
                         ./nested1/deep/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./nested1/deep/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested1/deep/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -4045,6 +4179,8 @@ MODULE: project.nested1.deep
                         ./nested1/deep/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./nested1/deep/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested1/deep/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./nested1/deep/src/androidTestDebug/AndroidManifest.xml
@@ -4063,6 +4199,8 @@ MODULE: project.nested1.deep
                         ./nested1/deep/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./nested1/deep/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested1/deep/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -4547,6 +4685,8 @@ MODULE: project.nested2
                 ./nested2/src/main/resources
             BaselineProfileDirectories:
                 ./nested2/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./nested2/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -4566,6 +4706,8 @@ MODULE: project.nested2
                     ./nested2/src/main/resources
                 BaselineProfileDirectories:
                     ./nested2/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/src/main/keepRules
             basic
                 Manifest:
                     ./nested2/src/basic/AndroidManifest.xml
@@ -4584,6 +4726,8 @@ MODULE: project.nested2
                     ./nested2/src/basic/resources
                 BaselineProfileDirectories:
                     ./nested2/src/basic/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/src/basic/keepRules
             debug
                 Manifest:
                     ./nested2/src/debug/AndroidManifest.xml
@@ -4602,6 +4746,8 @@ MODULE: project.nested2
                     ./nested2/src/debug/resources
                 BaselineProfileDirectories:
                     ./nested2/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/src/debug/keepRules
             basicDebug
                 Manifest:
                     ./nested2/src/basicDebug/AndroidManifest.xml
@@ -4620,6 +4766,8 @@ MODULE: project.nested2
                     ./nested2/src/basicDebug/resources
                 BaselineProfileDirectories:
                     ./nested2/src/basicDebug/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/src/basicDebug/keepRules
         All:
             main
                 Manifest:
@@ -4639,6 +4787,8 @@ MODULE: project.nested2
                     ./nested2/src/main/resources
                 BaselineProfileDirectories:
                     ./nested2/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/src/main/keepRules
             basic
                 Manifest:
                     ./nested2/src/basic/AndroidManifest.xml
@@ -4657,6 +4807,8 @@ MODULE: project.nested2
                     ./nested2/src/basic/resources
                 BaselineProfileDirectories:
                     ./nested2/src/basic/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/src/basic/keepRules
             basicDebug
                 Manifest:
                     ./nested2/src/basicDebug/AndroidManifest.xml
@@ -4675,6 +4827,8 @@ MODULE: project.nested2
                     ./nested2/src/basicDebug/resources
                 BaselineProfileDirectories:
                     ./nested2/src/basicDebug/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/src/basicDebug/keepRules
             debug
                 Manifest:
                     ./nested2/src/debug/AndroidManifest.xml
@@ -4693,6 +4847,8 @@ MODULE: project.nested2
                     ./nested2/src/debug/resources
                 BaselineProfileDirectories:
                     ./nested2/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/src/debug/keepRules
             paid
                 Manifest:
                     ./nested2/src/paid/AndroidManifest.xml
@@ -4711,6 +4867,8 @@ MODULE: project.nested2
                     ./nested2/src/paid/resources
                 BaselineProfileDirectories:
                     ./nested2/src/paid/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/src/paid/keepRules
             release
                 Manifest:
                     ./nested2/src/release/AndroidManifest.xml
@@ -4729,6 +4887,8 @@ MODULE: project.nested2
                     ./nested2/src/release/resources
                 BaselineProfileDirectories:
                     ./nested2/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -4749,6 +4909,8 @@ MODULE: project.nested2
                         ./nested2/src/test/resources
                     BaselineProfileDirectories:
                         ./nested2/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/src/test/keepRules
                 testBasic
                     Manifest:
                         ./nested2/src/testBasic/AndroidManifest.xml
@@ -4767,6 +4929,8 @@ MODULE: project.nested2
                         ./nested2/src/testBasic/resources
                     BaselineProfileDirectories:
                         ./nested2/src/testBasic/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/src/testBasic/keepRules
                 testDebug
                     Manifest:
                         ./nested2/src/testDebug/AndroidManifest.xml
@@ -4785,6 +4949,8 @@ MODULE: project.nested2
                         ./nested2/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./nested2/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/src/testDebug/keepRules
                 testBasicDebug
                     Manifest:
                         ./nested2/src/testBasicDebug/AndroidManifest.xml
@@ -4801,6 +4967,8 @@ MODULE: project.nested2
                         ./nested2/src/testBasicDebug/resources
                     BaselineProfileDirectories:
                         ./nested2/src/testBasicDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/src/testBasicDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -4821,6 +4989,8 @@ MODULE: project.nested2
                         ./nested2/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./nested2/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/src/androidTest/keepRules
                 androidTestBasic
                     Manifest:
                         ./nested2/src/androidTestBasic/AndroidManifest.xml
@@ -4839,6 +5009,8 @@ MODULE: project.nested2
                         ./nested2/src/androidTestBasic/resources
                     BaselineProfileDirectories:
                         ./nested2/src/androidTestBasic/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/src/androidTestBasic/keepRules
                 androidTestDebug
                     Manifest:
                         ./nested2/src/androidTestDebug/AndroidManifest.xml
@@ -4857,6 +5029,8 @@ MODULE: project.nested2
                         ./nested2/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./nested2/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/src/androidTestDebug/keepRules
                 androidTestBasicDebug
                     Manifest:
                         ./nested2/src/androidTestBasicDebug/AndroidManifest.xml
@@ -4875,6 +5049,8 @@ MODULE: project.nested2
                         ./nested2/src/androidTestBasicDebug/resources
                     BaselineProfileDirectories:
                         ./nested2/src/androidTestBasicDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/src/androidTestBasicDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -5750,6 +5926,8 @@ MODULE: project.nested2.deep
                 ./nested2/deep/src/main/resources
             BaselineProfileDirectories:
                 ./nested2/deep/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./nested2/deep/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -5769,6 +5947,8 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/main/resources
                 BaselineProfileDirectories:
                     ./nested2/deep/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/deep/src/main/keepRules
             debug
                 Manifest:
                     ./nested2/deep/src/debug/AndroidManifest.xml
@@ -5787,6 +5967,8 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/debug/resources
                 BaselineProfileDirectories:
                     ./nested2/deep/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/deep/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -5806,6 +5988,8 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/main/resources
                 BaselineProfileDirectories:
                     ./nested2/deep/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/deep/src/main/keepRules
             debug
                 Manifest:
                     ./nested2/deep/src/debug/AndroidManifest.xml
@@ -5824,6 +6008,8 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/debug/resources
                 BaselineProfileDirectories:
                     ./nested2/deep/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/deep/src/debug/keepRules
             release
                 Manifest:
                     ./nested2/deep/src/release/AndroidManifest.xml
@@ -5842,6 +6028,8 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/release/resources
                 BaselineProfileDirectories:
                     ./nested2/deep/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/deep/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -5862,6 +6050,8 @@ MODULE: project.nested2.deep
                         ./nested2/deep/src/test/resources
                     BaselineProfileDirectories:
                         ./nested2/deep/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/deep/src/test/keepRules
                 testDebug
                     Manifest:
                         ./nested2/deep/src/testDebug/AndroidManifest.xml
@@ -5880,6 +6070,8 @@ MODULE: project.nested2.deep
                         ./nested2/deep/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./nested2/deep/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/deep/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -5900,6 +6092,8 @@ MODULE: project.nested2.deep
                         ./nested2/deep/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./nested2/deep/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/deep/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./nested2/deep/src/androidTestDebug/AndroidManifest.xml
@@ -5918,6 +6112,8 @@ MODULE: project.nested2.deep
                         ./nested2/deep/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./nested2/deep/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/deep/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -6402,6 +6598,8 @@ MODULE: project.nested2.trans.deep2
                 ./nested2/trans/deep2/src/main/resources
             BaselineProfileDirectories:
                 ./nested2/trans/deep2/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./nested2/trans/deep2/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -6421,6 +6619,8 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/main/resources
                 BaselineProfileDirectories:
                     ./nested2/trans/deep2/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/trans/deep2/src/main/keepRules
             debug
                 Manifest:
                     ./nested2/trans/deep2/src/debug/AndroidManifest.xml
@@ -6439,6 +6639,8 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/debug/resources
                 BaselineProfileDirectories:
                     ./nested2/trans/deep2/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/trans/deep2/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -6458,6 +6660,8 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/main/resources
                 BaselineProfileDirectories:
                     ./nested2/trans/deep2/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/trans/deep2/src/main/keepRules
             debug
                 Manifest:
                     ./nested2/trans/deep2/src/debug/AndroidManifest.xml
@@ -6476,6 +6680,8 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/debug/resources
                 BaselineProfileDirectories:
                     ./nested2/trans/deep2/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/trans/deep2/src/debug/keepRules
             release
                 Manifest:
                     ./nested2/trans/deep2/src/release/AndroidManifest.xml
@@ -6494,6 +6700,8 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/release/resources
                 BaselineProfileDirectories:
                     ./nested2/trans/deep2/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./nested2/trans/deep2/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -6514,6 +6722,8 @@ MODULE: project.nested2.trans.deep2
                         ./nested2/trans/deep2/src/test/resources
                     BaselineProfileDirectories:
                         ./nested2/trans/deep2/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/trans/deep2/src/test/keepRules
                 testDebug
                     Manifest:
                         ./nested2/trans/deep2/src/testDebug/AndroidManifest.xml
@@ -6532,6 +6742,8 @@ MODULE: project.nested2.trans.deep2
                         ./nested2/trans/deep2/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./nested2/trans/deep2/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/trans/deep2/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -6552,6 +6764,8 @@ MODULE: project.nested2.trans.deep2
                         ./nested2/trans/deep2/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./nested2/trans/deep2/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/trans/deep2/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
@@ -6570,6 +6784,8 @@ MODULE: project.nested2.trans.deep2
                         ./nested2/trans/deep2/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./nested2/trans/deep2/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./nested2/trans/deep2/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

@@ -179,8 +179,7 @@ data class IdeSourceProvider constructor(
     get() = customSourceDirectoriesField
   val baselineProfileDirectories: List<FileImpl>
     get() = baselineProfileDirectoriesField
-  val keepRulesDirectories:List<FileImpl>
-  get() = keepRulesDirectoriesField
+  val keepRulesDirectories:List<FileImpl> get() = keepRulesDirectoriesField
 }
 
 private fun normalize(folder: File?, file: File): FileImpl = (if (folder != null) file.relativeToOrSelf(folder).path else file.path).translate(folder)
