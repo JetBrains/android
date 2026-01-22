@@ -100,4 +100,21 @@ object GradleJdkConfigurationUtils {
       }
     }
   }
+
+  /**
+   * Tries to configure the Gradle JDK configuration for a specific project Gradle root with a given Java version
+   * after trying to locate it locally from Project JDK table or download it if necessary.
+   *
+   * @param project The current opened project
+   * @param gradleRootPath Gradle project root absolute path
+   * @param version A major Java version
+   */
+  suspend fun tryConfigureGradleJdkWithVersion(project: Project, gradleRootPath: @SystemIndependent String, version: Int) {
+    val resolvedSdk = ProjectJdkTableUtils.findProjectTableJdkWithVersion(version)
+                  ?: JdkDownloadUtils.downloadJdkWithVersion(project, version)
+
+    resolvedSdk?.homePath?.let {
+      setProjectGradleJdk(project, gradleRootPath, it)
+    }
+  }
 }

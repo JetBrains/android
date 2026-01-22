@@ -22,9 +22,12 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.Projects
 import com.android.tools.idea.Projects.getBaseDirPath
+import com.android.tools.idea.concurrency.coroutineScope
+import com.android.tools.idea.gradle.extensions.getRecommendedJavaVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
+import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkConfigurationUtils
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.gradle.util.LocalProperties
@@ -54,11 +57,17 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.net.HttpProxyConfigurable
-import org.jetbrains.plugins.gradle.settings.DistributionType
-import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.CompletableFuture
+import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.launch
+import org.gradle.util.GradleVersion
+import org.jetbrains.plugins.gradle.jvmcompat.GradleJvmSupportMatrix
+import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
+import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
+import org.jetbrains.plugins.gradle.settings.DistributionType
+import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 class CreateGradleWrapperQuickFix : BuildIssueQuickFix {
   override val id = "migrate.gradle.wrapper"
@@ -318,7 +327,7 @@ class OpenStudioProxySettingsQuickFix: BuildIssueQuickFix {
 }
 
 class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
-  override val description: String = "Change Gradle JDK..."
+  override val description: String = "Change Gradle JDK configuration"
   override val id: String = "select.jdk.from.gradle.settings"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
@@ -327,5 +336,34 @@ class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
       service.chooseJdkLocation(project.basePath)
     }
     return CompletableFuture.completedFuture(null)
+  }
+}
+
+class UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix(
+  private val gradleVersion: GradleVersion,
+  private val externalProjectPath: String
+) : DescribedBuildIssueQuickFix {
+  override val description: String = "Apply compatible Daemon JVM criteria"
+  override val id: String = "apply.compatible.daemon.jvm.criteria"
+
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
+    val targetJavaVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(gradleVersion, true)
+    val daemonJvmCriteria = GradleDaemonJvmCriteria(targetJavaVersion.feature.toString(), null)
+    return GradleDaemonJvmHelper.updateProjectDaemonJvmCriteria(project, externalProjectPath, daemonJvmCriteria)
+  }
+}
+
+class UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix(
+  private val gradleVersion: GradleVersion,
+  private val externalProjectPath: String
+) : DescribedBuildIssueQuickFix {
+  override val description: String = "Apply compatible Gradle JDK configuration"
+  override val id: String = "apply.compatible.gradle.jdk.configuration"
+
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
+    return project.coroutineScope.launch {
+      val targetJavaVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(gradleVersion, true)
+      GradleJdkConfigurationUtils.tryConfigureGradleJdkWithVersion(project, externalProjectPath, targetJavaVersion.feature)
+    }.asCompletableFuture()
   }
 }

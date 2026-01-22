@@ -17,6 +17,9 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
+import com.android.tools.idea.gradle.project.sync.quickFixes.SelectJdkFromFileSystemQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
@@ -30,6 +33,7 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.issue.quickfix.GradleOpenDaemonJvmSettingsQuickFix
 import org.jetbrains.plugins.gradle.jvmcompat.GradleJvmSupportMatrix
 import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
@@ -56,7 +60,7 @@ class IncompatibleGradleJvmAndGradleIssueChecker: GradleIssueChecker {
           issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP
         )
 
-        return createBuildIssue(javaVersion, gradleVersion)
+        return createBuildIssue(projectPath, javaVersion, gradleVersion)
       }
     }
     return null
@@ -91,7 +95,7 @@ class IncompatibleGradleJvmAndGradleIssueChecker: GradleIssueChecker {
     }
   }
 
-  private fun createBuildIssue(javaVersion: JavaVersion, gradleVersion: GradleVersion): BuildIssue {
+  private fun createBuildIssue(projectPath: Path, javaVersion: JavaVersion, gradleVersion: GradleVersion): BuildIssue {
     return BuildIssueComposer(
       baseMessage = AndroidBundle.message("android.build.issue.incompatible.gradle.jvm.title"),
       issueTitle = AndroidBundle.message("android.build.issue.incompatible.gradle.jvm.title")
@@ -102,6 +106,15 @@ class IncompatibleGradleJvmAndGradleIssueChecker: GradleIssueChecker {
         "android.build.issue.incompatible.gradle.jvm.description",
         gradleVersion.version, javaVersion.feature, minimumSupportedJavaVersion, maximumSupportedJavaVersion)
       )
+
+      startNewParagraph()
+      if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(projectPath, gradleVersion)) {
+        addQuickFix(UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix(gradleVersion, projectPath.toString()))
+        addQuickFix("Modify Daemon JVM criteria", GradleOpenDaemonJvmSettingsQuickFix)
+      } else {
+        addQuickFix(UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix(gradleVersion, projectPath.toString()))
+        addQuickFix(SelectJdkFromFileSystemQuickFix())
+      }
     }.composeBuildIssue()
   }
 }
