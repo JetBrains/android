@@ -1,5 +1,6 @@
 load("@rules_java//java:defs.bzl", "java_library")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE", "KOTLIN_ARTIFACTS_FOR_TESTS")
+load("//tools/adt/idea/android/integration:emulator_quickboot_snapshot.bzl", "emulator_quickboot_snapshot")
 load("//tools/adt/idea/studio:studio.bzl", "studio_project_model")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
@@ -35,6 +36,28 @@ open_project_data = [
     ":openproject_deps",
     INTEGRATION_TEST_GRADLE_VERSION,
 ]
+
+EMULATOR_TEST_JVM_FLAGS = [
+    "-Demulator.test.system.image.files=\"$(locations " + INTEGRATION_TEST_SYSTEM_IMAGE + ")\"",
+    "-Demulator.test.emulator.location=\"$(locations //prebuilts/studio/sdk:emulator)\"",
+] + select({
+    "@platforms//os:linux": [
+        "-Demulator.test.sdk.path=prebuilts/studio/sdk/linux",
+        "-Demulator.test.emulator.path=prebuilts/studio/sdk/linux/emulator/emulator",
+    ],
+    "//tools/base/bazel/platforms:macos-arm64": [
+        "-Demulator.test.sdk.path=prebuilts/studio/sdk/darwin",
+        "-Demulator.test.emulator.path=prebuilts/studio/sdk/darwin/emulator-arm64/emulator",
+    ],
+    "@platforms//os:windows": [
+        "-Demulator.test.sdk.path=prebuilts/studio/sdk/windows",
+        "-Demulator.test.emulator.path=prebuilts/studio/sdk/windows/emulator/emulator",
+    ],
+    "//conditions:default": [
+        "-Demulator.test.sdk.path=prebuilts/studio/sdk/darwin",
+        "-Demulator.test.emulator.path=prebuilts/studio/sdk/darwin/emulator/emulator",
+    ],
+})
 
 iml_test(
     name = "OpenProjectTest",
@@ -231,27 +254,36 @@ iml_test(
         "//prebuilts/studio/sdk:platform-tools",
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
+    jvm_flags = EMULATOR_TEST_JVM_FLAGS,
+    module = "//tools/emulator/tests:android.tools.emulator.tests",
+    tags = [
+        "studio-e2e-test",
+    ],
+    tags_linux = ["block-network"],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.EmulatorTest",
+)
+
+emulator_quickboot_snapshot(
+    name = "emulator_quickboot_api_31_snapshot",
+    jvm_flags = EMULATOR_TEST_JVM_FLAGS,
+    system_image = INTEGRATION_TEST_SYSTEM_IMAGE,
+)
+
+iml_test(
+    name = "EmulatorWarmBootTest",
+    data = [
+        ":emulator_quickboot_api_31_snapshot",
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        INTEGRATION_TEST_SYSTEM_IMAGE,
+    ],
     jvm_flags = [
-        "-Demulator.test.system.image.files=\"$(locations " + INTEGRATION_TEST_SYSTEM_IMAGE + ")\"",
-        "-Demulator.test.emulator.location=\"$(locations //prebuilts/studio/sdk:emulator)\"",
-    ] + select({
-        "@platforms//os:linux": [
-            "-Demulator.test.sdk.path=prebuilts/studio/sdk/linux",
-            "-Demulator.test.emulator.path=prebuilts/studio/sdk/linux/emulator/emulator",
-        ],
-        "//tools/base/bazel/platforms:macos-arm64": [
-            "-Demulator.test.sdk.path=prebuilts/studio/sdk/darwin",
-            "-Demulator.test.emulator.path=prebuilts/studio/sdk/darwin/emulator-arm64/emulator",
-        ],
-        "@platforms//os:windows": [
-            "-Demulator.test.sdk.path=prebuilts/studio/sdk/windows",
-            "-Demulator.test.emulator.path=prebuilts/studio/sdk/windows/emulator/emulator",
-        ],
-        "//conditions:default": [
-            "-Demulator.test.sdk.path=prebuilts/studio/sdk/darwin",
-            "-Demulator.test.emulator.path=prebuilts/studio/sdk/darwin/emulator/emulator",
-        ],
-    }),
+        "-Demulator.test.snapshot.path=\"$(location :emulator_quickboot_api_31_snapshot)\"",
+    ] + EMULATOR_TEST_JVM_FLAGS,
     module = "//tools/emulator/tests:android.tools.emulator.tests",
     tags = [
         "studio-e2e-test",
@@ -1114,6 +1146,17 @@ filegroup(
 filegroup(
     name = "architectureSamplesScenarioScripts",
     srcs = glob(["testData/architecture-samples-scenarios/**"]),
+)
+
+java_library(
+    name = "emulator_quickboot_snapshot_generator_lib",
+    testonly = True,
+    srcs = ["testSrc/com/android/tools/idea/EmulatorQuickbootSnapshotGenerator.java"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//tools/base/common:studio.android.sdktools.common",
+        "//tools/emulator/testlib",
+    ],
 )
 
 java_library(
