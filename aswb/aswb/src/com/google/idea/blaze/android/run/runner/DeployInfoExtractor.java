@@ -15,9 +15,11 @@
  */
 package com.google.idea.blaze.android.run.runner;
 
+import com.android.tools.idea.run.ApkProvisionException;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
+import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -26,10 +28,11 @@ import java.util.List;
 public interface DeployInfoExtractor {
   /** Parses the given build outputs and returns the deployment information. */
   BlazeAndroidDeployInfo extract(
+      Project project,
       BlazeBuildOutputs buildOutputs,
       String deployInfoOutputGroups,
       String apkOutputGroup,
       BlazeContext context,
       List<? extends File> nativeSymbols)
-      throws IOException;
+      throws ApkProvisionException;
 }

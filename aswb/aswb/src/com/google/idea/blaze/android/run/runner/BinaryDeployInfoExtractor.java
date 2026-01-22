@@ -17,8 +17,8 @@ package com.google.idea.blaze.android.run.runner;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
+import com.android.tools.idea.run.ApkProvisionException;
 import com.google.common.collect.ImmutableList;
-import com.google.idea.blaze.android.run.NativeSymbolFinder;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.base.run.RuntimeArtifactCache;
 import com.google.idea.blaze.base.run.RuntimeArtifactKind;
@@ -49,28 +49,37 @@ public final class BinaryDeployInfoExtractor implements DeployInfoExtractor {
 
   @Override
   public BlazeAndroidDeployInfo extract(
+    Project project,
     BlazeBuildOutputs buildOutputs,
     String deployInfoOutputGroups,
     String apkOutputGroup,
     BlazeContext context,
     List<? extends File> nativeSymbols)
-    throws IOException {
+    throws ApkProvisionException {
 
     String suffix = useMobileInstall ? "_mi.deployinfo.pb" : ".deployinfo.pb";
 
-    DeployData deployData =
-      DeployDataExtractor.extract(
+    DeployData deployData;
+    try {
+      deployData = DeployDataExtractor.extract(
+        targetLabel,
         buildOutputs.getOutputGroupArtifacts(deployInfoOutputGroups),
         buildOutputs.getOutputGroupArtifacts(apkOutputGroup),
         suffix,
         context,
         project);
+    }
+    catch (IOException e) {
+      throw new ApkProvisionException(String.format("Failed to process '*%s", suffix), e);
+    }
     RuntimeArtifactCache runtimeArtifactCache = RuntimeArtifactCache.getInstance(project);
     ImmutableList<File> localApks =
       runtimeArtifactCache.fetchArtifacts(targetLabel, deployData.apks(), context, RuntimeArtifactKind.APK).stream()
         .map(Path::toFile)
         .collect(toImmutableList());
-    return new BlazeAndroidDeployInfo(
-      deployData.mergedManifest(), /* testTargetMergedManifest */ null, localApks, ImmutableList.copyOf(nativeSymbols));
+    return BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(
+      new BlazeAndroidDeployInfo.ManifestWithApks(deployData.mergedManifest(), localApks),
+      /* testTargetMergedManifest */ null,
+      ImmutableList.copyOf(nativeSymbols));
   }
 }

@@ -17,8 +17,6 @@ package com.google.idea.blaze.android.run.test;
 
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
-import com.google.idea.blaze.android.manifest.ManifestParser;
-import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 
 /** Application id provider for android_test and android_instrumentation_test. */
@@ -32,27 +30,12 @@ public class BlazeAndroidTestApplicationIdProvider implements ApplicationIdProvi
   /** Returns the package name of the target APK under test. */
   @Override
   public String getPackageName() throws ApkProvisionException {
-    BlazeAndroidDeployInfo deployInfo = buildStep.getDeployInfo();
-    ManifestParser.ParsedManifest parsedManifest = deployInfo.getTestTargetMergedManifest();
-    if (parsedManifest == null) {
-      // The test instrumentor may not have a separate package,
-      // and can instead be in the same package as the test target package.
-      return getTestPackageName();
-    }
-    if (parsedManifest.packageName == null) {
-      throw new ApkProvisionException("No application id in test target manifest.");
-    }
-    return parsedManifest.packageName;
+    return buildStep.getDeployInfo().getAppUnderTestPackageName() != null ? buildStep.getDeployInfo().getAppUnderTestPackageName() : buildStep.getDeployInfo().getMainAppPackageName();
   }
 
   /** Returns the package name of the test instrumentor. */
   @Override
   public String getTestPackageName() throws ApkProvisionException {
-    BlazeAndroidDeployInfo deployInfo = buildStep.getDeployInfo();
-    ManifestParser.ParsedManifest parsedManifest = deployInfo.getMergedManifest();
-    if (parsedManifest.packageName == null) {
-      throw new ApkProvisionException("No application id in test instrumentor manifest");
-    }
-    return parsedManifest.packageName;
+    return buildStep.getDeployInfo().getMainAppPackageName();
   }
 }

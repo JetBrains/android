@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.idea.run.ApkProvisionException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEvent;
@@ -79,14 +80,14 @@ public class BinaryDeployInfoExtractorTest extends BlazeIntegrationTestCase {
   }
 
   @Test
-  public void parse_nominalOutput() throws BuildEventStreamException, IOException {
+  public void parse_nominalOutput() throws BuildEventStreamException, IOException, ApkProvisionException {
     NativeSymbolFinder mockSymbolFinder = mock(NativeSymbolFinder.class);
     registerExtension(NativeSymbolFinder.EP_NAME, mockSymbolFinder);
     BlazeBuildOutputs buildOutputs =
         BlazeBuildOutputs.fromParsedBepOutput(nominalApkBuildOutput());
     BlazeAndroidDeployInfo deployInfo =
         new BinaryDeployInfoExtractor(getProject(), Label.of("//some:target"), true, true)
-            .extract(buildOutputs, "android-deploy-info", "default", context, nativeSymbols);
+            .extract(getProject(), buildOutputs, "android-deploy-info", "default", context, nativeSymbols);
 
     assertThat(deployInfo).isNotNull();
     assertThat(deployInfo.getMergedManifest().packageName)
