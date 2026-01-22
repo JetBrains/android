@@ -41,9 +41,11 @@ class ScreenshotTestRunLineMarkerContributor: RunLineMarkerContributor() {
         !isScreenshotTestFile(element.project, element.containingFile.virtualFile)) return null
 
     val declaration = element.getStrictParentOfType<KtNamedDeclaration>()?.takeIf { it.nameIdentifier == element } ?: return null
-    if (isValidKtMethodIdentifier(declaration) || isValidKtTestClassIdentifier(declaration)) {
-      val actions = arrayOf(*ExecutorAction.getActions(), ActionManager.getInstance().getAction("com.android.screenshottest.action.UpdateReferenceImagesAction"))
-      return Info(AllIcons.RunConfigurations.TestState.Run, actions) { "Run screenshot tests" }
+    val isClass = isValidKtTestClassIdentifier(declaration)
+    if (isClass || isValidKtMethodIdentifier(declaration)) {
+        val icon = if (isClass) AllIcons.RunConfigurations.TestState.Run_run else AllIcons.RunConfigurations.TestState.Run
+        val actions = arrayOf(*ExecutorAction.getActions(), ActionManager.getInstance().getAction("com.android.screenshottest.action.UpdateReferenceImagesAction"))
+        return Info(icon, actions) { "Run screenshot tests" }
     }
     return null
   }

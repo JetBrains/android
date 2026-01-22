@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
 import com.android.utils.FileUtils
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl
@@ -323,6 +324,39 @@ class ScreenshotTestRunLineMarkerContributorTest {
     val classElement = file!!.findClassdentifier("PreviewScreenshotTest")
     assertNull(contributor.getSlowInfo(classElement))
   }
+
+  @Test
+  @RunsInEdt
+  fun testGutterIconAppearance() {
+    val cFile = createRelativeFilewithContent("app/src/screenshotTest/java/com/example/runlinemarker/IconsTest.kt", """
+            $SRC_FILE_HEADER
+            class IconsTest {
+                @PreviewTest
+                @Composable
+                fun TestMethod() {
+                    println("Test")
+                }
+            }
+        """.trimIndent())
+    val virtualFile = findFileByIoFile(cFile, true)
+    val screenshotDir = virtualFile!!.parent.parent.parent.parent.parent
+    PsiTestUtil.addSourceRoot(projectRule.fixture.module, screenshotDir!!, true)
+    file = virtualFile.toPsiFile(projectRule.project)
+
+    val classIdentifier = file!!.findClassdentifier("IconsTest")
+    val methodIdentifier = file!!.findFunctionIdentifier("TestMethod")
+
+    val classInfo = contributor.getSlowInfo(classIdentifier)
+    val methodInfo = contributor.getSlowInfo(methodIdentifier)
+
+    assertNotNull(classInfo)
+    assertNotNull(methodInfo)
+
+    // Verify: Double green triangle (Run_run) for class, single (Run) for method
+    assertEquals(AllIcons.RunConfigurations.TestState.Run_run, classInfo!!.icon)
+    assertEquals(AllIcons.RunConfigurations.TestState.Run, methodInfo!!.icon)
+  }
+
 
   private fun PsiFile.findFunctionIdentifier(name: String): PsiElement {
     val function = PsiTreeUtil.findChildrenOfType(this, KtNamedFunction::class.java).first { it.name == name }
