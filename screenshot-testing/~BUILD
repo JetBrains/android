@@ -47,6 +47,7 @@ iml_module(
     # do not sort: must match IML order
     test_deps = [
         "//tools/adt/idea/screenshot-testing/gradle:intellij.android.screenshot-test.gradle",
+        "//tools/analytics-library/tracker:analytics-tracker",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
