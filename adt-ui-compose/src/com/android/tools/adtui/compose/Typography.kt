@@ -24,11 +24,13 @@ import androidx.compose.ui.unit.times
  * Computes a new line height by scaling the current line height based on the ratio between
  * [newSize] and the current [TextStyle.fontSize].
  *
- * If either [newSize] or the current font size is unspecified, or if the current font size is zero,
- * the original line height is returned.
+ * If either [newSize] or the current font size is unspecified, or if the original font size is
+ * zero, the original line height is returned. If the original line height is unspecified, this
+ * returns the original line height.
  */
 fun TextStyle.computeLineHeightScaledForSize(newSize: TextUnit): TextUnit {
-  if (!newSize.isSpecified || !fontSize.isSpecified || fontSize.value == 0f) return lineHeight
+  if (!newSize.isSpecified || !fontSize.isSpecified || fontSize.value <= 0f) return lineHeight
+  if (!lineHeight.isSpecified) return lineHeight
   return (newSize / fontSize) * lineHeight
 }
 
