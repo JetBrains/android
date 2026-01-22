@@ -107,7 +107,7 @@ public abstract class JavaArtifactInfo {
     if (proto.hasIdeAar()) {
       digestMap.createBuildArtifact(Interners.pathOf(proto.getIdeAar().getFile()), target).ifPresent(builder::setIdeAar);
     }
-    return builder()
+    return builder
         .setLabel(target)
         .setIsExternalDependency(proto.getIsExternalDependency())
         .setJars(BuildArtifact.fromProtos(proto.getJarsList(), digestMap, target))
