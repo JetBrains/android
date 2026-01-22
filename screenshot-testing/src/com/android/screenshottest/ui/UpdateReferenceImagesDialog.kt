@@ -109,6 +109,15 @@ class UpdateReferenceImagesDialog(
   override fun doCancelAction() {
     isCancelled = true
     buildProcessHandler?.destroyProcess()
+    // Log the SCREENSHOT_DIALOG_CLOSE event
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
+        screenshotTestComposePreviewEvent = ScreenshotTestComposePreviewEvent.newBuilder().apply {
+          type = ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_CLOSE
+        }.build()
+      }.withProjectId(project)
+    )
     super.doCancelAction()
   }
 
