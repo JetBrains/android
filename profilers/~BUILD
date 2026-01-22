@@ -45,6 +45,8 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
         "//tools/base/perflib:studio.android.sdktools.perflib",
         "//tools/base/common:studio.android.sdktools.common",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/profilers-atrace:intellij.android.profilers.atrace",
         "//tools/base/leakcanarylib:studio.android.sdktools.leakcanarylib",
         "//prebuilts/tools/common/m2:shark-2.14",

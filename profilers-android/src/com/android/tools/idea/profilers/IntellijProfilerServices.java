@@ -27,6 +27,8 @@ import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConvert
 import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.projectsystem.RegisteredDependencyId;
+import com.android.tools.idea.projectsystem.RegisteredDependencyQueryId;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
@@ -80,6 +82,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.RegisteringModuleSystem;
+import com.android.tools.idea.projectsystem.DependencyType;
+import com.android.tools.idea.util.DependencyConfirmationDialog;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.command.WriteCommandAction;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -428,6 +439,65 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
         String extension = file.getExtension();
         return extension != null && nativeExtensions.contains(StringUtil.toLowerCase(extension));
       });
+  }
+
+  @Override
+  public void addDependency(@NotNull GoogleMavenArtifactId artifact, @NotNull DependencyType dependencyType) {
+    ApplicationManager.getApplication().invokeLater(() -> {
+      RunManager runManager = RunManager.getInstance(myProject);
+      if (runManager != null) {
+        RunnerAndConfigurationSettings configurationSettings = runManager.getSelectedConfiguration();
+        if (configurationSettings != null &&
+            configurationSettings.getConfiguration() instanceof AndroidRunConfigurationBase androidConfiguration) {
+          Module module = androidConfiguration.getConfigurationModule().getModule();
+          if (module != null) {
+            AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+            RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId> registeringModuleSystem =
+              moduleSystem.getRegisteringModuleSystem();
+            if (registeringModuleSystem != null && !registeringModuleSystem.hasRegisteredDependency(artifact)) {
+              addDependencyWithConfirmationDialog(module, artifact, dependencyType);
+            }
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Shows a confirmation dialog to the user before adding a dependency.
+   * Uses {@link DependencyConfirmationDialog} which mimics the Firebase assistant UI.
+   */
+  private void addDependencyWithConfirmationDialog(Module module, GoogleMavenArtifactId artifact, DependencyType dependencyType) {
+    if (showConfirmationDialog(module, artifact, dependencyType)) {
+      try {
+        AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+        RegisteringModuleSystem<@NotNull RegisteredDependencyQueryId, @NotNull RegisteredDependencyId> registeringModuleSystem =
+            moduleSystem.getRegisteringModuleSystem();
+        if (registeringModuleSystem != null) {
+
+          WriteCommandAction.runWriteCommandAction(myProject, "Add " + artifact.toString(), null, () -> {
+            registeringModuleSystem.registerDependency(artifact, dependencyType);
+          });
+
+          ProjectSystemSyncManager syncManager = ProjectSystemUtil.getSyncManager(myProject);
+          syncManager.requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
+        }
+      }
+      catch (Exception e) {
+        getLogger().error(e);
+        AndroidNotification.getInstance(myProject).showBalloon(
+            "LeakCanary",
+            "Failed to add dependency: " + e.getMessage(),
+            NotificationType.WARNING
+        );
+      }
+    }
+  }
+
+  @VisibleForTesting
+  protected boolean showConfirmationDialog(Module module, GoogleMavenArtifactId artifact, DependencyType dependencyType) {
+    DependencyConfirmationDialog dialog = new DependencyConfirmationDialog(myProject, module, artifact, dependencyType);
+    return dialog.showAndGet();
   }
 
   @Override
