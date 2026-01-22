@@ -16,9 +16,10 @@
 package com.google.idea.blaze.android.run.runner;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.idea.blaze.base.model.BlazeProjectData;
+import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.project.ProjectTarget;
+import com.intellij.openapi.project.Project;
 import javax.annotation.Nullable;
 
 /**
@@ -68,10 +69,13 @@ public class InstrumentationInfo {
    */
   @VisibleForTesting
   public static InstrumentationInfo getInstrumentationInfo(
-      Label instrumentationTestLabel, BlazeProjectData projectData) {
-    ProjectTarget testTarget =
-      (ProjectTarget)projectData.getBuildTarget(
-        com.google.idea.blaze.base.model.primitives.Label.create(instrumentationTestLabel.toString()));
+      Label instrumentationTestLabel, Project project) {
+    var maybeProjectSnapshot = QuerySyncManager.getInstance(project).getCurrentSnapshot();
+    if (maybeProjectSnapshot.isEmpty()) {
+      throw new InstrumentationParserException("Project not synced");
+    }
+    var projectSnapshot = maybeProjectSnapshot.get();
+    ProjectTarget testTarget = projectSnapshot.getGraph().getProjectTarget(instrumentationTestLabel);
     if (testTarget == null) {
       String msg = "Unable to identify target \"" + instrumentationTestLabel + "\".";
       throw new InstrumentationParserException(msg);
@@ -81,7 +85,7 @@ public class InstrumentationInfo {
       throw new InstrumentationParserException(msg);
     }
     var testApp = testTarget.testApp().get();
-    ProjectTarget targetApp = (ProjectTarget) projectData.getBuildTarget(com.google.idea.blaze.base.model.primitives.Label.create((testApp.toString())));
+    ProjectTarget targetApp = projectSnapshot.getGraph().getProjectTarget(testApp);
     Label instruments = null;
     if (targetApp != null && targetApp.instruments().isPresent()) {
       instruments = targetApp.instruments().get();

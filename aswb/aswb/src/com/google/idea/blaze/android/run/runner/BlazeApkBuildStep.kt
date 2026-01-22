@@ -22,7 +22,6 @@ import com.google.idea.blaze.android.run.LaunchMetrics
 import com.google.idea.blaze.android.run.NativeSymbolFinder
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector.DeviceSession
-import com.google.idea.blaze.base.model.primitives.Label as LegacyLabel
 import com.google.idea.blaze.base.bazel.BazelExitCodeException
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker
 import com.google.idea.blaze.base.command.BlazeCommand
@@ -119,7 +118,7 @@ class BlazeApkBuildStep(
         val nativeSymbolFinderList: List<NativeSymbolFinder> = NativeSymbolFinder.EP_NAME.extensionList
         targets.flatMap { target ->
             nativeSymbolFinderList.flatMap {
-              it.getNativeSymbolsForBuild(project, context, LegacyLabel.create(target.toString()), buildOutputs)
+              it.getNativeSymbolsForBuild(project, context, target, buildOutputs)
             }
         }
       } else emptyList()
