@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.base.deployment.liveedit.tokens
+package com.android.tools.idea.run.deployment.liveedit.tokens
 
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
-import com.android.tools.idea.run.deployment.liveedit.tokens.BuildSystemBytecodeTransformation
 import com.android.tools.idea.projectsystem.ClassContent
-import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices.Companion.DEFAULT_RUNTIME_VERSION
-import com.android.tools.idea.run.deployment.liveedit.tokens.BuildSystemLiveEditServices
-import com.android.tools.idea.run.deployment.liveedit.tokens.DesugarConfigs
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem
 import com.google.idea.blaze.android.projectsystem.BazelToken
 import com.google.idea.blaze.android.run.BazelApplicationProjectContext
