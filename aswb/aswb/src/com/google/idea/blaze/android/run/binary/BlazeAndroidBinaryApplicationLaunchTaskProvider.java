@@ -15,14 +15,13 @@
  */
 package com.google.idea.blaze.android.run.binary;
 
-import com.android.tools.idea.run.ApkProvisionException;
-import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
 import com.google.idea.blaze.android.manifest.ManifestParser;
 import com.google.idea.blaze.android.run.binary.tasks.AndroidDeepLinkLaunchTask;
 import com.google.idea.blaze.android.run.binary.tasks.BlazeDefaultActivityLaunchTask;
 import com.google.idea.blaze.android.run.binary.tasks.SpecificActivityLaunchTask;
+import com.google.idea.blaze.android.run.BazelApplicationIdProvider;
 import com.intellij.execution.ExecutionException;
 import com.intellij.openapi.diagnostic.Logger;
 
@@ -32,17 +31,12 @@ public class BlazeAndroidBinaryApplicationLaunchTaskProvider {
       Logger.getInstance(BlazeAndroidBinaryApplicationLaunchTaskProvider.class);
 
   public static BlazeLaunchTask getApplicationLaunchTask(
-      ApplicationIdProvider applicationIdProvider,
+      BazelApplicationIdProvider applicationIdProvider,
       ManifestParser.ParsedManifest mergedManifestParsedManifest,
       BlazeAndroidBinaryRunConfigurationState configState,
       StartActivityFlagsProvider startActivityFlagsProvider)
       throws ExecutionException {
-    String applicationId;
-    try {
-      applicationId = applicationIdProvider.getPackageName();
-    } catch (ApkProvisionException e) {
-      throw new ExecutionException("Unable to identify application id");
-    }
+    String applicationId = applicationIdProvider.getPackageName();
 
     switch (configState.getMode()) {
       case BlazeAndroidBinaryRunConfigurationState.LAUNCH_DEFAULT_ACTIVITY:

@@ -23,10 +23,10 @@ import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.profilers.AndroidProfilerLaunchTaskContributor;
-import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.LaunchOptions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.idea.blaze.android.run.BazelAndroidRunContext;
 import com.google.idea.blaze.android.run.binary.UserIdHelper;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.intellij.execution.ExecutionException;
@@ -46,15 +46,15 @@ public class BlazeAndroidLaunchTasksProvider implements BlazeLaunchTasksProvider
   private static final Logger LOG = Logger.getInstance(BlazeAndroidLaunchTasksProvider.class);
 
   private final Project project;
-  private final BlazeAndroidRunContext runContext;
+  private final BazelAndroidRunContext runContext;
   private final BlazeAndroidDeployAndLaunchStrategy launchStrategy;
   private final LaunchOptions launchOptions;
 
   public BlazeAndroidLaunchTasksProvider(
-      Project project,
-      BlazeAndroidRunContext runContext,
-      BlazeAndroidDeployAndLaunchStrategy launchStrategy,
-      LaunchOptions launchOptions) {
+    Project project,
+    BazelAndroidRunContext runContext,
+    BlazeAndroidDeployAndLaunchStrategy launchStrategy,
+    LaunchOptions launchOptions) {
     this.project = project;
     this.runContext = runContext;
     this.launchStrategy = launchStrategy;
@@ -95,34 +95,30 @@ public class BlazeAndroidLaunchTasksProvider implements BlazeLaunchTasksProvider
       launchTasks.addAll(deployTasks);
     }
 
-    try {
-      if (isDebug) {
-        launchTasks.add(
-            new CheckApkDebuggableTask(project, runContext.getBuildStep().getDeployInfo()));
-      }
+    if (isDebug) {
+      launchTasks.add(
+          new CheckApkDebuggableTask(project, runContext.getBuildStep().getDeployInfo()));
+    }
 
-      ImmutableList.Builder<String> amStartOptions = ImmutableList.builder();
-      amStartOptions.add(launchStrategy.getAmStartOptions());
-      if (isProfilerLaunch(runContext.getExecutor())) {
-        amStartOptions.add(
-            AndroidProfilerLaunchTaskContributor.getAmStartOptions(
-                project,
-                packageName,
-                runContext.getProfileState(),
-                device,
-                runContext.getExecutor()));
-      }
-      BlazeLaunchTask appLaunchTask =
-          launchStrategy.getApplicationLaunchTask(
-              runContext, isDebug, userId, String.join(" ", amStartOptions.build()));
-      if (appLaunchTask != null) {
-        launchTasks.add(appLaunchTask);
-        // TODO(arvindanekal): the live edit api changed and we cannot get the apk here to create
-        // live
-        // edit; the live edit team or Arvind need to fix this
-      }
-    } catch (ApkProvisionException e) {
-      throw new ExecutionException("Unable to determine application id: " + e);
+    ImmutableList.Builder<String> amStartOptions = ImmutableList.builder();
+    amStartOptions.add(launchStrategy.getAmStartOptions());
+    if (isProfilerLaunch(runContext.getExecutor())) {
+      amStartOptions.add(
+          AndroidProfilerLaunchTaskContributor.getAmStartOptions(
+              project,
+              packageName,
+              runContext.getProfileState(),
+              device,
+              runContext.getExecutor()));
+    }
+    BlazeLaunchTask appLaunchTask =
+        launchStrategy.getApplicationLaunchTask(
+            runContext, isDebug, userId, String.join(" ", amStartOptions.build()));
+    if (appLaunchTask != null) {
+      launchTasks.add(appLaunchTask);
+      // TODO(arvindanekal): the live edit api changed and we cannot get the apk here to create
+      // live
+      // edit; the live edit team or Arvind need to fix this
     }
 
     return ImmutableList.copyOf(launchTasks);
@@ -149,12 +145,7 @@ public class BlazeAndroidLaunchTasksProvider implements BlazeLaunchTasksProvider
       throw new ExecutionException("Can't find AndroidDebuggerState for launch");
     }
     if (isNativeDebuggingEnabled) {
-      BlazeAndroidDeployInfo deployInfo = null;
-      try {
-        deployInfo = runContext.getBuildStep().getDeployInfo();
-      } catch (ApkProvisionException e) {
-        LOG.error(e);
-      }
+      BlazeAndroidDeployInfo deployInfo = runContext.getBuildStep().getDeployInfo();
       debuggerService.configureNativeDebugger(debuggerState, deployInfo);
     }
 

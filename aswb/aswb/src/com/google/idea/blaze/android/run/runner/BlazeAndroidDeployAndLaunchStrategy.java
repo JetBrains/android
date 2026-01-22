@@ -19,8 +19,10 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
+import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.LaunchOptions;
 import com.google.common.collect.ImmutableList;
+import com.google.idea.blaze.android.run.BazelAndroidRunContext;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -39,36 +41,36 @@ public interface BlazeAndroidDeployAndLaunchStrategy {
 
   /** Returns the tasks to deploy the application. */
   ImmutableList<BlazeLaunchTask> getDeployTasks(
-      BlazeAndroidRunContext runContext, IDevice device, DeployOptions deployOptions)
+    BazelAndroidRunContext runContext, IDevice device, DeployOptions deployOptions)
       throws ExecutionException;
 
   /** Returns the task to launch the application. */
   @Nullable
   BlazeLaunchTask getApplicationLaunchTask(
-      BlazeAndroidRunContext runContext,
-      boolean isDebug,
-      @Nullable Integer userId,
-      @NotNull String contributorsAmStartOptions)
+    BazelAndroidRunContext runContext,
+    boolean isDebug,
+    @Nullable Integer userId,
+    @NotNull String contributorsAmStartOptions)
       throws ExecutionException;
 
   /** Returns the task to connect the debugger. */
   @Nullable
   XDebugSession startDebuggerSession(
-      BlazeAndroidRunContext runContext,
-      AndroidDebugger androidDebugger,
-      AndroidDebuggerState androidDebuggerState,
-      ExecutionEnvironment env,
-      IDevice device,
-      ConsoleView consoleView,
-      ProgressIndicator indicator);
+    BazelAndroidRunContext runContext,
+    AndroidDebugger androidDebugger,
+    AndroidDebuggerState androidDebuggerState,
+    ExecutionEnvironment env,
+    IDevice device,
+    ConsoleView consoleView,
+    ProgressIndicator indicator);
 
   String getAmStartOptions();
 
   @Nullable
   Integer getUserId(IDevice device) throws ExecutionException;
 
-  /** Creates a {@link BlazeAndroidRunContext} for the run configuration. */
-  BlazeAndroidRunContext createBlazeAndroidRunContext(
+  /** Creates a {@link BazelAndroidRunContext} for the run configuration. */
+  BazelAndroidRunContext createBlazeAndroidRunContext(
       ExecutionEnvironment env, ApkBuildStep buildStep, BlazeCommandRunConfiguration configuration)
-      throws ExecutionException;
+    throws ExecutionException, ApkProvisionException;
 }

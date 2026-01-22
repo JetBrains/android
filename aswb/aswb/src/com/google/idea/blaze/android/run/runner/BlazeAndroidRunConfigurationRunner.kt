@@ -35,6 +35,7 @@ import com.android.tools.idea.run.configuration.execution.WatchFaceLaunchOptions
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetState
 import com.google.common.util.concurrent.Futures
+import com.google.idea.blaze.android.run.BazelAndroidRunContext
 import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryRunConfigurationState
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector.DeviceSession
 import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator
@@ -145,8 +146,11 @@ class BlazeAndroidRunConfigurationRunner(
 
   @Throws(ExecutionException::class)
   private fun getWearExecutor(
-    launchOptions: ComponentLaunchOptions, env: ExecutionEnvironment, deployTarget: DeployTarget, runContext: BlazeAndroidRunContext,
-    ): AndroidConfigurationExecutor {
+    launchOptions: ComponentLaunchOptions,
+    env: ExecutionEnvironment,
+    deployTarget: DeployTarget,
+    runContext: BazelAndroidRunContext,
+  ): AndroidConfigurationExecutor {
     val settings: AppRunSettings =
       object : AppRunSettings {
         override val deployOptions: DeployOptions

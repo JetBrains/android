@@ -25,8 +25,6 @@ import com.android.tools.idea.run.deployment.liveedit.tokens.DesugarConfigs
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem
 import com.google.idea.blaze.android.projectsystem.BazelToken
 import com.google.idea.blaze.android.run.BazelApplicationProjectContext
-import com.google.idea.blaze.base.settings.Blaze
-import com.google.idea.blaze.base.settings.BlazeImportSettings
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import java.nio.file.Path
