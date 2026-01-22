@@ -84,13 +84,8 @@ public final class AitDeployInfoExtractor implements DeployInfoExtractor {
         buildOutputs.getOutputGroupTargetArtifacts(deployInfoOutputGroups, label.toString());
     ImmutableList<OutputArtifact> apkArtifacts =
         buildOutputs.getOutputGroupTargetArtifacts(apkOutputGroup, label.toString());
-    try {
-      return DeployDataExtractor.extract(
-        label, infoArtifacts.asList(), apkArtifacts.asList(), "deployinfo.pb", context, project);
-    }
-    catch (IOException e) {
-      throw new ApkProvisionException("Failed to process 'deployinfo.pb'", e);
-    }
+    return DeployDataExtractor.extract(
+      label, infoArtifacts.asList(), apkArtifacts.asList(), "deployinfo.pb", context, project);
   }
 
   private BlazeAndroidDeployInfo merge(

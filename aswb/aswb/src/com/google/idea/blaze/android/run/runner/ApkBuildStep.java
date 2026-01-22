@@ -28,5 +28,5 @@ public interface ApkBuildStep {
    */
   void build(BlazeContext context, BlazeAndroidDeviceSelector.DeviceSession deviceSession);
 
-  BlazeAndroidDeployInfo getDeployInfo() throws ApkProvisionException;
+  BlazeAndroidDeployInfo getDeployInfo();
 }

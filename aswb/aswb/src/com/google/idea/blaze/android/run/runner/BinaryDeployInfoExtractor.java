@@ -59,19 +59,13 @@ public final class BinaryDeployInfoExtractor implements DeployInfoExtractor {
 
     String suffix = useMobileInstall ? "_mi.deployinfo.pb" : ".deployinfo.pb";
 
-    DeployData deployData;
-    try {
-      deployData = DeployDataExtractor.extract(
+    var deployData = DeployDataExtractor.extract(
         targetLabel,
         buildOutputs.getOutputGroupArtifacts(deployInfoOutputGroups),
         buildOutputs.getOutputGroupArtifacts(apkOutputGroup),
         suffix,
         context,
         project);
-    }
-    catch (IOException e) {
-      throw new ApkProvisionException(String.format("Failed to process '*%s", suffix), e);
-    }
     RuntimeArtifactCache runtimeArtifactCache = RuntimeArtifactCache.getInstance(project);
     ImmutableList<File> localApks =
       runtimeArtifactCache.fetchArtifacts(targetLabel, deployData.apks(), context, RuntimeArtifactKind.APK).stream()
