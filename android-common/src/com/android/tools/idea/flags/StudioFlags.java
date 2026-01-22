@@ -2595,6 +2595,11 @@ public final class StudioFlags {
                     "Enable the Wait Tool",
                     "Enables a tool providing the agent a way to sleep for a bit and recheck the UI state after.");
 
+  public static final Flag<Boolean> STUDIOBOT_LAYOUT_TO_COMPOSE_MIGRATION_ENABLED =
+    new BooleanFlag(STUDIOBOT, "layout.to.compose.migration.enabled",
+                    "Enable Layout XML to Compose migration",
+                    "Enables the AI-powered migration flow from Layout XML to Jetpack Compose.");
+
   public static final Flag<Boolean> GEMINI_AGENT_MODE =
     new BooleanFlag(STUDIOBOT, "agent.mode",
                     "Enable agent mode.",
