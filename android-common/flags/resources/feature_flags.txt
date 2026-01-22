@@ -257,6 +257,7 @@ studiobot.use.bm25.find.files=PREVIEW
 studiobot.use.bm25.grep=PREVIEW
 studiobot.verify.user.tier.in.aida.rpcs=COMPLETE:2025
 studiobot.version.upgrade.agent=PREVIEW
+studiobot.web.search.tool=INTERNAL
 studiobot.write.critic.main.passes=PREVIEW
 studiobot.write.critic=COMPLETE:2025
 studiolabs.enabled=COMPLETE:2025
