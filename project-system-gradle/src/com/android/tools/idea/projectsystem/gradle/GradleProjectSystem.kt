@@ -400,6 +400,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
         override val mlModelsDirectoryUrls: Sequence<String> = emptySequence()
         override val customSourceDirectories: Map<String, Sequence<String>> = emptyMap()
         override val baselineProfileDirectoryUrls: Sequence<String> get() = emptySequence()
+        override val keepRulesDirectoryUrls: Sequence<String> get() = emptySequence()
       }
     )
   }
@@ -424,6 +425,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
         override val mlModelsDirectoryUrls: Sequence<String> = emptySequence()
         override val customSourceDirectories: Map<String, Sequence<String>> = emptyMap()
         override val baselineProfileDirectoryUrls: Sequence<String> get() = emptySequence()
+        override val keepRulesDirectoryUrls: Sequence<String> get() = emptySequence()
       }
     )
   }
@@ -481,6 +483,7 @@ private fun createIdeaSourceProviderFromModelSourceProvider(it: IdeSourceProvide
       override val customSourceDirectories: Map<String, Sequence<String>>
         get() = it.customSourceDirectories.associateBy({ it.sourceTypeName }) { f -> sequenceOf(f.directory).toUrls() }
       override val baselineProfileDirectoryUrls: Sequence<String> get() = it.baselineProfileDirectories.asSequence().toUrls()
+      override val keepRulesDirectoryUrls: Sequence<String> get() = it.keepRulesDirectories.asSequence().toUrls()
     }
   )
 }

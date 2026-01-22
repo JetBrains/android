@@ -48,6 +48,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                 ./androidLib/src/main/resources
             BaselineProfileDirectories:
                 ./androidLib/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./androidLib/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -67,6 +69,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/main/resources
                 BaselineProfileDirectories:
                     ./androidLib/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./androidLib/src/main/keepRules
             typeone
                 Manifest:
                     ./androidLib/src/typeone/AndroidManifest.xml
@@ -85,6 +89,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/typeone/resources
                 BaselineProfileDirectories:
                     ./androidLib/src/typeone/baselineProfiles
+                KeepRulesDirectories:
+                    ./androidLib/src/typeone/keepRules
             modetwo
                 Manifest:
                     ./androidLib/src/modetwo/AndroidManifest.xml
@@ -103,6 +109,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/modetwo/resources
                 BaselineProfileDirectories:
                     ./androidLib/src/modetwo/baselineProfiles
+                KeepRulesDirectories:
+                    ./androidLib/src/modetwo/keepRules
             typeoneModetwo
                 Manifest:
                     ./androidLib/src/typeoneModetwo/AndroidManifest.xml
@@ -121,6 +129,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/typeoneModetwo/resources
                 BaselineProfileDirectories:
                     ./androidLib/src/typeoneModetwo/baselineProfiles
+                KeepRulesDirectories:
+                    ./androidLib/src/typeoneModetwo/keepRules
             debug
                 Manifest:
                     ./androidLib/src/debug/AndroidManifest.xml
@@ -139,6 +149,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/debug/resources
                 BaselineProfileDirectories:
                     ./androidLib/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./androidLib/src/debug/keepRules
             typeoneModetwoDebug
                 Manifest:
                     ./androidLib/src/typeoneModetwoDebug/AndroidManifest.xml
@@ -157,6 +169,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/typeoneModetwoDebug/resources
                 BaselineProfileDirectories:
                     ./androidLib/src/typeoneModetwoDebug/baselineProfiles
+                KeepRulesDirectories:
+                    ./androidLib/src/typeoneModetwoDebug/keepRules
         All:
             main
                 Manifest:
@@ -176,6 +190,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/main/resources
                 BaselineProfileDirectories:
                     ./androidLib/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./androidLib/src/main/keepRules
             debug
                 Manifest:
                     ./androidLib/src/debug/AndroidManifest.xml
@@ -194,6 +210,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/debug/resources
                 BaselineProfileDirectories:
                     ./androidLib/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./androidLib/src/debug/keepRules
             modeone
                 Manifest:
                     ./androidLib/src/modeone/AndroidManifest.xml
@@ -212,6 +230,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/modeone/resources
                 BaselineProfileDirectories:
                     ./androidLib/src/modeone/baselineProfiles
+                KeepRulesDirectories:
+                    ./androidLib/src/modeone/keepRules
             modetwo
                 Manifest:
                     ./androidLib/src/modetwo/AndroidManifest.xml
@@ -230,6 +250,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/modetwo/resources
                 BaselineProfileDirectories:
                     ./androidLib/src/modetwo/baselineProfiles
+                KeepRulesDirectories:
+                    ./androidLib/src/modetwo/keepRules
             release
                 Manifest:
                     ./androidLib/src/release/AndroidManifest.xml
@@ -248,6 +270,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/release/resources
                 BaselineProfileDirectories:
                     ./androidLib/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./androidLib/src/release/keepRules
             typeone
                 Manifest:
                     ./androidLib/src/typeone/AndroidManifest.xml
@@ -266,6 +290,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/typeone/resources
                 BaselineProfileDirectories:
                     ./androidLib/src/typeone/baselineProfiles
+                KeepRulesDirectories:
+                    ./androidLib/src/typeone/keepRules
             typeoneModetwo
                 Manifest:
                     ./androidLib/src/typeoneModetwo/AndroidManifest.xml
@@ -284,6 +310,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/typeoneModetwo/resources
                 BaselineProfileDirectories:
                     ./androidLib/src/typeoneModetwo/baselineProfiles
+                KeepRulesDirectories:
+                    ./androidLib/src/typeoneModetwo/keepRules
             typeoneModetwoDebug
                 Manifest:
                     ./androidLib/src/typeoneModetwoDebug/AndroidManifest.xml
@@ -302,6 +330,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/typeoneModetwoDebug/resources
                 BaselineProfileDirectories:
                     ./androidLib/src/typeoneModetwoDebug/baselineProfiles
+                KeepRulesDirectories:
+                    ./androidLib/src/typeoneModetwoDebug/keepRules
             typetwo
                 Manifest:
                     ./androidLib/src/typetwo/AndroidManifest.xml
@@ -320,6 +350,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/typetwo/resources
                 BaselineProfileDirectories:
                     ./androidLib/src/typetwo/baselineProfiles
+                KeepRulesDirectories:
+                    ./androidLib/src/typetwo/keepRules
         HostTest:
             UnitTest
                 test
@@ -340,6 +372,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                         ./androidLib/src/test/resources
                     BaselineProfileDirectories:
                         ./androidLib/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./androidLib/src/test/keepRules
                 testTypeone
                     Manifest:
                         ./androidLib/src/testTypeone/AndroidManifest.xml
@@ -358,6 +392,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                         ./androidLib/src/testTypeone/resources
                     BaselineProfileDirectories:
                         ./androidLib/src/testTypeone/baselineProfiles
+                    KeepRulesDirectories:
+                        ./androidLib/src/testTypeone/keepRules
                 testModetwo
                     Manifest:
                         ./androidLib/src/testModetwo/AndroidManifest.xml
@@ -376,6 +412,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                         ./androidLib/src/testModetwo/resources
                     BaselineProfileDirectories:
                         ./androidLib/src/testModetwo/baselineProfiles
+                    KeepRulesDirectories:
+                        ./androidLib/src/testModetwo/keepRules
                 testTypeoneModetwo
                     Manifest:
                         ./androidLib/src/testTypeoneModetwo/AndroidManifest.xml
@@ -394,6 +432,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                         ./androidLib/src/testTypeoneModetwo/resources
                     BaselineProfileDirectories:
                         ./androidLib/src/testTypeoneModetwo/baselineProfiles
+                    KeepRulesDirectories:
+                        ./androidLib/src/testTypeoneModetwo/keepRules
                 testDebug
                     Manifest:
                         ./androidLib/src/testDebug/AndroidManifest.xml
@@ -412,6 +452,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                         ./androidLib/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./androidLib/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./androidLib/src/testDebug/keepRules
                 testTypeoneModetwoDebug
                     Manifest:
                         ./androidLib/src/testTypeoneModetwoDebug/AndroidManifest.xml
@@ -428,6 +470,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                         ./androidLib/src/testTypeoneModetwoDebug/resources
                     BaselineProfileDirectories:
                         ./androidLib/src/testTypeoneModetwoDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./androidLib/src/testTypeoneModetwoDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -448,6 +492,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                         ./androidLib/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./androidLib/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./androidLib/src/androidTest/keepRules
                 androidTestTypeone
                     Manifest:
                         ./androidLib/src/androidTestTypeone/AndroidManifest.xml
@@ -466,6 +512,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                         ./androidLib/src/androidTestTypeone/resources
                     BaselineProfileDirectories:
                         ./androidLib/src/androidTestTypeone/baselineProfiles
+                    KeepRulesDirectories:
+                        ./androidLib/src/androidTestTypeone/keepRules
                 androidTestModetwo
                     Manifest:
                         ./androidLib/src/androidTestModetwo/AndroidManifest.xml
@@ -484,6 +532,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                         ./androidLib/src/androidTestModetwo/resources
                     BaselineProfileDirectories:
                         ./androidLib/src/androidTestModetwo/baselineProfiles
+                    KeepRulesDirectories:
+                        ./androidLib/src/androidTestModetwo/keepRules
                 androidTestTypeoneModetwo
                     Manifest:
                         ./androidLib/src/androidTestTypeoneModetwo/AndroidManifest.xml
@@ -502,6 +552,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                         ./androidLib/src/androidTestTypeoneModetwo/resources
                     BaselineProfileDirectories:
                         ./androidLib/src/androidTestTypeoneModetwo/baselineProfiles
+                    KeepRulesDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwo/keepRules
                 androidTestDebug
                     Manifest:
                         ./androidLib/src/androidTestDebug/AndroidManifest.xml
@@ -520,6 +572,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                         ./androidLib/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./androidLib/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./androidLib/src/androidTestDebug/keepRules
                 androidTestTypeoneModetwoDebug
                     Manifest:
                         ./androidLib/src/androidTestTypeoneModetwoDebug/AndroidManifest.xml
@@ -538,6 +592,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                         ./androidLib/src/androidTestTypeoneModetwoDebug/resources
                     BaselineProfileDirectories:
                         ./androidLib/src/androidTestTypeoneModetwoDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwoDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -1837,6 +1893,8 @@ MODULE: Kotlin_Multiplatform.app
                 ./app/src/main/resources
             BaselineProfileDirectories:
                 ./app/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./app/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -1856,6 +1914,8 @@ MODULE: Kotlin_Multiplatform.app
                     ./app/src/main/resources
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/main/keepRules
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -1874,6 +1934,8 @@ MODULE: Kotlin_Multiplatform.app
                     ./app/src/debug/resources
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -1893,6 +1955,8 @@ MODULE: Kotlin_Multiplatform.app
                     ./app/src/main/resources
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/main/keepRules
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -1911,6 +1975,8 @@ MODULE: Kotlin_Multiplatform.app
                     ./app/src/debug/resources
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/debug/keepRules
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -1929,6 +1995,8 @@ MODULE: Kotlin_Multiplatform.app
                     ./app/src/release/resources
                 BaselineProfileDirectories:
                     ./app/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -1949,6 +2017,8 @@ MODULE: Kotlin_Multiplatform.app
                         ./app/src/test/resources
                     BaselineProfileDirectories:
                         ./app/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/test/keepRules
                 testDebug
                     Manifest:
                         ./app/src/testDebug/AndroidManifest.xml
@@ -1967,6 +2037,8 @@ MODULE: Kotlin_Multiplatform.app
                         ./app/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -1987,6 +2059,8 @@ MODULE: Kotlin_Multiplatform.app
                         ./app/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./app/src/androidTestDebug/AndroidManifest.xml
@@ -2005,6 +2079,8 @@ MODULE: Kotlin_Multiplatform.app
                         ./app/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

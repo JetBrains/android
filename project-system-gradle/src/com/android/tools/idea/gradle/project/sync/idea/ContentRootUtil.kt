@@ -60,7 +60,7 @@ fun IdeSourceProvider.processAll(
 
   manifestFile?.let { processor(it.absolutePath, null) }
 
-  val allSources = aidlDirectories + javaDirectories + kotlinDirectories + renderscriptDirectories + shadersDirectories
+  val allSources = aidlDirectories + javaDirectories + kotlinDirectories + renderscriptDirectories + shadersDirectories + keepRulesDirectories
 
   allSources.distinctBy { it.absolutePath }.forEach {
     processor(it.absolutePath, if (forTest) TEST else SOURCE)

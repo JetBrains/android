@@ -54,6 +54,8 @@ MODULE: project.app
                 ./app/src/main/ml
             BaselineProfileDirectories:
                 ./app/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./app/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -75,6 +77,8 @@ MODULE: project.app
                     ./app/src/main/ml
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/main/keepRules
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -95,6 +99,8 @@ MODULE: project.app
                     ./app/src/debug/ml
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -116,6 +122,8 @@ MODULE: project.app
                     ./app/src/main/ml
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/main/keepRules
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -136,6 +144,8 @@ MODULE: project.app
                     ./app/src/debug/ml
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/debug/keepRules
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -156,6 +166,8 @@ MODULE: project.app
                     ./app/src/release/ml
                 BaselineProfileDirectories:
                     ./app/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -178,6 +190,8 @@ MODULE: project.app
                         ./app/src/test/ml
                     BaselineProfileDirectories:
                         ./app/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/test/keepRules
                 testDebug
                     Manifest:
                         ./app/src/testDebug/AndroidManifest.xml
@@ -198,6 +212,8 @@ MODULE: project.app
                         ./app/src/testDebug/ml
                     BaselineProfileDirectories:
                         ./app/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -220,6 +236,8 @@ MODULE: project.app
                         ./app/src/androidTest/ml
                     BaselineProfileDirectories:
                         ./app/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./app/src/androidTestDebug/AndroidManifest.xml
@@ -240,6 +258,8 @@ MODULE: project.app
                         ./app/src/androidTestDebug/ml
                     BaselineProfileDirectories:
                         ./app/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

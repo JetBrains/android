@@ -186,6 +186,13 @@ sealed class AndroidSourceType(
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.baselineProfileDirectories)
   }
 
+  object KEEP_RULES : AndroidSourceType(
+    "keepRules",
+    AllIcons.Modules.SourceRoot,
+  ) {
+    override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.keepRulesDirectories)
+  }
+
   class Custom(name: String) : AndroidSourceType(
     name,
     AllIcons.Modules.ResourcesRoot,
@@ -239,4 +246,5 @@ val BUILT_IN_TYPES: List<AndroidSourceType> =
     AndroidSourceType.RESOURCES,
     AndroidSourceType.ML,
     AndroidSourceType.BASELINE_PROFILES,
+    AndroidSourceType.KEEP_RULES,
   )

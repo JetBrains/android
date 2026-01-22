@@ -48,6 +48,8 @@ MODULE: project_sm_src.app
                 ._sm_src/app/src/main/resources
             BaselineProfileDirectories:
                 ._sm_src/app/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ._sm_src/app/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -67,6 +69,8 @@ MODULE: project_sm_src.app
                     ._sm_src/app/src/main/resources
                 BaselineProfileDirectories:
                     ._sm_src/app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ._sm_src/app/src/main/keepRules
             debug
                 Manifest:
                     ._sm_src/app/src/debug/AndroidManifest.xml
@@ -85,6 +89,8 @@ MODULE: project_sm_src.app
                     ._sm_src/app/src/debug/resources
                 BaselineProfileDirectories:
                     ._sm_src/app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ._sm_src/app/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -104,6 +110,8 @@ MODULE: project_sm_src.app
                     ._sm_src/app/src/main/resources
                 BaselineProfileDirectories:
                     ._sm_src/app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ._sm_src/app/src/main/keepRules
             debug
                 Manifest:
                     ._sm_src/app/src/debug/AndroidManifest.xml
@@ -122,6 +130,8 @@ MODULE: project_sm_src.app
                     ._sm_src/app/src/debug/resources
                 BaselineProfileDirectories:
                     ._sm_src/app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ._sm_src/app/src/debug/keepRules
             release
                 Manifest:
                     ._sm_src/app/src/release/AndroidManifest.xml
@@ -140,6 +150,8 @@ MODULE: project_sm_src.app
                     ._sm_src/app/src/release/resources
                 BaselineProfileDirectories:
                     ._sm_src/app/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ._sm_src/app/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -160,6 +172,8 @@ MODULE: project_sm_src.app
                         ._sm_src/app/src/test/resources
                     BaselineProfileDirectories:
                         ._sm_src/app/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ._sm_src/app/src/test/keepRules
                 testDebug
                     Manifest:
                         ._sm_src/app/src/testDebug/AndroidManifest.xml
@@ -178,6 +192,8 @@ MODULE: project_sm_src.app
                         ._sm_src/app/src/testDebug/resources
                     BaselineProfileDirectories:
                         ._sm_src/app/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ._sm_src/app/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -198,6 +214,8 @@ MODULE: project_sm_src.app
                         ._sm_src/app/src/androidTest/resources
                     BaselineProfileDirectories:
                         ._sm_src/app/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ._sm_src/app/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ._sm_src/app/src/androidTestDebug/AndroidManifest.xml
@@ -216,6 +234,8 @@ MODULE: project_sm_src.app
                         ._sm_src/app/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ._sm_src/app/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ._sm_src/app/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

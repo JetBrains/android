@@ -46,6 +46,8 @@ MODULE: kotlinMultiPlatform.app
                 ./app/src/main/resources
             BaselineProfileDirectories:
                 ./app/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./app/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -65,6 +67,8 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/main/resources
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/main/keepRules
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -83,6 +87,8 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/debug/resources
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/debug/keepRules
         All:
             main
                 Manifest:
@@ -102,6 +108,8 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/main/resources
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/main/keepRules
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -120,6 +128,8 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/debug/resources
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/debug/keepRules
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -138,6 +148,8 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/release/resources
                 BaselineProfileDirectories:
                     ./app/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./app/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -158,6 +170,8 @@ MODULE: kotlinMultiPlatform.app
                         ./app/src/test/resources
                     BaselineProfileDirectories:
                         ./app/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/test/keepRules
                 testDebug
                     Manifest:
                         ./app/src/testDebug/AndroidManifest.xml
@@ -176,6 +190,8 @@ MODULE: kotlinMultiPlatform.app
                         ./app/src/testDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/testDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -196,6 +212,8 @@ MODULE: kotlinMultiPlatform.app
                         ./app/src/androidTest/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./app/src/androidTestDebug/AndroidManifest.xml
@@ -214,6 +232,8 @@ MODULE: kotlinMultiPlatform.app
                         ./app/src/androidTestDebug/resources
                     BaselineProfileDirectories:
                         ./app/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./app/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -762,6 +782,8 @@ MODULE: kotlinMultiPlatform.module2
                 ./module2/src/androidMain/resources
             BaselineProfileDirectories:
                 ./module2/src/main/baselineProfiles
+            KeepRulesDirectories:
+                ./module2/src/main/keepRules
         Active:
             main
                 Manifest:
@@ -786,6 +808,8 @@ MODULE: kotlinMultiPlatform.module2
                     ./module2/src/androidMain/resources
                 BaselineProfileDirectories:
                     ./module2/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./module2/src/main/keepRules
             debug
                 Manifest:
                     ./module2/src/androidDebug/AndroidManifest.xml
@@ -809,6 +833,8 @@ MODULE: kotlinMultiPlatform.module2
                     ./module2/src/androidDebug/resources
                 BaselineProfileDirectories:
                     ./module2/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./module2/src/debug/keepRules
             debug_KotlinMPP
                 Manifest:
                     ./module2/src/androidMain/__KotlinMPP__/AndroidManifest.xml
@@ -840,6 +866,8 @@ MODULE: kotlinMultiPlatform.module2
                     ./module2/src/androidMain/resources
                 BaselineProfileDirectories:
                     ./module2/src/main/baselineProfiles
+                KeepRulesDirectories:
+                    ./module2/src/main/keepRules
             debug
                 Manifest:
                     ./module2/src/androidDebug/AndroidManifest.xml
@@ -863,6 +891,8 @@ MODULE: kotlinMultiPlatform.module2
                     ./module2/src/androidDebug/resources
                 BaselineProfileDirectories:
                     ./module2/src/debug/baselineProfiles
+                KeepRulesDirectories:
+                    ./module2/src/debug/keepRules
             debug_KotlinMPP
                 Manifest:
                     ./module2/src/androidMain/__KotlinMPP__/AndroidManifest.xml
@@ -893,6 +923,8 @@ MODULE: kotlinMultiPlatform.module2
                     ./module2/src/androidRelease/resources
                 BaselineProfileDirectories:
                     ./module2/src/release/baselineProfiles
+                KeepRulesDirectories:
+                    ./module2/src/release/keepRules
         HostTest:
             UnitTest
                 test
@@ -918,6 +950,8 @@ MODULE: kotlinMultiPlatform.module2
                         ./module2/src/androidUnitTest/resources
                     BaselineProfileDirectories:
                         ./module2/src/test/baselineProfiles
+                    KeepRulesDirectories:
+                        ./module2/src/test/keepRules
                 testDebug
                     Manifest:
                         ./module2/src/androidUnitTestDebug/AndroidManifest.xml
@@ -941,6 +975,8 @@ MODULE: kotlinMultiPlatform.module2
                         ./module2/src/androidUnitTestDebug/resources
                     BaselineProfileDirectories:
                         ./module2/src/testDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./module2/src/testDebug/keepRules
                 debug_KotlinMPP
                     Manifest:
                         ./module2/src/androidUnitTest/__KotlinMPP__/AndroidManifest.xml
@@ -973,6 +1009,8 @@ MODULE: kotlinMultiPlatform.module2
                         ./module2/src/androidInstrumentedTest/resources
                     BaselineProfileDirectories:
                         ./module2/src/androidTest/baselineProfiles
+                    KeepRulesDirectories:
+                        ./module2/src/androidTest/keepRules
                 androidTestDebug
                     Manifest:
                         ./module2/src/androidInstrumentedTestDebug/AndroidManifest.xml
@@ -996,6 +1034,8 @@ MODULE: kotlinMultiPlatform.module2
                         ./module2/src/androidInstrumentedTestDebug/resources
                     BaselineProfileDirectories:
                         ./module2/src/androidTestDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./module2/src/androidTestDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
