@@ -305,6 +305,7 @@ iml_module(
                 "//tools/base/build-system:gradle-runtime-maven",
                 "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
                 "//tools/data-binding:data_binding_runtime.zip",
+                "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
                 "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
                 "//prebuilts/studio/jdk:jdk21",
             ],

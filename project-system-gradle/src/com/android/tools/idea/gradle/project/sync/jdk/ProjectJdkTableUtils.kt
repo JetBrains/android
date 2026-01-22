@@ -17,6 +17,9 @@ package com.android.tools.idea.gradle.project.sync.jdk
 
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.projectRoots.JavaSdk
+import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.util.containers.orNull
 
 /**
  * Collection of utils for the Project JDK table storing the different JDKs under studio
@@ -35,4 +38,15 @@ object ProjectJdkTableUtils {
     IdeSdks.getInstance().recreateOrAddJdkInTable(jdkPath, suggestedJdkName)
     return suggestedJdkName
   }
+
+  /**
+   * Finds a JDK in the Project JDK table with the given major version.
+   *
+   * @param version The major version of the JDK to find (e.g., 11, 17).
+   * @return The [Sdk] if found, otherwise null.
+   */
+  fun findProjectTableJdkWithVersion(version: Int): Sdk? =
+    ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance()).stream()
+      .filter { JavaSdk.getInstance().getVersion(it)?.maxLanguageLevel?.feature() == version }
+      .findFirst().orNull()
 }
