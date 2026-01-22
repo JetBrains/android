@@ -23,7 +23,6 @@ import com.google.idea.blaze.android.MockSdkUtil;
 import com.google.idea.blaze.android.run.runner.InstrumentationInfo;
 import com.google.idea.blaze.android.run.runner.InstrumentationInfo.InstrumentationParserException;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
-import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.common.Label;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -78,7 +77,7 @@ public class InstrumentationInfoTest extends BlazeAndroidIntegrationTestCase {
     InstrumentationInfo info =
         InstrumentationInfo.getInstrumentationInfo(
             instrumentationTestLabel,
-            BlazeProjectDataManager.getInstance(getProject()).getBlazeProjectData());
+            getProject());
 
     assertThat(info.testApp).isEqualTo(Label.of("//java/com/foo/app:test_app"));
     assertThat(info.targetApp).isEqualTo(Label.of("//java/com/foo/app:app"));
@@ -93,7 +92,7 @@ public class InstrumentationInfoTest extends BlazeAndroidIntegrationTestCase {
     InstrumentationInfo info =
         InstrumentationInfo.getInstrumentationInfo(
             instrumentationTestLabel,
-            BlazeProjectDataManager.getInstance(getProject()).getBlazeProjectData());
+            getProject());
 
     assertThat(info.testApp)
         .isEqualTo(Label.of("//java/com/foo/app:test_app_self_instrumenting"));
@@ -135,7 +134,7 @@ public class InstrumentationInfoTest extends BlazeAndroidIntegrationTestCase {
     try {
       InstrumentationInfo.getInstrumentationInfo(
           instrumentationTestLabel,
-          BlazeProjectDataManager.getInstance(getProject()).getBlazeProjectData());
+          getProject());
       fail("parsing should've thrown an exception");
     } catch (InstrumentationParserException e) {
       assertThat(e.getMessage())
@@ -151,7 +150,7 @@ public class InstrumentationInfoTest extends BlazeAndroidIntegrationTestCase {
     InstrumentationInfo info =
         InstrumentationInfo.getInstrumentationInfo(
             instrumentationTestLabel,
-            BlazeProjectDataManager.getInstance(getProject()).getBlazeProjectData());
+            getProject());
     assertThat(info.testApp).isEqualTo(Label.of("//java/com/foo/app:test_app"));
     assertThat(info.targetApp).isEqualTo(Label.of("//java/com/foo/app:app"));
   }

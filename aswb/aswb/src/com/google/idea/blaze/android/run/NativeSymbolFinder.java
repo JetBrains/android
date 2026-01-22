@@ -16,9 +16,9 @@
 package com.google.idea.blaze.android.run;
 
 import com.google.common.collect.ImmutableList;
-import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
+import com.google.idea.blaze.common.Label;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import java.io.File;
