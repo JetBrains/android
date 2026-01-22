@@ -16,6 +16,7 @@
 package com.android.tools.compose.debug.utils
 
 import com.intellij.debugger.engine.DebugProcessImpl
+import com.intellij.debugger.jdi.VirtualMachineProxyImpl
 import com.sun.jdi.ClassType
 import com.sun.jdi.Field
 import com.sun.jdi.InterfaceType
@@ -43,7 +44,7 @@ sealed class MockReferenceType(
   override fun isPrepared(): Boolean = true
 
   override fun nestedTypes(): List<ReferenceType> =
-    debugProcess.virtualMachineProxy.allClasses().filter { it.name().startsWith("${name()}\$") }
+          VirtualMachineProxyImpl.getCurrent().allClasses().filter { it.name().startsWith("${name()}\$") }
 
   override fun allLineLocations(): List<Location> = methods().flatMap { it.allLineLocations() }
 
@@ -51,7 +52,7 @@ sealed class MockReferenceType(
 
   override fun methodsByName(name: String): List<Method> = methods().filter { it.name() == name }
 
-  override fun virtualMachine(): VirtualMachine = debugProcess.virtualMachineProxy.virtualMachine
+  override fun virtualMachine(): VirtualMachine = VirtualMachineProxyImpl.getCurrent().virtualMachine
 
   override fun sourceName(): String {
     return "$name.kt"
