@@ -17,6 +17,7 @@ package com.android.tools.compose.debug.utils
 
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.engine.evaluation.EvaluationContext
+import com.intellij.debugger.engine.events.DebuggerCommandImpl
 import com.intellij.debugger.engine.requests.RequestManagerImpl
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl
 import com.intellij.debugger.requests.ClassPrepareRequestor
@@ -73,7 +74,7 @@ fun mockDebugProcess(
   }
   object : MockDebugProcessScope {
       override val virtualMachineProxy: VirtualMachineProxyImpl
-        get() = debugProcess.virtualMachineProxy
+        get() = VirtualMachineProxyImpl.getCurrent()
 
       override fun classType(
         signature: String,
@@ -114,7 +115,6 @@ fun mockDebugProcess(
 
 class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
   private val referencesByName = mutableMapOf<String, ReferenceType>()
-  private val mockVirtualMachineProxy = MockVirtualMachineProxy(this, referencesByName)
 
   val prepareRequestPatterns = mutableListOf<String>()
   private val mockRequestManager =
@@ -128,7 +128,15 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
       }
     }
 
-  override fun getVirtualMachineProxy(): VirtualMachineProxyImpl = mockVirtualMachineProxy
+  init {
+    val dmt = managerThread
+    dmt.invokeAndWait(object : DebuggerCommandImpl() {
+      override fun action() {
+        val mockVirtualMachineProxy = MockVirtualMachineProxy(this@MockDebugProcessImpl, referencesByName)
+        dmt.setVmProxy(mockVirtualMachineProxy)
+      }
+    })
+  }
 
   override fun getSearchScope(): GlobalSearchScope = GlobalSearchScope.allScope(project)
 

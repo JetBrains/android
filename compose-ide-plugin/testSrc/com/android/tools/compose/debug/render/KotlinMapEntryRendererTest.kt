@@ -24,6 +24,8 @@ import com.android.tools.compose.debug.utils.mockEvaluationContext
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.engine.DebugProcessImpl
+import com.intellij.debugger.engine.jdi.VirtualMachineProxy
+import com.intellij.debugger.jdi.VirtualMachineProxyImpl
 import com.intellij.debugger.settings.NodeRendererSettings
 import com.intellij.debugger.ui.tree.render.CompoundReferenceRenderer
 import com.intellij.debugger.ui.tree.render.EnumerationChildrenRenderer
@@ -59,7 +61,7 @@ class KotlinMapEntryRendererTest {
       }
 
     val thisObjectType: ReferenceType =
-      debugProcess.virtualMachineProxy.classesByName("java.util.Map\$Entry").first()
+            VirtualMachineProxy.getCurrent().classesByName("java.util.Map\$Entry").first()
 
     debugProcess.invokeOnDebuggerManagerThread {
       // 1. check `Kotlin MapEntry` is the first selected renderer by default.
@@ -73,7 +75,7 @@ class KotlinMapEntryRendererTest {
       assertThat(renderer.name).isEqualTo("Kotlin MapEntry")
 
       val thisObjectValue =
-        MockClassObjectReference(thisObjectType, debugProcess.virtualMachineProxy.virtualMachine)
+              MockClassObjectReference(thisObjectType, VirtualMachineProxyImpl.getCurrent().virtualMachine)
       val evaluationContext = mockEvaluationContext(debugProcess, thisObjectValue)
       val thisValueDescriptor = MockValueDescriptor(project, thisObjectValue)
 
