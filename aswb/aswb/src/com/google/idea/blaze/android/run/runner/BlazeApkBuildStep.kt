@@ -125,6 +125,7 @@ class BlazeApkBuildStep(
     try {
       blazeAndroidDeployInfo =
         deployInfoExtractor.extract(
+          project,
           buildOutputs,
           deployOutputGroup,
           apkOutputGroup,

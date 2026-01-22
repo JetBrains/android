@@ -24,6 +24,7 @@ import com.android.tools.idea.run.ApkProvisionException;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
+import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo.ManifestWithApks;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import java.io.File;
 import org.junit.Test;
@@ -37,12 +38,17 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class BlazeAndroidBinaryApplicationIdProviderTest {
   static ImmutableList<File> nativeSymbols = ImmutableList.of(new File("symbols.so"));
+  static ImmutableList<File> dummyApk = ImmutableList.of(new File("dummy.apk"));
 
   @Test
   public void getApplicationId() throws Exception {
     ParsedManifest manifest = new ParsedManifest("package.name", ImmutableList.of(), null);
+    ManifestWithApks manifestWithApks = new ManifestWithApks(manifest, dummyApk);
     BlazeAndroidDeployInfo deployInfo =
-        new BlazeAndroidDeployInfo(manifest, null, ImmutableList.of(), nativeSymbols);
+        BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(
+            manifestWithApks,
+            /* testTargetMergedManifestAndApks= */ null,
+            nativeSymbols);
     ApkBuildStep mockBuildStep = mock(ApkBuildStep.class);
     when(mockBuildStep.getDeployInfo()).thenReturn(deployInfo);
 
@@ -54,16 +60,13 @@ public class BlazeAndroidBinaryApplicationIdProviderTest {
   @Test
   public void getApplicationId_noPackageNameInMergedManifest() throws Exception {
     ParsedManifest manifest = new ParsedManifest(null, ImmutableList.of(), null);
-    BlazeAndroidDeployInfo deployInfo =
-        new BlazeAndroidDeployInfo(manifest, null, ImmutableList.of(), nativeSymbols);
-    ApkBuildStep mockBuildStep = mock(ApkBuildStep.class);
-    when(mockBuildStep.getDeployInfo()).thenReturn(deployInfo);
-
-    BlazeAndroidBinaryApplicationIdProvider provider =
-        new BlazeAndroidBinaryApplicationIdProvider(mockBuildStep);
-
+    ManifestWithApks manifestWithApks = new ManifestWithApks(manifest, dummyApk);
     try {
-      provider.getPackageName();
+      BlazeAndroidDeployInfo deployInfo =
+          BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(
+              manifestWithApks,
+              /* testTargetMergedManifestAndApks= */ null,
+              nativeSymbols);
       fail();
     } catch (ApkProvisionException ex) {
       // An exception should be thrown if the package name is not available because it's a

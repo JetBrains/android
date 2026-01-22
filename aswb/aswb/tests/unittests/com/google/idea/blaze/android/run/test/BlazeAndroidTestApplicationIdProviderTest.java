@@ -24,6 +24,7 @@ import com.android.tools.idea.run.ApkProvisionException;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
+import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo.ManifestWithApks;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import java.io.File;
 import org.junit.Test;
@@ -37,32 +38,40 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class BlazeAndroidTestApplicationIdProviderTest {
   static ImmutableList<File> nativeSymbols = ImmutableList.of(new File("symbols.so"));
+  static ImmutableList<File> testAppApk = ImmutableList.of(new File("test.apk"));
+  static ImmutableList<File> appUnderTestApk = ImmutableList.of(new File("app_under_test.apk"));
+
   @Test
-  public void getTestPackageName() throws Exception {
+  public void getApplicationIds_bothPackagesPresent() throws Exception {
+    ParsedManifest testManifest = stubManifest("test.package.name");
+    ParsedManifest appManifest = stubManifest("package.name");
     BlazeAndroidDeployInfo deployInfo =
-        new BlazeAndroidDeployInfo(
-            stubManifest("test.package.name"), stubManifest("package.name"), ImmutableList.of(), nativeSymbols);
+        BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(
+            new ManifestWithApks(testManifest, testAppApk), // Test App (main)
+            new ManifestWithApks(appManifest, appUnderTestApk), // App Under Test (test target)
+            nativeSymbols);
     ApkBuildStep mockBuildStep = mock(ApkBuildStep.class);
     when(mockBuildStep.getDeployInfo()).thenReturn(deployInfo);
 
     BlazeAndroidTestApplicationIdProvider provider =
         new BlazeAndroidTestApplicationIdProvider(mockBuildStep);
+
+    // Check test package name
     assertThat(provider.getTestPackageName()).isEqualTo("test.package.name");
+    // Check app under test package name
+    assertThat(provider.getPackageName()).isEqualTo("package.name");
   }
 
   @Test
   public void getTestPackageName_noPackageNameInMergedManifest() throws Exception {
-    BlazeAndroidDeployInfo deployInfo =
-        new BlazeAndroidDeployInfo(
-            stubManifest(null), stubManifest("package.name"), ImmutableList.of(), nativeSymbols);
-    ApkBuildStep mockBuildStep = mock(ApkBuildStep.class);
-    when(mockBuildStep.getDeployInfo()).thenReturn(deployInfo);
-
-    BlazeAndroidTestApplicationIdProvider provider =
-        new BlazeAndroidTestApplicationIdProvider(mockBuildStep);
-
+    ParsedManifest testManifest = stubManifest(null);
+    ParsedManifest appManifest = stubManifest("package.name");
     try {
-      provider.getTestPackageName();
+      BlazeAndroidDeployInfo deployInfo =
+          BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(
+              new ManifestWithApks(testManifest, testAppApk), // Test App (main) - null package name
+              new ManifestWithApks(appManifest, appUnderTestApk),     // App Under Test (test target)
+              nativeSymbols);
       fail();
     } catch (ApkProvisionException ex) {
       // An exception should be thrown if the package name is not available because it's a
@@ -73,31 +82,15 @@ public class BlazeAndroidTestApplicationIdProviderTest {
   }
 
   @Test
-  public void getPackageName() throws Exception {
-    BlazeAndroidDeployInfo deployInfo =
-        new BlazeAndroidDeployInfo(
-            stubManifest("test.package.name"), stubManifest("package.name"), ImmutableList.of(), nativeSymbols);
-    ApkBuildStep mockBuildStep = mock(ApkBuildStep.class);
-    when(mockBuildStep.getDeployInfo()).thenReturn(deployInfo);
-
-    BlazeAndroidTestApplicationIdProvider provider =
-        new BlazeAndroidTestApplicationIdProvider(mockBuildStep);
-    assertThat(provider.getPackageName()).isEqualTo("package.name");
-  }
-
-  @Test
   public void getPackageName_noPackageNameInMergedManifest() throws Exception {
-    BlazeAndroidDeployInfo deployInfo =
-        new BlazeAndroidDeployInfo(
-            stubManifest("test.package.name"), stubManifest(null), ImmutableList.of(), nativeSymbols);
-    ApkBuildStep mockBuildStep = mock(ApkBuildStep.class);
-    when(mockBuildStep.getDeployInfo()).thenReturn(deployInfo);
-
-    BlazeAndroidTestApplicationIdProvider provider =
-        new BlazeAndroidTestApplicationIdProvider(mockBuildStep);
-
+    ParsedManifest testManifest = stubManifest("test.package.name");
+    ParsedManifest appManifest = stubManifest(null);
     try {
-      provider.getPackageName();
+      BlazeAndroidDeployInfo deployInfo =
+          BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(
+              new ManifestWithApks(testManifest, testAppApk), // Test App (main)
+              new ManifestWithApks(appManifest, appUnderTestApk), // App Under Test (test target) - null package name
+              nativeSymbols);
       fail();
     } catch (ApkProvisionException ex) {
       // An exception should be thrown if the package name is not available because it's a
@@ -109,8 +102,12 @@ public class BlazeAndroidTestApplicationIdProviderTest {
 
   @Test
   public void getPackageName_noMergedManifest() throws Exception {
+    ParsedManifest testManifest = stubManifest("test.package.name");
     BlazeAndroidDeployInfo deployInfo =
-        new BlazeAndroidDeployInfo(stubManifest("test.package.name"), null, ImmutableList.of(), ImmutableList.of());
+        BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(
+            new ManifestWithApks(testManifest, testAppApk), // Test App (main)
+            /* testTargetMergedManifestAndApks= */ null,
+            ImmutableList.of()); // The original used ImmutableList.of() for symbols
     ApkBuildStep mockBuildStep = mock(ApkBuildStep.class);
     when(mockBuildStep.getDeployInfo()).thenReturn(deployInfo);
 

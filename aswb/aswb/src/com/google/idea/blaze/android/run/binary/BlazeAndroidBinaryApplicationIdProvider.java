@@ -32,12 +32,7 @@ public class BlazeAndroidBinaryApplicationIdProvider implements ApplicationIdPro
 
   @Override
   public String getPackageName() throws ApkProvisionException {
-    BlazeAndroidDeployInfo deployInfo = buildStep.getDeployInfo();
-    ManifestParser.ParsedManifest parsedManifest = deployInfo.getMergedManifest();
-    if (parsedManifest.packageName == null) {
-      throw new ApkProvisionException("No application id in merged manifest.");
-    }
-    return parsedManifest.packageName;
+    return buildStep.getDeployInfo().getMainAppPackageName();
   }
 
   @Nullable

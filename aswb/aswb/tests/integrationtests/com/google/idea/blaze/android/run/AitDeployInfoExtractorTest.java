@@ -24,6 +24,7 @@ import static com.google.idea.blaze.base.bazel.BepUtils.setOfFiles;
 import static com.google.idea.blaze.base.bazel.BepUtils.started;
 import static com.google.idea.blaze.base.bazel.BepUtils.targetComplete;
 
+import com.android.tools.idea.run.ApkProvisionException;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
@@ -91,7 +92,7 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
 
   @Test
   public void extract_testWithNoTarget_deployInfoContainsDataFromTestTarget()
-      throws BuildEventStreamException, IOException {
+    throws BuildEventStreamException, IOException, ApkProvisionException {
 
     // Create build output that matches the output for a setup with a test target (TEST_APP)
     // that instruments itself (i.e. no target app).
@@ -108,7 +109,7 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
 
     BlazeAndroidDeployInfo deployInfo =
         new AitDeployInfoExtractor(getProject(), instrumentationInfo)
-            .extract(buildOutputs, "android-deploy-info", "default", context, nativeSymbols);
+            .extract(getProject(), buildOutputs, "android-deploy-info", "default", context, nativeSymbols);
 
     assertThat(deployInfo).isNotNull();
     assertThat(deployInfo.getMergedManifest().packageName)
@@ -121,7 +122,7 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
 
   @Test
   public void extract_testWithApp_deployInfoContainsDataFromTestAndTargetApp()
-      throws BuildEventStreamException, IOException {
+    throws BuildEventStreamException, IOException, ApkProvisionException {
     // Create build output that matches the output for a setup with a test target (TEST_APP)
     // that instruments TARGET_APP
     InstrumentationInfo instrumentationInfo = new InstrumentationInfo(TARGET_APP, TEST_APP);
@@ -141,7 +142,7 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
 
     BlazeAndroidDeployInfo deployInfo =
         new AitDeployInfoExtractor(getProject(), instrumentationInfo)
-            .extract(buildOutputs, "android-deploy-info", "default", context, nativeSymbols);
+            .extract(getProject(), buildOutputs, "android-deploy-info", "default", context, nativeSymbols);
 
     assertThat(deployInfo).isNotNull();
     assertThat(deployInfo.getMergedManifest().packageName)

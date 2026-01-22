@@ -40,12 +40,7 @@ public class BlazeApkProvider implements ApkProvider {
 
   @Override
   public Collection<ApkInfo> getApks(IDevice device) throws ApkProvisionException {
-    BlazeAndroidDeployInfo deployInfo = buildStep.getDeployInfo();
-    ImmutableList.Builder<ApkInfo> apkInfos = ImmutableList.builder();
-    for (File apk : deployInfo.getApksToDeploy()) {
-      apkInfos.add(new ApkInfo(apk, manifestPackageForApk(apk)));
-    }
-    return apkInfos.build();
+    return buildStep.getDeployInfo().getApkInfos();
   }
 
   private String manifestPackageForApk(final File apk) throws ApkProvisionException {

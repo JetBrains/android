@@ -16,13 +16,14 @@
 package com.google.idea.blaze.android.run.runner
 
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest
+import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.artifact.OutputArtifact
 
 @JvmRecord
 internal data class DeployData(val mergedManifest: ParsedManifest, val apks: List<OutputArtifact>) {
   companion object {
     @JvmStatic
-    fun create(mergedManifest: ParsedManifest, apks: List<OutputArtifact>): DeployData = DeployData(mergedManifest, apks)
+    fun create(label: Label, mergedManifest: ParsedManifest, apks: List<OutputArtifact>): DeployData = DeployData(mergedManifest, apks)
   }
 }
 
