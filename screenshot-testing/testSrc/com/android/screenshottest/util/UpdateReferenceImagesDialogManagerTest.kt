@@ -16,13 +16,18 @@
 package com.android.screenshottest.util
 
 import com.android.screenshottest.ui.UpdateReferenceImagesDialog
+import com.android.tools.idea.metrics.MetricsTrackerRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -33,6 +38,9 @@ class UpdateReferenceImagesDialogManagerTest {
 
     @get:Rule
     val projectRule = AndroidProjectRule.inMemory()
+
+    @get:Rule
+    val metricsTrackerRule = MetricsTrackerRule()
 
     @Test
     fun testOnlyOneDialogActiveAtATime() = runInEdtAndWait {
@@ -110,5 +118,38 @@ class UpdateReferenceImagesDialogManagerTest {
         assertNotNull(dialogAfterDispose)
 
         Disposer.dispose(disposable)
+    }
+
+    @Test
+    fun testDialogAnalytics() = runInEdtAndWait {
+        val manager = UpdateReferenceImagesDialogManager.getInstance(projectRule.project)
+
+        val mockDialog = mock(UpdateReferenceImagesDialog::class.java)
+        val disposable = Disposer.newDisposable("MockDialog")
+        `when`(mockDialog.disposable).thenReturn(disposable)
+
+        manager.dialogFactory = { mockDialog }
+
+        try {
+            // 1. Open new dialog -> DIALOG_OPEN
+            `when`(mockDialog.isVisible).thenReturn(false)
+            manager.showOrGetDialog()
+
+            var usages = metricsTrackerRule.testTracker.usages
+            assertTrue(usages.isNotEmpty())
+            assertEquals(AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW, usages.last().studioEvent.kind)
+            assertEquals(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_OPEN, usages.last().studioEvent.screenshotTestComposePreviewEvent.type)
+
+            // 2. Open existing dialog -> DIALOG_ALREADY_OPEN
+            `when`(mockDialog.isVisible).thenReturn(true)
+            manager.showOrGetDialog()
+
+            usages = metricsTrackerRule.testTracker.usages
+            assertTrue(usages.isNotEmpty())
+            assertEquals(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_ALREADY_OPEN, usages.last().studioEvent.screenshotTestComposePreviewEvent.type)
+        } finally {
+            Disposer.dispose(disposable)
+            PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+        }
     }
 }
