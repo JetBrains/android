@@ -230,6 +230,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   }
 
   private fun getCompanionsOfTypes(position: SourcePosition, types: List<ReferenceType>): List<ReferenceType> {
+    @Suppress("UnstableApiUsage")
     val allLoadedTypes = runCatching { VirtualMachineProxy.getCurrent().allClasses() }.getOrDefault(emptyList())
     return allLoadedTypes.filter { loadedType -> types.any { candidate -> loadedType.isCompanion(candidate.name(), position) } }
   }
@@ -237,7 +238,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   private fun getCompanionsForPositionByName(position: SourcePosition): List<ReferenceType> =
     ReadAction.compute<List<ReferenceType>, RuntimeException> {
       getLineClasses(position.file, position.line).flatMap {
-        VirtualMachineProxy.getCurrent().classesByName("${it.getJvmName()}$COMPANION_CLASS_SUFFIX")
+        @Suppress("UnstableApiUsage") VirtualMachineProxy.getCurrent().classesByName("${it.getJvmName()}$COMPANION_CLASS_SUFFIX")
       }
     }
 

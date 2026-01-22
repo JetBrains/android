@@ -192,6 +192,7 @@ public final class BitmapEvaluatorProvider implements BitmapDecoder.BitmapDataPr
   @Nullable
   private List<Value> copyToBuffer(@NotNull Dimension size) throws EvaluateException {
     DebugProcessImpl debugProcess = myEvaluationContext.getDebugProcess();
+    @SuppressWarnings("UnstableApiUsage")
     VirtualMachineProxyImpl virtualMachineProxy = VirtualMachineProxyImpl.getCurrent();
 
     List<ReferenceType> classes = virtualMachineProxy.classesByName("byte[]");

@@ -93,6 +93,7 @@ public class DebuggerRedefiner implements ClassRedefiner {
   private RedefineClassSupportState canRedefineClassInternal(DebuggerSession debuggerSession) {
     // We use the IntelliJ abstraction of the debugger here since it is available.
     DebuggerManagerThreadImpl.assertIsManagerThread();
+    @SuppressWarnings("UnstableApiUsage")
     VirtualMachineProxyImpl virtualMachineProxy = VirtualMachineProxyImpl.getCurrent();
 
     // Simple case, debugger has the capability to all is good.
@@ -167,6 +168,7 @@ public class DebuggerRedefiner implements ClassRedefiner {
   private void redefine(Project project, DebuggerSession session, Deploy.SwapRequest request) throws DeployerException {
     try {
       disableBreakPoints(project, session);
+      @SuppressWarnings("UnstableApiUsage")
       VirtualMachine vm = VirtualMachineProxyImpl.getCurrent().getVirtualMachine();
       new JdiBasedClassRedefiner(vm, canRedefineClass()).redefine(request);
     } finally {
@@ -219,6 +221,7 @@ public class DebuggerRedefiner implements ClassRedefiner {
   private void redefine(Project project, DebuggerSession session, Deploy.OverlaySwapRequest request) throws DeployerException {
     try {
       disableBreakPoints(project, session);
+      @SuppressWarnings("UnstableApiUsage")
       VirtualMachine vm = VirtualMachineProxyImpl.getCurrent().getVirtualMachine();
       RedefineClassSupportState state = new RedefineClassSupportState(RedefineClassSupport.FULL, null);
       new JdiBasedClassRedefiner(vm, state).redefine(request);
@@ -257,6 +260,7 @@ public class DebuggerRedefiner implements ClassRedefiner {
     BreakpointManager breakpointManager = (DebuggerManagerEx.getInstanceEx(project)).getBreakpointManager();
     breakpointManager.disableBreakpoints(debugProcess);
     StackCapturingLineBreakpoint.deleteAll(debugProcess);
+    @SuppressWarnings("UnstableApiUsage")
     VirtualMachineProxyImpl virtualMachineProxy = VirtualMachineProxyImpl.getCurrent();
 
     if (Registry.is("debugger.resume.yourkit.threads")) {

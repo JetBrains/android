@@ -75,7 +75,7 @@ class ComposePositionManager(private val debugProcess: DebugProcess, private val
       throw NoDataException.INSTANCE
     }
 
-    val vm = VirtualMachineProxy.getCurrent()
+    @Suppress("UnstableApiUsage") val vm = VirtualMachineProxy.getCurrent()
     val singletonClasses =
       vm.classesByName(computeComposableSingletonsClassName(file)).flatMap { referenceType ->
         if (referenceType.isPrepared) allRecursivelyNestedTypesOf(referenceType) else listOf()
@@ -93,7 +93,7 @@ class ComposePositionManager(private val debugProcess: DebugProcess, private val
   }
 
   private fun allRecursivelyNestedTypesOf(classType: ReferenceType): List<ReferenceType> {
-    val vm = VirtualMachineProxy.getCurrent()
+    @Suppress("UnstableApiUsage") val vm = VirtualMachineProxy.getCurrent()
     val result = mutableListOf<ReferenceType>()
     val worklist = mutableListOf(classType)
     while (worklist.isNotEmpty()) {
