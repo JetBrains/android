@@ -22,6 +22,7 @@ import com.intellij.debugger.engine.DebugProcess
 import com.intellij.debugger.engine.PositionManagerAsync
 import com.intellij.debugger.engine.PositionManagerWithMultipleStackFrames
 import com.intellij.debugger.engine.evaluation.EvaluationContext
+import com.intellij.debugger.engine.jdi.VirtualMachineProxy
 import com.intellij.debugger.jdi.StackFrameProxyImpl
 import com.intellij.debugger.requests.ClassPrepareRequestor
 import com.intellij.debugger.ui.impl.watch.StackFrameDescriptorImpl
@@ -77,7 +78,7 @@ class ComposePositionManager(
       throw NoDataException.INSTANCE
     }
 
-    val vm = debugProcess.virtualMachineProxy
+    val vm = VirtualMachineProxy.getCurrent()
     val singletonClasses =
       vm.classesByName(computeComposableSingletonsClassName(file)).flatMap { referenceType ->
         if (referenceType.isPrepared) allRecursivelyNestedTypesOf(referenceType) else listOf()
@@ -95,7 +96,7 @@ class ComposePositionManager(
   }
 
   private fun allRecursivelyNestedTypesOf(classType: ReferenceType): List<ReferenceType> {
-    val vm = debugProcess.virtualMachineProxy
+    val vm = VirtualMachineProxy.getCurrent()
     val result = mutableListOf<ReferenceType>()
     val worklist = mutableListOf(classType)
     while (worklist.isNotEmpty()) {

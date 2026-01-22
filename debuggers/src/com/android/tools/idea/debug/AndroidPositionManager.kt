@@ -27,6 +27,7 @@ import com.intellij.debugger.NoDataException
 import com.intellij.debugger.SourcePosition
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.engine.PositionManagerImpl
+import com.intellij.debugger.engine.jdi.VirtualMachineProxy
 import com.intellij.debugger.impl.DebuggerUtilsEx
 import com.intellij.debugger.impl.PrioritizedTask
 import com.intellij.debugger.requests.ClassPrepareRequestor
@@ -243,7 +244,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   }
 
   private fun getCompanionsOfTypes(position: SourcePosition, types: List<ReferenceType>): List<ReferenceType> {
-    val allLoadedTypes = runCatching { debugProcess.virtualMachineProxy.allClasses() }.getOrDefault(emptyList())
+    val allLoadedTypes = runCatching { VirtualMachineProxy.getCurrent().allClasses() }.getOrDefault(emptyList())
     return allLoadedTypes.filter { loadedType ->
       types.any { candidate ->
         loadedType.isCompanion(candidate.name(), position)
@@ -254,7 +255,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   private fun getCompanionsForPositionByName(position: SourcePosition): List<ReferenceType> =
     ReadAction.compute<List<ReferenceType>, RuntimeException> {
       getLineClasses(position.file, position.line).flatMap {
-        debugProcess.virtualMachineProxy.classesByName("${it.getJvmName()}$COMPANION_CLASS_SUFFIX")
+        VirtualMachineProxy.getCurrent().classesByName("${it.getJvmName()}$COMPANION_CLASS_SUFFIX")
       }
     }
 

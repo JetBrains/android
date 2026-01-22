@@ -39,6 +39,7 @@ import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.concurrency.Semaphore;
 import com.intellij.xdebugger.XDebugSession;
 import com.sun.jdi.VirtualMachine;
+
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
@@ -92,8 +93,7 @@ public class DebuggerRedefiner implements ClassRedefiner {
   private RedefineClassSupportState canRedefineClassInternal(DebuggerSession debuggerSession) {
     // We use the IntelliJ abstraction of the debugger here since it is available.
     DebuggerManagerThreadImpl.assertIsManagerThread();
-    DebugProcessImpl debugProcess = debuggerSession.getProcess();
-    VirtualMachineProxyImpl virtualMachineProxy = debugProcess.getVirtualMachineProxy();
+    VirtualMachineProxyImpl virtualMachineProxy = VirtualMachineProxyImpl.getCurrent();
 
     // Simple case, debugger has the capability to all is good.
     if (virtualMachineProxy.canRedefineClasses()) {
@@ -167,7 +167,7 @@ public class DebuggerRedefiner implements ClassRedefiner {
   private void redefine(Project project, DebuggerSession session, Deploy.SwapRequest request) throws DeployerException {
     try {
       disableBreakPoints(project, session);
-      VirtualMachine vm = session.getProcess().getVirtualMachineProxy().getVirtualMachine();
+      VirtualMachine vm = VirtualMachineProxyImpl.getCurrent().getVirtualMachine();
       new JdiBasedClassRedefiner(vm, canRedefineClass()).redefine(request);
     } finally {
       enableBreakPoints(project, session);
@@ -219,7 +219,7 @@ public class DebuggerRedefiner implements ClassRedefiner {
   private void redefine(Project project, DebuggerSession session, Deploy.OverlaySwapRequest request) throws DeployerException {
     try {
       disableBreakPoints(project, session);
-      VirtualMachine vm = session.getProcess().getVirtualMachineProxy().getVirtualMachine();
+      VirtualMachine vm = VirtualMachineProxyImpl.getCurrent().getVirtualMachine();
       RedefineClassSupportState state = new RedefineClassSupportState(RedefineClassSupport.FULL, null);
       new JdiBasedClassRedefiner(vm, state).redefine(request);
     } finally {
@@ -257,7 +257,7 @@ public class DebuggerRedefiner implements ClassRedefiner {
     BreakpointManager breakpointManager = (DebuggerManagerEx.getInstanceEx(project)).getBreakpointManager();
     breakpointManager.disableBreakpoints(debugProcess);
     StackCapturingLineBreakpoint.deleteAll(debugProcess);
-    VirtualMachineProxyImpl virtualMachineProxy = debugProcess.getVirtualMachineProxy();
+    VirtualMachineProxyImpl virtualMachineProxy = VirtualMachineProxyImpl.getCurrent();
 
     if (Registry.is("debugger.resume.yourkit.threads")) {
       virtualMachineProxy.allThreads().stream()
