@@ -44,10 +44,13 @@ import com.android.tools.idea.sqlite.utils.toViewColumn
 import com.android.tools.idea.sqlite.utils.toViewColumns
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.runDispatching
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.ui.components.JBScrollPane
@@ -59,7 +62,7 @@ import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JProgressBar
 import javax.swing.JTable
-import org.jetbrains.concurrency.any
+import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -795,7 +798,14 @@ class TableViewImplTest : BasePlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(mockActionManager).createActionPopupMenu(any(), any())
+    val captor: ArgumentCaptor<ActionGroup> = ArgumentCaptor.forClass(ActionGroup::class.java)
+    verify(mockActionManager).createActionPopupMenu(any(), captor.capture())
+    val actions = (captor.value as DefaultActionGroup).getChildren(mockActionManager)
+
+    assertOrderedEquals(
+      actions.map { it.javaClass.simpleName },
+      listOf("CopyToClipboardAction", "RemoveRowAction", "SetNullAction"),
+    )
   }
 
   fun testRightClickOutsideOfTableRows() {
@@ -1127,5 +1137,36 @@ class TableViewImplTest : BasePlatformTestCase() {
     }
 
     return values
+  }
+
+  fun testRemoveRowAction() {
+    // Prepare
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+    val col1 = ResultSetSqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
+    val col2 = ResultSetSqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
+    view.showTableColumns(listOf(col1, col2).toViewColumns())
+    val rows =
+      listOf(
+        SqliteRow(
+          listOf(
+            SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
+            SqliteColumnValue("col2", SqliteValue.StringValue("val2")),
+          )
+        ),
+        SqliteRow(
+          listOf(
+            SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
+            SqliteColumnValue("col2", SqliteValue.StringValue("val4")),
+          )
+        ),
+      )
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
+    table.selectionModel.setSelectionInterval(0, 0)
+    val mockListener = mock<TableView.Listener>()
+    view.addListener(mockListener)
+
+    TableViewImpl.RemoveRowAction(table).actionPerformed(TestActionEvent.createTestEvent())
+
+    verify(mockListener).removeRowInvoked(0)
   }
 }
