@@ -281,6 +281,34 @@ class WifiAvailableDevicesDialogTest {
   }
 
   @Test
+  fun deviceNeedsUpdate_incorrectVersion_showsWarningTooltip() = runTest {
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
+    whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
+    val needsUpdateService =
+      createMdnsTlsService(
+        "service1",
+        "192.168.1.101",
+        5555,
+        "Old Device",
+        "30",
+        // We had a bug in certain devices where we show this version
+        mdnsServiceVersion = "ADB_SECURE_SERVICE_VERSION",
+      )
+    adblibMdnsServicesFlow.value =
+      MdnsServices(emptyList(), listOf(needsUpdateService), emptyList())
+
+    composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
+
+    composeTestRule
+      .onNode(hasTestTag(WARNING_TOOLTIP_TEST_TAG), useUnmergedTree = true)
+      .lingerMouseHover(composeTestRule)
+
+    composeTestRule
+      .onNodeWithText("Check for device software updates to improve Wi-Fi pairing.")
+      .assertIsDisplayed()
+  }
+
+  @Test
   fun deviceUpToDate_dontShowWarning() = runTest {
     whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
     whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)

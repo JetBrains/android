@@ -131,10 +131,9 @@ internal fun MdnsTrackServiceInfo.needsUpdate(): Boolean {
   return mdnsServiceNeedsUpdate(mdnsServiceVersion)
 }
 
-private fun mdnsServiceNeedsUpdate(mdnsServiceVersion: String?): Boolean {
-  // minimum mdns version is 2.0 to work with new adb wifi v2 features.
-  return mdnsServiceVersion.isNullOrBlank() || mdnsServiceVersion == "1"
-}
+// minimum mdns version is 2.0 to work with new adb wifi v2 features.
+private fun mdnsServiceNeedsUpdate(mdnsServiceVersion: String?) = mdnsServiceVersion != "2.0"
+
 
 /** Abstraction over an bitmap representation of a QrCode */
 data class QrCodeImage(

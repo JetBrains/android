@@ -417,7 +417,9 @@ class WifiAvailableDevicesDialog(
       ),
       TableTextColumn<MdnsTlsService>(
         "API",
-        attribute = { it.service.buildVersionSdkFull ?: "Unknown" },
+        attribute = {
+          it.service.buildVersionSdkFull.takeUnless { it.isNullOrEmpty() } ?: "Unknown"
+        },
       ),
       TableColumn("", TableColumnWidth.Weighted(1f)) { device, _ ->
         OutlinedButton(
