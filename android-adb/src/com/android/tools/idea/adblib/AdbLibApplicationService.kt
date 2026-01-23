@@ -110,10 +110,6 @@ class AdbLibApplicationService : Disposable {
    */
   class MyStartupActivity : StartupActivity.DumbAware {
     override fun runActivity(project: Project) {
-      // In tests `com.android.tools.idea.testing.AndroidProjectRule` runs this
-      // activity, and it could be a good place to reset [AdbLibApplicationService]
-      resetForTests()
-
       // Startup activities run quite late when opening a project
       instance.adbFileLocationTracker.registerProject(project)
     }
