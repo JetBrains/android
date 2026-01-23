@@ -4,9 +4,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.nav.safeargs.tests.k2",
     iml_files = ["intellij.android.nav.safeargs.tests.k2.iml"],
-    tags = [
-        "noci:studio-win",
-    ],
     test_class = "com.android.tools.idea.nav.safeargs.kotlin.k2.SafeArgsK2TestSuite",
     # keep sorted
     test_data = [
@@ -34,6 +31,10 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
     ],
     test_srcs = ["src"],
+    test_tags = [
+        "no_k1",
+        "noci:studio-win",
+    ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
