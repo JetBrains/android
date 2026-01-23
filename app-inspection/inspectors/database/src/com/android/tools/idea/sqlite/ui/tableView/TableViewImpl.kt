@@ -21,6 +21,7 @@ import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.notifyError
+import com.android.tools.idea.sqlite.ui.tableView.TableView.TableViewType.TABLE
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.HelpTooltip
@@ -80,7 +81,7 @@ import org.jetbrains.annotations.TestOnly
 private const val MAX_CELL_TEXT = 200
 
 /** Abstraction on the UI component used to display tables. */
-class TableViewImpl : TableView {
+class TableViewImpl(private val type: TableView.TableViewType) : TableView {
   private val tableIsEmptyText = DatabaseInspectorBundle.message("table.is.empty")
   private val loadingTableDataText = DatabaseInspectorBundle.message("loading.data")
 
@@ -489,11 +490,14 @@ class TableViewImpl : TableView {
   }
 
   private fun setUpPopUp() {
-    PopupHandler.installPopupMenu(
-      table,
-      DefaultActionGroup(CopyToClipboardAction(table), RemoveRowAction(table), SetNullAction(table)),
-      "SqliteTablePopup",
-    )
+    val actions = buildList {
+      add(CopyToClipboardAction(table))
+      if (type == TABLE) {
+        add(RemoveRowAction(table))
+      }
+      add(SetNullAction(table))
+    }
+    PopupHandler.installPopupMenu(table, DefaultActionGroup(actions), "SqliteTablePopup")
   }
 
   private inner class MyTableHeaderRenderer : TableCellRenderer {
@@ -709,7 +713,8 @@ class TableViewImpl : TableView {
     }
   }
 
-  class CopyToClipboardAction(private val table: JTable) : AnAction(DatabaseInspectorBundle.message("action.copy.to.clipboard")) {
+  class CopyToClipboardAction(private val table: JTable) :
+    AnAction(DatabaseInspectorBundle.message("action.copy.to.clipboard")) {
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -729,7 +734,8 @@ class TableViewImpl : TableView {
     }
   }
 
-  class RemoveRowAction(private val table: JTable) : AnAction(DatabaseInspectorBundle.message("action.remove.row")) {
+  class RemoveRowAction(private val table: JTable) :
+    AnAction(DatabaseInspectorBundle.message("action.remove.row")) {
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -737,13 +743,10 @@ class TableViewImpl : TableView {
       val modelRow = table.convertRowIndexToModel(viewRow)
       (table.model as MyTableModel).removeRow(modelRow)
     }
-
-    override fun update(e: AnActionEvent) {
-      e.presentation.isVisible = (table.model as MyTableModel).isEditable
-    }
   }
 
-  class SetNullAction(private val table: JTable) : AnAction(DatabaseInspectorBundle.message("action.set.to.null")) {
+  class SetNullAction(private val table: JTable) :
+    AnAction(DatabaseInspectorBundle.message("action.set.to.null")) {
     init {
       registerCustomShortcutSet(
         CustomShortcutSet(
@@ -781,8 +784,7 @@ class TableViewImpl : TableView {
           false
         }
 
-      e.presentation.isEnabled =
-        (table.model as? MyTableModel)?.isEditable ?: false && isNullable
+      e.presentation.isEnabled = (table.model as? MyTableModel)?.isEditable ?: false && isNullable
       super.update(e)
     }
   }

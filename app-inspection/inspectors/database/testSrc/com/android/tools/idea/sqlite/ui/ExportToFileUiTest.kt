@@ -32,6 +32,7 @@ import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorViewImpl
 import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.android.tools.idea.sqlite.ui.tableView.TableView.TableViewType.TABLE
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.testing.ui.FakeActionPopupMenu
 import com.google.common.truth.Truth.assertThat
@@ -48,14 +49,6 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.treeStructure.Tree
-import org.mockito.AdditionalAnswers.answer
-import org.mockito.AdditionalAnswers.delegatesTo
-import org.mockito.Mockito
-import org.mockito.Mockito.any
-import org.mockito.Mockito.anyString
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
 import java.awt.event.ActionEvent
 import java.awt.event.InputEvent.BUTTON3_DOWN_MASK
 import java.awt.event.MouseEvent
@@ -66,6 +59,14 @@ import javax.swing.AbstractButton
 import javax.swing.JComponent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
+import org.mockito.AdditionalAnswers.answer
+import org.mockito.AdditionalAnswers.delegatesTo
+import org.mockito.Mockito
+import org.mockito.Mockito.any
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 
 private const val TABLE_ACTION_PANEL_COMPONENT_NAME = "table-actions-panel"
@@ -83,13 +84,13 @@ class ExportToFileUiTest : LightPlatformTestCase() {
   private val schema = SqliteSchema(listOf(table1))
 
   fun test_tableView_exportButtonVisibleByDefault() {
-    assertThat(findExportButtonInActionPanel(TableViewImpl())).isNotNull()
+    assertThat(findExportButtonInActionPanel(TableViewImpl(TABLE))).isNotNull()
   }
 
   fun test_tableView_exportButton() {
     // given
     val listener = mock(TableView.Listener::class.java)
-    val tableView = TableViewImpl().also { it.addListener(listener) }
+    val tableView = TableViewImpl(TABLE).also { it.addListener(listener) }
     val exportButton = findExportButtonInActionPanel(tableView)!!
 
     // when

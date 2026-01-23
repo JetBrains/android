@@ -26,6 +26,7 @@ import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorViewImpl
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogViewImpl
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.android.tools.idea.sqlite.ui.tableView.TableView.TableViewType
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
@@ -43,7 +44,7 @@ class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
         .getService(DatabaseInspectorViewsFactoryImpl::class.java)!!
   }
 
-  override fun createTableView() = TableViewImpl()
+  override fun createTableView(type: TableViewType) = TableViewImpl(type)
 
   override fun createEvaluatorView(
     project: Project,
