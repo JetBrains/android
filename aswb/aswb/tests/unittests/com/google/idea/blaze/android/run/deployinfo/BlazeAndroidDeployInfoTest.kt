@@ -57,14 +57,14 @@ class BlazeAndroidDeployInfoTest {
           /* testTargetMergedManifestAndApks= */ null,
           nativeSymbols)
 
-    expect.withMessage("getMergedManifest()").that(deployInfo.mergedManifest).isEqualTo(mainManifest)
+    expect.withMessage("getMergedManifest()").that(deployInfo.mainAppMergedManifest).isEqualTo(mainManifest)
     expect.withMessage("getTestTargetMergedManifest()")
-        .that(deployInfo.testTargetMergedManifest)
+        .that(deployInfo.appUnderTestMergedManifest)
         .isNull()
-    expect.withMessage("getPackageName()").that(deployInfo.getMainAppPackageName()).isEqualTo(packageName)
+    expect.withMessage("getPackageName()").that(deployInfo.mainAppPackageName).isEqualTo(packageName)
     // For binary deployment, app under test package should be null
     expect.withMessage("getAppUnderTestPackageName()")
-        .that(deployInfo.getAppUnderTestPackageName())
+        .that(deployInfo.appUnderTestPackageName)
         .isNull()
 
     expect.withMessage("getApksToDeploy()").that(deployInfo.apksToDeploy).isEqualTo(appApks)
@@ -104,13 +104,13 @@ class BlazeAndroidDeployInfoTest {
           ManifestWithApks(appManifest, appUnderTestApks),
           nativeSymbols)
 
-    expect.withMessage("getMergedManifest()").that(deployInfo.mergedManifest).isEqualTo(testManifest)
+    expect.withMessage("getMergedManifest()").that(deployInfo.mainAppMergedManifest).isEqualTo(testManifest)
     expect.withMessage("getTestTargetMergedManifest()")
-        .that(deployInfo.testTargetMergedManifest)
+        .that(deployInfo.appUnderTestMergedManifest)
         .isEqualTo(appManifest)
-    expect.withMessage("getPackageName()").that(deployInfo.getMainAppPackageName()).isEqualTo(testPackageName)
+    expect.withMessage("getPackageName()").that(deployInfo.mainAppPackageName).isEqualTo(testPackageName)
     expect.withMessage("getAppUnderTestPackageName()")
-        .that(deployInfo.getAppUnderTestPackageName())
+        .that(deployInfo.appUnderTestPackageName)
         .isEqualTo(appPackageName)
 
     val expectedApks = testAppApks + appUnderTestApks

@@ -30,8 +30,8 @@ import org.jetbrains.annotations.NotNull;
 
 /** Info about the deployment phase. */
 public class BlazeAndroidDeployInfo {
-  private final ParsedManifest mergedManifest;
-  @Nullable private final ParsedManifest testTargetMergedManifest;
+  private final ParsedManifest mainAppMergedManifest;
+  @Nullable private final ParsedManifest appUnderTestMergedManifest;
   private final ImmutableList<File> apksToDeploy;
   private final ImmutableList<File> symbolFiles;
   private final ImmutableList<ApkInfo> apkInfos;
@@ -40,13 +40,13 @@ public class BlazeAndroidDeployInfo {
    * Note: Not every deployment has a test target, so {@param testTargetMergedManifest} can be null.
    */
   private BlazeAndroidDeployInfo(
-    ParsedManifest mergedManifest,
-    @Nullable ParsedManifest testTargetMergedManifest,
+    ParsedManifest mainAppMergedManifest,
+    @Nullable ParsedManifest appUnderTestMergedManifest,
     List<? extends File> apksToDeploy,
     List<? extends File> symbolFiles,
     List<? extends ApkInfo> apkInfos) {
-    this.mergedManifest = mergedManifest;
-    this.testTargetMergedManifest = testTargetMergedManifest;
+    this.mainAppMergedManifest = mainAppMergedManifest;
+    this.appUnderTestMergedManifest = appUnderTestMergedManifest;
     this.apksToDeploy = ImmutableList.copyOf(apksToDeploy);
     this.symbolFiles = ImmutableList.copyOf(symbolFiles);
     this.apkInfos = ImmutableList.copyOf(apkInfos);
@@ -55,24 +55,24 @@ public class BlazeAndroidDeployInfo {
   public record ManifestWithApks(ParsedManifest manifest, List<? extends File> apks){}
 
   public static BlazeAndroidDeployInfo createBlazeAndroidDeployInfo(
-    ManifestWithApks mergedManifestAndApks,
-    @Nullable ManifestWithApks testTargetMergedManifestAndApks,
+    ManifestWithApks mainAppManifestAndApks,
+    @Nullable ManifestWithApks appUnderTestManifestAndApks,
     List<? extends File> symbolFiles) throws ApkProvisionException {
 
     ImmutableList.Builder<ApkInfo> apkInfoBuilder = ImmutableList.<ApkInfo>builder();
-    apkInfoBuilder.addAll(getInfos(mergedManifestAndApks));
-    if (testTargetMergedManifestAndApks != null) {
-      apkInfoBuilder.addAll(getInfos(testTargetMergedManifestAndApks));
+    apkInfoBuilder.addAll(getInfos(mainAppManifestAndApks));
+    if (appUnderTestManifestAndApks != null) {
+      apkInfoBuilder.addAll(getInfos(appUnderTestManifestAndApks));
     }
 
     ImmutableList<ApkInfo> apkInfos = apkInfoBuilder.build();
 
-    var mainManifest = mergedManifestAndApks.manifest();
-    var targetMergedManifest = testTargetMergedManifestAndApks != null ? testTargetMergedManifestAndApks.manifest() : null;
-    var apksToDeploy = ImmutableList.copyOf(Iterables.concat(mergedManifestAndApks.apks(), testTargetMergedManifestAndApks != null
-                                                                                           ? testTargetMergedManifestAndApks.apks()
-                                                                                           : emptyList()));
-    return new BlazeAndroidDeployInfo(mainManifest, targetMergedManifest, apksToDeploy, symbolFiles, apkInfos);
+    var mainAppManifest = mainAppManifestAndApks.manifest();
+    var appUnderTestManifest = appUnderTestManifestAndApks != null ? appUnderTestManifestAndApks.manifest() : null;
+    var apksToDeploy = ImmutableList.copyOf(Iterables.concat(mainAppManifestAndApks.apks(), appUnderTestManifestAndApks != null
+                                                                                            ? appUnderTestManifestAndApks.apks()
+                                                                                            : emptyList()));
+    return new BlazeAndroidDeployInfo(mainAppManifest, appUnderTestManifest, apksToDeploy, symbolFiles, apkInfos);
   }
 
   /**
@@ -80,10 +80,10 @@ public class BlazeAndroidDeployInfo {
    * the main target is the android_binary that builds the app itself. During instrumentation tests
    * the main target is the android_binary/android_test target responsible for instrumenting the
    * app, while the merged manifest of the app under test can be obtained through {@link
-   * BlazeAndroidDeployInfo#getTestTargetMergedManifest()}.
+   * BlazeAndroidDeployInfo#getAppUnderTestMergedManifest()}.
    */
-  public ManifestParser.ParsedManifest getMergedManifest() {
-    return mergedManifest;
+  public ManifestParser.ParsedManifest getMainAppMergedManifest() {
+    return mainAppMergedManifest;
   }
 
   /**
@@ -92,28 +92,28 @@ public class BlazeAndroidDeployInfo {
    */
   @NotNull
   public String getMainAppPackageName() throws ApkProvisionException {
-    if (mergedManifest.packageName == null) {
+    if (mainAppMergedManifest.packageName == null) {
       throw new ApkProvisionException("No application id in merged manifest.");
     }
-    return mergedManifest.packageName;
+    return mainAppMergedManifest.packageName;
   }
 
   /**
    * Returns the application ID of the app under test for instrumentation tests.
    *
-   * <p>If {@link BlazeAndroidDeployInfo#getTestTargetMergedManifest()} is null (i.e., the
+   * <p>If {@link BlazeAndroidDeployInfo#getAppUnderTestMergedManifest()} is null (i.e., the
    * test app is testing itself), this falls back to {@link
    * BlazeAndroidDeployInfo#getMainAppPackageName()}.
    */
   @Nullable
   public String getAppUnderTestPackageName() throws ApkProvisionException {
-    if (testTargetMergedManifest == null) {
+    if (appUnderTestMergedManifest == null) {
       return null;
     }
-    if (testTargetMergedManifest.packageName == null) {
+    if (appUnderTestMergedManifest.packageName == null) {
       throw new ApkProvisionException("No application id in merged manifest.");
     }
-    return testTargetMergedManifest.packageName;
+    return appUnderTestMergedManifest.packageName;
   }
 
   /**
@@ -121,8 +121,8 @@ public class BlazeAndroidDeployInfo {
    * returns null in all other scenarios.
    */
   @Nullable
-  public ManifestParser.ParsedManifest getTestTargetMergedManifest() {
-    return testTargetMergedManifest;
+  public ManifestParser.ParsedManifest getAppUnderTestMergedManifest() {
+    return appUnderTestMergedManifest;
   }
 
   /** Returns the full list of apks to deploy, if any. */

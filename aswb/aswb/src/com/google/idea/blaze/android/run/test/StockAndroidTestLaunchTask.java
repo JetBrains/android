@@ -144,7 +144,7 @@ class StockAndroidTestLaunchTask implements BlazeLaunchTask {
           .runReadAction(
               (Computable<ImmutableList<String>>) () -> getRunnersFromManifest(deployInfo));
     }
-    ManifestParser.ParsedManifest parsedManifest = deployInfo.getMergedManifest();
+    ManifestParser.ParsedManifest parsedManifest = deployInfo.getMainAppMergedManifest();
     if (parsedManifest != null) {
       return ImmutableList.copyOf(parsedManifest.instrumentationClassNames);
     }

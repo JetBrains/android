@@ -164,7 +164,7 @@ public class MobileInstallDeployAndLaunchStrategy implements BlazeAndroidDeployA
 
     return BlazeAndroidBinaryApplicationLaunchTaskProvider.getApplicationLaunchTask(
       runContext.getApplicationIdProvider(),
-        deployInfo.getMergedManifest(),
+        deployInfo.getMainAppMergedManifest(),
         configState,
         startActivityFlagsProvider);
   }
