@@ -32,6 +32,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
+import com.android.tools.idea.sqlite.ui.tableView.TableView.TableViewType.TABLE
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.sqlite.utils.SqliteTestUtil
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
@@ -70,7 +71,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
 
     dropPsiCachesCallCounter = 0
     view =
-      SqliteEvaluatorViewImpl(project, TableViewImpl(), mockSchemaProvider) {
+      SqliteEvaluatorViewImpl(project, TableViewImpl(TABLE), mockSchemaProvider) {
         dropPsiCachesCallCounter += 1
       }
     view.component.size = Dimension(600, 200)

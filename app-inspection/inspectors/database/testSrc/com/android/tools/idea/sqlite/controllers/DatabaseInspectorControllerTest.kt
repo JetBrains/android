@@ -59,6 +59,7 @@ import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
 import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
+import com.android.tools.idea.sqlite.ui.tableView.TableView.TableViewType.TABLE
 import com.android.tools.idea.sqlite.utils.SqliteTestUtil
 import com.android.tools.idea.sqlite.utils.StubProcessDescriptor
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
@@ -100,7 +101,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import kotlin.Unit
 
 class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   private lateinit var databaseInspectorView: FakeDatabaseInspectorView
@@ -380,7 +380,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       .closeTabActionInvoked(TabId.TableTab(databaseId1, testSqliteTable.name))
 
     // Assert
-    verify(viewsFactory).createTableView()
+    verify(viewsFactory).createTableView(TABLE)
     verify(databaseInspectorView).closeTab(eq(TabId.TableTab(databaseId1, testSqliteTable.name)))
   }
 
@@ -418,7 +418,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     viewsFactory.tableView.listeners.single().cancelRunningStatementInvoked()
 
     // Assert
-    verify(viewsFactory).createTableView()
+    verify(viewsFactory).createTableView(TABLE)
     verify(databaseInspectorView).closeTab(eq(TabId.TableTab(databaseId1, testSqliteTable.name)))
   }
 
@@ -466,7 +466,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       .tableNodeActionInvoked(databaseId1, testSqliteTable)
 
     // Assert
-    verify(viewsFactory).createTableView()
+    verify(viewsFactory).createTableView(TABLE)
     verify(databaseInspectorView)
       .openTab(
         TabId.TableTab(databaseId1, testSqliteTable.name),

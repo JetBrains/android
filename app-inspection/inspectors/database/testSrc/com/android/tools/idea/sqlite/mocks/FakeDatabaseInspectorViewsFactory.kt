@@ -23,6 +23,7 @@ import com.android.tools.idea.sqlite.ui.exportToFile.ExportInProgressView
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.android.tools.idea.sqlite.ui.tableView.TableView.TableViewType
 import com.intellij.openapi.project.Project
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineDispatcher
@@ -43,7 +44,7 @@ open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
   private val exportToFileDialogView: ExportToFileDialogView = mock()
   private val exportInProgressView: ExportInProgressView = mock()
 
-  override fun createTableView(): TableView {
+  override fun createTableView(type: TableViewType): TableView {
     val fakeTableView = spy<FakeTableView>()
     whenever(fakeTableView.component).thenReturn(mock<JComponent>())
     whenever(sqliteEvaluatorView.tableView).thenReturn(fakeTableView)

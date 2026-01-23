@@ -61,6 +61,8 @@ import com.android.tools.idea.sqlite.ui.mainView.RemoveColumns
 import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
 import com.android.tools.idea.sqlite.ui.mainView.SchemaDiffOperation
 import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
+import com.android.tools.idea.sqlite.ui.tableView.TableView.TableViewType.EVALUATOR
+import com.android.tools.idea.sqlite.ui.tableView.TableView.TableViewType.TABLE
 import com.google.common.base.Stopwatch
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
@@ -74,6 +76,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.text.UniqueNameGenerator
 import icons.StudioIcons
+import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
+import javax.swing.JComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -86,9 +91,6 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
-import java.util.concurrent.Executor
-import java.util.concurrent.TimeUnit
-import javax.swing.JComponent
 
 /** Implementation of the application logic related to viewing/editing sqlite databases. */
 class DatabaseInspectorControllerImpl(
@@ -626,7 +628,7 @@ class DatabaseInspectorControllerImpl(
         object : SchemaProvider {
           override fun getSchema(databaseId: SqliteDatabaseId) = model.getDatabaseSchema(databaseId)
         },
-        viewFactory.createTableView(),
+        viewFactory.createTableView(EVALUATOR),
       )
 
     val tabNames = view.getTabNames()
@@ -674,7 +676,7 @@ class DatabaseInspectorControllerImpl(
       return
     }
 
-    val tableView = viewFactory.createTableView()
+    val tableView = viewFactory.createTableView(TABLE)
     val icon =
       if (table.isView) StudioIcons.DatabaseInspector.VIEW else StudioIcons.DatabaseInspector.TABLE
     view.openTab(tabId, table.name, icon, tableView.component)

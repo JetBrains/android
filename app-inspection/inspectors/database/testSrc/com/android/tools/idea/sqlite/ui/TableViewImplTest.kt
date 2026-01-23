@@ -36,6 +36,8 @@ import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.android.tools.idea.sqlite.ui.tableView.TableView.TableViewType.EVALUATOR
+import com.android.tools.idea.sqlite.ui.tableView.TableView.TableViewType.TABLE
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
 import com.android.tools.idea.sqlite.utils.SqliteTestUtil
@@ -90,7 +92,7 @@ class TableViewImplTest : BasePlatformTestCase() {
 
     IdeComponents(myFixture).replaceApplicationService(ActionManager::class.java, mockActionManager)
 
-    view = TableViewImpl()
+    view = TableViewImpl(TABLE)
     val component: JPanel = view.component as JPanel
     component.size = Dimension(600, 200)
 
@@ -759,8 +761,9 @@ class TableViewImplTest : BasePlatformTestCase() {
     assertEquals(1, table.selectedColumns[0])
   }
 
-  fun testRightClickOnCellOpensMenu() {
+  fun testRightClickOnCellOpensMenu_table() {
     // Prepare
+    view = TableViewImpl(TABLE)
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
 
     val col1 = ResultSetSqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
@@ -805,6 +808,56 @@ class TableViewImplTest : BasePlatformTestCase() {
     assertOrderedEquals(
       actions.map { it.javaClass.simpleName },
       listOf("CopyToClipboardAction", "RemoveRowAction", "SetNullAction"),
+    )
+  }
+
+  fun testRightClickOnCellOpensMenu_evaluator() {
+    // Prepare
+    view = TableViewImpl(EVALUATOR)
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+
+    val col1 = ResultSetSqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
+    val col2 = ResultSetSqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col1, col2)
+    val rows =
+      listOf(
+        SqliteRow(
+          listOf(
+            SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
+            SqliteColumnValue("col2", SqliteValue.StringValue("val2")),
+          )
+        ),
+        SqliteRow(
+          listOf(
+            SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
+            SqliteColumnValue("col2", SqliteValue.StringValue("val4")),
+          )
+        ),
+      )
+
+    view.startTableLoading()
+    view.showTableColumns(cols.toViewColumns())
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
+    view.stopTableLoading()
+
+    table.size = Dimension(600, 200)
+    table.preferredSize = table.size
+    fakeUi = FakeUi(table)
+
+    val rect = table.getCellRect(1, 1, false)
+
+    // Act
+    fakeUi.mouse.rightClick(rect.x + rect.width / 2, rect.y + rect.height / 2)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val captor: ArgumentCaptor<ActionGroup> = ArgumentCaptor.forClass(ActionGroup::class.java)
+    verify(mockActionManager).createActionPopupMenu(any(), captor.capture())
+    val actions = (captor.value as DefaultActionGroup).getChildren(mockActionManager)
+
+    assertOrderedEquals(
+      actions.map { it.javaClass.simpleName },
+      listOf("CopyToClipboardAction", "SetNullAction"),
     )
   }
 
