@@ -145,7 +145,7 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
 
     return BlazeAndroidBinaryApplicationLaunchTaskProvider.getApplicationLaunchTask(
         runContext.getApplicationIdProvider(),
-        deployInfo.getMergedManifest(),
+        deployInfo.getMainAppMergedManifest(),
         configState,
         startActivityFlagsProvider);
   }

@@ -90,11 +90,11 @@ public class BinaryDeployInfoExtractorTest extends BlazeIntegrationTestCase {
             .extract(getProject(), buildOutputs, "android-deploy-info", "default", context, nativeSymbols);
 
     assertThat(deployInfo).isNotNull();
-    assertThat(deployInfo.getMergedManifest().packageName)
+    assertThat(deployInfo.getMainAppMergedManifest().packageName)
         .isEqualTo("com.google.android.buildsteptester");
     assertThat(deployInfo.getApksToDeploy()).isEmpty();
     assertThat(deployInfo.getSymbolFiles()).isEqualTo(nativeSymbols);
-    assertThat(deployInfo.getTestTargetMergedManifest()).isNull();
+    assertThat(deployInfo.getAppUnderTestMergedManifest()).isNull();
   }
 
   private ParsedBepOutput nominalApkBuildOutput() throws IOException, BuildEventStreamException {
