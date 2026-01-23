@@ -489,87 +489,9 @@ class TableViewImpl : TableView {
   }
 
   private fun setUpPopUp() {
-    val setNullAction =
-      object : AnAction(DatabaseInspectorBundle.message("action.set.to.null")) {
-        override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-        override fun actionPerformed(e: AnActionEvent) {
-          val rowIndex = table.selectedRow
-          val columnIndex = table.selectedColumn
-
-          if (columnIndex > 0) {
-            (table.model as MyTableModel).setValueAt(null, rowIndex, columnIndex)
-          }
-        }
-
-        override fun update(e: AnActionEvent) {
-          val columnIndex = table.selectedColumn
-
-          val isNullable =
-            if (columnIndex > 0) {
-              val column = (table.model as MyTableModel).columns[columnIndex - 1]
-              column.isNullable
-            } else {
-              false
-            }
-
-          e.presentation.isEnabled =
-            (table.model as? MyTableModel)?.isEditable ?: false && isNullable
-          super.update(e)
-        }
-      }
-
-    val copyToClipboardAction =
-      object : AnAction(DatabaseInspectorBundle.message("action.copy.to.clipboard")) {
-        override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-        override fun actionPerformed(e: AnActionEvent) {
-          val row = table.selectedRow
-          val column = table.selectedColumn
-
-          val value = (table.model as MyTableModel).getValueAt(row, column)
-          val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-          clipboard.setContents(StringSelection(value), null)
-        }
-
-        override fun update(e: AnActionEvent) {
-          val column = table.selectedColumn
-
-          e.presentation.isEnabled = column > 0
-          super.update(e)
-        }
-      }
-    val removeRowAction =
-      object : AnAction(DatabaseInspectorBundle.message("action.remove.row")) {
-        override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-        override fun actionPerformed(e: AnActionEvent) {
-          val viewRow = table.selectedRow
-          val modelRow = table.convertRowIndexToModel(viewRow)
-          (table.model as MyTableModel).removeRow(modelRow)
-        }
-
-        override fun update(e: AnActionEvent) {
-          e.presentation.isVisible = (table.model as MyTableModel).isEditable
-        }
-      }
-
-    setNullAction.registerCustomShortcutSet(
-      CustomShortcutSet(
-        KeyboardShortcut(
-          KeyStroke.getKeyStroke(
-            KeyEvent.VK_N,
-            InputEvent.ALT_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK,
-          ),
-          null,
-        )
-      ),
-      table,
-    )
-
     PopupHandler.installPopupMenu(
       table,
-      DefaultActionGroup(copyToClipboardAction, removeRowAction, setNullAction),
+      DefaultActionGroup(CopyToClipboardAction(table), RemoveRowAction(table), SetNullAction(table)),
       "SqliteTablePopup",
     )
   }
@@ -784,6 +706,84 @@ class TableViewImpl : TableView {
           JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0),
           border,
         )
+    }
+  }
+
+  class CopyToClipboardAction(private val table: JTable) : AnAction(DatabaseInspectorBundle.message("action.copy.to.clipboard")) {
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+    override fun actionPerformed(e: AnActionEvent) {
+      val row = table.selectedRow
+      val column = table.selectedColumn
+
+      val value = (table.model as MyTableModel).getValueAt(row, column)
+      val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+      clipboard.setContents(StringSelection(value), null)
+    }
+
+    override fun update(e: AnActionEvent) {
+      val column = table.selectedColumn
+
+      e.presentation.isEnabled = column > 0
+      super.update(e)
+    }
+  }
+
+  class RemoveRowAction(private val table: JTable) : AnAction(DatabaseInspectorBundle.message("action.remove.row")) {
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+    override fun actionPerformed(e: AnActionEvent) {
+      val viewRow = table.selectedRow
+      val modelRow = table.convertRowIndexToModel(viewRow)
+      (table.model as MyTableModel).removeRow(modelRow)
+    }
+
+    override fun update(e: AnActionEvent) {
+      e.presentation.isVisible = (table.model as MyTableModel).isEditable
+    }
+  }
+
+  class SetNullAction(private val table: JTable) : AnAction(DatabaseInspectorBundle.message("action.set.to.null")) {
+    init {
+      registerCustomShortcutSet(
+        CustomShortcutSet(
+          KeyboardShortcut(
+            KeyStroke.getKeyStroke(
+              KeyEvent.VK_N,
+              InputEvent.ALT_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK,
+            ),
+            null,
+          )
+        ),
+        table,
+      )
+    }
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+    override fun actionPerformed(e: AnActionEvent) {
+      val rowIndex = table.selectedRow
+      val columnIndex = table.selectedColumn
+
+      if (columnIndex > 0) {
+        (table.model as MyTableModel).setValueAt(null, rowIndex, columnIndex)
+      }
+    }
+
+    override fun update(e: AnActionEvent) {
+      val columnIndex = table.selectedColumn
+
+      val isNullable =
+        if (columnIndex > 0) {
+          val column = (table.model as MyTableModel).columns[columnIndex - 1]
+          column.isNullable
+        } else {
+          false
+        }
+
+      e.presentation.isEnabled =
+        (table.model as? MyTableModel)?.isEditable ?: false && isNullable
+      super.update(e)
     }
   }
 }
