@@ -556,3 +556,11 @@ ij_yaml_keep_line_breaks = true
 
 [COMMIT_EDITMSG]
 max_line_length = 72
+
+# b/476037624 global ktfmt style
+[*.kt]
+max_line_length = 140
+indent_size = 2
+ij_continuation_indent_size = 2
+ktfmt_trailing_comma_management_strategy = complete
+
