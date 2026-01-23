@@ -19,9 +19,15 @@ import com.android.tools.idea.lang.androidSql.referenceAtCaret
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.fileTypes.LanguageFileType
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
+@RunWith(Parameterized::class)
+class ProguardR8ClassReferencesTest(private val fileType: LanguageFileType) : ProguardR8TestCase() {
 
+  @Test
   fun testResolveToClassName() {
     myFixture.addClass(
       //language=JAVA
@@ -33,7 +39,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         -keep class test.MyC${caret}lass {
         }
     """.trimIndent()
@@ -44,6 +50,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("test.MyClass"))
   }
 
+  @Test
   fun testFindUsagesOfNonPublicClass() {
     myFixture.addClass(
       //language=JAVA
@@ -55,7 +62,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         -keep class test.MyC${caret}lass {
         }
     """.trimIndent()
@@ -70,6 +77,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
   }
 
+  @Test
   fun testResolveToPackage() {
     myFixture.addClass(
       //language=JAVA
@@ -81,7 +89,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         -keep class te${caret}st.MyClass {
         }
     """.trimIndent()
@@ -90,6 +98,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findPackage("test"))
   }
 
+  @Test
   fun testResolveToInnerClass() {
     myFixture.addClass(
       //language=JAVA
@@ -103,7 +112,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         -keep class test.MyClass${"$"}Inner${caret}Class {
         }
     """.trimIndent()
@@ -112,6 +121,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("test.MyClass.InnerClass"))
   }
 
+  @Test
   fun testResolveToClassWithDollarSymbol() {
     myFixture.addClass(
       //language=JAVA
@@ -122,7 +132,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     """.trimIndent()
     )
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
         -keep class test.MyClass${"$"}Nam${caret}e {
         }
@@ -132,6 +142,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("test.MyClass${'$'}Name"))
   }
 
+  @Test
   fun testRenameClassWithCurrencySymbol() {
     myFixture.addClass(
       //language=JAVA
@@ -143,7 +154,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
         -keep class test.My${'$'}Cla<caret>ss {
         }
@@ -166,6 +177,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("test.MyClassNewName"))
   }
 
+  @Test
   fun testCompletionForInnerClass() {
     myFixture.addClass(
       //language=JAVA
@@ -180,7 +192,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         -keep class test.MyClass${"$"}${caret} {
         }
     """.trimIndent()
@@ -192,7 +204,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
 
     // Don't provide code completion for inner class after '.'.
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         -keep class test.MyClass.${caret} {
         }
     """.trimIndent()
@@ -201,6 +213,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     assertThat(myFixture.completeBasic()).isEmpty()
   }
 
+  @Test
   fun testCompletionForClass() {
     myFixture.addClass(
       //language=JAVA
@@ -212,7 +225,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         -keep class test.${caret} {
         }
     """.trimIndent()
@@ -223,6 +236,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     assertThat(classes.map { it.lookupString }).containsExactly("MyClass")
   }
 
+  @Test
   fun testCompletionForPackages() {
     myFixture.addClass(
       //language=JAVA
@@ -234,7 +248,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         -keep class p1.p2.${caret} {
         }
     """.trimIndent()
@@ -245,6 +259,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     assertThat(classes.map { it.lookupString }).containsExactly("test")
   }
 
+  @Test
   fun testJavaClassNameRenaming() {
     myFixture.addClass(
       //language=JAVA
@@ -256,7 +271,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         -keep class test.My${caret}Class {
         }
     """.trimIndent()
@@ -274,6 +289,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
   }
 
+  @Test
   fun testKotlinClassNameRenaming() {
     myFixture.configureByText(
       "MyClass.kt",
@@ -286,7 +302,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         -keep class test.My${caret}Class {
         }
     """.trimIndent()
@@ -304,6 +320,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
   }
 
+  @Test
   fun testPackageRenaming() {
     myFixture.addClass(
       //language=JAVA
@@ -315,7 +332,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         -keep class p1.p2.myPackage.MyClass {
         }
     """.trimIndent()
@@ -340,6 +357,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
 
   }
 
+  @Test
   fun testCompletionInsideClassSpecificationBodyAfterPackageName() {
     myFixture.addClass(
       //language=JAVA
@@ -360,7 +378,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         -keep class p1.myPackage1.MyClass {
           p1.$caret
     """.trimIndent()
@@ -371,6 +389,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     assertThat(classes.map { it.lookupString }).containsAllOf("myPackage1", "myPackage2")
   }
 
+  @Test
   fun testClassFilter() {
     myFixture.addClass(
       //language=JAVA
@@ -384,7 +403,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         - -dontwarn com.MyClass${"$"}Inner${caret}Class
     """.trimIndent()
     )

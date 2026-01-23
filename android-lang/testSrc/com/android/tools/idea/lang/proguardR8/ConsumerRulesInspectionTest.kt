@@ -22,7 +22,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.highlightedAs
 import com.google.common.truth.Truth.assertThat
-import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.lang.annotation.HighlightSeverity.WARNING
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -36,7 +35,7 @@ import java.io.File
 
 @RunWith(/* value = */ Parameterized::class)
 @RunsInEdt
-class ConsumerRulesInspectionTest(val projectType: IdeAndroidProjectType) {
+class ConsumerRulesInspectionTest(val projectType: IdeAndroidProjectType, val extension: String) {
 
   @get:Rule
   val projectRule: AndroidProjectRule = AndroidProjectRule.withAndroidModels(
@@ -57,10 +56,12 @@ class ConsumerRulesInspectionTest(val projectType: IdeAndroidProjectType) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
-    @get:Parameters(name = "androidProjectType={0}")
-    val data = listOf(
-      arrayOf(IdeAndroidProjectType.PROJECT_TYPE_APP),
-      arrayOf(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY)
+    @get:Parameters(name = "androidProjectType={0},extension={1}")
+    val data = listOf<Array<Any>>(
+      arrayOf(IdeAndroidProjectType.PROJECT_TYPE_APP, ".pro"),
+      arrayOf(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY, ".pro"),
+      arrayOf(IdeAndroidProjectType.PROJECT_TYPE_APP, ".keep"),
+      arrayOf(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY, ".keep"),
     )
   }
 
@@ -85,7 +86,7 @@ class ConsumerRulesInspectionTest(val projectType: IdeAndroidProjectType) {
     rules.forEach { rule ->
       myFixture.configureByText(
         // Intentionally pick a name that does not match our pattern for consumer rules.
-        /* fileName = */ "proguard-rules.pro",
+        /* fileName = */ "proguard-rules" + extension,
         /* text = */ """
           $rule
         """.trimIndent()
@@ -120,7 +121,7 @@ class ConsumerRulesInspectionTest(val projectType: IdeAndroidProjectType) {
       }
 
       myFixture.configureByText(
-        /* fileName = */ "consumer-rules.pro",
+        /* fileName = */ "consumer-rules" + extension,
         /* text = */ """
           $highlightedRule
         """.trimIndent()
@@ -164,7 +165,7 @@ class ConsumerRulesInspectionTest(val projectType: IdeAndroidProjectType) {
       }
 
       myFixture.configureByText(
-        /* fileName = */ "consumer-rules.pro",
+        /* fileName = */ "consumer-rules" + extension,
         /* text = */ """
           $highlightedRule
         """.trimIndent()

@@ -16,13 +16,18 @@
 package com.android.tools.idea.lang.proguardR8.psi
 
 import com.android.tools.idea.lang.androidSql.referenceAtCaret
-import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.fileTypes.LanguageFileType
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class ProguardR8UsageTypeProviderTest : ProguardR8TestCase() {
+@RunWith(Parameterized::class)
+class ProguardR8UsageTypeProviderTest(private val fileType: LanguageFileType)  : ProguardR8TestCase() {
 
+  @Test
   fun testUsageType() {
     myFixture.addClass(
       //language=JAVA
@@ -32,7 +37,7 @@ class ProguardR8UsageTypeProviderTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         -keep class MyCla${caret}ss {}
     """.trimIndent()
     )
@@ -41,6 +46,7 @@ class ProguardR8UsageTypeProviderTest : ProguardR8TestCase() {
     assertThat(usageType.toString()).isEqualTo("Referenced in Shrinker Config files")
   }
 
+  @Test
   fun testUsageViewTreeTextRepresentation() {
     myFixture.addClass(
       //language=JAVA
@@ -52,7 +58,7 @@ class ProguardR8UsageTypeProviderTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         -keep class test.MyC${caret}lass {
         }
     """.trimIndent()

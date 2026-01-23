@@ -16,19 +16,24 @@
 package com.android.tools.idea.lang.proguardR8.psi
 
 import com.android.tools.idea.lang.androidSql.referenceAtCaret
-import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
+import com.intellij.openapi.fileTypes.LanguageFileType
 import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.parentOfType
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class ProguardR8FieldsTest : ProguardR8TestCase() {
+@RunWith(Parameterized::class)
+class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8TestCase() {
 
+  @Test
   fun testReturnsCorrectType() {
     myFixture.addClass(
       //language=JAVA
@@ -42,7 +47,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         int myIn${caret}t;
@@ -61,6 +66,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     assertThat(fieldName.type!!.matchesPsiType(realType)).isTrue()
   }
 
+  @Test
   fun testFieldReferenceCorrectPrimitiveType() {
     myFixture.addClass(
       //language=JAVA
@@ -73,7 +79,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         int myFie${caret}ld;
@@ -86,6 +92,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     assertThat(field).isEqualTo(myFixture.findClass("test.MyClass").findFieldByName("myField", false))
   }
 
+  @Test
   fun testFieldReferenceAnyPrimitiveType() {
     myFixture.addClass(
       //language=JAVA
@@ -99,7 +106,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         % myPrimitive;
@@ -119,6 +126,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     assertThat(field2).isNull()
   }
 
+  @Test
   fun testFieldReferenceAnyType() {
     myFixture.addClass(
       //language=JAVA
@@ -131,7 +139,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         *** myFie${caret}ld;
@@ -144,6 +152,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     assertThat(field).isEqualTo(myFixture.findClass("test.MyClass").findFieldByName("myField", false))
   }
 
+  @Test
   fun testFieldReferenceCorrectType() {
     myFixture.addClass(
       //language=JAVA
@@ -156,7 +165,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         java.lang.String myFie${caret}ld;
@@ -169,6 +178,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     assertThat(field).isEqualTo(myFixture.findClass("test.MyClass").findFieldByName("myField", false))
   }
 
+  @Test
   fun testFieldReferenceIncorrectType() {
     myFixture.addClass(
       //language=JAVA
@@ -181,7 +191,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         java.lang.String myFie${caret}ld;
@@ -193,6 +203,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     assertThat(field).isNull()
   }
 
+  @Test
   fun testFieldReferenceIncorrectPrimitiveType() {
     myFixture.addClass(
       //language=JAVA
@@ -205,7 +216,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         int myFie${caret}ld;
@@ -217,6 +228,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     assertThat(field).isNull()
   }
 
+  @Test
   fun testSuggestFieldsPrimitiveType() {
     myFixture.addClass(
       //language=JAVA
@@ -231,7 +243,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         boolean ${caret};
@@ -244,6 +256,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     assertThat(field.map { it.lookupString }).containsExactly("myBooleanField", "myBooleanField2")
   }
 
+  @Test
   fun testSuggestFieldsAnyPrimitiveType() {
     myFixture.addClass(
       //language=JAVA
@@ -259,7 +272,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         % ${caret};
@@ -272,6 +285,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     assertThat(field.map { it.lookupString }).containsExactly("myPrimitive", "myPrimitive2", "myPrimitive3")
   }
 
+  @Test
   fun testSuggestFieldsAnyType() {
     myFixture.addClass(
       //language=JAVA
@@ -287,7 +301,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         *** ${caret};
@@ -300,6 +314,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     assertThat(field.map { it.lookupString }).containsExactly("myPrimitive", "myPrimitive2", "myPrimitive3", "myNotPrimitive")
   }
 
+  @Test
   fun testNotSuggestFields() {
     myFixture.addClass(
       //language=JAVA
@@ -315,7 +330,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         long ${caret};
@@ -327,6 +342,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     assertThat(field).isEmpty()
   }
 
+  @Test
   fun testRenameField() {
     myFixture.addClass(
       //language=JAVA
@@ -339,7 +355,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class MyClass {
         int myFie${caret}ld;
@@ -358,6 +374,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
   }
 
+  @Test
   fun testInspectionOnField() {
     myFixture.addClass(
       //language=JAVA
@@ -371,7 +388,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
 
     // wrong type
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         long ${"myBoolean".highlightedAs(ERROR, "The rule matches no class members")};
@@ -382,7 +399,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
 
     // wrong name
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         boolean ${"myNotBoolean" highlightedAs ERROR};
@@ -393,7 +410,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
 
     // don't highlight if class is unknown
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.My* {
         long myBoolean;
@@ -402,7 +419,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
 
     // don't highlight if class is unknown, but super class is known
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class * extends test.MyClass {
         foo;
@@ -413,7 +430,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
 
     // don't highlight if class is unknown (2)
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class ${"test.MyNotExistingClass".highlightedAs(ERROR, "Unresolved class name")} {
         long myBoolean;
@@ -424,7 +441,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
 
     // don't highlight if field is with wildcards
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         long m*;
@@ -434,6 +451,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     myFixture.checkHighlighting()
   }
 
+  @Test
   fun testCodeCompletionWithoutType() {
     myFixture.addClass(
       //language=JAVA
@@ -448,7 +466,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
          $caret
@@ -460,6 +478,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     assertThat(fields.map { it.lookupString }).containsAllOf("myField1", "myField2", "myFiled3")
   }
 
+  @Test
   fun testResolveFieldWithoutType() {
     myFixture.addClass(
       //language=JAVA
@@ -472,7 +491,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
          my${caret}Field;
@@ -485,6 +504,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     assertThat(fields.map { it.element!!.text }).contains("boolean[] myField;")
   }
 
+  @Test
   fun testResolveFieldWithRightAccessModifier() {
     myFixture.addClass(
       //language=JAVA
@@ -500,7 +520,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
          my;
@@ -547,6 +567,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     assertThat(fields).isEmpty()
   }
 
+  @Test
   fun testResolveFieldWithRightAccessModifierKotlin() {
     myFixture.addFileToProject(
       "myClass.kt",
@@ -560,7 +581,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
          my;

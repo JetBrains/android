@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
-class MatchingCharacterTest : ProguardR8TestCase() {
+import com.intellij.openapi.fileTypes.LanguageFileType
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
+
+@RunWith(Parameterized::class)
+class MatchingCharacterTest(private val fileType: LanguageFileType)  : ProguardR8TestCase() {
+  @Test
   fun testMatchesBraces() {
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class MyClass <caret>
       """.trimIndent()
@@ -32,10 +39,10 @@ class MatchingCharacterTest : ProguardR8TestCase() {
       """.trimIndent()
     )
   }
-
+  @Test
   fun testMatchesParenthesis() {
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class MyClass {
         int method<caret>
@@ -51,10 +58,10 @@ class MatchingCharacterTest : ProguardR8TestCase() {
       """.trimIndent()
     )
   }
-
+  @Test
   fun testMatchesQuotes() {
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -include <caret>
       """.trimIndent()
@@ -68,7 +75,7 @@ class MatchingCharacterTest : ProguardR8TestCase() {
       """.trimIndent()
     )
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -include <caret>
       """.trimIndent()

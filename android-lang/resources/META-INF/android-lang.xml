@@ -47,6 +47,12 @@
               fileNames="proguard.cfg"
               patterns="proguard-*.txt"/>
 
+    <fileType name="R8 Config File"
+        implementationClass="com.android.tools.idea.lang.proguardR8.KeepRulesR8FileType"
+        fieldName="INSTANCE"
+        language="SHRINKER_CONFIG"
+        extensions="keep"/>
+
     <lang.parserDefinition language="SHRINKER_CONFIG"
                            implementationClass="com.android.tools.idea.lang.proguardR8.parser.ProguardR8ParserDefinition"/>
     <lang.syntaxHighlighterFactory language="SHRINKER_CONFIG"

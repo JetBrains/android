@@ -51,7 +51,7 @@ import org.jetbrains.kotlin.idea.base.util.module
 // This is because there is no mechanism in the project model that tells provides this information.
 // We might be able to use the PSI of the groovy build script or the kotlin build script but that is equally error-prone given
 // there are multiple different ways that this information flows through. (defaultConfig, variant specific config etc.)
-private val CONSUMER_RULES_FILE_NAME_PATTERN = Regex(pattern = "consumer[_|-]?[r|R]ules?[_|-]?(\\w*)?\\.(pro|text|cfg)")
+private val CONSUMER_RULES_FILE_NAME_PATTERN = Regex(pattern = "consumer[_|-]?[r|R]ules?[_|-]?(\\w*)?\\.(pro|text|cfg|keep)")
 
 private val BANNED_DIRECTIVES_IN_CONSUMER_RULES = setOf(
   "-dontobfuscate",

@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.proguardR8.psi
 
 
+import com.android.tools.idea.lang.proguardR8.KeepRulesR8FileType
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.android.tools.idea.lang.proguardR8.ProguardR8Language
 import com.intellij.extapi.psi.PsiFileBase
@@ -47,5 +48,6 @@ class ProguardR8AstNodeType(debugName: String) : IElementType(debugName, Proguar
 val PROGUARD_R8_FILE_NODE_TYPE = IFileElementType(ProguardR8Language.INSTANCE)
 
 class ProguardR8PsiFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, ProguardR8Language.INSTANCE) {
-  override fun getFileType(): FileType = ProguardR8FileType.INSTANCE
+  override fun getFileType(): FileType =
+    if(name.endsWith(KeepRulesR8FileType.DOT_KEEP)) KeepRulesR8FileType.INSTANCE else ProguardR8FileType.INSTANCE
 }

@@ -16,18 +16,31 @@
 package com.android.tools.idea.lang.proguardR8.parser
 
 import com.android.tools.idea.lang.AndroidParsingTestCase
+import com.android.tools.idea.lang.proguardR8.KeepRulesR8FileType
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.android.tools.idea.lang.proguardR8.ProguardR8Language
 import com.android.tools.idea.lang.proguardR8.ProguardR8PairedBraceMatcher
 import com.intellij.lang.LanguageBraceMatching
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.defaultExtension, ProguardR8ParserDefinition()) {
+@RunWith(Parameterized::class)
+class ProguardR8ParserTest(extension: String) : AndroidParsingTestCase(extension, ProguardR8ParserDefinition()) {
+
+  companion object {
+    @Suppress("unused")
+    @JvmStatic
+    @get:Parameterized.Parameters(name = "{0}")
+    val extension = listOf(ProguardR8FileType.INSTANCE.defaultExtension, KeepRulesR8FileType.INSTANCE.defaultExtension)
+  }
 
   override fun setUp() {
     super.setUp()
     addExplicitExtension(LanguageBraceMatching.INSTANCE, ProguardR8Language.INSTANCE, ProguardR8PairedBraceMatcher())
   }
 
+  @Test
   fun testParse() {
     assertEquals(
       """
@@ -105,6 +118,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testParseMethodSpecification() {
     assertEquals(
       """
@@ -205,6 +219,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testParseKeepOptionWithModifier() {
     assertEquals(
       """
@@ -254,6 +269,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testFileNamesAndFileFilters() {
     assertEquals(
       """
@@ -318,6 +334,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testFieldSpecification() {
     assertEquals(
       """
@@ -367,6 +384,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testKeepOptionModifier() {
     assertEquals(
       """
@@ -403,6 +421,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testRecoveryClassSpecification() {
     assertEquals(
       """
@@ -466,6 +485,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testRecoveryJavaRule() {
     assertEquals(
       """
@@ -511,6 +531,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testRegularFlagBetweenFlagsWithClassSpecification() {
     assertEquals(
       """
@@ -585,6 +606,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testAnyParametersSymbol() {
     assertEquals(
       """
@@ -625,6 +647,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testAnyParametersSymbolInTypeList() {
     assertEquals(
       """
@@ -670,6 +693,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testAnyParametersSymbolInTypeListAtWrongPlace() {
     assertEquals(
       """
@@ -718,6 +742,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testTypeListRecovery() {
     assertEquals(
       """
@@ -762,6 +787,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testClassMemberWithoutType() {
     assertEquals(
       """
@@ -819,6 +845,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testFullyQualifiedNameConstructor() {
     assertEquals(
       """
@@ -867,6 +894,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testClassPathWithKeyWord() {
     assertEquals(
       """
@@ -914,6 +942,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testDontParseModifierAsType() {
     assertEquals(
       """
@@ -1020,6 +1049,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testParseModifierAsPartOfQualifiedName() {
     assertEquals(
       """
@@ -1065,6 +1095,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testFileNameAfterAt() {
     assertEquals(
       """
@@ -1087,6 +1118,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testParsingSingleAsterisk() {
     assertEquals(
       """
@@ -1124,6 +1156,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testAnnotationInSuperClass() {
     assertEquals(
       """
@@ -1169,6 +1202,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testBackReferenceWildcard() {
     assertEquals(
       """
@@ -1191,6 +1225,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testMultipleClasses() {
     assertEquals(
       """
@@ -1228,6 +1263,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testRecoveryAfterMissingSemicolon() {
     assertEquals(
       """
@@ -1265,10 +1301,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
-  fun testMultipleDimension() {
-
-  }
-
+  @Test
   fun testNegatedClasses() {
 
     assertEquals(
@@ -1388,6 +1421,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testAnyNonPrimitiveType() {
     assertEquals(
       """
@@ -1432,6 +1466,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testSyntheticModifier() {
     assertEquals(
       """
@@ -1469,6 +1504,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testArrayAfterAnyPrimitiveType() {
 
     assertEquals(
@@ -1514,6 +1550,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testAsteriskInFileName() {
     assertEquals(
       """
@@ -1531,6 +1568,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testQuotedClasses() {
     assertEquals(
       """
@@ -1578,6 +1616,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  @Test
   fun testClassFilter() {
     assertEquals(
       """
@@ -1600,6 +1639,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
   }
 
   /** Regression test for b/158189488. */
+  @Test
   fun testAtInterface() {
     // See syntax at https://www.guardsquare.com/manual/configuration/usage#classspecification.
     // In this case, "@interface" is interpreted as the class type (interface|class|enum) before the class name.

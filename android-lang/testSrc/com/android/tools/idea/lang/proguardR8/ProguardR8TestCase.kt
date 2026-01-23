@@ -16,8 +16,15 @@
 package com.android.tools.idea.lang.proguardR8
 
 import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
+import org.junit.runners.Parameterized
 
 abstract class ProguardR8TestCase : JavaCodeInsightFixtureAdtTestCase() {
+  companion object {
+    @Suppress("unused")
+    @JvmStatic
+    @get:Parameterized.Parameters(name = "{0}")
+    val fileType = listOf(ProguardR8FileType.INSTANCE, KeepRulesR8FileType.INSTANCE)
+  }
   override fun setUp() {
     super.setUp()
     myFixture.enableInspections(ProguardR8ReferenceInspection::class.java)

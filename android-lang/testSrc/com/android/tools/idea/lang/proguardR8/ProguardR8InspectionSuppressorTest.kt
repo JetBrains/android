@@ -20,8 +20,13 @@ import com.android.tools.idea.testing.highlightedAs
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.fileTypes.LanguageFileType
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class ProguardR8InspectionSuppressorTest : ProguardR8TestCase() {
+@RunWith(Parameterized::class)
+class ProguardR8InspectionSuppressorTest(private val fileType: LanguageFileType) : ProguardR8TestCase() {
 
   private fun suppressInspection() {
     val action = myFixture.getIntentionAction("Suppress for statement")
@@ -31,9 +36,10 @@ class ProguardR8InspectionSuppressorTest : ProguardR8TestCase() {
     }
   }
 
+  @Test
   fun testSuppressionByComment() {
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
         -keep class <caret>${"not.existing.Class".highlightedAs(HighlightSeverity.ERROR, "Unresolved class name")}
       """.trimIndent()
@@ -52,7 +58,7 @@ class ProguardR8InspectionSuppressorTest : ProguardR8TestCase() {
     myFixture.checkHighlighting()
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
         ${"<caret>-notexistingflag".highlightedAs(HighlightSeverity.ERROR, "Invalid flag")}
       """.trimIndent()
@@ -71,7 +77,7 @@ class ProguardR8InspectionSuppressorTest : ProguardR8TestCase() {
     myFixture.checkHighlighting()
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
         -keep class java.lang.String {
           ${"<caret>notExistingField".highlightedAs(HighlightSeverity.ERROR, "The rule matches no class members")};
@@ -95,7 +101,7 @@ class ProguardR8InspectionSuppressorTest : ProguardR8TestCase() {
 
     //Suppress few comments above
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class java.lang.String {
         #noinspection ShrinkerUnresolvedReference

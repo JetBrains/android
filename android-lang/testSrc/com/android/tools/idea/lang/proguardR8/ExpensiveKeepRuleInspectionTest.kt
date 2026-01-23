@@ -23,8 +23,12 @@ import com.android.tools.idea.lang.proguardR8.inspections.ExpensiveKeepRuleInspe
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
 import com.android.tools.idea.testing.highlightedAs
 import com.intellij.lang.annotation.HighlightSeverity.WARNING
+import com.intellij.openapi.fileTypes.LanguageFileType
 import com.intellij.testFramework.registerServiceInstance
 import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
@@ -51,7 +55,15 @@ abstract class ExpensiveKeepRuleTestCase : JavaCodeInsightFixtureAdtTestCase() {
   }
 }
 
-class ExpensiveKeepRuleInspectionTest : ExpensiveKeepRuleTestCase() {
+@RunWith(Parameterized::class)
+class ExpensiveKeepRuleInspectionTest(private val fileType: LanguageFileType)  : ExpensiveKeepRuleTestCase() {
+  companion object {
+    @Suppress("unused")
+    @JvmStatic
+    @get:Parameterized.Parameters(name = "{0}")
+    val fileType = listOf(ProguardR8FileType.INSTANCE, KeepRulesR8FileType.INSTANCE)
+  }
+  @Test
   fun testOverlyBroadKeepRules() {
     val rules = listOf(
       "-keep class **",
@@ -71,14 +83,14 @@ class ExpensiveKeepRuleInspectionTest : ExpensiveKeepRuleTestCase() {
       )
 
       myFixture.configureByText(
-        /* fileType = */ ProguardR8FileType.INSTANCE,
+        /* fileType = */ fileType,
         /* text = */ highlight
       )
 
       myFixture.checkHighlighting()
     }
   }
-
+  @Test
   fun testRulesWithNegation() {
     val rules = listOf(
       "-keep class !com.**.*"
@@ -91,7 +103,7 @@ class ExpensiveKeepRuleInspectionTest : ExpensiveKeepRuleTestCase() {
       )
 
       myFixture.configureByText(
-        /* fileType = */ ProguardR8FileType.INSTANCE,
+        /* fileType = */ fileType,
         /* text = */ highlight
       )
 
@@ -99,6 +111,7 @@ class ExpensiveKeepRuleInspectionTest : ExpensiveKeepRuleTestCase() {
     }
   }
 
+  @Test
   fun testOverlyBroadKeepRulesWithZeroAffectedClasses() {
     val rules = listOf(
       "-keep class **",
@@ -122,13 +135,14 @@ class ExpensiveKeepRuleInspectionTest : ExpensiveKeepRuleTestCase() {
 
     rules.forEach { rule ->
       myFixture.configureByText(
-        /* fileType = */ ProguardR8FileType.INSTANCE,
+        /* fileType = */ fileType,
         /* text = */rule
       )
       myFixture.checkHighlighting()
     }
   }
 
+  @Test
   fun testGoodRules() {
     val rules = listOf(
       "-keepclassmembers **.*",
@@ -141,7 +155,7 @@ class ExpensiveKeepRuleInspectionTest : ExpensiveKeepRuleTestCase() {
 
     rules.forEach { rule ->
       myFixture.configureByText(
-        /* fileType = */ ProguardR8FileType.INSTANCE,
+        /* fileType = */ fileType,
         /* text = */rule
       )
       myFixture.checkHighlighting()

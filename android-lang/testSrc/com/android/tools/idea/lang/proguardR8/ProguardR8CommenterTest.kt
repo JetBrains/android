@@ -17,13 +17,26 @@ package com.android.tools.idea.lang.proguardR8
 
 import com.android.tools.idea.testing.caret
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.fileTypes.LanguageFileType
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class ProguardR8CommenterTest : JavaCodeInsightFixtureTestCase() {
+@RunWith(Parameterized::class)
+class ProguardR8CommenterTest(private val fileType: LanguageFileType) : JavaCodeInsightFixtureTestCase() {
 
+  companion object {
+    @Suppress("unused")
+    @JvmStatic
+    @get:Parameterized.Parameters(name = "{0}")
+    val fileType = listOf(ProguardR8FileType.INSTANCE, KeepRulesR8FileType.INSTANCE)
+  }
+
+  @Test
   fun testComment() {
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
         -rule$caret
       """.trimIndent()

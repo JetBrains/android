@@ -16,21 +16,25 @@
 package com.android.tools.idea.lang.proguardR8.psi
 
 import com.android.tools.idea.lang.androidSql.referenceAtCaret
-import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
+import com.intellij.openapi.fileTypes.LanguageFileType
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.IncorrectOperationException
 import org.junit.Assert
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class ProguardR8MethodTest : ProguardR8TestCase() {
+@RunWith(Parameterized::class)
+class ProguardR8MethodTest(private val fileType: LanguageFileType)  : ProguardR8TestCase() {
 
   private fun getMethodsAtCaret(): List<PsiMethod> {
     val proguardMethod = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMemberName>()
@@ -38,6 +42,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     return (proguardMethod!!.reference as PsiPolyVariantReference).multiResolve(false).map { it.element as PsiMethod }
   }
 
+  @Test
   fun testMatchesToPsiType() {
     myFixture.addClass(
       //language=JAVA
@@ -51,7 +56,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         int myIn${caret}t();
@@ -71,6 +76,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(method.type!!.matchesPsiType(realType)).isTrue()
   }
 
+  @Test
   fun testMatchesToPsiParametersList() {
     myFixture.addClass(
       //language=JAVA
@@ -84,7 +90,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         void method${caret}1(int, java.lang.String);
@@ -107,6 +113,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(method2.parameters!!.matchesPsiParameterList(parameterList1)).isFalse()
   }
 
+  @Test
   fun testMethodReferenceCorrectPrimitiveType() {
     myFixture.addClass(
       //language=JAVA
@@ -120,7 +127,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         int myMeth${caret}od(int);
@@ -137,6 +144,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(method).isEqualTo(psiMethod)
   }
 
+  @Test
   fun testMethodReferenceAnyPrimitiveType() {
     myFixture.addClass(
       //language=JAVA
@@ -150,7 +158,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         % myPrimiti${caret}ve(%);
@@ -164,6 +172,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(methods).containsExactlyElementsIn(psiMethods)
   }
 
+  @Test
   fun testMethodReferenceAnyType() {
     myFixture.addClass(
       //language=JAVA
@@ -178,7 +187,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         *** myMeth${caret}od(***);
@@ -195,6 +204,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(methods).containsExactlyElementsIn(psiMethods)
   }
 
+  @Test
   fun testMethodReferenceAnyNumAndTypeArgs() {
     myFixture.addClass(
       //language=JAVA
@@ -209,7 +219,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         *** myMeth${caret}od(...);
@@ -223,6 +233,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(methods).containsExactlyElementsIn(psiMethods)
   }
 
+  @Test
   fun testMethodReferenceCorrectType() {
     myFixture.addClass(
       //language=JAVA
@@ -235,7 +246,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         java.lang.String myMeth${caret}od();
@@ -248,6 +259,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(method).isEqualTo(myFixture.findClass("test.MyClass").findMethodsByName("myMethod", false).first())
   }
 
+  @Test
   fun testMethodReferenceIncorrectType() {
     myFixture.addClass(
       //language=JAVA
@@ -260,7 +272,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         java.lang.String myMeth${caret}od();
@@ -270,6 +282,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(getMethodsAtCaret()).isEmpty()
   }
 
+  @Test
   fun testMethodReferenceIncorrectPrimitiveType() {
     myFixture.addClass(
       //language=JAVA
@@ -282,7 +295,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         int myMeth${caret}od();
@@ -292,6 +305,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(getMethodsAtCaret()).isEmpty()
   }
 
+  @Test
   fun testSuggestMethodsPrimitiveType() {
     myFixture.addClass(
       //language=JAVA
@@ -306,7 +320,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         boolean ${caret}();
@@ -319,6 +333,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(method.map { it.lookupString }).containsExactly("myBooleanMethod", "myBooleanMethod2")
   }
 
+  @Test
   fun testSuggestMethodsAnyPrimitiveType() {
     myFixture.addClass(
       //language=JAVA
@@ -334,7 +349,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         % ${caret}();
@@ -347,6 +362,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(method.map { it.lookupString }).containsExactly("myPrimitive", "myPrimitive2", "myPrimitive3")
   }
 
+  @Test
   fun testSuggestMethodsAnyType() {
     myFixture.addClass(
       //language=JAVA
@@ -362,7 +378,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         *** ${caret}();
@@ -375,6 +391,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(method.map { it.lookupString }).containsExactly("myPrimitive", "myPrimitive2", "myPrimitive3", "myNotPrimitive")
   }
 
+  @Test
   fun testNotSuggestFields() {
     myFixture.addClass(
       //language=JAVA
@@ -391,7 +408,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         % ${caret}();
@@ -403,6 +420,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(method.size).isEqualTo(1)
   }
 
+  @Test
   fun testRenameMethod() {
     myFixture.addClass(
       //language=JAVA
@@ -415,7 +433,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class MyClass {
         int myMeth${caret}od();
@@ -434,6 +452,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
   }
 
+  @Test
   fun testResolveToAllOverloads() {
     myFixture.addClass(
       //language=JAVA
@@ -453,7 +472,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         *** my${caret}Method(...);
@@ -466,6 +485,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(methods).containsExactlyElementsIn(myFixture.findClass("test.MyClass").methods)
   }
 
+  @Test
   fun testRenameMethodNotValid() {
     myFixture.addFileToProject("MyClass.kt",
       //language=Kotlin
@@ -476,7 +496,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class MyClass {
         int myMeth${caret}od();
@@ -502,6 +522,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
   }
 
+  @Test
   fun testInspectUnresolvedMethod() {
     myFixture.addClass(
       //language=JAVA
@@ -514,7 +535,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         long ${"myBoolean" highlightedAs ERROR};
@@ -525,7 +546,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
 
     // don't highlight if class is unknown
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.My* {
         long myBoolean();
@@ -536,7 +557,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
 
     // don't highlight if method is with wildcards
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         long m*();
@@ -546,6 +567,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     myFixture.checkHighlighting()
   }
 
+  @Test
   fun testCodeCompletionForIncompleteMethod() {
     myFixture.addClass(
       //language=JAVA
@@ -558,7 +580,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
         public boolean[] $caret
@@ -571,6 +593,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(methods.map { it.lookupString }).contains("myMethod")
   }
 
+  @Test
   fun testCodeCompletionForMethodWithoutType() {
     myFixture.addClass(
       //language=JAVA
@@ -584,7 +607,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
          $caret
@@ -597,6 +620,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(methods.map { it.lookupString }).containsAllOf("myMethod1", "myMethod2")
   }
 
+  @Test
   fun testResolveMethodWithoutType() {
     myFixture.addClass(
       //language=JAVA
@@ -610,7 +634,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
          my${caret}Method();
@@ -624,7 +648,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(methods.map { it.element!!.text }).containsExactly("boolean[] myMethod();", "int myMethod();")
   }
 
-
+  @Test
   fun testInsertMethodWithParentheses() {
     myFixture.addClass(
       //language=JAVA
@@ -637,7 +661,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
          my${caret};
@@ -656,6 +680,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
   }
 
   // Bug:153616200 , case 3.
+  @Test
   fun testResolveMethodKotlinIntrinsics() {
     myFixture.addClass(
       //language=JAVA
@@ -668,7 +693,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     """.trimIndent())
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       //language=SHRINKER_CONFIG
       """
       -assumenosideeffects class kotlin.jvm.internal.Intrinsics {

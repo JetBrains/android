@@ -32,7 +32,8 @@ import com.intellij.psi.search.SearchScope
 class ProguardR8GradleResolveScopeEnlarger : ResolveScopeEnlarger() {
   override fun getAdditionalResolveScope(file: VirtualFile, project: Project): SearchScope? {
     if (project.getProjectSystem() !is GradleProjectSystem) return null
-    if (file.fileType == ProguardR8FileType.INSTANCE) {
+    if (file.fileType == ProguardR8FileType.INSTANCE ||
+        file.fileType == KeepRulesR8FileType.INSTANCE) {
       val module = ModuleUtil.findModuleForFile(file, project)?.takeIf { it.isHolderModule() } ?: return null
 
       return GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module.getMainModule())

@@ -17,13 +17,19 @@ package com.android.tools.idea.lang.proguardR8
 
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth
+import com.intellij.openapi.fileTypes.LanguageFileType
 import com.intellij.testFramework.UITestUtil
 import com.intellij.testFramework.fixtures.CompletionAutoPopupTester
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableRunnable
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class ProguardR8TypedHandlerTest : ProguardR8TestCase() {
+@RunWith(Parameterized::class)
+class ProguardR8TypedHandlerTest(private val fileType: LanguageFileType) : ProguardR8TestCase() {
   private lateinit var tester: CompletionAutoPopupTester
+
 
   override fun runInDispatchThread(): Boolean = false
   override fun runTestRunnable(testRunnable: ThrowableRunnable<Throwable>) = tester.runWithAutoPopupEnabled(testRunnable)
@@ -38,9 +44,9 @@ class ProguardR8TypedHandlerTest : ProguardR8TestCase() {
     runInEdtAndWait { super.tearDown() }
   }
 
+  @Test
   fun testAutoPopupCompletion() {
-
-    myFixture.configureByText(ProguardR8FileType.INSTANCE, "$caret")
+    myFixture.configureByText(fileType, "$caret")
     myFixture.type('-')
     tester.joinAutopopup()
     tester.joinCompletion()
@@ -48,6 +54,7 @@ class ProguardR8TypedHandlerTest : ProguardR8TestCase() {
     Truth.assertThat(myFixture.lookupElementStrings).contains("keepattributes")
   }
 
+  @Test
   fun testOpenPopupForInnerClassesAfterDollarSymbol() {
     myFixture.addClass(
       //language=JAVA
@@ -61,7 +68,7 @@ class ProguardR8TypedHandlerTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE, """
+      fileType, """
         -keep class test.MyClass$caret {
         }
     """.trimIndent()

@@ -16,16 +16,21 @@
 package com.android.tools.idea.lang.proguardR8.psi
 
 import com.android.tools.idea.lang.androidSql.referenceAtCaret
-import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElement
+import com.intellij.openapi.fileTypes.LanguageFileType
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference
 import com.intellij.psi.util.parentOfType
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class ProguardR8ClassMemberTest : ProguardR8TestCase() {
+@RunWith(Parameterized::class)
+class ProguardR8ClassMemberTest(private val fileType: LanguageFileType)  : ProguardR8TestCase() {
 
+  @Test
   fun testIsConstructor() {
     myFixture.addClass(
       //language=JAVA
@@ -36,7 +41,7 @@ class ProguardR8ClassMemberTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
         -keep class p1.p2.MyClass {
           MyClass();
@@ -69,6 +74,7 @@ class ProguardR8ClassMemberTest : ProguardR8TestCase() {
     assertThat(member.isConstructor()).isFalse()
   }
 
+  @Test
   fun testResolveConstructors() {
     fun getConstructorsDescriptionsAt(str: String): List<String> {
       myFixture.moveCaret(str)
@@ -96,7 +102,7 @@ class ProguardR8ClassMemberTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
         -keep class p1.p2.MyClass {
           MyClass();
@@ -144,6 +150,7 @@ class ProguardR8ClassMemberTest : ProguardR8TestCase() {
     assertThat(constructors).containsExactly("protected MyClass(long l) {}")
   }
 
+  @Test
   fun testModifiers() {
     myFixture.addClass(
       //language=JAVA
@@ -161,7 +168,7 @@ class ProguardR8ClassMemberTest : ProguardR8TestCase() {
     )
 
     myFixture.configureByText(
-      ProguardR8FileType.INSTANCE,
+      fileType,
       """
       -keep class test.MyClass {
          my;
