@@ -1,5 +1,5 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.testartifacts` start
@@ -264,6 +264,8 @@ jvm_library(
         "//platform/testFramework/junit5:junit5_test_lib",
         "//plugins/kotlin/gradle/gradle-java",
         "//plugins/kotlin/gradle/gradle-java:gradle-java_test_lib",
+        "//android/android-adb:adb-testUtil",
+        "//android/android-adb:adb-testUtil_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.testartifacts.tests` end
