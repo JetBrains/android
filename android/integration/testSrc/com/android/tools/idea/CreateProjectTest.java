@@ -26,6 +26,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.intellij.openapi.util.SystemInfo;
 import java.nio.file.Path;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -54,6 +55,7 @@ public class CreateProjectTest {
   public MemoryDashboardNameProviderWatcher watcher = new MemoryDashboardNameProviderWatcher();
 
   @Test
+  @Ignore("Disabled due to b/478086343")
   public void createProjectTest() throws Exception {
     system.installRepo(new MavenRepo("tools/adt/idea/android/integration/createproject_deps.manifest").withoutInitScript());
 
