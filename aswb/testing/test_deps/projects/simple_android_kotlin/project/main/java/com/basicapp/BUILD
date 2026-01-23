@@ -20,6 +20,7 @@ kt_android_library(
     resource_files = glob(["res/**"]) + [":gen_res"],
     visibility = ["//visibility:public"],
     deps = [
+        "//simple_android_kotlin/external:external_resource",
         "@maven//:com_google_guava_guava",
     ],
 )

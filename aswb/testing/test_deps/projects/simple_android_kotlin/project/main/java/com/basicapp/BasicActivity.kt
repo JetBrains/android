@@ -21,6 +21,9 @@ class BasicActivity : Activity() {
       findViewById(R.id.button_id_buzz)
     )
 
+    val imageView: ImageView = findViewById(R.id.img_id_fizz)
+    imageView.setImageResource(R.drawable.foo)
+
     for (b in buttons) {
       b.setOnClickListener { v ->
         val tv = findViewById<TextView>(R.id.text_hello)
