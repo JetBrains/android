@@ -3,7 +3,10 @@ package com.android.tools.idea.testartifacts.instrumented
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.fakeadbserver.DeviceState
+import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.MockitoCleanerRule
+import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.assertTaskPresentedInStats
@@ -55,7 +58,7 @@ private const val ANDROIDX_ORCHESTRATOR_APP_ID = "androidx.test.orchestrator"
 class AndroidTestRunConfigurationExecutorTest {
   private val projectRule = AndroidProjectRule.testProject(LightGradleTestProjects.SIMPLE_APPLICATION)
 
-  private val fakeAdb = FakeAdbTestRule()
+  private val fakeAdb = FakeAdbServerAdbLibRule()
 
   private val cleaner = MockitoCleanerRule()
 
@@ -72,7 +75,7 @@ class AndroidTestRunConfigurationExecutorTest {
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
     AndroidDebugBridge.getBridge()!!.devices.forEach {
-      fakeAdb.server.disconnectDevice(it.serialNumber)
+      fakeAdb.disconnectDevice(it.serialNumber)
     }
   }
 
@@ -82,7 +85,12 @@ class AndroidTestRunConfigurationExecutorTest {
       "b/403870016: FakeAdbTestRule seems to be flaky on windows.",
       SystemInfo.isWindows)
 
-    val deviceState = fakeAdb.connectAndWaitForDevice()
+    val deviceState = fakeAdb.connectDevice("device149",
+                                            manufacturer = "mfg",
+                                            deviceModel = "model",
+                                            release = "10.0.0",
+                                            sdk = AndroidApiLevel(30),
+                                            hostConnectionType = DeviceState.HostConnectionType.USB)
     val startDownLatch = CountDownLatch(1)
     deviceState.setActivityManager { args, _ ->
       if (args[0] == "instrument") {
@@ -134,7 +142,12 @@ class AndroidTestRunConfigurationExecutorTest {
       historyLatch.countDown()
     }
     projectRule.project.replaceService(TestHistoryConfiguration::class.java, testHistoryConfiguration, projectRule.testRootDisposable)
-    val deviceState = fakeAdb.connectAndWaitForDevice()
+    val deviceState = fakeAdb.connectDevice("device149",
+                                            manufacturer = "mfg",
+                                            deviceModel = "model",
+                                            release = "10.0.0",
+                                            sdk = AndroidApiLevel(30),
+                                            hostConnectionType = DeviceState.HostConnectionType.USB)
     deviceState.setActivityManager { args, _ ->
       if (args[0] == "instrument") {
         FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1235, "applicationId", true)
@@ -173,7 +186,12 @@ class AndroidTestRunConfigurationExecutorTest {
 
   @Test
   fun runFailed() {
-    fakeAdb.connectAndWaitForDevice()
+    fakeAdb.connectDevice("device149",
+                                            manufacturer = "mfg",
+                                            deviceModel = "model",
+                                            release = "10.0.0",
+                                            sdk = AndroidApiLevel(30),
+                                            hostConnectionType = DeviceState.HostConnectionType.USB)
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val env = getExecutionEnvironment(listOf(device))
@@ -194,7 +212,12 @@ class AndroidTestRunConfigurationExecutorTest {
 
   @Test
   fun androidProcessHandlerMonitorsMasterProcessId() {
-    val deviceState = fakeAdb.connectAndWaitForDevice()
+    val deviceState = fakeAdb.connectDevice("device149",
+                                            manufacturer = "mfg",
+                                            deviceModel = "model",
+                                            release = "10.0.0",
+                                            sdk = AndroidApiLevel(30),
+                                            hostConnectionType = DeviceState.HostConnectionType.USB)
     val startDownLatch = CountDownLatch(3)
     deviceState.setActivityManager { args, _ ->
       if (args[0] == "instrument") {
