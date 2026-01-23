@@ -239,8 +239,6 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     // used by the %assertFindUsagesEntryCommand to access the result of the last findUsages event.
     vmOptions.append(
       String.format("-Dfind.usages.command.found.usages.list.file=%s%n", TestUtils.getTestOutputDir().resolve("find.usages.list.txt")));
-    // TODO(b/433574645): remove when the RAG index fluctuation is fixed
-    vmOptions.append(String.format("-Dgemini.rag.index=none%n"));
   }
 
   public void addVmOption(String line) throws IOException {
