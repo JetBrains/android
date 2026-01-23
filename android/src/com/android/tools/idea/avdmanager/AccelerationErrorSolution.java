@@ -94,8 +94,8 @@ public class AccelerationErrorSolution {
     UPDATE_SYSTEM_IMAGES("Update System Images"),
     INSTALL_KVM("Install KVM"),
     TURNOFF_HYPER_V("Turn off Hyper-V"),
-    INSTALL_AEHD("Install Android Emulator hypervisor driver"),
-    REINSTALL_AEHD("Reinstall Android Emulator hypervisor driver");
+    INSTALL_AEHD("Install AEHD"),
+    REINSTALL_AEHD("Reinstall AEHD");
 
     private final String myDescription;
 

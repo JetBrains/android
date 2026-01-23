@@ -32,6 +32,7 @@ import com.android.sdklib.deviceprovisioner.DeviceState.Disconnected
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.DuplicateAction
 import com.android.sdklib.deviceprovisioner.EditAction
+import com.android.sdklib.deviceprovisioner.Extension
 import com.android.sdklib.deviceprovisioner.LocalEmulatorContext
 import com.android.sdklib.deviceprovisioner.LocalEmulatorDeviceHandle
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
@@ -49,10 +50,15 @@ import com.android.sdklib.internal.avd.BootMode
 import com.android.sdklib.internal.avd.BootSnapshot
 import com.android.sdklib.internal.avd.ColdBoot
 import com.android.tools.idea.avd.EditVirtualDeviceDialog.Mode
+import com.android.tools.idea.avdmanager.AccelerationErrorCode
+import com.android.tools.idea.avdmanager.AccelerationErrorSolution
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.RunningAvdTracker
+import com.android.tools.idea.avdmanager.checkAcceleration
+import com.android.tools.idea.deviceprovisioner.NotificationBannersExtension
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
 import com.android.tools.idea.glassespairing.GlassesPairingWizard
+import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.RevealFileAction
@@ -62,6 +68,8 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
+import com.intellij.ui.EditorNotificationPanel
+import icons.StudioIcons
 import java.awt.Component
 import java.io.IOException
 import kotlin.collections.toSet
@@ -73,9 +81,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class StudioLocalEmulatorProvisionerPlugin(
@@ -84,6 +94,15 @@ class StudioLocalEmulatorProvisionerPlugin(
   val context: LocalEmulatorContext,
   val project: Project?,
 ) : DeviceProvisionerPlugin by basePlugin {
+  private val accelerationError = MutableStateFlow(AccelerationErrorCode.ALREADY_INSTALLED)
+
+  override fun <T : Extension> extension(extensionClass: Class<T>): T? {
+    return if (extensionClass == NotificationBannersExtension::class.java) {
+      @Suppress("UNCHECKED_CAST") NotificationBannersExtension(notificationBanners) as T
+    } else {
+      basePlugin.extension(extensionClass)
+    }
+  }
 
   fun refreshDevices() {
     basePlugin.refreshDevices()
@@ -107,6 +126,13 @@ class StudioLocalEmulatorProvisionerPlugin(
       }
       .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
+  private val notificationBanners: StateFlow<List<EditorNotificationPanel>> =
+    combine(devices, accelerationError) { deviceList, accelError ->
+        if (deviceList.isEmpty() || accelError == AccelerationErrorCode.ALREADY_INSTALLED) emptyList()
+        else listOf(EmulatorCheckErrorBanner(accelError))
+      }
+      .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
   override val createDeviceAction =
     object : CreateDeviceAction {
       override val presentation =
@@ -118,6 +144,24 @@ class StudioLocalEmulatorProvisionerPlugin(
         }
       }
     }
+
+  init {
+    refreshAccelerationCheck()
+  }
+
+  private fun refreshAccelerationCheck() {
+    scope.launch(Dispatchers.Default) { accelerationError.value = checkAcceleration(AndroidSdks.getInstance().tryToChooseSdkHandler()) }
+  }
+
+  private inner class EmulatorCheckErrorBanner(accelError: AccelerationErrorCode) : EditorNotificationPanel() {
+    init {
+      text = "<html>" + accelError.problem + "</html>"
+      icon(StudioIcons.Common.ERROR)
+      createActionLabel(accelError.solution.description) {
+        AccelerationErrorSolution.getActionForFix(accelError, project, { refreshAccelerationCheck() }, null).run()
+      }
+    }
+  }
 }
 
 class StudioLocalEmulatorDeviceHandle(
