@@ -7,5 +7,5 @@ java_library(
 
 java_library(
     name = "exported-collect",
-    exports = ["@maven//:com.google.guava.guava"],
+    exports = ["//tools/vendor/google/aswb/plugin_api/maven:guava"],
 )

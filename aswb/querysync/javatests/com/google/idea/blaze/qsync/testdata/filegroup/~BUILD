@@ -14,5 +14,5 @@ filegroup(
 java_library(
     name = "filegroup",
     srcs = [":sources"],
-    deps = ["@maven//:com.google.guava.guava"],
+    deps = ["//tools/vendor/google/aswb/plugin_api/maven:guava"],
 )

@@ -15,6 +15,6 @@ aswb_library(
         "//prebuilts/tools/common/m2:jsr305-2.0.1",
         "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/vendor/google/aswb/plugin_api",
-        "@maven//:com.google.guava.guava",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )

@@ -324,7 +324,7 @@ class BuildGraphDataImplTest {
         listOf(Label.of("//" + TESTDATA_ROOT.resolve("multitarget:externaldep")))
       )
     )
-      .contains(Label.of("@@maven//:com.google.guava.guava"))
+      .contains(Label.of("//tools/vendor/google/aswb/plugin_api/maven:guava"))
     assertThat(
       getRequiredTargets(
         graph,
@@ -354,7 +354,7 @@ class BuildGraphDataImplTest {
         listOf(Label.of("//" + TESTDATA_ROOT.resolve("exports:exports")))
       )
     )
-      .containsExactly(Label.of("@@maven//:com.google.guava.guava"))
+      .containsExactly(Label.of("//tools/vendor/google/aswb/plugin_api/maven:guava"))
   }
 
   @Test
@@ -470,7 +470,7 @@ class BuildGraphDataImplTest {
         listOf(Label.of("//$TESTDATA_ROOT/filegroup:filegroup"))
       )
     )
-      .containsExactly(Label.of("@@maven//:com.google.guava.guava"))
+      .containsExactly(Label.of("//tools/vendor/google/aswb/plugin_api/maven:guava"))
   }
 
   @Test
@@ -617,7 +617,7 @@ class BuildGraphDataImplTest {
           .assumedOnlyLabel
           .siblingWithName("nodeps")
       )
-    val expected = "@@maven//:com.google.guava.guava"
+    val expected = "//tools/vendor/google/aswb/plugin_api/maven:guava"
     assertThat(targets.requiredTargets).containsExactly(Label.of(expected))
   }
 
@@ -647,7 +647,7 @@ class BuildGraphDataImplTest {
     assertThat(targets.targetsToBuild)
       .containsExactly(TestData.JAVA_LIBRARY_NESTED_PACKAGE.assumedOnlyLabel)
     assertThat(targets.requiredTargets)
-      .containsExactly(Label.of("@@maven//:com.google.guava.guava"))
+      .containsExactly(Label.of("//tools/vendor/google/aswb/plugin_api/maven:guava"))
   }
 
   @Test
@@ -680,7 +680,7 @@ class BuildGraphDataImplTest {
       )
     assertThat(targets.requiredTargets)
       .containsExactly(
-        Label.of("@@maven//:com.google.guava.guava"),
+        Label.of("//tools/vendor/google/aswb/plugin_api/maven:guava"),
         Label.of("@@maven//:com.google.code.gson.gson")
       )
   }
