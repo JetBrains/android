@@ -37,7 +37,6 @@ import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import java.util.concurrent.Executor
-import org.jetbrains.concurrency.any
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -341,6 +340,45 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
           "UPDATE t1 SET c2 = ? WHERE rowid = ?",
           listOf("new", "0").toSqliteValues(),
           "UPDATE t1 SET c2 = 'new' WHERE rowid = '0'",
+        )
+      )
+  }
+
+  fun testRemoveRow() {
+    // Prepare
+    val targetTable =
+      SqliteTable(
+        "t1",
+        listOf(
+          SqliteColumn("c1", SqliteAffinity.TEXT, false, false),
+          SqliteColumn("c2", SqliteAffinity.TEXT, false, false),
+        ),
+        RowIdName.ROWID,
+        false,
+      )
+    val targetRow =
+      SqliteRow(
+        listOf(
+          SqliteColumnValue("rowid", SqliteValue.fromAny("0")),
+          SqliteColumnValue("c1", SqliteValue.fromAny("oldC1")),
+          SqliteColumnValue("c2", SqliteValue.fromAny("oldC2")),
+        )
+      )
+
+    // Act
+    runDispatching { databaseRepository.addDatabaseConnection(databaseId1, databaseConnection1) }
+
+    val future1 = databaseRepository.removeRow(databaseId1, targetTable, targetRow)
+    pumpEventsAndWaitForFuture(future1)
+
+    // Assert
+    verify(databaseConnection1)
+      .execute(
+        SqliteStatement(
+          SqliteStatementType.DELETE,
+          "DELETE FROM t1 WHERE rowid = ?",
+          listOf("0").toSqliteValues(),
+          "DELETE FROM t1 WHERE rowid = '0'",
         )
       )
   }
