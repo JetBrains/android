@@ -15,33 +15,26 @@
  */
 package com.google.idea.blaze.android.run.runner;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.idea.blaze.android.run.deployinfo.DeployData.fetchApks;
 
 import com.android.tools.idea.run.ApkProvisionException;
-import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
-import com.google.idea.blaze.base.run.RuntimeArtifactCache;
-import com.google.idea.blaze.base.run.RuntimeArtifactKind;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.Label;
 import com.intellij.openapi.project.Project;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 
 /**
  * Deploy Info extractor for {@code android_binary} targets.
  */
 public final class BinaryDeployInfoExtractor implements DeployInfoExtractor {
-  private final Project project;
   private final boolean useMobileInstall;
   private final Label targetLabel;
   private final boolean nativeDebuggingEnabled;
 
-  public BinaryDeployInfoExtractor(Project project, Label targetLabel, boolean useMobileInstall, boolean nativeDebuggingEnabled) {
-    this.project = project;
+  public BinaryDeployInfoExtractor(Label targetLabel, boolean useMobileInstall, boolean nativeDebuggingEnabled) {
     this.targetLabel = targetLabel;
     this.useMobileInstall = useMobileInstall;
     this.nativeDebuggingEnabled = nativeDebuggingEnabled;
@@ -66,14 +59,7 @@ public final class BinaryDeployInfoExtractor implements DeployInfoExtractor {
         suffix,
         context,
         project);
-    RuntimeArtifactCache runtimeArtifactCache = RuntimeArtifactCache.getInstance(project);
-    ImmutableList<File> localApks =
-      runtimeArtifactCache.fetchArtifacts(targetLabel, deployData.apks(), context, RuntimeArtifactKind.APK).stream()
-        .map(Path::toFile)
-        .collect(toImmutableList());
-    return BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(
-      new BlazeAndroidDeployInfo.ManifestWithApks(deployData.mergedManifest(), localApks),
-      /* testTargetMergedManifest */ null,
-      ImmutableList.copyOf(nativeSymbols));
+    var appPackage = fetchApks(deployData, project, context);
+    return BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(appPackage, null, nativeSymbols);
   }
 }

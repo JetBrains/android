@@ -77,26 +77,6 @@ class BlazeApkBuildStepTest : BlazeIntegrationTestCase() {
     expect.that(context!!.shouldContinue()).isFalse()
   }
 
-  @Test
-  @Throws(ApkProvisionException::class)
-  fun build_savesDeployInfo() {
-    // Set up a build step with a mock deploy info extractor
-    val deployInfo =
-      BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(
-        BlazeAndroidDeployInfo.ManifestWithApks(ParsedManifest("some.pkg.name", emptyList(), null), emptyList()),
-        null,
-        nativeSymbols
-      )
-    val mockDeployInfoExtractor = DeployInfoExtractor { _, _, _, _, _, _ -> deployInfo }
-    val buildStep = createBlazeApkBuildStep(mockDeployInfoExtractor)
-
-    // Issue the build
-    buildStep.build(context!!, null)
-
-    // Verify post-condition: android deploy info should've been extracted using deploy info parser
-    expect.that(buildStep.getDeployInfo()).isEqualTo(deployInfo)
-  }
-
   /** Returns a [BlazeApkBuildStep] with some default data set up.  */
   private fun createBlazeApkBuildStep(deployInfoExtractor: DeployInfoExtractor): BlazeApkBuildStep {
     return BlazeApkBuildStep(

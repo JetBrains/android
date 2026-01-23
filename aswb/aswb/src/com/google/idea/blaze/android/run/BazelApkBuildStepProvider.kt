@@ -57,7 +57,6 @@ class BazelApkBuildStepProvider : ApkBuildStepProvider {
       buildInvoker = buildInvoker,
       deployInfoExtractor =
         BinaryDeployInfoExtractor(
-          project,
           com.google.idea.blaze.common.Label.of(label.toString()),
           useMobileInstall,
           nativeDebuggingEnabled

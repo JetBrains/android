@@ -15,10 +15,22 @@
  */
 package com.google.idea.blaze.android.run.deployinfo
 
+import com.android.tools.idea.run.ApkFileUnit
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvisionException
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest
+import com.google.idea.blaze.android.run.BazelApkProvider
+import com.google.idea.blaze.android.run.BazelApplicationIdProvider
+import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo.ManifestWithApkInfo
+import com.google.idea.blaze.base.run.RuntimeArtifactCache
+import com.google.idea.blaze.base.run.RuntimeArtifactKind
+import com.google.idea.blaze.base.scope.BlazeContext
+import com.google.idea.blaze.base.sync.data.BlazeDataStorage
+import com.google.idea.blaze.common.Label
+import com.google.idea.blaze.common.artifact.OutputArtifact
+import com.intellij.openapi.project.Project
 import java.io.File
+import java.nio.file.Path
 
 /** Info about the deployment phase.  */
 class BlazeAndroidDeployInfo private constructor(
@@ -36,9 +48,6 @@ class BlazeAndroidDeployInfo private constructor(
    */
   val appUnderTestMergedManifest: ParsedManifest?,
 
-  /** Returns the full list of apks to deploy, if any.  */
-  val apksToDeploy: List<File>,
-
   /** Returns the full list of C++ symbol files to provide to LLDB to symbolize debugging.  */
   val symbolFiles: List<File>,
 
@@ -48,7 +57,7 @@ class BlazeAndroidDeployInfo private constructor(
   val apkInfos: List<ApkInfo>
 ) {
 
-  class ManifestWithApks(val manifest: ParsedManifest, val apks: List<File>)
+  class ManifestWithApkInfo(val label: Label, val manifest: ParsedManifest, val apkInfo: ApkInfo)
 
   /**
    * Returns the primary application ID for the app being launched (either an android_binary app or
@@ -68,34 +77,71 @@ class BlazeAndroidDeployInfo private constructor(
     @Throws(ApkProvisionException::class)
     get() = appUnderTestMergedManifest?.let { it.packageName ?: throw ApkProvisionException("No application id in merged manifest.") }
 
+  fun toInstrumentationTestApplicationIdProvider(): BazelApplicationIdProvider =
+    BazelApplicationIdProvider(appUnderTestPackageName ?: mainAppPackageName, mainAppPackageName)
+
+  fun toAndroidBinaryApplicationIdProvider(): BazelApplicationIdProvider =
+    BazelApplicationIdProvider(mainAppPackageName, testPackageName = null)
+
+  fun toApkProvider(): BazelApkProvider = BazelApkProvider(apkInfos, symbolFiles)
+
   companion object {
     @Throws(ApkProvisionException::class)
     @JvmStatic
     fun createBlazeAndroidDeployInfo(
-      mainAppManifestAndApks: ManifestWithApks,
-      appUnderTestMergedManifestAndApks: ManifestWithApks?,
+      mainAppManifestAndApks: ManifestWithApkInfo,
+      appUnderTestManifestAndApks: ManifestWithApkInfo?,
       symbolFiles: List<File>
     ): BlazeAndroidDeployInfo {
 
-      val apkInfos = getInfos(mainAppManifestAndApks) + appUnderTestMergedManifestAndApks?.let { getInfos(it) }.orEmpty()
+      val apkInfos = listOfNotNull(mainAppManifestAndApks.apkInfo, appUnderTestManifestAndApks?.apkInfo)
 
-      val mainAppMainManifest = mainAppManifestAndApks.manifest
-      val appUnderTestMergedManifest = appUnderTestMergedManifestAndApks?.manifest
-      val apksToDeploy = mainAppManifestAndApks.apks + appUnderTestMergedManifestAndApks?.apks.orEmpty()
+      val mainAppManifest = mainAppManifestAndApks.manifest
+      val appUnderTestManifest = appUnderTestManifestAndApks?.manifest
 
       return BlazeAndroidDeployInfo(
-        mainAppMergedManifest = mainAppMainManifest,
-        appUnderTestMergedManifest = appUnderTestMergedManifest,
-        apksToDeploy = apksToDeploy,
+        mainAppMergedManifest = mainAppManifest,
+        appUnderTestMergedManifest = appUnderTestManifest,
         symbolFiles = symbolFiles,
         apkInfos = apkInfos
       )
     }
+  }
+}
+
+data class DeployData(val targetLabel: Label, val mergedManifest: ParsedManifest, val apks: List<OutputArtifact>) {
+
+  companion object {
+    @JvmStatic
+    fun create(targetLabel: Label, mergedManifest: ParsedManifest, apks: List<OutputArtifact>): DeployData {
+      return DeployData(targetLabel, mergedManifest, apks)
+    }
 
     @Throws(ApkProvisionException::class)
-    private fun getInfos(apks: ManifestWithApks): List<ApkInfo> {
-      val packageName = apks.manifest.packageName ?: throw ApkProvisionException("No application id in merged manifest.")
-      return apks.apks.map { ApkInfo(it, packageName) }
+    @JvmStatic
+    @JvmOverloads
+    fun DeployData.fetchApks(
+      project: Project,
+      context: BlazeContext,
+      cacheLocally: (project: Project, targetLabel: Label, artifacts: List<OutputArtifact>, context: BlazeContext) -> List<Path> = ::cacheLocally,
+    ): ManifestWithApkInfo {
+      return ManifestWithApkInfo(
+        targetLabel,
+        mergedManifest,
+        ApkInfo(
+          cacheLocally(project, targetLabel, apks, context)
+            .map { ApkFileUnit(BlazeDataStorage.WORKSPACE_MODULE_NAME, it.toFile()) }
+            .toList(),
+          mergedManifest.packageName ?: throw ApkProvisionException("Valid manifest must have a package name")
+        )
+      )
     }
   }
+}
+
+private fun cacheLocally(
+  project: Project, targetLabel: Label, artifacts: List<OutputArtifact>, context: BlazeContext,
+): List<Path> {
+  val runtimeArtifactCache = RuntimeArtifactCache.getInstance(project)
+  return runtimeArtifactCache.fetchArtifacts(targetLabel, artifacts, context, RuntimeArtifactKind.APK)
 }
