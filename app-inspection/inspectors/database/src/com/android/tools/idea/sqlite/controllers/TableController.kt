@@ -402,6 +402,32 @@ class TableController(
       this@TableController.showExportDialog(exportScenario)
     }
 
+    override fun removeRowInvoked(targetRowIndex: Int) {
+      val targetTable = tableSupplier()
+      if (targetTable == null) {
+        view.reportError("Can't delete row. Table not found.", null)
+        return
+      }
+
+      view.startTableLoading()
+      val targetRow = currentRows[targetRowIndex]
+      databaseRepository
+        .removeRow(databaseId, targetTable, targetRow)
+        .addCallback(
+          edtExecutor,
+          object : FutureCallback<Unit> {
+            override fun onSuccess(result: Unit) {
+              refreshData()
+            }
+
+            override fun onFailure(t: Throwable) {
+              view.stopTableLoading()
+              view.reportError("Can't delete row", t)
+            }
+          },
+        )
+    }
+
     override fun updateCellInvoked(
       targetRowIndex: Int,
       targetColumn: ViewColumn,

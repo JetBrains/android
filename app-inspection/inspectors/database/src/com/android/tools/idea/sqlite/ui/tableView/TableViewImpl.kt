@@ -539,6 +539,20 @@ class TableViewImpl : TableView {
           super.update(e)
         }
       }
+    val removeRowAction =
+      object : AnAction(DatabaseInspectorBundle.message("action.remove.row")) {
+        override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+        override fun actionPerformed(e: AnActionEvent) {
+          val viewRow = table.selectedRow
+          val modelRow = table.convertRowIndexToModel(viewRow)
+          (table.model as MyTableModel).removeRow(modelRow)
+        }
+
+        override fun update(e: AnActionEvent) {
+          e.presentation.isVisible = (table.model as MyTableModel).isEditable
+        }
+      }
 
     setNullAction.registerCustomShortcutSet(
       CustomShortcutSet(
@@ -555,7 +569,7 @@ class TableViewImpl : TableView {
 
     PopupHandler.installPopupMenu(
       table,
-      DefaultActionGroup(copyToClipboardAction, setNullAction),
+      DefaultActionGroup(copyToClipboardAction, removeRowAction, setNullAction),
       "SqliteTablePopup",
     )
   }
@@ -665,6 +679,10 @@ class TableViewImpl : TableView {
           is SqliteValue.NullValue -> null
         }
       }
+    }
+
+    fun removeRow(modelRowIndex: Int) {
+      listeners.forEach { it.removeRowInvoked(modelRowIndex) }
     }
 
     override fun setValueAt(newValue: Any?, modelRowIndex: Int, modelColumnIndex: Int) {
