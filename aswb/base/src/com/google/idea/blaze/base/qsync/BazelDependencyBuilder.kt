@@ -206,9 +206,6 @@ open class BazelDependencyBuilder(
       addAll(additionalBlazeFlags)
       add("--aspects=${invocationFiles.aspectFileLabel}%collect_dependencies,${invocationFiles.aspectFileLabel}%package_dependencies")
       add("--noexperimental_run_validations")
-      if (!buildEnforceProjectConfigs.value) {
-        add("--noenforce_project_configs")
-      }
       add("--keep_going")
       addAll(outputGroups.map { "--output_groups=${it.outputGroupName}" })
     }
@@ -538,8 +535,6 @@ open class BazelDependencyBuilder(
     // Note, this is currently incompatible with the build API.
     val buildUseTargetPatternFile: BoolExperiment =
       BoolExperiment("qsync.build.use.target.pattern.file", true)
-    val buildEnforceProjectConfigs: BoolExperiment =
-      BoolExperiment("qsync.build.enforce.project.configs", false)
 
     const val INVOCATION_FILES_DIR: String = ".aswb"
 
