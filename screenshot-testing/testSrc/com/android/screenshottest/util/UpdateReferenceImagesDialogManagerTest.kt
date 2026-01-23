@@ -51,8 +51,9 @@ class UpdateReferenceImagesDialogManagerTest {
         val mockDialog2 = mock(UpdateReferenceImagesDialog::class.java)
 
         // Create disposables for the mocks to return, so Disposer.register works
-        val disposable1 = Disposer.newDisposable("MockDialog1")
-        val disposable2 = Disposer.newDisposable("MockDialog2")
+        // Use testRootDisposable as parent to ensure cleanup
+        val disposable1 = Disposer.newDisposable(projectRule.testRootDisposable, "MockDialog1")
+        val disposable2 = Disposer.newDisposable(projectRule.testRootDisposable, "MockDialog2")
 
         `when`(mockDialog1.disposable).thenReturn(disposable1)
         `when`(mockDialog2.disposable).thenReturn(disposable2)
@@ -100,7 +101,7 @@ class UpdateReferenceImagesDialogManagerTest {
         val manager = UpdateReferenceImagesDialogManager.getInstance(projectRule.project)
 
         val mockDialog = mock(UpdateReferenceImagesDialog::class.java)
-        val disposable = Disposer.newDisposable("MockDialog")
+        val disposable = Disposer.newDisposable(projectRule.testRootDisposable, "MockDialog")
         `when`(mockDialog.disposable).thenReturn(disposable)
 
         manager.dialogFactory = { mockDialog }
@@ -125,7 +126,7 @@ class UpdateReferenceImagesDialogManagerTest {
         val manager = UpdateReferenceImagesDialogManager.getInstance(projectRule.project)
 
         val mockDialog = mock(UpdateReferenceImagesDialog::class.java)
-        val disposable = Disposer.newDisposable("MockDialog")
+        val disposable = Disposer.newDisposable(projectRule.testRootDisposable, "MockDialog")
         `when`(mockDialog.disposable).thenReturn(disposable)
 
         manager.dialogFactory = { mockDialog }
