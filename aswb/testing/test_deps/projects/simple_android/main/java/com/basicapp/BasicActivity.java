@@ -35,6 +35,10 @@ public class BasicActivity extends Activity {
       findViewById(R.id.button_id_fizz), findViewById(R.id.button_id_buzz),
     };
 
+    ImageView imageView = findViewById(R.id.img_id_fizz);
+    imageView.setImageResource(R.drawable.foo);
+
+
     for (var b : buttons) {
       b.setOnClickListener(
           new View.OnClickListener() {

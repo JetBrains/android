@@ -15,6 +15,7 @@ android_library(
     resource_files = glob(["res/**"]) + [":gen_res"],
     visibility = ["//visibility:public"],
     deps = [
+        "//simple_android/external:external_resource",
         "@maven//:com_google_guava_guava",
     ],
 )
