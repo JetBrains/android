@@ -28,7 +28,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
-import java.io.File
 import java.util.Base64
 import org.junit.After
 import org.junit.Before
