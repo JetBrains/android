@@ -89,7 +89,7 @@ class BlazeApkBuildStep(
     }
     if (nativeDebuggingEnabled) {
       command.addBlazeFlags(
-        NativeSymbolFinder.getInstances().joinToString(" ") { it.getAdditionalBuildFlags() }
+        NativeSymbolFinder.getInstances().joinToString(" ") { it.additionalBuildFlags }
       )
     }
     val buildOutputs =
