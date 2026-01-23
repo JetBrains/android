@@ -24,6 +24,7 @@ import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoO
 import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoOuterClass.Artifact;
 import com.google.idea.blaze.android.manifest.ManifestParser;
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest;
+import com.google.idea.blaze.android.run.deployinfo.DeployData;
 import com.google.idea.blaze.base.qsync.cache.ArtifactFetchers;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.output.StatusOutput;

@@ -125,12 +125,9 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
       ExecutionEnvironment env, ApkBuildStep buildStep, BlazeCommandRunConfiguration configuration) throws ApkProvisionException {
     var deployInfo = buildStep.getDeployInfo();
 
-    var testPackageName = deployInfo.getMainAppPackageName();
-    var packageName = deployInfo.getAppUnderTestPackageName() != null ? deployInfo.getAppUnderTestPackageName() : testPackageName;
-    var applicationIds = new BazelApplicationIdProvider(packageName, testPackageName);
+    var applicationIds = deployInfo.toInstrumentationTestApplicationIdProvider();
+    var apkProvider = deployInfo.toApkProvider();
     var applicationId = applicationIds.getPackageName();
-
-    var apkProvider = new BazelApkProvider(deployInfo.getApkInfos(), deployInfo.getSymbolFiles());
     var applicationProjectContext = new BazelApplicationProjectContext(project, applicationId);
 
     var consoleProvider =

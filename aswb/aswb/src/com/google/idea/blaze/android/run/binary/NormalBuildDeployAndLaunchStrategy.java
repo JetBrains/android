@@ -104,11 +104,9 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
   public BazelAndroidRunContext createBlazeAndroidRunContext(
       ExecutionEnvironment env, ApkBuildStep buildStep, BlazeCommandRunConfiguration configuration) throws ApkProvisionException {
     var deployInfo = buildStep.getDeployInfo();
-
-    var applicationId = deployInfo.getMainAppPackageName();
-    var applicationIds = new BazelApplicationIdProvider(applicationId, null);
-
-    var apkProvider = new BazelApkProvider(deployInfo.getApkInfos(), deployInfo.getSymbolFiles());
+    var applicationIds = deployInfo.toAndroidBinaryApplicationIdProvider();
+    var apkProvider = deployInfo.toApkProvider();
+    var applicationId = applicationIds.getPackageName();
     var applicationProjectContext = new BazelApplicationProjectContext(project, applicationId);
 
     var consoleProvider = new BlazeAndroidBinaryConsoleProvider(project);

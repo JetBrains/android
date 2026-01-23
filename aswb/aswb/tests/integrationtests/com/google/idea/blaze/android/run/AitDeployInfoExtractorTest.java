@@ -114,8 +114,9 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
     assertThat(deployInfo).isNotNull();
     assertThat(deployInfo.getMainAppMergedManifest().packageName)
         .isEqualTo("com.google.android.buildsteptester");
-    assertThat(deployInfo.getApksToDeploy()).hasSize(1);
-    assertThat(deployInfo.getApksToDeploy().get(0).getPath())
+    assertThat(deployInfo.getApkInfos()).hasSize(1);
+    assertThat(deployInfo.getApkInfos().get(0).getFiles()).hasSize(1);
+    assertThat(deployInfo.getApkInfos().get(0).getFiles().get(0).getApkFile().getPath())
         .startsWith(TestRuntimeArtifactCache.CACHE_BASE);
     assertThat(deployInfo.getAppUnderTestMergedManifest()).isNull();
   }
@@ -147,10 +148,13 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
     assertThat(deployInfo).isNotNull();
     assertThat(deployInfo.getMainAppMergedManifest().packageName)
         .isEqualTo("com.google.android.buildsteptester");
-    assertThat(deployInfo.getApksToDeploy()).hasSize(2);
-    deployInfo.getApksToDeploy().stream()
-        .map(File::getPath)
-        .forEach(p -> assertThat(p).startsWith(TestRuntimeArtifactCache.CACHE_BASE));
+    assertThat(deployInfo.getApkInfos()).hasSize(2);
+    assertThat(deployInfo.getApkInfos().get(0).getFiles()).hasSize(1);
+    assertThat(deployInfo.getApkInfos().get(0).getFiles().get(0).getApkFile().getPath())
+      .startsWith(TestRuntimeArtifactCache.CACHE_BASE);
+    assertThat(deployInfo.getApkInfos().get(1).getFiles()).hasSize(1);
+    assertThat(deployInfo.getApkInfos().get(1).getFiles().get(0).getApkFile().getPath())
+      .startsWith(TestRuntimeArtifactCache.CACHE_BASE);
     assertThat(deployInfo.getAppUnderTestMergedManifest()).isNotNull();
     assertThat(deployInfo.getAppUnderTestMergedManifest().packageName)
         .isEqualTo("com.google.android.libraries.foo");

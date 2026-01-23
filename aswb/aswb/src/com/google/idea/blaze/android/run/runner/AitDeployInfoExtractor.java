@@ -15,22 +15,16 @@
  */
 package com.google.idea.blaze.android.run.runner;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
 import com.android.tools.idea.run.ApkProvisionException;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
-import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo.ManifestWithApks;
-import com.google.idea.blaze.base.run.RuntimeArtifactCache;
-import com.google.idea.blaze.base.run.RuntimeArtifactKind;
+import com.google.idea.blaze.android.run.deployinfo.DeployData;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.intellij.openapi.project.Project;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -93,22 +87,11 @@ public final class AitDeployInfoExtractor implements DeployInfoExtractor {
       @Nullable DeployData targetData,
       BlazeContext context,
       List<? extends File> nativeSymbols) throws ApkProvisionException {
-    var mainAppApks = cacheLocally(instrumentationInfo.testApp, testData.apks(), context);
-    var mainAppPackage = new ManifestWithApks(testData.mergedManifest(), mainAppApks);
-    ManifestWithApks testTargetAppPackage = null;
+    var mainAppPackage = DeployData.fetchApks(testData, project, context);
+    BlazeAndroidDeployInfo.ManifestWithApkInfo testTargetAppPackage = null;
     if (targetData != null) {
-      var testTargetAppApks = cacheLocally(instrumentationInfo.targetApp, targetData.apks(), context);
-      testTargetAppPackage = new ManifestWithApks(targetData.mergedManifest(), testTargetAppApks);
+      testTargetAppPackage = DeployData.fetchApks(targetData, project, context);
     }
     return BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(mainAppPackage, testTargetAppPackage, ImmutableList.copyOf(nativeSymbols));
-  }
-
-  private ImmutableList<File> cacheLocally(Label targetLabel, List<? extends OutputArtifact> artifacts, BlazeContext context) {
-    RuntimeArtifactCache runtimeArtifactCache = RuntimeArtifactCache.getInstance(project);
-    return runtimeArtifactCache
-      .fetchArtifacts(targetLabel, artifacts, context, RuntimeArtifactKind.APK)
-        .stream()
-        .map(Path::toFile)
-        .collect(toImmutableList());
   }
 }

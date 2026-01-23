@@ -23,7 +23,6 @@ import static com.google.idea.blaze.base.bazel.BepUtils.parsedBep;
 import static com.google.idea.blaze.base.bazel.BepUtils.setOfFiles;
 import static com.google.idea.blaze.base.bazel.BepUtils.started;
 import static com.google.idea.blaze.base.bazel.BepUtils.targetComplete;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -33,13 +32,13 @@ import com.google.common.io.Resources;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEvent;
 import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoOuterClass.AndroidDeployInfo;
 import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoOuterClass.Artifact;
-import com.google.idea.blaze.android.run.runner.BinaryDeployInfoExtractor;
-import com.google.idea.blaze.base.run.RuntimeArtifactCache;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
+import com.google.idea.blaze.android.run.runner.BinaryDeployInfoExtractor;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.bazel.BepUtils.FileArtifact;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider.BuildEventStreamException;
 import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
+import com.google.idea.blaze.base.run.RuntimeArtifactCache;
 import com.google.idea.blaze.base.run.RuntimeArtifactKind;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
@@ -86,13 +85,14 @@ public class BinaryDeployInfoExtractorTest extends BlazeIntegrationTestCase {
     BlazeBuildOutputs buildOutputs =
         BlazeBuildOutputs.fromParsedBepOutput(nominalApkBuildOutput());
     BlazeAndroidDeployInfo deployInfo =
-        new BinaryDeployInfoExtractor(getProject(), Label.of("//some:target"), true, true)
+        new BinaryDeployInfoExtractor(Label.of("//some:target"), true, true)
             .extract(getProject(), buildOutputs, "android-deploy-info", "default", context, nativeSymbols);
 
     assertThat(deployInfo).isNotNull();
     assertThat(deployInfo.getMainAppMergedManifest().packageName)
         .isEqualTo("com.google.android.buildsteptester");
-    assertThat(deployInfo.getApksToDeploy()).isEmpty();
+    assertThat(deployInfo.getApkInfos()).hasSize(1); // Check for one APK
+    assertThat(deployInfo.getApkInfos().get(0).getFiles().get(0).getApkFile().getName()).isEqualTo("foo.apk"); // Check APK name
     assertThat(deployInfo.getSymbolFiles()).isEqualTo(nativeSymbols);
     assertThat(deployInfo.getAppUnderTestMergedManifest()).isNull();
   }
@@ -103,8 +103,17 @@ public class BinaryDeployInfoExtractorTest extends BlazeIntegrationTestCase {
     FileArtifact mergedManifestXml =
         new FileArtifact(BIN_PREFIXES, mergedManifestFile.getName(), mergedManifestFile);
     Artifact mergedManifestArtifact = TestUtil.toArtifact(mergedManifestXml);
+
+    // Create APK file and artifacts
+    File apkFile = folder.newFile("foo.apk");
+    FileArtifact apkFileArtifact = new FileArtifact(BIN_PREFIXES, apkFile.getName(), apkFile);
+    Artifact apkArtifact = TestUtil.toArtifact(apkFileArtifact);
+
     AndroidDeployInfo deployInfo =
-        AndroidDeployInfo.newBuilder().setMergedManifest(mergedManifestArtifact).build();
+        AndroidDeployInfo.newBuilder()
+            .setMergedManifest(mergedManifestArtifact)
+            .addApksToDeploy(apkArtifact) // Corrected to addApksToDeploy
+            .build();
 
     FileArtifact deployInfoPb =
         new FileArtifact(
@@ -114,16 +123,24 @@ public class BinaryDeployInfoExtractorTest extends BlazeIntegrationTestCase {
       deployInfo.writeTo(os);
     }
 
-    ImmutableList<FileArtifact> filePaths = ImmutableList.of(deployInfoPb, mergedManifestXml);
+    // Split files into their respective output groups.
+    ImmutableList<FileArtifact> deployInfoFiles =
+        ImmutableList.of(deployInfoPb, mergedManifestXml);
+    ImmutableList<FileArtifact> apkFiles =
+        ImmutableList.of(apkFileArtifact);
+
     List<BuildEvent> events =
         ImmutableList.of(
             started(UUID.randomUUID()),
             configuration("config-id", MNEMONIC),
-            setOfFiles(filePaths, "set-id", ImmutableList.of()),
+            setOfFiles(deployInfoFiles, "deploy-info-set-id", ImmutableList.of()),
+            setOfFiles(apkFiles, "apk-set-id", ImmutableList.of()),
             targetComplete(
                 "//some:target",
                 "config-id",
-                ImmutableList.of(outputGroup("android-deploy-info", ImmutableList.of("set-id")))));
+                ImmutableList.of(
+                    outputGroup("android-deploy-info", ImmutableList.of("deploy-info-set-id")),
+                    outputGroup("default", ImmutableList.of("apk-set-id")))));
     return parsedBep(events);
   }
 
