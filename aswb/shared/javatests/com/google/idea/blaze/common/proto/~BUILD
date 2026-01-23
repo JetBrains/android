@@ -24,7 +24,7 @@ java_test(
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
-        "@maven//:com.google.guava.guava",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
         "@maven//:io.grpc.grpc-protobuf",
     ],
 )

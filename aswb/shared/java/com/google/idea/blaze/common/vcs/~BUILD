@@ -5,6 +5,6 @@ java_library(
     srcs = glob(["*.java"]),
     visibility = ["//tools/adt/idea/aswb/shared:__subpackages__"],
     deps = [
-        "@maven//:com.google.guava.guava",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )

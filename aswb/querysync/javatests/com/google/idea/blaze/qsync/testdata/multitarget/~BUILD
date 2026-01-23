@@ -11,5 +11,5 @@ java_library(
         "TestClassMultiTarget.java",
         "TestClassSingleTarget.java",
     ],
-    deps = ["@maven//:com.google.guava.guava"],
+    deps = ["//tools/vendor/google/aswb/plugin_api/maven:guava"],
 )

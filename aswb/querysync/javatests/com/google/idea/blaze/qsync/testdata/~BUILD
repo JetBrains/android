@@ -225,8 +225,8 @@ java_library(
     ],
     deps = [
         "//tools/adt/idea/aswb/shared",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
         "@bazel_tools//tools/java/runfiles",
-        "@maven//:com.google.guava.guava",
     ],
 )
 
@@ -247,7 +247,7 @@ aswb_library(
         "//tools/adt/idea/aswb/shared:exception",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
-        "@maven//:com.google.guava.guava",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )
 
@@ -261,6 +261,6 @@ java_library(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
-        "@maven//:com.google.guava.guava",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )

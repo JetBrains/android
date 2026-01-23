@@ -56,7 +56,7 @@ aswb_library(
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
         "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/vendor/google/aswb/plugin_api",
-        "@maven//:com.google.guava.guava",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
         "@maven//:io.grpc.grpc-protobuf",
         "@maven//:io.grpc.grpc-protobuf-lite",
     ],

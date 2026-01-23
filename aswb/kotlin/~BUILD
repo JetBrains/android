@@ -72,7 +72,7 @@ intellij_unit_test_suite(
         "//tools/vendor/google/aswb/plugin_api:kotlin_for_tests",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
-        "@maven//:com.google.guava.guava",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )
 
@@ -136,6 +136,6 @@ intellij_integration_test_suite(
         "//tools/vendor/google/aswb/plugin_api:kotlin_for_tests",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
-        "@maven//:com.google.guava.guava",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )

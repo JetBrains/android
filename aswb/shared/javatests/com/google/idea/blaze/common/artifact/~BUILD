@@ -20,6 +20,6 @@ java_library(
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common/artifact",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/exception",
         "//tools/adt/idea/aswb/third_party/java/auto_value",
-        "@maven//:com.google.guava.guava",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )

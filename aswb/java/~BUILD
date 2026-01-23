@@ -108,7 +108,7 @@ intellij_unit_test_suite(
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
         "//tools/vendor/google/aswb/plugin_api:truth",
-        "@maven//:com.google.guava.guava",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )
 
@@ -129,7 +129,7 @@ java_binary(
     testonly = True,
     main_class = "None",
     runtime_deps = [
-        "@maven//:com.google.guava.guava",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )
 
@@ -202,6 +202,6 @@ intellij_integration_test_suite(
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
-        "@maven//:com.google.guava.guava",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )

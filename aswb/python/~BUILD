@@ -103,8 +103,8 @@ intellij_integration_test_suite(
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
         "//tools/vendor/google/aswb/third_party/java/jetbrains/python:python_for_tests",
-        "@maven//:com.google.guava.guava",
     ],
 )
 
@@ -125,7 +125,7 @@ intellij_unit_test_suite(
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
+        "//tools/vendor/google/aswb/plugin_api/maven:guava",
         "//tools/vendor/google/aswb/third_party/java/jetbrains/python:python_for_tests",
-        "@maven//:com.google.guava.guava",
     ],
 )
