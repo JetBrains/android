@@ -20,7 +20,6 @@ import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.tools.idea.adblib.testing.FakeAdbSessionRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -57,7 +56,7 @@ internal class ShellCommandUiDumpProviderTest {
     deviceServices.configureShellCommand(device, READ_COMMAND, UI_DUMP_OUTPUT_RAW)
     deviceServices.configureShellCommand(device, CLEANUP_COMMAND, "")
 
-    val dump = runBlockingWithTimeout { uiDumpProvider.uiDump(project, serialNumber) }
+    val dump = runBlockingWithTimeout { uiDumpProvider.uiDump(project, serialNumber) }.xml
     assertEquals(UI_DUMP_OUTPUT_EXPECTED, dump)
   }
 
@@ -69,8 +68,9 @@ internal class ShellCommandUiDumpProviderTest {
                                          stderr = errorMessage,
                                          exitCode = 1)
 
-    val dump = runBlockingWithTimeout { uiDumpProvider.uiDump(project, serialNumber) }
-    assertEquals("$DUMP_COMMAND failed with exit code 1. $errorMessage", dump)
+    val result = runBlockingWithTimeout { uiDumpProvider.uiDump(project, serialNumber) }
+    assert(result.hasError())
+    assertEquals("$DUMP_COMMAND failed with exit code 1. $errorMessage", result.error)
   }
 
   @Test
@@ -82,7 +82,8 @@ internal class ShellCommandUiDumpProviderTest {
                                          stdout = "",
                                          stderr = errorMessage,
                                          exitCode = 1)
-    val dump = runBlockingWithTimeout { uiDumpProvider.uiDump(project, serialNumber) }
-    assertEquals("Failed to read $TMP_DUMP_FILE. $errorMessage", dump)
+    val result = runBlockingWithTimeout { uiDumpProvider.uiDump(project, serialNumber) }
+    assert(result.hasError())
+    assertEquals("Failed to read $TMP_DUMP_FILE. $errorMessage", result.error)
   }
 }
