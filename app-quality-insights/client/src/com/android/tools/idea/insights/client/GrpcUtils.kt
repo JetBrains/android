@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +19,13 @@ import com.android.tools.idea.insights.LoadingState
 import com.google.api.client.auth.oauth2.TokenResponseException
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpStatusCodes
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.net.ssl.CertificateManager
-import com.intellij.util.net.ssl.ConfirmingTrustManager
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
-import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder
-import io.grpc.netty.shaded.io.netty.handler.ssl.SslProvider
 import io.grpc.protobuf.StatusProto
 import java.io.IOException
 import java.net.SocketException
 import java.net.UnknownHostException
+import java.util.logging.Logger
 import kotlin.random.Random
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,7 +50,7 @@ private const val GRPC_BACKOFF_MULTIPLIER: Float = 3.0F
 /** GRPC timeout period. */
 private const val GRPC_TIMEOUT_MILLIS = 60_000L
 
-private fun log() = Logger.getInstance("GrpcUtils")
+private fun log() = Logger.getLogger("GrpcUtils")
 
 /**
  * Performs [rpcCall] with retry strategy if applicable or no retry if [maxRetries] < 1.
@@ -86,10 +80,10 @@ suspend fun <T> retryRpc(
         if (!retryableStatusCodes.contains(exception.status.code)) throw exception
       }
 
-      Random.nextLong(currentDelay)
+      Random.Default.nextLong(currentDelay)
         .also {
           log()
-            .warn(
+            .warning(
               "Retry attempt #${count + 1} for rpc call - $name, retrying in ${it / 1000.0} second(s)..."
             )
         }
@@ -123,6 +117,7 @@ suspend fun <T> runGrpcCatching(
           // Requested entity was not found.
           notFoundFallbackValue
         }
+
         Status.Code.UNAUTHENTICATED -> {
           // This is not supposed to happen as the caller is (will be?) guarding against the remote
           // procedure call if
@@ -130,19 +125,24 @@ suspend fun <T> runGrpcCatching(
           // case.
           LoadingState.Unauthorized("$SUGGEST_FOR_UNAUTHORIZED ${exception.message}", exception)
         }
+
         Status.Code.PERMISSION_DENIED -> {
           LoadingState.PermissionDenied(exception.message, exception)
         }
+
         Status.Code.UNKNOWN,
         Status.Code.DEADLINE_EXCEEDED,
         Status.Code.UNAVAILABLE,
         Status.Code.RESOURCE_EXHAUSTED -> {
           LoadingState.NetworkFailure(exception.message, exception)
         }
+
         else -> {
           val parsed = StatusProto.fromThrowable(exception)
           log()
-            .warn("$name - Got StatusRuntimeException: ${exception.message} (parsed info: $parsed)")
+            .warning(
+              "$name - Got StatusRuntimeException: ${exception.message} (parsed info: $parsed)"
+            )
           LoadingState.UnknownFailure(exception.message, exception, parsed)
         }
       }
@@ -150,8 +150,10 @@ suspend fun <T> runGrpcCatching(
       when (exception) {
         is TokenResponseException ->
           LoadingState.Unauthorized("$SUGGEST_FOR_UNAUTHORIZED ${exception.message}", exception)
+
         is UnknownHostException,
         is SocketException -> LoadingState.NetworkFailure(exception.message, exception)
+
         is GoogleJsonResponseException -> {
           if (exception.statusCode == HttpStatusCodes.STATUS_CODE_FORBIDDEN) {
             LoadingState.PermissionDenied(exception.message, exception)
@@ -159,28 +161,16 @@ suspend fun <T> runGrpcCatching(
             LoadingState.ServerFailure(exception)
           }
         }
+
         else -> LoadingState.UnknownFailure(exception.message, exception)
       }
     } catch (exception: TimeoutCancellationException) {
       LoadingState.NetworkFailure(exception.message, exception)
     } catch (exception: Exception) {
-      log().warn("$name - Got exception: ${exception.message}")
+      log().warning("$name - Got exception: ${exception.message}")
       LoadingState.UnknownFailure(exception.message, exception)
     }
   }
-
-fun channelBuilderForAddress(address: String): NettyChannelBuilder {
-  val sslContext =
-    GrpcSslContexts.configure(SslContextBuilder.forClient(), SslProvider.JDK)
-      .trustManager(
-        ConfirmingTrustManager.createForStorage(
-          CertificateManager.DEFAULT_PATH,
-          CertificateManager.DEFAULT_PASSWORD,
-        )
-      )
-      .build()
-  return NettyChannelBuilder.forTarget(address).sslContext(sslContext)
-}
 
 private fun getName(): String {
   return StackWalker.getInstance().walk { frames ->

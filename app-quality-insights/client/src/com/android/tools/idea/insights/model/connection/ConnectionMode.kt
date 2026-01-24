@@ -17,5 +17,7 @@ package com.android.tools.idea.insights.model.connection
 
 enum class ConnectionMode {
   ONLINE,
-  OFFLINE,
+  OFFLINE;
+
+  fun isOfflineMode() = this == OFFLINE
 }

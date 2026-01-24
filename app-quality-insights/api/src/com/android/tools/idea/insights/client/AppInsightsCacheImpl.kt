@@ -31,57 +31,6 @@ import com.github.benmanes.caffeine.cache.Cache
 import java.util.SortedSet
 import java.util.TreeSet
 
-/** Cache for App Insights data. */
-interface AppInsightsCache {
-  /**
-   * Returns the most recently obtained connections.
-   *
-   * Used for Vitals only.
-   */
-  fun getRecentConnections(): List<Connection>
-
-  /**
-   * Sets the most recently obtained connections. Calling this has the side effect of evicting
-   * values associated with connections not in [connections].
-   *
-   * Used for Vitals only.
-   */
-  fun populateConnections(connections: List<Connection>)
-
-  /**
-   * Returns the top reported [Issue]s stored in the cache. Returns null if no issues are cached for
-   * this [FirebaseConnection].
-   */
-  fun getTopIssues(request: IssueRequest): List<AppInsightsIssue>?
-
-  /** Returns the issues specified by [issueIds]. */
-  fun getIssues(connection: Connection, issueIds: List<IssueId>): List<AppInsightsIssue>
-
-  /** Populates the cache with recently fetched [Issue]s. */
-  fun populateIssues(connection: Connection, issues: List<AppInsightsIssue>)
-
-  /**
-   * Returns an event that belongs to [issueId] and matches the filtering criteria. Null if such an
-   * event does not exist.
-   */
-  fun getEvent(issueRequest: IssueRequest, issueId: IssueId): Event?
-
-  /** Get cached notes based on [issueId]. Returns null if notes are not cached for this issue. */
-  fun getNotes(connection: Connection, issueId: IssueId): List<Note>?
-
-  /** Populate and overwrite the list of notes belonging to [issueId]. */
-  fun populateNotes(connection: Connection, issueId: IssueId, notes: List<Note>)
-
-  /** Adds a [Note] to the cache belonging to [issueId]. */
-  fun addNote(connection: Connection, issueId: IssueId, note: Note)
-
-  /** Removes the note matching [NoteId] from the cache. */
-  fun removeNote(connection: Connection, noteId: NoteId)
-
-  /** Removes the cached entry of an issue. */
-  fun removeIssue(connection: Connection, issueId: IssueId)
-}
-
 private const val MAXIMUM_ISSUES_CACHE_SIZE = 1000L
 private const val MAXIMUM_FIREBASE_CONNECTIONS_CACHE_SIZE = 20L
 

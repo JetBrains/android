@@ -16,8 +16,6 @@
 package com.android.tools.idea.vitals.client
 
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.MINIMUM_PERCENTAGE_TO_SHOW
-import com.android.tools.idea.insights.MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.client.FetchSource
@@ -26,7 +24,6 @@ import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.client.runGrpcCatchingWithSupervisorScope
-import com.android.tools.idea.insights.isOfflineMode
 import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.connection.AppConnection
 import com.android.tools.idea.insights.model.connection.Connection
@@ -41,11 +38,13 @@ import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.issue.IssueState
 import com.android.tools.idea.insights.model.issue.IssueVariant
+import com.android.tools.idea.insights.model.issue.MINIMUM_PERCENTAGE_TO_SHOW
+import com.android.tools.idea.insights.model.issue.MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW
+import com.android.tools.idea.insights.model.issue.summarizeDevicesFromRawDataPoints
+import com.android.tools.idea.insights.model.issue.summarizeOsesFromRawDataPoints
 import com.android.tools.idea.insights.model.note.Note
 import com.android.tools.idea.insights.model.note.NoteId
 import com.android.tools.idea.insights.model.stacktrace.StackTraceGroupParser
-import com.android.tools.idea.insights.summarizeDevicesFromRawDataPoints
-import com.android.tools.idea.insights.summarizeOsesFromRawDataPoints
 import com.android.tools.idea.vitals.VitalsInsightsProvider
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClient
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClientImpl
