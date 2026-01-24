@@ -18,7 +18,6 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.isCancellableTimeoutException
-import com.android.tools.idea.insights.isOfflineMode
 import com.intellij.util.text.DateFormatUtil
 import java.time.Clock
 import java.time.Instant

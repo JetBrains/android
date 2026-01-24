@@ -21,6 +21,8 @@ import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.issue.IssueStats
+import com.android.tools.idea.insights.model.issue.summarizeDevicesFromRawDataPoints
+import com.android.tools.idea.insights.model.issue.summarizeOsesFromRawDataPoints
 import com.google.common.truth.Truth.assertThat
 import kotlin.math.roundToInt
 import org.junit.Test
