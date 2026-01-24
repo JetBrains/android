@@ -43,6 +43,8 @@ public:
 private:
   enum class RunState { STOPPED, RUNNING, STOPPING };
 
+  void Run(const std::function<void()>& runnable);
+
   std::mutex mutex_;
   RunState run_state_ = RunState::STOPPED;  // GUARDED_BY(mutex_)
   std::thread thread_;  // GUARDED_BY(mutex_)
