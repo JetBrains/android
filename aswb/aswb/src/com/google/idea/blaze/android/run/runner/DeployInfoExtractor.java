@@ -30,9 +30,6 @@ public interface DeployInfoExtractor {
   BlazeAndroidDeployInfo extract(
       Project project,
       BlazeBuildOutputs buildOutputs,
-      String deployInfoOutputGroups,
-      String apkOutputGroup,
-      BlazeContext context,
-      List<? extends File> nativeSymbols)
+      BlazeContext context)
       throws ApkProvisionException;
 }

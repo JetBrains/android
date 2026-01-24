@@ -23,6 +23,7 @@ import static com.google.idea.blaze.base.bazel.BepUtils.parsedBep;
 import static com.google.idea.blaze.base.bazel.BepUtils.setOfFiles;
 import static com.google.idea.blaze.base.bazel.BepUtils.started;
 import static com.google.idea.blaze.base.bazel.BepUtils.targetComplete;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -82,11 +83,12 @@ public class BinaryDeployInfoExtractorTest extends BlazeIntegrationTestCase {
   public void parse_nominalOutput() throws BuildEventStreamException, IOException, ApkProvisionException {
     NativeSymbolFinder mockSymbolFinder = mock(NativeSymbolFinder.class);
     registerExtension(NativeSymbolFinder.EP_NAME, mockSymbolFinder);
+    when(mockSymbolFinder.getNativeSymbolsForBuild(any(), any(), any(), any())).thenReturn(nativeSymbols);
     BlazeBuildOutputs buildOutputs =
         BlazeBuildOutputs.fromParsedBepOutput(nominalApkBuildOutput());
     BlazeAndroidDeployInfo deployInfo =
-        new BinaryDeployInfoExtractor(Label.of("//some:target"), true, true)
-            .extract(getProject(), buildOutputs, "android-deploy-info", "default", context, nativeSymbols);
+        new BinaryDeployInfoExtractor(Label.of("//some:target"), true, true, "android-deploy-info", "default")
+            .extract(getProject(), buildOutputs, context);
 
     assertThat(deployInfo).isNotNull();
     assertThat(deployInfo.getMainAppMergedManifest().packageName)

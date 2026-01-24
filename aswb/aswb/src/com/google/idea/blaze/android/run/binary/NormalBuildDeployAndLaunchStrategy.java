@@ -34,10 +34,8 @@ import com.android.tools.idea.util.DynamicAppUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.android.run.BazelAndroidRunContext;
-import com.google.idea.blaze.android.run.BazelApkProvider;
-import com.google.idea.blaze.android.run.BazelApplicationIdProvider;
 import com.google.idea.blaze.android.run.BazelApplicationProjectContext;
-import com.google.idea.blaze.android.run.runner.ApkBuildStep;
+import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeployAndLaunchStrategy;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector;
 import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
@@ -102,8 +100,9 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
 
   @Override
   public BazelAndroidRunContext createBlazeAndroidRunContext(
-      ExecutionEnvironment env, ApkBuildStep buildStep, BlazeCommandRunConfiguration configuration) throws ApkProvisionException {
-    var deployInfo = buildStep.getDeployInfo();
+      ExecutionEnvironment env,
+      BlazeAndroidDeployInfo deployInfo,
+      BlazeCommandRunConfiguration configuration) {
     var applicationIds = deployInfo.toAndroidBinaryApplicationIdProvider();
     var apkProvider = deployInfo.toApkProvider();
     var applicationId = applicationIds.getPackageName();
@@ -113,7 +112,7 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
 
     return new BazelAndroidRunContext(
         consoleProvider,
-        buildStep,
+        deployInfo,
         applicationIds,
         apkProvider,
         applicationProjectContext,
@@ -139,7 +138,7 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
     final StartActivityFlagsProvider startActivityFlagsProvider =
         new DefaultStartActivityFlagsProvider(project, isDebug, extraFlags);
 
-    var deployInfo = runContext.getBuildStep().getDeployInfo();
+    var deployInfo = runContext.getDeployInfo();
 
     return BlazeAndroidBinaryApplicationLaunchTaskProvider.getApplicationLaunchTask(
         runContext.getApplicationIdProvider(),

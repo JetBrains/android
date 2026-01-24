@@ -22,7 +22,7 @@ import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ConsoleProvider
 import com.android.tools.idea.run.editor.ProfilerState
-import com.google.idea.blaze.android.run.runner.ApkBuildStep
+import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo
 import com.intellij.execution.Executor
 import com.intellij.openapi.project.Project
 import java.io.File
@@ -30,7 +30,7 @@ import java.io.File
 /** Holds the context data required to run an Android application.  */
 class BazelAndroidRunContext(
   val consoleProvider: ConsoleProvider,
-  val buildStep: ApkBuildStep,
+  val deployInfo: BlazeAndroidDeployInfo,
   val applicationIdProvider: BazelApplicationIdProvider,
   val apkProvider: BazelApkProvider,
   val applicationProjectContext: BazelApplicationProjectContext,

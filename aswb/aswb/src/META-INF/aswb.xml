@@ -79,7 +79,6 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.MobileInstallAdbLocationProvider" interface="com.google.idea.blaze.android.run.binary.mobileinstall.MobileInstallAdbLocationProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.AdbTunnelConfiguratorProvider" interface="com.google.idea.blaze.android.run.binary.mobileinstall.AdbTunnelConfigurator$AdbTunnelConfiguratorProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.ComposeStatusProvider" interface="com.google.idea.blaze.android.compose.ComposeStatusProvider"/>
-    <extensionPoint qualifiedName="com.google.idea.blaze.android.ApkBuildStepProvider" interface="com.google.idea.blaze.android.run.ApkBuildStepProvider" />
     <extensionPoint qualifiedName="com.google.idea.blaze.NativeSymbolFinder" interface="com.google.idea.blaze.android.run.NativeSymbolFinder" />
     <extensionPoint qualifiedName="com.google.idea.blaze.projectInitializerForTesting" interface="com.google.idea.blaze.android.project.BazelProjectOpenProcessor$BazelProjectInitializerForTesting" />
     <extensionPoint qualifiedName="com.android.tools.idea.rendering.tokens.bazelComposeToolingProjectLabelProvider" interface="com.android.tools.idea.rendering.tokens.BazelComposeToolingProjectLabelProvider" />

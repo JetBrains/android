@@ -39,5 +39,10 @@ interface NativeSymbolFinder {
     @JvmField
     val EP_NAME: ExtensionPointName<NativeSymbolFinder> =
       ExtensionPointName.create("com.google.idea.blaze.NativeSymbolFinder")
+
+    @JvmStatic
+    fun fetchNativeSymbols(project: Project, context: BlazeContext, reference: Label, buildOutputs: BlazeBuildOutputs): List<File> {
+      return getInstances().flatMap { it.getNativeSymbolsForBuild(project, context, reference, buildOutputs) }
+    }
   }
 }
