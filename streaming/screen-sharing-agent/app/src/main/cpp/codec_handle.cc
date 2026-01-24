@@ -22,14 +22,13 @@ namespace screensharing {
 
 using namespace std;
 
-CodecHandle::CodecHandle(AMediaCodec* codec, string&& log_prefix)
+CodecHandle::CodecHandle(MediaCodec&& codec, string&& log_prefix)
     : log_prefix_(log_prefix),
-      codec_(codec) {
+      codec_(std::move(codec)) {
 }
 
 CodecHandle::~CodecHandle() {
   Stop();
-  AMediaCodec_delete(codec_);
 }
 
 bool CodecHandle::Start() {
@@ -37,9 +36,9 @@ bool CodecHandle::Start() {
   if (stopped_) {
     return false;
   }
-  media_status_t res = AMediaCodec_start(codec_);
-  if (res != AMEDIA_OK) {
-    Log::W("%serror starting codec: %d", log_prefix_.c_str(), res);
+  media_status_t status = AMediaCodec_start(codec_);
+  if (status != AMEDIA_OK) {
+    Log::W("%serror starting codec: %d", log_prefix_.c_str(), status);
     return false;
   }
   running_ = true;

@@ -16,19 +16,17 @@
 
 #pragma once
 
-#include <media/NdkMediaCodec.h>
-
 #include <mutex>
 
 #include "common.h"
+#include "ndk_types.h"
 
 namespace screensharing {
 
 // Streams audio to a socket.
 class CodecHandle {
 public:
-  // Takes ownership of the codec.
-  CodecHandle(AMediaCodec* codec, std::string&& log_prefix);
+  CodecHandle(MediaCodec&& codec, std::string&& log_prefix);
   ~CodecHandle();
 
   // Starts the codec unless there is a pending stop request. Returns true if the codec was started.
@@ -37,12 +35,12 @@ public:
   void Stop();
   bool IsStopped();
 
-  AMediaCodec* codec() const { return codec_; }
+  AMediaCodec* codec() { return codec_.Get(); }
 
 private:
   std::string log_prefix_;
   std::recursive_mutex mutex_;
-  AMediaCodec* codec_ = nullptr;  // GUARDED_BY(mutex_)
+  MediaCodec codec_;  // GUARDED_BY(mutex_)
   bool running_ = false;  // GUARDED_BY(mutex_)
   bool stopped_ = false;  // GUARDED_BY(mutex_)
 

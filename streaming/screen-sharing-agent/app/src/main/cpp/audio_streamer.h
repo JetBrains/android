@@ -16,13 +16,12 @@
 
 #pragma once
 
-#include <media/NdkMediaCodec.h>
-
 #include "accessors/audio_record.h"
 #include "audio_reader.h"
 #include "common.h"
 #include "jvm.h"
 #include "codec_handle.h"
+#include "ndk_types.h"
 #include "socket_writer.h"
 #include "thread_handle.h"
 
@@ -50,7 +49,7 @@ private:
   AudioReader* audio_reader_ = nullptr;
   int32_t consequent_deque_error_count_ = 0;
 
-  AMediaFormat* media_format_ = nullptr;
+  MediaFormat media_format_;
   CodecHandle* codec_handle_ = nullptr;
   ThreadHandle thread_handle_;
 

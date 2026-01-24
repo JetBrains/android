@@ -238,6 +238,7 @@ void DisplayStreamer::Run() {
         }
       }
     }
+    NativeWindow surface;
     {
       unique_lock lock(mutex_);
       if (codec_stop_pending_) {
@@ -258,17 +259,17 @@ void DisplayStreamer::Run() {
           codec_, *codec_info_, max_video_resolution_.Rotated(rotation_correction), bit_rate_, media_format, display_info, display_id_);
       Log::D("Display %d: rotation=%d rotation_correction=%d video_size=%dx%d",
              display_id_, display_info.rotation, rotation_correction, video_size.width, video_size.height);
-      media_status_t status = AMediaCodec_createInputSurface(codec_, &surface_);  // Requires API 26.
+      media_status_t status = AMediaCodec_createInputSurface(codec_, &surface);  // Requires API 26.
       if (status != AMEDIA_OK) {
         Log::Fatal(INPUT_SURFACE_CREATION_ERROR, "Display %d: AMediaCodec_createInputSurface returned %d", display_id_, status);
       }
       if (Agent::feature_level() >= 34) {
         virtual_display_.Resize(video_size.width, video_size.height, display_info_.logical_density_dpi);
-        virtual_display_.SetSurface(surface_);
+        virtual_display_.SetSurface(surface);
       } else {
         int32_t height = lround(static_cast<double>(video_size.width) * display_info.logical_size.height / display_info.logical_size.width);
         int32_t y = (video_size.height - height) / 2;
-        SurfaceControl::ConfigureProjection(jni, display_token_, surface_, display_info, { 0, y, video_size.width, height });
+        SurfaceControl::ConfigureProjection(jni, display_token_, surface, display_info, { 0, y, video_size.width, height });
       }
       StartCodecUnlocked();
       codec_running_ = true;
@@ -282,11 +283,10 @@ void DisplayStreamer::Run() {
           (bit_rate_reduced_ ? VideoPacketHeader::FLAG_BIT_RATE_REDUCED : 0);
       packet_header.bit_rate = bit_rate_;
     }
-    AMediaFormat* sync_frame_request = AMediaFormat_new();
+    MediaFormat sync_frame_request = AMediaFormat_new();
     AMediaFormat_setInt32(sync_frame_request, AMEDIACODEC_KEY_REQUEST_SYNC_FRAME, 0);
     stop_reason = ProcessFramesUntilCodecStopped(&packet_header, sync_frame_request);
     Log::D("ProcessFramesUntilCodecStopped returned %d", stop_reason);
-    AMediaFormat_delete(sync_frame_request);
     StopCodec();
     DeleteCodec();
     if (virtual_display_.IsNotNull()) {
@@ -294,8 +294,6 @@ void DisplayStreamer::Run() {
     } else {
       SurfaceControl::SetSurface(jni, display_token_, nullptr);
     }
-    ANativeWindow_release(surface_);
-    surface_ = nullptr;
     if (stop_reason == FrameStreamStopReason::CODEC_ERROR) {
       if (++error_count >= MAX_SUBSEQUENT_ERRORS && !ReduceBitRate()) {
         ExitCode exitCode = bit_rate_ <= MIN_BIT_RATE ? WEAK_VIDEO_ENCODER : REPEATED_VIDEO_ENCODER_ERRORS;
@@ -322,7 +320,6 @@ void DisplayStreamer::Run() {
   }
 
   ReleaseVirtualDisplay(jni);
-  AMediaFormat_delete(media_format);
   WindowManager::RemoveRotationWatcher(jni, display_id_, &display_rotation_watcher_);
   DisplayManager::RemoveDisplayListener(this);
 
@@ -455,25 +452,21 @@ DisplayInfo DisplayStreamer::GetDisplayInfo() {
 }
 
 void DisplayStreamer::CreateCodec() {
-  if (codec_ != nullptr) {
+  if (codec_.IsNotNull()) {
     Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Display %d: video encoder already created", display_id_);
   }
   Log::D("Display %d: creating codec", display_id_);
   codec_ = AMediaCodec_createCodecByName(codec_info_->name.c_str());
-  if (codec_ == nullptr) {
+  if (codec_.IsNull()) {
     Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Display %d: unable to create a %s video encoder",
                display_id_, codec_info_->name.c_str());
   }
 }
 
 void DisplayStreamer::DeleteCodec() {
-  if (codec_ != nullptr) {
+  if (codec_.IsNotNull()) {
     Log::D("Display %d: deleting codec", display_id_);
-    media_status_t status = AMediaCodec_delete(codec_);
-    codec_ = nullptr;
-    if (status != AMEDIA_OK) {
-      Log::W("Display %d: AMediaCodec_delete returned %d", display_id_, status);
-    }
+    codec_.Reset();
   }
 }
 

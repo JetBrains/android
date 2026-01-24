@@ -22,6 +22,7 @@
 #include "flags.h"
 #include "jvm.h"
 #include "log.h"
+#include "ndk_types.h"
 #include "remote_submix_reader.h"
 #include "string_printf.h"
 
@@ -144,14 +145,14 @@ void AudioStreamer::StopCodec() {
 }
 
 bool AudioStreamer::StartAudioCapture() {
-  AMediaCodec* codec = AMediaCodec_createEncoderByType(MIME_TYPE);
-  if (codec == nullptr) {
+  MediaCodec codec = AMediaCodec_createEncoderByType(MIME_TYPE);
+  if (codec.IsNull()) {
     Log::W("Audio: unable to create %s encoder", CODEC_NAME);
     return false;
   }
-  codec_handle_ = new CodecHandle(codec, "Audio: ");
+  codec_handle_ = new CodecHandle(std::move(codec), "Audio: ");
   media_format_ = CreateMediaFormat();
-  media_status_t status = AMediaCodec_configure(codec, media_format_, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
+  media_status_t status = AMediaCodec_configure(codec_handle_->codec(), media_format_, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
   if (status != AMEDIA_OK) {
     Log::W("Audio: error configuring encoder: %d", status);
     return false;
@@ -191,8 +192,7 @@ void AudioStreamer::StopAudioCapture() {
   audio_reader_ = nullptr;
   delete codec_handle_;
   codec_handle_ = nullptr;
-  AMediaFormat_delete(media_format_);
-  media_format_ = nullptr;
+  media_format_.Reset();
   consequent_deque_error_count_ = 0;
 }
 
