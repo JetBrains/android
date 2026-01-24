@@ -15,9 +15,7 @@
  */
 package com.google.idea.blaze.android.run.runner
 
-import com.android.tools.idea.run.ApkProvisionException
 import com.google.common.base.Stopwatch
-import com.google.common.collect.ImmutableMap
 import com.google.idea.blaze.android.run.LaunchMetrics
 import com.google.idea.blaze.android.run.NativeSymbolFinder
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo
@@ -28,7 +26,6 @@ import com.google.idea.blaze.base.command.BlazeCommand
 import com.google.idea.blaze.base.command.BlazeCommandName
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser
 import com.google.idea.blaze.base.scope.BlazeContext
-import com.google.idea.blaze.base.scope.output.IssueOutput
 import com.google.idea.blaze.base.scope.output.StatusOutput
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
 import com.google.idea.blaze.base.util.SaveUtil
@@ -36,39 +33,28 @@ import com.google.idea.blaze.common.Interners
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.exception.BuildException
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
-import java.io.IOException
 
 /** Blaze specific build flow for android_binary builds.  */
 class BlazeApkBuildStep(
-  private val project: Project,
-  private val targets: List<Label>,
+  val targets: List<Label>,
   private val blazeFlags: List<String>,
   private val exeFlags: List<String>,
-  private val useMobileInstall: Boolean,
-  private val nativeDebuggingEnabled: Boolean,
+  val useMobileInstall: Boolean,
+  val nativeDebuggingEnabled: Boolean,
   private val launchId: String,
   private val buildInvoker: BuildInvoker,
-  private val deployInfoExtractor: DeployInfoExtractor
+  val deployInfoExtractor: DeployInfoExtractor
 ) : ApkBuildStep {
-  private var done = false
-  override fun isDone(): Boolean {
-    return done
-  }
-
-  private var blazeAndroidDeployInfo: BlazeAndroidDeployInfo? = null
 
   /**
-   * Builds the android_binary, and save the deployment information such that it can be retrieved by
-   * [.getDeployInfo].
+   * Builds the android_binary.
    */
-  override fun build(context: BlazeContext, deviceSession: DeviceSession?) {
+  override fun build(context: BlazeContext): BlazeBuildOutputs {
     SaveUtil.saveAllFiles()
 
     context.output(StatusOutput("Building Application."))
     val stopwatch = Stopwatch.createStarted()
-    val deployOutputGroup: String?
-    val apkOutputGroup: String?
+
     val commandName =
       if (useMobileInstall) BlazeCommandName.MOBILE_INSTALL else BlazeCommandName.BUILD
     val command =
@@ -77,21 +63,18 @@ class BlazeApkBuildStep(
         .addBlazeFlags(blazeFlags)
         .addExeFlags(exeFlags)
     if (useMobileInstall) {
-      // deploy_info.pb and .apk files are in mobile_install_INTERNAL_ output group.
-      deployOutputGroup = "mobile_install_INTERNAL_"
-      apkOutputGroup = "mobile_install_INTERNAL_"
+      // mobile_install targets need these flags for build-only mode.
       command.addExeFlags("--nolaunch_app", "--nodeploy")
     } else {
-      // deploy_info.pb is in android_deploy_info output group and .apk files are in the default.
-      deployOutputGroup = "android_deploy_info"
-      apkOutputGroup = "default"
+      // standard build needs this to ensure deploy info is generated.
       command.addBlazeFlags("--output_groups=+android_deploy_info")
     }
     if (nativeDebuggingEnabled) {
       command.addBlazeFlags(
-        NativeSymbolFinder.getInstances().joinToString(" ") { it.additionalBuildFlags }
+        NativeSymbolFinder.getInstances().map { it.additionalBuildFlags }
       )
     }
+
     val buildOutputs =
       try {
         val buildOutputs =
@@ -102,7 +85,7 @@ class BlazeApkBuildStep(
           launchId,
           stopwatch.elapsed(),
           buildOutputs!!.buildResult().exitCode,
-          ImmutableMap.of()
+          mapOf()
         )
         BazelExitCodeException.throwIfFailed(command, buildOutputs.buildResult())
         logger.info("Finished build, id: " + buildOutputs.idForLogging())
@@ -110,41 +93,9 @@ class BlazeApkBuildStep(
         buildOutputs
       } catch (e: BuildException) {
         context.handleException("Failed to build APK", e)
-        return
+        throw e
       }
-
-    val nativeSymbols =
-      if (nativeDebuggingEnabled) {
-        val nativeSymbolFinderList: List<NativeSymbolFinder> = NativeSymbolFinder.EP_NAME.extensionList
-        targets.flatMap { target ->
-            nativeSymbolFinderList.flatMap {
-              it.getNativeSymbolsForBuild(project, context, target, buildOutputs)
-            }
-        }
-      } else emptyList()
-    try {
-      blazeAndroidDeployInfo =
-        deployInfoExtractor.extract(
-          project,
-          buildOutputs,
-          deployOutputGroup,
-          apkOutputGroup,
-          context,
-          nativeSymbols
-        )
-    } catch (e: IOException) {
-      logger.warn("Unexpected error while retrieving deploy info", e)
-      val message = "Error retrieving deployment info from build results: " + e.message
-      IssueOutput.error(message).submit(context)
-      return
-    }
-    done = true
-    context.output(StatusOutput("Deployment information parsed from build artifacts."))
-  }
-
-  @Throws(ApkProvisionException::class)
-  override fun getDeployInfo(): BlazeAndroidDeployInfo? {
-    return blazeAndroidDeployInfo
+    return buildOutputs
   }
 
   companion object {

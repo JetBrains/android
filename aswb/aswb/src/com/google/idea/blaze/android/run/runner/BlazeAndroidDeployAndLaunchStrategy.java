@@ -23,6 +23,7 @@ import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.LaunchOptions;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.run.BazelAndroidRunContext;
+import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -71,6 +72,7 @@ public interface BlazeAndroidDeployAndLaunchStrategy {
 
   /** Creates a {@link BazelAndroidRunContext} for the run configuration. */
   BazelAndroidRunContext createBlazeAndroidRunContext(
-      ExecutionEnvironment env, ApkBuildStep buildStep, BlazeCommandRunConfiguration configuration)
-    throws ExecutionException, ApkProvisionException;
+      ExecutionEnvironment env,
+      BlazeAndroidDeployInfo deployInfo,
+      BlazeCommandRunConfiguration configuration);
 }

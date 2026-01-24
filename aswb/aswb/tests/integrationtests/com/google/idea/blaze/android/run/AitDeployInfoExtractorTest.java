@@ -108,8 +108,8 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
         BlazeBuildOutputs.fromParsedBepOutput(bepOutput);
 
     BlazeAndroidDeployInfo deployInfo =
-        new AitDeployInfoExtractor(getProject(), instrumentationInfo)
-            .extract(getProject(), buildOutputs, "android-deploy-info", "default", context, nativeSymbols);
+        new AitDeployInfoExtractor(getProject(), instrumentationInfo, true, "android-deploy-info", "default")
+            .extract(getProject(), buildOutputs, context);
 
     assertThat(deployInfo).isNotNull();
     assertThat(deployInfo.getMainAppMergedManifest().packageName)
@@ -142,8 +142,8 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
         BlazeBuildOutputs.fromParsedBepOutput(bepOutput);
 
     BlazeAndroidDeployInfo deployInfo =
-        new AitDeployInfoExtractor(getProject(), instrumentationInfo)
-            .extract(getProject(), buildOutputs, "android-deploy-info", "default", context, nativeSymbols);
+        new AitDeployInfoExtractor(getProject(), instrumentationInfo, true, "android-deploy-info", "default")
+            .extract(getProject(), buildOutputs, context);
 
     assertThat(deployInfo).isNotNull();
     assertThat(deployInfo.getMainAppMergedManifest().packageName)

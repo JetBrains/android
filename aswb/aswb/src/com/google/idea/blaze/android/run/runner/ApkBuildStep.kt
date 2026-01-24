@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.android.run.runner;
+package com.google.idea.blaze.android.run.runner
 
-import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
-import com.google.idea.blaze.base.scope.BlazeContext;
+import com.google.idea.blaze.base.scope.BlazeContext
+import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
 
-/** Builds the APK and optionally installs the APK. */
-public interface ApkBuildStep {
-  boolean isDone();
+/** Builds the APK and optionally installs the APK.  */
+fun interface ApkBuildStep {
   /**
    * Builds and optionally installs the APK. Errors and messages are bubbled up to the caller via
-   * the given {@link BlazeContext}.
+   * the given [BlazeContext].
    */
-  void build(BlazeContext context, BlazeAndroidDeviceSelector.DeviceSession deviceSession);
-
-  BlazeAndroidDeployInfo getDeployInfo();
+  fun build(context: BlazeContext): BlazeBuildOutputs
 }

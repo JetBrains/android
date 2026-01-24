@@ -15,16 +15,18 @@
  */
 package com.google.idea.blaze.android.run.runner;
 
+import static com.google.idea.blaze.android.run.NativeSymbolFinder.fetchNativeSymbols;
 import static com.google.idea.blaze.android.run.deployinfo.DeployData.fetchApks;
 
 import com.android.tools.idea.run.ApkProvisionException;
+import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
+import com.google.idea.blaze.android.run.deployinfo.DeployData;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.Label;
 import com.intellij.openapi.project.Project;
 import java.io.File;
-import java.util.List;
 
 /**
  * Deploy Info extractor for {@code android_binary} targets.
@@ -33,33 +35,44 @@ public final class BinaryDeployInfoExtractor implements DeployInfoExtractor {
   private final boolean useMobileInstall;
   private final Label targetLabel;
   private final boolean nativeDebuggingEnabled;
+  private final String deployInfoOutputGroup;
+  private final String apkOutputGroup;
 
-  public BinaryDeployInfoExtractor(Label targetLabel, boolean useMobileInstall, boolean nativeDebuggingEnabled) {
+  public BinaryDeployInfoExtractor(
+      Label targetLabel,
+      boolean useMobileInstall,
+      boolean nativeDebuggingEnabled,
+      String deployInfoOutputGroup,
+      String apkOutputGroup) {
     this.targetLabel = targetLabel;
     this.useMobileInstall = useMobileInstall;
     this.nativeDebuggingEnabled = nativeDebuggingEnabled;
+    this.deployInfoOutputGroup = deployInfoOutputGroup;
+    this.apkOutputGroup = apkOutputGroup;
   }
 
   @Override
   public BlazeAndroidDeployInfo extract(
     Project project,
     BlazeBuildOutputs buildOutputs,
-    String deployInfoOutputGroups,
-    String apkOutputGroup,
-    BlazeContext context,
-    List<? extends File> nativeSymbols)
+    BlazeContext context)
     throws ApkProvisionException {
 
     String suffix = useMobileInstall ? "_mi.deployinfo.pb" : ".deployinfo.pb";
 
-    var deployData = DeployDataExtractor.extract(
+    DeployData deployData =
+      DeployDataExtractor.extract(
         targetLabel,
-        buildOutputs.getOutputGroupArtifacts(deployInfoOutputGroups),
+        buildOutputs.getOutputGroupArtifacts(deployInfoOutputGroup),
         buildOutputs.getOutputGroupArtifacts(apkOutputGroup),
         suffix,
         context,
         project);
     var appPackage = fetchApks(deployData, project, context);
+    var nativeSymbols =
+      nativeDebuggingEnabled
+      ? fetchNativeSymbols(project, context, targetLabel, buildOutputs)
+      : ImmutableList.<File>of();
     return BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(appPackage, null, nativeSymbols);
   }
 }

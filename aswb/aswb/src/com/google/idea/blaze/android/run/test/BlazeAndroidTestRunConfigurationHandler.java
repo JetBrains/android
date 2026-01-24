@@ -19,14 +19,14 @@ import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.run.ValidationError;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.idea.blaze.android.run.ApkBuildStepProvider;
+import com.google.idea.blaze.android.run.BazelApkBuildStepProvider;
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationCommonState;
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationHandler;
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationValidationUtil;
 import com.google.idea.blaze.android.run.LaunchMetrics;
-import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeployAndLaunchStrategy;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunConfigurationRunner;
+import com.google.idea.blaze.android.run.runner.BlazeApkBuildStep;
 import com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProvider.AndroidTestLaunchMethod;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
@@ -107,9 +107,18 @@ public class BlazeAndroidTestRunConfigurationHandler
     }
     Label label = Label.of(labelString);
 
-    ApkBuildStep buildStep =
-        getTestBuildStep(
-            project, configState, configuration, blazeFlags, exeFlags, launchId, label);
+    boolean useMobileInstall =
+      AndroidTestLaunchMethod.MOBILE_INSTALL.equals(configState.getLaunchMethod());
+    BlazeApkBuildStep buildStep =
+      BazelApkBuildStepProvider
+        .getAitBuildStep(
+          project,
+          useMobileInstall,
+          /* nativeDebuggingEnabled= */ true,
+          label,
+          blazeFlags,
+          exeFlags,
+          launchId);
     BlazeTestResultFetcher testResultsHolder = new BlazeTestResultFetcher();
 
     BlazeAndroidDeployAndLaunchStrategy launchStrategy = new AndroidTestDeployAndLaunchStrategy(
@@ -123,29 +132,7 @@ public class BlazeAndroidTestRunConfigurationHandler
     LaunchMetrics.logTestLaunch(
         launchId, configState.getLaunchMethod().name(), env.getExecutor().getId());
 
-    return new BlazeAndroidRunConfigurationRunner(launchStrategy, configuration, buildStep);
-  }
-
-  private static ApkBuildStep getTestBuildStep(
-      Project project,
-      BlazeAndroidTestRunConfigurationState configState,
-      BlazeCommandRunConfiguration configuration,
-      ImmutableList<String> blazeFlags,
-      ImmutableList<String> exeFlags,
-      String launchId,
-      Label label)
-    throws ExecutionException {
-    boolean useMobileInstall =
-      AndroidTestLaunchMethod.MOBILE_INSTALL.equals(configState.getLaunchMethod());
-    return ApkBuildStepProvider.getInstance(Blaze.getBuildSystemName(project))
-      .getAitBuildStep(
-        project,
-        useMobileInstall,
-        /* nativeDebuggingEnabled= */ true,
-        label,
-        blazeFlags,
-        exeFlags,
-        launchId);
+    return new BlazeAndroidRunConfigurationRunner(launchStrategy, configuration, buildStep, buildStep.getDeployInfoExtractor());
   }
 
   @Override

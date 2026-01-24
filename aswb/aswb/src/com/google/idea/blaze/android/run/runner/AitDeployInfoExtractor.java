@@ -15,6 +15,8 @@
  */
 package com.google.idea.blaze.android.run.runner;
 
+import static com.google.idea.blaze.android.run.NativeSymbolFinder.fetchNativeSymbols;
+
 import com.android.tools.idea.run.ApkProvisionException;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
@@ -32,39 +34,48 @@ import javax.annotation.Nullable;
 public final class AitDeployInfoExtractor implements DeployInfoExtractor {
   private final Project project;
   private final InstrumentationInfo instrumentationInfo;
+  private final boolean nativeDebuggingEnabled;
+  private final String deployInfoOutputGroup;
+  private final String apkOutputGroup;
 
-  public AitDeployInfoExtractor(Project project, InstrumentationInfo instrumentationInfo) {
+  public AitDeployInfoExtractor(
+      Project project,
+      InstrumentationInfo instrumentationInfo,
+      boolean nativeDebuggingEnabled,
+      String deployInfoOutputGroup,
+      String apkOutputGroup) {
     this.project = project;
     this.instrumentationInfo = instrumentationInfo;
+    this.nativeDebuggingEnabled = nativeDebuggingEnabled;
+    this.deployInfoOutputGroup = deployInfoOutputGroup;
+    this.apkOutputGroup = apkOutputGroup;
   }
 
   @Override
   public BlazeAndroidDeployInfo extract(
       Project project,
       BlazeBuildOutputs buildOutputs,
-      String deployInfoOutputGroups,
-      String apkOutputGroup,
-      BlazeContext context,
-      List<? extends File> nativeSymbols)
+      BlazeContext context)
     throws ApkProvisionException {
     DeployData testData =
         deployDataForTarget(
-          Label.of(instrumentationInfo.testApp.toString()),
-          buildOutputs,
-          deployInfoOutputGroups,
-          apkOutputGroup,
-          context);
+            instrumentationInfo.testApp,
+            buildOutputs,
+            deployInfoOutputGroup,
+            apkOutputGroup,
+            context);
     DeployData targetData = null;
     if (instrumentationInfo.targetApp != null) {
       targetData =
           deployDataForTarget(
-              Label.of(instrumentationInfo.targetApp.toString()),
+              instrumentationInfo.targetApp,
               buildOutputs,
-              deployInfoOutputGroups,
+              deployInfoOutputGroup,
               apkOutputGroup,
               context);
     }
-
+    var nativeSymbols =
+      nativeDebuggingEnabled ? fetchNativeSymbols(project, context, instrumentationInfo.testApp, buildOutputs) : ImmutableList.<File>of();
     return merge(testData, targetData, context, nativeSymbols);
   }
 

@@ -30,10 +30,8 @@ import com.android.tools.idea.run.tasks.DeployTasksHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.idea.blaze.android.run.BazelAndroidRunContext;
-import com.google.idea.blaze.android.run.BazelApkProvider;
-import com.google.idea.blaze.android.run.BazelApplicationIdProvider;
 import com.google.idea.blaze.android.run.BazelApplicationProjectContext;
-import com.google.idea.blaze.android.run.runner.ApkBuildStep;
+import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeployAndLaunchStrategy;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector;
 import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
@@ -122,9 +120,9 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
 
   @Override
   public BazelAndroidRunContext createBlazeAndroidRunContext(
-      ExecutionEnvironment env, ApkBuildStep buildStep, BlazeCommandRunConfiguration configuration) throws ApkProvisionException {
-    var deployInfo = buildStep.getDeployInfo();
-
+      ExecutionEnvironment env,
+      BlazeAndroidDeployInfo deployInfo,
+      BlazeCommandRunConfiguration configuration) {
     var applicationIds = deployInfo.toInstrumentationTestApplicationIdProvider();
     var apkProvider = deployInfo.toApkProvider();
     var applicationId = applicationIds.getPackageName();
@@ -139,7 +137,7 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
 
     return new BazelAndroidRunContext(
         consoleProvider,
-        buildStep,
+        deployInfo,
         applicationIds,
         apkProvider,
         applicationProjectContext,
@@ -168,7 +166,7 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
             project, label, blazeFlags, testFilter, this, isDebug, testResultsHolder);
       case NON_BLAZE:
       case MOBILE_INSTALL:
-        var deployInfo = runContext.getBuildStep().getDeployInfo();
+        var deployInfo = runContext.getDeployInfo();
         return StockAndroidTestLaunchTask.getStockTestLaunchTask(
             configState, runContext.getApplicationIdProvider(), isDebug, deployInfo, project);
     }

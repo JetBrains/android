@@ -23,6 +23,7 @@ import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.ComponentLaunchOptions
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.configuration.execution.AndroidComplicationConfigurationExecutor
@@ -34,11 +35,10 @@ import com.android.tools.idea.run.configuration.execution.TileLaunchOptions
 import com.android.tools.idea.run.configuration.execution.WatchFaceLaunchOptions
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetState
-import com.android.utils.executeWithRetries
 import com.google.common.util.concurrent.Futures
 import com.google.idea.blaze.android.run.BazelAndroidRunContext
 import com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryRunConfigurationState
-import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector.DeviceSession
+import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo
 import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator
 import com.google.idea.blaze.base.command.BlazeInvocationContext
 import com.google.idea.blaze.base.experiments.ExperimentScope
@@ -46,14 +46,18 @@ import com.google.idea.blaze.base.issueparser.BlazeIssueParser
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationRunner
+import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.scope.Scope
 import com.google.idea.blaze.base.scope.ScopedFunction
+import com.google.idea.blaze.base.scope.output.IssueOutput
+import com.google.idea.blaze.base.scope.output.StatusOutput
 import com.google.idea.blaze.base.scope.scopes.IdeaLogScope
 import com.google.idea.blaze.base.scope.scopes.ProblemsViewScope
 import com.google.idea.blaze.base.scope.scopes.ProgressIndicatorScope
 import com.google.idea.blaze.base.scope.scopes.ToolWindowScope
 import com.google.idea.blaze.base.settings.Blaze
 import com.google.idea.blaze.base.settings.BlazeUserSettings
+import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
 import com.google.idea.blaze.base.toolwindow.Task
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
@@ -64,9 +68,9 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.util.Key
+import com.intellij.openapi.project.Project
+import java.io.IOException
 import java.util.concurrent.CancellationException
-import kotlin.lazy
 import org.jetbrains.android.util.AndroidBundle
 
 /**
@@ -78,6 +82,7 @@ class BlazeAndroidRunConfigurationRunner(
   private val launchStrategy: BlazeAndroidDeployAndLaunchStrategy,
   private val runConfig: BlazeCommandRunConfiguration,
   private val apkBuildStep: ApkBuildStep,
+  private val deployInfoExtractor: DeployInfoExtractor,
 ) : BlazeCommandRunConfigurationRunner {
   @Throws(ExecutionException::class)
   override fun getRunProfileState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? {
@@ -114,13 +119,14 @@ class BlazeAndroidRunConfigurationRunner(
 
     return AndroidConfigurationExecutorRunProfileState(
       LazilyInitializedDelegatingBlazeAndroidConfigurationExecutor(runConfig) {
-        executeBuild(environment)
-        if (!apkBuildStep.isDone) error("Build must be complete")
-        // Instantiate the run context locally after completion of the build step.
-        val runContext = launchStrategy.createBlazeAndroidRunContext(environment, apkBuildStep, runConfig)
+        val runContext =
+          executeUnderBuildProgress(environment) { context ->
+            val buildOutputs = apkBuildStep.build(context)
+            val deployInfo = extractDeployInfo(context, environment.project, buildOutputs)
 
-        // Store the device session on the execution environment so before-run tasks can access it.
-        environment.putCopyableUserData(DEVICE_SESSION_KEY, deviceSession)
+            launchStrategy.createBlazeAndroidRunContext(environment, deployInfo, runConfig)
+          }
+          ?: throw ExecutionException("APK build failed")
 
         val state = runConfig.handler.getState()
 
@@ -192,7 +198,10 @@ class BlazeAndroidRunConfigurationRunner(
     return true
   }
 
-  private fun executeBuild(environment: ExecutionEnvironment): Boolean {
+  private fun <T> executeUnderBuildProgress(
+    environment: ExecutionEnvironment,
+    buildInvocation: (context: BlazeContext) -> T,
+  ): T? {
     val project = environment.project
     val settings = BlazeUserSettings.getInstance()
     return Scope.root(
@@ -201,19 +210,17 @@ class BlazeAndroidRunConfigurationRunner(
           .push(ProblemsViewScope(project, settings.showProblemsViewOnRun))
           .push(ExperimentScope())
           .push(ToolWindowScope.Builder(project, Task(project, "Build apk"))
-              .setPopupBehavior(settings.showBlazeConsoleOnRun)
-              .setIssueParsers(
-                BlazeIssueParser.defaultIssueParsers(
-                  project,
-                  WorkspaceRoot.fromProject(project),
-                  BlazeInvocationContext.ContextType.BeforeRunTask
-                )
-              )
-              .build()
+                  .setPopupBehavior(settings.showBlazeConsoleOnRun)
+                  .setIssueParsers(
+                    BlazeIssueParser.defaultIssueParsers(
+                      project,
+                      WorkspaceRoot.fromProject(project),
+                      BlazeInvocationContext.ContextType.BeforeRunTask
+                    )
+                  )
+                  .build()
           )
           .push(IdeaLogScope())
-        val deviceSession = environment.getCopyableUserData(DEVICE_SESSION_KEY)
-
         try {
           val buildFuture =
             ProgressiveTaskWithProgressIndicator.builder(
@@ -222,25 +229,48 @@ class BlazeAndroidRunConfigurationRunner(
             )
               .submitTaskWithResult { progressIndicator ->
                 context.push(ProgressIndicatorScope(progressIndicator))
-                apkBuildStep.build(context, deviceSession)
+                buildInvocation(context)
               }
-          Futures.getChecked(buildFuture, ExecutionException::class.java)
-        } catch (e: ExecutionException) {
-          context.setHasError()
-        } catch (e: CancellationException) {
-          context.setCancelled()
-        } catch (e: Exception) {
-          LOG.error(e)
-          return@ScopedFunction false
+          return@ScopedFunction Futures.getChecked(buildFuture, ExecutionException::class.java)
         }
-        context.shouldContinue()
+        catch (e: ExecutionException) {
+          context.setHasError()
+        }
+        catch (e: CancellationException) {
+          context.setCancelled()
+        }
+        catch (e: Exception) {
+          LOG.error(e)
+        }
+        return@ScopedFunction null
       })
+  }
+
+  @Throws(ExecutionException::class)
+  private fun extractDeployInfo(
+    context: BlazeContext,
+    project: Project,
+    buildOutputs: BlazeBuildOutputs,
+  ): BlazeAndroidDeployInfo {
+    context.output(StatusOutput("Deployment information parsed from build artifacts."))
+
+    return try {
+      deployInfoExtractor.extract(
+        project,
+        buildOutputs,
+        context
+      )
+    }
+    catch (e: ApkProvisionException) {
+      LOG.warn("Unexpected error while retrieving deploy info", e)
+      val message = "Error retrieving deployment info from build results: " + e.message
+      IssueOutput.error(message).submit(context)
+      throw ExecutionException(message, e)
+    }
   }
 
   companion object {
     private val LOG = Logger.getInstance(BlazeAndroidRunConfigurationRunner::class.java)
-
-    val DEVICE_SESSION_KEY: Key<DeviceSession> = Key.create<DeviceSession>("blaze.device.session")
 
     private fun canDebug(
       deviceFutures: DeviceFutures, runConfigName: String,
@@ -260,10 +290,10 @@ class BlazeAndroidRunConfigurationRunner(
  */
 private class LazilyInitializedDelegatingBlazeAndroidConfigurationExecutor(
   override val configuration: RunConfiguration,
-  factory: () -> AndroidConfigurationExecutor
+  factory: () -> AndroidConfigurationExecutor,
 ) : AndroidConfigurationExecutor {
 
-  private val delegate  by lazy(mode = LazyThreadSafetyMode.PUBLICATION, factory)
+  private val delegate by lazy(mode = LazyThreadSafetyMode.PUBLICATION, factory)
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = delegate.run(indicator)
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = delegate.debug(indicator)
 }
