@@ -329,7 +329,6 @@ void DisplayStreamer::Run() {
   if (stop_reason == FrameStreamStopReason::END_OF_STREAM) {
     Agent::Shutdown();
   }
-  thread_handle_.Stop();
 }
 
 DisplayStreamer::FrameStreamStopReason DisplayStreamer::ProcessFramesUntilCodecStopped(

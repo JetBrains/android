@@ -64,7 +64,6 @@ void AudioRecordReader::Run() {
   Jni jni = Jvm::GetJni();
   consequent_queue_error_count_ = 0;
   ReadUntilStopped(jni);
-  thread_handle_.Stop();
   codec_handle_->Stop();
   audio_record_.Stop(jni);
 }

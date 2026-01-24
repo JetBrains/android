@@ -42,7 +42,7 @@ void ThreadHandle::Start(const std::string& thread_name, const std::function<voi
     lock.lock();
   }
   if (run_state_ == RunState::STOPPED) {
-    thread_ = CreateThread(thread_name, runnable);
+    thread_ = CreateThread(thread_name, [this, runnable]() { Run(runnable); });
     run_state_ = RunState::RUNNING;
   }
 }
@@ -71,6 +71,11 @@ void ThreadHandle::Join() {
 bool ThreadHandle::IsStopping() {
   unique_lock lock(mutex_);
   return run_state_ == RunState::STOPPING;
+}
+
+void ThreadHandle::Run(const std::function<void()>& runnable) {
+  runnable();
+  Stop();
 }
 
 thread CreateThread(const string& thread_name, const std::function<void()>& runnable) {
