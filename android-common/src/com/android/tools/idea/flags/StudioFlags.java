@@ -2385,6 +2385,11 @@ public final class StudioFlags {
                     "Enable Model Context Protocol (MCP) Servers List UI",
                     "Displays the connection status and tools of configured servers in the settings panel");
 
+  public static final Flag<Boolean> STUDIOBOT_MCP_REGISTRY_ENABLED =
+    new BooleanFlag(STUDIOBOT, "mcp.registry",
+                    "Enable support for the MCP registry",
+                    "When enabled, adds a Registry tab into the MCP settings");
+
   public static final Flag<Boolean> STUDIOBOT_SCROLL_TO_BOTTOM_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
                     "Enable AutoScroll Button",
