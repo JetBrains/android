@@ -245,6 +245,7 @@ studiobot.prompt.library.rules=COMPLETE:2025
 studiobot.prompt.library=COMPLETE:2025
 studiobot.quick.edit.enabled=INTERNAL
 # studiobot.rag.use.lucindex=INTERNAL  # disabled even in INTERNAL due to perf issues (b/462665363)
+studiobot.read.outline.tool=INTERNAL
 studiobot.read.uri.tool=INTERNAL
 studiobot.regenerate.chat.request.button.enabled=INTERNAL
 studiobot.remote.models.enabled=COMPLETE:2025
