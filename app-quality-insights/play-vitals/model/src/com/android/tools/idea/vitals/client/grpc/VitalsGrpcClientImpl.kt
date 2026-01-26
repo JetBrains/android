@@ -47,10 +47,10 @@ import com.google.play.developer.reporting.searchErrorIssuesRequest
 import com.google.play.developer.reporting.searchErrorReportsRequest
 import com.google.play.developer.reporting.timelineSpec
 import com.google.type.TimeZone
-import com.intellij.openapi.diagnostic.Logger
 import io.grpc.Channel
 import io.grpc.ClientInterceptor
 import java.time.ZoneId
+import java.util.logging.Logger
 
 class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterceptor) :
   VitalsGrpcClient {
@@ -140,8 +140,8 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
             AggregationPeriod.DAILY -> TimeGranularity.DAILY
             AggregationPeriod.FULL_RANGE -> TimeGranularity.FULL_RANGE
             else -> {
-              Logger.getInstance(VitalsGrpcClientImpl::class.java)
-                .warn("${it.aggregationPeriod} is not recognized.")
+              Logger.getLogger(VitalsGrpcClientImpl::class.qualifiedName)
+                .warning("${it.aggregationPeriod} is not recognized.")
               return@mapNotNull null
             }
           }
