@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
@@ -220,7 +221,7 @@ public interface ExternalTask {
     }
 
     private static void outputCommand(BlazeContext context, List<String> command) {
-      String logMessage = "Command: " + ParametersListUtil.join(command);
+      String logMessage = "Command: " + formatCommandForLogOutput(command);
 
       context.output(
           PrintOutput.log(
@@ -257,6 +258,10 @@ public interface ExternalTask {
       }
       return actualCommand;
     }
+  }
+
+  public static String formatCommandForLogOutput(List<String> command) {
+    return command.stream().map(ParametersListUtil::escape).collect(Collectors.joining("\\\n    "));
   }
 
   static Builder builder() {
