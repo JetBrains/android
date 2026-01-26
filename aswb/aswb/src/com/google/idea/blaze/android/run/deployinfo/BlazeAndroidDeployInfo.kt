@@ -21,10 +21,12 @@ import com.android.tools.idea.run.ApkProvisionException
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest
 import com.google.idea.blaze.android.run.BazelApkProvider
 import com.google.idea.blaze.android.run.BazelApplicationIdProvider
-import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo.ManifestWithApkInfo
+import com.google.idea.blaze.android.run.NativeSymbolFinder.Companion.fetchNativeSymbols
+import com.google.idea.blaze.android.run.deployinfo.DeployData.Companion.fetchApks
 import com.google.idea.blaze.base.run.RuntimeArtifactCache
 import com.google.idea.blaze.base.run.RuntimeArtifactKind
 import com.google.idea.blaze.base.scope.BlazeContext
+import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.artifact.OutputArtifact
@@ -54,10 +56,8 @@ class BlazeAndroidDeployInfo private constructor(
   /**
    * Returns a list of [ApkInfo]s to deploy. This includes the main apk and any split apks.
    */
-  val apkInfos: List<ApkInfo>
+  val apkInfos: List<ApkInfo>,
 ) {
-
-  class ManifestWithApkInfo(val label: Label, val manifest: ParsedManifest, val apkInfo: ApkInfo)
 
   /**
    * Returns the primary application ID for the app being launched (either an android_binary app or
@@ -86,24 +86,29 @@ class BlazeAndroidDeployInfo private constructor(
   fun toApkProvider(): BazelApkProvider = BazelApkProvider(apkInfos, symbolFiles)
 
   companion object {
+
     @Throws(ApkProvisionException::class)
     @JvmStatic
-    fun createBlazeAndroidDeployInfo(
-      mainAppManifestAndApks: ManifestWithApkInfo,
-      appUnderTestManifestAndApks: ManifestWithApkInfo?,
-      symbolFiles: List<File>
+    @JvmOverloads
+    fun fetchDeployArtifacts(
+      project: Project,
+      buildOutputs: BlazeBuildOutputs,
+      mainApp: DeployData,
+      appUnderTest: DeployData?,
+      nativeDebuggingEnabled: Boolean,
+      context: BlazeContext,
+      cacheLocally: CacheLocallyFunction = ::cacheLocally,
     ): BlazeAndroidDeployInfo {
+      val mainAppPackage = mainApp.fetchApks(project, context, cacheLocally)
+      val testTargetAppPackage = appUnderTest?.fetchApks(project, context, cacheLocally)
 
-      val apkInfos = listOfNotNull(mainAppManifestAndApks.apkInfo, appUnderTestManifestAndApks?.apkInfo)
-
-      val mainAppManifest = mainAppManifestAndApks.manifest
-      val appUnderTestManifest = appUnderTestManifestAndApks?.manifest
-
+      val nativeSymbolTargets = if (nativeDebuggingEnabled) listOfNotNull(mainApp.targetLabel, appUnderTest?.targetLabel) else emptyList()
+      val nativeSymbols = nativeSymbolTargets.flatMap { fetchNativeSymbols(project, context, it, buildOutputs) }
       return BlazeAndroidDeployInfo(
-        mainAppMergedManifest = mainAppManifest,
-        appUnderTestMergedManifest = appUnderTestManifest,
-        symbolFiles = symbolFiles,
-        apkInfos = apkInfos
+        mainAppMergedManifest = mainApp.mergedManifest,
+        appUnderTestMergedManifest = appUnderTest?.mergedManifest,
+        symbolFiles = nativeSymbols,
+        apkInfos = listOfNotNull(mainAppPackage, testTargetAppPackage)
       )
     }
   }
@@ -118,27 +123,22 @@ data class DeployData(val targetLabel: Label, val mergedManifest: ParsedManifest
     }
 
     @Throws(ApkProvisionException::class)
-    @JvmStatic
-    @JvmOverloads
-    fun DeployData.fetchApks(
+    internal fun DeployData.fetchApks(
       project: Project,
       context: BlazeContext,
-      cacheLocally: (project: Project, targetLabel: Label, artifacts: List<OutputArtifact>, context: BlazeContext) -> List<Path> = ::cacheLocally,
-    ): ManifestWithApkInfo {
-      return ManifestWithApkInfo(
-        targetLabel,
-        mergedManifest,
-        ApkInfo(
-          cacheLocally(project, targetLabel, apks, context)
-            .map { ApkFileUnit(BlazeDataStorage.WORKSPACE_MODULE_NAME, it.toFile()) }
-            .toList(),
-          mergedManifest.packageName ?: throw ApkProvisionException("Valid manifest must have a package name")
-        )
+      cacheLocally: CacheLocallyFunction,
+    ): ApkInfo {
+      return ApkInfo(
+        cacheLocally(project, targetLabel, apks, context)
+          .map { ApkFileUnit(BlazeDataStorage.WORKSPACE_MODULE_NAME, it.toFile()) }
+          .toList(),
+        mergedManifest.packageName ?: throw ApkProvisionException("Valid manifest must have a package name")
       )
     }
   }
 }
 
+typealias CacheLocallyFunction = (project: Project, targetLabel: Label, artifacts: List<OutputArtifact>, context: BlazeContext) -> List<Path>
 private fun cacheLocally(
   project: Project, targetLabel: Label, artifacts: List<OutputArtifact>, context: BlazeContext,
 ): List<Path> {
