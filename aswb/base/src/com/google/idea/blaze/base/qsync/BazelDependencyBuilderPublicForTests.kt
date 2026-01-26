@@ -17,7 +17,6 @@ package com.google.idea.blaze.base.qsync
 
 import com.google.common.io.ByteSource
 import com.google.idea.blaze.base.bazel.BuildSystem
-import com.google.idea.blaze.base.qsync.BazelDependencyBuilder.BuildDependenciesBazelInvocationInfo
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.exception.BuildException

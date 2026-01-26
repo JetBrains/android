@@ -104,18 +104,6 @@ open class BazelDependencyBuilder(
 
   private val aspectFiles: AspectFiles = AspectFiles(workspaceRoot)
 
-  /**
-   * @param argsAndFlags arguments and flags to be passed to `bazel build` command to build
-   * dependencies and metadata required by query sync.
-   * @param requestedOutputGroups lists output groups that are requested by `argsAndFlags`.
-   */
-  @JvmRecord
-  data class BuildDependenciesBazelInvocationInfo(
-    val argsAndFlags: List<String>,
-    val requestedOutputGroups: Set<OutputGroup>,
-    val invocationWorkspaceFiles: Map<Path, ByteSource>,
-  )
-
   @Throws(IOException::class, BuildException::class)
   override fun build(
     context: BlazeContext,
@@ -125,7 +113,7 @@ open class BazelDependencyBuilder(
     application
       .service<BuildDependenciesLockService>()
       .lockWorkspace(workspaceRoot.path().toString())
-      .use { ignoredLock ->
+      .use {
         if (VersionChecker.versionMismatch()) {
           throw BuildException(
             "The IDE has been upgraded in the background. Bazel build aspect files maybe incompatible. Please restart the IDE."
@@ -151,9 +139,8 @@ open class BazelDependencyBuilder(
             ThrowOption.ALLOW_PARTIAL_SUCCESS,
             ThrowOption.ALLOW_BUILD_FAILURE
           )
-          createOutputInfo(
+          buildDependenciesBazelInvocationInfo.createOutputInfo(
             blazeBuildOutputs = outputs,
-            outputGroups = buildDependenciesBazelInvocationInfo.requestedOutputGroups,
             buildTime = buildTime,
             context = context
           )
@@ -210,6 +197,7 @@ open class BazelDependencyBuilder(
       addAll(outputGroups.map { "--output_groups=${it.outputGroupName}" })
     }
     return BuildDependenciesBazelInvocationInfo(
+      buildArtifactCache,
       querySyncFlags,
       outputGroups.toSet(),
       invocationFiles.files
@@ -382,14 +370,48 @@ open class BazelDependencyBuilder(
     }
   }
 
+  companion object {
+    @VisibleForTesting
+    @JvmField
+    val buildGeneratedSrcJars: BoolExperiment =
+      BoolExperiment("qsync.build.generated.src.jars", false)
+
+    // Note, this is currently incompatible with the build API.
+    val buildUseTargetPatternFile: BoolExperiment =
+      BoolExperiment("qsync.build.use.target.pattern.file", true)
+
+    const val INVOCATION_FILES_DIR: String = ".aswb"
+
+    val RULES_ANDROID_RULES_BZL1: Label = Label.of("@@rules_android~//android:rules.bzl")
+    val RULES_ANDROID_RULES_BZL2: Label = Label.of("@@rules_android+//android:rules.bzl")
+
+    val RULES_KOTLIN_BZL1: Label = Label.of("@@rules_kotlin~//kotlin/internal:defs.bzl")
+    val RULES_KOTLIN_BZL2: Label = Label.of("@@rules_kotlin+//kotlin/internal:defs.bzl")
+
+    // The following .bzl file defines the iml_module rule used by Android Studio
+    val STUDIO_IML_MODULE_RULE: Label = Label.of("//tools/base/bazel:bazel.bzl")
+  }
+}
+
+/**
+ * @param argsAndFlags arguments and flags to be passed to `bazel build` command to build
+ * dependencies and metadata required by query sync.
+ * @param requestedOutputGroups lists output groups that are requested by `argsAndFlags`.
+ */
+class BuildDependenciesBazelInvocationInfo(
+  private val buildArtifactCache: BuildArtifactCache,
+  val argsAndFlags: List<String>,
+  val requestedOutputGroups: Set<OutputGroup>,
+  val invocationWorkspaceFiles: Map<Path, ByteSource>,
+) {
+
   @Throws(BuildException::class)
-  private fun createOutputInfo(
+  fun createOutputInfo(
     blazeBuildOutputs: BlazeBuildOutputs,
-    outputGroups: Set<OutputGroup>,
     buildTime: Instant,
     context: BlazeContext,
   ): OutputInfo {
-    val allArtifacts = GroupedOutputArtifacts.create(blazeBuildOutputs, outputGroups)
+    val allArtifacts = GroupedOutputArtifacts.create(blazeBuildOutputs, requestedOutputGroups)
 
     val artifactInfoFiles = allArtifacts[OutputGroup.ARTIFACT_INFO_FILE]
     val compileJdepsFiles = allArtifacts[OutputGroup.JDEPS]
@@ -511,42 +533,7 @@ open class BazelDependencyBuilder(
     return ProtoStringInterner.intern(readArtifactInfoProtoFile(CcCompilationInfoOuterClass.CcCompilationInfo.newBuilder(), file).build())
   }
 
-  @Service(Service.Level.APP)
-  class BuildDependenciesLockService {
-    private val workspaceLocks: ConcurrentMap<String, ReentrantLock> = ConcurrentHashMap()
-
-    fun interface WorkspaceLock : AutoCloseable {
-      override fun close()
-    }
-
-    fun lockWorkspace(workspace: String): WorkspaceLock {
-      val lock = workspaceLocks.computeIfAbsent(workspace) { ReentrantLock() }
-      lock.lock()
-      return WorkspaceLock { lock.unlock() }
-    }
-  }
-
   companion object {
-    @VisibleForTesting
-    @JvmField
-    val buildGeneratedSrcJars: BoolExperiment =
-      BoolExperiment("qsync.build.generated.src.jars", false)
-
-    // Note, this is currently incompatible with the build API.
-    val buildUseTargetPatternFile: BoolExperiment =
-      BoolExperiment("qsync.build.use.target.pattern.file", true)
-
-    const val INVOCATION_FILES_DIR: String = ".aswb"
-
-    val RULES_ANDROID_RULES_BZL1: Label = Label.of("@@rules_android~//android:rules.bzl")
-    val RULES_ANDROID_RULES_BZL2: Label = Label.of("@@rules_android+//android:rules.bzl")
-
-    val RULES_KOTLIN_BZL1: Label = Label.of("@@rules_kotlin~//kotlin/internal:defs.bzl")
-    val RULES_KOTLIN_BZL2: Label = Label.of("@@rules_kotlin+//kotlin/internal:defs.bzl")
-
-    // The following .bzl file defines the iml_module rule used by Android Studio
-    val STUDIO_IML_MODULE_RULE: Label = Label.of("//tools/base/bazel:bazel.bzl")
-
     /**
      * Logs message if the number of artifact info files fetched is greater than
      * FILE_NUMBER_LOG_THRESHOLD
@@ -574,6 +561,21 @@ open class BazelDependencyBuilder(
      * FETCH_SIZE_LOG_THRESHOLD
      */
     private val FETCH_SIZE_LOG_THRESHOLD = (1 shl 20).toLong() // 1 mB
+  }
+}
+
+@Service(Service.Level.APP)
+class BuildDependenciesLockService {
+  private val workspaceLocks: ConcurrentMap<String, ReentrantLock> = ConcurrentHashMap()
+
+  fun interface WorkspaceLock : AutoCloseable {
+    override fun close()
+  }
+
+  fun lockWorkspace(workspace: String): WorkspaceLock {
+    val lock = workspaceLocks.computeIfAbsent(workspace) { ReentrantLock() }
+    lock.lock()
+    return WorkspaceLock { lock.unlock() }
   }
 }
 
