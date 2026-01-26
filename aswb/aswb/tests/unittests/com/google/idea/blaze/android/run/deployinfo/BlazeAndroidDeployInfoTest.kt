@@ -15,21 +15,17 @@
  */
 package com.google.idea.blaze.android.run.deployinfo
 
-import com.android.tools.idea.run.ApkFileUnit
-import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvisionException
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest
-import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo.ManifestWithApkInfo
-import com.google.idea.blaze.android.run.deployinfo.DeployData.Companion.fetchApks
+import com.google.idea.blaze.base.command.buildresult.BuildResult
+import com.google.idea.blaze.base.scope.BlazeContext
+import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.artifact.OutputArtifact
-import com.google.idea.blaze.base.scope.BlazeContext
 import com.intellij.mock.MockProject
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import java.io.File
 import java.nio.file.Path
 import org.junit.Assert.assertThrows
 import org.junit.Rule
@@ -44,16 +40,10 @@ class BlazeAndroidDeployInfoTest {
   private fun stubManifest(packageName: String?): ParsedManifest =
       ParsedManifest(packageName, emptyList(), null)
 
-  private fun stubFile(name: String): File = File(name)
-
   private fun stubOutputArtifact(artifactPath: String): OutputArtifact = TestOutputArtifact(artifactPath)
 
   private val mainAppLabel = Label.of("//mainApp")
   private val testAppLabel = Label.of("//testApp")
-  private val nativeSymbolsPath = "symbols.so"
-  private val appApkPath = "app.apk"
-  private val testApkPath = "test.apk"
-  private val appUnderTestApkPath = "app_under_test.apk"
 
   private val appPackageName = "app.package.name"
   private val testPackageName = "test.package.name"
@@ -61,118 +51,120 @@ class BlazeAndroidDeployInfoTest {
   private val dummyProject = MockProject(null, Disposer.newDisposable())
   private val dummyApkPath = Path.of("/local/cache/app.apk")
   private val dummyApkArtifact = stubOutputArtifact("app/app.apk")
-
-  private val nativeSymbols: List<File> = listOf(stubFile(nativeSymbolsPath))
-  private val appApkInfo = ApkInfo(listOf(ApkFileUnit("", File(appApkPath))), appPackageName)
-  private val testAppApkInfo = ApkInfo(listOf(ApkFileUnit("", File(testApkPath))), testPackageName)
-  private val appUnderTestApkInfo = ApkInfo(listOf(ApkFileUnit("", File(appUnderTestApkPath))), appPackageName)
-
+  private val dummyBuildOutputs = BlazeBuildOutputs.noOutputs(BuildResult.SUCCESS)
 
   @Test
-  fun testBinaryDeployment_success() {
-    val mainManifest = stubManifest(appPackageName)
+  fun testFetchDeployArtifacts_success_binary() {
+    val mainAppPackageName = appPackageName
+    val mainAppManifest = stubManifest(mainAppPackageName)
+    val mainAppArtifacts = listOf(dummyApkArtifact)
+    val mainAppDeployData = DeployData(mainAppLabel, mainAppManifest, mainAppArtifacts)
+
+    // Mock cacheLocally function to return a known path
+    val mockCacheLocally: CacheLocallyFunction =
+        { _, _, _, _ -> listOf(dummyApkPath) }
 
     val deployInfo =
-        BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(
-          ManifestWithApkInfo(mainAppLabel, mainManifest, appApkInfo),
-          /* testTargetMergedManifestAndApks= */ null,
-          nativeSymbols)
+        BlazeAndroidDeployInfo.fetchDeployArtifacts(
+            dummyProject,
+            dummyBuildOutputs,
+            mainApp = mainAppDeployData,
+            appUnderTest = null,
+            nativeDebuggingEnabled = false,
+            context = BlazeContext.create(),
+            cacheLocally = mockCacheLocally
+        )
 
-    expect.withMessage("getMergedManifest()").that(deployInfo.mainAppMergedManifest).isEqualTo(mainManifest)
-    expect.withMessage("getTestTargetMergedManifest()")
-        .that(deployInfo.appUnderTestMergedManifest)
-        .isNull()
-    expect.withMessage("getPackageName()").that(deployInfo.mainAppPackageName).isEqualTo(appPackageName)
-    // For binary deployment, app under test package should be null
-    expect.withMessage("getAppUnderTestPackageName()")
-        .that(deployInfo.appUnderTestPackageName)
-        .isNull()
+    expect.withMessage("mainAppPackageName").that(deployInfo.mainAppPackageName).isEqualTo(mainAppPackageName)
 
     val apkInfos = deployInfo.apkInfos
     expect.withMessage("apkInfos size").that(apkInfos).hasSize(1)
-    expect.withMessage("apkInfo package").that(apkInfos[0].applicationId).isEqualTo(appPackageName)
-    expect.withMessage("apkInfo files").that(apkInfos[0]).isEqualTo(appApkInfo)
-  }
+    expect.withMessage("apkInfo package name").that(apkInfos.first().applicationId).isEqualTo(mainAppPackageName)
 
-  @Test
-  fun testTestDeployment_success() {
-    val testManifest = stubManifest(testPackageName)
-    val appManifest = stubManifest(appPackageName)
-
-    val deployInfo =
-        BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(
-          ManifestWithApkInfo(testAppLabel, testManifest, testAppApkInfo),
-          ManifestWithApkInfo(mainAppLabel, appManifest, appUnderTestApkInfo),
-          nativeSymbols)
-
-    expect.withMessage("getMergedManifest()").that(deployInfo.mainAppMergedManifest).isEqualTo(testManifest)
-    expect.withMessage("getTestTargetMergedManifest()")
-        .that(deployInfo.appUnderTestMergedManifest)
-        .isEqualTo(appManifest)
-    expect.withMessage("getPackageName()").that(deployInfo.mainAppPackageName).isEqualTo(testPackageName)
-    expect.withMessage("getAppUnderTestPackageName()")
-        .that(deployInfo.appUnderTestPackageName)
-        .isEqualTo(appPackageName)
-
-    val apkInfos = deployInfo.apkInfos
-    expect.withMessage("apkInfos size").that(apkInfos).hasSize(2)
-    // First APKInfo is the test app
-    expect.withMessage("test apkInfo package").that(apkInfos[0].applicationId).isEqualTo(testPackageName)
-    expect.withMessage("test apkInfo file").that(apkInfos[0]).isEqualTo(testAppApkInfo)
-    // Second APKInfo is the app under test
-    expect.withMessage("app under test apkInfo package")
-        .that(apkInfos[1].applicationId)
-        .isEqualTo(appPackageName)
-    expect.withMessage("app under test apkInfo file")
-        .that(apkInfos[1])
-        .isEqualTo(appUnderTestApkInfo)
-  }
-
-  @Test
-  fun testDeployData_fetchApks_success() {
-    val packageName = appPackageName
-    val manifest = stubManifest(packageName)
-    val artifacts = listOf(dummyApkArtifact)
-    val deployData = DeployData(mainAppLabel, manifest, artifacts)
-
-    // Mock cacheLocally function to return a known path
-    val mockCacheLocally: (Project, Label, List<OutputArtifact>, BlazeContext) -> List<Path> =
-        { _, _, _, _ -> listOf(dummyApkPath) }
-
-    val result =
-        deployData.fetchApks(
-            dummyProject!!,
-            BlazeContext.create(), // Use a stub context
-            mockCacheLocally
-        )
-
-    expect.withMessage("label").that(result.label).isEqualTo(mainAppLabel)
-    expect.withMessage("manifest").that(result.manifest).isEqualTo(manifest)
-
-    val apkInfo = result.apkInfo
-    expect.withMessage("apkInfo package name").that(apkInfo.applicationId).isEqualTo(packageName)
-    expect.withMessage("apkInfo files size").that(apkInfo.files).hasSize(1)
+    val apkFileUnit = apkInfos.first().files.first()
+    expect.withMessage("apkInfo files size").that(apkInfos.first().files).hasSize(1)
     expect.withMessage("apkInfo file path")
-        .that(apkInfo.files.first().apkFile.toPath())
+        .that(apkFileUnit.apkFile.toPath())
         .isEqualTo(dummyApkPath)
   }
 
   @Test
-  fun testDeployData_fetchApks_noPackageName() {
-    val manifest = stubManifest(null) // Manifest with null package name
-    val artifacts = listOf(dummyApkArtifact)
-    val deployData = DeployData(mainAppLabel, manifest, artifacts)
+  fun testFetchDeployArtifacts_success_instrumentation_test() {
+    val mainAppManifest = stubManifest(testPackageName)
+    val appUnderTestManifest = stubManifest(appPackageName)
 
-    // Mock cacheLocally is included for signature matching, but not strictly necessary for this test case
-    val mockCacheLocally: (Project, Label, List<OutputArtifact>, BlazeContext) -> List<Path> =
+    val mainAppArtifacts = listOf(stubOutputArtifact("test/test.apk"))
+    val appUnderTestArtifacts = listOf(stubOutputArtifact("app/app_under_test.apk"))
+
+    val mainAppDeployData = DeployData(testAppLabel, mainAppManifest, mainAppArtifacts)
+    val appUnderTestDeployData = DeployData(mainAppLabel, appUnderTestManifest, appUnderTestArtifacts)
+
+    val mainAppCachedPath = Path.of("/local/cache/test_app.apk")
+    val appUnderTestCachedPath = Path.of("/local/cache/app_under_test_apk.apk")
+
+    // Mock cacheLocally function to return distinct paths based on target label
+    val mockCacheLocally: CacheLocallyFunction = { _, label, _, _ ->
+      when (label) {
+        testAppLabel -> listOf(mainAppCachedPath)
+        mainAppLabel -> listOf(appUnderTestCachedPath)
+        else -> listOf(dummyApkPath)
+      }
+    }
+
+    val deployInfo =
+        BlazeAndroidDeployInfo.fetchDeployArtifacts(
+            dummyProject,
+            dummyBuildOutputs,
+            mainApp = mainAppDeployData,
+            appUnderTest = appUnderTestDeployData,
+            nativeDebuggingEnabled = false,
+            context = BlazeContext.create(),
+            cacheLocally = mockCacheLocally
+        )
+
+    expect.withMessage("mainAppPackageName").that(deployInfo.mainAppPackageName).isEqualTo(testPackageName)
+    expect.withMessage("appUnderTestPackageName").that(deployInfo.appUnderTestPackageName).isEqualTo(appPackageName)
+
+    val apkInfos = deployInfo.apkInfos
+    expect.withMessage("apkInfos size").that(apkInfos).hasSize(2)
+
+    // First APKInfo is the main app (test app)
+    val mainAppApkInfo = apkInfos[0]
+    expect.withMessage("main app apkInfo package").that(mainAppApkInfo.applicationId).isEqualTo(testPackageName)
+    expect.withMessage("main app apkInfo file path")
+        .that(mainAppApkInfo.files.first().apkFile.toPath())
+        .isEqualTo(mainAppCachedPath)
+
+    // Second APKInfo is the app under test
+    val appUnderTestApkInfo = apkInfos[1]
+    expect.withMessage("app under test apkInfo package")
+        .that(appUnderTestApkInfo.applicationId)
+        .isEqualTo(appPackageName)
+    expect.withMessage("app under test apkInfo file path")
+        .that(appUnderTestApkInfo.files.first().apkFile.toPath())
+        .isEqualTo(appUnderTestCachedPath)
+  }
+
+  @Test
+  fun testFetchDeployArtifacts_noPackageName_throwsException() {
+    val mainAppManifest = stubManifest(null) // Manifest with null package name
+    val mainAppArtifacts = listOf(dummyApkArtifact)
+    val mainAppDeployData = DeployData(mainAppLabel, mainAppManifest, mainAppArtifacts)
+
+    // Mock cacheLocally is included for signature matching.
+    val mockCacheLocally: CacheLocallyFunction =
         { _, _, _, _ -> listOf(dummyApkPath) }
 
     val exception =
         assertThrows(ApkProvisionException::class.java) {
-            deployData.fetchApks(
-                dummyProject!!,
-                BlazeContext.create(),
-                mockCacheLocally
+            BlazeAndroidDeployInfo.fetchDeployArtifacts(
+                dummyProject,
+                dummyBuildOutputs,
+                mainApp = mainAppDeployData,
+                appUnderTest = null,
+                nativeDebuggingEnabled = false,
+                context = BlazeContext.create(),
+                cacheLocally = mockCacheLocally
             )
         }
 

@@ -15,18 +15,13 @@
  */
 package com.google.idea.blaze.android.run.runner;
 
-import static com.google.idea.blaze.android.run.NativeSymbolFinder.fetchNativeSymbols;
-import static com.google.idea.blaze.android.run.deployinfo.DeployData.fetchApks;
-
 import com.android.tools.idea.run.ApkProvisionException;
-import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.android.run.deployinfo.DeployData;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.Label;
 import com.intellij.openapi.project.Project;
-import java.io.File;
 
 /**
  * Deploy Info extractor for {@code android_binary} targets.
@@ -68,11 +63,6 @@ public final class BinaryDeployInfoExtractor implements DeployInfoExtractor {
         suffix,
         context,
         project);
-    var appPackage = fetchApks(deployData, project, context);
-    var nativeSymbols =
-      nativeDebuggingEnabled
-      ? fetchNativeSymbols(project, context, targetLabel, buildOutputs)
-      : ImmutableList.<File>of();
-    return BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(appPackage, null, nativeSymbols);
+    return BlazeAndroidDeployInfo.fetchDeployArtifacts(project, buildOutputs, deployData, null, nativeDebuggingEnabled, context);
   }
 }

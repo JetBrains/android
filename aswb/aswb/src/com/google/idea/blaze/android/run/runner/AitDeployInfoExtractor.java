@@ -15,8 +15,6 @@
  */
 package com.google.idea.blaze.android.run.runner;
 
-import static com.google.idea.blaze.android.run.NativeSymbolFinder.fetchNativeSymbols;
-
 import com.android.tools.idea.run.ApkProvisionException;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
@@ -26,9 +24,6 @@ import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.intellij.openapi.project.Project;
-import java.io.File;
-import java.util.List;
-import javax.annotation.Nullable;
 
 /** Extracts {@link BlazeAndroidDeployInfo} for {@code android_instrumentation_test} builds. */
 public final class AitDeployInfoExtractor implements DeployInfoExtractor {
@@ -74,9 +69,7 @@ public final class AitDeployInfoExtractor implements DeployInfoExtractor {
               apkOutputGroup,
               context);
     }
-    var nativeSymbols =
-      nativeDebuggingEnabled ? fetchNativeSymbols(project, context, instrumentationInfo.testApp, buildOutputs) : ImmutableList.<File>of();
-    return merge(testData, targetData, context, nativeSymbols);
+    return BlazeAndroidDeployInfo.fetchDeployArtifacts(this.project, buildOutputs, testData, targetData, nativeDebuggingEnabled, context);
   }
 
   private DeployData deployDataForTarget(
@@ -91,18 +84,5 @@ public final class AitDeployInfoExtractor implements DeployInfoExtractor {
         buildOutputs.getOutputGroupTargetArtifacts(apkOutputGroup, label.toString());
     return DeployDataExtractor.extract(
       label, infoArtifacts.asList(), apkArtifacts.asList(), "deployinfo.pb", context, project);
-  }
-
-  private BlazeAndroidDeployInfo merge(
-      DeployData testData,
-      @Nullable DeployData targetData,
-      BlazeContext context,
-      List<? extends File> nativeSymbols) throws ApkProvisionException {
-    var mainAppPackage = DeployData.fetchApks(testData, project, context);
-    BlazeAndroidDeployInfo.ManifestWithApkInfo testTargetAppPackage = null;
-    if (targetData != null) {
-      testTargetAppPackage = DeployData.fetchApks(targetData, project, context);
-    }
-    return BlazeAndroidDeployInfo.createBlazeAndroidDeployInfo(mainAppPackage, testTargetAppPackage, ImmutableList.copyOf(nativeSymbols));
   }
 }
