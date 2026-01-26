@@ -239,7 +239,7 @@ class GmdCodeCompletionContributor : CompletionContributor() {
  *  Allow auto-popup when it's in [allowCodeCompletionPattern] context.
  */
 class EnableAutoPopupInStringLiteralForGmdCodeCompletion : CompletionConfidence() {
-  override fun shouldSkipAutopopup(contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState {
+  override fun shouldSkipAutopopup(editor: Editor, contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState {
     if (allowCodeCompletionPattern.accepts(contextElement)) return ThreeState.NO
     return ThreeState.UNSURE
   }
