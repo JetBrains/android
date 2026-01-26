@@ -402,10 +402,7 @@ class AndroidLintGradleTest {
       AndroidLintVisibleForTestsInspection(),
       "fo|o(2)" to
         """
-        Warning: This method should only be accessed from tests or within private scope
-                assertEquals(4, foo(2))
-                                ~~~
-            Fix: Suppress VisibleForTests with an annotation
+        No warnings.
         """
           .trimIndent(),
     )

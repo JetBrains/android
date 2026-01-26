@@ -360,24 +360,28 @@ class LintModelFactory : LintModelModuleLoader {
     return getArtifact(artifact, LintModelArtifactType.UNIT_TEST)
   }
 
-  private fun computeSourceProviders(
+  private fun computeMainSourceProviders(
     project: IdeAndroidProject,
     variant: IdeVariant,
+    isTestProject: Boolean,
   ): List<LintModelSourceProvider> {
+    fun getMainSourceProvider(provider: IdeSourceProvider, debugOnly: Boolean = false) =
+      getSourceProvider(provider, debugOnly = debugOnly, instrumentationTestOnly = isTestProject)
+
     val providers = mutableListOf<LintModelSourceProvider>()
 
     // if we have variant, than the main sourceset is present
-    providers.add(getSourceProvider(project.defaultSourceProvider.sourceProvider!!))
+    providers.add(getMainSourceProvider(project.defaultSourceProvider.sourceProvider!!))
 
     for (flavorContainer in project.multiVariantData?.productFlavors.orEmpty()) {
       if (variant.productFlavors.contains(flavorContainer.productFlavor.name)) {
-        providers.add(getSourceProvider(flavorContainer.sourceProvider!!))
+        providers.add(getMainSourceProvider(flavorContainer.sourceProvider!!))
       }
     }
 
     val mainArtifact = variant.mainArtifact
     mainArtifact.multiFlavorSourceProvider?.let { sourceProvider ->
-      providers.add(getSourceProvider(sourceProvider))
+      providers.add(getMainSourceProvider(sourceProvider))
     }
 
     var debugVariant = false
@@ -385,13 +389,25 @@ class LintModelFactory : LintModelModuleLoader {
       if (variant.buildType == buildTypeContainer.buildType.name) {
         debugVariant = buildTypeContainer.buildType.isDebuggable
         buildTypeContainer.sourceProvider?.let { sourceProvider ->
-          providers.add(getSourceProvider(provider = sourceProvider, debugOnly = debugVariant))
+          providers.add(getMainSourceProvider(provider = sourceProvider, debugOnly = debugVariant))
         }
       }
     }
 
     mainArtifact.variantSourceProvider?.let { sourceProvider ->
-      providers.add(getSourceProvider(provider = sourceProvider, debugOnly = debugVariant))
+      providers.add(getMainSourceProvider(provider = sourceProvider, debugOnly = debugVariant))
+    }
+    return providers
+  }
+
+  private fun computeSourceProviders(
+    project: IdeAndroidProject,
+    variant: IdeVariant,
+  ): List<LintModelSourceProvider> {
+    val providers = mutableListOf<LintModelSourceProvider>()
+
+    if (project.projectType != IdeAndroidProjectType.PROJECT_TYPE_TEST) {
+      providers.addAll(computeMainSourceProviders(project, variant, false))
     }
     return providers
   }
@@ -465,7 +481,15 @@ class LintModelFactory : LintModelModuleLoader {
     project: IdeAndroidProject,
     variant: IdeVariant,
   ): List<LintModelSourceProvider> {
-    return computeExtraSourceProviders(project, variant) { it.isTest() }
+    val providers = mutableListOf<LintModelSourceProvider>()
+
+    if (project.projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
+      providers.addAll(computeMainSourceProviders(project, variant, true))
+    }
+
+    providers.addAll(computeExtraSourceProviders(project, variant) { it.isTest() })
+
+    return providers
   }
 
   private fun computeTestFixturesSourceProviders(
