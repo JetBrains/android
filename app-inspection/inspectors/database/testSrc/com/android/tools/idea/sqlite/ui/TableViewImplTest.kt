@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.controllers.TableController
@@ -1193,27 +1194,8 @@ class TableViewImplTest : BasePlatformTestCase() {
   }
 
   fun testRemoveRowAction() {
-    // Prepare
-    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
-    val col1 = ResultSetSqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
-    val col2 = ResultSetSqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
-    view.showTableColumns(listOf(col1, col2).toViewColumns())
-    val rows =
-      listOf(
-        SqliteRow(
-          listOf(
-            SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val2")),
-          )
-        ),
-        SqliteRow(
-          listOf(
-            SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val4")),
-          )
-        ),
-      )
-    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
+    view.prepare()
+    val table = view.component.getDescendant<JTable>()
     table.selectionModel.setSelectionInterval(0, 0)
     val mockListener = mock<TableView.Listener>()
     view.addListener(mockListener)
@@ -1222,4 +1204,59 @@ class TableViewImplTest : BasePlatformTestCase() {
 
     verify(mockListener).removeRowInvoked(0)
   }
+
+  fun testRemoveRowAction_update() {
+    view.prepare()
+    val table = view.component.getDescendant<JTable>()
+    table.selectionModel.setSelectionInterval(0, 0)
+    val mockListener = mock<TableView.Listener>()
+    view.addListener(mockListener)
+    view.setEditable(true)
+    val event = TestActionEvent.createTestEvent()
+
+    TableViewImpl.RemoveRowAction(table).update(event)
+
+
+    assertTrue(event.presentation.isVisible)
+    assertTrue(event.presentation.isEnabled)
+  }
+
+
+  fun testRemoveRowAction_update_readOnly() {
+    view.prepare()
+    val table = view.component.getDescendant<JTable>()
+    table.selectionModel.setSelectionInterval(0, 0)
+    val mockListener = mock<TableView.Listener>()
+    view.addListener(mockListener)
+    view.setEditable(false)
+    val event = TestActionEvent.createTestEvent()
+
+    TableViewImpl.RemoveRowAction(table).update(event)
+
+
+    assertTrue(event.presentation.isVisible)
+    assertFalse(event.presentation.isEnabled)
+  }
+}
+
+private fun TableViewImpl.prepare() {
+  val col1 = ResultSetSqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
+  val col2 = ResultSetSqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
+  showTableColumns(listOf(col1, col2).toViewColumns())
+  val rows =
+    listOf(
+      SqliteRow(
+        listOf(
+          SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
+          SqliteColumnValue("col2", SqliteValue.StringValue("val2")),
+        )
+      ),
+      SqliteRow(
+        listOf(
+          SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
+          SqliteColumnValue("col2", SqliteValue.StringValue("val4")),
+        )
+      ),
+    )
+  updateRows(rows.map { RowDiffOperation.AddRow(it) })
 }
