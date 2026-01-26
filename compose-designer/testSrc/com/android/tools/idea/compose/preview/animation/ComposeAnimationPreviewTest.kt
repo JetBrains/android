@@ -558,7 +558,6 @@ class ComposeAnimationPreviewTest : AnimationPreviewTests() {
           NoopComposeAnimationTracker,
           { sceneManager },
           surface,
-          psiFilePointer,
         )
         .also { it.animationClock = AnimationClock(TestClock()) }
 

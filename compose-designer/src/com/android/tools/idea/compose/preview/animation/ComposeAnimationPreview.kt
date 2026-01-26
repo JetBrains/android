@@ -35,8 +35,6 @@ import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiFile
-import com.intellij.psi.SmartPsiElementPointer
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,19 +43,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 
-/**
- * Displays details about animations belonging to a Compose Preview.
- *
- * @param psiFilePointer a pointer to a [PsiFile] for current Preview in which Animation Preview is
- *   opened.
- */
+/** Displays details about animations belonging to a Compose Preview. */
 class ComposeAnimationPreview(
   parentScope: CoroutineScope,
   project: Project,
   val tracker: ComposeAnimationTracker,
   sceneManagerProvider: () -> LayoutlibSceneManager?,
   private val rootComponent: JComponent,
-  val psiFilePointer: SmartPsiElementPointer<PsiFile>,
 ) :
   AnimationPreview<ComposeAnimationManager>(
     parentScope,

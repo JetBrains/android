@@ -25,10 +25,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.psi.PsiFile
-import com.intellij.psi.SmartPointerManager
-import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.runInEdtAndGet
 import kotlinx.coroutines.CoroutineScope
 import org.junit.Before
@@ -36,8 +32,6 @@ import org.junit.Rule
 
 /** A base for tests creating Animation Preview. */
 open class AnimationPreviewTests {
-
-  lateinit var psiFilePointer: SmartPsiElementPointer<PsiFile>
 
   @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
@@ -72,9 +66,6 @@ open class AnimationPreviewTests {
         """
           .trimIndent(),
       )
-    ApplicationManager.getApplication().invokeAndWait {
-      psiFilePointer = SmartPointerManager.createPointer(psiFile)
-    }
 
     animationPreview = createAnimationPreview(projectRule.testRootDisposable.createCoroutineScope())
 
@@ -89,7 +80,6 @@ open class AnimationPreviewTests {
         NoopComposeAnimationTracker,
         { surface.model?.let { surface.getSceneManager(it) } },
         surface,
-        psiFilePointer,
       )
       .also { it.animationClock = AnimationClock(TestClock()) }
 }

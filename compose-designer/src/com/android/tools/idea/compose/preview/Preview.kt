@@ -137,7 +137,6 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
-import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.AncestorListenerAdapter
 import com.intellij.util.messages.Topic
 import com.intellij.util.ui.UIUtil
@@ -1585,7 +1584,7 @@ class ComposePreviewRepresentation(
         sceneComponentProvider.enabled = false
 
         withContext(Dispatchers.EDT) {
-          val animationPreview = createAnimationPreviewPanel(surface, psiFilePointer)
+          val animationPreview = createAnimationPreviewPanel(surface)
           currentAnimationPreview = animationPreview
 
           // Subscribe to bus message for closing the inspector from other files
@@ -1667,8 +1666,7 @@ class ComposePreviewRepresentation(
   }
 
   private fun createAnimationPreviewPanel(
-    surface: DesignSurface<LayoutlibSceneManager>,
-    psiFilePointer: SmartPsiElementPointer<PsiFile>,
+    surface: DesignSurface<LayoutlibSceneManager>
   ): ComposeAnimationPreview {
     return ComposeAnimationPreview(
         this@ComposePreviewRepresentation.createCoroutineScope(),
@@ -1676,7 +1674,6 @@ class ComposePreviewRepresentation(
         ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(surface)),
         { surface.model?.let { surface.getSceneManager(it) } },
         surface,
-        psiFilePointer,
       )
       .also { it.tracker.openAnimationInspector() }
   }
@@ -1687,7 +1684,7 @@ class ComposePreviewRepresentation(
    * Manages the preview's response to caret movements, including highlighting components at the
    * caret's position and scrolling components into view.
    */
-  inner class CaretNavigationHandlerImpl() : PreviewRepresentation.CaretNavigationHandler {
+  inner class CaretNavigationHandlerImpl : PreviewRepresentation.CaretNavigationHandler {
     override var isNavigatingToCode: Boolean = false
 
     override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
