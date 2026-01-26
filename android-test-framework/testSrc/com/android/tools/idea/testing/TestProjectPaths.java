@@ -118,6 +118,7 @@ public final class TestProjectPaths {
   public static final String TEST_LINT_DSL_ERRORS = "projects/testArtifacts/lintDslErrors";
   public static final String TEST_FIXTURES = "projects/testFixtures";
   public static final String TEST_ONLY_MODULE = "projects/testOnlyModule";
+  public static final String TEST_ONLY_VISIBILITY = "projects/testOnlyVisibility";
   public static final String TEST_RESOURCES = "projects/testResources";
   public static final String TEST_SUITES = "projects/testSuites";
   public static final String TEST_SUITES_VERSION_CATALOG = "projects/testSuitesVersionCatalog";
