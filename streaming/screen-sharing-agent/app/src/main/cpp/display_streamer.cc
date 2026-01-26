@@ -163,7 +163,6 @@ DisplayStreamer::DisplayStreamer(int32_t display_id, const CodecInfo* codec_info
 DisplayStreamer::~DisplayStreamer() = default;
 
 void DisplayStreamer::Start() {
-  Log::D("DisplayStreamer::Start");  // b/476936376
   thread_handle_.Start(StringPrintf("DisplayStreamer for display %d", display_id_), [this]() { Run(); });
 }
 
@@ -191,7 +190,6 @@ void DisplayStreamer::OnDisplayChanged(int32_t display_id) {
 }
 
 void DisplayStreamer::Run() {
-  Log::D("DisplayStreamer::Run");  // b/476936376
   Jni jni = Jvm::GetJni();
   WindowManager::WatchRotation(jni, display_id_, &display_rotation_watcher_);
   // Don't listen to display events on non-foldable HONOR phones. HONOR 90 is producing bogus display change events (b/348562991).
