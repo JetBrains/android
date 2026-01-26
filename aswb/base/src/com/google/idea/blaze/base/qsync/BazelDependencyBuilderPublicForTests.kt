@@ -36,7 +36,8 @@ interface BazelDependencyBuilderPublicForTests : DependencyBuilder {
     context: BlazeContext,
     buildTargets: Set<Label>,
     buildInvokerCapabilities: Set<BuildSystem.BuildInvoker.Capability>,
-    outputGroups: Collection<OutputGroup>
+    outputGroups: Collection<OutputGroup>,
+    replaceOutputGroups: Boolean
   ): BuildDependenciesBazelInvocationInfo
 
   @VisibleForTesting

@@ -43,6 +43,7 @@ interface DependencyBuilder {
     context: BlazeContext,
     buildTargets: Set<Label>,
     outputGroups: Collection<OutputGroup>,
+    replaceOutputGroups: Boolean,
     invoker: BuildSystem.BuildInvoker,
   ): PreparedInvocation
 
