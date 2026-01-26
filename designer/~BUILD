@@ -54,6 +54,7 @@ iml_module(
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
         "@intellij//:org.jetbrains.kotlin",
         "//tools/base/lint:studio.android.sdktools.lint-api",
+        "//tools/adt/idea/jps-model:intellij.android.jps.model",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/adt/idea/rendering:intellij.android.rendering",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader",
