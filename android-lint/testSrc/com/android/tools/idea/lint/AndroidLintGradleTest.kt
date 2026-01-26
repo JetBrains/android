@@ -230,11 +230,11 @@ class AndroidLintGradleTest {
       AndroidLintUseTomlInsteadInspection(),
       "com.android.support:appcompat-v|7:28.0.0",
       """
-        Warning: Use version catalog instead
-            implementation("com.android.support:appcompat-v7:28.0.0")
-                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            Fix: Replace with new library catalog declaration for appcompat-v7
-            Fix: Suppress UseTomlInstead with a comment
+      Warning: Use version catalog instead
+          implementation("com.android.support:appcompat-v7:28.0.0")
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          Fix: Replace with new library catalog declaration for appcompat-v7
+          Fix: Suppress UseTomlInstead with a comment
       """
         .trimIndent(),
     )
@@ -244,11 +244,11 @@ class AndroidLintGradleTest {
       AndroidLintUseTomlInsteadInspection(),
       "com.android.support:appcompat-v|7:28.0.0",
       """
-        Warning: Use version catalog instead
-            implementation("com.android.support:appcompat-v7:28.0.0")
-                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            Fix: Replace with new library catalog declaration for appcompat-v7
-            Fix: Suppress UseTomlInstead with a comment
+      Warning: Use version catalog instead
+          implementation("com.android.support:appcompat-v7:28.0.0")
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          Fix: Replace with new library catalog declaration for appcompat-v7
+          Fix: Suppress UseTomlInstead with a comment
       """
         .trimIndent(),
     )
@@ -263,7 +263,7 @@ class AndroidLintGradleTest {
       AndroidLintSimilarGradleDependencyInspection(),
       "androidx-core-ktx = { group = \"androidx.|core\", name = \"core-ktx\", version.ref = \"coreKtx\" }\n",
       """
-        No warnings.
+      No warnings.
       """
         .trimIndent(),
     )
