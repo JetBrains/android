@@ -56,7 +56,8 @@ public interface DependencyTracker {
        * artifacts.
        */
       WHOLE_PROJECT,
-      FILE_PREVIEWS
+      FILE_PREVIEWS,
+      LIVE_EDIT_BUILD_APK
     };
 
     final RequestType requestType;
@@ -84,7 +85,7 @@ public interface DependencyTracker {
         .mapMulti(DependencyBuildRequest::languageToOutputGroups)
         .collect(Collectors.toCollection(() -> EnumSet.noneOf(OutputGroup.class)));
 
-      if (type.equals(RequestType.FILE_PREVIEWS)) {
+      if (type.equals(RequestType.FILE_PREVIEWS) || type.equals(RequestType.LIVE_EDIT_BUILD_APK)) {
         outputGroups.add(OutputGroup.TRANSITIVE_RUNTIME_JARS);
         outputGroups.add(OutputGroup.EXTERNAL_TRANSITIVE_RUNTIME_JARS);
       }

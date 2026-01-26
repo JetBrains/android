@@ -92,6 +92,7 @@ public class DependencyTrackerImpl implements DependencyTracker {
         .computeRequestedTargets(request.targets, querySyncUserPreferences.getExperimentalBuildNativeTargetsFromAndroidTransitionPoint());
       case WHOLE_PROJECT -> snapshot.getGraph().computeWholeProjectTargets();
       case FILE_PREVIEWS -> new RequestedTargets(request.targets, ImmutableSet.of());
+      case LIVE_EDIT_BUILD_APK -> new RequestedTargets(request.targets, ImmutableSet.of());
     };
   }
 
