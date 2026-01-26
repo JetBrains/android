@@ -344,7 +344,7 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
       )
   }
 
-  fun testRemoveRow() {
+  fun testRemoveRows_oneRow() {
     // Prepare
     val targetTable =
       SqliteTable(
@@ -368,7 +368,7 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
     // Act
     runDispatching { databaseRepository.addDatabaseConnection(databaseId1, databaseConnection1) }
 
-    val future1 = databaseRepository.removeRow(databaseId1, targetTable, targetRow)
+    val future1 = databaseRepository.removeRows(databaseId1, targetTable, listOf(targetRow))
     pumpEventsAndWaitForFuture(future1)
 
     // Assert
@@ -376,9 +376,64 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
       .execute(
         SqliteStatement(
           SqliteStatementType.DELETE,
-          "DELETE FROM t1 WHERE rowid = ?",
+          "DELETE FROM t1 WHERE (rowid = ?)",
           listOf("0").toSqliteValues(),
-          "DELETE FROM t1 WHERE rowid = '0'",
+          "DELETE FROM t1 WHERE (rowid = '0')",
+        )
+      )
+  }
+
+  fun testRemoveRows_multipleRows() {
+    // Prepare
+    val targetTable =
+      SqliteTable(
+        "t1",
+        listOf(
+          SqliteColumn("c1", SqliteAffinity.TEXT, false, false),
+          SqliteColumn("c2", SqliteAffinity.TEXT, false, false),
+        ),
+        RowIdName.ROWID,
+        false,
+      )
+    val targetRows =
+      listOf(
+        SqliteRow(
+          listOf(
+            SqliteColumnValue("rowid", SqliteValue.fromAny("0")),
+            SqliteColumnValue("c1", SqliteValue.fromAny("c01")),
+            SqliteColumnValue("c2", SqliteValue.fromAny("c02")),
+          )
+        ),
+        SqliteRow(
+          listOf(
+            SqliteColumnValue("rowid", SqliteValue.fromAny("2")),
+            SqliteColumnValue("c1", SqliteValue.fromAny("c21")),
+            SqliteColumnValue("c2", SqliteValue.fromAny("c22")),
+          )
+        ),
+        SqliteRow(
+          listOf(
+            SqliteColumnValue("rowid", SqliteValue.fromAny("4")),
+            SqliteColumnValue("c1", SqliteValue.fromAny("c41")),
+            SqliteColumnValue("c2", SqliteValue.fromAny("c42")),
+          )
+        ),
+      )
+
+    // Act
+    runDispatching { databaseRepository.addDatabaseConnection(databaseId1, databaseConnection1) }
+
+    val future1 = databaseRepository.removeRows(databaseId1, targetTable, targetRows)
+    pumpEventsAndWaitForFuture(future1)
+
+    // Assert
+    verify(databaseConnection1)
+      .execute(
+        SqliteStatement(
+          SqliteStatementType.DELETE,
+          "DELETE FROM t1 WHERE (rowid = ?) OR (rowid = ?) OR (rowid = ?)",
+          listOf("0", "2", "4").toSqliteValues(),
+          "DELETE FROM t1 WHERE (rowid = '0') OR (rowid = '2') OR (rowid = '4')",
         )
       )
   }

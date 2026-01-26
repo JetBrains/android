@@ -237,9 +237,9 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
           if (viewRowIndex < 0 || viewColumnIndex < 0) {
             return
           }
-
+          val selectedRows = table.selectedRows
           table.clearSelection()
-          table.addRowSelectionInterval(viewRowIndex, viewRowIndex)
+          selectedRows.forEach { table.addRowSelectionInterval(it, it) }
           table.addColumnSelectionInterval(viewColumnIndex, viewColumnIndex)
         }
       }
@@ -493,7 +493,7 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
     val actions = buildList {
       add(CopyToClipboardAction(table))
       if (type == TABLE) {
-        add(RemoveRowAction(table))
+        add(RemoveRowsAction(table))
       }
       add(SetNullAction(table))
     }
@@ -607,8 +607,8 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
       }
     }
 
-    fun removeRow(modelRowIndex: Int) {
-      listeners.forEach { it.removeRowInvoked(modelRowIndex) }
+    fun removeRows(modelRowIndex: List<Int>) {
+      listeners.forEach { it.removeRowsInvoked(modelRowIndex) }
     }
 
     override fun setValueAt(newValue: Any?, modelRowIndex: Int, modelColumnIndex: Int) {
@@ -734,17 +734,17 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
     }
   }
 
-  class RemoveRowAction(private val table: JTable) :
-    AnAction(DatabaseInspectorBundle.message("action.remove.row")) {
+  class RemoveRowsAction(private val table: JTable) : AnAction() {
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
-      val viewRow = table.selectedRow
-      val modelRow = table.convertRowIndexToModel(viewRow)
-      (table.model as MyTableModel).removeRow(modelRow)
+      val rows = table.selectedRows.map { table.convertRowIndexToModel(it) }
+      (table.model as MyTableModel).removeRows(rows)
     }
 
     override fun update(e: AnActionEvent) {
+      e.presentation.text =
+        DatabaseInspectorBundle.message("action.remove.row", table.selectedRows.size)
       e.presentation.isEnabled = (table.model as MyTableModel).isEditable
     }
   }
