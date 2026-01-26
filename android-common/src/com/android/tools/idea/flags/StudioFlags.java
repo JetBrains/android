@@ -2918,26 +2918,26 @@ public final class StudioFlags {
       "When enabled, the settings menu will show a checkbox to change the behavior of the Android view to display gradle files under each module");
   // endregion PROJECT_TOOL_WINDOW
 
-  // region Wifi 2.0
-  private static final FlagGroup WIFI_V2 = new FlagGroup(FLAGS, "wifiv2", "Wifi V2");
-  public static final Flag<Boolean> WIFI_V2_DIALOG =
+  // region ADB Wifi 2.0
+  private static final FlagGroup ADB_WIFI_V2 = new FlagGroup(FLAGS, "adb.wifi.v2", "ADB Wifi V2");
+  public static final Flag<Boolean> ADB_WIFI_V2_DIALOG =
     new BooleanFlag(
-      WIFI_V2,
-      "wifiv2.dialog.enable",
-      "Enable Wifi 2.0 dialog",
-      "Enable Wifi 2.0 dialog");
+      ADB_WIFI_V2,
+      "dialog.enable",
+      "Enable ADB Wifi 2.0 dialog",
+      "Enable ADB Wifi 2.0 dialog");
 
-  public static final Flag<Boolean> WIFI_V2_DEVICE_MANAGER =
+  public static final Flag<Boolean> ADB_WIFI_V2_DEVICE_MANAGER =
     new BooleanFlag(
-      WIFI_V2,
-      "wifiv2.device.manager.enable",
-      "Enable Wifi 2.0 in device manager",
+      ADB_WIFI_V2,
+      "device.manager.enable",
+      "Enable ADB Wifi 2.0 in device manager",
       "Show wifi pairable devices in device manager");
 
-  public static final Flag<Boolean> WIFI_V2_DEVICE_MANAGER_HIDE_SETTINGS =
+  public static final Flag<Boolean> ADB_WIFI_V2_DEVICE_MANAGER_HIDE_SETTINGS =
     new BooleanFlag(
-      WIFI_V2,
-      "wifiv2.hide.settings.enable",
+      ADB_WIFI_V2,
+      "hide.settings.enable",
       "Wifi pairable devices in device manager hide settings",
       "Enable settings to hide wifi pairable devices in device manager");
   // endregion Wifi 2.0

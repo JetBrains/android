@@ -67,7 +67,7 @@ class QrCodeScanningController(
   suspend fun startPairingProcess() {
     view.showQrCodePairingStarted()
     generateQrCode(view.model)
-    if (StudioFlags.WIFI_V2_DIALOG.get() && service.isTrackMdnsServiceAvailable()) {
+    if (StudioFlags.ADB_WIFI_V2_DIALOG.get() && service.isTrackMdnsServiceAvailable()) {
       if (state.value == State.Init) {
         startMdnsTrackingService()
       }
