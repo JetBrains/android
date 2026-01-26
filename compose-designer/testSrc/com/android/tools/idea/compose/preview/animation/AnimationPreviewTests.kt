@@ -34,8 +34,8 @@ import kotlinx.coroutines.CoroutineScope
 import org.junit.Before
 import org.junit.Rule
 
-/** A base for tests creating inspector. */
-abstract class InspectorTests {
+/** A base for tests creating Animation Preview. */
+open class AnimationPreviewTests {
 
   lateinit var psiFilePointer: SmartPsiElementPointer<PsiFile>
 
@@ -68,8 +68,8 @@ abstract class InspectorTests {
       projectRule.fixture.addFileToProject(
         "src/main/Test.kt",
         """
-      fun main() {}
-    """
+        fun main() {}
+        """
           .trimIndent(),
       )
     ApplicationManager.getApplication().invokeAndWait {

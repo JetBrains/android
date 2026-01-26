@@ -46,7 +46,7 @@ import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
 class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType) :
-  InspectorTests() {
+  AnimationPreviewTests() {
 
   companion object {
     @JvmStatic

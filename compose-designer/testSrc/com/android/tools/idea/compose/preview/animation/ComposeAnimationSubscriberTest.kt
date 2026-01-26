@@ -39,7 +39,7 @@ import org.junit.Assert.*
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ComposeAnimationSubscriberTest : InspectorTests() {
+class ComposeAnimationSubscriberTest : AnimationPreviewTests() {
 
   @Test
   fun subscribeAndUnsubscribe() = runTest {

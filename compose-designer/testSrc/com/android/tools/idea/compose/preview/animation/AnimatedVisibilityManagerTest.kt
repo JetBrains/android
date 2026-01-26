@@ -41,7 +41,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class AnimatedVisibilityManagerTest : InspectorTests() {
+class AnimatedVisibilityManagerTest : AnimationPreviewTests() {
 
   @Test fun swapStatesFromStringEnter() = runTest { swapStates("Enter", "Enter", "Exit") }
 
