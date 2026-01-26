@@ -108,13 +108,15 @@ open class BazelDependencyBuilder(
     context: BlazeContext,
     buildTargets: Set<Label>,
     outputGroups: Collection<OutputGroup>,
+    replaceOutputGroups: Boolean,
     invoker: BuildInvoker,
   ): DependencyBuilder.PreparedInvocation {
     val buildDependenciesBazelInvocationInfo = getInvocationInfo(
       context,
       buildTargets,
       invoker.capabilities,
-      outputGroups
+      outputGroups,
+      replaceOutputGroups
     )
     prepareInvocationFiles(context, buildDependenciesBazelInvocationInfo.invocationWorkspaceFiles)
     return buildDependenciesBazelInvocationInfo
@@ -135,6 +137,7 @@ open class BazelDependencyBuilder(
           context,
           buildTargets,
           outputGroups,
+          replaceOutputGroups = true,
           invoker
         )
 
@@ -176,6 +179,7 @@ open class BazelDependencyBuilder(
     buildTargets: Set<Label>,
     buildInvokerCapabilities: Set<BuildInvoker.Capability>,
     outputGroups: Collection<OutputGroup>,
+    replaceOutputGroups: Boolean,
   ): BuildDependenciesBazelInvocationInfo {
     val includes = projectDefinition.projectIncludes.map { "//$it" }
     val excludes = projectDefinition.projectExcludes.map { "//$it" }
@@ -205,7 +209,8 @@ open class BazelDependencyBuilder(
       add("--aspects=${invocationFiles.aspectFileLabel}%collect_dependencies,${invocationFiles.aspectFileLabel}%package_dependencies")
       add("--noexperimental_run_validations")
       add("--keep_going")
-      addAll(outputGroups.map { "--output_groups=${it.outputGroupName}" })
+      val maybeOutputAppendPrefix = if (replaceOutputGroups) "" else "+"
+      addAll(outputGroups.map { "--output_groups=$maybeOutputAppendPrefix${it.outputGroupName}" })
     }
     return BuildDependenciesBazelInvocationInfo(
       buildArtifactCache,

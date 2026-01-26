@@ -178,7 +178,8 @@ class BazelDependencyBuilderTest : BlazeIntegrationTestCase() {
     val invocationInfo =
       dependencyBuilder.getInvocationInfo(
         BlazeContext.create(), targets, LocalBazelInvoker.CAPABILITIES,
-        ImmutableSet.of(OutputGroup.ARTIFACT_INFO_FILE)
+        ImmutableSet.of(OutputGroup.ARTIFACT_INFO_FILE),
+        replaceOutputGroups
       )
     val invocationFiles = invocationInfo.invocationWorkspaceFiles
     Truth.assertThat(
