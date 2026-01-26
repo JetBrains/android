@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.model
 
+import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase
 
 class UtilsTest : TestCase() {
@@ -31,7 +32,7 @@ class UtilsTest : TestCase() {
     val rowIdName = getRowIdName(columns)
 
     // Assert
-    assertNull(rowIdName)
+    assertThat(rowIdName).isNull()
   }
 
   fun testGetRowIdIs_rowid_() {
@@ -47,7 +48,7 @@ class UtilsTest : TestCase() {
     val rowIdName = getRowIdName(columns)
 
     // Assert
-    assertEquals(RowIdName._ROWID_, rowIdName)
+    assertThat(rowIdName).isEqualTo(RowIdName._ROWID_)
   }
 
   fun testGetRowIdIsRowid() {
@@ -63,7 +64,7 @@ class UtilsTest : TestCase() {
     val rowIdName = getRowIdName(columns)
 
     // Assert
-    assertEquals(RowIdName.ROWID, rowIdName)
+    assertThat(rowIdName).isEqualTo(RowIdName.ROWID)
   }
 
   fun testGetRowIdIsOid() {
@@ -80,7 +81,7 @@ class UtilsTest : TestCase() {
     val rowIdName = getRowIdName(columns)
 
     // Assert
-    assertEquals(RowIdName.OID, rowIdName)
+    assertThat(rowIdName).isEqualTo(RowIdName.OID)
   }
 
   fun testGetRowIdIsNull() {
@@ -98,6 +99,6 @@ class UtilsTest : TestCase() {
     val rowIdName = getRowIdName(columns)
 
     // Assert
-    assertNull(rowIdName)
+    assertThat(rowIdName).isNull()
   }
 }

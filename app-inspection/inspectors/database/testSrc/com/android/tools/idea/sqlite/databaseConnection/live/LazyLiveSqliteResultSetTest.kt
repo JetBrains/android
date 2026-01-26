@@ -22,9 +22,12 @@ import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.sqlite.DatabaseInspectorMessenger
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteColumnValue
+import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteValue
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.concurrency.EdtExecutorService
@@ -32,7 +35,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.concurrency.any
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
@@ -68,10 +70,8 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
       val columnsFromResultSet = pumpEventsAndWaitForFuture(resultSet.columns)
 
       // Assert
-      assertEquals(
-        listOf(ResultSetSqliteColumn("col1"), ResultSetSqliteColumn("col2")),
-        columnsFromResultSet,
-      )
+      assertThat(columnsFromResultSet)
+        .isEqualTo(listOf(ResultSetSqliteColumn("col1"), ResultSetSqliteColumn("col2")))
     }
 
   fun testRowCountReturnsCorrectNumberOfRows() =
@@ -106,7 +106,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
       val rowCount = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
 
       // Assert
-      assertEquals(2, rowCount)
+      assertThat(rowCount).isEqualTo(2)
     }
 
   fun testRowCountFailsIfDisposed() =
@@ -168,12 +168,16 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
         pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, Integer.MAX_VALUE)).rows
 
       // Assert
-      assertSize(1, rowsFromResultSet)
-      assertEquals("column1", rowsFromResultSet.first().values.first().columnName)
-      assertEquals(
-        SqliteValue.StringValue("a string"),
-        rowsFromResultSet.first().values.first().value,
-      )
+      assertThat(rowsFromResultSet)
+        .containsExactly(
+          SqliteRow(
+            listOf(
+              SqliteColumnValue("column1", SqliteValue.StringValue("a string")),
+              SqliteColumnValue("column2", SqliteValue.StringValue("a string")),
+              SqliteColumnValue("column3", SqliteValue.StringValue("a string")),
+            )
+          )
+        )
     }
 
   fun testGetRowBatchFailsIfDisposed() =
@@ -279,11 +283,12 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
       val error2 = pumpEventsAndWaitForFutureException(resultSet.totalRowCount)
       val error3 = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0, 10))
 
-      assertEquals(error1.cause, error2.cause)
-      assertEquals(error1.cause, error3.cause)
-      assertInstanceOf(error1.cause, LiveInspectorException::class.java)
-      assertEquals("errorMessage", error1.cause!!.message)
-      assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
+      assertThat(error2.cause).isEqualTo(error1.cause)
+      assertThat(error3.cause).isEqualTo(error1.cause)
+      assertThat(error1.cause).isInstanceOf(LiveInspectorException::class.java)
+      assertThat(error1.cause!!.message).isEqualTo("errorMessage")
+      assertThat((error1.cause as LiveInspectorException).onDeviceStackTrace)
+        .isEqualTo("stackTrace")
     }
 
   fun testThrowsNonRecoverableErrorOnErrorOccurredResponse() =
@@ -321,14 +326,13 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
       val error2 = pumpEventsAndWaitForFutureException(resultSet.totalRowCount)
       val error3 = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0, 10))
 
-      assertEquals(error1.cause, error2.cause)
-      assertEquals(error1.cause, error3.cause)
-      assertInstanceOf(error1.cause, LiveInspectorException::class.java)
-      assertEquals(
-        "An error has occurred which requires you to restart your app: errorMessage",
-        error1.cause!!.message,
-      )
-      assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
+      assertThat(error2.cause).isEqualTo(error1.cause)
+      assertThat(error3.cause).isEqualTo(error1.cause)
+      assertThat(error1.cause).isInstanceOf(LiveInspectorException::class.java)
+      assertThat(error1.cause!!.message)
+        .isEqualTo("An error has occurred which requires you to restart your app: errorMessage")
+      assertThat((error1.cause as LiveInspectorException).onDeviceStackTrace)
+        .isEqualTo("stackTrace")
     }
 
   fun testThrowsUnknownRecoverableErrorOnErrorOccurredResponse() =
@@ -362,14 +366,15 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
       val error2 = pumpEventsAndWaitForFutureException(resultSet.totalRowCount)
       val error3 = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0, 10))
 
-      assertEquals(error1.cause, error2.cause)
-      assertEquals(error1.cause, error3.cause)
-      assertInstanceOf(error1.cause, LiveInspectorException::class.java)
-      assertEquals(
-        "An error has occurred which might require you to restart your app: errorMessage",
-        error1.cause!!.message,
-      )
-      assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
+      assertThat(error2.cause).isEqualTo(error1.cause)
+      assertThat(error3.cause).isEqualTo(error1.cause)
+      assertThat(error1.cause).isInstanceOf(LiveInspectorException::class.java)
+      assertThat(error1.cause!!.message)
+        .isEqualTo(
+          "An error has occurred which might require you to restart your app: errorMessage"
+        )
+      assertThat((error1.cause as LiveInspectorException).onDeviceStackTrace)
+        .isEqualTo("stackTrace")
     }
 
   private fun createLazyLiveSqliteResultSet(

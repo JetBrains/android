@@ -32,6 +32,7 @@ import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteValue
+import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
@@ -41,7 +42,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.concurrency.any
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
@@ -108,17 +108,17 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       val sqliteSchema = pumpEventsAndWaitForFuture(liveDatabaseConnection.readSchema())
 
       // Assert
-      assertSize(1, sqliteSchema.tables)
-      assertSize(4, sqliteSchema.tables.first().columns)
-      assertEquals(RowIdName._ROWID_, sqliteSchema.tables.first().rowIdName)
-      assertEquals("column1", sqliteSchema.tables.first().columns[0].name)
-      assertEquals("column2", sqliteSchema.tables.first().columns[1].name)
-      assertEquals("column3", sqliteSchema.tables.first().columns[2].name)
-      assertEquals("column4", sqliteSchema.tables.first().columns[3].name)
-      assertEquals(SqliteAffinity.TEXT, sqliteSchema.tables.first().columns[0].affinity)
-      assertEquals(SqliteAffinity.INTEGER, sqliteSchema.tables.first().columns[1].affinity)
-      assertEquals(SqliteAffinity.REAL, sqliteSchema.tables.first().columns[2].affinity)
-      assertEquals(SqliteAffinity.BLOB, sqliteSchema.tables.first().columns[3].affinity)
+      assertThat(sqliteSchema.tables).hasSize(1)
+      assertThat(sqliteSchema.tables.first().columns).hasSize(4)
+      assertThat(sqliteSchema.tables.first().rowIdName).isEqualTo(RowIdName._ROWID_)
+      assertThat(sqliteSchema.tables.first().columns[0].name).isEqualTo("column1")
+      assertThat(sqliteSchema.tables.first().columns[1].name).isEqualTo("column2")
+      assertThat(sqliteSchema.tables.first().columns[2].name).isEqualTo("column3")
+      assertThat(sqliteSchema.tables.first().columns[3].name).isEqualTo("column4")
+      assertThat(sqliteSchema.tables.first().columns[0].affinity).isEqualTo(SqliteAffinity.TEXT)
+      assertThat(sqliteSchema.tables.first().columns[1].affinity).isEqualTo(SqliteAffinity.INTEGER)
+      assertThat(sqliteSchema.tables.first().columns[2].affinity).isEqualTo(SqliteAffinity.REAL)
+      assertThat(sqliteSchema.tables.first().columns[3].affinity).isEqualTo(SqliteAffinity.BLOB)
     }
 
   fun testExecuteQuery() =
@@ -174,27 +174,29 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
       val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1)).rows
 
-      assertSize(1, sqliteRows)
-      assertSize(5, sqliteColumns)
+      assertThat(sqliteRows).hasSize(1)
+      assertThat(sqliteColumns).hasSize(5)
 
-      assertEquals("column1", sqliteColumns[0].name)
-      assertEquals("column2", sqliteColumns[1].name)
-      assertEquals("column3", sqliteColumns[2].name)
-      assertEquals("column4", sqliteColumns[3].name)
-      assertEquals("column5", sqliteColumns[4].name)
+      assertThat(sqliteColumns[0].name).isEqualTo("column1")
+      assertThat(sqliteColumns[1].name).isEqualTo("column2")
+      assertThat(sqliteColumns[2].name).isEqualTo("column3")
+      assertThat(sqliteColumns[3].name).isEqualTo("column4")
+      assertThat(sqliteColumns[4].name).isEqualTo("column5")
 
-      assertNull(sqliteColumns[0].affinity)
-      assertNull(sqliteColumns[1].affinity)
-      assertNull(sqliteColumns[2].affinity)
-      assertNull(sqliteColumns[3].affinity)
-      assertNull(sqliteColumns[4].affinity)
+      assertThat(sqliteColumns[0].affinity).isNull()
+      assertThat(sqliteColumns[1].affinity).isNull()
+      assertThat(sqliteColumns[2].affinity).isNull()
+      assertThat(sqliteColumns[3].affinity).isNull()
+      assertThat(sqliteColumns[4].affinity).isNull()
 
-      assertEquals(sqliteRows[0].values[0].value, SqliteValue.StringValue("a string"))
-      assertEquals(sqliteRows[0].values[1].value, SqliteValue.StringValue(largeFloat.toString()))
+      assertThat(sqliteRows[0].values[0].value).isEqualTo(SqliteValue.StringValue("a string"))
+      assertThat(sqliteRows[0].values[1].value)
+        .isEqualTo(SqliteValue.StringValue(largeFloat.toString()))
       // the value for the blob corresponds to the base16 encoding of the byte array of the blob.
-      assertEquals(sqliteRows[0].values[2].value, SqliteValue.StringValue("6120626C6F62"))
-      assertEquals(sqliteRows[0].values[3].value, SqliteValue.StringValue(largeInteger.toString()))
-      assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
+      assertThat(sqliteRows[0].values[2].value).isEqualTo(SqliteValue.StringValue("6120626C6F62"))
+      assertThat(sqliteRows[0].values[3].value)
+        .isEqualTo(SqliteValue.StringValue(largeInteger.toString()))
+      assertThat(sqliteRows[0].values[4].value).isEqualTo(SqliteValue.NullValue)
     }
 
   fun testExecuteExplain() =
@@ -246,27 +248,27 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
       val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1)).rows
 
-      assertSize(1, sqliteRows)
-      assertSize(5, sqliteColumns)
+      assertThat(sqliteRows).hasSize(1)
+      assertThat(sqliteColumns).hasSize(5)
 
-      assertEquals("column1", sqliteColumns[0].name)
-      assertEquals("column2", sqliteColumns[1].name)
-      assertEquals("column3", sqliteColumns[2].name)
-      assertEquals("column4", sqliteColumns[3].name)
-      assertEquals("column5", sqliteColumns[4].name)
+      assertThat(sqliteColumns[0].name).isEqualTo("column1")
+      assertThat(sqliteColumns[1].name).isEqualTo("column2")
+      assertThat(sqliteColumns[2].name).isEqualTo("column3")
+      assertThat(sqliteColumns[3].name).isEqualTo("column4")
+      assertThat(sqliteColumns[4].name).isEqualTo("column5")
 
-      assertNull(sqliteColumns[0].affinity)
-      assertNull(sqliteColumns[1].affinity)
-      assertNull(sqliteColumns[2].affinity)
-      assertNull(sqliteColumns[3].affinity)
-      assertNull(sqliteColumns[4].affinity)
+      assertThat(sqliteColumns[0].affinity).isNull()
+      assertThat(sqliteColumns[1].affinity).isNull()
+      assertThat(sqliteColumns[2].affinity).isNull()
+      assertThat(sqliteColumns[3].affinity).isNull()
+      assertThat(sqliteColumns[4].affinity).isNull()
 
-      assertEquals(sqliteRows[0].values[0].value, SqliteValue.StringValue("a string"))
-      assertEquals(sqliteRows[0].values[1].value, SqliteValue.StringValue(1f.toString()))
+      assertThat(sqliteRows[0].values[0].value).isEqualTo(SqliteValue.StringValue("a string"))
+      assertThat(sqliteRows[0].values[1].value).isEqualTo(SqliteValue.StringValue(1f.toString()))
       // the value for the blob corresponds to the base16 encoding of the byte array of the blob.
-      assertEquals(sqliteRows[0].values[2].value, SqliteValue.StringValue("6120626C6F62"))
-      assertEquals(sqliteRows[0].values[3].value, SqliteValue.StringValue(1.toString()))
-      assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
+      assertThat(sqliteRows[0].values[2].value).isEqualTo(SqliteValue.StringValue("6120626C6F62"))
+      assertThat(sqliteRows[0].values[3].value).isEqualTo(SqliteValue.StringValue(1.toString()))
+      assertThat(sqliteRows[0].values[4].value).isEqualTo(SqliteValue.NullValue)
     }
 
   fun testExecutePragma() =
@@ -310,33 +312,33 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
           liveDatabaseConnection.query(
             SqliteStatement(SqliteStatementType.PRAGMA_QUERY, "fake query")
           )
-        )
+        )!!
 
       // Assert
       val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
       val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1)).rows
 
-      assertSize(1, sqliteRows)
-      assertSize(5, sqliteColumns)
+      assertThat(sqliteRows).hasSize(1)
+      assertThat(sqliteColumns).hasSize(5)
 
-      assertEquals("column1", sqliteColumns[0].name)
-      assertEquals("column2", sqliteColumns[1].name)
-      assertEquals("column3", sqliteColumns[2].name)
-      assertEquals("column4", sqliteColumns[3].name)
-      assertEquals("column5", sqliteColumns[4].name)
+      assertThat(sqliteColumns[0].name).isEqualTo("column1")
+      assertThat(sqliteColumns[1].name).isEqualTo("column2")
+      assertThat(sqliteColumns[2].name).isEqualTo("column3")
+      assertThat(sqliteColumns[3].name).isEqualTo("column4")
+      assertThat(sqliteColumns[4].name).isEqualTo("column5")
 
-      assertNull(sqliteColumns[0].affinity)
-      assertNull(sqliteColumns[1].affinity)
-      assertNull(sqliteColumns[2].affinity)
-      assertNull(sqliteColumns[3].affinity)
-      assertNull(sqliteColumns[4].affinity)
+      assertThat(sqliteColumns[0].affinity).isNull()
+      assertThat(sqliteColumns[1].affinity).isNull()
+      assertThat(sqliteColumns[2].affinity).isNull()
+      assertThat(sqliteColumns[3].affinity).isNull()
+      assertThat(sqliteColumns[4].affinity).isNull()
 
-      assertEquals(sqliteRows[0].values[0].value, SqliteValue.StringValue("a string"))
-      assertEquals(sqliteRows[0].values[1].value, SqliteValue.StringValue(1f.toString()))
+      assertThat(sqliteRows[0].values[0].value).isEqualTo(SqliteValue.StringValue("a string"))
+      assertThat(sqliteRows[0].values[1].value).isEqualTo(SqliteValue.StringValue(1f.toString()))
       // the value for the blob corresponds to the base16 encoding of the byte array of the blob.
-      assertEquals(sqliteRows[0].values[2].value, SqliteValue.StringValue("6120626C6F62"))
-      assertEquals(sqliteRows[0].values[3].value, SqliteValue.StringValue(1.toString()))
-      assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
+      assertThat(sqliteRows[0].values[2].value).isEqualTo(SqliteValue.StringValue("6120626C6F62"))
+      assertThat(sqliteRows[0].values[3].value).isEqualTo(SqliteValue.StringValue(1.toString()))
+      assertThat(sqliteRows[0].values[4].value).isEqualTo(SqliteValue.NullValue)
     }
 
   fun testExecuteStatementWithParameters() =
@@ -396,8 +398,8 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
       val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1)).rows
 
-      assertSize(0, sqliteRows)
-      assertSize(0, sqliteColumns)
+      assertThat(sqliteRows).isEmpty()
+      assertThat(sqliteColumns).isEmpty()
     }
 
   fun testThrowsRecoverableErrorOnErrorOccurredResponse() =
@@ -432,10 +434,11 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
           liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
         )
 
-      assertEquals(error1.cause, error2.cause)
-      assertInstanceOf(error1.cause, LiveInspectorException::class.java)
-      assertEquals("errorMessage", error1.cause!!.message)
-      assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
+      assertThat(error2.cause).isEqualTo(error1.cause)
+      assertThat(error1.cause).isInstanceOf(LiveInspectorException::class.java)
+      assertThat(error1.cause!!.message).isEqualTo("errorMessage")
+      assertThat((error1.cause as LiveInspectorException).onDeviceStackTrace)
+        .isEqualTo("stackTrace")
     }
 
   fun testThrowsNonRecoverableErrorOnErrorOccurredResponse() =
@@ -470,13 +473,12 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
           liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
         )
 
-      assertEquals(error1.cause, error2.cause)
-      assertInstanceOf(error1.cause, LiveInspectorException::class.java)
-      assertEquals(
-        "An error has occurred which requires you to restart your app: errorMessage",
-        error1.cause!!.message,
-      )
-      assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
+      assertThat(error2.cause).isEqualTo(error1.cause)
+      assertThat(error1.cause).isInstanceOf(LiveInspectorException::class.java)
+      assertThat(error1.cause!!.message)
+        .isEqualTo("An error has occurred which requires you to restart your app: errorMessage")
+      assertThat((error1.cause as LiveInspectorException).onDeviceStackTrace)
+        .isEqualTo("stackTrace")
     }
 
   fun testThrowsUnknownRecoverableErrorOnErrorOccurredResponse() =
@@ -507,13 +509,14 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
           liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
         )
 
-      assertEquals(error1.cause, error2.cause)
-      assertInstanceOf(error1.cause, LiveInspectorException::class.java)
-      assertEquals(
-        "An error has occurred which might require you to restart your app: errorMessage",
-        error1.cause!!.message,
-      )
-      assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
+      assertThat(error2.cause).isEqualTo(error1.cause)
+      assertThat(error1.cause).isInstanceOf(LiveInspectorException::class.java)
+      assertThat(error1.cause!!.message)
+        .isEqualTo(
+          "An error has occurred which might require you to restart your app: errorMessage"
+        )
+      assertThat((error1.cause as LiveInspectorException).onDeviceStackTrace)
+        .isEqualTo("stackTrace")
     }
 
   fun testRecoverableErrorAnalytics() =

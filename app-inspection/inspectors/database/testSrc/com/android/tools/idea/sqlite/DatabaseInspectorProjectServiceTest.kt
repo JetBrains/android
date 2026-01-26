@@ -35,6 +35,7 @@ import com.android.tools.idea.sqlite.model.getAllDatabaseIds
 import com.android.tools.idea.sqlite.utils.SqliteTestUtil
 import com.android.tools.idea.sqlite.utils.StubProcessDescriptor
 import com.android.tools.idea.testing.runDispatching
+import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.mock.MockVirtualFile
@@ -50,7 +51,6 @@ import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.concurrency.any
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
@@ -143,8 +143,8 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     }
 
     // Assert
-    assertEmpty(model.getAllDatabaseIds())
-    assertEmpty(repository.openDatabases)
+    assertThat(model.getAllDatabaseIds()).isEmpty()
+    assertThat(repository.openDatabases).isEmpty()
   }
 
   fun testStopSessionsRemovesDatabaseInspectorClientChannelAndAppInspectionServicesFromController() =
@@ -221,11 +221,9 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    assertSize(1, model.getOpenDatabaseIds())
-    assertEquals(databaseId2, model.getOpenDatabaseIds().first())
-    assertSize(1, model.getCloseDatabaseIds())
-    assertEquals(databaseId1, model.getCloseDatabaseIds().first())
-    assertEquals(listOf(databaseId2), repository.openDatabases)
+    assertThat(model.getOpenDatabaseIds()).containsExactly(databaseId2)
+    assertThat(model.getCloseDatabaseIds()).containsExactly(databaseId1)
+    assertThat(repository.openDatabases).containsExactly(databaseId2)
 
     runDispatching { verify(databaseInspectorController).closeDatabase(databaseId1) }
   }
@@ -242,9 +240,8 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    assertSize(0, model.getOpenDatabaseIds())
-    assertSize(1, model.getCloseDatabaseIds())
-    assertEquals(databaseId1, model.getCloseDatabaseIds().first())
+    assertThat(model.getOpenDatabaseIds()).isEmpty()
+    assertThat(model.getCloseDatabaseIds()).containsExactly(databaseId1)
   }
 
   fun testStartSessionsClearsDatabases() {
@@ -264,7 +261,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     val appInspectionServices = mock(AppInspectionIdeServices::class.java)
     model.addDatabaseSchema(SqliteDatabaseId.fromLiveDatabase("db", 0), SqliteSchema(emptyList()))
 
-    assertSize(1, model.getAllDatabaseIds())
+    assertThat(model.getAllDatabaseIds()).hasSize(1)
 
     // Act
     runDispatching {
@@ -276,7 +273,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     }
 
     // Assert
-    assertEmpty(model.getAllDatabaseIds())
+    assertThat(model.getAllDatabaseIds()).isEmpty()
   }
 
   fun testOpenFileDatabaseSuccess() {
@@ -303,7 +300,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
       )
 
     // Verify
-    assertEquals(emptyList<SqliteDatabaseId>(), repository.openDatabases)
+    assertThat(repository.openDatabases).isEmpty()
     verify(databaseInspectorController)
       .showError("Error opening database from '${databaseFileData.mainFile.path}'", error.cause)
   }

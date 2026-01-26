@@ -33,6 +33,7 @@ import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.android.tools.idea.testing.runDispatching
+import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
@@ -185,8 +186,8 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
     runDispatching { databaseRepository.closeDatabase(databaseId2) }
 
     // Assert
-    assertTrue(Disposer.isDisposed(databaseConnection1))
-    assertTrue(Disposer.isDisposed(databaseConnection2))
+    assertThat(Disposer.isDisposed(databaseConnection1)).isTrue()
+    assertThat(Disposer.isDisposed(databaseConnection2)).isTrue()
   }
 
   fun testFetchSchema() {
@@ -203,9 +204,9 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
     val schema3 = runDispatching { databaseRepository.fetchSchema(databaseId1) }
 
     // Assert
-    assertEquals(schema1, SqliteSchema(listOf(SqliteTable("t1", emptyList(), null, false))))
-    assertEquals(schema2, SqliteSchema(listOf(SqliteTable("t2", emptyList(), null, false))))
-    assertEquals(schema3, SqliteSchema(listOf(SqliteTable("t3", emptyList(), null, false))))
+    assertThat(schema1).isEqualTo(SqliteSchema(listOf(SqliteTable("t1", emptyList(), null, false))))
+    assertThat(schema2).isEqualTo(SqliteSchema(listOf(SqliteTable("t2", emptyList(), null, false))))
+    assertThat(schema3).isEqualTo(SqliteSchema(listOf(SqliteTable("t3", emptyList(), null, false))))
   }
 
   fun testExecuteStatement() {
@@ -516,8 +517,8 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
     verify(databaseConnection1).close()
     verify(databaseConnection2).close()
 
-    assertTrue(Disposer.isDisposed(databaseConnection1))
-    assertTrue(Disposer.isDisposed(databaseConnection2))
+    assertThat(Disposer.isDisposed(databaseConnection1)).isTrue()
+    assertThat(Disposer.isDisposed(databaseConnection2)).isTrue()
 
     pumpEventsAndWaitForFutureException(
       databaseRepository.runQuery(

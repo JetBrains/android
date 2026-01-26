@@ -29,6 +29,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
+import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.actionSystem.ActionUiKind
@@ -155,7 +156,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTes
     spyPopupChooserBuilder.callback?.consume(sqliteDatabaseId1)
 
     // Assert
-    assertNotNull(spyPopupChooserBuilder.callback)
+    assertThat(spyPopupChooserBuilder.callback).isNotNull()
 
     verify(mockJBPopupFactory).createPopupChooserBuilder(databases.toList())
     verify(spyPopupChooserBuilder).createPopup()

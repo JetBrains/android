@@ -37,6 +37,7 @@ import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.sqlite.utils.SqliteTestUtil
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.testing.runDispatching
+import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -48,7 +49,6 @@ import com.intellij.util.concurrency.EdtExecutorService
 import java.awt.Dimension
 import javax.swing.JComboBox
 import javax.swing.JTable
-import junit.framework.TestCase
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -98,16 +98,16 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     val comboBox = treeWalker.descendants().filterIsInstance<JComboBox<*>>().first()
 
     // Act/Assert
-    assertEquals(-1, comboBox.selectedIndex)
+    assertThat(comboBox.selectedIndex).isEqualTo(-1)
 
     val databaseId1 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("db1")))
     val databaseId2 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("db2")))
 
     view.setDatabases(listOf(databaseId1, databaseId2), databaseId1)
-    assertEquals(0, comboBox.selectedIndex)
+    assertThat(comboBox.selectedIndex).isEqualTo(0)
 
     view.setDatabases(emptyList(), null)
-    assertEquals(-1, comboBox.selectedIndex)
+    assertThat(comboBox.selectedIndex).isEqualTo(-1)
   }
 
   fun testActiveDatabaseRemainsActiveWhenNewDbsAreAdded() {
@@ -133,19 +133,19 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     )
 
     // Act/Assert
-    assertEquals(null, activeDatabaseId)
+    assertThat(activeDatabaseId).isNull()
 
     model.addDatabaseSchema(db2, SqliteSchema(emptyList()))
-    assertEquals(db2, activeDatabaseId)
+    assertThat(activeDatabaseId).isEqualTo(db2)
 
     model.addDatabaseSchema(db1, SqliteSchema(emptyList()))
-    assertEquals(db2, activeDatabaseId)
+    assertThat(activeDatabaseId).isEqualTo(db2)
 
     model.addDatabaseSchema(db0, SqliteSchema(emptyList()))
-    assertEquals(db2, activeDatabaseId)
+    assertThat(activeDatabaseId).isEqualTo(db2)
 
     model.removeDatabaseSchema(db2)
-    assertEquals(db0, activeDatabaseId)
+    assertThat(activeDatabaseId).isEqualTo(db0)
   }
 
   fun testPsiCacheIsDroppedWhenNewDatabaseIsSelected() {
@@ -158,15 +158,15 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     // Act/Assert
     view.setDatabases(listOf(database1, database2), database1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    assertEquals(1, dropPsiCachesCallCounter)
+    assertThat(dropPsiCachesCallCounter).isEqualTo(1)
 
     view.setDatabases(listOf(database1, database2), database2)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    assertEquals(3, dropPsiCachesCallCounter)
+    assertThat(dropPsiCachesCallCounter).isEqualTo(3)
 
     comboBox.selectedIndex = 0
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    assertEquals(4, dropPsiCachesCallCounter)
+    assertThat(dropPsiCachesCallCounter).isEqualTo(4)
   }
 
   fun testSchemaUpdatedDropsCachesAndGetsNewSchema() {
@@ -180,7 +180,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    assertEquals(2, dropPsiCachesCallCounter)
+    assertThat(dropPsiCachesCallCounter).isEqualTo(2)
     verify(mockSchemaProvider, times(2)).getSchema(database)
   }
 
@@ -199,7 +199,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     evaluatorController.setUp()
 
     // Assert
-    assertFalse(refreshButton.isEnabled)
+    assertThat(refreshButton.isEnabled).isFalse()
   }
 
   fun testMultipleStatementAreRun() {
@@ -235,10 +235,10 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
 
     // Assert
     val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
-    assertEquals(2, table.model.columnCount)
-    assertEquals("c1", table.model.getColumnName(1))
-    assertEquals(1, table.model.rowCount)
-    assertEquals("42", table.model.getValueAt(0, 1))
+    assertThat(table.model.columnCount).isEqualTo(2)
+    assertThat(table.model.getColumnName(1)).isEqualTo("c1")
+    assertThat(table.model.rowCount).isEqualTo(1)
+    assertThat(table.model.getValueAt(0, 1)).isEqualTo("42")
 
     // Act
     pumpEventsAndWaitForFuture(
@@ -249,10 +249,10 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     )
 
     // Assert
-    assertEquals(2, table.model.columnCount)
-    assertEquals("c1", table.model.getColumnName(1))
-    assertEquals(1, table.model.rowCount)
-    assertEquals("42", table.model.getValueAt(0, 1))
+    assertThat(table.model.columnCount).isEqualTo(2)
+    assertThat(table.model.getColumnName(1)).isEqualTo("c1")
+    assertThat(table.model.rowCount).isEqualTo(1)
+    assertThat(table.model.getValueAt(0, 1)).isEqualTo("42")
   }
 
   fun testEnableRunSqliteStatementsEnablesRunButton() {
@@ -263,7 +263,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     view.setRunSqliteStatementEnabled(true)
 
     // Assert
-    TestCase.assertTrue(runButton.isEnabled)
+    assertThat(runButton.isEnabled).isTrue()
   }
 
   fun testDisableRunSqliteStatementsDisablesRunButton() {
@@ -275,7 +275,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     view.setRunSqliteStatementEnabled(false)
 
     // Assert
-    assertFalse(runButton.isEnabled)
+    assertThat(runButton.isEnabled).isFalse()
   }
 
   fun testSqliteStatementTextChanged() {
@@ -298,7 +298,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     collapsedEditor.text = "test2"
 
     // Assert
-    assertEquals(listOf("test1", "test2"), invocations)
+    assertThat(invocations).containsExactly("test1", "test2").inOrder()
   }
 
   fun testTableIsEmptyWhenDbIsClosed() {
@@ -335,19 +335,19 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
 
     // check before that table isn't empty
-    assertEquals(1, table.model.rowCount)
+    assertThat(table.model.rowCount).isEqualTo(1)
 
     // Act1
     model.removeDatabaseSchema(unrelated)
 
     // Assert that nothing changed
-    assertEquals(1, table.model.rowCount)
+    assertThat(table.model.rowCount).isEqualTo(1)
 
     // Act2
     model.removeDatabaseSchema(database)
 
     // Assert that now it is empty
-    assertEquals(0, table.model.rowCount)
+    assertThat(table.model.rowCount).isEqualTo(0)
   }
 
   fun testShowTableView() {
@@ -358,8 +358,8 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     val messagePanel1 =
       TreeWalker(view.component).descendants().first { it.name == "message-panel" }
 
-    assertNotNull(messagePanel1)
-    assertNull(table1)
+    assertThat(messagePanel1).isNotNull()
+    assertThat(table1).isNull()
 
     view.showTableView()
 
@@ -367,8 +367,8 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     val messagePanel2 =
       TreeWalker(view.component).descendants().firstOrNull { it.name == "message-panel" }
 
-    assertNull(messagePanel2)
-    assertNotNull(table2)
+    assertThat(messagePanel2).isNull()
+    assertThat(table2).isNotNull()
   }
 
   fun testShowMessagePanel() {
@@ -378,8 +378,8 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     val messagePanel1 =
       TreeWalker(view.component).descendants().firstOrNull { it.name == "message-panel" }
 
-    assertNull(messagePanel1)
-    assertNotNull(table1)
+    assertThat(messagePanel1).isNull()
+    assertThat(table1).isNotNull()
 
     view.showMessagePanel("message")
 
@@ -387,8 +387,8 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     val messagePanel2 =
       TreeWalker(view.component).descendants().first { it.name == "message-panel" }
 
-    assertNotNull(messagePanel2)
-    assertNull(table2)
+    assertThat(messagePanel2).isNotNull()
+    assertThat(table2).isNull()
   }
 
   private fun sqliteEvaluatorController(

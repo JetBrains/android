@@ -21,9 +21,12 @@ import com.android.tools.idea.sqlite.mocks.FakeFileDatabaseManager
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.utils.StubProcessDescriptor
 import com.android.tools.idea.testing.runDispatching
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -35,8 +38,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 class OfflineModeManagerTest : LightPlatformTestCase() {
 
@@ -89,8 +90,8 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
     val results = runDispatching { flow.toList(mutableListOf()) }
 
     // Assert
-    assertEquals(
-      listOf(
+    assertThat(results)
+      .containsExactly(
         OfflineModeManager.DownloadProgress(
           OfflineModeManager.DownloadState.IN_PROGRESS,
           emptyList(),
@@ -111,9 +112,8 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
           listOf(fileDatabaseManager.databaseFileData, fileDatabaseManager.databaseFileData),
           2,
         ),
-      ),
-      results,
-    )
+      )
+      .inOrder()
   }
 
   fun testDownloadFilesCanceled() {
@@ -147,9 +147,10 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
     }
 
     // Assert
-    assertTrue(hasBeenCanceled)
+    assertThat(hasBeenCanceled).isTrue()
 
-    assertEquals(listOf(fileDatabaseManager.databaseFileData), fileDatabaseManager.cleanedUpFiles)
+    assertThat(fileDatabaseManager.cleanedUpFiles)
+      .containsExactly(fileDatabaseManager.databaseFileData)
   }
 
   fun testDownloadFailed() = runBlocking {
@@ -179,11 +180,11 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
     runDispatching { flow.toList(mutableListOf()) }
 
     // Assert
-    assertTrue(handleErrorInvoked)
-    assertEquals(2, handleErrorInvokeCount)
+    assertThat(handleErrorInvoked).isTrue()
+    assertThat(handleErrorInvokeCount).isEqualTo(2)
 
-    assertTrue(trackerService.offlineDownloadFailed!!)
-    assertEquals(1, trackerService.offlineDownloadFailedCount)
+    assertThat(trackerService.offlineDownloadFailed!!).isTrue()
+    assertThat(trackerService.offlineDownloadFailedCount).isEqualTo(1)
   }
 
   fun testDoesNotEnterOfflineModeIfUserDoesNotTrustProject() {
@@ -209,8 +210,8 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
     val results = runDispatching { flow.toList(mutableListOf()) }
 
     // Assert
-    assertEquals(
-      listOf(
+    assertThat(results)
+      .containsExactly(
         OfflineModeManager.DownloadProgress(
           OfflineModeManager.DownloadState.IN_PROGRESS,
           emptyList(),
@@ -221,16 +222,15 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
           emptyList(),
           2,
         ),
-      ),
-      results,
-    )
+      )
+      .inOrder()
 
-    assertEquals(
-      "For security reasons offline mode is disabled when " +
-        "the process being inspected does not correspond to the project open in studio " +
-        "or when the project has been generated from a prebuilt apk.",
-      errorMessage,
-    )
+    assertThat(errorMessage)
+      .isEqualTo(
+        "For security reasons offline mode is disabled when " +
+          "the process being inspected does not correspond to the project open in studio " +
+          "or when the project has been generated from a prebuilt apk."
+      )
   }
 
   fun testUserIsNotWarnedMultipleTimesAfterTrustingProject() {
@@ -245,8 +245,8 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
             false
           },
         )
-      assertFalse(canDownloadFiles)
-      assertTrue(askUserCalled0)
+      assertThat(canDownloadFiles).isFalse()
+      assertThat(askUserCalled0).isTrue()
 
       var askUserCalled1 = false
       canDownloadFiles =
@@ -258,8 +258,8 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
             true
           },
         )
-      assertTrue(canDownloadFiles)
-      assertTrue(askUserCalled1)
+      assertThat(canDownloadFiles).isTrue()
+      assertThat(askUserCalled1).isTrue()
 
       var askUserCalled2 = false
       canDownloadFiles =
@@ -271,8 +271,8 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
             true
           },
         )
-      assertTrue(canDownloadFiles)
-      assertFalse(askUserCalled2)
+      assertThat(canDownloadFiles).isTrue()
+      assertThat(askUserCalled2).isFalse()
     }
   }
 }
