@@ -93,7 +93,7 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
   private val rootPanel = BorderLayoutPanel()
   override val component: JComponent = rootPanel
 
-  private val readOnlyLabel = JLabel("Results are read-only")
+  private val readOnlyLabel = JLabel("Results are read-only").apply { name = "readOnlyLabel" }
   private val isForcedBanner = IsForcedConnectionBanner()
 
   private val firstRowsPageButton = CommonButton(AllIcons.Actions.Play_first)
@@ -742,6 +742,10 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
       val viewRow = table.selectedRow
       val modelRow = table.convertRowIndexToModel(viewRow)
       (table.model as MyTableModel).removeRow(modelRow)
+    }
+
+    override fun update(e: AnActionEvent) {
+      e.presentation.isEnabled = (table.model as MyTableModel).isEditable
     }
   }
 
