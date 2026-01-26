@@ -27,7 +27,11 @@ class ActionHelperImpl : ActionHelper {
   override fun getApplicationId(project: Project): String? {
     val runManager = RunManager.getInstance(project)
     val runConfig = runManager.selectedConfiguration?.configuration ?: return null
-    return project.getProjectSystem().getApplicationIdProvider(runConfig)?.packageName
+    val projectSystem = project.getProjectSystem()
+    if (!projectSystem.isAndroidProject()) {
+      return null
+    }
+    return projectSystem.getApplicationIdProvider(runConfig)?.packageName
   }
 
   override fun getDeployTargetCount(project: Project) =
