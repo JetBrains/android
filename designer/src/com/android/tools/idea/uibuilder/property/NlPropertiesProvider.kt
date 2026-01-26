@@ -41,6 +41,7 @@ import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.uibuilder.model.hasNlComponentInfo
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.property.support.TypeResolver
+import com.android.tools.lint.checks.ApiLookup
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.ImmutableTable
@@ -90,6 +91,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
     }
 
     val project = facet.module.project
+    val apiLookup = LintIdeClient.getApiLookup(facet.module.project)
     val resourceManagers = ModuleResourceManagers.getInstance(facet)
     val localResourceManager = resourceManagers.localResourceManager
     val frameworkResourceManager = resourceManagers.frameworkResourceManager
@@ -106,7 +108,8 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
     }
 
     return ReadAction.nonBlocking<PropertiesTable<NlPropertyItem>> {
-        val generator = PropertiesGenerator(facet, model, components, localAttrDefs, systemAttrDefs)
+        val generator =
+          PropertiesGenerator(facet, model, components, localAttrDefs, systemAttrDefs, apiLookup)
         PropertiesTable.create(generator.generate())
       }
       .inSmartMode(project)
@@ -122,9 +125,9 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
     private val components: List<NlComponent>,
     private val localAttrDefs: AttributeDefinitions,
     private val systemAttrDefs: AttributeDefinitions,
+    private val apiLookup: ApiLookup?,
   ) {
     private val project = facet.module.project
-    private val apiLookup = LintIdeClient.getApiLookup(project)
     private val minApi = StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.featureLevel
     private val psiFacade = JavaPsiFacade.getInstance(project)
     private val classLookup = NlPsiLookup(facet)
