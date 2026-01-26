@@ -27,11 +27,14 @@ interface QuerySyncUserPreferences {
   val enableCodeAnalysisOnSync: Boolean
   val refreshQueryDataOnStartup: Boolean
   val experimentalBuildNativeTargetsFromAndroidTransitionPoint: Boolean
+  val liveEditEnabled: Boolean
 }
 
 private val skipRefreshQueryDataOnStartup = BoolExperiment("aswb.query.sync.skip.query.on.startup", true)
 private val buildNativeTargetsFromAndroidTransitionPoint =
     BoolExperiment("aswb.query.sync.build.native.targets.from.android.transition.point", true)
+private val liveEditSupportEnabled: BoolExperiment = BoolExperiment("aswb.live.edit.enabled", false)
+
 
 @Service(Service.Level.PROJECT)
 class QuerySyncUserPreferencesProvider(private val project: Project) {
@@ -46,6 +49,9 @@ class QuerySyncUserPreferencesProvider(private val project: Project) {
 
     override val experimentalBuildNativeTargetsFromAndroidTransitionPoint: Boolean
       get() = buildNativeTargetsFromAndroidTransitionPoint.value
+
+    override val liveEditEnabled: Boolean
+      get() = liveEditSupportEnabled.value
   }
 
   companion object {

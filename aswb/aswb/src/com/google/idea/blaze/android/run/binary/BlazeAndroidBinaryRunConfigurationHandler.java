@@ -37,6 +37,7 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.logging.EventLoggingService;
 import com.google.idea.blaze.base.logging.GenericEvent;
+import com.google.idea.blaze.base.qsync.QuerySyncUserPreferencesProvider;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfigurationType;
 import com.google.idea.blaze.base.run.BlazeConfigurationNameBuilder;
@@ -131,6 +132,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
               project,
               AndroidBinaryLaunchMethodsUtils.useMobileInstall(configState.getLaunchMethod()),
               configState.getCommonState().isNativeDebuggingEnabled(),
+              QuerySyncUserPreferencesProvider.getInstance(project).getUserPreferences().getLiveEditEnabled(),
               configuration.getSingleTargetPattern() != null ? Label.of(configuration.getSingleTargetPattern()): Label.of("//"),
               blazeFlags,
               exeFlags,

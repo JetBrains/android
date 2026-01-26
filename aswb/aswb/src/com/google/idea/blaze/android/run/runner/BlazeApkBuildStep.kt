@@ -41,6 +41,7 @@ class BlazeApkBuildStep(
   private val exeFlags: List<String>,
   val useMobileInstall: Boolean,
   val nativeDebuggingEnabled: Boolean,
+  val liveEditEnabled: Boolean,
   private val launchId: String,
   private val buildInvoker: BuildInvoker,
   val deployInfoExtractor: DeployInfoExtractor
