@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.analysis.api.KaPlatformInterface
 import org.jetbrains.kotlin.analysis.api.platform.projectStructure.KotlinCompilerPluginsProvider
 import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+import org.jetbrains.kotlin.cli.create
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -64,7 +65,7 @@ val composeRuntimePath
 private val composeExtensionStorage by lazy {
   val storage = CompilerPluginRegistrar.ExtensionStorage()
   val pluginRegistrar = ComposePluginRegistrar()
-  val compilerConfiguration = CompilerConfiguration() // We can add extra compiler options with .apply { .. }.
+  val compilerConfiguration = CompilerConfiguration.create() // We can add extra compiler options with .apply { .. }.
   val configurationWithComposeSpecificOptions = KotlinFirCompilerPluginConfigurationForIdeProvider.getCompilerConfigurationWithCustomOptions(
     pluginRegistrar, compilerConfiguration) ?: compilerConfiguration
   with(pluginRegistrar) {
