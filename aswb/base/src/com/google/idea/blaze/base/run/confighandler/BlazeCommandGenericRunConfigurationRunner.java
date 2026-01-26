@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.run.confighandler;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -313,8 +312,6 @@ public final class BlazeCommandGenericRunConfigurationRunner
         Project project,
         ExecutorType executorType,
         ImmutableList<String> testHandlerFlags) {
-      ProjectViewSet projectViewSet =
-          Preconditions.checkNotNull(ProjectViewManager.getInstance(project).getProjectViewSet());
 
       List<String> extraBlazeFlags = new ArrayList<>(testHandlerFlags);
       BlazeCommandName command = getCommand();
@@ -327,7 +324,6 @@ public final class BlazeCommandGenericRunConfigurationRunner
           .addBlazeFlags(
               BlazeFlags.blazeFlags(
                   project,
-                  projectViewSet,
                   getCommand(),
                   BlazeInvocationContext.runConfigContext(
                       executorType, configuration.getType(), false)))

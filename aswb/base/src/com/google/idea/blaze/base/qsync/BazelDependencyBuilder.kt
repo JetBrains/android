@@ -34,7 +34,6 @@ import com.google.idea.blaze.base.command.buildresult.BuildResultParser
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.prefetch.FetchExecutor
-import com.google.idea.blaze.base.projectview.ProjectViewManager
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager
@@ -77,7 +76,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.locks.ReentrantLock
-import kotlin.collections.map
 import kotlin.jvm.optionals.getOrNull
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -141,6 +139,15 @@ open class BazelDependencyBuilder(
         )
 
         val commandBuilder = BlazeCommand.builder(BlazeCommandName.BUILD)
+        // TODO This is not SYNC_CONTEXT, but also not OTHER_CONTEXT, we need to decide what kind
+        // of flags need to be passed here.
+        val additionalBlazeFlags =
+          BlazeFlags.blazeFlags(
+            project,
+            BlazeCommandName.BUILD,
+            BlazeInvocationContext.OTHER_CONTEXT
+          )
+        commandBuilder.addBlazeFlags(additionalBlazeFlags)
         buildDependenciesBazelInvocationInfo.updateCommand(commandBuilder)
 
         BuildDepsStatsScope.fromContext(context).ifPresent { it.setBlazeBinaryType(invoker.type) }
@@ -187,16 +194,6 @@ open class BazelDependencyBuilder(
 
     val invocationFiles = getInvocationFiles(buildTargets, buildInvokerCapabilities, parameters)
 
-    val projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet()
-    // TODO This is not SYNC_CONTEXT, but also not OTHER_CONTEXT, we need to decide what kind
-    // of flags need to be passed here.
-    val additionalBlazeFlags =
-      BlazeFlags.blazeFlags(
-        project,
-        projectViewSet,
-        BlazeCommandName.BUILD,
-        BlazeInvocationContext.OTHER_CONTEXT
-      )
 
     val querySyncFlags = buildList {
       if (invocationFiles.targetPatternFileWorkspaceRelativeFile != null) {
@@ -205,7 +202,6 @@ open class BazelDependencyBuilder(
       else {
         addAll(buildTargets.map { it.toString() })
       }
-      addAll(additionalBlazeFlags)
       add("--aspects=${invocationFiles.aspectFileLabel}%collect_dependencies,${invocationFiles.aspectFileLabel}%package_dependencies")
       add("--noexperimental_run_validations")
       add("--keep_going")

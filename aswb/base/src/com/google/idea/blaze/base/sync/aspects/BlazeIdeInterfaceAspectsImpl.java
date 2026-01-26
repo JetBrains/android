@@ -85,7 +85,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
     // Fetching blaze flags here using parent context, to avoid duplicate fetch for every shard.
     List<String> additionalBlazeFlags =
         BlazeFlags.blazeFlags(
-          project, projectViewSet, BlazeCommandName.BUILD, blazeInvocationContext);
+          project, BlazeCommandName.BUILD, blazeInvocationContext);
     return Scope.push(
         context,
         (childContext) -> {

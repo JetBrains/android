@@ -30,7 +30,6 @@ import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationValidationU
 import com.google.idea.blaze.android.run.LaunchMetrics;
 import com.google.idea.blaze.android.run.binary.AndroidBinaryLaunchMethodsUtils.AndroidBinaryLaunchMethod;
 import com.google.idea.blaze.android.run.binary.mobileinstall.MobileInstallDeployAndLaunchStrategy;
-import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeployAndLaunchStrategy;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunConfigurationRunner;
 import com.google.idea.blaze.android.run.runner.BlazeApkBuildStep;
@@ -38,8 +37,6 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.logging.EventLoggingService;
 import com.google.idea.blaze.base.logging.GenericEvent;
-import com.google.idea.blaze.base.projectview.ProjectViewManager;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfigurationType;
 import com.google.idea.blaze.base.run.BlazeConfigurationNameBuilder;
@@ -105,7 +102,6 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
         BlazeAndroidRunConfigurationHandler.getCommandConfig(env);
 
     BlazeAndroidRunConfigurationValidationUtil.validate(project);
-    ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
 
     // Only suggest building with mobile-install if native debugging isn't enabled.
     if (configState.getLaunchMethod() == AndroidBinaryLaunchMethod.NON_BLAZE
@@ -123,7 +119,6 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
             .getCommonState()
             .getExpandedBuildFlags(
                 project,
-                projectViewSet,
                 BlazeCommandName.RUN,
                 BlazeInvocationContext.runConfigContext(
                     ExecutorType.fromExecutor(env.getExecutor()), configuration.getType(), false));

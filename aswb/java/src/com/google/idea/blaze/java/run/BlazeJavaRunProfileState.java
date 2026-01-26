@@ -35,8 +35,6 @@ import com.google.idea.blaze.base.issueparser.ToolWindowTaskIssueOutputFilter;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.RuleType;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.projectview.ProjectViewManager;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.ExecutorType;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationRunner;
@@ -226,8 +224,6 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
 
     List<String> blazeFlags = new ArrayList<>(extraBlazeFlags);
 
-    ProjectViewSet projectViewSet =
-      Preconditions.checkNotNull(ProjectViewManager.getInstance(project).getProjectViewSet());
     BlazeJavaRunConfigState handlerState = getState(configuration);
 
     BlazeCommandName blazeCommand =
@@ -241,7 +237,6 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
         .addBlazeFlags(
           BlazeFlags.blazeFlags(
             project,
-            projectViewSet,
             blazeCommand,
             BlazeInvocationContext.runConfigContext(
               executorType, configuration.getType(), false)))

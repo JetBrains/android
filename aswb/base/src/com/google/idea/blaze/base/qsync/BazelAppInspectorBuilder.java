@@ -24,8 +24,6 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
-import com.google.idea.blaze.base.projectview.ProjectViewManager;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.Interners;
@@ -50,11 +48,9 @@ public class BazelAppInspectorBuilder implements AppInspectorBuilder {
   public AppInspectorInfo buildAppInspector(BlazeContext context, Label buildTarget)
       throws BuildException {
     BuildInvoker invoker = buildSystem.getBuildInvoker(project);
-    ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
     List<String> additionalBlazeFlags =
         BlazeFlags.blazeFlags(
             project,
-            projectViewSet,
             BlazeCommandName.BUILD,
             BlazeInvocationContext.OTHER_CONTEXT);
 

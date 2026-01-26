@@ -96,7 +96,7 @@ public class BlazeCoverageProgramRunner extends DefaultProgramRunner {
             /* beforeRunTask= */ false);
     List<String> infoFlags =
         BlazeFlags.blazeFlags(
-            project, viewSet, BlazeCommandName.INFO, invocationContext);
+          project, BlazeCommandName.INFO, invocationContext);
     BuildSystemName buildSystemName = Blaze.getBuildSystemName(project);
     return Scope.push(
         null,

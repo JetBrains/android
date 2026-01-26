@@ -25,8 +25,6 @@ import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.issueparser.BlazeIssueParser;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.projectview.ProjectViewManager;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.ScopedTask;
@@ -94,7 +92,6 @@ public final class BlazeBeforeRunCommandHelper {
     BuildEventStreamConsumer<T> consumer) {
 
     WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
-    ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
 
     return ProgressiveTaskWithProgressIndicator.builder(project, TASK_TITLE)
         .submitTaskWithResult(
@@ -129,8 +126,7 @@ public final class BlazeBeforeRunCommandHelper {
                         .addBlazeFlags(
                             BlazeFlags.blazeFlags(
                               project,
-                                projectViewSet,
-                                BlazeCommandName.BUILD,
+                              BlazeCommandName.BUILD,
                                 invocationContext))
                       .addBlazeFlags(flags)
                       .addBlazeFlags(requiredExtraBlazeFlags);

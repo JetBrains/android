@@ -17,7 +17,7 @@ package com.google.idea.blaze.base.command;
 
 import com.google.common.collect.Lists;
 import com.google.idea.blaze.base.command.BlazeInvocationContext.ContextType;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
+import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.section.sections.BuildFlagsSection;
 import com.google.idea.blaze.base.projectview.section.sections.SyncFlagsSection;
 import com.google.idea.blaze.base.projectview.section.sections.TestFlagsSection;
@@ -58,9 +58,12 @@ public final class BlazeFlags {
   /** Flags to add to blaze/bazel invocations of the given type. */
   public static List<String> blazeFlags(
       Project project,
-      ProjectViewSet projectViewSet,
       BlazeCommandName command,
       BlazeInvocationContext invocationContext) {
+    final var projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
+    if (projectViewSet == null) {
+      throw new IllegalStateException("Project view configuration is not available");
+    }
     List<String> flags = Lists.newArrayList();
     for (BuildFlagsProvider buildFlagsProvider : BuildFlagsProvider.EP_NAME.getExtensions()) {
       buildFlagsProvider.addBuildFlags(project, projectViewSet, command, invocationContext, flags);
