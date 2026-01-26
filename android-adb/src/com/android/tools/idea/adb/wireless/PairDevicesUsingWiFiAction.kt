@@ -34,7 +34,7 @@ class PairDevicesUsingWiFiAction : DumbAwareAction(StudioIcons.Avd.PAIR_OVER_WIF
   @UiThread
   override fun actionPerformed(event: AnActionEvent) {
     val project = event.project ?: return
-    if (!StudioFlags.WIFI_V2_DIALOG.get()) {
+    if (!StudioFlags.ADB_WIFI_V2_DIALOG.get()) {
       PairDevicesUsingWiFiService.getInstance(project).createPairingDialogController().showDialog()
       return
     }

@@ -28,7 +28,7 @@ class HideDeviceAction : DumbAwareAction("Hide", "Hide from device manager", nul
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    if (StudioFlags.WIFI_V2_DEVICE_MANAGER_HIDE_SETTINGS.get()) {
+    if (StudioFlags.ADB_WIFI_V2_DEVICE_MANAGER_HIDE_SETTINGS.get()) {
       e.updateFromDeviceAction(DeviceHandle::hideDeviceAction)
       return
     }
