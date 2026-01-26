@@ -79,7 +79,7 @@ class ComposeFoldingBuilderTest {
         .trimIndent(),
     )
 
-    val res = myFixture.getFoldingDescription(false)
+    val res = myFixture.getFoldingDescription(false, false)
 
     assertThat(res)
       .isEqualTo(

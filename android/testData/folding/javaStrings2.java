@@ -50,3 +50,4 @@ public class MyActivity2 extends Activity {
     return viewGroup;
   }</fold>
 }
+<caret>

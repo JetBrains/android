@@ -35,3 +35,4 @@ public class MyActivity extends Activity {
     String label9 = <fold text='"@string/cycle3"' expand='false'>getString(R.string.cycle)</fold>;
   }</fold>
 }
+<caret>
