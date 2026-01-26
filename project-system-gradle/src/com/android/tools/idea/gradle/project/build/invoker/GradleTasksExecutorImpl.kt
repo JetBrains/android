@@ -333,7 +333,8 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             (operation as BuildLauncher).run()
           }
           val buildInfo = buildAttributionManager?.onBuildSuccess(myRequest)
-          if (buildInfo?.agpVersion != null) {
+          val invokedByAgent = executionSettings.arguments.contains("-Pandroid.studio.agent=true")
+          if (buildInfo?.agpVersion != null && !invokedByAgent) {
             reportAgpVersionMismatch(project, buildInfo)
           }
           GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, null, model.get())
