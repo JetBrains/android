@@ -1351,7 +1351,7 @@ MODULE                        : project.benchmark
                 Name                          : MAIN
                 CompileTaskName               : compileBenchmarkSources
                 AssembleTaskName              : assembleBenchmark
-                IsTestArtifact                : false
+                IsTestArtifact                : true
                 IdeSetupTaskNames             : generateBenchmarkSources
                 GeneratedSourceFolders        : <ROOT>/benchmark/build/generated/aidl_source_output_dir/benchmark/out [-]
                 GeneratedSourceFolders        : <ROOT>/benchmark/build/generated/ap_generated_sources/benchmark/out [-]
@@ -1615,7 +1615,7 @@ MODULE                        : project.test
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                IsTestArtifact                : false
+                IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/test/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/test/build/generated/ap_generated_sources/debug/out [-]
@@ -1877,7 +1877,7 @@ MODULE                        : project.test2
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                IsTestArtifact                : false
+                IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/test2/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/test2/build/generated/ap_generated_sources/debug/out [-]

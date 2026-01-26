@@ -940,7 +940,8 @@ fun modelCacheV2Impl(
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
     fallbackDesugaredMethodsFiles: Collection<File>,
     artifact: AndroidArtifact,
-    assetContext: VariantAssetSourceProviderContext
+    assetContext: VariantAssetSourceProviderContext,
+    isMainArtifactInTestProject: Boolean = false
   ): IdeAndroidArtifactCoreImpl {
     val testInfo = artifact.testInfo
 
@@ -967,10 +968,9 @@ fun modelCacheV2Impl(
       testOptions = artifact.testInfo?.let { testOptionsFrom(it) },
       buildInformation = buildTasksOutputInformationFrom(artifact),
       codeShrinker = convertCodeShrinker(artifact.codeShrinker),
-      isTestArtifact = name == IdeArtifactName.ANDROID_TEST || name == IdeArtifactName.TEST_FIXTURES,
+      isTestArtifact = isMainArtifactInTestProject || name == IdeArtifactName.ANDROID_TEST || name == IdeArtifactName.TEST_FIXTURES,
       // TODO: android-merge; needs a cherry-pick of a commit removing `privacySandboxSdkInfo`
-      privacySandboxSdkInfo =
-      //privacySandboxSdkInfo = if (modelVersions[ModelFeature.HAS_PRIVACY_SANDBOX_SDK_INFO])
+      privacySandboxSdkInfo = //if (modelVersions[ModelFeature.HAS_PRIVACY_SANDBOX_SDK_INFO])
       //  artifact.privacySandboxSdkInfo?.let {
       //    IdePrivacySandboxSdkInfoImpl(it.task, it.outputListingFile, it.additionalApkSplitTask, it.additionalApkSplitFile, it.taskLegacy,
       //                                 it.outputListingLegacyFile)
@@ -1225,7 +1225,7 @@ fun modelCacheV2Impl(
       displayName = variant.displayName.deduplicate(),
       mainArtifact = androidArtifactFrom(
         IdeArtifactName.MAIN, basicVariant.mainArtifact, variantName, legacyAndroidGradlePluginProperties,
-        fallbackDesugaredMethodsFiles, variant.mainArtifact, assetContext
+        fallbackDesugaredMethodsFiles, variant.mainArtifact, assetContext, projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST
       ),
       // If AndroidArtifact isn't null, then same goes for the ArtifactDependencies.
       hostTestArtifacts  =  hostTestArtifactsFrom(variant, basicVariant, assetContext),
