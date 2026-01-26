@@ -14,5 +14,4 @@ tools-base
 **/testData/KotlinDsl/.gradle
 .idea/google-java-format.xml
 .idea/inspectionProfiles
-.idea/ktfmt.xml
 /tools-base
