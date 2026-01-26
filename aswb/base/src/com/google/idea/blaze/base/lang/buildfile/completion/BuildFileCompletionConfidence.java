@@ -29,6 +29,6 @@ class BuildFileCompletionConfidence extends CompletionConfidence {
     if (contextElement.getParent() instanceof IntegerLiteral) {
       return ThreeState.YES;
     }
-    return super.shouldSkipAutopopup(contextElement, psiFile, offset);
+    return ThreeState.UNSURE;
   }
 }

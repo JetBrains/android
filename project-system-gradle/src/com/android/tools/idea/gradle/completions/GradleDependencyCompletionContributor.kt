@@ -26,6 +26,7 @@ import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.patterns.PatternCondition
 import com.intellij.patterns.PlatformPatterns.psiElement
@@ -264,7 +265,7 @@ class GradleDependencyCompletionContributor : CompletionContributor() {
  *  Allow auto-popup when it's in [ALLOW_CODE_COMPLETION_PATTERN] context.
  */
 class EnableAutoPopupInStringLiteralForGradleDependencyCompletion : CompletionConfidence() {
-  override fun shouldSkipAutopopup(contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState {
+  override fun shouldSkipAutopopup(editor: Editor, contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState {
     if (ALLOW_CODE_COMPLETION_PATTERN.accepts(contextElement) ||
         ALLOW_INLINE_TOML_COMPLETION_PATTERN.accepts(contextElement)) return ThreeState.NO
 

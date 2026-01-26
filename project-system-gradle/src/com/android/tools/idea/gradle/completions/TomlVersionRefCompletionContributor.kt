@@ -22,6 +22,7 @@ import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.openapi.editor.Editor
 import com.intellij.patterns.PatternCondition
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.psi.PsiElement
@@ -111,6 +112,6 @@ class TomlVersionRefCompletionContributor : CompletionContributor() {
 }
 
 class EnableAutoPopupInLiteralForTomlVersionRefDependencyCompletion : CompletionConfidence() {
-  override fun shouldSkipAutopopup(contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState =
+  override fun shouldSkipAutopopup(editor: Editor, contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState =
     if (TOML_VERSION_REF_PATTERN.accepts(contextElement)) ThreeState.NO else ThreeState.UNSURE
 }
