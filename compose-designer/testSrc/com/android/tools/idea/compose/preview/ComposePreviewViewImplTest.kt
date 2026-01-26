@@ -196,7 +196,7 @@ class ComposePreviewViewImplTest {
       var previewGeneratorAction = VisibleAction("Auto-generate Compose Previews")
       var screenshotToCodeAction = VisibleAction("Generate Code From Screenshot")
 
-      override fun createPreviewGenerator(): AnAction? = previewGeneratorAction
+      override fun createPreviewGenerator(): AnAction = previewGeneratorAction
 
       override fun screenshotToCodeAction(): AnAction = screenshotToCodeAction
     }
@@ -214,27 +214,27 @@ class ComposePreviewViewImplTest {
         fixture.addFileToProjectAndInvalidate(
           SdkConstants.FN_ANDROID_MANIFEST_XML,
           """
-      <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        package="java.google.simpleapplication">
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+            package="java.google.simpleapplication">
 
-          <application
-              android:allowBackup="true"
-              android:label="Simple Composable"
-              android:theme="@android:style/Theme.Holo.Light.DarkActionBar" >
-              <activity
-                  android:name=".MainActivity"
-                  android:exported="true"
-                  android:label="Simple Composable" >
-                  <intent-filter>
-                      <action android:name="android.intent.action.MAIN" />
+              <application
+                  android:allowBackup="true"
+                  android:label="Simple Composable"
+                  android:theme="@android:style/Theme.Holo.Light.DarkActionBar" >
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:label="Simple Composable" >
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
 
-                      <category android:name="android.intent.category.LAUNCHER" />
-                  </intent-filter>
-              </activity>
-          </application>
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
 
-      </manifest>
-    """
+          </manifest>
+          """
             .trimIndent(),
         )
       SourceProviderManager.replaceForTest(
@@ -435,7 +435,7 @@ class ComposePreviewViewImplTest {
         """
         A successful build is needed before the preview can be displayed
         [Build & Refresh... (shortcut)]
-      """
+        """
           .trimIndent(),
         instructionsText,
       )
@@ -453,14 +453,14 @@ class ComposePreviewViewImplTest {
       fixture.addFileToProjectAndInvalidate(
         "testModule/src/main/java/MyTest.kt",
         """
-            import org.junit.Test
+        import org.junit.Test
 
-            class Test{
-              @Test
-              fun assertTest(){
-              }
-            }
-            """
+        class Test{
+          @Test
+          fun assertTest(){
+          }
+        }
+        """
           .trimIndent(),
       )
     configureComposePreviewView(testPsiFile)

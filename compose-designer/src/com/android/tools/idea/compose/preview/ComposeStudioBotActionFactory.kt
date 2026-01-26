@@ -22,7 +22,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 
 interface ComposeStudioBotActionFactory {
   /** An action to generate Compose Previews for the composables in the current file. */
-  fun createPreviewGenerator(): AnAction?
+  fun createPreviewGenerator(): AnAction
 
   /**
    * An action to transform (e.g. fix, improve, evolve) the selected Compose Preview, taking both
