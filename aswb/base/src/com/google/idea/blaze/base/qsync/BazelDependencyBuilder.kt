@@ -289,9 +289,11 @@ open class BazelDependencyBuilder(
 
       targetPatternFileWorkspaceRelativeFile =
         when {
-          buildUseTargetPatternFile.value && buildInvokerCapabilities.contains(BuildInvoker.Capability.SUPPORT_TARGET_PATTERN_FILE) -> {
+          buildTargets.size > 3 && buildUseTargetPatternFile.value
+          && buildInvokerCapabilities.contains(BuildInvoker.Capability.SUPPORT_TARGET_PATTERN_FILE) -> {
             addFile("targets-$projectHash.txt", getByteSourceFromString(buildTargets.joinToString(separator = "\n") { it.toString() }))
           }
+
           else -> null
         }
     }
