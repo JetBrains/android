@@ -248,11 +248,12 @@ class SqliteCliClientTest {
       }
 
     // verify content no headers, separator=|
-    assertThat(outputFile1.toLines().toList()).isEqualTo(listOf("1|2|3", "4|5|6", "7|8|9"))
+    assertThat(outputFile1.toLines().toList()).containsExactly("1|2|3", "4|5|6", "7|8|9").inOrder()
 
     // verify content with headers, separator=;
     assertThat(outputFile2.toLines())
-      .isEqualTo(listOf("\"$column1\";\"$column2\";\"$column3\"", "1;2;3", "4;5;6", "7;8;9"))
+      .containsExactly("\"$column1\";\"$column2\";\"$column3\"", "1;2;3", "4;5;6", "7;8;9")
+      .inOrder()
   }
 
   /**

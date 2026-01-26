@@ -15,97 +15,99 @@
  */
 package com.android.tools.idea.sqlite.model
 
+import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
 import java.sql.JDBCType
 import junit.framework.TestCase
 
 class ModelTest : TestCase() {
   fun testSqliteAffinityFromString() {
-    assertEquals(SqliteAffinity.INTEGER, SqliteAffinity.fromTypename("int"))
-    assertEquals(SqliteAffinity.INTEGER, SqliteAffinity.fromTypename("integer"))
-    assertEquals(SqliteAffinity.INTEGER, SqliteAffinity.fromTypename("tinyint"))
-    assertEquals(SqliteAffinity.INTEGER, SqliteAffinity.fromTypename("samllint"))
-    assertEquals(SqliteAffinity.INTEGER, SqliteAffinity.fromTypename("mediumint"))
-    assertEquals(SqliteAffinity.INTEGER, SqliteAffinity.fromTypename("bigint"))
-    assertEquals(SqliteAffinity.INTEGER, SqliteAffinity.fromTypename("unsigned big int"))
-    assertEquals(SqliteAffinity.INTEGER, SqliteAffinity.fromTypename("int2"))
-    assertEquals(SqliteAffinity.INTEGER, SqliteAffinity.fromTypename("int8"))
-    assertEquals(SqliteAffinity.INTEGER, SqliteAffinity.fromTypename("charint"))
-    assertEquals(SqliteAffinity.INTEGER, SqliteAffinity.fromTypename("somethingintsomething"))
+    assertThat(SqliteAffinity.fromTypename("int")).isEqualTo(SqliteAffinity.INTEGER)
+    assertThat(SqliteAffinity.fromTypename("integer")).isEqualTo(SqliteAffinity.INTEGER)
+    assertThat(SqliteAffinity.fromTypename("tinyint")).isEqualTo(SqliteAffinity.INTEGER)
+    assertThat(SqliteAffinity.fromTypename("samllint")).isEqualTo(SqliteAffinity.INTEGER)
+    assertThat(SqliteAffinity.fromTypename("mediumint")).isEqualTo(SqliteAffinity.INTEGER)
+    assertThat(SqliteAffinity.fromTypename("bigint")).isEqualTo(SqliteAffinity.INTEGER)
+    assertThat(SqliteAffinity.fromTypename("unsigned big int")).isEqualTo(SqliteAffinity.INTEGER)
+    assertThat(SqliteAffinity.fromTypename("int2")).isEqualTo(SqliteAffinity.INTEGER)
+    assertThat(SqliteAffinity.fromTypename("int8")).isEqualTo(SqliteAffinity.INTEGER)
+    assertThat(SqliteAffinity.fromTypename("charint")).isEqualTo(SqliteAffinity.INTEGER)
+    assertThat(SqliteAffinity.fromTypename("somethingintsomething"))
+      .isEqualTo(SqliteAffinity.INTEGER)
 
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromTypename("char"))
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromTypename("character"))
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromTypename("varchar"))
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromTypename("nchar"))
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromTypename("native character"))
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromTypename("nvarchar"))
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromTypename("clob"))
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromTypename("text"))
+    assertThat(SqliteAffinity.fromTypename("char")).isEqualTo(SqliteAffinity.TEXT)
+    assertThat(SqliteAffinity.fromTypename("character")).isEqualTo(SqliteAffinity.TEXT)
+    assertThat(SqliteAffinity.fromTypename("varchar")).isEqualTo(SqliteAffinity.TEXT)
+    assertThat(SqliteAffinity.fromTypename("nchar")).isEqualTo(SqliteAffinity.TEXT)
+    assertThat(SqliteAffinity.fromTypename("native character")).isEqualTo(SqliteAffinity.TEXT)
+    assertThat(SqliteAffinity.fromTypename("nvarchar")).isEqualTo(SqliteAffinity.TEXT)
+    assertThat(SqliteAffinity.fromTypename("clob")).isEqualTo(SqliteAffinity.TEXT)
+    assertThat(SqliteAffinity.fromTypename("text")).isEqualTo(SqliteAffinity.TEXT)
 
-    assertEquals(SqliteAffinity.BLOB, SqliteAffinity.fromTypename("blob"))
-    assertEquals(SqliteAffinity.BLOB, SqliteAffinity.fromTypename(""))
+    assertThat(SqliteAffinity.fromTypename("blob")).isEqualTo(SqliteAffinity.BLOB)
+    assertThat(SqliteAffinity.fromTypename("")).isEqualTo(SqliteAffinity.BLOB)
 
-    assertEquals(SqliteAffinity.REAL, SqliteAffinity.fromTypename("real"))
-    assertEquals(SqliteAffinity.REAL, SqliteAffinity.fromTypename("floa"))
-    assertEquals(SqliteAffinity.REAL, SqliteAffinity.fromTypename("float"))
-    assertEquals(SqliteAffinity.REAL, SqliteAffinity.fromTypename("doub"))
-    assertEquals(SqliteAffinity.REAL, SqliteAffinity.fromTypename("double"))
-    assertEquals(SqliteAffinity.REAL, SqliteAffinity.fromTypename("double precision"))
+    assertThat(SqliteAffinity.fromTypename("real")).isEqualTo(SqliteAffinity.REAL)
+    assertThat(SqliteAffinity.fromTypename("floa")).isEqualTo(SqliteAffinity.REAL)
+    assertThat(SqliteAffinity.fromTypename("float")).isEqualTo(SqliteAffinity.REAL)
+    assertThat(SqliteAffinity.fromTypename("doub")).isEqualTo(SqliteAffinity.REAL)
+    assertThat(SqliteAffinity.fromTypename("double")).isEqualTo(SqliteAffinity.REAL)
+    assertThat(SqliteAffinity.fromTypename("double precision")).isEqualTo(SqliteAffinity.REAL)
 
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromTypename("numeric"))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromTypename("decimal"))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromTypename("boolean"))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromTypename("date"))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromTypename("datetime"))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromTypename("whatever"))
+    assertThat(SqliteAffinity.fromTypename("numeric")).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromTypename("decimal")).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromTypename("boolean")).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromTypename("date")).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromTypename("datetime")).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromTypename("whatever")).isEqualTo(SqliteAffinity.NUMERIC)
   }
 
   fun testSqliteAffinityFromJDBCType() {
-    assertEquals(SqliteAffinity.INTEGER, SqliteAffinity.fromJDBCType(JDBCType.TINYINT))
-    assertEquals(SqliteAffinity.INTEGER, SqliteAffinity.fromJDBCType(JDBCType.SMALLINT))
-    assertEquals(SqliteAffinity.INTEGER, SqliteAffinity.fromJDBCType(JDBCType.INTEGER))
-    assertEquals(SqliteAffinity.INTEGER, SqliteAffinity.fromJDBCType(JDBCType.BIGINT))
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.TINYINT)).isEqualTo(SqliteAffinity.INTEGER)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.SMALLINT)).isEqualTo(SqliteAffinity.INTEGER)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.INTEGER)).isEqualTo(SqliteAffinity.INTEGER)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.BIGINT)).isEqualTo(SqliteAffinity.INTEGER)
 
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromJDBCType(JDBCType.CHAR))
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromJDBCType(JDBCType.VARCHAR))
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromJDBCType(JDBCType.LONGVARCHAR))
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromJDBCType(JDBCType.CLOB))
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromJDBCType(JDBCType.NCLOB))
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromJDBCType(JDBCType.NVARCHAR))
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromJDBCType(JDBCType.LONGNVARCHAR))
-    assertEquals(SqliteAffinity.TEXT, SqliteAffinity.fromJDBCType(JDBCType.NCHAR))
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.CHAR)).isEqualTo(SqliteAffinity.TEXT)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.VARCHAR)).isEqualTo(SqliteAffinity.TEXT)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.LONGVARCHAR)).isEqualTo(SqliteAffinity.TEXT)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.CLOB)).isEqualTo(SqliteAffinity.TEXT)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.NCLOB)).isEqualTo(SqliteAffinity.TEXT)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.NVARCHAR)).isEqualTo(SqliteAffinity.TEXT)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.LONGNVARCHAR)).isEqualTo(SqliteAffinity.TEXT)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.NCHAR)).isEqualTo(SqliteAffinity.TEXT)
 
-    assertEquals(SqliteAffinity.BLOB, SqliteAffinity.fromJDBCType(JDBCType.BLOB))
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.BLOB)).isEqualTo(SqliteAffinity.BLOB)
 
-    assertEquals(SqliteAffinity.REAL, SqliteAffinity.fromJDBCType(JDBCType.FLOAT))
-    assertEquals(SqliteAffinity.REAL, SqliteAffinity.fromJDBCType(JDBCType.REAL))
-    assertEquals(SqliteAffinity.REAL, SqliteAffinity.fromJDBCType(JDBCType.DOUBLE))
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.FLOAT)).isEqualTo(SqliteAffinity.REAL)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.REAL)).isEqualTo(SqliteAffinity.REAL)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.DOUBLE)).isEqualTo(SqliteAffinity.REAL)
 
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.BIT))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.NUMERIC))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.DECIMAL))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.DATE))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.TIME))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.TIMESTAMP))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.BINARY))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.LONGVARBINARY))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.NULL))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.OTHER))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.JAVA_OBJECT))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.DISTINCT))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.STRUCT))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.ARRAY))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.REF))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.DATALINK))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.BOOLEAN))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.ROWID))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.SQLXML))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.REF_CURSOR))
-    assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.TIME_WITH_TIMEZONE))
-    assertEquals(
-      SqliteAffinity.NUMERIC,
-      SqliteAffinity.fromJDBCType(JDBCType.TIMESTAMP_WITH_TIMEZONE),
-    )
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.BIT)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.NUMERIC)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.DECIMAL)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.DATE)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.TIME)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.TIMESTAMP)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.BINARY)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.LONGVARBINARY))
+      .isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.NULL)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.OTHER)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.JAVA_OBJECT)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.DISTINCT)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.STRUCT)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.ARRAY)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.REF)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.DATALINK)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.BOOLEAN)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.ROWID)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.SQLXML)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.REF_CURSOR)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.TIME_WITH_TIMEZONE))
+      .isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.TIMESTAMP_WITH_TIMEZONE))
+      .isEqualTo(SqliteAffinity.NUMERIC)
   }
 
   fun testFileDatabaseNameAndPath() {
@@ -114,16 +116,16 @@ class ModelTest : TestCase() {
         DatabaseFileData(MockVirtualFile("someDir/data/data/com.example.package/databases/db-file"))
       )
 
-    assertEquals("db-file", databaseId.name)
-    assertEquals("/data/data/com.example.package/databases/db-file", databaseId.path)
+    assertThat(databaseId.name).isEqualTo("db-file")
+    assertThat(databaseId.path).isEqualTo("/data/data/com.example.package/databases/db-file")
   }
 
   fun testLiveDatabasePathIsConverted() {
     val databaseId =
       SqliteDatabaseId.fromLiveDatabase("/data/user/0/com.example.package/databases/db-file", 0)
 
-    assertEquals("db-file", databaseId.name)
-    assertEquals("/data/data/com.example.package/databases/db-file", databaseId.path)
+    assertThat(databaseId.name).isEqualTo("db-file")
+    assertThat(databaseId.path).isEqualTo("/data/data/com.example.package/databases/db-file")
 
     val databaseIdSdCard =
       SqliteDatabaseId.fromLiveDatabase(
@@ -131,7 +133,7 @@ class ModelTest : TestCase() {
         0,
       )
 
-    assertEquals("db-file", databaseIdSdCard.name)
-    assertEquals("/sdcard/com.example.package/databases/db-file", databaseIdSdCard.path)
+    assertThat(databaseIdSdCard.name).isEqualTo("db-file")
+    assertThat(databaseIdSdCard.path).isEqualTo("/sdcard/com.example.package/databases/db-file")
   }
 }

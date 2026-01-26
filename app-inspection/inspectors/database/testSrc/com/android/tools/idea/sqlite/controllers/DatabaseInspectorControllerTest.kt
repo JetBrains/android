@@ -317,7 +317,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       .reportError(eq("Error reading Sqlite database"), any<IllegalStateException>())
     orderVerifier.verifyNoMoreInteractions()
 
-    assertEquals("expected", databaseInspectorView.errorInvocations.first().second?.message)
+    assertThat(databaseInspectorView.errorInvocations.first().second?.message).isEqualTo("expected")
   }
 
   fun testDisplayResultSetIsCalledForTable() {
@@ -394,7 +394,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     databaseInspectorView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     val tabId = databaseInspectorView.lastDisplayedResultSetTabId
-    assert(tabId is TabId.AdHocQueryTab)
+    assertThat(tabId).isInstanceOf(TabId.AdHocQueryTab::class.java)
     databaseInspectorView.viewListeners.single().closeTabActionInvoked(tabId!!)
 
     // Assert
@@ -659,7 +659,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     val evaluatorTabId = databaseInspectorView.lastDisplayedResultSetTabId!!
-    assert(evaluatorTabId is TabId.AdHocQueryTab)
+    assertThat(evaluatorTabId).isInstanceOf(TabId.AdHocQueryTab::class.java)
 
     // Act
     runDispatching { databaseInspectorController.closeDatabase(databaseId1) }
@@ -734,8 +734,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Assert
     val table =
       databaseInspectorModel.getDatabaseSchema(databaseId)!!.tables.find { it.name == "t2" }!!
-    assertSize(1, table.columns)
-    assertEquals(SqliteColumn("c1", SqliteAffinity.INTEGER, false, true), table.columns.first())
+    assertThat(table.columns).hasSize(1)
+    assertThat(table.columns.first())
+      .isEqualTo(SqliteColumn("c1", SqliteAffinity.INTEGER, false, true))
   }
 
   fun testCreateTableUpdatesSchema() {
@@ -1564,7 +1565,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // Assert
-    assertEquals(listOf(false), invocations)
+    assertThat(invocations).containsExactly(false)
   }
 
   fun testViewTabsHaveViewIcons() {
@@ -1679,10 +1680,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching { databaseInspectorController.addSqliteDatabase(fileDatabaseId) }
 
     // Assert
-    assertEquals(
-      SqliteSchema(emptyList()),
-      databaseInspectorModel.getDatabaseSchema(fileDatabaseId),
-    )
+    assertThat(databaseInspectorModel.getDatabaseSchema(fileDatabaseId))
+      .isEqualTo(SqliteSchema(emptyList()))
   }
 
   fun testRefreshButtonDisabledWhenFileDatabaseIsOpen() {
@@ -1776,9 +1775,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // metrics
     val offlineModeMetadata = trackerService.metadata
 
-    assertNotNull(offlineModeMetadata)
-    assertEquals(sqliteFile.length * 3, offlineModeMetadata!!.totalDownloadSizeBytes)
-    assertTrue(offlineModeMetadata.totalDownloadTimeMs >= 300)
+    assertThat(offlineModeMetadata).isNotNull()
+    assertThat(offlineModeMetadata!!.totalDownloadSizeBytes).isEqualTo(sqliteFile.length * 3)
+    assertThat(offlineModeMetadata.totalDownloadTimeMs).isAtLeast(300)
   }
 
   fun testEnterOfflineAbortedWhenDatabaseInspectorNotVisible() {
@@ -1812,12 +1811,12 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
       databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
-      assertNull(databaseInspectorController.downloadAndOpenOfflineDatabasesJob)
+      assertThat(databaseInspectorController.downloadAndOpenOfflineDatabasesJob).isNull()
     }
 
     // metrics
     val offlineModeMetadata = trackerService.metadata
-    assertNull(offlineModeMetadata)
+    assertThat(offlineModeMetadata).isNull()
   }
 
   fun testEnterOfflineModeJobCanceled() {
@@ -1975,7 +1974,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val newDatabaseId = SqliteDatabaseId.fromLiveDatabase("new-db", 99)
     runDispatching { databaseInspectorController.addSqliteDatabase(newDatabaseId) }
 
-    assertFalse(databaseRepository.openDatabases.contains(newDatabaseId))
+    assertThat(databaseRepository.openDatabases.contains(newDatabaseId)).isFalse()
 
     // `updateDatabases` is invoked once with empty list when the controller adds the listener to
     // the view.

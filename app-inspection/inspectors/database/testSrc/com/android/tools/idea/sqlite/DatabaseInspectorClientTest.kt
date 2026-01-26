@@ -41,14 +41,11 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.UsefulTestCase.assertSize
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -248,7 +245,7 @@ class DatabaseInspectorClientTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    assertTrue(openDatabaseInvoked)
+    assertThat(openDatabaseInvoked).isTrue()
   }
 
   @Test
@@ -278,7 +275,7 @@ class DatabaseInspectorClientTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    assertTrue(handleErrorInvoked)
+    assertThat(handleErrorInvoked).isTrue()
   }
 
   @Test
@@ -308,7 +305,7 @@ class DatabaseInspectorClientTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    assertTrue(handleErrorInvoked)
+    assertThat(handleErrorInvoked).isTrue()
   }
 
   @Test
@@ -334,7 +331,7 @@ class DatabaseInspectorClientTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    assertTrue(handleErrorInvoked)
+    assertThat(handleErrorInvoked).isTrue()
   }
 
   @Test
@@ -354,7 +351,7 @@ class DatabaseInspectorClientTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    assertTrue(hasDatabasePossiblyChangedInvoked)
+    assertThat(hasDatabasePossiblyChangedInvoked).isTrue()
   }
 
   @Test
@@ -372,8 +369,9 @@ class DatabaseInspectorClientTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    assertSize(1, databaseClosedInvocations)
-    assertEquals(SqliteDatabaseId.fromLiveDatabase("", 1), databaseClosedInvocations.first())
+    assertThat(databaseClosedInvocations).hasSize(1)
+    assertThat(databaseClosedInvocations.first())
+      .isEqualTo(SqliteDatabaseId.fromLiveDatabase("", 1))
   }
 
   @Test
@@ -398,7 +396,7 @@ class DatabaseInspectorClientTest {
 
     // Assert
     assertThat(appInspectorMessenger.command).isEqualTo(trackDatabasesCommand)
-    assertEquals(true, result)
+    assertThat(result).isEqualTo(true)
   }
 
   @Test
@@ -459,7 +457,7 @@ class DatabaseInspectorClientTest {
 
     // Assert
     assertThat(appInspectorMessenger.command).isEqualTo(trackDatabasesCommand)
-    assertEquals(null, result)
+    assertThat(result).isNull()
   }
 
   private fun createDatabaseInspectorClient(

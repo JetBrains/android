@@ -23,6 +23,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.utils.SqliteTestUtil
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -82,11 +83,8 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
     val columnsAfterAlterTable = pumpEventsAndWaitForFuture(resultSet.columns)
 
     // Assert
-    assertSize(1, columnsBeforeAlterTable)
-    assertSize(2, columnsAfterAlterTable)
-    assertEquals("c1", columnsBeforeAlterTable.first().name)
-    assertEquals("c1", columnsAfterAlterTable[0].name)
-    assertEquals("c2", columnsAfterAlterTable[1].name)
+    assertThat(columnsBeforeAlterTable.map { it.name }).containsExactly("c1")
+    assertThat(columnsAfterAlterTable.map { it.name }).containsExactly("c1", "c2").inOrder()
   }
 
   fun `test CreateResultSet ThenAddRowToTable ResultSetReturnsCorrectNumberOfRows`() {
@@ -120,8 +118,8 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
     val rowCountAfterInsert = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
 
     // Assert
-    assertEquals(1, rowCountBeforeInsert)
-    assertEquals(2, rowCountAfterInsert)
+    assertThat(rowCountBeforeInsert).isEqualTo(1)
+    assertThat(rowCountAfterInsert).isEqualTo(2)
   }
 
   fun `test CreateResultSetFromExplain ThenAddColumn ResultSetReturnsOneMoreRow`() {
@@ -157,8 +155,8 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
     val rowCountAfter = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
 
     // Assert
-    assertEquals(9, rowCountBefore)
-    assertEquals(10, rowCountAfter)
+    assertThat(rowCountBefore).isEqualTo(9)
+    assertThat(rowCountAfter).isEqualTo(10)
   }
 
   fun testDisposeCancelsGetColumns() {

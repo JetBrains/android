@@ -19,6 +19,7 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.QueryHistoryView
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.EditorTextFieldProvider
@@ -50,17 +51,17 @@ class QueryHistoryViewTest : LightPlatformTestCase() {
     queryHistoryView.setQueryHistory(listOf("query1", "query2"))
 
     // Assert
-    assertEquals(2, list.model.size)
-    assertEquals("query1", list.model.getElementAt(0))
-    assertEquals("query2", list.model.getElementAt(1))
+    assertThat(list.model.size)
+    assertThat(list.model.getElementAt(0)).isEqualTo("query1")
+    assertThat(list.model.getElementAt(1)).isEqualTo("query2")
 
     // Act
     queryHistoryView.setQueryHistory(listOf("query3", "query4"))
 
     // Assert
-    assertEquals(2, list.model.size)
-    assertEquals("query3", list.model.getElementAt(0))
-    assertEquals("query4", list.model.getElementAt(1))
+    assertThat(list.model.size).isEqualTo(2)
+    assertThat(list.model.getElementAt(0)).isEqualTo("query3")
+    assertThat(list.model.getElementAt(1)).isEqualTo("query4")
   }
 
   fun testSelectListItemUpdatesEditorText() {
@@ -74,13 +75,13 @@ class QueryHistoryViewTest : LightPlatformTestCase() {
     list.selectedIndex = 0
 
     // Assert
-    assertEquals("query1", editorTextField.text)
+    assertThat(editorTextField.text).isEqualTo("query1")
 
     // Act
     list.selectedIndex = 1
 
     // Assert
-    assertEquals("query_2", editorTextField.text)
+    assertThat(editorTextField.text).isEqualTo("query_2")
   }
 
   fun testEditorTextRestoredWhenListLosesFocus() {
@@ -90,13 +91,13 @@ class QueryHistoryViewTest : LightPlatformTestCase() {
     queryHistoryView.setQueryHistory(listOf("query1", "query_2"))
 
     list.selectedIndex = 0
-    assertEquals("query1", editorTextField.text)
+    assertThat(editorTextField.text).isEqualTo("query1")
 
     // Act
     list.focusListeners.forEach { it.focusLost(mock()) }
 
     // Assert
-    assertEquals("", editorTextField.text)
+    assertThat(editorTextField.text).isEqualTo("")
   }
 
   fun testEnterSetsEditorText() {
@@ -107,7 +108,7 @@ class QueryHistoryViewTest : LightPlatformTestCase() {
     queryHistoryView.setQueryHistory(listOf("query1", "query_2"))
 
     list.selectedIndex = 0
-    assertEquals("query1", editorTextField.text)
+    assertThat(editorTextField.text).isEqualTo("query1")
 
     // Act
     ui.keyboard.setFocus(list)
@@ -116,7 +117,7 @@ class QueryHistoryViewTest : LightPlatformTestCase() {
     list.focusListeners.forEach { it.focusLost(mock()) }
 
     // Assert
-    assertEquals("query1", editorTextField.text)
+    assertThat(editorTextField.text).isEqualTo("query1")
   }
 
   fun testListItemSelectedOnMouseHover() {
@@ -125,7 +126,7 @@ class QueryHistoryViewTest : LightPlatformTestCase() {
       TreeWalker(queryHistoryView.component).descendants().filterIsInstance<JBList<*>>().first()
     queryHistoryView.setQueryHistory(listOf("query1", "query_2"))
 
-    assertEquals(-1, list.selectedIndex)
+    assertThat(list.selectedIndex).isEqualTo(-1)
 
     val mouseEvent = mock<MouseEvent>()
     whenever(mouseEvent.point).thenReturn(Point(0, 0))
@@ -134,13 +135,13 @@ class QueryHistoryViewTest : LightPlatformTestCase() {
     list.mouseMotionListeners.forEach { it.mouseMoved(mouseEvent) }
 
     // Assert
-    assertEquals(0, list.selectedIndex)
+    assertThat(list.selectedIndex).isEqualTo(0)
 
     // Act
     // remove focus from list
     list.focusListeners.forEach { it.focusLost(mock()) }
 
     // Assert
-    assertEquals(-1, list.selectedIndex)
+    assertThat(list.selectedIndex).isEqualTo(-1)
   }
 }

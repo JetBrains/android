@@ -33,6 +33,7 @@ import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.RemoveColumns
 import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
 import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
+import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.ui.treeStructure.Tree
@@ -282,12 +283,12 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val tree = view.component.getDescendant<Tree> { it.name == "left-panel-tree" }
 
     // Assert
-    assertTrue(emptyStateRightPanel.isVisible)
-    assertFalse(syncSchemaButton.isEnabled)
-    assertFalse(runSqlButton.isEnabled)
+    assertThat(emptyStateRightPanel.isVisible).isTrue()
+    assertThat(syncSchemaButton.isEnabled).isFalse()
+    assertThat(runSqlButton.isEnabled).isFalse()
 
     // tree.emptyText is shown when the root is null
-    assertNull(tree.model.root)
+    assertThat(tree.model.root).isNull()
   }
 
   fun testTreeEmptyStateIsHiddenAfterOpeningADatabase() {
@@ -314,11 +315,11 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
       view.component.getDescendant<JComponent> { it.name == "run-sql-button" }
     val treeRootAfterAddingDb = tree.model.root
 
-    assertNull(tabsPanelAfterAddingDb)
+    assertThat(tabsPanelAfterAddingDb).isNull()
     // tree.emptyText is shown when the root is null
-    assertNotNull(treeRootAfterAddingDb)
-    assertTrue(syncSchemaButtonAfterAddingDb.isEnabled)
-    assertTrue(runSqlButtonAfterAddingDb.isEnabled)
+    assertThat(treeRootAfterAddingDb).isNotNull()
+    assertThat(syncSchemaButtonAfterAddingDb.isEnabled).isTrue()
+    assertThat(runSqlButtonAfterAddingDb.isEnabled).isTrue()
   }
 
   fun testRightPanelEmptyStateIsHiddenAfterOpeningATab() {
@@ -340,8 +341,8 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val tabsPanelAfterAddingTab =
       view.component.findDescendant<JComponent> { it.name == "right-panel-tabs-panel" }
 
-    assertNull(emptyStateRightPanelAfterAddingTab)
-    assertNotNull(tabsPanelAfterAddingTab)
+    assertThat(emptyStateRightPanelAfterAddingTab).isNull()
+    assertThat(tabsPanelAfterAddingTab).isNotNull()
   }
 
   fun testRightPanelEmptyStateIsShownAfterAllTabsAreClosed() {
@@ -366,8 +367,8 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val tabsPanelAfterAddingTab =
       view.component.findDescendant<JComponent> { it.name == "right-panel-tabs-panel" }
 
-    assertNull(emptyStateRightPanelAfterAddingTab)
-    assertNotNull(tabsPanelAfterAddingTab)
+    assertThat(emptyStateRightPanelAfterAddingTab).isNull()
+    assertThat(tabsPanelAfterAddingTab).isNotNull()
 
     // Act
     view.closeTab(tabId)
@@ -378,8 +379,8 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val tabsPanelAfterRemovingTab =
       view.component.findDescendant<JComponent> { it.name == "right-panel-tabs-panel" }
 
-    assertNotNull(emptyStateRightPanelAfterRemovingTab)
-    assertNull(tabsPanelAfterRemovingTab)
+    assertThat(emptyStateRightPanelAfterRemovingTab).isNotNull()
+    assertThat(tabsPanelAfterRemovingTab).isNull()
   }
 
   fun testEmptyStateIsShownAfterOpenDatabasesAreRemoved() {
@@ -411,13 +412,13 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
       view.component.getDescendant<JComponent> { it.name == "run-sql-button" }
     val treeRootAfterRemovingDb = tree.model.root
 
-    assertNotNull(emptyStateRightPanelAfterRemovingDb)
-    assertNull(tabsPanelAfterRemovingDb)
+    assertThat(emptyStateRightPanelAfterRemovingDb).isNotNull()
+    assertThat(tabsPanelAfterRemovingDb).isNull()
     // tree.emptyText is shown when the root is null
-    assertNull(treeRootAfterRemovingDb)
+    assertThat(treeRootAfterRemovingDb).isNull()
 
-    assertFalse(syncSchemaButtonAfterRemovingDb.isEnabled)
-    assertFalse(runSqlButtonAfterRemovingDb.isEnabled)
+    assertThat(syncSchemaButtonAfterRemovingDb.isEnabled).isFalse()
+    assertThat(runSqlButtonAfterRemovingDb.isEnabled).isFalse()
   }
 
   fun testTabsAreNotHiddenIfANewDatabaseIsAdded() {
@@ -451,8 +452,8 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
       view.component.findDescendant<JComponent> { it.name == "right-panel-empty-state" }
     val tabsPanel = view.component.getDescendant<JComponent> { it.name == "right-panel-tabs-panel" }
 
-    assertNull(emptyStateRightPanel)
-    assertTrue(tabsPanel.isVisible)
+    assertThat(emptyStateRightPanel).isNull()
+    assertThat(tabsPanel.isVisible).isTrue()
   }
 
   fun testUpdateKeepConnectionOpenButton() {
@@ -461,19 +462,19 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
       view.component.getDescendant<JToggleButton> { it.name == "keep-connections-open-button" }
 
     // Assert
-    assertEquals(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN, button.icon)
+    assertThat(button.icon).isEqualTo(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN)
 
     // Act
     view.updateKeepConnectionOpenButton(true)
 
     // Assert
-    assertEquals(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN, button.icon)
+    assertThat(button.icon).isEqualTo(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN)
 
     // Act
     view.updateKeepConnectionOpenButton(false)
 
     // Assert
-    assertEquals(StudioIcons.DatabaseInspector.ALLOW_DATABASES_TO_CLOSE, button.icon)
+    assertThat(button.icon).isEqualTo(StudioIcons.DatabaseInspector.ALLOW_DATABASES_TO_CLOSE)
   }
 
   fun testKeepConnectionOpenIsDisabledWithOfflineDatabases() {
@@ -506,7 +507,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     )
 
     // Assert
-    assertFalse(keepConnectionsOpenButton.isEnabled)
+    assertThat(keepConnectionsOpenButton.isEnabled).isFalse()
   }
 
   fun testKeepConnectionOpenIsEnabledWithLiveDatabases() {
@@ -527,7 +528,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     )
 
     // Assert
-    assertTrue(keepConnectionsOpenButton.isEnabled)
+    assertThat(keepConnectionsOpenButton.isEnabled).isTrue()
   }
 
   fun testKeepConnectionOpenIsEnableIfAtLeastOneOnlineDatabase() {
@@ -570,7 +571,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     )
 
     // Assert
-    assertTrue(keepConnectionsOpenButton.isEnabled)
+    assertThat(keepConnectionsOpenButton.isEnabled).isTrue()
 
     // Act
     view.updateDatabases(
@@ -578,7 +579,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     )
 
     // Assert
-    assertFalse(keepConnectionsOpenButton.isEnabled)
+    assertThat(keepConnectionsOpenButton.isEnabled).isFalse()
   }
 
   fun testTreeRootNodeIsExpandedWhenEmptyNodeIsAdded() {
@@ -595,26 +596,26 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
     // Assert
     val root = tree.model.root
-    assertTrue(tree.isExpanded(TreePath((root))))
+    assertThat(tree.isExpanded(TreePath((root)))).isTrue()
   }
 
   private fun assertTreeContainsNodes(tree: Tree, databases: Map<ViewDatabase, List<SqliteTable>>) {
     val root = tree.model.root
-    assertEquals(databases.size, tree.model.getChildCount(root))
+    assertThat(tree.model.getChildCount(root)).isEqualTo(databases.size)
 
     databases.keys.forEachIndexed { databaseIndex, database ->
       val databaseNode = tree.model.getChild(root, databaseIndex) as DefaultMutableTreeNode
-      assertEquals(database, databaseNode.userObject)
-      assertEquals(databases[database]!!.size, tree.model.getChildCount(databaseNode))
+      assertThat(databaseNode.userObject).isEqualTo(database)
+      assertThat(tree.model.getChildCount(databaseNode)).isEqualTo(databases[database]!!.size)
 
       databases[database]!!.forEachIndexed { tableIndex, table ->
         val tableNode = tree.model.getChild(databaseNode, tableIndex) as DefaultMutableTreeNode
-        assertEquals(table, tableNode.userObject)
-        assertEquals(table.columns.size, tree.model.getChildCount(tableNode))
+        assertThat(tableNode.userObject).isEqualTo(table)
+        assertThat(tree.model.getChildCount(tableNode)).isEqualTo(table.columns.size)
 
         table.columns.forEachIndexed { columnIndex, column ->
           val columnNode = tree.model.getChild(tableNode, columnIndex) as DefaultMutableTreeNode
-          assertEquals(column, columnNode.userObject)
+          assertThat(columnNode.userObject).isEqualTo(column)
         }
       }
     }

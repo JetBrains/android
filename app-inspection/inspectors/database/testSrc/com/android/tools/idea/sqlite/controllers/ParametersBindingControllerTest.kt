@@ -21,6 +21,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 import com.android.tools.idea.sqlite.utils.toSqliteValues
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.DisposableRule
@@ -28,7 +29,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.UsefulTestCase.assertContainsElements
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -153,17 +153,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar = ? and baz = ?",
           listOf("1", "2").toSqliteValues(),
           "select * from Foo where bar = '1' and baz = '2'",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -187,17 +185,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar = ? and baz = ?",
           listOf(null, "null").toSqliteValues(),
           "select * from Foo where bar = null and baz = 'null'",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -219,17 +215,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar = '?' and baz = ?",
           listOf("42").toSqliteValues(),
           "select * from Foo where bar = '?' and baz = '42'",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -251,17 +245,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar = '?1' and baz = ?",
           listOf("42").toSqliteValues(),
           "select * from Foo where bar = '?1' and baz = '42'",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -283,17 +275,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar = ':bar' and baz = ?",
           listOf("42").toSqliteValues(),
           "select * from Foo where bar = ':bar' and baz = '42'",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -315,17 +305,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar = '@bar' and baz = ?",
           listOf("42").toSqliteValues(),
           "select * from Foo where bar = '@bar' and baz = '42'",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -347,17 +335,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar = '\$bar' and baz = ?",
           listOf("42").toSqliteValues(),
           "select * from Foo where bar = '\$bar' and baz = '42'",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -376,17 +362,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar in (?, ?, ?)",
           listOf("1", "2", "3").toSqliteValues(),
           "select * from Foo where bar in ('1', '2', '3')",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -405,17 +389,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar in (?, ?, ?)",
           listOf("1", "2", "3").toSqliteValues(),
           "select * from Foo where bar in ('1', '2', '3')",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -434,17 +416,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar in (?, ?, ?)",
           listOf("1", "2", "3").toSqliteValues(),
           "select * from Foo where bar in ('1', '2', '3')",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -463,17 +443,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar in (?, ?, ?)",
           listOf("1", "2", "3").toSqliteValues(),
           "select * from Foo where bar in ('1', '2', '3')",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -492,17 +470,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar in (?, ?, ?)",
           listOf("1", "2", "3").toSqliteValues(),
           "select * from Foo where bar in ('1', '2', '3')",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -524,17 +500,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from foo where bar in (select id from baz where bax > ?)",
           listOf("1").toSqliteValues(),
           "select * from foo where bar in (select id from baz where bax > '1')",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -556,17 +530,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar = ? and baz = ?",
           listOf("1", "1").toSqliteValues(),
           "select * from Foo where bar = '1' and baz = '1'",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -585,17 +557,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar = ?",
           listOf("te'st").toSqliteValues(),
           "select * from Foo where bar = 'te''st'",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -614,17 +584,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar = ?",
           listOf("'test'").toSqliteValues(),
           "select * from Foo where bar = '''test'''",
         )
-      ),
-    )
+      )
   }
 
   @Test
@@ -643,17 +611,15 @@ class ParametersBindingControllerTest {
     )
 
     // Assert
-    assertContainsElements(
-      ranStatements,
-      listOf(
+    assertThat(ranStatements)
+      .containsExactly(
         SqliteStatement(
           SqliteStatementType.SELECT,
           "select * from Foo where bar = ?",
           listOf("\"test\"").toSqliteValues(),
           "select * from Foo where bar = '\"test\"'",
         )
-      ),
-    )
+      )
   }
 
   private fun parametersBindingController(

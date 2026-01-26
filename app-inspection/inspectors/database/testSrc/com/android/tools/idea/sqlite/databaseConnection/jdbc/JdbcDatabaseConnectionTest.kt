@@ -217,7 +217,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
 
     // Assert
-    assertEquals("_rowid_", schema.tables.first().rowIdName!!.stringName)
+    assertThat(schema.tables.first().rowIdName!!.stringName).isEqualTo("_rowid_")
   }
 
   fun testRowidIsAssignedCorrectly() {
@@ -237,7 +237,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
 
     // Assert
-    assertEquals("rowid", schema.tables.first().rowIdName!!.stringName)
+    assertThat(schema.tables.first().rowIdName!!.stringName).isEqualTo("rowid")
   }
 
   fun testOidIsAssignedCorrectly() {
@@ -261,7 +261,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
 
     // Assert
-    assertEquals("oid", schema.tables.first().rowIdName!!.stringName)
+    assertThat(schema.tables.first().rowIdName!!.stringName).isEqualTo("oid")
   }
 
   fun testRowIdIsNull() {
@@ -285,7 +285,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
 
     // Assert
-    assertNull("rowid", schema.tables.first().rowIdName)
+    assertThat(schema.tables.first().rowIdName).isNull()
   }
 
   fun testPrimaryKeyInWithoutRowIdTable() {
@@ -311,9 +311,9 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
 
     // Assert
-    assertNull(schema.tables.first().rowIdName)
+    assertThat(schema.tables.first().rowIdName).isNull()
     val pk = schema.tables.first().columns.find { it.name == "pk" }
-    assertTrue(pk!!.inPrimaryKey)
+    assertThat(pk!!.inPrimaryKey).isTrue()
   }
 
   fun testMultiplePrimaryKeys() {
@@ -340,9 +340,9 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
     // Assert
     val pk1 = schema.tables.first().columns.find { it.name == "pk1" }
-    assertTrue(pk1!!.inPrimaryKey)
+    assertThat(pk1!!.inPrimaryKey).isTrue()
     val pk2 = schema.tables.first().columns.find { it.name == "pk2" }
-    assertTrue(pk2!!.inPrimaryKey)
+    assertThat(pk2!!.inPrimaryKey).isTrue()
   }
 
   fun testAffinity() {
@@ -368,11 +368,11 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
     // Assert
     val columns = schema.tables.first().columns
-    assertEquals(SqliteAffinity.INTEGER, columns.first { it.name == "column0" }.affinity)
-    assertEquals(SqliteAffinity.TEXT, columns.first { it.name == "column1" }.affinity)
-    assertEquals(SqliteAffinity.BLOB, columns.first { it.name == "column2" }.affinity)
-    assertEquals(SqliteAffinity.REAL, columns.first { it.name == "column3" }.affinity)
-    assertEquals(SqliteAffinity.NUMERIC, columns.first { it.name == "column4" }.affinity)
+    assertThat(columns.first { it.name == "column0" }.affinity).isEqualTo(SqliteAffinity.INTEGER)
+    assertThat(columns.first { it.name == "column1" }.affinity).isEqualTo(SqliteAffinity.TEXT)
+    assertThat(columns.first { it.name == "column2" }.affinity).isEqualTo(SqliteAffinity.BLOB)
+    assertThat(columns.first { it.name == "column3" }.affinity).isEqualTo(SqliteAffinity.REAL)
+    assertThat(columns.first { it.name == "column4" }.affinity).isEqualTo(SqliteAffinity.NUMERIC)
   }
 
   fun testNotNull() {
@@ -400,8 +400,8 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     // Assert
     val pk = schema.tables.first().columns.find { it.name == "pk" }
     val col1 = schema.tables.first().columns.find { it.name == "col1" }
-    assertFalse(pk!!.isNullable)
-    assertTrue(col1!!.isNullable)
+    assertThat(pk!!.isNullable).isFalse()
+    assertThat(col1!!.isNullable).isTrue()
   }
 
   fun testReadSchemaTabNameRequiresEscaping() {
@@ -423,8 +423,8 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     // Assert
     assertThat(schema.tables.count()).isEqualTo(1)
     val table = schema.tables.find { it.name == "table''Name" }!!
-    assertSize(1, table.columns)
-    assertEquals("c1", table.columns.first().name)
+    assertThat(table.columns).hasSize(1)
+    assertThat(table.columns.first().name).isEqualTo("c1")
   }
 
   fun testReadSchemaTabNameRequiresEscaping1() {
@@ -446,8 +446,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     // Assert
     assertThat(schema.tables.count()).isEqualTo(1)
     val table = schema.tables.find { it.name == "table'Name" }!!
-    assertSize(1, table.columns)
-    assertEquals("c1", table.columns.first().name)
+    assertThat(table.columns.map { it.name }).containsExactly("c1")
   }
 
   fun testReadSchemaTabNameRequiresEscaping2() {
@@ -469,8 +468,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     // Assert
     assertThat(schema.tables.count()).isEqualTo(1)
     val table = schema.tables.find { it.name == "table`Name" }!!
-    assertSize(1, table.columns)
-    assertEquals("c1", table.columns.first().name)
+    assertThat(table.columns.map { it.name }).containsExactly("c1")
   }
 
   fun testReadSchemaTabNameRequiresEscaping3() {
@@ -492,8 +490,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     // Assert
     assertThat(schema.tables.count()).isEqualTo(1)
     val table = schema.tables.find { it.name == "table\'Name" }!!
-    assertSize(1, table.columns)
-    assertEquals("c1", table.columns.first().name)
+    assertThat(table.columns.map { it.name }).containsExactly("c1")
   }
 
   fun testReadSchemaTabNameRequiresEscaping4() {
@@ -515,8 +512,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     // Assert
     assertThat(schema.tables.count()).isEqualTo(1)
     val table = schema.tables.find { it.name == "table\"Name" }!!
-    assertSize(1, table.columns)
-    assertEquals("c1", table.columns.first().name)
+    assertThat(table.columns.map { it.name }).containsExactly("c1")
   }
 
   fun testReadSchemaTabNameRequiresEscaping5() {
@@ -538,8 +534,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     // Assert
     assertThat(schema.tables.count()).isEqualTo(1)
     val table = schema.tables.find { it.name == "table Name" }!!
-    assertSize(1, table.columns)
-    assertEquals("c1", table.columns.first().name)
+    assertThat(table.columns.map { it.name }).containsExactly("c1")
   }
 
   fun testReadSchemaColNameRequiresEscaping() {
@@ -561,8 +556,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     // Assert
     assertThat(schema.tables.count()).isEqualTo(1)
     val table = schema.tables.find { it.name == "tableName" }!!
-    assertSize(1, table.columns)
-    assertEquals("col''Name", table.columns.first().name)
+    assertThat(table.columns.map { it.name }).containsExactly("col''Name")
   }
 
   fun testReadSchemaColNameRequiresEscaping1() {
@@ -584,8 +578,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     // Assert
     assertThat(schema.tables.count()).isEqualTo(1)
     val table = schema.tables.find { it.name == "tableName" }!!
-    assertSize(1, table.columns)
-    assertEquals("col'Name", table.columns.first().name)
+    assertThat(table.columns.map { it.name }).containsExactly("col'Name")
   }
 
   fun testReadSchemaColNameRequiresEscaping2() {
@@ -606,8 +599,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     // Assert
     assertThat(schema.tables.count()).isEqualTo(1)
     val table = schema.tables.find { it.name == "tableName" }!!
-    assertSize(1, table.columns)
-    assertEquals("col`Name", table.columns.first().name)
+    assertThat(table.columns.map { it.name }).containsExactly("col`Name")
   }
 
   fun testReadSchemaColNameRequiresEscaping3() {
@@ -629,8 +621,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     // Assert
     assertThat(schema.tables.count()).isEqualTo(1)
     val table = schema.tables.find { it.name == "tableName" }!!
-    assertSize(1, table.columns)
-    assertEquals("col\'Name", table.columns.first().name)
+    assertThat(table.columns.map { it.name }).containsExactly("col'Name")
   }
 
   fun testReadSchemaColNameRequiresEscaping4() {
@@ -651,8 +642,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     // Assert
     assertThat(schema.tables.count()).isEqualTo(1)
     val table = schema.tables.find { it.name == "tableName" }!!
-    assertSize(1, table.columns)
-    assertEquals("col\"Name", table.columns.first().name)
+    assertThat(table.columns.map { it.name }).containsExactly("col\"Name")
   }
 
   fun testReadSchemaColNameRequiresEscaping5() {
@@ -673,8 +663,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     // Assert
     assertThat(schema.tables.count()).isEqualTo(1)
     val table = schema.tables.find { it.name == "tableName" }!!
-    assertSize(1, table.columns)
-    assertEquals("col Name", table.columns.first().name)
+    assertThat(table.columns.map { it.name }).containsExactly("col Name")
   }
 
   fun testInsertNullValueWorks() {
@@ -715,8 +704,8 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
     // Assert
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
-    assertEquals(SqliteValue.NullValue, rows.first().values[0].value)
-    assertEquals(SqliteValue.StringValue("null"), rows.first().values[1].value)
+    assertThat(rows.first().values[0].value).isEqualTo(SqliteValue.NullValue)
+    assertThat(rows.first().values[1].value).isEqualTo(SqliteValue.StringValue("null"))
   }
 
   fun testUpdateStatement() {
@@ -749,7 +738,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
         customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
       )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
-    assertEquals(SqliteValue.fromAny(0), rows.first().values.first().value)
+    assertThat(rows.first().values.first().value).isEqualTo(SqliteValue.fromAny(0))
   }
 
   fun testInsertStatement() {
@@ -782,7 +771,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
         customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
       )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
-    assertEquals(SqliteValue.fromAny(0), rows.last().values.first().value)
+    assertThat(rows.last().values.first().value).isEqualTo(SqliteValue.fromAny(0))
   }
 
   fun testCreateTable() {
@@ -815,7 +804,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
         customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t2"))
       )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
-    assertSize(0, rows)
+    assertThat(rows).isEmpty()
   }
 
   fun testExplainStatement() {
@@ -845,7 +834,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
     // Assert
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
-    assertTrue(rows.isNotEmpty())
+    assertThat(rows).isNotEmpty()
   }
 
   fun testPragmaStatement() {
@@ -875,7 +864,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
     // Assert
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
-    assertTrue(rows.isNotEmpty())
+    assertThat(rows).isNotEmpty()
   }
 
   private fun SqliteResultSet.hasColumn(name: String, affinity: SqliteAffinity): Boolean {

@@ -48,6 +48,7 @@ import com.android.tools.idea.sqlite.utils.toViewColumn
 import com.android.tools.idea.sqlite.utils.toViewColumns
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.runDispatching
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
@@ -128,14 +129,14 @@ class TableViewImplTest : BasePlatformTestCase() {
     fakeUi.layout()
 
     // Assert
-    assertEquals(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS, table.autoResizeMode)
+    assertThat(table.autoResizeMode).isEqualTo(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS)
 
-    assertEquals(600, table.size.width)
-    assertEquals(60, table.columnModel.getColumn(0).width)
-    assertEquals(540, table.columnModel.getColumn(1).width)
+    assertThat(table.size.width).isEqualTo(600)
+    assertThat(table.columnModel.getColumn(0).width).isEqualTo(60)
+    assertThat(table.columnModel.getColumn(1).width).isEqualTo(540)
 
-    assertEquals(0, jbScrollPane.horizontalScrollBar.model.minimum)
-    assertEquals(600, jbScrollPane.horizontalScrollBar.model.maximum)
+    assertThat(jbScrollPane.horizontalScrollBar.model.minimum).isEqualTo(0)
+    assertThat(jbScrollPane.horizontalScrollBar.model.maximum).isEqualTo(600)
   }
 
   fun testTableIsScrollableIfTooManyColumns() {
@@ -154,13 +155,14 @@ class TableViewImplTest : BasePlatformTestCase() {
     fakeUi.layout()
 
     // Assert
-    assertEquals(JTable.AUTO_RESIZE_OFF, table.autoResizeMode)
+    assertThat(table.autoResizeMode).isEqualTo(JTable.AUTO_RESIZE_OFF)
 
-    assertTrue(table.size.width > 598)
-    assertEquals(AUTORESIZE_OFF_COLUMN_PREFERRED_WIDTH, table.columnModel.getColumn(1).width)
+    assertThat(table.size.width).isGreaterThan(598)
+    assertThat(table.columnModel.getColumn(1).width)
+      .isEqualTo(AUTORESIZE_OFF_COLUMN_PREFERRED_WIDTH)
 
-    assertEquals(0, jbScrollPane.horizontalScrollBar.model.minimum)
-    assertTrue(jbScrollPane.horizontalScrollBar.model.maximum > 598)
+    assertThat(jbScrollPane.horizontalScrollBar.model.minimum).isEqualTo(0)
+    assertThat(jbScrollPane.horizontalScrollBar.model.maximum).isGreaterThan(598)
   }
 
   fun testSetEditableHidesReadOnlyLabelAndEnablesCellEditing() {
@@ -176,8 +178,8 @@ class TableViewImplTest : BasePlatformTestCase() {
     view.setEditable(true)
 
     // Assert
-    assertFalse(readOnlyLabel.isVisible)
-    assertTrue(table.model.isCellEditable(0, 1))
+    assertThat(readOnlyLabel.isVisible).isFalse()
+    assertThat(table.model.isCellEditable(0, 1)).isTrue()
   }
 
   fun testSetNotEditableShowsReadOnlyLabelAndDisableCellEditing() {
@@ -193,8 +195,8 @@ class TableViewImplTest : BasePlatformTestCase() {
     view.setEditable(false)
 
     // Assert
-    assertTrue(readOnlyLabel.isVisible)
-    assertFalse(table.model.isCellEditable(0, 0))
+    assertThat(readOnlyLabel.isVisible).isTrue()
+    assertThat(table.model.isCellEditable(0, 0)).isFalse()
   }
 
   fun testClickOnColumnHeaderSortsTable() {
@@ -228,7 +230,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     fakeUi.mouse.click(597, 0)
 
     // Assert
-    assertEquals(1, table.columnAtPoint(Point(597, 0)))
+    assertThat(table.columnAtPoint(Point(597, 0))).isEqualTo(1)
     verify(mockListener).toggleOrderByColumnInvoked(col.toViewColumn())
   }
 
@@ -262,7 +264,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     fakeUi.mouse.click(0, 0)
 
     // Assert
-    assertEquals(0, table.columnAtPoint(Point(0, 0)))
+    assertThat(table.columnAtPoint(Point(0, 0))).isEqualTo(0)
     verify(mockListener, times(0)).toggleOrderByColumnInvoked(col.toViewColumn())
   }
 
@@ -281,8 +283,8 @@ class TableViewImplTest : BasePlatformTestCase() {
     view.stopTableLoading()
 
     // Assert
-    assertFalse(table.columnModel.getColumn(0).resizable)
-    assertTrue(table.columnModel.getColumn(1).resizable)
+    assertThat(table.columnModel.getColumn(0).resizable).isFalse()
+    assertThat(table.columnModel.getColumn(1).resizable).isTrue()
   }
 
   fun testColumnsAreNamedCorrectly() {
@@ -300,8 +302,8 @@ class TableViewImplTest : BasePlatformTestCase() {
     view.stopTableLoading()
 
     // Assert
-    assertEquals("", table.model.getColumnName(0))
-    assertEquals("col", table.model.getColumnName(1))
+    assertThat(table.model.getColumnName(0)).isEqualTo("")
+    assertThat(table.model.getColumnName(1)).isEqualTo("col")
   }
 
   fun testRowsHaveExpectedValues() {
@@ -323,8 +325,8 @@ class TableViewImplTest : BasePlatformTestCase() {
     view.stopTableLoading()
 
     // Assert
-    assertEquals(listOf("1", "2"), getColumnAt(table, 0))
-    assertEquals(listOf("val1", "val2"), getColumnAt(table, 1))
+    assertThat(getColumnAt(table, 0)).containsExactly("1", "2").inOrder()
+    assertThat(getColumnAt(table, 1)).containsExactly("val1", "val2").inOrder()
   }
 
   fun testSetValueInColumnsOtherThanFirstIsAllowed() {
@@ -369,8 +371,8 @@ class TableViewImplTest : BasePlatformTestCase() {
     view.setEditable(true)
 
     // Assert
-    assertFalse(table.model.isCellEditable(0, 0))
-    assertTrue(table.model.isCellEditable(0, 1))
+    assertThat(table.model.isCellEditable(0, 0)).isFalse()
+    assertThat(table.model.isCellEditable(0, 1)).isTrue()
   }
 
   fun `testShowRows Add`() {
@@ -389,8 +391,8 @@ class TableViewImplTest : BasePlatformTestCase() {
     view.stopTableLoading()
 
     // Assert
-    assertEquals(1, table.model.rowCount)
-    assertEquals("val1", table.model.getValueAt(0, 1))
+    assertThat(table.model.rowCount).isEqualTo(1)
+    assertThat(table.model.getValueAt(0, 1)).isEqualTo("val1")
   }
 
   fun `testShowRows Add UpdateRemove`() {
@@ -424,8 +426,8 @@ class TableViewImplTest : BasePlatformTestCase() {
     )
 
     // Assert
-    assertEquals(1, table.model.rowCount)
-    assertEquals("new val", table.model.getValueAt(0, 1))
+    assertThat(table.model.rowCount).isEqualTo(1)
+    assertThat(table.model.getValueAt(0, 1)).isEqualTo("new val")
   }
 
   fun `testShowRows Add Update UpdateAdd`() {
@@ -474,8 +476,10 @@ class TableViewImplTest : BasePlatformTestCase() {
     )
 
     // Assert
-    assertEquals(4, table.model.rowCount)
-    assertEquals(listOf("new val1", "val2", "new val3", "new val4"), getColumnAt(table, 1))
+    assertThat(table.model.rowCount).isEqualTo(4)
+    assertThat(getColumnAt(table, 1))
+      .containsExactly("new val1", "val2", "new val3", "new val4")
+      .inOrder()
   }
 
   fun testEditTableUsingPrimaryKey() {
@@ -533,9 +537,9 @@ class TableViewImplTest : BasePlatformTestCase() {
         )
       )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
-    assertSize(1, rows)
-    assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
-    assertEquals(SqliteValue.fromAny(0), rows.first().values[1].value)
+    assertThat(rows).hasSize(1)
+    assertThat(rows.first().values[0].value).isEqualTo(SqliteValue.fromAny(42))
+    assertThat(rows.first().values[1].value).isEqualTo(SqliteValue.fromAny(0))
   }
 
   fun testEditTableUsingRowId() {
@@ -593,9 +597,9 @@ class TableViewImplTest : BasePlatformTestCase() {
         )
       )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
-    assertSize(1, rows)
-    assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
-    assertEquals(SqliteValue.fromAny(0), rows.first().values[1].value)
+    assertThat(rows).hasSize(1)
+    assertThat(rows.first().values[0].value).isEqualTo(SqliteValue.fromAny(42))
+    assertThat(rows.first().values[1].value).isEqualTo(SqliteValue.fromAny(0))
   }
 
   fun testEditTableInsertString() {
@@ -653,9 +657,9 @@ class TableViewImplTest : BasePlatformTestCase() {
         )
       )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
-    assertSize(1, rows)
-    assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
-    assertEquals(SqliteValue.fromAny("foo"), rows.first().values[1].value)
+    assertThat(rows).hasSize(1)
+    assertThat(rows.first().values[0].value).isEqualTo(SqliteValue.fromAny(42))
+    assertThat(rows.first().values[1].value).isEqualTo(SqliteValue.fromAny("foo"))
   }
 
   fun testEditTableInsertNull() {
@@ -713,9 +717,9 @@ class TableViewImplTest : BasePlatformTestCase() {
         )
       )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
-    assertSize(1, rows)
-    assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
-    assertEquals(SqliteValue.fromAny(null), rows.first().values[1].value)
+    assertThat(rows).hasSize(1)
+    assertThat(rows.first().values[0].value).isEqualTo(SqliteValue.fromAny(42))
+    assertThat(rows.first().values[1].value).isEqualTo(SqliteValue.fromAny(null))
   }
 
   fun testRightClickSelectsCell() {
@@ -757,10 +761,10 @@ class TableViewImplTest : BasePlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    assertEquals(1, table.selectedRows.size)
-    assertEquals(1, table.selectedColumns.size)
-    assertEquals(1, table.selectedRows[0])
-    assertEquals(1, table.selectedColumns[0])
+    assertThat(table.selectedRows.size).isEqualTo(1)
+    assertThat(table.selectedColumns.size).isEqualTo(1)
+    assertThat(table.selectedRows[0]).isEqualTo(1)
+    assertThat(table.selectedColumns[0]).isEqualTo(1)
   }
 
   fun testRightClickOnCellOpensMenu_table() {
@@ -807,10 +811,9 @@ class TableViewImplTest : BasePlatformTestCase() {
     verify(mockActionManager).createActionPopupMenu(any(), captor.capture())
     val actions = (captor.value as DefaultActionGroup).getChildren(mockActionManager)
 
-    assertOrderedEquals(
-      actions.map { it.javaClass.simpleName },
-      listOf("CopyToClipboardAction", "RemoveRowsAction", "SetNullAction"),
-    )
+    assertThat(actions.map { it.javaClass.simpleName })
+      .containsExactly("CopyToClipboardAction", "RemoveRowsAction", "SetNullAction")
+      .inOrder()
   }
 
   fun testRightClickOnCellOpensMenu_evaluator() {
@@ -857,10 +860,9 @@ class TableViewImplTest : BasePlatformTestCase() {
     verify(mockActionManager).createActionPopupMenu(any(), captor.capture())
     val actions = (captor.value as DefaultActionGroup).getChildren(mockActionManager)
 
-    assertOrderedEquals(
-      actions.map { it.javaClass.simpleName },
-      listOf("CopyToClipboardAction", "SetNullAction"),
-    )
+    assertThat(actions.map { it.javaClass.simpleName })
+      .containsExactly("CopyToClipboardAction", "SetNullAction")
+      .inOrder()
   }
 
   fun testRightClickOutsideOfTableRows() {
@@ -922,7 +924,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     view.stopTableLoading()
 
     // Assert
-    assertEquals(tableModel1, table.model)
+    assertThat(table.model).isEqualTo(tableModel1)
   }
 
   fun testTableModelIsRecreatedIfColumnsAreDifferent() {
@@ -943,13 +945,13 @@ class TableViewImplTest : BasePlatformTestCase() {
     view.stopTableLoading()
 
     // Assert
-    assertTrue(tableModel1 != table.model)
+    assertThat(table.model).isNotEqualTo(tableModel1)
   }
 
   fun testProgressBarIsHiddenByDefault() {
     val progressBar =
       TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
-    assertFalse(progressBar.isVisible)
+    assertThat(progressBar.isVisible).isFalse()
   }
 
   fun testProgressBarIsVisibleWhenLoading() {
@@ -961,10 +963,10 @@ class TableViewImplTest : BasePlatformTestCase() {
     val progressBar =
       TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
 
-    assertEquals(table.emptyText.text, "Waiting for data...")
-    assertTrue(table.isVisible)
-    assertFalse(table.isEnabled)
-    assertTrue(progressBar.isVisible)
+    assertThat(table.emptyText.text).isEqualTo("Waiting for data...")
+    assertThat(table.isVisible).isTrue()
+    assertThat(table.isEnabled).isFalse()
+    assertThat(progressBar.isVisible).isTrue()
 
     view.stopTableLoading()
   }
@@ -979,10 +981,10 @@ class TableViewImplTest : BasePlatformTestCase() {
     val progressBar =
       TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
 
-    assertEquals(table.emptyText.text, "Table is empty")
-    assertTrue(table.isVisible)
-    assertTrue(table.isEnabled)
-    assertFalse(progressBar.isVisible)
+    assertThat(table.emptyText.text).isEqualTo("Table is empty")
+    assertThat(table.isVisible).isTrue()
+    assertThat(table.isEnabled).isTrue()
+    assertThat(progressBar.isVisible).isFalse()
   }
 
   fun testDisposeWhileLoadingDoesntThrow() {
@@ -1039,25 +1041,25 @@ class TableViewImplTest : BasePlatformTestCase() {
       TreeWalker(view.component).descendants().first { it.name == "live-updates-checkbox" }
 
     // Assert
-    assertFalse(pageSizeComboBox.isEnabled)
-    assertFalse(refreshButton.isEnabled)
-    assertFalse(liveUpdatesCheckBox.isEnabled)
+    assertThat(pageSizeComboBox.isEnabled).isFalse()
+    assertThat(refreshButton.isEnabled).isFalse()
+    assertThat(liveUpdatesCheckBox.isEnabled).isFalse()
 
     // Act
     view.startTableLoading()
 
     // Assert
-    assertFalse(pageSizeComboBox.isEnabled)
-    assertFalse(refreshButton.isEnabled)
-    assertFalse(liveUpdatesCheckBox.isEnabled)
+    assertThat(pageSizeComboBox.isEnabled).isFalse()
+    assertThat(refreshButton.isEnabled).isFalse()
+    assertThat(liveUpdatesCheckBox.isEnabled).isFalse()
 
     // Act
     view.stopTableLoading()
 
     // Assert
-    assertTrue(pageSizeComboBox.isEnabled)
-    assertTrue(refreshButton.isEnabled)
-    assertTrue(liveUpdatesCheckBox.isEnabled)
+    assertThat(pageSizeComboBox.isEnabled).isTrue()
+    assertThat(refreshButton.isEnabled).isTrue()
+    assertThat(liveUpdatesCheckBox.isEnabled).isTrue()
   }
 
   fun testDoesntSetValueIfSameValue() {
@@ -1105,24 +1107,24 @@ class TableViewImplTest : BasePlatformTestCase() {
     table.model.setValueAt("new value", 0, 1)
 
     // Assert
-    assertEquals("new value", table.model.getValueAt(0, 1))
+    assertThat(table.model.getValueAt(0, 1)).isEqualTo("new value")
 
     // Act
     view.revertLastTableCellEdit()
 
     // Assert
-    assertEquals("value", table.model.getValueAt(0, 1))
+    assertThat(table.model.getValueAt(0, 1)).isEqualTo("value")
   }
 
   fun testNoColumnsAreShownAfterResetView() {
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
     val tableModel = table.model
 
-    assertEquals(0, tableModel.columnCount)
+    assertThat(tableModel.columnCount).isEqualTo(0)
 
     view.resetView()
 
-    assertEquals(0, tableModel.columnCount)
+    assertThat(tableModel.columnCount).isEqualTo(0)
   }
 
   fun testEditNullCellToEmptyStringDoesNothing() {
@@ -1144,13 +1146,13 @@ class TableViewImplTest : BasePlatformTestCase() {
     table.model.setValueAt(null, 0, 1)
 
     // Assert
-    assertEquals(null, table.model.getValueAt(0, 1))
+    assertThat(table.model.getValueAt(0, 1)).isNull()
 
     // Act
     table.model.setValueAt("", 0, 1)
 
     // Assert
-    assertEquals(null, table.model.getValueAt(0, 1))
+    assertThat(table.model.getValueAt(0, 1)).isNull()
   }
 
   fun testDisabledLiveUpdates() {
@@ -1159,30 +1161,30 @@ class TableViewImplTest : BasePlatformTestCase() {
       TreeWalker(view.component).descendants().first { it.name == "live-updates-checkbox" }
 
     // Assert
-    assertFalse(liveUpdatesCheckBox.isEnabled)
+    assertThat(liveUpdatesCheckBox.isEnabled).isFalse()
 
     // Act
     view.setLiveUpdatesButtonState(false)
     view.startTableLoading()
 
     // Assert
-    assertFalse(liveUpdatesCheckBox.isEnabled)
+    assertThat(liveUpdatesCheckBox.isEnabled).isFalse()
 
     // Act
     view.stopTableLoading()
 
     // Assert
-    assertFalse(liveUpdatesCheckBox.isEnabled)
+    assertThat(liveUpdatesCheckBox.isEnabled).isFalse()
   }
 
   fun testNoSortingAfterResetView() {
     view.setColumnSortIndicator(OrderBy.Asc("col"))
 
-    assertEquals(view.orderBy, OrderBy.Asc("col"))
+    assertThat(view.orderBy).isEqualTo(OrderBy.Asc("col"))
 
     view.resetView()
 
-    assertEquals(view.orderBy, OrderBy.NotOrdered)
+    assertThat(view.orderBy).isEqualTo(OrderBy.NotOrdered)
   }
 
   private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {
@@ -1233,9 +1235,9 @@ class TableViewImplTest : BasePlatformTestCase() {
 
     RemoveRowsAction(table).update(event)
 
-    assertEquals("Remove 2 Rows", event.presentation.text)
-    assertTrue(event.presentation.isVisible)
-    assertTrue(event.presentation.isEnabled)
+    assertThat(event.presentation.text).isEqualTo("Remove 2 Rows")
+    assertThat(event.presentation.isVisible).isTrue()
+    assertThat(event.presentation.isEnabled).isTrue()
   }
 
   fun testRemoveRowAction_update_readOnly() {
@@ -1249,8 +1251,8 @@ class TableViewImplTest : BasePlatformTestCase() {
 
     RemoveRowsAction(table).update(event)
 
-    assertTrue(event.presentation.isVisible)
-    assertFalse(event.presentation.isEnabled)
+    assertThat(event.presentation.isVisible).isTrue()
+    assertThat(event.presentation.isEnabled).isFalse()
   }
 }
 
