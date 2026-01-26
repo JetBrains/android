@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.flags.ifEnabled
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.stdui.ActionData
@@ -423,12 +424,12 @@ internal class ComposePreviewViewImpl(
 
   /** Creates an [AnAction] to that generates Compose Previews for this file. */
   private fun createGeneratePreviewsActionData(): AnAction? {
-    return getComposeStudioBotActionFactory()?.createPreviewGenerator()?.also {
-      it.templatePresentation.text =
-        if (StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.get())
+    return StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC.ifEnabled {
+      getComposeStudioBotActionFactory()?.createPreviewGenerator()?.also {
+        it.templatePresentation.text =
           message("action.generate.single.preview.for.file.empty.panel")
-        else message("action.generate.previews.for.file.empty.panel")
-      it.templatePresentation.icon = StudioIcons.StudioBot.GENERIC_AI_ACTION
+        it.templatePresentation.icon = StudioIcons.StudioBot.GENERIC_AI_ACTION
+      }
     }
   }
 

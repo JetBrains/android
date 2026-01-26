@@ -46,7 +46,7 @@ open class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
     }
   }
 
-  override fun createPreviewGenerator(): AnAction? = fakeAction("previewGenerator")
+  override fun createPreviewGenerator(): AnAction = fakeAction("previewGenerator")
 
   override fun transformPreviewAction() = fakeAction("transformPreview")
 
