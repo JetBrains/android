@@ -15,16 +15,37 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.fixtures.createDaemonJvmPropertiesFile
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SelectJdkFromFileSystemQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.TestApplicationManager
+import org.gradle.tooling.model.build.BuildEnvironment
+import org.gradle.tooling.model.build.GradleEnvironment
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.issue.quickfix.GradleOpenDaemonJvmSettingsQuickFix
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
+import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 @Suppress("UnstableApiUsage")
 class UnsupportedClassVersionIssueCheckerTest {
   private val issueChecker = UnsupportedClassVersionIssueChecker()
+
+  @get:Rule var tmpFolderRule = TemporaryFolder()
+
+  @Before
+  fun setUp() {
+    TestApplicationManager.getInstance()
+    tmpFolderRule.create()
+  }
 
   @Test
   fun `consumeBuildOutputFailureMessage is false when pattern is not present`() {
@@ -66,6 +87,12 @@ class UnsupportedClassVersionIssueCheckerTest {
   }
 
   @Test
+  fun `AGP needs 17 but project uses 11 and project defines Daemon JVM criteria`() {
+    tmpFolderRule.root.createDaemonJvmPropertiesFile("17")
+    verifyBuildIssue(agpCompiled = "61.0", gradleRuntime = "55.0", resolvedAgp = "17", resolvedGradle = "11", useDaemonJvmCriteria = true)
+  }
+
+  @Test
   fun `AGP needs 17 but project uses 8`() {
     verifyBuildIssue(agpCompiled = "61.0", gradleRuntime = "52.0", resolvedAgp = "17", resolvedGradle = "1.8")
   }
@@ -83,9 +110,21 @@ class UnsupportedClassVersionIssueCheckerTest {
     assertThat(issue).isNull()
   }
 
-  private fun verifyBuildIssue(agpCompiled: String, gradleRuntime: String, resolvedAgp: String, resolvedGradle: String) {
+  private fun verifyBuildIssue(
+    agpCompiled: String,
+    gradleRuntime: String,
+    resolvedAgp: String,
+    resolvedGradle: String,
+    gradleVersion: String = "9.0",
+    useDaemonJvmCriteria: Boolean = false,
+  ) {
     val message = createErrorMessage(agpCompiled, gradleRuntime)
-    val issueData = GradleIssueData("projectFolderPath", Throwable(message), null, null)
+    val buildEnvironment =
+      mock(BuildEnvironment::class.java).also { buildEnvironment ->
+        val gradle = mock(GradleEnvironment::class.java).also { gradle -> doReturn(gradleVersion).whenever(gradle).gradleVersion }
+        doReturn(gradle).whenever(buildEnvironment).gradle
+      }
+    val issueData = GradleIssueData(tmpFolderRule.root.absolutePath, Throwable(message), buildEnvironment, null)
     val issue = issueChecker.createBuildIssue(issueData)
     assertThat(issue).isNotNull()
     val expectedMessage =
@@ -93,9 +132,15 @@ class UnsupportedClassVersionIssueCheckerTest {
         "current AGP requires a Gradle JVM that supports version $resolvedAgp."
     assertThat(issue!!.description).contains(expectedMessage)
     val quickFixes = issue.quickFixes
-    assertThat(quickFixes).hasSize(2)
-    assertThat(quickFixes[0]).isInstanceOf(SelectJdkFromFileSystemQuickFix::class.java)
-    assertThat(quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
+    assertThat(quickFixes).hasSize(3)
+    if (useDaemonJvmCriteria) {
+      assertThat(quickFixes[0]).isInstanceOf(UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix::class.java)
+      assertThat(quickFixes[1]).isInstanceOf(GradleOpenDaemonJvmSettingsQuickFix::class.java)
+    } else {
+      assertThat(quickFixes[0]).isInstanceOf(UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix::class.java)
+      assertThat(quickFixes[1]).isInstanceOf(SelectJdkFromFileSystemQuickFix::class.java)
+    }
+    assertThat(quickFixes[2]).isInstanceOf(OpenLinkQuickFix::class.java)
   }
 
   private fun createErrorMessage(agpCompiled: String, gradleRuntime: String) =

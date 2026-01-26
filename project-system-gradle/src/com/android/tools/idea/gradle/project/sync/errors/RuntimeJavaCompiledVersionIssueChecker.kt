@@ -15,18 +15,26 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.sync.extensions.getGradleVersion
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SelectJdkFromFileSystemQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import java.nio.file.Path
 import java.util.function.Consumer
+import kotlin.io.path.Path
+import org.gradle.util.GradleVersion
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.issue.quickfix.GradleOpenDaemonJvmSettingsQuickFix
+import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 /**
@@ -35,6 +43,7 @@ import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandle
  *
  * Gradle JVM version incompatible. This project is configured to use an older Gradle JVM that supports up to version X but the current AGP
  * requires a Gradle JVM that supports version Y.
+ * - [UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix] apply compatible Gradle JDK configuration
  * - [SelectJdkFromFileSystemQuickFix] that will open the settings tab to configure Gradle JVM
  * - [OpenLinkQuickFix] with message "See AGP Release Notes..."
  */
@@ -71,11 +80,18 @@ abstract class RuntimeJavaCompiledVersionIssueChecker : GradleIssueChecker {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     val match = expectedErrorRegex.find(message) ?: return null
     return parseErrorRegexMatch(match)?.let { (agpMinCompatibleJdkVersion, gradleJdkVersion) ->
-      createJdkVersionIncompatibleBuildIssue(agpMinCompatibleJdkVersion, gradleJdkVersion)
+      val projectPath = Path(issueData.projectPath)
+      val gradleVersion = issueData.getGradleVersion() ?: return null
+      createJdkVersionIncompatibleBuildIssue(agpMinCompatibleJdkVersion, gradleJdkVersion, projectPath, gradleVersion)
     }
   }
 
-  private fun createJdkVersionIncompatibleBuildIssue(agpMinCompatibleJdkVersion: String, gradleJdkVersion: String) =
+  private fun createJdkVersionIncompatibleBuildIssue(
+    agpMinCompatibleJdkVersion: String,
+    gradleJdkVersion: String,
+    projectPath: Path,
+    gradleVersion: GradleVersion,
+  ) =
     BuildIssueComposer("Gradle JVM version incompatible.")
       .apply {
         addDescriptionOnNewLine(
@@ -83,7 +99,14 @@ abstract class RuntimeJavaCompiledVersionIssueChecker : GradleIssueChecker {
             "current AGP requires a Gradle JVM that supports version $agpMinCompatibleJdkVersion."
         )
         startNewParagraph()
-        addQuickFix(SelectJdkFromFileSystemQuickFix())
+
+        if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(projectPath, gradleVersion)) {
+          addQuickFix(UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix(gradleVersion, projectPath.toString()))
+          addQuickFix("Modify Daemon JVM criteria", GradleOpenDaemonJvmSettingsQuickFix)
+        } else {
+          addQuickFix(UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix(gradleVersion, projectPath.toString()))
+          addQuickFix(SelectJdkFromFileSystemQuickFix())
+        }
         addQuickFix("See AGP Release Notes...", OpenLinkQuickFix("https://developer.android.com/studio/releases/gradle-plugin"))
       }
       .composeBuildIssue()

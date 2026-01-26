@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.sync.extensions.getGradleVersion
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.SelectJdkFromFileSystemQuickFix
@@ -49,7 +50,7 @@ private const val UNSUPPORTED_JDK_VERSION_EXCEPTION = "Unsupported class file ma
 class IncompatibleGradleJvmAndGradleIssueChecker : GradleIssueChecker {
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val gradleVersion = getGradleVersion(issueData) ?: return null
+    val gradleVersion = issueData.getGradleVersion() ?: return null
     val projectPath = Path(issueData.projectPath)
     val javaVersion = getJavaVersion(issueData, projectPath, gradleVersion)
 
@@ -73,10 +74,6 @@ class IncompatibleGradleJvmAndGradleIssueChecker : GradleIssueChecker {
     parentEventId: Any,
     messageConsumer: Consumer<in BuildEvent>,
   ) = failureCause.contains(UNSUPPORTED_JDK_VERSION_EXCEPTION)
-
-  private fun getGradleVersion(issueData: GradleIssueData): GradleVersion? {
-    return issueData.buildEnvironment?.let { GradleVersion.version(it.gradle.gradleVersion) }
-  }
 
   private fun getJavaVersion(issueData: GradleIssueData, projectPath: Path, gradleVersion: GradleVersion): JavaVersion? {
     // Projects using Daemon JVM criteria with a compatible Gradle version will ignore javaHome defined on BuildEnvironment
