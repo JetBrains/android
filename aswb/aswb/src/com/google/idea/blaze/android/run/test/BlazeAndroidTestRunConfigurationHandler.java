@@ -30,8 +30,6 @@ import com.google.idea.blaze.android.run.runner.BlazeApkBuildStep;
 import com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProvider.AndroidTestLaunchMethod;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
-import com.google.idea.blaze.base.projectview.ProjectViewManager;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.BlazeConfigurationNameBuilder;
 import com.google.idea.blaze.base.run.ExecutorType;
@@ -83,14 +81,12 @@ public class BlazeAndroidTestRunConfigurationHandler
         BlazeAndroidRunConfigurationHandler.getCommandConfig(env);
 
     BlazeAndroidRunConfigurationValidationUtil.validate(project);
-    ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
 
     ImmutableList<String> blazeFlags =
         configState
             .getCommonState()
             .getExpandedBuildFlags(
                 project,
-                projectViewSet,
                 BlazeCommandName.TEST,
                 BlazeInvocationContext.runConfigContext(
                     ExecutorType.fromExecutor(env.getExecutor()), configuration.getType(), false));

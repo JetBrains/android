@@ -82,15 +82,9 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
   }
 
   private ListenableFuture<BlazeInfo> runBlazeInfo(BlazeContext blazeContext) {
-    ProjectViewSet viewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
-    if (viewSet == null) {
-      // defer the failure until later when it can be handled more easily:
-      return Futures.immediateFailedFuture(new IllegalStateException("Empty project view set"));
-    }
     List<String> syncFlags =
       BlazeFlags.blazeFlags(
         project,
-        viewSet,
         BlazeCommandName.INFO,
           BlazeInvocationContext.SYNC_CONTEXT);
     return BlazeInfoRunner.getInstance()
