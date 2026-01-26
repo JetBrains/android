@@ -384,6 +384,7 @@ class WifiAvailableDevicesDialog(private val project: Project, private val wifiP
         attribute = { buildDeviceNameOrPlaceholder(it.service) },
         maxLines = 2,
       ),
+      TableTextColumn<MdnsTlsService>("ADB Wi-Fi", attribute = { it.service.getMdnsServiceVersion() }),
       TableTextColumn("IP Address & Port", TableColumnWidth.Weighted(2f), attribute = { "${it.service.ipv4}:${it.service.port}" }),
       TableTextColumn<MdnsTlsService>("API", attribute = { it.service.buildVersionSdkFull.takeUnless { it.isNullOrEmpty() } ?: "Unknown" }),
       TableColumn("", TableColumnWidth.Weighted(1f)) { device, _ ->
@@ -427,6 +428,20 @@ private fun buildDeviceName(mdnsService: MdnsTrackServiceInfo): String? =
   mdnsService.givenName.takeUnless { it.isNullOrBlank() } ?: mdnsService.deviceModel.takeUnless { it.isNullOrBlank() }
 
 private fun buildDeviceNameOrPlaceholder(mdnsService: MdnsTrackServiceInfo): String = buildDeviceName(mdnsService) ?: "Unknown"
+
+private fun MdnsTrackServiceInfo.getMdnsServiceVersion(): String {
+  val version = this.mdnsServiceVersion
+  return if (
+    version.isNullOrEmpty() ||
+      // We had a bug in some devices where we advertise ADB_SECURE_SERVICE_VERSION as version
+      version == "ADB_SECURE_SERVICE_VERSION" ||
+      version == "1"
+  ) {
+    "v1.0"
+  } else {
+    "v${version}"
+  }
+}
 
 object WifiPairingLinkHandler {
 
