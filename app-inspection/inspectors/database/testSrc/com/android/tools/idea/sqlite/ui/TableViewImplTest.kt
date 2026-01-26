@@ -40,6 +40,7 @@ import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableView.TableViewType.EVALUATOR
 import com.android.tools.idea.sqlite.ui.tableView.TableView.TableViewType.TABLE
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
+import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl.RemoveRowsAction
 import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
 import com.android.tools.idea.sqlite.utils.SqliteTestUtil
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
@@ -808,7 +809,7 @@ class TableViewImplTest : BasePlatformTestCase() {
 
     assertOrderedEquals(
       actions.map { it.javaClass.simpleName },
-      listOf("CopyToClipboardAction", "RemoveRowAction", "SetNullAction"),
+      listOf("CopyToClipboardAction", "RemoveRowsAction", "SetNullAction"),
     )
   }
 
@@ -1196,16 +1197,16 @@ class TableViewImplTest : BasePlatformTestCase() {
   fun testRemoveRowAction() {
     view.prepare()
     val table = view.component.getDescendant<JTable>()
-    table.selectionModel.setSelectionInterval(0, 0)
+    table.selectionModel.setSelectionInterval(0, 1)
     val mockListener = mock<TableView.Listener>()
     view.addListener(mockListener)
 
-    TableViewImpl.RemoveRowAction(table).actionPerformed(TestActionEvent.createTestEvent())
+    RemoveRowsAction(table).actionPerformed(TestActionEvent.createTestEvent())
 
-    verify(mockListener).removeRowInvoked(0)
+    verify(mockListener).removeRowsInvoked(listOf(0, 1))
   }
 
-  fun testRemoveRowAction_update() {
+  fun testRemoveRowAction_update_oneRow() {
     view.prepare()
     val table = view.component.getDescendant<JTable>()
     table.selectionModel.setSelectionInterval(0, 0)
@@ -1214,13 +1215,28 @@ class TableViewImplTest : BasePlatformTestCase() {
     view.setEditable(true)
     val event = TestActionEvent.createTestEvent()
 
-    TableViewImpl.RemoveRowAction(table).update(event)
+    RemoveRowsAction(table).update(event)
 
-
+    assertEquals("Remove Row", event.presentation.text)
     assertTrue(event.presentation.isVisible)
     assertTrue(event.presentation.isEnabled)
   }
 
+  fun testRemoveRowAction_update_multipleRows() {
+    view.prepare()
+    val table = view.component.getDescendant<JTable>()
+    table.selectionModel.setSelectionInterval(0, 1)
+    val mockListener = mock<TableView.Listener>()
+    view.addListener(mockListener)
+    view.setEditable(true)
+    val event = TestActionEvent.createTestEvent()
+
+    RemoveRowsAction(table).update(event)
+
+    assertEquals("Remove 2 Rows", event.presentation.text)
+    assertTrue(event.presentation.isVisible)
+    assertTrue(event.presentation.isEnabled)
+  }
 
   fun testRemoveRowAction_update_readOnly() {
     view.prepare()
@@ -1231,8 +1247,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     view.setEditable(false)
     val event = TestActionEvent.createTestEvent()
 
-    TableViewImpl.RemoveRowAction(table).update(event)
-
+    RemoveRowsAction(table).update(event)
 
     assertTrue(event.presentation.isVisible)
     assertFalse(event.presentation.isEnabled)

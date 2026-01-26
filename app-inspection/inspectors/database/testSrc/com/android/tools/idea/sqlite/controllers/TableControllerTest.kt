@@ -1736,7 +1736,7 @@ class TableControllerTest {
   }
 
   @Test
-  fun testRemoveRow() {
+  fun testRemoveRows_oneRow() {
     // Prepare
     val customSqliteTable =
       SqliteTable(
@@ -1772,7 +1772,7 @@ class TableControllerTest {
     val orderVerifier = inOrder(tableView, mockDatabaseConnection)
 
     // Act
-    tableView.listeners.first().removeRowInvoked(1)
+    tableView.listeners.first().removeRowsInvoked(listOf(1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -1783,9 +1783,65 @@ class TableControllerTest {
       .execute(
         SqliteStatement(
           SqliteStatementType.DELETE,
-          "DELETE FROM tableName WHERE rowid = ?",
+          "DELETE FROM tableName WHERE (rowid = ?)",
           listOf(1).toSqliteValues(),
-          "DELETE FROM tableName WHERE rowid = '1'",
+          "DELETE FROM tableName WHERE (rowid = '1')",
+        )
+      )
+    orderVerifier.verify(tableView).stopTableLoading()
+  }
+
+  @Test
+  fun testRemoveRows_multipleRows() {
+    // Prepare
+    val customSqliteTable =
+      SqliteTable(
+        "tableName",
+        listOf(
+          SqliteColumn("rowid", SqliteAffinity.INTEGER, isNullable = false, inPrimaryKey = false),
+          SqliteColumn("c1", SqliteAffinity.TEXT, true, inPrimaryKey = false),
+        ),
+        RowIdName.ROWID,
+        false,
+      )
+
+    whenever(mockDatabaseConnection.execute(any())).thenReturn(Futures.immediateFuture(Unit))
+    whenever(mockDatabaseConnection.query(any()))
+      .thenReturn(Futures.immediateFuture(sqliteResultSet))
+    val tableController =
+      TableController(
+        project,
+        10,
+        tableView,
+        mockDatabaseConnectionId,
+        { customSqliteTable },
+        databaseRepository,
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tableName"),
+        {},
+        {},
+        edtExecutor,
+        edtExecutor,
+      )
+    Disposer.register(disposable, tableController)
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    val orderVerifier = inOrder(tableView, mockDatabaseConnection)
+
+    // Act
+    tableView.listeners.first().removeRowsInvoked(listOf(1, 3, 5))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    orderVerifier.verify(tableView).startTableLoading()
+    orderVerifier.verify(tableView).startTableLoading()
+    orderVerifier
+      .verify(mockDatabaseConnection)
+      .execute(
+        SqliteStatement(
+          SqliteStatementType.DELETE,
+          "DELETE FROM tableName WHERE (rowid = ?) OR (rowid = ?) OR (rowid = ?)",
+          listOf(1, 3, 5).toSqliteValues(),
+          "DELETE FROM tableName WHERE (rowid = '1') OR (rowid = '3') OR (rowid = '5')",
         )
       )
     orderVerifier.verify(tableView).stopTableLoading()

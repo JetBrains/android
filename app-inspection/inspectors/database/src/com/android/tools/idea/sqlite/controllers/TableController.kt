@@ -402,7 +402,7 @@ class TableController(
       this@TableController.showExportDialog(exportScenario)
     }
 
-    override fun removeRowInvoked(targetRowIndex: Int) {
+    override fun removeRowsInvoked(targetRowIndices: List<Int>) {
       val targetTable = tableSupplier()
       if (targetTable == null) {
         view.reportError("Can't delete row. Table not found.", null)
@@ -410,9 +410,9 @@ class TableController(
       }
 
       view.startTableLoading()
-      val targetRow = currentRows[targetRowIndex]
+      val targetRows = targetRowIndices.map { currentRows[it] }
       databaseRepository
-        .removeRow(databaseId, targetTable, targetRow)
+        .removeRows(databaseId, targetTable, targetRows)
         .addCallback(
           edtExecutor,
           object : FutureCallback<Unit> {

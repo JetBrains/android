@@ -77,10 +77,10 @@ interface DatabaseRepository {
     newValue: SqliteValue,
   ): ListenableFuture<Unit>
 
-  fun removeRow(
+  fun removeRows(
     databaseId: SqliteDatabaseId,
     targetTable: SqliteTable,
-    targetRow: SqliteRow,
+    targetRows: List<SqliteRow>,
   ): ListenableFuture<Unit>
 
   fun selectOrdered(
@@ -203,22 +203,25 @@ class DatabaseRepositoryImpl(
       }
     }
 
-  override fun removeRow(
+  override fun removeRows(
     databaseId: SqliteDatabaseId,
     targetTable: SqliteTable,
-    targetRow: SqliteRow,
+    targetRows: List<SqliteRow>,
   ): ListenableFuture<Unit> =
     scope.future {
       val databaseConnection = getDatabaseConnection(databaseId)
-      val whereExpression =
-        getWhereExpression(targetTable, targetRow) ?: error("No primary keys or rowid column")
+      val whereExpressions = targetRows.mapNotNull { getWhereExpression(targetTable, it) }
+      if (whereExpressions.size != targetRows.size) {
+        error("No primary keys or rowid column")
+      }
+      val whereExpression = whereExpressions.joinToString(" OR ") { "(${it.expression})" }
+      val whereParameters = whereExpressions.flatMap { it.parameters }
 
       val statement =
-        "DELETE FROM ${AndroidSqlLexer.getValidName(targetTable.name)} " +
-          "WHERE ${whereExpression.expression}"
+        "DELETE FROM ${AndroidSqlLexer.getValidName(targetTable.name)} " + "WHERE $whereExpression"
 
       withContext(Dispatchers.EDT) {
-        val sqliteStatement = createSqliteStatement(project, statement, whereExpression.parameters)
+        val sqliteStatement = createSqliteStatement(project, statement, whereParameters)
         withContext(workerDispatcher) { databaseConnection.execute(sqliteStatement).await() }
       }
     }
