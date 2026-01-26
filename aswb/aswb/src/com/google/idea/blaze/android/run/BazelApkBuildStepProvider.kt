@@ -35,6 +35,7 @@ object BazelApkBuildStepProvider {
     project: Project,
     useMobileInstall: Boolean,
     nativeDebuggingEnabled: Boolean,
+    liveEditEnabled: Boolean,
     label: Label,
     blazeFlags: List<String>,
     exeFlags: List<String>,
@@ -54,6 +55,7 @@ object BazelApkBuildStepProvider {
       exeFlags = exeFlags,
       useMobileInstall = useMobileInstall,
       nativeDebuggingEnabled = nativeDebuggingEnabled,
+      liveEditEnabled = liveEditEnabled,
       launchId = launchId,
       buildInvoker = buildInvoker,
       deployInfoExtractor =
@@ -99,6 +101,7 @@ object BazelApkBuildStepProvider {
       exeFlags = exeFlags,
       useMobileInstall = useMobileInstall,
       nativeDebuggingEnabled = nativeDebuggingEnabled,
+      liveEditEnabled = false,
       launchId = launchId,
       buildInvoker = buildInvoker,
       deployInfoExtractor = AitDeployInfoExtractor(project, info, nativeDebuggingEnabled, "android_deploy_info", "default")

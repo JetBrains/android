@@ -21,18 +21,21 @@ import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEdit
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem
 import com.google.idea.blaze.android.projectsystem.BazelToken
 import com.google.idea.blaze.android.run.BazelApplicationProjectContext
+import com.google.idea.blaze.base.qsync.QuerySyncUserPreferencesProvider
+import com.google.idea.common.experiments.BoolExperiment
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import java.nio.file.Path
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtFile
 
-class BazelBuildSystemLiveEditServices :
-  BuildSystemLiveEditServices<BazelProjectSystem, BazelApplicationProjectContext>, BazelToken {
+class BazelBuildSystemLiveEditServices :  BuildSystemLiveEditServices<BazelProjectSystem, BazelApplicationProjectContext>, BazelToken {
+
   override fun isApplicable(
     applicationProjectContext: ApplicationProjectContext
   ): Boolean {
     return applicationProjectContext is BazelApplicationProjectContext
+           && QuerySyncUserPreferencesProvider(applicationProjectContext.project).userPreferences.liveEditEnabled
   }
 
   override fun getApplicationServices(
