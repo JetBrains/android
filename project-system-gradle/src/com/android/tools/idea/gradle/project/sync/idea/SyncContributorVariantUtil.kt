@@ -19,6 +19,7 @@ import com.android.builder.model.v2.ide.AbstractArtifact
 import com.android.builder.model.v2.ide.AndroidArtifact
 import com.android.builder.model.v2.ide.BasicArtifact
 import com.android.builder.model.v2.ide.JavaArtifact
+import com.android.builder.model.v2.ide.ProjectType
 import com.android.builder.model.v2.ide.SourceProvider
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_SCREENSHOT_TEST
@@ -73,9 +74,13 @@ internal fun SyncContributorAndroidProjectContext.getSourceSetDataForBasicAndroi
   basicAndroidProject.variants
     .filter { it.name == variantName }
     .forEach {
-      processBasicArtifact(it.mainArtifact, IdeArtifactName.MAIN, isProduction = true)
-      containers.forEach {
-        it.sourceProvider?.let { sourceSets += createSourceSetDataForSourceProvider(IdeArtifactName.MAIN, it, isProduction = true, versions) }
+      (basicAndroidProject.projectType != ProjectType.TEST).let { mainIsProduction ->
+        processBasicArtifact(it.mainArtifact, IdeArtifactName.MAIN, isProduction = mainIsProduction)
+        containers.forEach {
+          it.sourceProvider?.let {
+            sourceSets += createSourceSetDataForSourceProvider(IdeArtifactName.MAIN, it, isProduction = mainIsProduction, versions)
+          }
+        }
       }
 
       if (testArtifactsAndSourceSetsInMaps) {
@@ -137,7 +142,7 @@ internal fun SyncContributorAndroidProjectContext.getSourceSetDataForAndroidProj
   androidProject.variants
     .filter { it.name == selectedVariantName }
     .forEach { variant ->
-      sourceSets += createSourceSetDataForAndroidArtifact(IdeArtifactName.MAIN, variant.mainArtifact, isProduction = true)
+      sourceSets += createSourceSetDataForAndroidArtifact(IdeArtifactName.MAIN, variant.mainArtifact, isProduction = basicAndroidProject.projectType != ProjectType.TEST)
       if (testArtifactsAndSourceSetsInMaps) {
         variant.deviceTestArtifacts.entries.forEach { (name, artifact) ->
           sourceSets += createSourceSetDataForAndroidArtifact(convertArtifactName(name), artifact, isProduction = false)
