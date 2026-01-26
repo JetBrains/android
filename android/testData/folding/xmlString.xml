@@ -28,3 +28,4 @@ android:orientation="horizontal">
   android:layout_height="wrap_content"
   android:text="Text here" /</fold>>
 </GridLayout</fold>>
+<caret>

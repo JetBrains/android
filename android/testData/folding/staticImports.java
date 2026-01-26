@@ -51,3 +51,4 @@ public class MyActivity extends Activity {
     String label18 = <fold text='longerint: 1502' expand='false'>getResources().getInteger(longerint)</fold>;
   }</fold>
 }
+<caret>

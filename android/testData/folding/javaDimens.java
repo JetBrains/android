@@ -24,3 +24,4 @@ public class MyActivity extends Activity {
         final int maxButtons = <fold text='max_action_buttons: 5' expand='false'>getResources().getInteger(R.integer.max_action_buttons)</fold>;
     }</fold>
 }
+<caret>

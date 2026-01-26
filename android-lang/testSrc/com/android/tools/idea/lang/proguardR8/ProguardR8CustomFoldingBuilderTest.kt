@@ -31,7 +31,7 @@ class ProguardR8CustomFoldingBuilderTest : JavaCodeInsightFixtureTestCase() {
       """.trimIndent()
     )
 
-    val res = (myFixture as CodeInsightTestFixtureImpl).getFoldingDescription(false)
+    val res = (myFixture as CodeInsightTestFixtureImpl).getFoldingDescription(false, false)
 
     assertThat(res).isEqualTo(
       """

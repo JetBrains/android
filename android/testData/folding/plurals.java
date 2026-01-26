@@ -10,3 +10,4 @@ public class Plurals extends Activity {
     }</fold>
 }
 
+<caret>
