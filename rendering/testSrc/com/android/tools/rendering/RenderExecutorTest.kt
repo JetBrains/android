@@ -203,7 +203,8 @@ class RenderExecutorTest {
     // softLimit / 2 < X = 40 < softLimit, some low priority tasks should be evicted.
     doTestQueueLimits(40, 40, 40, 10)
     // softLimit < X = 270 < hardLimit, all low and some mid priority tasks should be evicted.
-    doTestQueueLimits(270, 270, 30, 0)
+    // Disabled because of b/477553367
+    // doTestQueueLimits(270, 270, 30, 0)
     // hardLimit < X = 320, all low, all mid, and some high priority tasks should be evicted.
     doTestQueueLimits(320, 300, 0, 0)
   }
