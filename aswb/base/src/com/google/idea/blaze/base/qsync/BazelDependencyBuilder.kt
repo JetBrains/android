@@ -104,6 +104,24 @@ open class BazelDependencyBuilder(
 
   private val aspectFiles: AspectFiles = AspectFiles(workspaceRoot)
 
+
+  @Throws(IOException::class, BuildException::class)
+  override fun prepareInvocation(
+    context: BlazeContext,
+    buildTargets: Set<Label>,
+    outputGroups: Collection<OutputGroup>,
+    invoker: BuildInvoker,
+  ): DependencyBuilder.PreparedInvocation {
+    val buildDependenciesBazelInvocationInfo = getInvocationInfo(
+      context,
+      buildTargets,
+      invoker.capabilities,
+      outputGroups
+    )
+    prepareInvocationFiles(context, buildDependenciesBazelInvocationInfo.invocationWorkspaceFiles)
+    return buildDependenciesBazelInvocationInfo
+  }
+
   @Throws(IOException::class, BuildException::class)
   override fun build(
     context: BlazeContext,
@@ -115,16 +133,18 @@ open class BazelDependencyBuilder(
       .lockWorkspace(workspaceRoot.path().toString())
       .use {
         val invoker = buildSystem.getBuildInvoker(project)
-        val buildDependenciesBazelInvocationInfo = getInvocationInfo(context, buildTargets, invoker.capabilities, outputGroups)
-        prepareInvocationFiles(context, buildDependenciesBazelInvocationInfo.invocationWorkspaceFiles)
-
-        BuildDepsStatsScope.fromContext(context).ifPresent { it.setBlazeBinaryType(invoker.type) }
+        val buildDependenciesBazelInvocationInfo = prepareInvocation(
+          context,
+          buildTargets,
+          outputGroups,
+          invoker
+        )
 
         val commandBuilder = BlazeCommand.builder(BlazeCommandName.BUILD)
-        commandBuilder.addBlazeFlags(buildDependenciesBazelInvocationInfo.argsAndFlags)
+        buildDependenciesBazelInvocationInfo.updateCommand(commandBuilder)
 
+        BuildDepsStatsScope.fromContext(context).ifPresent { it.setBlazeBinaryType(invoker.type) }
         BuildDepsStatsScope.fromContext(context).ifPresent { it.setBuildFlags(commandBuilder.build().toArgumentList()) }
-
         val buildTime = Instant.now()
         return invoker.invoke(commandBuilder, context) { streamProvider ->
           val outputs = BlazeBuildOutputs.fromParsedBepOutput(BuildResultParser.getBuildOutput(streamProvider, Interners.STRING))
@@ -405,10 +425,14 @@ class BuildDependenciesBazelInvocationInfo(
   val argsAndFlags: List<String>,
   val requestedOutputGroups: Set<OutputGroup>,
   val invocationWorkspaceFiles: Map<Path, ByteSource>,
-) {
+) : DependencyBuilder.PreparedInvocation {
+
+  override fun updateCommand(commandBuilder: BlazeCommand.Builder) {
+    commandBuilder.addBlazeFlags(argsAndFlags)
+  }
 
   @Throws(BuildException::class)
-  fun createOutputInfo(
+  override fun createOutputInfo(
     blazeBuildOutputs: BlazeBuildOutputs,
     buildTime: Instant,
     context: BlazeContext,
