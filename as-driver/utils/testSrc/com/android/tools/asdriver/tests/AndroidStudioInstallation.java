@@ -119,6 +119,10 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
       default:
         throw new IllegalArgumentException("A valid AndroidStudioFlavor must be passed in. Got: " + options.androidStudioFlavor);
     }
+    String config = System.getProperty("studio.test.configuration");
+    if (config != null) {
+      androidStudioDirectory = androidStudioDirectory + "." + config;
+    }
 
     Path workDir = TestUtils.getBinPath(androidStudioDirectory);
     Path studioDir = workDir.resolve(getStudioDirectory(workDir));
