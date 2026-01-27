@@ -114,11 +114,6 @@ open class BazelDependencyBuilder(
       .service<BuildDependenciesLockService>()
       .lockWorkspace(workspaceRoot.path().toString())
       .use {
-        if (VersionChecker.versionMismatch()) {
-          throw BuildException(
-            "The IDE has been upgraded in the background. Bazel build aspect files maybe incompatible. Please restart the IDE."
-          )
-        }
         val invoker = buildSystem.getBuildInvoker(project)
         val buildDependenciesBazelInvocationInfo = getInvocationInfo(context, buildTargets, invoker.capabilities, outputGroups)
         prepareInvocationFiles(context, buildDependenciesBazelInvocationInfo.invocationWorkspaceFiles)
@@ -367,6 +362,11 @@ open class BazelDependencyBuilder(
   override fun prepareInvocationFiles(
     context: BlazeContext, invocationFiles: Map<Path, ByteSource>,
   ) {
+    if (VersionChecker.versionMismatch()) {
+      throw BuildException(
+        "The IDE has been upgraded in the background. Bazel build aspect files may be incompatible. Please restart the IDE."
+      )
+    }
     for (e in invocationFiles.entries) {
       aspectFiles.copyInvocationFile(e.key, e.value)
     }
