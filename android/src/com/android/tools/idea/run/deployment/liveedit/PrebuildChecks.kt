@@ -34,7 +34,7 @@ import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
-import org.jetbrains.kotlin.analysis.api.impl.base.extensions.IrGenerationExtensionPointDescriptor
+import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.util.projectStructure.module
 import org.jetbrains.kotlin.psi.KtFile
@@ -103,7 +103,7 @@ internal fun checkJetpackCompose(project: Project) {
   // `-Xplugin=.. compose compiler plugin ..` option.
   if (KotlinPluginModeProvider.isK2Mode()) return
 
-  val pluginExtensions = IrGenerationExtensionPointDescriptor.getInstances(project)
+  val pluginExtensions = project.extensionArea.getExtensionPoint<IrGenerationExtension>(IrGenerationExtension.name).extensions
   var found = false
   for (extension in pluginExtensions) {
     if (extension.javaClass.name == "com.android.tools.compose.ComposePluginIrGenerationExtension") {

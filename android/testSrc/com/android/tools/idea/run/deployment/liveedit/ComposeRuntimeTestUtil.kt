@@ -28,7 +28,6 @@ import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
-import org.jetbrains.kotlin.analysis.api.impl.base.extensions.IrGenerationExtensionPointDescriptor
 import org.jetbrains.kotlin.analysis.api.platform.projectStructure.KotlinCompilerPluginsProvider
 import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
@@ -102,8 +101,9 @@ fun registerComposeCompilerPlugin(project: Project) {
                                     composeCompilerPluginProviderForTest, project)
     return
   }
-  if (IrGenerationExtensionPointDescriptor.getInstances(project).find { it is ComposePluginIrGenerationExtension } == null) {
-    IrGenerationExtensionPointDescriptor.registerExtension(project, ComposePluginIrGenerationExtension())
+  val extensionPoint = project.extensionArea.getExtensionPoint<IrGenerationExtension>(IrGenerationExtension.name)
+  if (extensionPoint.extensions.find { it is ComposePluginIrGenerationExtension } == null) {
+    extensionPoint.registerExtension(ComposePluginIrGenerationExtension(), project)
   }
 }
 

@@ -255,7 +255,6 @@ jvm_library(
     "//platform/xdebugger-impl/shared",
     "//xml/emmet",
     "//libraries/jspecify",
-    "@lib//:kotlinc-analysis-api-impl-base",
     ":plugins_maven_artifactResolver-m31_provided",
   ],
   exports = ["//android/build-common"]
@@ -517,7 +516,6 @@ jvm_library(
     "@lib//:kotlinc-analysis-api",
     "//plugins/kotlin/bundled-compiler-plugins-support",
     "@lib//:kotlinc-kotlin-compiler-fe10",
-    "@lib//:kotlinc-analysis-api-impl-base",
   ],
   runtime_deps = [":core-tests"]
 )
