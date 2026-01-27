@@ -73,7 +73,7 @@ class IncompatibleGradleJvmAndGradleIssueChecker : GradleIssueChecker {
     location: FilePosition?,
     parentEventId: Any,
     messageConsumer: Consumer<in BuildEvent>,
-  ) = failureCause.contains(UNSUPPORTED_JDK_VERSION_EXCEPTION)
+  ) = message.contains(UNSUPPORTED_JDK_VERSION_EXCEPTION)
 
   private fun getJavaVersion(issueData: GradleIssueData, projectPath: Path, gradleVersion: GradleVersion): JavaVersion? {
     // Projects using Daemon JVM criteria with a compatible Gradle version will ignore javaHome defined on BuildEnvironment

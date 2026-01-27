@@ -65,6 +65,39 @@ class IncompatibleGradleJvmAndGradleIssueCheckerTest : AbstractIssueCheckerInteg
   }
 
   @Test
+  fun `test Given old project using an incompatible newer JDK When sync fails with multiple exceptions Then those are consumed and expected build output exception is thrown`() {
+    val preparedProject =
+      projectRule.prepareTestProject(
+        testProject = AndroidCoreTestProject.SIMPLE_APPLICATION,
+        agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_73,
+      )
+
+    runSyncAndCheckBuildIssueFailure(
+      preparedProject = preparedProject,
+      overrideGradleJdkPath = File(JdkConstants.JDK_21_PATH),
+      verifyBuildIssue = { _, buildIssue ->
+        expect.that(buildIssue.title).contains("Incompatible Gradle JVM version")
+        expect
+          .that(buildIssue.description)
+          .contains(
+            "The project's Gradle version 7.4 is incompatible with the Gradle JVM version ${JdkConstants.JDK_21_VERSION} currently " +
+              "selected to run Gradle build. Gradle 7.4 supports Java versions between 1.8 and 17. Please update the selected JVM " +
+              "to a compatible version."
+          )
+
+        expect
+          .that(buildIssue.quickFixes.map { it::class.java })
+          .isEqualTo(
+            listOf(UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix::class.java, SelectJdkFromFileSystemQuickFix::class.java)
+          )
+      },
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP,
+      expectedFailureDetailsString = null,
+      expectedPhasesReported = null,
+    )
+  }
+
+  @Test
   fun `test Given project using an incompatible Daemon JVM criteria When sync Then expected build output exception is thrown`() {
     val preparedProject =
       projectRule.prepareTestProject(
