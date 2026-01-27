@@ -50,6 +50,7 @@ import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.WriteIntentReadAction
 import com.intellij.openapi.client.ClientSystemInfo
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.text.StringUtil
@@ -290,11 +291,13 @@ class ResourceExplorerListView(
       if (!(e.clickCount == 2 && e.button == MouseEvent.BUTTON1)) {
         return
       }
-      val assetListView = e.source as AssetListView
-      val index = assetListView.locationToIndex(e.point)
-      if (index >= 0) {
-        val designAssetSet = assetListView.model.getElementAt(index)
-        doSelectAssetAction(designAssetSet)
+      WriteIntentReadAction.run {
+        val assetListView = e.source as AssetListView
+        val index = assetListView.locationToIndex(e.point)
+        if (index >= 0) {
+          val designAssetSet = assetListView.model.getElementAt(index)
+          doSelectAssetAction(designAssetSet)
+        }
       }
     }
   }
