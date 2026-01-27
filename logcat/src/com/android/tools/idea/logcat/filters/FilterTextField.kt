@@ -47,7 +47,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.WriteIntentReadAction
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.ex.EditorEx
@@ -215,7 +215,7 @@ internal class FilterTextField(
       addMouseListener(
         object : MouseAdapter() {
           override fun mouseClicked(e: MouseEvent) {
-            WriteIntentReadAction.run { showPopup() }
+            @Suppress("UnstableApiUsage") WriteIntentReadAction.run { showPopup() }
           }
         }
       )
@@ -246,7 +246,7 @@ internal class FilterTextField(
           }
 
           override fun focusLost(e: FocusEvent?) {
-            WriteIntentReadAction.run { addToHistory() }
+            @Suppress("UnstableApiUsage") WriteIntentReadAction.run { addToHistory() }
           }
         }
       )
@@ -321,7 +321,7 @@ internal class FilterTextField(
       return
     }
     filterHistory.add(filterParser, text, isFavorite)
-    runReadAction {
+    runReadActionBlocking {
       LogcatUsageTracker.log(
         LogcatUsageEvent.newBuilder()
           .setType(FILTER_ADDED_TO_HISTORY)
@@ -351,6 +351,7 @@ internal class FilterTextField(
           object : KeyAdapter() {
             override fun keyPressed(e: KeyEvent) {
               if (e.keyCode == KeyEvent.VK_ENTER) {
+                @Suppress("UnstableApiUsage")
                 WriteIntentReadAction.run {
                   e.consume()
                   addToHistory()
