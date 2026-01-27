@@ -346,9 +346,7 @@ class ComposeLayoutInspectorClient(
         }
 
       // Set force = true, to be more aggressive about connecting the layout inspector if an old
-      // version was
-      // left running for some reason. This is a better experience than silently falling back to a
-      // legacy client.
+      // version was left running for some reason.
       val params =
         LaunchParameters(
           process,

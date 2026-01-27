@@ -96,8 +96,9 @@ interface SnapshotLoader {
       }
       return when (options.version) {
         ProtocolVersion.Version1,
-        ProtocolVersion.Version3 -> LegacySnapshotLoader()
-        ProtocolVersion.Version2 -> null // Seems like version 2 was never implemented?
+        ProtocolVersion.Version2,
+        // We don't support versions older than 4.
+        ProtocolVersion.Version3 -> null
         ProtocolVersion.Version4 -> AppInspectionSnapshotLoader()
       }
     }

@@ -38,8 +38,8 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.ClassUtil
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
-import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.Icon
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Utility for looking up resources in a project.
@@ -68,7 +68,7 @@ class ResourceLookup(private val project: Project) {
   /**
    * The fontScale currently used on the device or `null` if unknown.
    *
-   * This is unknown for the legacy client and older saved snapshots.
+   * This is unknown for older saved snapshots.
    */
   var fontScale: Float? = null
     @VisibleForTesting set
@@ -95,7 +95,7 @@ class ResourceLookup(private val project: Project) {
     this.displays = displays
   }
 
-  /** Update the configuration after a legacy reload, or snapshot load. */
+  /** Update the configuration after a snapshot load. */
   fun updateConfiguration(deviceDpi: Int?, deviceFontScale: Float? = null) {
     dpi = deviceDpi?.takeIf { it > 0 }
     fontScale = deviceFontScale?.takeIf { it > 0f }

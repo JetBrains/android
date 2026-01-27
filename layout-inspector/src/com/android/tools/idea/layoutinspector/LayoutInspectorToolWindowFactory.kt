@@ -136,7 +136,6 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
       .subscribe(
         ToolWindowManagerListener.TOPIC,
         LayoutInspectorToolWindowManagerListener(
-          project,
           toolWindow,
           layoutInspector,
           layoutInspector.launcher!!,
@@ -324,48 +323,50 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
   }
 }
 
-/** Listen to state changes for the create layout inspector tool window. */
-class LayoutInspectorToolWindowManagerListener
+/** Listen to state changes for the layout inspector tool window. */
 @VisibleForTesting
-constructor(
-  private val project: Project,
+class LayoutInspectorToolWindowManagerListener(
   private val clientLauncher: InspectorClientLauncher,
   private val stopInspectors: () -> Unit = {},
   private var wasWindowVisible: Boolean = false,
 ) : ToolWindowManagerListener {
 
   internal constructor(
-    project: Project,
     toolWindow: ToolWindow,
     layoutInspector: LayoutInspector,
     clientLauncher: InspectorClientLauncher,
-  ) : this(project, clientLauncher, { layoutInspector.stopInspector() }, toolWindow.isVisible)
+  ) : this(clientLauncher, { layoutInspector.stopInspector() }, toolWindow.isVisible)
 
   override fun stateChanged(toolWindowManager: ToolWindowManager) {
     val window = toolWindowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID) ?: return
     val isWindowVisible = window.isVisible // Layout Inspector tool window is expanded.
     val windowVisibilityChanged = isWindowVisible != wasWindowVisible
     wasWindowVisible = isWindowVisible
-    if (windowVisibilityChanged) {
-      if (isWindowVisible) {
-        LayoutInspectorMetrics.logEvent(DynamicLayoutInspectorEventType.OPEN)
-      } else if (clientLauncher.activeClient.isConnected) {
-        toolWindowManager.notifyByBalloon(
-          LAYOUT_INSPECTOR_TOOL_WINDOW_ID,
-          MessageType.INFO,
-          """
-          <b>Layout Inspection</b> is running in the background.<br>
-          You can either <a href="stop">stop</a> it, or leave it running and resume your session later.
-          """
-            .trimIndent(),
-          null,
-        ) { hyperlinkEvent ->
-          if (hyperlinkEvent.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-            stopInspectors()
-          }
+
+    if (!windowVisibilityChanged) {
+      return
+    }
+
+    // Prevent inspector from connecting if window is not visible
+    clientLauncher.enabled = isWindowVisible
+
+    if (isWindowVisible) {
+      LayoutInspectorMetrics.logEvent(DynamicLayoutInspectorEventType.OPEN)
+    } else if (clientLauncher.activeClient.isConnected) {
+      toolWindowManager.notifyByBalloon(
+        LAYOUT_INSPECTOR_TOOL_WINDOW_ID,
+        MessageType.INFO,
+        """
+        <b>Layout Inspection</b> is running in the background.<br>
+        You can either <a href="stop">stop</a> it, or leave it running and resume your session later.
+        """
+          .trimIndent(),
+        null,
+      ) { hyperlinkEvent ->
+        if (hyperlinkEvent.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+          stopInspectors()
         }
       }
-      clientLauncher.enabled = isWindowVisible
     }
   }
 }
