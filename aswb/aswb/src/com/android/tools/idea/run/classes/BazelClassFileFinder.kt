@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.tokens
+package com.android.tools.idea.run.classes
 
 import com.android.tools.idea.projectsystem.ClassContent
-import com.android.tools.idea.projectsystem.ClassContent.Companion.fromJarEntryContent
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.getPathFromFqcn
 import com.intellij.openapi.diagnostic.Logger
 import java.io.File
 import java.io.IOException
 import java.nio.file.Path
-import java.util.function.Function
-import java.util.jar.JarEntry
 import java.util.jar.JarFile
-import java.util.stream.Collectors
-import java.util.stream.Stream
 import java.util.zip.ZipEntry
 import kotlin.streams.asSequence
 
@@ -72,7 +67,10 @@ internal class BazelClassFileFinder(jars: Collection<Path>) : ClassFileFinder {
     fun getContent(c: String?): ClassContent? {
       try {
         JarFile(this.jar).use { jar ->
-          return fromJarEntryContent(this.jar, jar.getInputStream(jar.getEntry(c)).readAllBytes())
+          return ClassContent.Companion.fromJarEntryContent(
+            this.jar,
+            jar.getInputStream(jar.getEntry(c)).readAllBytes()
+          )
         }
       } catch (exception: IOException) {
         Logger.getInstance(BazelClassFileFinder::class.java).warn(exception)

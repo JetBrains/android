@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.rendering.tokens;
+package com.android.tools.idea.run.classes;
 
 import static com.google.idea.testing.runfiles.Runfiles.runfilesPath;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import com.android.tools.idea.run.classes.BazelClassFileFinder;
 import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
