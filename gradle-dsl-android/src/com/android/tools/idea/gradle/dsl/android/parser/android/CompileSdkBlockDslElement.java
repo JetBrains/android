@@ -62,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
  * }
  * ```
  */
-public class CompileSdkBlockDslElement extends GradleDslBlockElement implements GradleDslNamedDomainContainer {
+public class CompileSdkBlockDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<CompileSdkBlockDslElement> COMPILE_SDK =
     new PropertiesElementDescription<>("compileSdk",
                                        CompileSdkBlockDslElement.class,
@@ -87,10 +87,5 @@ public class CompileSdkBlockDslElement extends GradleDslBlockElement implements 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-  }
-
-  @Override
-  public boolean implicitlyExists(@NotNull String name) {
-    return false;
   }
 }
