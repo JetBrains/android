@@ -46,6 +46,9 @@ import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.WriteIntentReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.ex.EditorEx
@@ -218,7 +221,9 @@ internal class FilterTextField(
       addMouseListener(
         object : MouseAdapter() {
           override fun mouseClicked(e: MouseEvent) {
-            showPopup()
+            WriteIntentReadAction.run {
+              showPopup()
+            }
           }
         }
       )
@@ -252,7 +257,9 @@ internal class FilterTextField(
           }
 
           override fun focusLost(e: FocusEvent?) {
-            addToHistory()
+            WriteIntentReadAction.run {
+              addToHistory()
+            }
           }
         }
       )
@@ -328,13 +335,15 @@ internal class FilterTextField(
       return
     }
     filterHistory.add(filterParser, text, isFavorite)
-    LogcatUsageTracker.log(
-      LogcatUsageEvent.newBuilder()
-        .setType(FILTER_ADDED_TO_HISTORY)
-        .setLogcatFilter(
-          filterParser.getUsageTrackingEvent(text, matchCase)?.setIsFavorite(isFavorite)
-        )
-    )
+    runReadAction {
+      LogcatUsageTracker.log(
+        LogcatUsageEvent.newBuilder()
+          .setType(FILTER_ADDED_TO_HISTORY)
+          .setLogcatFilter(
+            filterParser.getUsageTrackingEvent(text, matchCase)?.setIsFavorite(isFavorite)
+          )
+      )
+    }
   }
 
   private inner class FilterTextFieldBorder : DarculaTextBorder() {
@@ -359,8 +368,10 @@ internal class FilterTextField(
           object : KeyAdapter() {
             override fun keyPressed(e: KeyEvent) {
               if (e.keyCode == KeyEvent.VK_ENTER) {
-                e.consume()
-                addToHistory()
+                WriteIntentReadAction.run {
+                  e.consume()
+                  addToHistory()
+                }
               }
             }
           }
