@@ -159,12 +159,9 @@ public final class GradleApkProvider implements ApkProvider {
       return Collections.emptyList();
     }
 
-    boolean deviceSupportsPrivacySandbox = deviceSupportsPrivacySandbox(device);
-
     return getApks(
       device.getAbis(),
       device.getVersion(),
-      deviceSupportsPrivacySandbox,
       androidModel,
       androidModel.getSelectedVariant(), getOutputKind(
         myFacet.getModule(),
@@ -173,15 +170,10 @@ public final class GradleApkProvider implements ApkProvider {
         device.getVersion()));
   }
 
-  private static boolean deviceSupportsPrivacySandbox(@NotNull IDevice device) {
-    return device.getVersion().isAtLeast(34) && device.services().containsKey("sdk_sandbox");
-  }
-
   @NotNull
   public List<ApkInfo> getApks(
     @NotNull List<String> deviceAbis,
     @NotNull AndroidVersion deviceVersion,
-    boolean deviceSupportsPrivacySandbox,
     @NotNull GradleAndroidModel androidModel,
     @NotNull IdeVariantCore variant,
     @NotNull OutputKind outputKind)
@@ -216,33 +208,6 @@ public final class GradleApkProvider implements ApkProvider {
           );
 
           apkFileList.addAll(collectDependentFeaturesApks(androidModel, deviceAbis, deviceVersion));
-          if (variant.getMainArtifact().getPrivacySandboxSdkInfo() != null) {
-            if (deviceSupportsPrivacySandbox) {
-              // Each Privacy Sandbox SDK must be installed independently.
-              apkList.addAll(
-                getApksForPrivacySandboxSdks(
-                  variant.getName(),
-                  variant.getMainArtifact()
-                    .getPrivacySandboxSdkInfo()
-                    .getOutputListingFile(),
-                  variant.getMainArtifact().getAbiFilters(),
-                  deviceAbis));
-              // Add the additional split containing the use-sdk-library manifest element
-              apkFileList.addAll(getSplitApksForPrivacySandbox(androidModel.getModuleName(),
-                                                               variant.getMainArtifact().getPrivacySandboxSdkInfo()
-                                                                 .getAdditionalApkSplitFile()));
-            }
-            else {
-              // Legacy Privacy Sandbox APKs need to be installed together and with
-              // the base APK.
-              apkFileList.addAll(
-                getSplitApksForPrivacySandbox(
-                  androidModel.getModuleName(),
-                  variant.getMainArtifact()
-                    .getPrivacySandboxSdkInfo()
-                    .getOutputListingLegacyFile()));
-            }
-          }
 
           @Nullable GenericBuiltArtifacts builtArtifacts = getGenericBuiltArtifacts(variant.getMainArtifact(), myFacet);
           apkList.add(
@@ -264,17 +229,6 @@ public final class GradleApkProvider implements ApkProvider {
             else {
               // Privacy sandbox SDKs should be installed before the app itself.
               IdeVariantCore baseVariant = baseAndroidModel.getSelectedVariant();
-              if (deviceSupportsPrivacySandbox && baseVariant.getMainArtifact().getPrivacySandboxSdkInfo() != null) {
-                apkList.addAll(
-                  getApksForPrivacySandboxSdks(
-                    baseVariant.getName(),
-                    baseVariant
-                      .getMainArtifact()
-                      .getPrivacySandboxSdkInfo()
-                      .getOutputListingFile(),
-                    baseVariant.getMainArtifact().getAbiFilters(),
-                    deviceAbis));
-              }
 
               ApkInfo apkInfo = collectAppBundleOutput(
                 baseAndroidModel,
@@ -490,47 +444,6 @@ public final class GradleApkProvider implements ApkProvider {
       throw new ApkProvisionException(String.format("Error loading build artifacts from: %s", outputFile));
     }
     return findBestOutput(variantName, artifact.getAbiFilters(), deviceAbis, builtArtifacts);
-  }
-
-  @NotNull
-  List<ApkInfo> getApksForPrivacySandboxSdks(
-    @NotNull String variantName,
-    @NotNull File outputListingFile,
-    @NotNull Set<String> abiFilters,
-    @NotNull List<String> deviceAbis)
-    throws ApkProvisionException {
-
-    List<GenericBuiltArtifacts> builtArtifacts =
-      GenericBuiltArtifactsLoader.loadListFromFile(
-        outputListingFile, new LogWrapper(getLogger()));
-
-    List<ApkInfo> list = new ArrayList<>();
-    for (GenericBuiltArtifacts builtArtifact : builtArtifacts) {
-      ApkInfo unit =
-        new ApkInfo(findBestOutput(variantName, abiFilters, deviceAbis, builtArtifact), builtArtifact.getApplicationId(), ImmutableSet.of(),
-                    true);
-      list.add(unit);
-    }
-    return list;
-  }
-
-  @NotNull
-  static List<ApkFileUnit> getSplitApksForPrivacySandbox(
-    @NotNull String moduleName,
-    @NotNull File builtArtifactMetadataFile
-  ) {
-    List<GenericBuiltArtifacts> builtArtifacts =
-      GenericBuiltArtifactsLoader.loadListFromFile(
-        builtArtifactMetadataFile, new LogWrapper(getLogger()));
-
-    List<ApkFileUnit> list = new ArrayList<>();
-    for (GenericBuiltArtifacts builtArtifact : builtArtifacts) {
-      for (GenericBuiltArtifact element : builtArtifact.getElements()) {
-        list.add(
-          new ApkFileUnit(moduleName, new File(element.getOutputFile())));
-      }
-    }
-    return list;
   }
 
   @NotNull

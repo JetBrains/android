@@ -45,7 +45,6 @@ data class IdeAndroidArtifactCoreImpl(
   override val abiFilters: Set<String>,
   override val buildInformation: IdeBuildTasksAndOutputInformationImpl,
   override val codeShrinker: CodeShrinker?,
-  override val privacySandboxSdkInfo: IdePrivacySandboxSdkInfoImpl?,
   override val desugaredMethodsFiles: List<FileImpl>,
   override val generatedClassPaths: Map<String, FileImpl>,
   override val bytecodeTransforms: List<IdeBytecodeTransformationImpl>?,
@@ -75,7 +74,6 @@ data class IdeAndroidArtifactCoreImpl(
     abiFilters: Set<String>,
     buildInformation: IdeBuildTasksAndOutputInformationImpl,
     codeShrinker: CodeShrinker?,
-    privacySandboxSdkInfo: IdePrivacySandboxSdkInfoImpl?,
     desugaredMethodsFiles: List<File>,
     generatedClassPaths: Map<String, File>,
     bytecodeTransforms: List<IdeBytecodeTransformationImpl>?,
@@ -105,7 +103,6 @@ data class IdeAndroidArtifactCoreImpl(
     abiFilters,
     buildInformation,
     codeShrinker,
-    privacySandboxSdkInfo,
     desugaredMethodsFiles.toImpl(),
     generatedClassPaths.toImpl(),
     bytecodeTransforms,
@@ -139,7 +136,6 @@ class IdeAndroidArtifactImpl(private val core: IdeAndroidArtifactCoreImpl, resol
   override val abiFilters: Set<String> = core.abiFilters
   override val buildInformation: IdeBuildTasksAndOutputInformationImpl = core.buildInformation
   override val codeShrinker: CodeShrinker? = core.codeShrinker
-  override val privacySandboxSdkInfo: IdePrivacySandboxSdkInfoImpl? = core.privacySandboxSdkInfo
   override val compileClasspathCore: IdeDependenciesCoreImpl = core.compileClasspathCore
   override val runtimeClasspathCore: IdeDependenciesCoreImpl = core.runtimeClasspathCore
   override val desugaredMethodsFiles: List<FileImpl> = core.desugaredMethodsFiles

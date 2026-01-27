@@ -139,41 +139,17 @@ class GradleTaskFinderWorker private constructor(private val project: Project, p
     return when {
       moduleToProcess.androidModel != null -> {
         when (moduleToProcess.buildMode) {
-          BuildMode.REBUILD ->
-            moduleToProcess
-              .getTasksBy {
-                listOfNotNull(
-                  it.assembleTaskName,
-                  it.getPrivacySandboxSdkTask(),
-                  it.getAdditionalApkSplitTask(),
-                  it.getPrivacySandboxSdkLegacyTask(),
-                )
-              }
-              .copy(cleanTasks = setOf("clean"))
+          BuildMode.REBUILD -> moduleToProcess.getTasksBy { listOfNotNull(it.assembleTaskName) }.copy(cleanTasks = setOf("clean"))
           // Note, this should eventually include ":clean" tasks, but it is dangerous right now as it might run in a separate but second
           // invocation.
           // TODO(b/235567998): Move all "clean" processing here.
           BuildMode.CLEAN -> moduleToProcess.getTasksBy(isClean = true) { it.ideSetupTaskNames }
-          BuildMode.ASSEMBLE ->
-            moduleToProcess.getTasksBy {
-              listOfNotNull(
-                it.assembleTaskName,
-                it.getPrivacySandboxSdkTask(),
-                it.getAdditionalApkSplitTask(),
-                it.getPrivacySandboxSdkLegacyTask(),
-              )
-            }
+          BuildMode.ASSEMBLE -> moduleToProcess.getTasksBy { listOfNotNull(it.assembleTaskName) }
           BuildMode.COMPILE_JAVA -> moduleToProcess.getTaskBy { it.compileTaskName }
 
           BuildMode.SOURCE_GEN -> moduleToProcess.getTasksBy { it.ideSetupTaskNames }
           BuildMode.BUNDLE -> {
-            moduleToProcess.getTasksBy {
-              listOfNotNull(
-                (it as? IdeAndroidArtifactCore)?.buildInformation?.bundleTaskName,
-                it.getPrivacySandboxSdkTask(),
-                it.getPrivacySandboxSdkLegacyTask(),
-              ) // Don't need getAdditionalApkSplitTask for bundle deployment
-            }
+            moduleToProcess.getTasksBy { listOfNotNull((it as? IdeAndroidArtifactCore)?.buildInformation?.bundleTaskName) }
           }
           BuildMode.APK_FROM_BUNDLE -> {
             ModuleTasks(
@@ -181,13 +157,7 @@ class GradleTaskFinderWorker private constructor(private val project: Project, p
               cleanTasks = emptySet(),
               tasks =
                 moduleToProcess
-                  .getTasksBy {
-                    listOfNotNull(
-                      (it as? IdeAndroidArtifactCore)?.buildInformation?.apkFromBundleTaskName,
-                      it.getPrivacySandboxSdkTask(),
-                      it.getPrivacySandboxSdkLegacyTask(),
-                    ) // Don't need getAdditionalApkSplitTask for bundle deployment
-                  }
+                  .getTasksBy { listOfNotNull((it as? IdeAndroidArtifactCore)?.buildInformation?.apkFromBundleTaskName) }
                   .tasks +
                   if (
                     moduleToProcess.androidModel.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE &&
@@ -247,13 +217,6 @@ class GradleTaskFinderWorker private constructor(private val project: Project, p
       else -> null
     }
   }
-
-  private fun IdeBaseArtifactCore.getPrivacySandboxSdkTask() = (this as? IdeAndroidArtifactCore)?.privacySandboxSdkInfo?.task
-
-  private fun IdeBaseArtifactCore.getAdditionalApkSplitTask() =
-    (this as? IdeAndroidArtifactCore)?.privacySandboxSdkInfo?.additionalApkSplitTask
-
-  private fun IdeBaseArtifactCore.getPrivacySandboxSdkLegacyTask() = (this as? IdeAndroidArtifactCore)?.privacySandboxSdkInfo?.taskLegacy
 
   private fun GradleProjectPath.toModuleAndMode(buildMode: BuildMode, expandModule: Boolean = false): ModuleAndMode? =
     resolveIn(project)?.let { ModuleAndMode(it, buildMode = buildMode, expandModule = expandModule) }

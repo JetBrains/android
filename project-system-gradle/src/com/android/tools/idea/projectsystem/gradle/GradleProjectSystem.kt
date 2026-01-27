@@ -194,7 +194,6 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
       .getApks(
         device.abis,
         AndroidVersion(30),
-        false,
         androidModel,
         androidModel.selectedVariant,
         when (assembleResult.buildMode) {

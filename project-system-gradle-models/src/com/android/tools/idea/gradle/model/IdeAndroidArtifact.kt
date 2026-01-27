@@ -65,13 +65,6 @@ interface IdeAndroidArtifactCore : Serializable, IdeBaseArtifactCore {
   /** Returns the code shrinker used by this artifact or null if no shrinker is used to build this artifact. */
   val codeShrinker: CodeShrinker?
 
-  /**
-   * Details about privacy sandbox SDK consumption.
-   *
-   * Null if the feature is not enabled, but may be present even if there are no privacy sandbox SDKs that need to be deployed.
-   */
-  val privacySandboxSdkInfo: IdePrivacySandboxSdkInfo?
-
   val compileClasspathCore: IdeDependenciesCore
   val runtimeClasspathCore: IdeDependenciesCore
 

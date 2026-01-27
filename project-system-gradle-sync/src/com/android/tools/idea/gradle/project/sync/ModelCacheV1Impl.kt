@@ -833,7 +833,6 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         isTestArtifact =
           (artifact.name == AndroidProject.ARTIFACT_ANDROID_TEST) ||
             (artifact.name == AndroidProject.ARTIFACT_MAIN && projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST),
-        privacySandboxSdkInfo = null,
         desugaredMethodsFiles = emptyList(),
         generatedClassPaths = emptyMap(),
         bytecodeTransforms = null,
