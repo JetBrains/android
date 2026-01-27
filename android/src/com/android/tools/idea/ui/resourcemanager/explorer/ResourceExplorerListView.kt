@@ -256,7 +256,8 @@ class ResourceExplorerListView(
   /**
    * Mouse listener to invoke the popup menu.
    *
-   * This custom implementation is needed to ensure that the clicked element is selected before invoking the menu.
+   * This custom implementation is needed to ensure that the clicked element is selected
+   * before invoking the menu.
    */
   private val popupHandler =
     object : PopupHandler() {
@@ -288,7 +289,8 @@ class ResourceExplorerListView(
     }
 
   /**
-   * A mouse listener that opens a [ResourceDetailView] when double clicking on an item from the list.
+   * A mouse listener that opens a [ResourceDetailView] when double clicking
+   * on an item from the list.
    *
    * @see doSelectAssetAction
    */
