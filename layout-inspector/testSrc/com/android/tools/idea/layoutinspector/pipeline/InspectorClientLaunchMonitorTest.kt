@@ -176,7 +176,7 @@ class InspectorClientLaunchMonitorTest {
     enableEmbeddedLayoutInspector = false
     val appInspectionClient1 = setupSimpleClient()
     whenever(appInspectionClient1.clientType).thenReturn(ClientType.APP_INSPECTION_CLIENT)
-    slowAttachMessage(appInspectionClient1, "Dump Views")
+    slowAttachMessage(appInspectionClient1, "Disconnect")
 
     enableEmbeddedLayoutInspector = true
     val appInspectionClient2 = setupSimpleClient()

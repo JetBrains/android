@@ -24,7 +24,6 @@ import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.pipeline.debugger.DebuggerDetection
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.util.ListenerCollection
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
@@ -108,7 +107,7 @@ class InspectorClientLaunchMonitor(
             if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
               // Do not offer disconnect action in embedded Layout Inspector. Since disconnecting is
               // not possible, we would have to un-toggle [ToggleLayoutInspectorAction].
-              actions.add(createDisconnectAction(attemptDumpViews = false))
+              actions.add(createDisconnectAction())
             }
             notificationModel.addNotification(
               DEBUGGER_CHECK_MESSAGE_KEY,
@@ -137,10 +136,7 @@ class InspectorClientLaunchMonitor(
       return
     }
     val continueWaiting = createContinueWaitingAction()
-    // Only offer option to dump views in standalone Layout Inspector
-    // The embedded LI is meant to work only with live app inspection client.
-    val attemptDumpViews = !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-    val disconnect = createDisconnectAction(attemptDumpViews = attemptDumpViews)
+    val disconnect = createDisconnectAction()
     notificationModel.addNotification(
       CONNECT_TIMEOUT_MESSAGE_KEY,
       LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY),
@@ -159,11 +155,8 @@ class InspectorClientLaunchMonitor(
       }
     }
 
-  private fun createDisconnectAction(attemptDumpViews: Boolean): StatusNotificationAction {
-    val disconnectText =
-      if (attemptDumpViews && client?.clientType == ClientType.APP_INSPECTION_CLIENT) "Dump Views"
-      else "Disconnect"
-    return StatusNotificationAction(disconnectText) {
+  private fun createDisconnectAction(): StatusNotificationAction {
+    return StatusNotificationAction("Disconnect") {
       notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
       Logger.getInstance(InspectorClientLaunchMonitor::class.java)
         .warn(
