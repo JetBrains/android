@@ -40,6 +40,7 @@ import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableView.TableViewType.EVALUATOR
 import com.android.tools.idea.sqlite.ui.tableView.TableView.TableViewType.TABLE
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
+import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl.CopyToClipboardAction
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl.RemoveRowsAction
 import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
 import com.android.tools.idea.sqlite.utils.SqliteTestUtil
@@ -53,6 +54,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.TestActionEvent
@@ -63,6 +65,7 @@ import com.intellij.ui.table.JBTable
 import com.intellij.util.concurrency.EdtExecutorService
 import java.awt.Dimension
 import java.awt.Point
+import java.awt.datatransfer.DataFlavor.stringFlavor
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JProgressBar
@@ -1254,26 +1257,68 @@ class TableViewImplTest : BasePlatformTestCase() {
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isFalse()
   }
+
+  fun testCopyToClipboardAction_singleRow() {
+    val copyPasteManager = CopyPasteManager.getInstance()
+    view.prepare(
+      TableData(
+        listOf("col1", "col2"),
+        listOf(listOf("val-1-1", "val-1-2"), listOf("val-2-1", "val-2-2")),
+      )
+    )
+    val table = view.component.getDescendant<JTable>()
+    table.selectionModel.setSelectionInterval(1, 1)
+    table.addColumnSelectionInterval(1, 1)
+
+    CopyToClipboardAction(table).actionPerformed(TestActionEvent.createTestEvent())
+
+    assertThat(copyPasteManager.getContents<String>(stringFlavor)).isEqualTo("val-2-1")
+  }
+
+  fun testCopyToClipboardAction_multipleRows() {
+    val copyPasteManager = CopyPasteManager.getInstance()
+    view.prepare(
+      TableData(
+        listOf("col1", "col2"),
+        listOf(
+          listOf("val-1-1", "val-1-2"),
+          listOf("val-2-1", "val-2-2"),
+          listOf("val-3-1", "val-3-2"),
+          ),
+      )
+    )
+    val table = view.component.getDescendant<JTable>()
+    table.selectionModel.addSelectionInterval(0, 0)
+    table.selectionModel.addSelectionInterval(2, 2)
+    table.addColumnSelectionInterval(2, 2)
+
+    CopyToClipboardAction(table).actionPerformed(TestActionEvent.createTestEvent())
+
+    assertThat(copyPasteManager.getContents<String>(stringFlavor)).isEqualTo("val-1-2,val-3-2")
+  }
 }
 
-private fun TableViewImpl.prepare() {
-  val col1 = ResultSetSqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
-  val col2 = ResultSetSqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
-  showTableColumns(listOf(col1, col2).toViewColumns())
-  val rows =
-    listOf(
-      SqliteRow(
-        listOf(
-          SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
-          SqliteColumnValue("col2", SqliteValue.StringValue("val2")),
-        )
-      ),
-      SqliteRow(
-        listOf(
-          SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
-          SqliteColumnValue("col2", SqliteValue.StringValue("val4")),
-        )
-      ),
+private data class TableData(val columnNames: List<String>, val values: List<List<String>>)
+
+private fun TableViewImpl.prepare(
+  data: TableData =
+    TableData(
+      listOf("col1", "col2"),
+      listOf(listOf("val-1-1", "val-1-2"), listOf("val-2-1", "val-2-2")),
     )
+) {
+  assert(data.values.all { it.size == data.columnNames.size })
+
+  val columns =
+    data.columnNames.map { ResultSetSqliteColumn(it, SqliteAffinity.TEXT, false, false) }
+  showTableColumns(columns.toViewColumns())
+  val rows =
+    data.values.map {
+      SqliteRow(
+        it.zip(data.columnNames) { value, columnName ->
+          SqliteColumnValue(columnName, SqliteValue.StringValue(value))
+        }
+      )
+    }
   updateRows(rows.map { RowDiffOperation.AddRow(it) })
 }
