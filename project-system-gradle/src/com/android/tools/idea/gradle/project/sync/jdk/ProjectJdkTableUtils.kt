@@ -20,6 +20,7 @@ import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.util.containers.orNull
+import kotlin.io.path.Path
 
 /**
  * Collection of utils for the Project JDK table storing the different JDKs under studio configuration directory on options/jdk.table.xml
@@ -41,7 +42,7 @@ object ProjectJdkTableUtils {
   }
 
   /**
-   * Finds a JDK in the Project JDK table with the given major version.
+   * Finds a valid JDK in the Project JDK table with the given major version.
    *
    * @param version The major version of the JDK to find (e.g., 11, 17).
    * @return The [Sdk] if found, otherwise null.
@@ -51,6 +52,7 @@ object ProjectJdkTableUtils {
       .getSdksOfType(JavaSdk.getInstance())
       .stream()
       .filter { JavaSdk.getInstance().getVersion(it)?.maxLanguageLevel?.feature() == version }
+      .filter { sdk -> sdk.homePath != null && IdeSdks.isValidJdkPath(Path(sdk.homePath!!)) }
       .findFirst()
       .orNull()
 }

@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.jdk
 
+import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.testing.JdkConstants
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.testFramework.IdeaTestUtil
 import com.intellij.testFramework.LightPlatformTestCase
+import org.jetbrains.kotlin.tools.projectWizard.core.asPath
 
 class ProjectJdkTableUtilsTest : LightPlatformTestCase() {
 
@@ -30,18 +33,18 @@ class ProjectJdkTableUtilsTest : LightPlatformTestCase() {
     super.tearDown()
   }
 
-  fun `test Given ProjectTableJdk containing multiple entries When finding an existing one Then expected entry is returned`() {
-    val jdk9 = IdeaTestUtil.getMockJdk9()
+  fun `test Given ProjectTableJdk containing multiple entries When finding an existing and valid one Then expected entry is returned`() {
+    val jdk21 = IdeSdks.getInstance().getOrCreateJdk(JdkConstants.JDK_21_PATH.asPath())!!
     runWriteActionAndWait {
-      ProjectJdkTable.getInstance().addJdk(jdk9)
+      ProjectJdkTable.getInstance().addJdk(IdeaTestUtil.getMockJdk9())
       ProjectJdkTable.getInstance().addJdk(IdeaTestUtil.getMockJdk17())
     }
 
-    ProjectJdkTableUtils.findProjectTableJdkWithVersion(9).also {
+    ProjectJdkTableUtils.findProjectTableJdkWithVersion(21).also {
       assertNotNull(it)
-      assertEquals(jdk9.name, it?.name)
-      assertEquals(jdk9.homePath, it?.homePath)
-      assertEquals(jdk9.versionString, it?.versionString)
+      assertEquals(jdk21.name, it?.name)
+      assertEquals(jdk21.homePath, it?.homePath)
+      assertEquals(jdk21.versionString, it?.versionString)
     }
   }
 
@@ -52,5 +55,11 @@ class ProjectJdkTableUtilsTest : LightPlatformTestCase() {
     }
 
     ProjectJdkTableUtils.findProjectTableJdkWithVersion(11).also { assertNull(it) }
+  }
+
+  fun `test Given ProjectTableJdk containing invalid entry When fetching it Then null is returned since is invalid JDK`() {
+    runWriteActionAndWait { ProjectJdkTable.getInstance().addJdk(IdeaTestUtil.getMockJdk9()) }
+
+    ProjectJdkTableUtils.findProjectTableJdkWithVersion(9).also { assertNull(it) }
   }
 }
