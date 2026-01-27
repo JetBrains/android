@@ -15,15 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.jdk
 
+import com.android.tools.idea.gradle.project.sync.extensions.toBridgeIndicator
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.impl.jdkDownloader.JdkDownloadUtil
 import com.intellij.openapi.projectRoots.impl.jdkDownloader.JdkItem
+import com.intellij.openapi.roots.ui.configuration.projectRoot.SdkDownloadTracker
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.use
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
+import com.intellij.platform.util.progress.reportRawProgress
 import java.nio.file.Path
+import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.gradle.internal.jvm.inspection.JvmVendor
 import org.jetbrains.android.util.AndroidBundle
@@ -58,10 +67,26 @@ object JdkDownloadUtils {
     val (jdkItem, jdkHome) = pickJdkItemAndPathForVersion(project, version) ?: return null
     val downloadTask = JdkDownloadUtil.createDownloadTask(project, jdkItem, jdkHome) ?: return null
     val sdk = JdkDownloadUtil.createDownloadSdk(ExternalSystemJdkUtil.getJavaSdkType(), downloadTask)
-    if (JdkDownloadUtil.downloadSdk(sdk)) {
-      return sdk
+    val downloadResult =
+      withContext(Dispatchers.EDT) {
+        runWithModalProgressBlocking(project, AndroidBundle.message("android.jdk.downloading.jdk.dialog.title", jdkItem.versionString)) {
+          reportRawProgress { indicator -> downloadSdk(sdk, indicator.toBridgeIndicator()) }
+        }
+      }
+    return if (downloadResult) sdk else null
+  }
+
+  private suspend fun downloadSdk(sdk: Sdk, indicator: ProgressIndicator): Boolean {
+    return Disposer.newDisposable("The JdkDownloader#downloadSdk lifecycle").use { disposable ->
+      val tracker = SdkDownloadTracker.getInstance()
+      tracker.startSdkDownloadIfNeeded(sdk)
+      suspendCancellableCoroutine { continuation ->
+        val registered = tracker.tryRegisterDownloadingListener(sdk, disposable, indicator) { continuation.resume(it) }
+        if (!registered) {
+          continuation.resume(false)
+        }
+      }
     }
-    return null
   }
 
   private suspend fun pickJdkItemAndPathForVersion(project: Project, version: Int): Pair<JdkItem, Path>? =

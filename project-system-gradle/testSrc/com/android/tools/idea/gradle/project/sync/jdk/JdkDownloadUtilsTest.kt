@@ -95,7 +95,7 @@ class JdkDownloadUtilsTest : LightPlatformTestCase() {
               true
             }
             .whenever(this)
-            .tryRegisterDownloadingListener(any(), any(), anyOrNull(), any())
+            .tryRegisterDownloadingListener(any(), any(), any(), any())
         }
       application.replaceService(SdkDownloadTracker::class.java, sdkDownloadTracker, testRootDisposable)
 
