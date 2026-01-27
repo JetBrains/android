@@ -79,8 +79,7 @@ enum class TestProject(
   COMPATIBILITY_TESTS_AS_36_NO_IML(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML, patch = { updateProjectJdk(it) }),
   ANDROID_KOTLIN_MULTIPLATFORM(
     TestProjectToSnapshotPaths.ANDROID_KOTLIN_MULTIPLATFORM,
-    // TODO(b/435350264): Change AGP_LATEST to AGP_8_12 or set up the test project such that it works with AGP_8_2+
-    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST },
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_8_12 },
     patch = { projectRoot ->
       projectRoot.resolve("gradle.properties").replaceContent { content ->
         content.plus("""
