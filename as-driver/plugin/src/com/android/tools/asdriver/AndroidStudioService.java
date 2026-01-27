@@ -15,6 +15,8 @@
  */
 package com.android.tools.asdriver;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.android.tools.asdriver.proto.ASDriver;
 import com.android.tools.asdriver.proto.AndroidStudioGrpc;
 import com.android.tools.idea.bleak.BleakCheck;
@@ -36,7 +38,10 @@ import com.intellij.openapi.actionSystem.ActionUiKind;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.CustomizedDataContext;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataKey;
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
@@ -79,6 +84,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -192,6 +198,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
           errorMessage = "Could not get a DataContext for executeAction.";
           return;
         }
+        dataContext = new ActionDataContext(request.getExtraDataMap(), dataContext);
 
         Boolean runWhenSmart = request.hasRunWhenSmart() && request.getRunWhenSmart();
 
@@ -892,5 +899,15 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
             .setText(text)
             .setMatchMode(ASDriver.ComponentTextMatch.MatchMode.EXACT)
         ).build());
+  }
+
+  static class ActionDataContext extends CustomizedDataContext {
+    private ActionDataContext(Map<String, String> extraData, DataContext parent) {
+      super(parent, (EdtNoGetDataProvider)sink -> {
+        for (String dataId : extraData.keySet()) {
+          sink.set(DataKey.create(dataId), requireNonNullElse(extraData.get(dataId), EXPLICIT_NULL));
+        }
+      }, false);
+    }
   }
 }

@@ -64,6 +64,8 @@ message ExecuteActionRequest {
   optional DataContextSource data_context_source = 3;
 
   optional bool run_when_smart = 4;
+
+  map<string, string> extra_data = 5;
 }
 
 message ExecuteActionResponse {

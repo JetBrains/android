@@ -26,6 +26,7 @@ import com.intellij.openapi.util.SystemInfo;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -154,21 +155,25 @@ public class AndroidStudio extends Ide {
   }
 
   public void executeAction(String action) {
-    executeAction(action, DataContextSource.DEFAULT, false);
+    executeAction(action, DataContextSource.DEFAULT, false, Map.of());
   }
 
   public void executeAction(String action, DataContextSource dataContextSource) {
-    executeAction(action, dataContextSource, false);
+    executeAction(action, dataContextSource, false, Map.of());
   }
 
   public void executeActionWhenSmart(String action) {
-    executeAction(action, DataContextSource.DEFAULT, true);
+    executeAction(action, DataContextSource.DEFAULT, true, Map.of());
   }
 
-  public void executeAction(String action, DataContextSource dataContextSource, Boolean whenSmart) {
+  public void executeAction(String action, DataContextSource dataContextSource, Boolean whenSmart, Map<String,String> extraActionData) {
     ASDriver.ExecuteActionRequest rq =
-      ASDriver.ExecuteActionRequest.newBuilder().setActionId(action).setDataContextSource(dataContextSource.dataContextSource)
-        .setRunWhenSmart(whenSmart).build();
+      ASDriver.ExecuteActionRequest.newBuilder()
+        .setActionId(action)
+        .setDataContextSource(dataContextSource.dataContextSource)
+        .putAllExtraData(extraActionData)
+        .setRunWhenSmart(whenSmart)
+        .build();
     ASDriver.ExecuteActionResponse response;
     response = ide.executeAction(rq);
 
