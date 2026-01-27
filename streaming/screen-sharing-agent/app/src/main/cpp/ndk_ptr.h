@@ -39,19 +39,19 @@ public:
   }
 
   // Replaces the managed object.
-  void Reset(NdkType* ptr = nullptr) {
+  void Reset(NdkType* ptr = nullptr) noexcept {
     if (pointer_ != nullptr && pointer_ != ptr) {
       NdkDelete(pointer_);
     }
     pointer_ = ptr;
   }
 
-  NdkPtr& operator=(NdkType* ptr) {
+  NdkPtr& operator =(NdkType* ptr) {
     Reset(ptr);
     return *this;
   }
 
-  NdkPtr& operator=(NdkPtr&& other) {
+  NdkPtr& operator =(NdkPtr&& other) noexcept {
     Reset(other.pointer_);
     other.pointer_ = nullptr;
     return *this;
@@ -65,26 +65,29 @@ public:
     return pointer_ != nullptr;
   }
 
-  bool IsNull() const {
+  [[nodiscard]] bool IsNull() const {
     return pointer_ == nullptr;
   }
 
-  bool IsNotNull() const {
+  [[nodiscard]] bool IsNotNull() const {
     return pointer_ != nullptr;
   }
 
   operator NdkType*() noexcept { return pointer_; }
   operator const NdkType*() const noexcept { return pointer_; }
+  NdkType* operator ->() noexcept { return pointer_; }
+  const NdkType* operator->() const noexcept { return pointer_; }
 
-  NdkType** operator &() noexcept { return &pointer_; }
-  NdkType* Get() noexcept { return pointer_; }
+  // Safe override because &pointer_ is the same address as &*this.
+  NdkType** operator &() noexcept { return &pointer_; }  // NOLINT(google-runtime-operator)
+  NdkType*& Get() noexcept { return pointer_; }
   const NdkType* Get() const noexcept { return pointer_; }
-
-private:
-  NdkType* pointer_ = nullptr;
 
   NdkPtr(NdkPtr const&) = delete;
   void operator=(NdkPtr const&) = delete;
+
+private:
+  NdkType* pointer_ = nullptr;
 };
 
 }  // namespace screensharing
