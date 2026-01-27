@@ -37,7 +37,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -289,7 +288,6 @@ class SingleComposePreviewElementRendererTest {
   }
 
   /** Checks that key events are correctly dispatched to Compose Preview. */
-  @Ignore("b/463288299")
   @Test
   fun testKeyEvent() {
     val facet = projectRule.androidFacet(":app")
@@ -341,7 +339,7 @@ class SingleComposePreviewElementRendererTest {
         )
       renderTask.triggerKeyEvent(event, time + 1000).get(5, TimeUnit.SECONDS)
 
-      time += 10 * frameNanos
+      time += 60 * frameNanos
       renderTask.render().get(5, TimeUnit.SECONDS)
       renderTask.executeCallbacks(time).get(5, TimeUnit.SECONDS)
 
