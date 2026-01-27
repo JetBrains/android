@@ -16,23 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.adblib.DeviceSelector
-import com.android.fakeadbserver.DeviceState
-import com.android.repository.Revision
-import com.android.repository.api.LocalPackage
-import com.android.repository.impl.meta.RepositoryPackages
-import com.android.repository.impl.meta.TypeDetails
-import com.android.repository.testframework.FakePackage
-import com.android.repository.testframework.FakeRepoManager
 import com.android.resources.Density
-import com.android.sdklib.AndroidApiLevel
-import com.android.sdklib.SystemImageTags.PLAY_STORE_TAG
-import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.internal.avd.ConfigKey
-import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.sdklib.repository.IdDisplay
-import com.android.sdklib.repository.targets.SystemImage
-import com.android.testutils.file.createInMemoryFileSystemAndFolder
-import com.android.testutils.file.someRoot
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.workbench.ToolWindowCallback
@@ -49,24 +33,19 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceEx
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
-import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
-import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
-import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
@@ -82,7 +61,6 @@ import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.metrics.MetricsTrackerRule
 import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.util.ListenerCollection
@@ -96,15 +74,11 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import java.net.UnknownHostException
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.util.Collections
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import javax.swing.JTable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import org.junit.Before
@@ -1136,230 +1110,6 @@ class AppInspectionInspectorClientTest {
       stdout = "",
       stderr = if (shouldFail) "error" else "",
     )
-  }
-}
-
-// TODO: Move to separate file or integrate with main test class
-@Ignore("b/477622325")
-class AppInspectionInspectorClientWithUnsupportedApi29 {
-  private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val inspectionRule = AppInspectionInspectorRule(projectRule)
-  private val inspectorRule = LayoutInspectorRule(listOf(mock()), projectRule) { false }
-
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule)!!
-
-  @Test
-  fun testApi29VersionBanner() = runBlocking {
-    val processDescriptor = setUpDevice(29)
-    val sdkRoot = createInMemoryFileSystemAndFolder("sdk")
-
-    checkBannerForTag(processDescriptor, sdkRoot, PLAY_STORE_TAG, 999)
-
-    // Set up an API 30 device and the inspector should be created successfully
-    val processDescriptor2 = setUpDevice(30)
-
-    val sdkPackage = setUpSdkPackage(sdkRoot, 1, 30, null, false) as LocalPackage
-    val avdInfo = setUpAvd(sdkPackage, null, 30)
-    val packages = RepositoryPackages(listOf(sdkPackage), listOf())
-    val sdkHandler = AndroidSdkHandler(sdkRoot, null, FakeRepoManager(sdkRoot, packages))
-    val banner = InspectorBanner(projectRule.testRootDisposable, inspectorRule.notificationModel)
-    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-
-    assertThat(banner.isVisible).isFalse()
-
-    setUpAvdManagerAndRun(
-      sdkHandler,
-      avdInfo,
-      suspend {
-        val client =
-          AppInspectionInspectorClient(
-            process = processDescriptor2,
-            model = model(inspectorRule.disposable, inspectorRule.project) {},
-            notificationModel = inspectorRule.notificationModel,
-            metrics = mock(),
-            treeSettings = mock(),
-            inspectorClientSettings = InspectorClientSettings(projectRule.project),
-            coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable),
-            parentDisposable = projectRule.testRootDisposable,
-            apiServices = inspectionRule.inspectionService.apiServices,
-            sdkHandler = sdkHandler,
-          )
-        // shouldn't get an exception
-        client.connect(inspectorRule.project)
-      },
-    )
-  }
-
-  private suspend fun checkBannerForTag(
-    processDescriptor: ProcessDescriptor,
-    sdkRoot: Path,
-    tag: IdDisplay?,
-    minRevision: Int,
-  ) {
-    // Set up an AOSP api 29 device below the required system image revision, with no update
-    // available
-    val sdkPackage = setUpSdkPackage(sdkRoot, minRevision - 1, 29, tag, false) as LocalPackage
-    val avdInfo = setUpAvd(sdkPackage, tag, 29)
-    val packages = RepositoryPackages(listOf(sdkPackage), listOf())
-    val sdkHandler = AndroidSdkHandler(sdkRoot, null, FakeRepoManager(sdkRoot, packages))
-    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-
-    val notificationModel = inspectorRule.notificationModel
-    assertThat(notificationModel.notifications).isEmpty()
-
-    setUpAvdManagerAndRun(
-      sdkHandler,
-      avdInfo,
-      suspend {
-        val client =
-          AppInspectionInspectorClient(
-            process = processDescriptor,
-            model = model(projectRule.testRootDisposable, inspectorRule.project) {},
-            notificationModel = inspectorRule.notificationModel,
-            metrics = mock(),
-            treeSettings = mock(),
-            inspectorClientSettings = InspectorClientSettings(projectRule.project),
-            coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable),
-            parentDisposable = projectRule.testRootDisposable,
-            apiServices = inspectionRule.inspectionService.apiServices,
-            sdkHandler = sdkHandler,
-          )
-        client.connect(inspectorRule.project)
-        waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
-        invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-
-        val notification1 = notificationModel.notifications.single()
-        if (tag == PLAY_STORE_TAG) {
-          assertThat(notification1.message)
-            .isEqualTo(
-              "Live Inspection is not available on API 29 Google Play images. Please use a different image."
-            )
-        } else {
-          assertThat(notification1.message).isEmpty()
-        }
-      },
-    )
-    notificationModel.clear()
-  }
-
-  private suspend fun setUpAvdManagerAndRun(
-    sdkHandler: AndroidSdkHandler,
-    avdInfo: AvdInfo,
-    body: suspend () -> Unit,
-  ) {
-    val connection =
-      object :
-        AvdManagerConnection(
-          sdkHandler,
-          IdeAvdManagers.getAvdManager(
-            sdkHandler,
-            sdkHandler.location!!.fileSystem.someRoot.resolve("android/avds"),
-          ),
-          Dispatchers.Unconfined,
-        ) {
-        fun setFactory() {
-          setConnectionFactory { _, _ -> this }
-        }
-
-        override fun findAvdWithFolder(avdFolder: Path) =
-          if (avdFolder == avdInfo.dataFolderPath) avdInfo else null
-
-        fun resetFactory() {
-          resetConnectionFactory()
-        }
-      }
-    try {
-      connection.setFactory()
-      body()
-    } finally {
-      connection.resetFactory()
-    }
-  }
-
-  private fun setUpAvd(sdkPackage: LocalPackage, tag: IdDisplay?, apiLevel: Int): AvdInfo {
-    val systemImage =
-      SystemImage(
-        sdkPackage.location,
-        listOfNotNull(tag),
-        null,
-        Collections.singletonList("x86"),
-        Collections.emptyList(),
-        Collections.emptyList(),
-        sdkPackage,
-      )
-    val properties = mutableMapOf<String, String>()
-    if (tag != null) {
-      properties[ConfigKey.TAG_ID] = tag.id
-      properties[ConfigKey.TAG_DISPLAY] = tag.display
-    }
-    return AvdInfo(
-      iniFile = Paths.get("/android/avds/myAvd-${apiLevel}.ini"),
-      dataFolderPath = Paths.get("/android/avds/myAvd-${apiLevel}.avd"),
-      systemImage = systemImage,
-      properties = properties,
-    )
-  }
-
-  private fun setUpSdkPackage(
-    sdkRoot: Path,
-    revision: Int,
-    apiLevel: Int,
-    tag: IdDisplay?,
-    isRemote: Boolean,
-  ): FakePackage {
-    val sdkPackage =
-      if (isRemote) FakePackage.FakeRemotePackage("mySysImg-$apiLevel")
-      else FakePackage.FakeLocalPackage("mySysImg-$apiLevel", sdkRoot.resolve("mySysImg"))
-    sdkPackage.setRevision(Revision(revision))
-    val packageDetails =
-      AndroidSdkHandler.sysImgModule.createLatestFactory().createSysImgDetailsType()
-    packageDetails.apiLevel = apiLevel
-    tag?.let { packageDetails.tags.add(it) }
-    sdkPackage.typeDetails = packageDetails as TypeDetails
-    return sdkPackage
-  }
-
-  private suspend fun setUpDevice(apiLevel: Int): ProcessDescriptor {
-    val emulatorPort =
-      inspectorRule.adbRule.adbServer
-        .connectEmulatorConsole(
-          avdName = "myAvd-$apiLevel",
-          avdPath = "/android/avds/myAvd-$apiLevel.avd",
-        )
-        .get()
-        .port
-    val deviceId = "emulator-$emulatorPort"
-    val device =
-      inspectorRule.adbRule.connectDevice(
-        deviceId = deviceId,
-        manufacturer = "mfg",
-        deviceModel = "model",
-        release = "10.0.0",
-        sdk = AndroidApiLevel(apiLevel),
-        hostConnectionType = DeviceState.HostConnectionType.LOCAL,
-      )
-
-    val processDescriptor =
-      object : ProcessDescriptor {
-        override val device =
-          object : DeviceDescriptor {
-            override val manufacturer = device.manufacturer
-            override val model = device.model
-            override val serial = device.deviceId
-            override val isEmulator = true
-            override val apiLevel = device.buildVersionSdk
-            override val version = device.buildVersionRelease
-            override val codename: String? = null
-          }
-        override val abiCpuArch = device.cpuAbi
-        override val name = "my name"
-        override val packageName = "my package name"
-        override val isRunning = true
-        override val pid = 1234
-        override val streamId = 4321L
-      }
-    return processDescriptor
   }
 }
 
