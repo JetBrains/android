@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering.tokens
 
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.RenderingServices
+import com.android.tools.idea.run.classes.BuildOutcome
 import java.nio.file.Path
 
 internal class BazelRenderingServices(
@@ -30,7 +31,7 @@ internal class BazelRenderingServices(
   override val externalLibraries: Collection<Path>
     get() = getBuildOutcome()?.externalJars ?: emptyList()
 
-  private fun getBuildOutcome(): BazelBuildServices.BuildOutcome? {
+  private fun getBuildOutcome(): BuildOutcome? {
     val label = target.toPreferredLabel() ?: return null
     return buildServices.getBuildOutcome(label)
   }

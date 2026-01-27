@@ -142,11 +142,12 @@ intellij_unit_test_suite(
         ],
     ),
     tags = ["noci:studio-win"],
-    test_package_root = "com.google.idea.blaze.android",
+    test_package_root = "com",
     visibility = DEFAULT_TEST_VISIBILITY,
     deps = [
         ":aswb_lib",
         ":unit_test_utils",
+        "//tools/adt/idea/aswb/aswb/tests/unittests/com/android/tools/idea/rendering/tokens:helloworld",
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",
