@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.common.MostRecentExecutor
@@ -51,6 +53,20 @@ import kotlinx.coroutines.launch
 val NO_COMPOSE_SOURCE_INFO_APP_KEY = "no.compose.source.info.app"
 
 private val logger = Logger.getInstance(LayoutInspector::class.java)
+
+const val MIN_SUPPORTED_VERSION = AndroidVersion.VersionCodes.Q
+
+/** Sets app inspection [selectedProcess] only if the process is supported by Layout Inspector */
+fun ProcessesModel.setLayoutInspectorSelectedProcess(process: ProcessDescriptor?) {
+  if (process == null) {
+    selectedProcess = null
+    return
+  }
+
+  if (process.device.apiLevel.majorVersion >= MIN_SUPPORTED_VERSION) {
+    selectedProcess = process
+  }
+}
 
 /** Top level class which manages the high level state of layout inspection. */
 class LayoutInspector
@@ -180,7 +196,7 @@ private constructor(
         foregroundProcessDetection?.stopPollingSelectedDevice()
       } else {
         processModel?.stop()
-        processModel?.selectedProcess = null
+        processModel?.setLayoutInspectorSelectedProcess(null)
       }
 
       stopInspectorListeners.forEach { it() }

@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
-import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.layoutinspector.MIN_SUPPORTED_VERSION
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.setLayoutInspectorSelectedProcess
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
@@ -81,7 +81,7 @@ class InspectorClientLauncher(
     ): InspectorClientLauncher {
 
       val appInspectionInspectorClientFactory = ClientFactory { params ->
-        if (params.process.device.apiLevel.majorVersion >= AndroidVersion.VersionCodes.Q) {
+        if (params.process.device.apiLevel.majorVersion >= MIN_SUPPORTED_VERSION) {
           // Only Q+ devices support image updates which is used by the app inspection agent
           AppInspectionInspectorClient(
             params.process,
@@ -98,17 +98,11 @@ class InspectorClientLauncher(
         }
       }
 
-      val launchers =
-        if (LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
-          // Embedded Layout Inspector is meant to be used only with an App Inspection inspector.
-          listOf(appInspectionInspectorClientFactory)
-        } else {
-          listOf(appInspectionInspectorClientFactory)
-        }
+      val clientFactories = listOf(appInspectionInspectorClientFactory)
 
       return InspectorClientLauncher(
         processes,
-        launchers,
+        clientFactories,
         model.project,
         notificationModel,
         coroutineScope,
@@ -264,7 +258,7 @@ class InspectorClientLauncher(
         // If we're enabled, don't show the process as selected anymore. If we're not (the window is
         // minimized), we'll try to reconnect
         // when we're reenabled, so leave the process selected.
-        processes.selectedProcess = null
+        processes.setLayoutInspectorSelectedProcess(null)
       }
       notifications.forEach {
         notificationModel.addNotification(it.id, it.message, it.status, it.actions, it.sticky)
@@ -331,8 +325,8 @@ class InspectorClientLauncher(
 
             if (runningProcess != null) {
               // Reset the process to cause us to connect.
-              processes.selectedProcess = null
-              processes.selectedProcess = runningProcess
+              processes.setLayoutInspectorSelectedProcess(null)
+              processes.setLayoutInspectorSelectedProcess(runningProcess)
             }
           }
         }

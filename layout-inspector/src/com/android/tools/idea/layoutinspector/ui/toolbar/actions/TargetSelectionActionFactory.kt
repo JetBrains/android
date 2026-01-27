@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
-import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.appinspection.ide.ui.ICON_EMULATOR
 import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.appinspection.ide.ui.buildDeviceName
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.MIN_SUPPORTED_VERSION
+import com.android.tools.idea.layoutinspector.setLayoutInspectorSelectedProcess
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
@@ -36,10 +36,6 @@ import javax.swing.JComponent
 @VisibleForTesting
 val ICON_LEGACY_PHONE: Icon =
   LayeredIcon.layeredIcon { arrayOf(ICON_PHONE, AllIcons.General.WarningDecorator) }
-
-@VisibleForTesting
-val ICON_LEGACY_EMULATOR: Icon =
-  LayeredIcon.layeredIcon { arrayOf(ICON_EMULATOR, AllIcons.General.WarningDecorator) }
 
 data class DropDownActionWithButton(
   val dropDownAction: DropDownAction,
@@ -73,7 +69,7 @@ object TargetSelectionActionFactory {
       deviceModel = model,
       targetDeviceSerialNumber = targetDeviceSerialNumber,
       onProcessSelected = { newProcess ->
-        layoutInspector.processModel?.selectedProcess = newProcess
+        layoutInspector.processModel?.setLayoutInspectorSelectedProcess(newProcess)
       },
     )
   }
@@ -104,7 +100,7 @@ object TargetSelectionActionFactory {
         layoutInspector.foregroundProcessDetection?.startPollingDevice(newDevice)
       },
       onProcessSelected = { newProcess ->
-        layoutInspector.processModel?.selectedProcess = newProcess
+        layoutInspector.processModel?.setLayoutInspectorSelectedProcess(newProcess)
       },
       onDetachAction = { layoutInspector.stopInspector() },
       customDeviceAttribution = TargetSelectionActionFactory::deviceAttribution,
@@ -113,19 +109,11 @@ object TargetSelectionActionFactory {
 
   private fun deviceAttribution(device: DeviceDescriptor, event: AnActionEvent) =
     when {
-      device.apiLevel.majorVersion < AndroidVersion.VersionCodes.M -> {
+      device.apiLevel.majorVersion < MIN_SUPPORTED_VERSION -> {
         event.presentation.isEnabled = false
         event.presentation.text =
-          "${device.buildDeviceName()} (Unsupported for API < ${AndroidVersion.VersionCodes.M})"
-      }
-      device.apiLevel.majorVersion < AndroidVersion.VersionCodes.Q -> {
-        event.presentation.icon = device.toLegacyIcon()
-        event.presentation.text =
-          "${device.buildDeviceName()} (Live inspection disabled for API < ${AndroidVersion.VersionCodes.Q})"
+          "${device.buildDeviceName()} (Unsupported for API < ${MIN_SUPPORTED_VERSION})"
       }
       else -> {}
     }
 }
-
-private fun DeviceDescriptor?.toLegacyIcon() =
-  if (this?.isEmulator == true) ICON_LEGACY_EMULATOR else ICON_LEGACY_PHONE

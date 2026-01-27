@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection
 
-import com.android.sdklib.AndroidApiLevel
-import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
+import com.android.tools.idea.layoutinspector.pipeline.fakeDevice
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
@@ -53,18 +53,10 @@ class HandshakeExecutorTest {
 
   private val pollingIntervalMs = 200L
 
-  private val deviceDescriptor =
-    object : DeviceDescriptor {
-      override val manufacturer = "manufacturer"
-      override val model = "mod"
-      override val serial = "serial"
-      override val isEmulator = false
-      override val apiLevel = AndroidApiLevel(0)
-      override val version = "version"
-      override val codename = "codename"
-    }
+  val device = fakeDevice()
+  val deviceDescriptor = device.toDeviceDescriptor()
 
-  private val stream = createFakeStream(1, deviceDescriptor)
+  private val stream = Common.Stream.newBuilder().setStreamId(1).setDevice(device).build()
 
   private lateinit var scope: CoroutineScope
   private lateinit var workDispatcher: CoroutineDispatcher
@@ -766,26 +758,5 @@ class HandshakeExecutorTest {
         .setStreamId(streamId)
         .build()
     return ExecuteRequest.newBuilder().setCommand(command).build()
-  }
-
-  @Suppress("SameParameterValue")
-  private fun createFakeStream(streamId: Long, device: DeviceDescriptor): Common.Stream {
-    return Common.Stream.newBuilder()
-      .setStreamId(streamId)
-      .setDevice(device.toTransportDevice(streamId))
-      .build()
-  }
-
-  private fun DeviceDescriptor.toTransportDevice(id: Long): Common.Device {
-    return Common.Device.newBuilder()
-      .setDeviceId(id)
-      .setSerial(serial)
-      .setApiLevel(apiLevel.majorVersion)
-      .setApiLevelMinor(apiLevel.minorVersion)
-      .setFeatureLevel(apiLevel.majorVersion)
-      .setModel(model)
-      .setCpuAbi("arm64-v8a")
-      .setState(Common.Device.State.ONLINE)
-      .build()
   }
 }
