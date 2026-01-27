@@ -153,6 +153,7 @@ DisplayStreamer::DisplayStreamer(int32_t display_id, const CodecInfo* codec_info
                                  int32_t initial_video_orientation, int32_t max_bit_rate, SocketWriter* writer)
     : display_rotation_watcher_(this),
       display_id_(display_id),
+      frame_timeout_(INITIAL_FRAME_TIMEOUT),
       codec_info_(codec_info),
       writer_(writer),
       bit_rate_(max_bit_rate > 0 ? max_bit_rate : DEFAULT_BIT_RATE),
