@@ -295,6 +295,7 @@ filegroup(
     srcs = [
         "//tools/base/profiler/app:perfa.jar",
         "//tools/base/profiler/transform:profilers-transform.jar",
+        "//tools/profiler/common/src/main/proto:sherlock-plugin-protos",
     ],
     visibility = ["//visibility:public"],
 )
