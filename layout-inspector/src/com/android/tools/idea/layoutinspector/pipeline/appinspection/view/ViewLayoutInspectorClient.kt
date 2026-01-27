@@ -397,6 +397,7 @@ class ViewLayoutInspectorClient(
         )
       // Delete the file in case we wrote out partial data
       Files.delete(path)
+      throw e
     }
     return snapshotMetadata
   }
