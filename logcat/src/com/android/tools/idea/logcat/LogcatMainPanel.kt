@@ -990,6 +990,7 @@ constructor(
       object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
           if (e.isControlDown && e.button == BUTTON1) {
+            @Suppress("UnstableApiUsage")
             WriteIntentReadAction.run {
               val filterHint = e.getFilterHint()
               if (filterHint != null) {
@@ -1009,6 +1010,7 @@ constructor(
           val filterHint = e.getFilterHint()
           if (e.isControlDown) {
             val needReturn =
+              @Suppress("UnstableApiUsage")
               WriteIntentReadAction.compute {
                 if (filterHint != null && toggleFilterTerm(logcatFilterParser, headerPanel.filter, filterHint.getFilter()) != null) {
                   contentComponent.cursor = handCursor
