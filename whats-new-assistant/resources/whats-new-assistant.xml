@@ -19,7 +19,7 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2026.1.2.00">
+    version="2025.3.2.00">
   <feature
       name="What's New in Panda 2">
     <tutorial
