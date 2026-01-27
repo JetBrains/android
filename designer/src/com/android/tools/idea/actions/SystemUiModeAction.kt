@@ -45,18 +45,27 @@ import com.intellij.util.ui.JBValue
 import com.intellij.util.ui.LafIconLookup.getIcon
 import com.intellij.util.ui.LafIconLookup.getSelectedIcon
 import icons.StudioIcons
-import org.jetbrains.annotations.TestOnly
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.KeyEventDispatcher
+import java.awt.KeyboardFocusManager
 import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
 import javax.swing.AbstractAction
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JMenuItem
 import javax.swing.JPopupMenu
+import javax.swing.MenuElement
+import javax.swing.MenuSelectionManager
 import javax.swing.SwingConstants
+import javax.swing.event.PopupMenuEvent
+import javax.swing.event.PopupMenuListener
 import javax.swing.plaf.basic.BasicMenuItemUI
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val POPUP_VERTICAL_BORDER = 6
 private const val TITLE_VERTICAL_BORDER = 2
@@ -83,6 +92,11 @@ private val separatorUI =
     }
   }
 
+enum class NavigationDirection {
+  LEFT,
+  RIGHT,
+}
+
 class SystemUiModeAction :
   DropDownAction("System UI Mode", "System UI Mode", StudioIcons.DeviceConfiguration.NIGHT_MODE) {
 
@@ -90,12 +104,47 @@ class SystemUiModeAction :
     val button =
       event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) as? ActionButton
         ?: return
+    val menu = createPopupMenu(event.dataContext)
+    JBPopupMenu.showBelow(button, menu)
+  }
+
+  @VisibleForTesting
+  fun createPopupMenu(dataContext: DataContext): JPopupMenu {
     val menu =
       JPopupMenu().apply {
         isLightWeightPopupEnabled = false
         isOpaque = false
         border = JBUI.Borders.empty(POPUP_VERTICAL_BORDER, 0)
       }
+
+    menu.addPopupMenuListener(
+      object : PopupMenuListener {
+        val dispatcher = KeyEventDispatcher { e ->
+          if (e.id == KeyEvent.KEY_PRESSED) {
+            if (e.keyCode == KeyEvent.VK_RIGHT) {
+              return@KeyEventDispatcher handleNavigation(menu, NavigationDirection.RIGHT)
+            }
+            if (e.keyCode == KeyEvent.VK_LEFT) {
+              return@KeyEventDispatcher handleNavigation(menu, NavigationDirection.LEFT)
+            }
+          }
+          false
+        }
+
+        override fun popupMenuWillBecomeVisible(e: PopupMenuEvent) {
+          KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(dispatcher)
+        }
+
+        override fun popupMenuWillBecomeInvisible(e: PopupMenuEvent) {
+          KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(dispatcher)
+        }
+
+        override fun popupMenuCanceled(e: PopupMenuEvent) {
+          KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(dispatcher)
+        }
+      }
+    )
+
     menu.layout = GridBagLayout()
     val numWallpapers = enumValues<Wallpaper>().size
     val gbc =
@@ -111,7 +160,7 @@ class SystemUiModeAction :
 
     enumValues<NightMode>().forEach { mode ->
       val action = SetNightModeAction(mode.shortDisplayValue, mode)
-      val item = ActionItem(action, event.dataContext)
+      val item = ActionItem(action, dataContext)
       gbc.gridy += 1
       menu.add(item, gbc)
     }
@@ -138,7 +187,7 @@ class SystemUiModeAction :
         add(null)
       }
     wallpapers.forEachIndexed { index, wallpaper ->
-      val menuItem = SetWallpaperAction(wallpaper).toMenuItem(event.dataContext)
+      val menuItem = SetWallpaperAction(wallpaper).toMenuItem(dataContext)
       gbc.insets =
         when (index) {
           0 -> JBUI.insets(4, sideBorderWidth.unscaled.toInt(), 0, 0)
@@ -149,8 +198,7 @@ class SystemUiModeAction :
       menu.add(menuItem, gbc)
       gbc.gridx += 1
     }
-
-    JBPopupMenu.showBelow(button, menu)
+    return menu
   }
 
   @TestOnly
@@ -332,4 +380,33 @@ private class SetNightModeAction(title: String, val nightMode: NightMode) :
   override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
     configuration.nightMode = nightMode
   }
+}
+
+@VisibleForTesting
+fun handleNavigation(
+  menu: JPopupMenu,
+  direction: NavigationDirection,
+  manager: MenuSelectionManager = MenuSelectionManager.defaultManager(),
+): Boolean {
+  val path = manager.selectedPath
+  val selected = path.lastOrNull()
+  if (selected !is WallpaperItem) {
+    return false
+  }
+  val comp = selected as Component
+
+  val index = menu.getComponentIndex(comp)
+  if (index >= 0) {
+    val nextIndex = if (direction == NavigationDirection.RIGHT) index + 1 else index - 1
+    if (nextIndex >= 0 && nextIndex < menu.componentCount) {
+      val nextComponent = menu.getComponent(nextIndex)
+      if (nextComponent is WallpaperItem) {
+        val nextElement = nextComponent as MenuElement
+        val newPath = path.dropLast(1) + nextElement
+        manager.selectedPath = newPath.toTypedArray()
+        return true
+      }
+    }
+  }
+  return false
 }
