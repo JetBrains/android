@@ -132,6 +132,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.application.WriteIntentReadAction
 import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.debug
@@ -1039,12 +1040,14 @@ constructor(
       object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
           if (e.isControlDown && e.button == BUTTON1) {
-            val filterHint = e.getFilterHint()
-            if (filterHint != null) {
-              val newFilter =
-                toggleFilterTerm(logcatFilterParser, headerPanel.filter, filterHint.getFilter())
-              if (newFilter != null) {
-                headerPanel.filter = newFilter
+            WriteIntentReadAction.run {
+              val filterHint = e.getFilterHint()
+              if (filterHint != null) {
+                val newFilter =
+                  toggleFilterTerm(logcatFilterParser, headerPanel.filter, filterHint.getFilter())
+                if (newFilter != null) {
+                  headerPanel.filter = newFilter
+                }
               }
             }
           }
@@ -1056,12 +1059,19 @@ constructor(
         override fun mouseMoved(e: MouseEvent) {
           val filterHint = e.getFilterHint()
           if (e.isControlDown) {
-            if (
-              filterHint != null &&
+            val needReturn = WriteIntentReadAction.compute {
+              if (
+                filterHint != null &&
                 toggleFilterTerm(logcatFilterParser, headerPanel.filter, filterHint.getFilter()) !=
-                  null
-            ) {
-              contentComponent.cursor = handCursor
+                null
+              ) {
+                contentComponent.cursor = handCursor
+                return@compute true
+              } else {
+                return@compute false
+              }
+            }
+            if (needReturn) {
               return
             }
           }
