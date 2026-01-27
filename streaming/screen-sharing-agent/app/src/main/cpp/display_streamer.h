@@ -40,7 +40,7 @@ public:
   };
 
   DisplayStreamer(
-      int display_id, const CodecInfo* codec_info, Size max_video_resolution, int initial_video_orientation, int max_bitrate,
+      int display_id, const CodecInfo* codec_info, Size max_video_resolution, int initial_video_orientation, int max_bit_rate,
       SocketWriter* writer);
   ~DisplayStreamer() override;
 
