@@ -15,11 +15,8 @@
  */
 package com.google.idea.blaze.base.qsync
 
-import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
-import com.google.common.io.ByteSource
 import com.google.common.truth.Truth
 import com.google.idea.blaze.android.AswbTestUtils
 import com.google.idea.blaze.base.BlazeIntegrationTestCase

@@ -163,6 +163,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
             result.workspaceRoot(),
             result.artifactTracker(),
             result.artifactCache(),
+            result.dependencyBuilder(),
             result.dependencyTracker(),
             result.appInspectorTracker(),
             result.projectQuerier(),

@@ -50,6 +50,7 @@ object BazelApkBuildStepProvider {
     val apkOutputGroup = if (useMobileInstall) "mobile_install_INTERNAL_" else "default"
 
     return BlazeApkBuildStep(
+      project = project,
       targets = listOf(label),
       blazeFlags = blazeFlags,
       exeFlags = exeFlags,
@@ -96,6 +97,7 @@ object BazelApkBuildStepProvider {
         .getBuildInvoker(project)
 
     return BlazeApkBuildStep(
+      project = project,
       targets = targets,
       blazeFlags = blazeFlags,
       exeFlags = exeFlags,

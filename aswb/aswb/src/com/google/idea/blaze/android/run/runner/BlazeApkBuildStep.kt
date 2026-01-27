@@ -25,6 +25,8 @@ import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker
 import com.google.idea.blaze.base.command.BlazeCommand
 import com.google.idea.blaze.base.command.BlazeCommandName
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser
+import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest
+import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.scope.output.StatusOutput
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
@@ -32,10 +34,13 @@ import com.google.idea.blaze.base.util.SaveUtil
 import com.google.idea.blaze.common.Interners
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.exception.BuildException
+import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 
 /** Blaze specific build flow for android_binary builds.  */
 class BlazeApkBuildStep(
+  val project: Project,
   val targets: List<Label>,
   private val blazeFlags: List<String>,
   private val exeFlags: List<String>,
@@ -44,7 +49,7 @@ class BlazeApkBuildStep(
   val liveEditEnabled: Boolean,
   private val launchId: String,
   private val buildInvoker: BuildInvoker,
-  val deployInfoExtractor: DeployInfoExtractor
+  val deployInfoExtractor: DeployInfoExtractor,
 ) : ApkBuildStep {
 
   /**
@@ -74,6 +79,22 @@ class BlazeApkBuildStep(
       command.addBlazeFlags(
         NativeSymbolFinder.getInstances().map { it.additionalBuildFlags }
       )
+    }
+
+    if (liveEditEnabled) {
+      val dependencyBuilder = QuerySyncManager.getInstance(project).assertProjectLoaded().dependencyBuilder
+      val outputGroups =
+        DependencyBuildRequest.getOutputGroups(listOf(QuerySyncLanguage.JVM), DependencyBuildRequest.RequestType.LIVE_EDIT_BUILD_APK)
+      val preparedInvocation =
+        dependencyBuilder
+          .prepareInvocation(
+            context = context,
+            buildTargets = emptySet(), // This is supported by the dependency builder.
+            outputGroups = outputGroups,
+            replaceOutputGroups = false,
+            invoker = buildInvoker
+          )
+      preparedInvocation.updateCommand(command)
     }
 
     val buildOutputs =
