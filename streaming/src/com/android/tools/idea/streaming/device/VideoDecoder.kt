@@ -272,7 +272,7 @@ class VideoDecoder internal constructor(
     @GuardedBy("this") private var renderingFrame: AVFrame? = null
     @GuardedBy("this") private var swsContext: SwsContext? = null
     @GuardedBy("this") private lateinit var parserContext: AVCodecParserContext
-    @GuardedBy("this") private val pendingPacket: AVPacket = av_packet_alloc()
+    @GuardedBy("this") private var pendingPacket: AVPacket? = null
     @GuardedBy("this") private var hasPendingPacket = false
     @GuardedBy("this") private var framesAtBitRate: Int = 0 // Used for primary display only.
     /** Null value means that the decoding context has been closed and cannot be initialized again. */
@@ -367,6 +367,7 @@ class VideoDecoder internal constructor(
       // A config packet cannot not be decoded immediately since it contains no frame.
       // It must be combined with the following data packet.
       if (hasPendingPacket || isConfig) {
+        val pendingPacket = pendingPacket ?: av_packet_alloc().also { pendingPacket = it }
         val offset: Int
         if (hasPendingPacket) {
           offset = pendingPacket.size()
