@@ -16,15 +16,11 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.ide.common.gradle.Version
-import com.android.sdklib.AndroidApiLevel
-import com.android.sdklib.SystemImageTags
-import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionAgentUnattachableException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionCrashException
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
@@ -39,26 +35,21 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
-import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.Compatibility.NotCompatible.Reason.API_29_PLAY_STORE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import com.android.tools.idea.sdk.AndroidSdks
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel.Status
 import java.nio.file.Path
 import java.util.EnumSet
-import java.util.concurrent.TimeUnit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -67,8 +58,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
-
-const val SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY = "system.image.live.unsupported"
 
 /**
  * An [InspectorClient] that talks to an app-inspection based inspector running on a target device.
@@ -88,8 +77,6 @@ class AppInspectionInspectorClient(
   @TestOnly
   private val apiServices: AppInspectionApiServices =
     AppInspectionDiscoveryService.instance.apiServices,
-  @TestOnly
-  private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
   private val debugViewAttributes: DebugViewAttributes = DebugViewAttributes(model.project),
 ) :
   AbstractInspectorClient(
@@ -140,10 +127,6 @@ class AppInspectionInspectorClient(
     get() = inspectorClientSettings.inLiveMode
 
   override suspend fun doConnect() {
-    // we run this function outside the runCatching because it sets a banner in case of exception.
-    // We don't want the runCatching to handle it.
-    checkApi29Version(process, model.project, sdkHandler)
-
     runCatching {
         logEventToMetrics(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
@@ -463,89 +446,5 @@ class AppInspectionInspectorClient(
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
     val saveMetrics = LayoutInspectorSessionMetrics(model.project, snapshotMetadata = metadata)
     saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED, stats)
-  }
-
-  /**
-   * Check if the system image used by the emulator is supported or not. API 29 Play Store images
-   * are not supported: b/180622424. If not supported, show a banner informing the user.
-   */
-  private fun checkApi29Version(
-    process: ProcessDescriptor,
-    project: Project,
-    sdkHandler: AndroidSdkHandler,
-  ) {
-    val compatibility =
-      checkSystemImageForAppInspectionCompatibility(
-        process.device.isEmulator,
-        process.device.apiLevel,
-        process.device.serial,
-        project,
-        sdkHandler,
-      )
-
-    val notCompatibleReason =
-      when (compatibility) {
-        Compatibility.Compatible -> return
-        is Compatibility.NotCompatible -> compatibility.reason
-      }
-
-    when (notCompatibleReason) {
-      API_29_PLAY_STORE -> {
-        notificationModel.addNotification(
-          SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY,
-          LayoutInspectorBundle.message("api29.playstore.message"),
-          Status.Warning,
-          listOf(notificationModel.dismissAction),
-        )
-      }
-    }
-
-    throw ConnectionFailedException(
-      "Unsupported system image revision",
-      AttachErrorCode.LOW_API_LEVEL,
-    )
-  }
-}
-
-/** Check whether the current target's system image is compatible with app inspection. */
-fun checkSystemImageForAppInspectionCompatibility(
-  isEmulator: Boolean,
-  apiLevel: AndroidApiLevel,
-  serialNumber: String,
-  project: Project,
-  sdkHandler: AndroidSdkHandler,
-): Compatibility {
-  if (!isEmulator || apiLevel.majorVersion != 29) {
-    // We are interested in checking only emulators running API 29.
-    return Compatibility.Compatible
-  }
-
-  val adb = AdbUtils.getAdbFuture(project).get()
-  val avdFolder =
-    adb
-      ?.devices
-      ?.find { it.serialNumber == serialNumber }
-      ?.avdData
-      ?.get(1, TimeUnit.SECONDS)
-      ?.avdFolder ?: return Compatibility.Compatible
-
-  val avd = AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvdWithFolder(avdFolder)
-
-  return if (SystemImageTags.PLAY_STORE_TAG == avd?.tag) {
-    // TODO(b/461825292) remove this check once standalone Layout Inspector V2 is enabled.
-    // We don't support Play Store images on API 29, when using SKIA: b/180622424
-    Compatibility.NotCompatible(API_29_PLAY_STORE)
-  } else {
-    Compatibility.Compatible
-  }
-}
-
-sealed class Compatibility {
-  object Compatible : Compatibility()
-
-  data class NotCompatible(val reason: Reason) : Compatibility() {
-    enum class Reason {
-      API_29_PLAY_STORE
-    }
   }
 }
