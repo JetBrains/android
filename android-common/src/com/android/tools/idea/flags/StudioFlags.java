@@ -576,7 +576,6 @@ public final class StudioFlags {
     " compiler filter in ART to avoid bytecode verification when possible. This would speed up development cycles. Note that all release" +
     " build are still verified by ART regardless of this flag.");
 
-
   public static final Flag<Boolean> INSTALL_WITH_ASSUME_VERIFIED_ON_DEFAULT = new BooleanFlag(
     RUNDEBUG,
     "install.with.assume.verified.on.default",
@@ -2184,6 +2183,11 @@ public final class StudioFlags {
                     "Shows thoughts in the timeline",
                     "When enabled, thoughts will be shown in the timeline for models that support thinking."
     );
+
+  public static final Flag<Boolean> STUDIOBOT_CODE_SEARCH_PAGINATION_ENABLED =
+    new BooleanFlag(STUDIOBOT, "code.search.pagination.enabled",
+                    "Enable pagination support for code_search tool",
+                    "When enabled, the code_search tool supports pagination and returns the result in the new format.");
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_FILE_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.file.context.enabled",
