@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.KeyboardShortcut
+import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.text.StringUtil
@@ -55,8 +56,6 @@ import java.awt.Container
 import java.awt.Dimension
 import java.awt.LayoutManager
 import java.awt.Point
-import java.awt.Toolkit
-import java.awt.datatransfer.StringSelection
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.InputEvent
@@ -718,12 +717,12 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
-      val row = table.selectedRow
+      val rows = table.selectedRows.map { table.convertRowIndexToModel(it) }
       val column = table.selectedColumn
 
-      val value = (table.model as MyTableModel).getValueAt(row, column)
-      val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-      clipboard.setContents(StringSelection(value), null)
+      val model = table.model as MyTableModel
+      val values = rows.map { model.getValueAt(it, column) }
+      CopyPasteManager.copyTextToClipboard(values.joinToString(","))
     }
 
     override fun update(e: AnActionEvent) {
