@@ -2987,6 +2987,17 @@ public final class StudioFlags {
     );
   // endregion AGP Test Suites
 
+  // region Android Lint
+  private static final FlagGroup LINT = new FlagGroup(FLAGS, "lint", "Android Lint");
+  public static final Flag<Boolean> ANALYSIS_SCRIPTS =
+    new BooleanFlag(
+      LINT,
+      "analysis.scripts",
+      "Enable support for analysis scripts",
+      "Enable support for analysis scripts"
+    );
+  // endregion Android Lint
+
   private StudioFlags() { }
 
   private static Boolean isUnitTestMode() {

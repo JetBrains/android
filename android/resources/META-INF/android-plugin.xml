@@ -185,6 +185,15 @@
         text="Hide Android Banners"
         description="Dismisses banner for Gradle project notifications">
     </action>
+    <action
+        id="Android.RunAnalysisScript"
+        internal="true"
+        class="com.android.tools.idea.analysis.RunAnalysisScriptAction"
+        text="Run As Analysis Script"
+        description="Runs the current file as an analysis script"
+        icon="AllIcons.Actions.Execute">
+      <add-to-group group-id="RunContextPopupGroup" anchor="first"/>
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -665,6 +674,7 @@
     <codeinsight.quickfix.registrar implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinQuickFixRegistrar"/>
     <renameHandler implementation="org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler" order="first"/>
     <k2KaModuleFactory implementation="org.jetbrains.android.augment.AndroidLightClassBase$AndroidLightClassKaModuleFactory"/>
+    <scriptDefinitionsProvider implementation="com.android.tools.idea.analysis.AnalysisScriptDefinitionProvider" />
   </extensions>
 
 
