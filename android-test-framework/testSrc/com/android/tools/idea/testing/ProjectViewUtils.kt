@@ -35,9 +35,10 @@ import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RetrievableIcon
 import com.intellij.ui.RowIcon
 import com.intellij.ui.icons.CachedImageIcon
-import sun.swing.ImageIconUIResource
+import java.awt.Color
 import java.io.File
 import javax.swing.Icon
+import sun.swing.ImageIconUIResource
 
 fun <T : Any> Project.dumpAndroidProjectView(
   projectViewSettings: ProjectViewSettings = ProjectViewSettings(),
@@ -93,6 +94,8 @@ fun <T : Any> Project.dumpAndroidProjectView(
         else -> "$this (${javaClass.simpleName})"
       }
 
+    fun Color.toText(): String = String.format("#%02x%02x%02x", red, green, blue)
+
     val iconText = icon?.toText()
     val nodeText =
       if (coloredText.isEmpty()) presentableText
@@ -101,6 +104,7 @@ fun <T : Any> Project.dumpAndroidProjectView(
     return buildString {
         append(nodeText)
         if (iconText != null) append(" (icon: $iconText)")
+        background?.let { append(" (color: ${it.toText()})") }
       }
       .replaceVariableParts()
   }
