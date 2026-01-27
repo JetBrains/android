@@ -20,7 +20,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
-import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.layoutinspector.pipeline.fakeDevice
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
@@ -36,7 +36,7 @@ class DeviceModelTest {
 
   private val fakeProcess =
     object : ProcessDescriptor {
-      override val device = FakeTransportService.FAKE_DEVICE.toDeviceDescriptor()
+      override val device = fakeDevice().toDeviceDescriptor()
       override val abiCpuArch = "fake_arch"
       override val name = "fake_process"
       override val packageName = name
@@ -48,7 +48,7 @@ class DeviceModelTest {
   @Before
   fun setUp() {
     val testProcessDiscovery = TestProcessDiscovery()
-    testProcessDiscovery.addDevice(FakeTransportService.FAKE_DEVICE.toDeviceDescriptor())
+    testProcessDiscovery.addDevice(fakeDevice().toDeviceDescriptor())
     processModel = ProcessesModel(testProcessDiscovery)
   }
 
@@ -57,7 +57,7 @@ class DeviceModelTest {
     val deviceModel = DeviceModel(disposableRule.disposable, processModel)
     processModel.selectedProcess = fakeProcess
 
-    deviceModel.setSelectedDevice(FakeTransportService.FAKE_DEVICE.toDeviceDescriptor())
+    deviceModel.setSelectedDevice(fakeDevice().toDeviceDescriptor())
 
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess)
 
@@ -73,9 +73,9 @@ class DeviceModelTest {
 
     deviceModel.newSelectedDeviceListeners.add { newDevice = it }
 
-    deviceModel.setSelectedDevice(FakeTransportService.FAKE_DEVICE.toDeviceDescriptor())
+    deviceModel.setSelectedDevice(fakeDevice().toDeviceDescriptor())
 
-    assertThat(newDevice).isEqualTo(FakeTransportService.FAKE_DEVICE.toDeviceDescriptor())
+    assertThat(newDevice).isEqualTo(fakeDevice().toDeviceDescriptor())
   }
 
   @Test
@@ -97,7 +97,7 @@ class DeviceModelTest {
   @Test
   fun testForcedDeviceIsEnforced() {
     val deviceModel = DeviceModel(disposableRule.disposable, processModel)
-    val deviceDescriptor = FakeTransportService.FAKE_DEVICE.toDeviceDescriptor()
+    val deviceDescriptor = fakeDevice().toDeviceDescriptor()
 
     deviceModel.forcedDeviceSerialNumber = "wrong serial number"
     deviceModel.setSelectedDevice(deviceDescriptor)
@@ -111,5 +111,14 @@ class DeviceModelTest {
     deviceModel.forcedDeviceSerialNumber = null
     deviceModel.setSelectedDevice(deviceDescriptor)
     assertThat(deviceModel.selectedDevice).isEqualTo(deviceDescriptor)
+  }
+
+  @Test
+  fun testUnsupportedDeviceIsNotSelected() {
+    val deviceModel = DeviceModel(disposableRule.disposable, processModel)
+    val deviceDescriptor = fakeDevice(apiLevel = 1).toDeviceDescriptor()
+
+    deviceModel.setSelectedDevice(deviceDescriptor)
+    assertThat(deviceModel.selectedDevice).isNull()
   }
 }

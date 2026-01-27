@@ -18,10 +18,12 @@ package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetecti
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.layoutinspector.MIN_SUPPORTED_VERSION
+import com.android.tools.idea.layoutinspector.setLayoutInspectorSelectedProcess
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CopyOnWriteArraySet
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Keeps track of the currently selected device.
@@ -76,11 +78,16 @@ class DeviceModel(parentDisposable: Disposable, private val processesModel: Proc
         return
       }
 
+      if (value != null && value.apiLevel.majorVersion < MIN_SUPPORTED_VERSION) {
+        // Don't allow unsupported devices to be selected.
+        return
+      }
+
       // each time the selected device changes, the selected process should be reset
       // If selectedDevice is null, no device was selected. So we should not reset the process,
       // because selectedProcess might be set by the user from the process picker.
       if (selectedDevice != null) {
-        processesModel.selectedProcess = null
+        processesModel.setLayoutInspectorSelectedProcess(null)
       }
       newSelectedDeviceListeners.forEach { it.invoke(value) }
       field = value

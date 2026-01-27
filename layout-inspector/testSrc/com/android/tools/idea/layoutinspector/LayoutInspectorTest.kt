@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
+import com.android.tools.idea.layoutinspector.pipeline.fakeDevice
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
@@ -52,20 +53,6 @@ import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.kotlin.mock
 
 class LayoutInspectorTest {
-
-  private val device1 =
-    Common.Device.newBuilder()
-      .setDeviceId(1)
-      .setManufacturer("man1")
-      .setModel("mod1")
-      .setSerial("serial1")
-      .setIsEmulator(false)
-      .setApiLevel(1)
-      .setVersion("version1")
-      .setCodename("codename1")
-      .setState(Common.Device.State.ONLINE)
-      .build()
-
   @get:Rule val disposableRule = DisposableRule()
 
   private val projectRule = ProjectRule()
@@ -93,7 +80,7 @@ class LayoutInspectorTest {
   fun setUp() {
     scope = AndroidCoroutineScope(disposableRule.disposable)
 
-    val (deviceModel, processModel) = createDeviceModel(device1)
+    val (deviceModel, processModel) = createDeviceModel(fakeDevice())
     this.deviceModel = deviceModel
     this.processModel = processModel
     mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
@@ -139,7 +126,7 @@ class LayoutInspectorTest {
   @Test
   fun testStopInspector() = runBlocking {
     // test has device, no process
-    deviceModel.setSelectedDevice(device1.toDeviceDescriptor())
+    deviceModel.setSelectedDevice(fakeDevice().toDeviceDescriptor())
     processModel.selectedProcess = null
 
     layoutInspector.stopInspector()
@@ -151,7 +138,7 @@ class LayoutInspectorTest {
 
     // test no device, has process
     deviceModel.setSelectedDevice(null)
-    processModel.selectedProcess = device1.toDeviceDescriptor().createProcess("fake_process")
+    processModel.selectedProcess = fakeDevice().toDeviceDescriptor().createProcess("fake_process")
 
     layoutInspector.stopInspector()
 
@@ -169,6 +156,43 @@ class LayoutInspectorTest {
     inspectorModel.update(newWindow, listOf(ROOT), 0)
     waitForCondition(10.seconds) { imagesRefreshed }
     verify(mockRenderModel, timeout(TimeUnit.SECONDS.toMillis(10)).times(2)).refresh()
+  }
+
+  @Test
+  fun testDoesNotConnectToUnsupportedProcess() {
+    val unsupportedDevice =
+      Common.Device.newBuilder()
+        .setDeviceId(1)
+        .setManufacturer("man1")
+        .setModel("mod1")
+        .setSerial("serial1")
+        .setIsEmulator(false)
+        .setApiLevel(1)
+        .setVersion("version1")
+        .setCodename("codename1")
+        .setState(Common.Device.State.ONLINE)
+        .build()
+
+    val supportedDevice =
+      Common.Device.newBuilder()
+        .setDeviceId(1)
+        .setManufacturer("man1")
+        .setModel("mod1")
+        .setSerial("serial1")
+        .setIsEmulator(false)
+        .setApiLevel(MIN_SUPPORTED_VERSION)
+        .setVersion("version1")
+        .setCodename("codename1")
+        .setState(Common.Device.State.ONLINE)
+        .build()
+
+    val unsupportedProcess = unsupportedDevice.toDeviceDescriptor().createProcess("fake_process")
+    val supportedProcess = supportedDevice.toDeviceDescriptor().createProcess("fake_process")
+    processModel.setLayoutInspectorSelectedProcess(unsupportedProcess)
+    assertThat(processModel.selectedProcess).isNull()
+
+    processModel.setLayoutInspectorSelectedProcess(supportedProcess)
+    assertThat(processModel.selectedProcess).isNotNull()
   }
 
   private fun createDeviceModel(vararg devices: Common.Device): Pair<DeviceModel, ProcessesModel> {

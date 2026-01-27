@@ -27,6 +27,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.pipeline.fakeDevice
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
@@ -81,57 +82,10 @@ class ForegroundProcessDetectionTest {
 
   private val timestampGenerator = AtomicLong()
 
-  private val device1 =
-    Common.Device.newBuilder()
-      .setDeviceId(1)
-      .setManufacturer("man1")
-      .setModel("mod1")
-      .setSerial("serial1")
-      .setIsEmulator(false)
-      .setApiLevel(1)
-      .setVersion("version1")
-      .setCodename("codename1")
-      .setState(Common.Device.State.ONLINE)
-      .build()
-
-  private val device2 =
-    Common.Device.newBuilder()
-      .setDeviceId(2)
-      .setManufacturer("man2")
-      .setModel("mod2")
-      .setSerial("serial2")
-      .setIsEmulator(false)
-      .setApiLevel(2)
-      .setVersion("version2")
-      .setCodename("codename2")
-      .setState(Common.Device.State.ONLINE)
-      .build()
-
-  private val device3 =
-    Common.Device.newBuilder()
-      .setDeviceId(3)
-      .setManufacturer("man3")
-      .setModel("mod3")
-      .setSerial("serial3")
-      .setIsEmulator(false)
-      .setApiLevel(3)
-      .setVersion("version3")
-      .setCodename("codename3")
-      .setState(Common.Device.State.ONLINE)
-      .build()
-
-  private val device4 =
-    Common.Device.newBuilder()
-      .setDeviceId(4)
-      .setManufacturer("man4")
-      .setModel("mod4")
-      .setSerial("serial4")
-      .setIsEmulator(false)
-      .setApiLevel(4)
-      .setVersion("version4")
-      .setCodename("codename4")
-      .setState(Common.Device.State.ONLINE)
-      .build()
+  private val device1 = fakeDevice(deviceId = 1, serial = "serial1")
+  private val device2 = fakeDevice(deviceId = 2, serial = "serial2")
+  private val device3 = fakeDevice(deviceId = 3, serial = "serial3")
+  private val device4 = fakeDevice(deviceId = 4, serial = "serial4")
 
   private val deviceToStreamMap =
     mapOf(

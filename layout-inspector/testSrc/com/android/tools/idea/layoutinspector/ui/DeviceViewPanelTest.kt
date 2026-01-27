@@ -412,9 +412,9 @@ class DeviceViewPanelWithFullInspectorTest {
       // alphabetically sorted in SelectDeviceAction
       checkDeviceAction(
         children[0],
-        enabled = true,
+        enabled = false,
         ICON_LEGACY_PHONE,
-        "Google Legacy Model (Live inspection disabled for API < 29)",
+        "Google Legacy Model (Unsupported for API < 29)",
       )
       checkDeviceAction(
         children[1],
@@ -426,7 +426,7 @@ class DeviceViewPanelWithFullInspectorTest {
         children[2],
         enabled = false,
         ICON_PHONE,
-        "Google Older Legacy Model (Unsupported for API < 23)",
+        "Google Older Legacy Model (Unsupported for API < 29)",
       )
       checkDeviceAction(children[3], enabled = true, AllIcons.Run.Stop, "Stop Inspector")
     }
@@ -464,7 +464,7 @@ class DeviceViewPanelWithFullInspectorTest {
         <v2 android:id="@+id/v2"/>
         <v3/>
       </v1>
-    """
+      """
         .trimIndent(),
     )
 
