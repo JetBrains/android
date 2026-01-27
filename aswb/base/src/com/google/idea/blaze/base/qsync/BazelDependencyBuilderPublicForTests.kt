@@ -30,7 +30,7 @@ import org.jetbrains.annotations.VisibleForTesting
  *
  * Our test framework wraps instances and the interface allows it to delegate these methods to the original implementation.
  */
-interface BazelDependencyBuilderPublicForTests {
+interface BazelDependencyBuilderPublicForTests : DependencyBuilder {
   @VisibleForTesting
   fun getInvocationInfo(
     context: BlazeContext,

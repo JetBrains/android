@@ -15,15 +15,37 @@
  */
 package com.google.idea.blaze.base.qsync
 
+import com.google.idea.blaze.base.bazel.BuildSystem
+import com.google.idea.blaze.base.command.BlazeCommand
 import com.google.idea.blaze.base.scope.BlazeContext
+import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.deps.OutputGroup
 import com.google.idea.blaze.qsync.deps.OutputInfo
 import java.io.IOException
+import java.time.Instant
 
 /** A query sync service that knows how to build dependencies for given targets  */
 interface DependencyBuilder {
+
+  interface PreparedInvocation {
+    fun updateCommand(commandBuilder: BlazeCommand.Builder)
+    fun createOutputInfo(
+      blazeBuildOutputs: BlazeBuildOutputs,
+      buildTime: Instant,
+      context: BlazeContext,
+    ): OutputInfo
+  }
+
+  @Throws(IOException::class, BuildException::class)
+  fun prepareInvocation(
+    context: BlazeContext,
+    buildTargets: Set<Label>,
+    outputGroups: Collection<OutputGroup>,
+    invoker: BuildSystem.BuildInvoker,
+  ): PreparedInvocation
+
   @Throws(IOException::class, BuildException::class)
   fun build(
     context: BlazeContext,
