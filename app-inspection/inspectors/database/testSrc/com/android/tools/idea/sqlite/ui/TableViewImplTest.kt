@@ -42,6 +42,7 @@ import com.android.tools.idea.sqlite.ui.tableView.TableView.TableViewType.TABLE
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl.CopyToClipboardAction
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl.RemoveRowsAction
+import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl.SetNullAction
 import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
 import com.android.tools.idea.sqlite.utils.SqliteTestUtil
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
@@ -70,6 +71,7 @@ import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JProgressBar
 import javax.swing.JTable
+import javax.swing.table.TableModel
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
@@ -1296,6 +1298,56 @@ class TableViewImplTest : BasePlatformTestCase() {
 
     assertThat(copyPasteManager.getContents<String>(stringFlavor)).isEqualTo("val-1-2,val-3-2")
   }
+
+  fun testSetNullAction_singleRow() {
+    view.prepare(
+      TableData(
+        listOf("col1", "col2"),
+        listOf(
+          listOf("val-1-1", "val-1-2"),
+          listOf("val-2-1", "val-2-2"),
+        ),
+      )
+    )
+    val table = view.component.getDescendant<JTable>()
+    table.selectionModel.addSelectionInterval(0, 0)
+    table.addColumnSelectionInterval(1, 1)
+    assertThat(table.model.getColumnValues(1)).containsExactly("val-1-1", "val-2-1")
+
+    SetNullAction(table).actionPerformed(TestActionEvent.createTestEvent())
+
+    assertThat(table.model.getColumnValues(1)).containsExactly(null, "val-2-1")
+  }
+
+  fun testSetNullAction_multipleRows() {
+    view.prepare(
+      TableData(
+        listOf("col1", "col2"),
+        listOf(
+          listOf("val-1-1", "val-1-2"),
+          listOf("val-2-1", "val-2-2"),
+          listOf("val-3-1", "val-3-2"),
+        ),
+      )
+    )
+    val table = view.component.getDescendant<JTable>()
+    table.selectionModel.addSelectionInterval(0, 0)
+    table.selectionModel.addSelectionInterval(2, 2)
+    table.addColumnSelectionInterval(2, 2)
+    assertThat(table.model.getColumnValues(2)).containsExactly("val-1-2", "val-2-2", "val-3-2")
+
+    SetNullAction(table).actionPerformed(TestActionEvent.createTestEvent())
+
+    assertThat(table.model.getColumnValues(2)).containsExactly(null, "val-2-2", null)
+  }
+}
+
+private fun TableModel.getColumnValues(column: Int): List<Any?> {
+  return buildList {
+    repeat(rowCount) {
+      add(getValueAt(it, column))
+    }
+  }
 }
 
 private data class TableData(val columnNames: List<String>, val values: List<List<String>>)
@@ -1310,7 +1362,7 @@ private fun TableViewImpl.prepare(
   assert(data.values.all { it.size == data.columnNames.size })
 
   val columns =
-    data.columnNames.map { ResultSetSqliteColumn(it, SqliteAffinity.TEXT, false, false) }
+    data.columnNames.map { ResultSetSqliteColumn(it, SqliteAffinity.TEXT, true, false) }
   showTableColumns(columns.toViewColumns())
   val rows =
     data.values.map {

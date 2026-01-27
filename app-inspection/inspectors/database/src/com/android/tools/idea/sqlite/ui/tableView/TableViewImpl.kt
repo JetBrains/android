@@ -768,11 +768,12 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
-      val rowIndex = table.selectedRow
+      val rows = table.selectedRows
       val columnIndex = table.selectedColumn
+      val model = table.model as MyTableModel
 
       if (columnIndex > 0) {
-        (table.model as MyTableModel).setValueAt(null, rowIndex, columnIndex)
+        rows.forEach { model.setValueAt(null, it, columnIndex) }
       }
     }
 
