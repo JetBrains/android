@@ -26,17 +26,6 @@
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="      &quot;layout_flags_DIM_BEHIND&quot; to PropertyDefinition(ATTR_DIM_BEHIND, PropertyType.INT32),"
-        errorLine2="                                                      ~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/layoutinspector/pipeline/legacy/PropertyMapper.kt"
-            line="258"
-            column="55"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope"
         errorLine1="    renderModel.hitRects.forEach { renderImages(g, it) }"
         errorLine2="                ~~~~~~~~">
         <location

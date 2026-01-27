@@ -23,7 +23,6 @@ import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetr
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.common.annotations.VisibleForTesting
@@ -31,15 +30,15 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 
 fun interface ClientFactory {
   fun createClient(params: InspectorClientLauncher.Params): InspectorClient?
@@ -99,23 +98,12 @@ class InspectorClientLauncher(
         }
       }
 
-      val legacyClientFactory = ClientFactory { params ->
-        LegacyClient(
-          params.process,
-          model,
-          notificationModel,
-          metrics,
-          coroutineScope,
-          parentDisposable,
-        )
-      }
-
       val launchers =
         if (LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
           // Embedded Layout Inspector is meant to be used only with an App Inspection inspector.
           listOf(appInspectionInspectorClientFactory)
         } else {
-          listOf(appInspectionInspectorClientFactory, legacyClientFactory)
+          listOf(appInspectionInspectorClientFactory)
         }
 
       return InspectorClientLauncher(

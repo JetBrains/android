@@ -22,8 +22,8 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.ui.RecentProcess
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
+import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
@@ -83,8 +83,8 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-private val MODERN_PROCESS = MODERN_DEVICE.createProcess()
-private val LEGACY_PROCESS = LEGACY_DEVICE.createProcess()
+private val MODERN_PROCESS =
+  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class LayoutInspectorToolWindowFactoryTest {
 
@@ -129,31 +129,20 @@ class LayoutInspectorToolWindowFactoryTest {
   }
 
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
-  private val inspectionRule = AppInspectionInspectorRule(projectRule)
-  private val inspectorRule =
+  private val appInspectionRule = AppInspectionInspectorRule(projectRule)
+  private val layoutInspectorRule =
     LayoutInspectorRule(
-      listOf(LegacyClientProvider({ projectRule.testRootDisposable })),
+      clientProviders = listOf(appInspectionRule.createInspectorClientProvider()),
       projectRule,
-    ) {
-      it.name == LEGACY_PROCESS.name
-    }
+    )
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule)!!
+  val ruleChain =
+    RuleChain.outerRule(projectRule).around(appInspectionRule).around(layoutInspectorRule)!!
 
   @Before
   fun setUp() {
-    val devices = listOf(MODERN_DEVICE, OLDER_LEGACY_DEVICE, LEGACY_DEVICE)
-    devices.forEach { device ->
-      inspectorRule.adbRule.connectDevice(
-        device.serial,
-        device.manufacturer,
-        device.model,
-        device.version,
-        device.apiLevel,
-        DeviceState.HostConnectionType.USB,
-      )
-    }
+    layoutInspectorRule.attachDevice(MODERN_DEVICE)
   }
 
   @Test
@@ -166,38 +155,38 @@ class LayoutInspectorToolWindowFactoryTest {
   }
 
   @Test
-  fun clientOnlyLaunchedIfWindowIsNotMinimized() {
-    val listener =
-      LayoutInspectorToolWindowManagerListener(inspectorRule.project, inspectorRule.launcher)
-    val toolWindow = FakeToolWindow(inspectorRule.project, listener)
+  fun launcherDisabledWhenToolWindowIsMinimized() {
+    val listener = LayoutInspectorToolWindowManagerListener(layoutInspectorRule.launcher)
+    val toolWindow = FakeToolWindow(layoutInspectorRule.project, listener)
 
     toolWindow.show()
+    assertThat(toolWindow.visible).isTrue()
+
     toolWindow.hide()
     assertThat(toolWindow.visible).isFalse()
-    inspectorRule.processNotifier.fireConnected(LEGACY_PROCESS)
-    assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
+    assertThat(layoutInspectorRule.launcher.enabled).isFalse()
 
     toolWindow.show()
-    assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
+    assertThat(layoutInspectorRule.launcher.enabled).isTrue()
   }
 
   @Test
   fun testCollapseToolWindowShowsInspectionNotificationWhenInspectorIsRunning() {
-    val listener =
-      LayoutInspectorToolWindowManagerListener(inspectorRule.project, inspectorRule.launcher)
+    val listener = LayoutInspectorToolWindowManagerListener(layoutInspectorRule.launcher)
 
-    val toolWindow = FakeToolWindow(inspectorRule.project, listener)
+    val toolWindow = FakeToolWindow(layoutInspectorRule.project, listener)
 
-    // bubble isn't shown when inspection not running
     toolWindow.show()
     toolWindow.hide()
     assertThat(toolWindow.manager.notificationText).isEmpty()
 
-    // Attach to a fake process.
-    inspectorRule.processNotifier.fireConnected(LEGACY_PROCESS)
-
-    // Check bubble is shown.
     toolWindow.show()
+
+    // Attach process
+    layoutInspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    layoutInspectorRule.processes.selectedProcess = MODERN_PROCESS
+    waitForCondition(2.seconds) { layoutInspectorRule.launcher.activeClient.isConnected }
+
     toolWindow.hide()
     assertThat(toolWindow.manager.notificationText).isNotEmpty()
 
@@ -210,19 +199,21 @@ class LayoutInspectorToolWindowFactoryTest {
 
   @Test
   fun clientCanBeDisconnectedWhileMinimized() {
-    val listener =
-      LayoutInspectorToolWindowManagerListener(inspectorRule.project, inspectorRule.launcher)
-    val toolWindow = FakeToolWindow(inspectorRule.project, listener)
+    val listener = LayoutInspectorToolWindowManagerListener(layoutInspectorRule.launcher)
+    val toolWindow = FakeToolWindow(layoutInspectorRule.project, listener)
 
     toolWindow.show()
-    inspectorRule.processNotifier.fireConnected(LEGACY_PROCESS)
-    assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
+
+    // Attach process
+    layoutInspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    layoutInspectorRule.processes.selectedProcess = MODERN_PROCESS
+    waitForCondition(2.seconds) { layoutInspectorRule.launcher.activeClient.isConnected }
 
     toolWindow.hide()
-    assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
+    assertThat(layoutInspectorRule.inspectorClient.isConnected).isTrue()
 
-    inspectorRule.processNotifier.fireDisconnected(LEGACY_PROCESS)
-    assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
+    layoutInspectorRule.processNotifier.fireDisconnected(MODERN_PROCESS)
+    assertThat(layoutInspectorRule.inspectorClient.isConnected).isFalse()
   }
 
   @Test
@@ -237,7 +228,7 @@ class LayoutInspectorToolWindowFactoryTest {
 
   @Test
   fun testRegisterLayoutInspectorToolWindow() {
-    val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val coroutineScope = projectRule.testRootDisposable.createCoroutineScope()
     val fakeForegroundProcessDetection = FakeForegroundProcessDetection()
 
     val layoutInspector =
