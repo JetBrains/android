@@ -385,7 +385,7 @@ internal class EmulatorUiSettingsController(
 
   override fun reset() {
     scope.launch {
-      var command = when (deviceType) {
+      val command = when (deviceType) {
         DeviceType.WEAR -> FACTORY_RESET_COMMAND_FOR_WEAR.format(readApplicationId)
         DeviceType.TV,
         DeviceType.AUTOMOTIVE -> FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO.format(readApplicationId)
