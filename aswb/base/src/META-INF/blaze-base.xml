@@ -412,7 +412,9 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.base.qsync.ProjectProtoTransformProvider"
       interface="com.google.idea.blaze.base.qsync.ProjectProtoTransformProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.qsync.AnnotationProcessorOverride"
-      interface="com.google.idea.blaze.base.qsync.AnnotationProcessorOverride"/>
+                    interface="com.google.idea.blaze.base.qsync.AnnotationProcessorOverride"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.base.qsync.rendering.bazelComposeToolingProjectLabelProvider"
+                    interface="com.google.idea.blaze.base.qsync.rendering.BazelComposeToolingProjectLabelProvider" />
   </extensionPoints>
 
   <extensionPoints>
