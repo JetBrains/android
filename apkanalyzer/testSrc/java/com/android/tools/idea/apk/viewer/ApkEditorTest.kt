@@ -55,28 +55,29 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.LoadingNode
+import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.treeStructure.Tree
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
+import java.awt.Component
+import java.awt.Container
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+import java.util.zip.ZipInputStream
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.text.JTextComponent
 import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreePath
 import kotlin.io.path.bufferedWriter
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.pathString
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
-import com.intellij.ui.SimpleColoredComponent
-import java.awt.Component
-import java.awt.Container
-import javax.swing.JLabel
-import javax.swing.text.JTextComponent
-import javax.swing.tree.TreePath
 
 
 // Timeout to use when waiting for isLoaded condition
@@ -495,6 +496,24 @@ class ApkEditorTest(
     assertThat(dump).isEqualTo("")
   }
 
+  @Test
+  fun selectJson_createsJsonEditor() {
+    val path = "/test-app.apk"
+    val apkEditor = apkEditor(path)
+    val originalContent = unzipAsText(path, "/simple.json")
+
+    val editor = apkEditor.getEditor<FileEditorComponent>(apkEditor.getNode("/simple.json"))
+
+    val fileEditor = editor.editor as TestFileEditor
+    assertThat(fileEditor.fileType).isEqualTo("JSON")
+    assertThat(originalContent).isEqualTo("""{"foo": "foo"}""")
+    assertThat(fileEditor.fileContents).isEqualTo("""
+      {
+        "foo": "foo"
+      }
+    """.trimIndent())
+  }
+
   private fun apkEditor(path: String, isResource: Boolean = true): ApkEditor {
     val file = if (isResource) TestResources.getFile(path) else File(path)
     val archive = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file) ?: fail("File not found: $path")
@@ -645,6 +664,7 @@ private fun ApkEditor.dumpAlignmentTree() = dumpTree("Name", "AlignmentCell") { 
  * Dump the columns with renderers matching [columns].
  * Take only the rows where [predicate] returns true for one of the cells.
  */
+@Suppress("SameParameterValue")
 private fun ApkEditor.dumpTree(
   vararg columns: String,
   predicate: (columnName: String, columnValue: String) -> Boolean
@@ -786,6 +806,19 @@ private fun ChunkWithChunks.getAllChunks(): Sequence<Chunk> {
       if (it is ChunkWithChunks) {
         // recursive call
         yieldAll(it.getAllChunks())
+      }
+    }
+  }
+}
+
+@Suppress("SameParameterValue")
+private fun unzipAsText(file: String, path: String): String? {
+  ZipInputStream(TestResources.getFile(file).inputStream()).use { stream ->
+    while (true) {
+      val entry = stream.nextEntry ?: return null
+      // Zip entries typically do not start with '/', so we normalize the comparison
+      if (entry.name == path.removePrefix("/")) {
+        return stream.readBytes().toString(Charsets.UTF_8)
       }
     }
   }

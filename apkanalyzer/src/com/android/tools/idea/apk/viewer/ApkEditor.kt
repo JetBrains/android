@@ -34,6 +34,8 @@ import com.android.tools.idea.log.LogWrapper
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerUtil
 import com.android.tools.proguard.ProguardMap
 import com.android.utils.FileUtils
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileChooser.FileChooser
@@ -60,8 +62,6 @@ import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBLabel
-import com.intellij.util.io.URLUtil
-import org.jetbrains.annotations.VisibleForTesting
 import java.beans.PropertyChangeListener
 import java.io.File
 import java.io.IOException
@@ -72,8 +72,11 @@ import java.security.NoSuchAlgorithmException
 import java.util.Optional
 import javax.swing.JComponent
 import javax.swing.LayoutFocusTraversalPolicy
+import kotlin.io.path.extension
 import kotlin.io.path.name
 import kotlin.math.max
+import com.intellij.util.io.URLUtil
+import org.jetbrains.annotations.VisibleForTesting
 
 internal class ApkEditor(
   private val project: Project,
@@ -383,6 +386,11 @@ internal class ApkEditor(
         null -> ApkVirtualFile.create(p, content)
         else -> ApkVirtualFile.createText(p, text)
       }
+    }
+    if (p.extension == "json") {
+      val gson = GsonBuilder().setPrettyPrinting().create()
+      val jsonObject = gson.fromJson(String(content), JsonObject::class.java)
+      return ApkVirtualFile.createText(p, gson.toJson(jsonObject))
     }
 
     var jarRootPath: String = archive.path.toString()
