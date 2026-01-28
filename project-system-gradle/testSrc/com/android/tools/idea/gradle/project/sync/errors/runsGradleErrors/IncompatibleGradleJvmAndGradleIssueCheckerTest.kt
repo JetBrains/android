@@ -166,7 +166,7 @@ class IncompatibleGradleJvmAndGradleIssueCheckerTest : AbstractIssueCheckerInteg
         expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isSameAs(SUCCESS)
 
         val gradleJvmVersion = GradleDaemonJvmPropertiesFile.getProperties(project.basePath!!.asPath()).version?.value
-        val expectedJvmVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(gradleVersion, true)
+        val expectedJvmVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(project, gradleVersion)
         expect.that(gradleJvmVersion).isEqualTo(expectedJvmVersion.toFeatureString())
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP,

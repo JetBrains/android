@@ -18,6 +18,11 @@ package com.android.tools.idea.gradle.extensions
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
 import com.android.tools.idea.jdk.JavaVersionLts
 import com.android.tools.idea.sdk.IdeSdks
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.projectRoots.JavaSdk
+import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.ex.JavaSdkUtil
+import com.intellij.testFramework.IdeaTestUtil
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.lang.JavaVersion
 import org.gradle.util.GradleVersion
@@ -37,21 +42,38 @@ class GradleJvmSupportMatrixExtensionsTest(private val gradleVersion: GradleVers
     }
   }
 
+  override fun setUp() {
+    super.setUp()
+    IdeSdks.removeJdksOn(testRootDisposable)
+  }
+
   @Test
-  fun `Gradle recommended java version`() {
-    val recommendedNonLtsVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(gradleVersion, false)
-    val expectedRecommendedVersion = gradleVersion.supportedJavaVersions.last()
-    assertEquals(expectedRecommendedVersion, recommendedNonLtsVersion)
+  fun `Gradle recommended java version is project JDK when compatible`() {
+    val jdk9 = IdeaTestUtil.getMockJdk9()
+
+    ExternalSystemApiUtil.executeProjectChangeAction(true, project) {
+      ProjectJdkTable.getInstance().addJdk(IdeaTestUtil.getMockJdk9())
+      JavaSdkUtil.applyJdkToProject(project, jdk9)
+    }
+
+    val recommendedJdkVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(project, gradleVersion)
+    val expectedProjectJdkVersion = JavaSdk.getInstance().getVersion(jdk9)!!.maxLanguageLevel.toJavaVersion()
+    if (GradleJvmSupportMatrix.isSupported(gradleVersion, expectedProjectJdkVersion)) {
+      assertEquals(expectedProjectJdkVersion, recommendedJdkVersion)
+    } else {
+      assertEquals(gradleVersion.expectedLtsVersion, recommendedJdkVersion)
+    }
   }
 
   @Test
   fun `Gradle recommended java version considering only LTS`() {
-    val recommendedLtsVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(gradleVersion, true)
-    val expectedRecommendedVersion = gradleVersion.supportedJavaVersions.last { JavaVersionLts.isLtsVersion(it) }
-    assertEquals(expectedRecommendedVersion, recommendedLtsVersion)
+    val recommendedJdkVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(project, gradleVersion)
+    assertEquals(gradleVersion.expectedLtsVersion, recommendedJdkVersion)
   }
 
-  private val GradleVersion.supportedJavaVersions: List<JavaVersion>
+  private val GradleVersion.expectedLtsVersion: JavaVersion
     get() =
-      GradleJvmSupportMatrix.getSupportedJavaVersions(this).filter { it.feature <= IdeSdks.DEFAULT_JDK_VERSION.maxLanguageLevel.feature() }
+      GradleJvmSupportMatrix.getSupportedJavaVersions(this)
+        .filter { it.feature <= IdeSdks.DEFAULT_JDK_VERSION.maxLanguageLevel.feature() }
+        .last { JavaVersionLts.isLtsVersion(it) }
 }

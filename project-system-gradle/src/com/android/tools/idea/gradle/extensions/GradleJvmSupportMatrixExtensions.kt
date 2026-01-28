@@ -17,21 +17,29 @@ package com.android.tools.idea.gradle.extensions
 
 import com.android.tools.idea.jdk.JavaVersionLts
 import com.android.tools.idea.sdk.IdeSdks
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.JavaSdk
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.util.lang.JavaVersion
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.jvmcompat.GradleJvmSupportMatrix
 
 /**
- * Returns the highest Java version compatible given a Gradle version and Studio support based on [GradleJvmSupportMatrix] class which
+ * Returns a recommended Java version compatible given a Gradle version and Studio support based on [GradleJvmSupportMatrix] class which
  * stores the compatibility table documented on https://docs.gradle.org/current/userguide/compatibility.html.
+ *
+ * It considers the Project JDK as first option since stores the latest successful Gradle sync JDK, before recommending latest LTS version
+ * compatible with specified Gradle version.
  */
-fun GradleJvmSupportMatrix.Companion.getRecommendedJavaVersion(gradleVersion: GradleVersion, considerOnlyLts: Boolean): JavaVersion {
+fun GradleJvmSupportMatrix.Companion.getRecommendedJavaVersion(project: Project, gradleVersion: GradleVersion): JavaVersion {
+  ProjectRootManager.getInstance(project).projectSdk?.let { sdk ->
+    val sdkVersion = JavaSdk.getInstance().getVersion(sdk)?.maxLanguageLevel?.toJavaVersion()
+    if (sdkVersion != null && GradleJvmSupportMatrix.isSupported(gradleVersion, sdkVersion)) {
+      return sdkVersion
+    }
+  }
+
   return GradleJvmSupportMatrix.getSupportedJavaVersions(gradleVersion)
     .filter { it.feature <= IdeSdks.DEFAULT_JDK_VERSION.maxLanguageLevel.feature() }
-    .last {
-      when {
-        considerOnlyLts -> JavaVersionLts.isLtsVersion(it)
-        else -> true
-      }
-    }
+    .last { JavaVersionLts.isLtsVersion(it) }
 }

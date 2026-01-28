@@ -44,7 +44,9 @@ class GradleDaemonJvmCriteriaRefactoringProcessor : AgpUpgradeComponentRefactori
 
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
-  private val recommendedToolchainVersion by lazy { GradleJvmSupportMatrix.getRecommendedJavaVersion(getRecommendedGradleVersion(), true) }
+  private val recommendedToolchainVersion by lazy {
+    GradleJvmSupportMatrix.getRecommendedJavaVersion(project, getRecommendedGradleVersion())
+  }
 
   override val necessityInfo = AlwaysNeeded
 

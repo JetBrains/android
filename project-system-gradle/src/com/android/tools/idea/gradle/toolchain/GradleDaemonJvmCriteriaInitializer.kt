@@ -40,7 +40,7 @@ class GradleDaemonJvmCriteriaInitializer(
       }
     }
 
-    val javaVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(gradleVersion, true)
+    val javaVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(project, gradleVersion)
     return GradleDaemonJvmCriteriaTemplatesManager.generatePropertiesFile(javaVersion, externalProjectPath)
   }
 }
