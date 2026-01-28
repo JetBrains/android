@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.rendering.tokens
 
+import com.google.idea.blaze.base.qsync.rendering.BazelComposeToolingProjectLabelProvider
+
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager

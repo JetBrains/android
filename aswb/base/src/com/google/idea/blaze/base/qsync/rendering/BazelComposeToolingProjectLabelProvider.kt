@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 The Bazel Authors. All rights reserved.
+ * Copyright 2026 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.tokens
+package com.google.idea.blaze.base.qsync.rendering
 
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.project.BuildGraphData
@@ -32,7 +32,7 @@ interface BazelComposeToolingProjectLabelProvider {
 
   companion object {
     val EP_NAME: ExtensionPointName<BazelComposeToolingProjectLabelProvider> =
-      ExtensionPointName.create("com.android.tools.idea.rendering.tokens.bazelComposeToolingProjectLabelProvider")
+      ExtensionPointName.create("com.google.idea.blaze.base.qsync.rendering.bazelComposeToolingProjectLabelProvider")
 
     fun getComposeToolingLabel(project: Project): Label? {
       return EP_NAME.extensionList.filter { it.isApplicable(project) }.firstNotNullOfOrNull { it.getComposeToolingLabel(project) }

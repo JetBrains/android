@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.rendering.tokens
 
+import com.google.idea.blaze.base.qsync.rendering.BazelComposeToolingProjectLabelProvider
+
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager
 import com.google.idea.blaze.base.settings.BuildSystemName
