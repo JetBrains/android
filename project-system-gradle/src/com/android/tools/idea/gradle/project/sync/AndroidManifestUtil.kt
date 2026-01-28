@@ -25,8 +25,13 @@ import kotlin.io.path.isDirectory
 
 
 fun hasAndroidManifest(contentRoot: Path): Boolean {
+  val listDir = when {
+    !contentRoot.isDirectory() -> contentRoot.parent
+    else -> contentRoot
+  }
+  if (listDir == null || !listDir.exists()) return false
   return try {
-    Files.list(contentRoot).anyMatch { childProjectDir ->
+    Files.list(listDir).anyMatch { childProjectDir ->
       childProjectDir.isDirectory()
       && (childProjectDir.hasAndroidManifestImpl()
       || Files.list(childProjectDir).anyMatch { grandChildProjectDir -> grandChildProjectDir.hasAndroidManifestImpl() })
