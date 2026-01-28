@@ -218,7 +218,7 @@ class TransportServiceProxy(
           "" // Return an empty string for the path
         } else {
           FileUtil.createTempFile("transport-bytes-${request.streamId}-${request.id}", ".tmp", true).absolutePath.also {
-            content.writeTo(FileOutputStream(it))
+            FileOutputStream(it).use { stream -> content.writeTo(stream) }
             val totalDurationMs = (System.nanoTime() - startTimeNs) / 1_000_000
             val seconds = totalDurationMs / 1000
             val remainingMs = totalDurationMs % 1000
