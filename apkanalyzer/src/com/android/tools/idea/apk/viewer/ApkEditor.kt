@@ -196,10 +196,7 @@ internal class ApkEditor(
   override fun selectApkAndCompare() {
     val desc = FileChooserDescriptor(true, false, false, false, false, false)
     desc.withFileFilter(Condition { file: VirtualFile? -> ApkFileSystem.EXTENSIONS.contains(file!!.getExtension()) })
-    val file = FileChooser.chooseFile(desc, project, null)
-    if (file == null) {
-      return  // User canceled.
-    }
+    val file = FileChooser.chooseFile(desc, project, null) ?: return  // User canceled.
     val oldApk: VirtualFile = checkNotNull(ApkFileSystem.getInstance().getRootByLocal(file))
     val builder = DialogBuilder(project)
     builder.setTitle(oldApk.name + " (old) vs " + root.name + " (new)")
@@ -309,10 +306,7 @@ internal class ApkEditor(
     // a single editor for a single filetype, so arbitrarily pick the first file:
     val n: ArchiveTreeNode = nodes[0]
     val p = n.data.path
-    val fileName = p.fileName
-    if (fileName == null) {
-      return EmptyPanel()
-    }
+    val fileName = p.fileName ?: return EmptyPanel()
     if ("resources.arsc" == fileName.toString()) {
       val arscContent: ByteArray?
       try {
@@ -343,8 +337,7 @@ internal class ApkEditor(
   }
 
   private fun createVirtualFile(archive: Archive, p: Path): VirtualFile? {
-    val name = p.fileName
-    if (name == null) {
+    if (p.fileName == null) {
       return null
     }
 
