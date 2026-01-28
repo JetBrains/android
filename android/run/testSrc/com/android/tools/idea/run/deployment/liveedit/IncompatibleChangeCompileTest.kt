@@ -84,6 +84,29 @@ class IncompatibleChangeCompileTest {
   }
 
   @Test
+  fun `Skips compose $stable`() {
+    val file = projectRule.createKtFile("A.kt", """
+      class Test {
+        val x = 0
+      }
+    """)
+
+    val cache = MutableIrClassCache()
+    val apk = projectRule.directApiCompileByteArray(file)
+    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
+
+    projectRule.modifyKtFile(file, """
+      class Test {
+        val x = 0
+        val ${"`\$stable`"} = 0
+      }
+    """)
+
+    // We will allow $stable or any form of getters created by it.
+    compile(file, compiler)
+  }
+
+  @Test
   fun `Remove field`() {
     val file = projectRule.createKtFile("A.kt", """
       class Test {

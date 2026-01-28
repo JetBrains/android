@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis
 
-import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedAccess
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedField
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedMethod
@@ -72,16 +71,18 @@ class RegularClassVisitor(private val className: String, private val unrestricte
     throw unsupportedSourceModificationEnclosingMethod(location, "enclosing method changed from '$old' to '$new'")
   }
 
-  // Allow adding and removing synthetic methods, such as compiler-generated accessor methods.
+  // Allow adding and removing synthetic methods, such as compiler-generated accessor methods. We also ignore the static initializer
+  // (<clinit>): Live Edit cannot apply <clinit> changes regardless (the JVM never re-runs class initialization on redefinition), and
+  // the Compose stability transformer adds/removes it alongside the synthetic $stable field that we already ignore below.
   override fun visitMethods(added: List<IrMethod>, removed: List<IrMethod>, modified: List<MethodDiff>) {
-    if (added.filterNot { it.isSyntheticOrBridge() }.isNotEmpty()) {
+    if (added.filterNot { it.isSyntheticOrBridge() || it.name.startsWith("get\$stable") || it.name == "<clinit>" }.isNotEmpty()) {
       if (!unrestricted) {
         val msg = "added method(s): " + added.joinToString(", ") { it.getReadableDesc() }
         throw unsupportedSourceModificationAddedMethod(location, msg)
       }
     }
 
-    if (removed.filterNot { it.isSyntheticOrBridge() }.isNotEmpty()) {
+    if (removed.filterNot { it.isSyntheticOrBridge() || it.name.startsWith("get\$stable") || it.name == "<clinit>" }.isNotEmpty()) {
       if (!unrestricted) {
         val msg = "removed method(s): " + removed.joinToString(", ") { it.getReadableDesc() }
         throw unsupportedSourceModificationRemovedMethod(location, msg)
@@ -96,17 +97,20 @@ class RegularClassVisitor(private val className: String, private val unrestricte
   }
 
   override fun visitFields(added: List<IrField>, removed: List<IrField>, modified: List<FieldDiff>) {
-    if (added.isNotEmpty()) {
-      val msg = "added field(s): " + added.joinToString(", ") { it.name }
+    val addedFields = added.filter { !it.name.startsWith("\$stable") }
+    if (addedFields.isNotEmpty()) {
+      val msg = "added field(s): " + addedFields.joinToString(", ") { it.name }
       throw unsupportedSourceModificationAddedField(location, msg)
     }
 
-    if (removed.isNotEmpty()) {
-      val msg = "removed field(s): " + removed.joinToString(", ") { it.name }
+    val removedFields = removed.filter { !it.name.startsWith("\$stable") }
+    if (removedFields.isNotEmpty()) {
+      val msg = "removed field(s): " + removedFields.joinToString(", ") { it.name }
       throw unsupportedSourceModificationRemovedField(location, msg)
     }
 
-    for (field in modified) {
+    val modifiedFields = modified.filter { !it.name.startsWith("\$stable") }
+    for (field in modifiedFields) {
       val visitor = RegularFieldVisitor(className, field.name)
       field.accept(visitor)
     }
