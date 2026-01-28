@@ -88,6 +88,7 @@ public class DependencyTrackerImpl implements DependencyTracker {
   private RequestedTargets getRequestedTargets(
       QuerySyncProjectSnapshot snapshot, DependencyBuildRequest request) {
     return switch (request.requestType) {
+      case SPECIAL_TARGETS -> new RequestedTargets(request.targets, ImmutableSet.of());
       case MULTIPLE_TARGETS -> snapshot.getGraph()
         .computeRequestedTargets(request.targets, querySyncUserPreferences.getExperimentalBuildNativeTargetsFromAndroidTransitionPoint());
       case WHOLE_PROJECT -> snapshot.getGraph().computeWholeProjectTargets();

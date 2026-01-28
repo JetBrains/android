@@ -46,6 +46,7 @@ public interface DependencyTracker {
   /** Request to {@link #buildDependenciesForTargets(BlazeContext, DependencyBuildRequest)}. */
   class DependencyBuildRequest {
     public enum RequestType {
+      SPECIAL_TARGETS,
       /**
        * Build multiple targets and mark all dependencies as built even if they produce no
        * artifacts.
@@ -70,6 +71,10 @@ public interface DependencyTracker {
 
     public static DependencyBuildRequest multiTarget(Collection<Label> targets) {
       return new DependencyBuildRequest(RequestType.MULTIPLE_TARGETS, ImmutableSet.copyOf(targets));
+    }
+
+    public static DependencyBuildRequest specialTarget(Collection<Label> targets) {
+      return new DependencyBuildRequest(RequestType.SPECIAL_TARGETS, ImmutableSet.copyOf(targets));
     }
 
     public static DependencyBuildRequest wholeProject() {

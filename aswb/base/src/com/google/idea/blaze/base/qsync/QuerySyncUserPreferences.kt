@@ -31,11 +31,11 @@ interface QuerySyncUserPreferences {
   val autoSyncComposeTooling: Boolean
 }
 
-private val skipRefreshQueryDataOnStartup = BoolExperiment("aswb.query.sync.skip.query.on.startup", true)
-private val buildNativeTargetsFromAndroidTransitionPoint =
+val skipRefreshQueryDataOnStartup = BoolExperiment("aswb.query.sync.skip.query.on.startup", true)
+val buildNativeTargetsFromAndroidTransitionPoint =
     BoolExperiment("aswb.query.sync.build.native.targets.from.android.transition.point", true)
-private val liveEditSupportEnabled: BoolExperiment = BoolExperiment("aswb.live.edit.enabled", false)
-private val autoSyncComposeToolingExperiment = BoolExperiment("aswb.query.sync.auto.sync.compose.tooling", true)
+val liveEditSupportEnabled: BoolExperiment = BoolExperiment("aswb.live.edit.enabled", false)
+val autoSyncComposeToolingExperiment = BoolExperiment("aswb.query.sync.auto.sync.compose.tooling", true)
 
 
 @Service(Service.Level.PROJECT)
